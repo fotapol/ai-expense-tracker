@@ -5,8 +5,8 @@ from sqlalchemy import Column, DateTime
 from sqlalchemy import Enum as SAEnum
 from sqlmodel import Field, SQLModel
 
-from app.models.enums import ReceiptStatus
-from app.models.timestamps import TimestampedModel
+from app.models.shared.enums import ReceiptStatus
+from app.models.shared.timestamps import TimestampedModel
 
 
 class ReceiptBase(SQLModel):
@@ -44,3 +44,4 @@ class Receipt(ReceiptBase, TimestampedModel, table=True):
             default=ReceiptStatus.CREATED,
         ),
     )
+

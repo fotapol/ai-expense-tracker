@@ -1,16 +1,16 @@
 """ORM model package exports for metadata registration and app imports."""
 
-from app.models.category import Category, CategoryBase
-from app.models.enums import CategoryScope, ReceiptStatus, TransactionSource
-from app.models.merchant import Merchant, MerchantAlias, MerchantAliasBase, MerchantBase
-from app.models.profile import Profile, ProfileBase
-from app.models.receipt import Receipt, ReceiptBase
-from app.models.receipt_extraction import ReceiptExtraction
-from app.models.timestamps import TimestampedModel
-from app.models.transaction import Transaction, TransactionBase
-from app.models.transaction_item import TransactionItem
-from app.models.user import User, UserBase
-from app.models.user_category import UserCategoryOverride, UserItemCategoryOverride
+from app.models.merchants.merchant import Merchant, MerchantAlias, MerchantAliasBase, MerchantBase
+from app.models.overrides.user_category import UserCategoryOverride, UserItemCategoryOverride
+from app.models.receipts.receipt import Receipt, ReceiptBase
+from app.models.receipts.receipt_extraction import ReceiptExtraction
+from app.models.shared.enums import CategoryScope, ReceiptStatus, TransactionSource
+from app.models.shared.timestamps import TimestampedModel
+from app.models.taxonomy.category import Category, CategoryBase
+from app.models.transactions.transaction import Transaction, TransactionBase
+from app.models.transactions.transaction_item import TransactionItem
+from app.models.users.profile import Profile, ProfileBase
+from app.models.users.user import User, UserBase
 
 __all__ = [
     "Category",

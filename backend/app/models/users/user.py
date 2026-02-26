@@ -3,7 +3,7 @@ import uuid
 from sqlalchemy import CHAR, Column, String
 from sqlmodel import Field, SQLModel
 
-from app.models.timestamps import TimestampedModel
+from app.models.shared.timestamps import TimestampedModel
 
 
 class UserBase(SQLModel):
@@ -33,3 +33,4 @@ class User(UserBase, TimestampedModel, table=True):
         sa_column=Column(String(32), nullable=False, default="firebase"),
     )
     auth_subject: str = Field(max_length=255, nullable=False, unique=True, index=True)
+

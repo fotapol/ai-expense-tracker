@@ -2,7 +2,7 @@ import uuid
 
 from sqlmodel import Field, SQLModel
 
-from app.models.timestamps import TimestampedModel
+from app.models.shared.timestamps import TimestampedModel
 
 
 class ProfileBase(SQLModel):
@@ -24,3 +24,4 @@ class Profile(ProfileBase, TimestampedModel, table=True):
         index=True,
         foreign_key="users.id",
     )
+

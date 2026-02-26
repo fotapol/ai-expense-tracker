@@ -6,7 +6,7 @@ from sqlalchemy import Column, Numeric
 from sqlalchemy.dialects.postgresql import JSONB
 from sqlmodel import Field
 
-from app.models.timestamps import TimestampedModel
+from app.models.shared.timestamps import TimestampedModel
 
 
 class ReceiptExtraction(TimestampedModel, table=True):
@@ -35,3 +35,4 @@ class ReceiptExtraction(TimestampedModel, table=True):
         default=None, sa_column=Column(Numeric(12, 6), nullable=True)
     )
     prompt_version: str | None = Field(default=None, max_length=64)
+

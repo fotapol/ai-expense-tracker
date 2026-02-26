@@ -4,7 +4,7 @@ from decimal import Decimal
 from sqlalchemy import Column, Numeric, String, UniqueConstraint
 from sqlmodel import Field
 
-from app.models.timestamps import TimestampedModel
+from app.models.shared.timestamps import TimestampedModel
 
 
 class TransactionItem(TimestampedModel, table=True):
@@ -51,3 +51,4 @@ class TransactionItem(TimestampedModel, table=True):
     category_id: uuid.UUID = Field(nullable=False, index=True, foreign_key="categories.id")
 
     raw_line: str | None = Field(default=None, max_length=1000)
+

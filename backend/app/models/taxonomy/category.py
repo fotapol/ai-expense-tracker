@@ -4,8 +4,8 @@ from sqlalchemy import Column, Index, UniqueConstraint
 from sqlalchemy import Enum as SAEnum
 from sqlmodel import Field, SQLModel
 
-from app.models.enums import CategoryScope
-from app.models.timestamps import TimestampedModel
+from app.models.shared.enums import CategoryScope
+from app.models.shared.timestamps import TimestampedModel
 
 
 class CategoryBase(SQLModel):
@@ -33,3 +33,4 @@ class Category(CategoryBase, TimestampedModel, table=True):
     )
 
     id: uuid.UUID = Field(default_factory=uuid.uuid4, primary_key=True)
+

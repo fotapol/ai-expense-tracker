@@ -6,8 +6,8 @@ from sqlalchemy import CHAR, Column, DateTime, Index, Numeric, String
 from sqlalchemy import Enum as SAEnum
 from sqlmodel import Field, SQLModel
 
-from app.models.enums import TransactionSource
-from app.models.timestamps import TimestampedModel
+from app.models.shared.enums import TransactionSource
+from app.models.shared.timestamps import TimestampedModel
 
 
 class TransactionBase(SQLModel):
@@ -58,3 +58,4 @@ class Transaction(TransactionBase, TimestampedModel, table=True):
     receipt_id: uuid.UUID | None = Field(
         default=None, index=True, unique=True, foreign_key="receipts.id"
     )
+
