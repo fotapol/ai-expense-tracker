@@ -1,67 +1,46 @@
 import datetime
 import uuid
-from enum import Enum
 
-from sqlalchemy import DateTime, func
-from sqlmodel import Column, Field, SQLModel
+from sqlalchemy import Column, DateTime
+from sqlalchemy import Enum as SAEnum
+from sqlmodel import Field, SQLModel
 
-
-class ReceiptStatus(str, Enum):
-    """High-level receipt processing status."""
-
-    CREATED = "CREATED"
-    UPLOADED = "UPLOADED"
-    PROCESSING = "PROCESSING"
-    DONE = "DONE"
-    FAILED = "FAILED"
+from app.models.enums import ReceiptStatus
+from app.models.timestamps import TimestampedModel
 
 
 class ReceiptBase(SQLModel):
-    """Shared fields for Receipt models.
+    """Base metadata fields for an uploaded receipt file in object storage."""
 
-    Receipt represents a stored file (image/PDF) and its processing lifecycle,
-    not a financial record.
-    """
-
-    storage_bucket: str | None = Field(default=None, max_length=128)
-    storage_key: str | None = Field(default=None, max_length=512)
-    mime_type: str | None = Field(default=None, max_length=100)
-    original_filename: str | None = Field(default=None, max_length=255)
+    storage_bucket: str = Field(max_length=128, nullable=False)
+    storage_key: str = Field(max_length=512, nullable=False)
+    mime_type: str = Field(max_length=100, nullable=False)
+    original_filename: str = Field(max_length=255, nullable=False)
+    sha256: str = Field(max_length=64, nullable=False, index=True)
+    size_bytes: int = Field(nullable=False)
 
     page_count: int | None = Field(default=None)
-    size_bytes: int | None = Field(default=None)
+    uploaded_at: datetime.datetime | None = Field(
+        default=None,
+        sa_column=Column(DateTime(timezone=True), nullable=True, index=True),
+    )
+    failure_reason: str | None = Field(default=None, max_length=1000)
+    processing_attempt: int = Field(default=0, nullable=False)
 
-    failure_reason: str | None = Field(default=None, max_length=500)
-    processing_attempt: int = Field(default=0)
 
-
-class Receipt(ReceiptBase, table=True):
-    """Receipt file metadata and processing state.
-
-    Receipt tracks the uploaded file location in object storage (MinIO/S3) and
-    the async processing status (LLM extraction job).
-    """
+class Receipt(ReceiptBase, TimestampedModel, table=True):
+    """Stored receipt object tracked through asynchronous extraction lifecycle."""
 
     __tablename__ = "receipts"
 
-    id: uuid.UUID | None = Field(default_factory=uuid.uuid4, primary_key=True)
-    user_id: uuid.UUID = Field(index=True, nullable=False)
+    id: uuid.UUID = Field(default_factory=uuid.uuid4, primary_key=True)
+    user_id: uuid.UUID = Field(nullable=False, index=True, foreign_key="users.id")
 
     status: ReceiptStatus = Field(
         default=ReceiptStatus.CREATED,
-        sa_column=Column(SAEnum(ReceiptStatus, name="receipt_status", native_enum=False), nullable=False),
-    )
-
-    sha256: str | None = Field(default=None, max_length=64, index=True)
-    uploaded_at: datetime.datetime | None = Field(
-        default=None, sa_column=Column(DateTime(timezone=True), nullable=True)
-    )
-
-    created_at: datetime.datetime = Field(
-        sa_column=Column(DateTime(timezone=True), default=func.now(), nullable=False)
-    )
-    updated_at: datetime.datetime = Field(
         sa_column=Column(
-            DateTime(timezone=True), default=func.now(), onupdate=func.now(), nullable=False
-        )
+            SAEnum(ReceiptStatus, name="receipt_status", native_enum=False),
+            nullable=False,
+            default=ReceiptStatus.CREATED,
+        ),
     )

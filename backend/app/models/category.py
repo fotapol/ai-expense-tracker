@@ -1,25 +1,35 @@
-import datetime
 import uuid
 
-from sqlalchemy import DateTime, func
-from sqlmodel import Column, Field, SQLModel
+from sqlalchemy import Column, Index, UniqueConstraint
+from sqlalchemy import Enum as SAEnum
+from sqlmodel import Field, SQLModel
+
+from app.models.enums import CategoryScope
+from app.models.timestamps import TimestampedModel
 
 
-class Category(SQLModel, table=True):
-    """Spending category taxonomy (e.g., Groceries, Transport).
+class CategoryBase(SQLModel):
+    """Base category fields shared by category table and payload schemas."""
 
-    Used primarily to categorize transactions for analytics and reporting.
-    """
+    scope: CategoryScope = Field(
+        sa_column=Column(
+            SAEnum(CategoryScope, name="category_scope", native_enum=False),
+            nullable=False,
+        )
+    )
+    code: str = Field(max_length=64, nullable=False)
+    name: str = Field(max_length=120, nullable=False)
+    parent_id: uuid.UUID | None = Field(default=None, foreign_key="categories.id", index=True)
+    is_active: bool = Field(default=True, nullable=False)
+
+
+class Category(CategoryBase, TimestampedModel, table=True):
+    """Hierarchical taxonomy node used for transaction and item categorization."""
 
     __tablename__ = "categories"
+    __table_args__ = (
+        UniqueConstraint("scope", "code", name="uq_categories_scope_code"),
+        Index("ix_categories_scope_name", "scope", "name"),
+    )
 
     id: uuid.UUID = Field(default_factory=uuid.uuid4, primary_key=True)
-    code: str = Field(primary_key=True, unique=True, nullable=False)
-    name: str = Field(max_length=30, nullable=False)
-    parent_id: uuid.UUID | None = Field(default=None, foreign_key="categories.id")
-
-    is_active: bool = Field(default=True)
-    
-    created_at: datetime.datetime = Field(
-        sa_column=Column(DateTime(timezone=True), default=func.now(), nullable=False)
-    )

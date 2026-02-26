@@ -1,34 +1,26 @@
-import datetime
 import uuid
 
-from sqlalchemy import DateTime, func
-from sqlmodel import Column, Field, SQLModel
+from sqlmodel import Field, SQLModel
+
+from app.models.timestamps import TimestampedModel
 
 
 class ProfileBase(SQLModel):
-    """Shared fields for a user profile.
-
-    This model is not a table. It is used to compose the table model and
-    request/response schemas.
-    """
+    """Base profile attributes displayed in the frontend."""
 
     display_name: str | None = Field(default=None, max_length=100)
-    avatar_url: str | None = Field(default=None, max_length=255)
+    avatar_url: str | None = Field(default=None, max_length=512)
 
 
-class Profile(ProfileBase, table=True):
-    """User profile stored in the database.
+class Profile(ProfileBase, TimestampedModel, table=True):
+    """One-to-one extension table containing user-facing profile metadata."""
 
-    A profile is a 1:1 extension of a user identity. It stores app-specific
-    user-facing fields (e.g., display name, avatar) that are not part of the
-    authentication provider.
-    """
+    __tablename__ = "profiles"
 
-    user_id: uuid.UUID = Field(index=True, unique=True, nullable=False, foreign_key="user.id", primary_key=True)
-
-    created_at: datetime.datetime = Field(
-        sa_column=Column(DateTime(timezone=True), default=func.now(), nullable=False)
-    )
-    updated_at: datetime.datetime = Field(
-        sa_column=Column(DateTime(timezone=True), default=func.now(), onupdate=func.now(), nullable=False)
+    id: uuid.UUID = Field(default_factory=uuid.uuid4, primary_key=True)
+    user_id: uuid.UUID = Field(
+        nullable=False,
+        unique=True,
+        index=True,
+        foreign_key="users.id",
     )

@@ -1,19 +1,23 @@
 import uuid
 from decimal import Decimal
-from datetime import datetime
 
-from sqlalchemy import DateTime, func
-from sqlmodel import Column, Field, SQLModel, String, Numeric
+from sqlalchemy import Column, Numeric, String, UniqueConstraint
+from sqlmodel import Field
+
+from app.models.timestamps import TimestampedModel
 
 
-class TransactionItem(SQLModel, table=True):
-    """A line item from a receipt.
+class TransactionItem(TimestampedModel, table=True):
+    """Line item within a transaction with mandatory item-level category assignment.
 
-    Represents a purchased product/service row, including optional discount
-    information when available on the receipt.
+    If extraction cannot classify an item, assign category code `UNCATEGORIZED`
+    under ITEM scope and persist that category's UUID in `category_id`.
     """
 
     __tablename__ = "transaction_items"
+    __table_args__ = (
+        UniqueConstraint("transaction_id", "line_no", name="uq_transaction_items_transaction_line_no"),
+    )
 
     id: uuid.UUID = Field(default_factory=uuid.uuid4, primary_key=True)
 
@@ -28,7 +32,7 @@ class TransactionItem(SQLModel, table=True):
     qty: Decimal | None = Field(
         default=None, sa_column=Column(Numeric(12, 3), nullable=True)
     )
-    unit: str | None = Field(default=None, max_length=16)  # e.g., "kg", "l", "pcs"
+    unit: str | None = Field(default=None, max_length=32)
 
     unit_price: Decimal | None = Field(
         default=None, sa_column=Column(Numeric(12, 4), nullable=True)
@@ -43,14 +47,7 @@ class TransactionItem(SQLModel, table=True):
         default=None, sa_column=Column(Numeric(12, 2), nullable=True)
     )
 
-    is_adjustment: bool = Field(default=False)  # e.g., discount/coupon line as a separate row
+    is_adjustment: bool = Field(default=False, nullable=False)
+    category_id: uuid.UUID = Field(nullable=False, index=True, foreign_key="categories.id")
 
-    product_category_label: str | None = Field(
-        default=None, max_length=128, index=True
-    )
-
-    raw_line: str | None = Field(default=None, max_length=800)
-
-    created_at: datetime.datetime = Field(
-        sa_column=Column(DateTime(timezone=True), default=func.now(), nullable=False)
-    )
+    raw_line: str | None = Field(default=None, max_length=1000)
