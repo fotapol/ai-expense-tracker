@@ -1,0 +1,111 @@
+"""FastAPI dependency that resolves the current authenticated user."""
+
+import logging
+
+from fastapi import Depends, HTTPException, status
+from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
+from firebase_admin import auth as firebase_auth
+from sqlmodel import Session, select
+
+from app.auth.firebase_admin import verify_token
+from app.core.db import get_session
+from app.models.users.user import User
+
+logger = logging.getLogger(__name__)
+
+_bearer_scheme = HTTPBearer(
+    description="Firebase ID token obtained via Firebase Auth SDK.",
+)
+
+
+def get_current_user(
+    credentials: HTTPAuthorizationCredentials = Depends(_bearer_scheme),  # noqa: B008
+    session: Session = Depends(get_session),  # noqa: B008
+) -> User:
+    """Verify the Firebase ID token, resolve (or create) the local user row.
+
+    Security notes:
+    * Rejects tokens that are expired, malformed, or signed by an
+      unknown project.
+    * Checks that ``email_verified`` is True before auto-creating a user;
+      prevents abuse with unverified throwaway emails.
+    * Never logs the raw token value; only the short Firebase UID.
+    """
+    # --- Verify token ---------------------------------------------------
+    try:
+        claims = verify_token(credentials.credentials)
+    except firebase_auth.ExpiredIdTokenError:
+        logger.warning("Rejected expired Firebase ID token.")
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Token has expired. Please re-authenticate.",
+            headers={"WWW-Authenticate": "Bearer"},
+        ) from None
+    except firebase_auth.RevokedIdTokenError:
+        logger.warning("Rejected revoked Firebase ID token.")
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Token has been revoked. Please re-authenticate.",
+            headers={"WWW-Authenticate": "Bearer"},
+        ) from None
+    except firebase_auth.InvalidIdTokenError:
+        logger.warning("Rejected invalid Firebase ID token.")
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Invalid authentication token.",
+            headers={"WWW-Authenticate": "Bearer"},
+        ) from None
+    except Exception:
+        logger.exception("Unexpected error during token verification.")
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Authentication failed.",
+            headers={"WWW-Authenticate": "Bearer"},
+        ) from None
+
+    # --- Extract claims --------------------------------------------------
+    uid: str | None = claims.get("uid")
+    email: str | None = claims.get("email")
+    email_verified: bool = claims.get("email_verified", False)
+
+    if not uid:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Token does not contain a valid uid.",
+        )
+
+    # --- Lookup or create user -------------------------------------------
+    statement = select(User).where(
+        User.auth_subject == uid,
+        User.auth_provider == "firebase",
+    )
+    user = session.exec(statement).first()
+
+    if user is not None:
+        # Update email if it changed on the provider side.
+        if email and user.email != email:
+            user.email = email
+            session.add(user)
+            session.commit()
+            session.refresh(user)
+        return user
+
+    # Auto-create only when the email address has been verified by Firebase.
+    if email and not email_verified:
+        logger.warning("Blocked auto-creation for uid=%s: email not verified.", uid)
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Email address has not been verified.",
+        )
+
+    user = User(
+        email=email,
+        auth_provider="firebase",
+        auth_subject=uid,
+    )
+    session.add(user)
+    session.commit()
+    session.refresh(user)
+
+    logger.info("Created new local user id=%s for firebase uid=%s.", user.id, uid)
+    return user
