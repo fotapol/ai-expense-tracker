@@ -11,7 +11,9 @@ from app.schemas.overrides import (
     UserItemCategoryOverrideUpsert,
 )
 from app.schemas.receipts import (
-    ReceiptCreate,
+    ReceiptConfirmResponse,
+    ReceiptCreateRequest,
+    ReceiptCreateResponse,
     ReceiptExtractionRead,
     ReceiptRead,
     ReceiptStatusUpdate,
@@ -68,7 +70,9 @@ __all__ = [
     "ProfileRead",
     "ProfileUpdate",
     "Quantity3DP",
-    "ReceiptCreate",
+    "ReceiptConfirmResponse",
+    "ReceiptCreateRequest",
+    "ReceiptCreateResponse",
     "ReceiptExtractionRead",
     "ReceiptRead",
     "ReceiptStatusUpdate",

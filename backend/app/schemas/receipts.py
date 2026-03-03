@@ -11,17 +11,34 @@ from app.schemas.extraction import ExtractedReceiptData
 from app.schemas.shared import Cost6DP, SchemaBase, UUIDTimestampSchema
 
 
-class ReceiptCreate(SchemaBase):
-    """Payload for creating receipt metadata before extraction starts."""
+class ReceiptCreateRequest(SchemaBase):
+    """Client payload for initiating a receipt upload.
 
-    storage_bucket: str = Field(min_length=1, max_length=128)
-    storage_key: str = Field(min_length=1, max_length=512)
+    The server generates ``storage_bucket`` and ``storage_key``
+    internally — clients only provide content metadata.
+    """
+
     mime_type: str = Field(min_length=1, max_length=100)
-    original_filename: str = Field(min_length=1, max_length=255)
-    sha256: str = Field(min_length=64, max_length=64)
-    size_bytes: int = Field(ge=0)
-    page_count: int | None = Field(default=None, ge=1)
-    uploaded_at: dt.datetime | None = None
+    original_filename: str | None = Field(default=None, max_length=255)
+    size_bytes: int | None = Field(default=None, ge=0)
+    sha256: str | None = Field(default=None, min_length=64, max_length=64)
+
+
+class ReceiptCreateResponse(SchemaBase):
+    """Returned after creating a receipt — contains the presigned upload URL."""
+
+    receipt_id: UUID
+    storage_bucket: str
+    storage_key: str
+    upload_url: str
+    required_headers: dict[str, str]
+
+
+class ReceiptConfirmResponse(SchemaBase):
+    """Returned after confirming a receipt upload."""
+
+    receipt_id: UUID
+    status: ReceiptStatus
 
 
 class ReceiptRead(UUIDTimestampSchema):
@@ -39,6 +56,7 @@ class ReceiptRead(UUIDTimestampSchema):
     uploaded_at: dt.datetime | None
     failure_reason: str | None
     processing_attempt: int
+    transaction_id: UUID | None = None
 
 
 class ReceiptStatusUpdate(SchemaBase):
