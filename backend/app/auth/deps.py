@@ -2,13 +2,15 @@
 
 import logging
 
-from fastapi import Depends, HTTPException, status
+from fastapi import Depends, HTTPException, Request, status
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from firebase_admin import auth as firebase_auth
 from sqlmodel import Session, select
 
 from app.auth.firebase_admin import verify_token
+from app.cache.user_cache import cache_user, get_cached_user, invalidate_user_cache
 from app.core.db import get_session
+from app.core.redis import get_redis
 from app.models.users.user import User
 
 logger = logging.getLogger(__name__)
@@ -18,11 +20,15 @@ _bearer_scheme = HTTPBearer(
 )
 
 
-def get_current_user(
+async def get_current_user(
+    request: Request,
     credentials: HTTPAuthorizationCredentials = Depends(_bearer_scheme),  # noqa: B008
     session: Session = Depends(get_session),  # noqa: B008
 ) -> User:
     """Verify the Firebase ID token, resolve (or create) the local user row.
+
+    Performance: checks Redis cache before hitting the database.
+    Cache is invalidated when user data changes (email sync).
 
     Security notes:
     * Rejects tokens that are expired, malformed, or signed by an
@@ -74,7 +80,22 @@ def get_current_user(
             detail="Token does not contain a valid uid.",
         )
 
-    # --- Lookup or create user -------------------------------------------
+    # --- Cache-first lookup ----------------------------------------------
+    redis = get_redis()
+
+    cached = await get_cached_user(redis, uid)
+    if cached is not None:
+        # Even on cache hit, sync email if it changed.
+        if email and cached.email != email:
+            cached.email = email
+            session.add(cached)
+            session.commit()
+            session.refresh(cached)
+            await invalidate_user_cache(redis, uid)
+            await cache_user(redis, cached)
+        return cached
+
+    # --- DB lookup -------------------------------------------------------
     statement = select(User).where(
         User.auth_subject == uid,
         User.auth_provider == "firebase",
@@ -88,9 +109,10 @@ def get_current_user(
             session.add(user)
             session.commit()
             session.refresh(user)
+        await cache_user(redis, user)
         return user
 
-    # Auto-create only when the email address has been verified by Firebase.
+    # --- Auto-create user ------------------------------------------------
     if email and not email_verified:
         logger.warning("Blocked auto-creation for uid=%s: email not verified.", uid)
         raise HTTPException(
@@ -108,4 +130,5 @@ def get_current_user(
     session.refresh(user)
 
     logger.info("Created new local user id=%s for firebase uid=%s.", user.id, uid)
+    await cache_user(redis, user)
     return user
