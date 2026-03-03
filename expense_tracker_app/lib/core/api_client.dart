@@ -122,4 +122,67 @@ class ApiClient {
           'Failed to get receipt status: ${response.statusCode} ${response.body}');
     }
   }
+
+  /// GET /v1/transactions/{id}
+  static Future<Map<String, dynamic>> getTransaction(String id) async {
+    final token = await _getToken();
+    final response = await http.get(
+      Uri.parse('$apiBaseUrl/v1/transactions/$id'),
+      headers: {
+        'Authorization': 'Bearer $token',
+        'Content-Type': 'application/json',
+      },
+    );
+
+    if (response.statusCode == 200) {
+      return jsonDecode(response.body) as Map<String, dynamic>;
+    } else {
+      throw Exception(
+          'Failed to get transaction: ${response.statusCode} ${response.body}');
+    }
+  }
+
+  /// PUT /v1/transactions/{id}
+  static Future<Map<String, dynamic>> updateTransaction(
+      String id, Map<String, dynamic> payload) async {
+    final token = await _getToken();
+    final response = await http.put(
+      Uri.parse('$apiBaseUrl/v1/transactions/$id'),
+      headers: {
+        'Authorization': 'Bearer $token',
+        'Content-Type': 'application/json',
+      },
+      body: jsonEncode(payload),
+    );
+
+    if (response.statusCode == 200) {
+      return jsonDecode(response.body) as Map<String, dynamic>;
+    } else {
+      throw Exception(
+          'Failed to update transaction: ${response.statusCode} ${response.body}');
+    }
+  }
+
+  /// GET /v1/transactions
+  static Future<List<dynamic>> listTransactions() async {
+    final token = await _getToken();
+    final response = await http.get(
+      Uri.parse('$apiBaseUrl/v1/transactions'),
+      headers: {
+        'Authorization': 'Bearer $token',
+        'Content-Type': 'application/json',
+      },
+    );
+
+    if (response.statusCode == 200) {
+      final decodedResponse = jsonDecode(response.body);
+      if (decodedResponse is List) {
+        return decodedResponse;
+      }
+      return [];
+    } else {
+      throw Exception(
+          'Failed to list transactions: ${response.statusCode} ${response.body}');
+    }
+  }
 }
