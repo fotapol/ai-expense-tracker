@@ -69,6 +69,25 @@ services:
     ports:
       - "5672:5672"   # AMQP (clients)
       - "15672:15672" # Web UI
+  # RECEIPT PROCESSING WORKER
+  worker:
+    container_name: receipt_worker
+    build:
+      context: .
+      dockerfile: Dockerfile
+    env_file:
+      - .env
+    depends_on:
+      - postgres
+      - redis
+      - rabbitmq
+      - minio
+    restart: unless-stopped
+    networks:
+      - backend
+    command: ["uv", "run", "python", "-m", "app.worker.receipt_processor"]
+    volumes:
+      - ./backend/.secrets/firebase_sa.json:/run/secrets/firebase_sa.json:ro
 
 volumes:
   minio-data:
