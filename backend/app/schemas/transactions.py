@@ -85,6 +85,20 @@ class TransactionItemRead(UUIDTimestampSchema):
     raw_line: str | None
 
 
+class TransactionItemUpdate(SchemaBase):
+    """Update payload for a single transaction line item."""
+    id: UUID | None = Field(default=None, description="Provide ID to update existing item, omit to create new.")
+    description: str | None = None
+    qty: Quantity3DP | None = None
+    unit: str | None = None
+    unit_price: UnitPrice4DP | None = None
+    amount: Amount2DP | None = None
+    amount_before_discount: Amount2DP | None = None
+    discount_amount: Amount2DP | None = None
+    is_adjustment: bool | None = None
+    category_id: UUID | None = None
+
+
 class TransactionCreateManual(SchemaBase):
     """Payload for creating a manual transaction entry."""
 
@@ -127,6 +141,21 @@ class TransactionRead(UUIDTimestampSchema):
     source: TransactionSource
     status: TransactionStatus
     items: list[TransactionItemRead] = Field(default_factory=list)
+
+
+class TransactionUpdateRequest(SchemaBase):
+    """Payload to update an extracted transaction and its items."""
+    occurred_at: dt.datetime | None = None
+    amount_total: Amount2DP | None = None
+    currency: CurrencyCode | None = None
+    merchant_name: str | None = None
+    category_id: UUID | None = None
+    status: TransactionStatus | None = None
+
+    items: list[TransactionItemUpdate] | None = Field(
+        default=None, 
+        description="If provided, fully replaces or updates the line items."
+    )
 
 
 class TransactionListFilter(PaginationParams):
