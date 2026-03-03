@@ -4,7 +4,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'firebase_options.dart';
 import 'screens/login_screen.dart';
-import 'screens/me_screen.dart';
+import 'screens/main_screen.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -24,12 +24,17 @@ class MyApp extends StatelessWidget {
     return MaterialApp(
       title: 'Expense Tracker',
       theme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
+        brightness: Brightness.dark,
+        scaffoldBackgroundColor: const Color(0xFF161618), // Dark grey background
+        colorScheme: const ColorScheme.dark(
+          primary: Colors.deepPurpleAccent, // Purple primary color matching user request
+          surface: Color(0xFF1E1E24), // Slightly lighter grey for cards
+        ),
         useMaterial3: true,
       ),
       home: FirebaseAuth.instance.currentUser == null
           ? const LoginScreen()
-          : const MeScreen(),
+          : const MainScreen(),
     );
   }
 }
