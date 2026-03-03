@@ -7,10 +7,17 @@ services:
       dockerfile: Dockerfile
     env_file:
       - .env
+    depends_on:
+      - postgres
+      - redis
+      - rabbitmq
+    restart: unless-stopped
     networks:
       - backend
     ports:
       - 8000:8000
+    volumes:
+      - ./backend/.secrets/firebase_sa.json:/run/secrets/firebase_sa.json:ro
   # POSTGRESQL DATABASE
   postgres:
     container_name: postgres

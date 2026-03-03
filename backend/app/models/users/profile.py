@@ -24,4 +24,3 @@ class Profile(ProfileBase, TimestampedModel, table=True):
         index=True,
         foreign_key="users.id",
     )
-

@@ -31,8 +31,5 @@ class ReceiptExtraction(TimestampedModel, table=True):
     raw_json: dict[str, Any] | None = Field(default=None, sa_column=Column(JSONB, nullable=True))
 
     latency_ms: int | None = Field(default=None)
-    cost_usd: Decimal | None = Field(
-        default=None, sa_column=Column(Numeric(12, 6), nullable=True)
-    )
+    cost_usd: Decimal | None = Field(default=None, sa_column=Column(Numeric(12, 6), nullable=True))
     prompt_version: str | None = Field(default=None, max_length=64)
-

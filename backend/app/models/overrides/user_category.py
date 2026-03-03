@@ -46,4 +46,3 @@ class UserItemCategoryOverride(TimestampedModel, table=True):
     merchant_id: uuid.UUID | None = Field(default=None, index=True, foreign_key="merchants.id")
     item_key: str = Field(max_length=255, nullable=False)
     category_id: uuid.UUID = Field(nullable=False, foreign_key="categories.id")
-
