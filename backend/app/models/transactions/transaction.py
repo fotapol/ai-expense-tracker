@@ -58,4 +58,3 @@ class Transaction(TransactionBase, TimestampedModel, table=True):
     receipt_id: uuid.UUID | None = Field(
         default=None, index=True, unique=True, foreign_key="receipts.id"
     )
-

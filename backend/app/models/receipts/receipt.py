@@ -44,4 +44,3 @@ class Receipt(ReceiptBase, TimestampedModel, table=True):
             default=ReceiptStatus.CREATED,
         ),
     )
-

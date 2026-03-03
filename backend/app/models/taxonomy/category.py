@@ -33,4 +33,3 @@ class Category(CategoryBase, TimestampedModel, table=True):
     )
 
     id: uuid.UUID = Field(default_factory=uuid.uuid4, primary_key=True)
-

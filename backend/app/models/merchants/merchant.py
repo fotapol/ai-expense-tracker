@@ -48,4 +48,3 @@ class MerchantAlias(MerchantAliasBase, TimestampedModel, table=True):
     id: uuid.UUID = Field(default_factory=uuid.uuid4, primary_key=True)
     merchant_id: uuid.UUID = Field(nullable=False, index=True, foreign_key="merchants.id")
     user_id: uuid.UUID | None = Field(default=None, foreign_key="users.id")
-

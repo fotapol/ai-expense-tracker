@@ -33,4 +33,3 @@ class User(UserBase, TimestampedModel, table=True):
         sa_column=Column(String(32), nullable=False, default="firebase"),
     )
     auth_subject: str = Field(max_length=255, nullable=False, unique=True, index=True)
-
