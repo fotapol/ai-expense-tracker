@@ -2,9 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import '../core/api_client.dart';
+import '../main.dart';
 import 'categories_screen.dart';
+import 'labels_screen.dart';
 import 'login_screen.dart';
-import 'receipt_upload_screen.dart';
 
 /// Screen that displays the authenticated user's profile from the backend.
 class MeScreen extends StatefulWidget {
@@ -19,9 +20,8 @@ class _MeScreenState extends State<MeScreen> {
   bool _isLoading = true;
   String? _error;
 
-  // Local state for fake settings
+  // Local state for settings
   bool _notificationsEnabled = false;
-  bool _darkModeEnabled = true;
 
   @override
   void initState() {
@@ -155,7 +155,12 @@ class _MeScreenState extends State<MeScreen> {
                   title: 'Labels',
                   subtitle: 'Manage Labels',
                   trailing: const Icon(Icons.chevron_right, color: Colors.grey),
-                  onTap: _showComingSoon,
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (context) => const LabelsScreen()),
+                    );
+                  },
                 ),
                 _buildDivider(),
                 _buildSettingsTile(
@@ -180,18 +185,10 @@ class _MeScreenState extends State<MeScreen> {
                 _buildSettingsTile(
                   icon: Icons.dark_mode_outlined,
                   title: 'Dark Mode',
-                  onTap: () {
-                    setState(() {
-                      _darkModeEnabled = !_darkModeEnabled;
-                    });
-                  },
+                  onTap: () => themeProvider.toggle(),
                   trailing: Switch(
-                    value: _darkModeEnabled,
-                    onChanged: (val) {
-                      setState(() {
-                        _darkModeEnabled = val;
-                      });
-                    },
+                    value: themeProvider.isDarkMode,
+                    onChanged: (val) => themeProvider.toggle(),
                     activeColor: Theme.of(context).colorScheme.primary,
                   ),
                 ),
