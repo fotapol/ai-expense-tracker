@@ -218,4 +218,54 @@ class ApiClient {
           'Failed to fetch summary: ${response.statusCode} ${response.body}');
     }
   }
+
+  /// GET /v1/categories
+  static Future<List<dynamic>> listCategories() async {
+    final token = await _getToken();
+    final response = await http.get(
+      Uri.parse('$apiBaseUrl/v1/categories'),
+      headers: {
+        'Authorization': 'Bearer $token',
+        'Content-Type': 'application/json',
+      },
+    );
+    if (response.statusCode == 200) {
+      return jsonDecode(response.body) as List<dynamic>;
+    } else {
+      throw Exception('Failed to list categories: ${response.statusCode}');
+    }
+  }
+
+  /// POST /v1/categories
+  static Future<Map<String, dynamic>> createCategory(String name) async {
+    final token = await _getToken();
+    final response = await http.post(
+      Uri.parse('$apiBaseUrl/v1/categories'),
+      headers: {
+        'Authorization': 'Bearer $token',
+        'Content-Type': 'application/json',
+      },
+      body: jsonEncode({'name': name}),
+    );
+    if (response.statusCode == 201) {
+      return jsonDecode(response.body) as Map<String, dynamic>;
+    } else {
+      throw Exception('Failed to create category: ${response.statusCode} ${response.body}');
+    }
+  }
+
+  /// DELETE /v1/categories/{id}
+  static Future<void> deleteCategory(String id) async {
+    final token = await _getToken();
+    final response = await http.delete(
+      Uri.parse('$apiBaseUrl/v1/categories/$id'),
+      headers: {
+        'Authorization': 'Bearer $token',
+        'Content-Type': 'application/json',
+      },
+    );
+    if (response.statusCode != 204) {
+      throw Exception('Failed to delete category: ${response.statusCode} ${response.body}');
+    }
+  }
 }

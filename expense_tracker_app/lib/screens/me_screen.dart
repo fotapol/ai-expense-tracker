@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import '../core/api_client.dart';
+import 'categories_screen.dart';
 import 'login_screen.dart';
 import 'receipt_upload_screen.dart';
 
@@ -141,7 +142,12 @@ class _MeScreenState extends State<MeScreen> {
                   title: 'Categories & Subcategories',
                   subtitle: 'Manage categories & subcategories',
                   trailing: const Icon(Icons.chevron_right, color: Colors.grey),
-                  onTap: _showComingSoon,
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (context) => const CategoriesScreen()),
+                    );
+                  },
                 ),
                 _buildDivider(),
                 _buildSettingsTile(
