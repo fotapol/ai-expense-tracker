@@ -3,6 +3,7 @@ import 'home_tab.dart';
 import 'me_screen.dart';
 import 'receipt_upload_screen.dart';
 import 'receipts_tab.dart';
+import 'analytics_tab.dart';
 
 class MainScreen extends StatefulWidget {
   const MainScreen({super.key});
@@ -19,7 +20,7 @@ class _MainScreenState extends State<MainScreen> {
     const HomeTab(),
     const ReceiptsTab(),
     const Center(child: Text('Placeholder for Scan')), // Replaced by floating action button intercept
-    const Center(child: Text('Analytics (Coming Soon)')),
+    const AnalyticsTab(),
     const MeScreen(), // The previous Profile/Me screen
   ];
 

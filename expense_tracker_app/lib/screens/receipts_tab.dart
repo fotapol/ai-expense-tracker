@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import '../core/api_client.dart';
+import '../core/period_filter.dart';
 import 'transaction_edit_screen.dart';
 
 class ReceiptsTab extends StatefulWidget {
@@ -14,6 +15,7 @@ class _ReceiptsTabState extends State<ReceiptsTab> {
   bool _isLoading = true;
   String? _error;
   List<dynamic> _transactions = [];
+  String _selectedFilter = PeriodFilter.last3Months;
 
   @override
   void initState() {
@@ -28,7 +30,8 @@ class _ReceiptsTabState extends State<ReceiptsTab> {
     });
 
     try {
-      final data = await ApiClient.listTransactions();
+      final startDate = PeriodFilter.getStartDate(_selectedFilter);
+      final data = await ApiClient.listTransactions(fromDate: startDate);
       setState(() {
         _transactions = data;
         _isLoading = false;
@@ -94,19 +97,35 @@ class _ReceiptsTabState extends State<ReceiptsTab> {
   Widget _buildFilterPill() {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16.0),
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-        decoration: BoxDecoration(
-          color: Theme.of(context).colorScheme.surface,
-          borderRadius: BorderRadius.circular(20),
-        ),
-        child: const Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Text('Last 3 months'),
-            SizedBox(width: 4),
-            Icon(Icons.keyboard_arrow_down, size: 16),
-          ],
+      child: PopupMenuButton<String>(
+        onSelected: (String value) {
+          setState(() {
+            _selectedFilter = value;
+          });
+          _fetchTransactions();
+        },
+        itemBuilder: (context) {
+          return PeriodFilter.values.map((filter) {
+            return PopupMenuItem<String>(
+              value: filter,
+              child: Text(filter),
+            );
+          }).toList();
+        },
+        child: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+          decoration: BoxDecoration(
+            color: Theme.of(context).colorScheme.surface,
+            borderRadius: BorderRadius.circular(20),
+          ),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(_selectedFilter),
+              const SizedBox(width: 4),
+              const Icon(Icons.keyboard_arrow_down, size: 16),
+            ],
+          ),
         ),
       ),
     );
