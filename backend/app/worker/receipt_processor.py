@@ -61,7 +61,7 @@ QUEUE_NAME = "receipt_extraction"
 # Vision LLM call
 # ---------------------------------------------------------------------------
 
-def _call_vision_llm(image_bytes: bytes, mime_type: str) -> dict:
+def _call_vision_llm(image_bytes: bytes, mime_type: str, category_list: list[str]) -> dict:
     """Send image to Gemini and get structured receipt data back via LangChain structured output.
 
     Returns the extracted dict from the LLM along with metadata.
@@ -80,22 +80,17 @@ def _call_vision_llm(image_bytes: bytes, mime_type: str) -> dict:
 
     b64_image = base64.b64encode(image_bytes).decode("utf-8")
 
-    prompt = """You are an expert accounting system and receipt parser. 
+    # Build category list dynamically from DB
+    cat_lines = "\n".join(f"- {c}" for c in category_list)
+
+    prompt = f"""You are an expert accounting system and receipt parser. 
 Analyze this receipt image and extract structured data accurately.
 
 For every single `item` you extract, you MUST provide a `category_code`.
 You must choose the best fitting category ONLY from the following list:
-- FOOD
-- CLOTHING
-- TRANSPORT
-- UTILITIES
-- HEALTH
-- ENTERTAINMENT
-- HOME
-- ELECTRONICS
-- EDUCATION
-- PERSONAL_CARE
-- OTHER
+{cat_lines}
+
+If none of the categories fit well, use OTHER.
 """
 
     message = HumanMessage(
@@ -224,7 +219,20 @@ def process_receipt(receipt_id: str) -> None:
 
             # --- Call Vision LLM ---------------------------------------------
             logger.info("Calling Vision LLM for receipt %s ...", receipt_id)
-            llm_result = _call_vision_llm(image_bytes, receipt.mime_type)
+            
+            # Fetch all active categories dynamically from DB
+            active_cats = session.exec(
+                select(Category.code).where(
+                    Category.scope == CategoryScope.ITEM,
+                    Category.is_active == True,
+                )
+            ).all()
+            category_codes = [c for c in active_cats if c != "UNCATEGORIZED"]
+            if not category_codes:
+                category_codes = ["OTHER"]
+            logger.info("Using %d categories for LLM prompt.", len(category_codes))
+            
+            llm_result = _call_vision_llm(image_bytes, receipt.mime_type, category_codes)
             raw_json = llm_result["raw_json"]
 
             # --- Validate with Pydantic --------------------------------------
