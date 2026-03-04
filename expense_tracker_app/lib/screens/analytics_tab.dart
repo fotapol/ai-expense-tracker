@@ -16,6 +16,22 @@ class _AnalyticsTabState extends State<AnalyticsTab> {
   Map<String, dynamic>? _summaryData;
   String _selectedFilter = PeriodFilter.last3Months;
 
+  // Consistent color palette for categories
+  static const List<Color> _categoryColors = [
+    Color(0xFFFF7043), // Deep Orange
+    Color(0xFFAB47BC), // Purple
+    Color(0xFF29B6F6), // Light Blue
+    Color(0xFFFFCA28), // Amber
+    Color(0xFF66BB6A), // Green
+    Color(0xFFEC407A), // Pink
+    Color(0xFF8D6E63), // Brown
+    Color(0xFF26A69A), // Teal
+    Color(0xFF5C6BC0), // Indigo
+    Color(0xFFEF5350), // Red
+    Color(0xFF42A5F5), // Blue
+    Color(0xFFFFA726), // Orange
+  ];
+
   @override
   void initState() {
     super.initState();
@@ -43,26 +59,8 @@ class _AnalyticsTabState extends State<AnalyticsTab> {
     }
   }
 
-  // Helper mapping a backend code to a rich color and icon label
-  (Color, String) _getCategoryDesign(String code) {
-    switch (code) {
-      case 'FOOD':
-        return (const Color(0xFFFF7043), 'Food'); // Deep Orange
-      case 'CLOTHING':
-        return (const Color(0xFFAB47BC), 'Clothing & Footwear'); // Purple 400
-      case 'TRANSPORT':
-        return (const Color(0xFF29B6F6), 'Transport'); // Light Blue
-      case 'UTILITIES':
-        return (const Color(0xFFFFCA28), 'Utilities'); // Amber
-      case 'HEALTH':
-        return (const Color(0xFF66BB6A), 'Health'); // Green
-      case 'ENTERTAINMENT':
-        return (const Color(0xFFEC407A), 'Entertainment'); // Pink
-      case 'HOME':
-        return (const Color(0xFF8D6E63), 'Home'); // Brown
-      default:
-        return (const Color(0xFF78909C), 'Other'); // Blue Grey
-    }
+  Color _getColor(int index) {
+    return _categoryColors[index % _categoryColors.length];
   }
 
   @override
@@ -157,6 +155,7 @@ class _AnalyticsTabState extends State<AnalyticsTab> {
     }
 
     final totalAmount = (_summaryData?['total_amount'] as num?)?.toDouble() ?? 0.0;
+    final totalTransactions = (_summaryData?['total_transactions'] as num?)?.toInt() ?? 0;
     final categories = _summaryData?['categories'] as List<dynamic>? ?? [];
 
     if (totalAmount == 0 && categories.isEmpty) {
@@ -166,7 +165,7 @@ class _AnalyticsTabState extends State<AnalyticsTab> {
           children: [
             Icon(Icons.pie_chart_outline, size: 64, color: Colors.grey.shade600),
             const SizedBox(height: 16),
-            Text('No expenses data found', 
+            Text('No expenses data found',
               style: TextStyle(color: Colors.grey.shade400, fontSize: 16)),
           ],
         ),
@@ -178,7 +177,7 @@ class _AnalyticsTabState extends State<AnalyticsTab> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          _buildTotalCard(totalAmount),
+          _buildTotalCard(totalAmount, totalTransactions),
           const SizedBox(height: 32),
           const Text(
             'Expense Categories',
@@ -193,7 +192,12 @@ class _AnalyticsTabState extends State<AnalyticsTab> {
     );
   }
 
-  Widget _buildTotalCard(double totalAmount) {
+  Widget _buildTotalCard(double totalAmount, int totalTransactions) {
+    // Calculate days in the selected period for the average
+    int periodDays = 30;
+    if (_selectedFilter == PeriodFilter.last3Months) periodDays = 90;
+    if (_selectedFilter == PeriodFilter.thisYear) periodDays = DateTime.now().difference(DateTime(DateTime.now().year, 1, 1)).inDays.clamp(1, 366);
+
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.all(24),
@@ -203,8 +207,8 @@ class _AnalyticsTabState extends State<AnalyticsTab> {
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
           colors: [
-            Color(0xFF4A148C), // Deep purple
-            Color(0xFF311B92), // Deeper purple
+            Color(0xFF4A148C),
+            Color(0xFF311B92),
           ],
         ),
       ),
@@ -213,8 +217,8 @@ class _AnalyticsTabState extends State<AnalyticsTab> {
           Text(
             _selectedFilter.toUpperCase(),
             style: const TextStyle(
-              color: Colors.white70, 
-              fontSize: 12, 
+              color: Colors.white70,
+              fontSize: 12,
               letterSpacing: 1.2,
             ),
           ),
@@ -222,8 +226,8 @@ class _AnalyticsTabState extends State<AnalyticsTab> {
           Text(
             'RSD ${totalAmount.toStringAsFixed(2)}',
             style: const TextStyle(
-              color: Colors.white, 
-              fontSize: 40, 
+              color: Colors.white,
+              fontSize: 40,
               fontWeight: FontWeight.bold,
             ),
           ),
@@ -239,22 +243,22 @@ class _AnalyticsTabState extends State<AnalyticsTab> {
                   ),
                   const SizedBox(height: 4),
                   Text(
-                    'RSD ${(totalAmount / 30).toStringAsFixed(2)}', // Rough estimate for now
+                    'RSD ${(totalAmount / periodDays).toStringAsFixed(2)}',
                     style: const TextStyle(color: Colors.white, fontSize: 16),
                   ),
                 ],
               ),
               Container(width: 1, height: 40, color: Colors.white24),
-              const Column(
+              Column(
                 children: [
-                  Text(
+                  const Text(
                     'Total Transactions',
                     style: TextStyle(color: Colors.white70, fontSize: 12),
                   ),
-                  SizedBox(height: 4),
+                  const SizedBox(height: 4),
                   Text(
-                    '--', // Would come from backend ideally
-                    style: TextStyle(color: Colors.white, fontSize: 16),
+                    '$totalTransactions',
+                    style: const TextStyle(color: Colors.white, fontSize: 16),
                   ),
                 ],
               ),
@@ -269,11 +273,11 @@ class _AnalyticsTabState extends State<AnalyticsTab> {
     if (categories.isEmpty) return const SizedBox.shrink();
 
     List<PieChartSectionData> sections = [];
-    for (var cat in categories) {
-      final code = cat['code'] as String? ?? 'OTHER';
+    for (int i = 0; i < categories.length; i++) {
+      final cat = categories[i];
       final amount = (cat['amount'] as num?)?.toDouble() ?? 0.0;
       final percentage = (cat['percentage'] as num?)?.toDouble() ?? 0.0;
-      final (color, text) = _getCategoryDesign(code);
+      final color = _getColor(i);
 
       sections.add(
         PieChartSectionData(
@@ -286,7 +290,7 @@ class _AnalyticsTabState extends State<AnalyticsTab> {
             fontWeight: FontWeight.bold,
             color: Colors.white,
           ),
-        )
+        ),
       );
     }
 
@@ -325,15 +329,17 @@ class _AnalyticsTabState extends State<AnalyticsTab> {
       ),
     );
   }
-  
+
   Widget _buildCategoryLegend(List<dynamic> categories) {
     return Wrap(
       spacing: 16,
       runSpacing: 16,
       alignment: WrapAlignment.center,
-      children: categories.map((cat) {
-        final code = cat['code'] as String? ?? 'OTHER';
-        final (color, name) = _getCategoryDesign(code);
+      children: List.generate(categories.length, (index) {
+        final cat = categories[index];
+        // Use the API name directly instead of hardcoded switch
+        final name = cat['name'] as String? ?? 'Unknown';
+        final color = _getColor(index);
         return Row(
           mainAxisSize: MainAxisSize.min,
           children: [
@@ -349,7 +355,7 @@ class _AnalyticsTabState extends State<AnalyticsTab> {
             Text(name, style: TextStyle(color: Colors.grey.shade300)),
           ],
         );
-      }).toList(),
+      }),
     );
   }
 }
