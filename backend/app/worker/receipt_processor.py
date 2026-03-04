@@ -149,16 +149,34 @@ def _get_uncategorized_category_id(session: Session) -> uuid.UUID:
 
 
 def _resolve_category_id(session: Session, code: str | None, fallback_id: uuid.UUID) -> uuid.UUID:
-    """Try to find an ITEM-scope category by code; fall back to *fallback_id*."""
+    """Try to find an ITEM-scope category by code; auto-create it if not found."""
     if not code:
         return fallback_id
+        
+    clean_code = code.strip().upper()
     cat = session.exec(
         select(Category).where(
             Category.scope == CategoryScope.ITEM,
-            Category.code == code.strip().upper(),
+            Category.code == clean_code,
         )
     ).first()
-    return cat.id if cat else fallback_id
+    
+    if cat:
+        return cat.id
+        
+    # Standard LLM categories should be auto-created instead of falling back
+    name = clean_code.replace("_", " ").title()
+    new_cat = Category(
+        scope=CategoryScope.ITEM,
+        code=clean_code,
+        name=name,
+    )
+    session.add(new_cat)
+    session.commit()
+    session.refresh(new_cat)
+    
+    logger.info("Auto-created new category: %s", name)
+    return new_cat.id
 
 
 # ---------------------------------------------------------------------------
