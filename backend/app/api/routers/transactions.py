@@ -97,9 +97,11 @@ async def get_transactions_summary(
         
     transaction_ids_subquery = base_query.subquery()
 
-    # 2. Get total sum across all matching transactions
-    total_query = select(func.sum(Transaction.amount_total)).where(Transaction.id.in_(select(transaction_ids_subquery.c.id)))
-    total_amount = session.exec(total_query).first() or Decimal("0.00")
+    # 2. Get total sum and count across all matching transactions
+    total_query = select(func.sum(Transaction.amount_total), func.count(Transaction.id)).where(Transaction.id.in_(select(transaction_ids_subquery.c.id)))
+    result = session.exec(total_query).first()
+    total_amount = result[0] or Decimal("0.00")
+    total_transactions = result[1] or 0
     
     # 3. Group by category on TransactionItem
     from app.models.taxonomy.category import Category  # Local import to avoid circular dependencies if any
@@ -132,7 +134,8 @@ async def get_transactions_summary(
 
     return {
         "total_amount": float(total_amount),
-        "currency": "EUR", # Assuming EUR or fetching from first tx
+        "total_transactions": total_transactions,
+        "currency": "EUR",
         "categories": categories_breakdown
     }
 
