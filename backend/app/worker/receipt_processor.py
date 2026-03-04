@@ -81,7 +81,22 @@ def _call_vision_llm(image_bytes: bytes, mime_type: str) -> dict:
     b64_image = base64.b64encode(image_bytes).decode("utf-8")
 
     prompt = """You are an expert accounting system and receipt parser. 
-Analyze this receipt image and extract structured data accurately."""
+Analyze this receipt image and extract structured data accurately.
+
+For every single `item` you extract, you MUST provide a `category_code`.
+You must choose the best fitting category ONLY from the following list:
+- FOOD
+- CLOTHING
+- TRANSPORT
+- UTILITIES
+- HEALTH
+- ENTERTAINMENT
+- HOME
+- ELECTRONICS
+- EDUCATION
+- PERSONAL_CARE
+- OTHER
+"""
 
     message = HumanMessage(
         content=[

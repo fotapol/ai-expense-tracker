@@ -164,10 +164,17 @@ class ApiClient {
   }
 
   /// GET /v1/transactions
-  static Future<List<dynamic>> listTransactions() async {
+  static Future<List<dynamic>> listTransactions({DateTime? fromDate}) async {
     final token = await _getToken();
+    
+    // Build query params
+    String url = '$apiBaseUrl/v1/transactions';
+    if (fromDate != null) {
+      url += '?from_occurred_at=${fromDate.toUtc().toIso8601String()}';
+    }
+    
     final response = await http.get(
-      Uri.parse('$apiBaseUrl/v1/transactions'),
+      Uri.parse(url),
       headers: {
         'Authorization': 'Bearer $token',
         'Content-Type': 'application/json',
@@ -183,6 +190,32 @@ class ApiClient {
     } else {
       throw Exception(
           'Failed to list transactions: ${response.statusCode} ${response.body}');
+    }
+  }
+
+  /// GET /v1/transactions/summary
+  static Future<Map<String, dynamic>> getTransactionsSummary({DateTime? fromDate}) async {
+    final token = await _getToken();
+    
+    // Build query params
+    String url = '$apiBaseUrl/v1/transactions/summary';
+    if (fromDate != null) {
+      url += '?from_occurred_at=${fromDate.toUtc().toIso8601String()}';
+    }
+
+    final response = await http.get(
+      Uri.parse(url),
+      headers: {
+        'Authorization': 'Bearer $token',
+        'Content-Type': 'application/json',
+      },
+    );
+
+    if (response.statusCode == 200) {
+      return jsonDecode(response.body) as Map<String, dynamic>;
+    } else {
+      throw Exception(
+          'Failed to fetch summary: ${response.statusCode} ${response.body}');
     }
   }
 }

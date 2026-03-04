@@ -6,6 +6,7 @@ from decimal import Decimal
 from typing import Annotated, Any
 
 from fastapi import APIRouter, Depends, HTTPException, Request, status
+from sqlalchemy import func
 from sqlmodel import Session, select
 
 from app.auth.deps import get_current_user
@@ -74,6 +75,66 @@ async def list_transactions(
             results.append(read)
 
     return results
+
+
+@router.get("/transactions/summary")
+@limiter.limit("30/minute")
+async def get_transactions_summary(
+    request: Request,
+    filters: Annotated[TransactionListFilter, Depends()],
+    session: Session = Depends(get_session),  # noqa: B008
+    current_user: User = Depends(get_current_user),  # noqa: B008
+):
+    """Get aggregated summary of transactions split by category."""
+    
+    # 1. Base Query for the user's transactions in the date range
+    base_query = select(Transaction.id).where(Transaction.user_id == current_user.id)
+    
+    if filters.from_occurred_at:
+        base_query = base_query.where(Transaction.occurred_at >= filters.from_occurred_at)
+    if filters.to_occurred_at:
+        base_query = base_query.where(Transaction.occurred_at <= filters.to_occurred_at)
+        
+    transaction_ids_subquery = base_query.subquery()
+
+    # 2. Get total sum across all matching transactions
+    total_query = select(func.sum(Transaction.amount_total)).where(Transaction.id.in_(select(transaction_ids_subquery.c.id)))
+    total_amount = session.exec(total_query).first() or Decimal("0.00")
+    
+    # 3. Group by category on TransactionItem
+    from app.models.taxonomy.category import Category  # Local import to avoid circular dependencies if any
+    
+    category_query = (
+        select(
+            Category.id,
+            Category.name,
+            Category.code,
+            func.sum(TransactionItem.amount).label("category_total")
+        )
+        .join(TransactionItem, TransactionItem.category_id == Category.id)
+        .where(TransactionItem.transaction_id.in_(select(transaction_ids_subquery.c.id)))
+        .group_by(Category.id, Category.name, Category.code)
+        .order_by(func.sum(TransactionItem.amount).desc())
+    )
+    
+    category_results = session.exec(category_query).all()
+    
+    categories_breakdown = []
+    for cat_id, cat_name, cat_code, cat_total in category_results:
+        percentage = (cat_total / total_amount * 100) if total_amount > 0 else Decimal("0")
+        categories_breakdown.append({
+            "category_id": cat_id,
+            "name": cat_name,
+            "code": cat_code,
+            "amount": float(cat_total),
+            "percentage": float(percentage)
+        })
+
+    return {
+        "total_amount": float(total_amount),
+        "currency": "EUR", # Assuming EUR or fetching from first tx
+        "categories": categories_breakdown
+    }
 
 
 @router.get("/transactions/{transaction_id}", response_model=TransactionRead)
