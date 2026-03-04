@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:fl_chart/fl_chart.dart';
 import '../core/api_client.dart';
 import '../core/period_filter.dart';
+import '../widgets/filter_bottom_sheet.dart';
 
 class AnalyticsTab extends StatefulWidget {
   const AnalyticsTab({super.key});
@@ -95,40 +96,60 @@ class _AnalyticsTabState extends State<AnalyticsTab> {
   Widget _buildFilterPill() {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16.0),
-      child: PopupMenuButton<String>(
-        onSelected: (String value) {
-          setState(() {
-            _selectedFilter = value;
-          });
-          _fetchSummary();
-        },
-        itemBuilder: (context) {
-          return PeriodFilter.values.map((filter) {
-            return PopupMenuItem<String>(
-              value: filter,
-              child: Text(filter),
-            );
-          }).toList();
-        },
-        child: Container(
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-          decoration: BoxDecoration(
-            color: Theme.of(context).colorScheme.surface,
-            borderRadius: BorderRadius.circular(20),
+      child: Row(
+        children: [
+          GestureDetector(
+            onTap: _openFilters,
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+              decoration: BoxDecoration(
+                color: Theme.of(context).colorScheme.surface,
+                borderRadius: BorderRadius.circular(20),
+              ),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(Icons.calendar_today, size: 14, color: Theme.of(context).colorScheme.primary),
+                  const SizedBox(width: 8),
+                  Text(_selectedFilter, style: TextStyle(color: Theme.of(context).colorScheme.primary)),
+                ],
+              ),
+            ),
           ),
-          child: Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              const Icon(Icons.calendar_today, size: 14),
-              const SizedBox(width: 8),
-              Text(_selectedFilter),
-              const SizedBox(width: 4),
-              const Icon(Icons.keyboard_arrow_down, size: 16),
-            ],
+          const SizedBox(width: 8),
+          GestureDetector(
+            onTap: _openFilters,
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+              decoration: BoxDecoration(
+                color: Theme.of(context).colorScheme.primary.withAlpha(20),
+                borderRadius: BorderRadius.circular(20),
+                border: Border.all(color: Theme.of(context).colorScheme.primary.withAlpha(60)),
+              ),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(Icons.tune, size: 16, color: Theme.of(context).colorScheme.primary),
+                  const SizedBox(width: 6),
+                  Text('Filters', style: TextStyle(color: Theme.of(context).colorScheme.primary, fontSize: 13, fontWeight: FontWeight.w600)),
+                ],
+              ),
+            ),
           ),
-        ),
+        ],
       ),
     );
+  }
+
+  Future<void> _openFilters() async {
+    final result = await FilterBottomSheet.show(
+      context,
+      selectedPeriod: _selectedFilter,
+    );
+    if (result != null) {
+      setState(() => _selectedFilter = result['period'] as String);
+      _fetchSummary();
+    }
   }
 
   Widget _buildContent() {

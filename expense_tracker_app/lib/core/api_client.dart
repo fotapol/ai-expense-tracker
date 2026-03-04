@@ -164,15 +164,29 @@ class ApiClient {
   }
 
   /// GET /v1/transactions
-  static Future<List<dynamic>> listTransactions({DateTime? fromDate}) async {
+  static Future<List<dynamic>> listTransactions({
+    DateTime? fromDate,
+    String? merchantNameSearch,
+    String? categoryId,
+    String? labelId,
+  }) async {
     final token = await _getToken();
-    
+
     // Build query params
-    String url = '$apiBaseUrl/v1/transactions';
+    String url = '$apiBaseUrl/v1/transactions?page_size=100';
     if (fromDate != null) {
-      url += '?from_occurred_at=${fromDate.toUtc().toIso8601String()}';
+      url += '&from_occurred_at=${fromDate.toUtc().toIso8601String()}';
     }
-    
+    if (merchantNameSearch != null && merchantNameSearch.isNotEmpty) {
+      url += '&merchant_name_search=${Uri.encodeComponent(merchantNameSearch)}';
+    }
+    if (categoryId != null) {
+      url += '&category_id=$categoryId';
+    }
+    if (labelId != null) {
+      url += '&label_id=$labelId';
+    }
+
     final response = await http.get(
       Uri.parse(url),
       headers: {
@@ -182,11 +196,7 @@ class ApiClient {
     );
 
     if (response.statusCode == 200) {
-      final decodedResponse = jsonDecode(response.body);
-      if (decodedResponse is List) {
-        return decodedResponse;
-      }
-      return [];
+      return jsonDecode(response.body) as List<dynamic>;
     } else {
       throw Exception(
           'Failed to list transactions: ${response.statusCode} ${response.body}');
@@ -266,6 +276,73 @@ class ApiClient {
     );
     if (response.statusCode != 204) {
       throw Exception('Failed to delete category: ${response.statusCode} ${response.body}');
+    }
+  }
+
+  /// DELETE /v1/receipts/{id}
+  static Future<void> deleteReceipt(String id) async {
+    final token = await _getToken();
+    final response = await http.delete(
+      Uri.parse('$apiBaseUrl/v1/receipts/$id'),
+      headers: {
+        'Authorization': 'Bearer $token',
+        'Content-Type': 'application/json',
+      },
+    );
+    if (response.statusCode != 204) {
+      throw Exception('Failed to delete receipt: ${response.statusCode} ${response.body}');
+    }
+  }
+
+  /// GET /v1/labels
+  static Future<List<dynamic>> listLabels() async {
+    final token = await _getToken();
+    final response = await http.get(
+      Uri.parse('$apiBaseUrl/v1/labels'),
+      headers: {
+        'Authorization': 'Bearer $token',
+        'Content-Type': 'application/json',
+      },
+    );
+    if (response.statusCode == 200) {
+      return jsonDecode(response.body) as List<dynamic>;
+    } else {
+      throw Exception('Failed to list labels: ${response.statusCode}');
+    }
+  }
+
+  /// POST /v1/labels
+  static Future<Map<String, dynamic>> createLabel(String name, {String? color}) async {
+    final token = await _getToken();
+    final body = {'name': name};
+    if (color != null) body['color'] = color;
+    final response = await http.post(
+      Uri.parse('$apiBaseUrl/v1/labels'),
+      headers: {
+        'Authorization': 'Bearer $token',
+        'Content-Type': 'application/json',
+      },
+      body: jsonEncode(body),
+    );
+    if (response.statusCode == 201) {
+      return jsonDecode(response.body) as Map<String, dynamic>;
+    } else {
+      throw Exception('Failed to create label: ${response.statusCode} ${response.body}');
+    }
+  }
+
+  /// DELETE /v1/labels/{id}
+  static Future<void> deleteLabel(String id) async {
+    final token = await _getToken();
+    final response = await http.delete(
+      Uri.parse('$apiBaseUrl/v1/labels/$id'),
+      headers: {
+        'Authorization': 'Bearer $token',
+        'Content-Type': 'application/json',
+      },
+    );
+    if (response.statusCode != 204) {
+      throw Exception('Failed to delete label: ${response.statusCode} ${response.body}');
     }
   }
 }
