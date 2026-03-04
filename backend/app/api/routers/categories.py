@@ -156,12 +156,6 @@ async def delete_category(
     if cat is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Category not found.")
 
-    if cat.code in _DEFAULT_CODES:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Cannot delete a built-in default category.",
-        )
-
     cat.is_active = False
     session.add(cat)
     session.commit()

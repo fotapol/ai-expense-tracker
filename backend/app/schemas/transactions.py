@@ -166,6 +166,8 @@ class TransactionListFilter(PaginationParams):
     to_occurred_at: dt.datetime | None = None
     merchant_id: UUID | None = None
     category_id: UUID | None = None
+    merchant_name_search: str | None = None  # Text search on merchant_name
+    label_id: UUID | None = None
     status: TransactionStatus | None = None
     source: TransactionSource | None = None
     currency: CurrencyCode | None = None

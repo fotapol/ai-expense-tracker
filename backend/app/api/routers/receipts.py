@@ -202,3 +202,38 @@ async def get_receipt(
     read = ReceiptRead.model_validate(receipt)
     read.transaction_id = transaction.id if transaction else None
     return read
+
+
+@router.delete("/receipts/{receipt_id}", status_code=status.HTTP_204_NO_CONTENT)
+@limiter.limit("10/minute")
+async def delete_receipt(
+    receipt_id: uuid.UUID,
+    request: Request,
+    session: Session = Depends(get_session),  # noqa: B008
+    current_user: User = Depends(get_current_user),  # noqa: B008
+):
+    """Delete a receipt and its associated transaction + items."""
+    from app.models.transactions.transaction_item import TransactionItem
+
+    receipt = session.exec(
+        select(Receipt).where(Receipt.id == receipt_id, Receipt.user_id == current_user.id)
+    ).first()
+
+    if receipt is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Receipt not found.")
+
+    # Delete linked transaction and items
+    transaction = session.exec(
+        select(Transaction).where(Transaction.receipt_id == receipt_id)
+    ).first()
+    if transaction:
+        items = session.exec(
+            select(TransactionItem).where(TransactionItem.transaction_id == transaction.id)
+        ).all()
+        for item in items:
+            session.delete(item)
+        session.delete(transaction)
+
+    session.delete(receipt)
+    session.commit()
+    return None

@@ -40,6 +40,15 @@ async def list_transactions(
         query = query.where(Transaction.merchant_id == filters.merchant_id)
     if filters.category_id:
         query = query.where(Transaction.category_id == filters.category_id)
+    if filters.merchant_name_search:
+        search_term = f"%{filters.merchant_name_search}%"
+        query = query.where(Transaction.merchant_name.ilike(search_term))
+    if filters.label_id:
+        from app.models.labels.transaction_label import TransactionLabel
+        label_subquery = select(TransactionLabel.transaction_id).where(
+            TransactionLabel.label_id == filters.label_id
+        ).subquery()
+        query = query.where(Transaction.id.in_(select(label_subquery.c.transaction_id)))
     if filters.status:
         query = query.where(Transaction.status == filters.status)
     if filters.source:
