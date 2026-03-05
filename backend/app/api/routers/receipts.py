@@ -214,6 +214,8 @@ async def delete_receipt(
 ):
     """Delete a receipt and its associated transaction + items."""
     from app.models.transactions.transaction_item import TransactionItem
+    from app.models.receipts.receipt_extraction import ReceiptExtraction
+    from app.models.labels.transaction_label import TransactionLabel
 
     receipt = session.exec(
         select(Receipt).where(Receipt.id == receipt_id, Receipt.user_id == current_user.id)
@@ -222,17 +224,25 @@ async def delete_receipt(
     if receipt is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Receipt not found.")
 
-    # Delete linked transaction and items
+    # Delete linked transaction, items, and label associations
     transaction = session.exec(
         select(Transaction).where(Transaction.receipt_id == receipt_id)
     ).first()
     if transaction:
-        items = session.exec(
-            select(TransactionItem).where(TransactionItem.transaction_id == transaction.id)
-        ).all()
-        for item in items:
+        # Delete label links
+        for link in session.exec(select(TransactionLabel).where(TransactionLabel.transaction_id == transaction.id)).all():
+            session.delete(link)
+        # Delete items
+        for item in session.exec(select(TransactionItem).where(TransactionItem.transaction_id == transaction.id)).all():
             session.delete(item)
+        session.flush() # ensure children are deleted first
         session.delete(transaction)
+        session.flush()
+
+    # Delete receipt extractions
+    for ext in session.exec(select(ReceiptExtraction).where(ReceiptExtraction.receipt_id == receipt_id)).all():
+        session.delete(ext)
+    session.flush()
 
     session.delete(receipt)
     session.commit()
