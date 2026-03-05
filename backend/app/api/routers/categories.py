@@ -144,6 +144,17 @@ async def create_category(
         )
     ).first()
     if existing:
+        if not existing.is_active:
+            existing.name = payload.name.strip()
+            existing.parent_id = payload.parent_id
+            existing.icon = payload.icon
+            existing.color = payload.color
+            existing.is_active = True
+            existing.is_custom = True
+            session.add(existing)
+            session.commit()
+            session.refresh(existing)
+            return _to_response(existing)
         raise HTTPException(
             status_code=status.HTTP_409_CONFLICT,
             detail=f"You already have a category with code '{code}'.",
@@ -222,6 +233,21 @@ async def delete_category(
     current_user: User = Depends(get_current_user),  # noqa: B008
 ):
     """Soft-delete (deactivate) a category."""
+    visible_category = session.exec(
+        select(Category).where(
+            Category.id == category_id,
+            Category.scope == CategoryScope.ITEM,
+            or_(Category.user_id == None, Category.user_id == current_user.id),
+        )
+    ).first()
+    if visible_category is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Category not found.")
+    if visible_category.user_id is None:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Built-in categories cannot be deleted.",
+        )
+
     cat = session.exec(
         select(Category).where(Category.id == category_id, Category.user_id == current_user.id)
     ).first()
