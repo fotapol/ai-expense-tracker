@@ -583,7 +583,7 @@ class _AnalyticsTabState extends State<AnalyticsTab> {
                         ),
                         const SizedBox(height: 4),
                         Text(
-                          'RSD ${amount.toStringAsFixed(2)} • $itemCount purchases',
+                          'RSD ${amount.toStringAsFixed(2)} - $itemCount purchases',
                           style: TextStyle(color: Colors.grey.shade400),
                         ),
                       ],

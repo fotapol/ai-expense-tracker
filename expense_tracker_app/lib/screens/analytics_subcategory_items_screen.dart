@@ -73,6 +73,32 @@ class _AnalyticsSubcategoryItemsScreenState
     return text.replaceFirst(RegExp(r'\.?0+$'), '');
   }
 
+  String _displayUnit(String? unit) {
+    final normalized = (unit ?? '').trim().toUpperCase();
+    switch (normalized) {
+      case 'KG':
+      case 'KGS':
+        return 'kg';
+      case 'G':
+        return 'g';
+      case 'L':
+      case 'LT':
+      case 'LITER':
+      case 'LITAR':
+        return 'l';
+      case 'ML':
+        return 'ml';
+      case 'KOM':
+      case 'PCS':
+      case 'PC':
+      case 'UNIT':
+      case 'UN':
+        return 'units';
+      default:
+        return normalized.isEmpty ? 'units' : normalized.toLowerCase();
+    }
+  }
+
   String _buildDetailsLine({
     required int occurrences,
     required double? totalQty,
@@ -83,11 +109,9 @@ class _AnalyticsSubcategoryItemsScreenState
         : 'Bought $occurrences times';
     if (totalQty == null) return timesText;
 
-    var qtyText = 'Total quantity ${_formatQty(totalQty)}';
-    if (unit != null && unit.trim().isNotEmpty) {
-      qtyText = '$qtyText ${unit.trim()}';
-    }
-    return '$timesText • $qtyText';
+    final qtyText =
+        'Total quantity ${_formatQty(totalQty)} ${_displayUnit(unit)}';
+    return '$timesText - $qtyText';
   }
 
   @override

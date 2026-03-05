@@ -5,7 +5,11 @@ class SubcategoriesScreen extends StatefulWidget {
   final String parentId;
   final String parentName;
 
-  const SubcategoriesScreen({super.key, required this.parentId, required this.parentName});
+  const SubcategoriesScreen({
+    super.key,
+    required this.parentId,
+    required this.parentName,
+  });
 
   @override
   State<SubcategoriesScreen> createState() => _SubcategoriesScreenState();
@@ -29,7 +33,9 @@ class _SubcategoriesScreenState extends State<SubcategoriesScreen> {
     });
     try {
       final data = await ApiClient.listCategories();
-      final subs = data.where((c) => c['parent_id'] == widget.parentId).toList();
+      final subs = data
+          .where((c) => c['parent_id'] == widget.parentId)
+          .toList();
       setState(() {
         _subcategories = subs;
         _isLoading = false;
@@ -83,7 +89,10 @@ class _SubcategoriesScreenState extends State<SubcategoriesScreen> {
 
     if (result != null && result.trim().isNotEmpty) {
       try {
-        await ApiClient.createCategory(result.trim(), parentId: widget.parentId);
+        await ApiClient.createCategory(
+          result.trim(),
+          parentId: widget.parentId,
+        );
         _fetchSubcategories();
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
@@ -125,9 +134,9 @@ class _SubcategoriesScreenState extends State<SubcategoriesScreen> {
         await ApiClient.deleteCategory(id);
         _fetchSubcategories();
         if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('"$name" deleted.')),
-          );
+          ScaffoldMessenger.of(
+            context,
+          ).showSnackBar(SnackBar(content: Text('"$name" deleted.')));
         }
       } catch (e) {
         if (mounted) {
@@ -150,54 +159,72 @@ class _SubcategoriesScreenState extends State<SubcategoriesScreen> {
       body: _isLoading
           ? const Center(child: CircularProgressIndicator())
           : _error != null
-              ? Center(child: Text(_error!, style: const TextStyle(color: Colors.red)))
-              : _subcategories.isEmpty
-                  ? Center(
-                      child: Text(
-                        'No subcategories found for ${widget.parentName}.',
-                        style: TextStyle(color: Colors.grey.shade400),
-                      ),
-                    )
-                  : ListView.builder(
-                      padding: const EdgeInsets.all(16),
-                      itemCount: _subcategories.length,
-                      itemBuilder: (context, index) {
-                        final cat = _subcategories[index];
-                        final name = cat['name'] as String;
-                        final id = cat['id'] as String;
-                        final color = _getCategoryColor(index);
+          ? Center(
+              child: Text(_error!, style: const TextStyle(color: Colors.red)),
+            )
+          : _subcategories.isEmpty
+          ? Center(
+              child: Text(
+                'No subcategories found for ${widget.parentName}.',
+                style: TextStyle(color: Colors.grey.shade400),
+              ),
+            )
+          : ListView.builder(
+              padding: const EdgeInsets.all(16),
+              itemCount: _subcategories.length,
+              itemBuilder: (context, index) {
+                final cat = _subcategories[index];
+                final name = cat['name'] as String;
+                final id = cat['id'] as String;
+                final isDefault = cat['is_default'] as bool? ?? false;
+                final color = _getCategoryColor(index);
 
-                        return Container(
-                          margin: const EdgeInsets.only(bottom: 8),
-                          padding: const EdgeInsets.all(12),
-                          decoration: BoxDecoration(
-                            color: Theme.of(context).colorScheme.surface,
-                            borderRadius: BorderRadius.circular(16),
+                return Container(
+                  margin: const EdgeInsets.only(bottom: 8),
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    color: Theme.of(context).colorScheme.surface,
+                    borderRadius: BorderRadius.circular(16),
+                  ),
+                  child: Row(
+                    children: [
+                      Container(
+                        width: 44,
+                        height: 44,
+                        decoration: BoxDecoration(
+                          color: color.withAlpha(30),
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: Icon(
+                          Icons.subdirectory_arrow_right,
+                          color: color,
+                          size: 22,
+                        ),
+                      ),
+                      const SizedBox(width: 16),
+                      Expanded(
+                        child: Text(
+                          name,
+                          style: const TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.w500,
                           ),
-                          child: Row(
-                            children: [
-                              Container(
-                                width: 44,
-                                height: 44,
-                                decoration: BoxDecoration(
-                                  color: color.withAlpha(30),
-                                  borderRadius: BorderRadius.circular(12),
-                                ),
-                                child: Icon(Icons.subdirectory_arrow_right, color: color, size: 22),
-                              ),
-                              const SizedBox(width: 16),
-                              Expanded(
-                                child: Text(name, style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w500)),
-                              ),
-                              IconButton(
-                                icon: const Icon(Icons.delete_outline, color: Colors.redAccent, size: 20),
-                                onPressed: () => _deleteSubcategory(id, name),
-                              ),
-                            ],
+                        ),
+                      ),
+                      if (!isDefault)
+                        IconButton(
+                          icon: const Icon(
+                            Icons.delete_outline,
+                            color: Colors.redAccent,
+                            size: 20,
                           ),
-                        );
-                      },
-                    ),
+                          onPressed: () => _deleteSubcategory(id, name),
+                        ),
+                    ],
+                  ),
+                );
+              },
+            ),
       floatingActionButton: FloatingActionButton.extended(
         onPressed: _showAddSubcategoryDialog,
         icon: const Icon(Icons.add),

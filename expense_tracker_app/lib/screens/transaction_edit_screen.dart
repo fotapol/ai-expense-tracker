@@ -69,7 +69,14 @@ class _TransactionEditScreenState extends State<TransactionEditScreen> {
         _items = List.from(txData['items'] ?? []);
 
         _merchantController.text = txData['merchant_name'] ?? '';
-        _amountController.text = txData['amount_total']?.toString() ?? '0.00';
+        _amountController.text = _formatNumberForInput(
+          txData['amount_total'],
+          decimals: 2,
+          keepTrailingZeros: true,
+        );
+        if (_amountController.text.isEmpty) {
+          _amountController.text = '0.00';
+        }
         _currency = txData['currency'] ?? 'RSD';
 
         if (txData['occurred_at'] != null) {
@@ -82,13 +89,21 @@ class _TransactionEditScreenState extends State<TransactionEditScreen> {
             text: item['description'] ?? '',
           );
           _itemAmountControllers[id] = TextEditingController(
-            text: item['amount']?.toString() ?? '0.00',
+            text: _formatNumberForInput(
+              item['amount'],
+              decimals: 2,
+              keepTrailingZeros: true,
+            ),
           );
           _itemQtyControllers[id] = TextEditingController(
-            text: item['qty']?.toString() ?? '',
+            text: _formatNumberForInput(item['qty'], decimals: 2),
           );
           _itemUnitPriceControllers[id] = TextEditingController(
-            text: item['unit_price']?.toString() ?? '',
+            text: _formatNumberForInput(
+              item['unit_price'],
+              decimals: 2,
+              keepTrailingZeros: true,
+            ),
           );
           _itemCategoryIds[id] = item['category_id']?.toString();
         }
@@ -171,6 +186,44 @@ class _TransactionEditScreenState extends State<TransactionEditScreen> {
     return double.tryParse(normalized);
   }
 
+  String _formatNumberForInput(
+    dynamic value, {
+    int decimals = 2,
+    bool keepTrailingZeros = false,
+  }) {
+    final parsed = _toDouble(value);
+    if (parsed == null) return '';
+    final fixed = parsed.toStringAsFixed(decimals);
+    if (keepTrailingZeros) return fixed;
+    return fixed.replaceFirst(RegExp(r'\.?0+$'), '');
+  }
+
+  String _displayUnit(String? rawUnit) {
+    final normalized = (rawUnit ?? '').trim().toUpperCase();
+    switch (normalized) {
+      case 'KG':
+      case 'KGS':
+        return 'kg';
+      case 'G':
+        return 'g';
+      case 'L':
+      case 'LT':
+      case 'LITER':
+      case 'LITAR':
+        return 'l';
+      case 'ML':
+        return 'ml';
+      case 'KOM':
+      case 'PCS':
+      case 'PC':
+      case 'UNIT':
+      case 'UN':
+        return 'unit';
+      default:
+        return normalized.isEmpty ? 'unit' : normalized.toLowerCase();
+    }
+  }
+
   void _recalculateItemAmount(String itemId) {
     final qty = _toDouble(_itemQtyControllers[itemId]?.text);
     final unitPrice = _toDouble(_itemUnitPriceControllers[itemId]?.text);
@@ -192,26 +245,28 @@ class _TransactionEditScreenState extends State<TransactionEditScreen> {
     required String hint,
     required double width,
     required ValueChanged<String> onChanged,
+    int decimals = 2,
+    bool keepTrailingZeros = false,
   }) {
     return SizedBox(
       width: width,
-      height: 30,
+      height: 28,
       child: TextField(
         controller: controller,
         keyboardType: const TextInputType.numberWithOptions(decimal: true),
         textAlign: TextAlign.right,
         style: const TextStyle(
           color: Colors.white,
-          fontSize: 13,
+          fontSize: 12,
           fontWeight: FontWeight.w500,
         ),
         decoration: InputDecoration(
           hintText: hint,
-          hintStyle: TextStyle(color: Colors.grey.shade600, fontSize: 13),
+          hintStyle: TextStyle(color: Colors.grey.shade600, fontSize: 12),
           isDense: true,
           contentPadding: const EdgeInsets.symmetric(
             horizontal: 6,
-            vertical: 6,
+            vertical: 5,
           ),
           border: OutlineInputBorder(
             borderRadius: BorderRadius.circular(6),
@@ -227,6 +282,18 @@ class _TransactionEditScreenState extends State<TransactionEditScreen> {
           ),
         ),
         onChanged: onChanged,
+        onSubmitted: (_) {
+          if (controller == null) return;
+          controller.text = _formatNumberForInput(
+            controller.text,
+            decimals: decimals,
+            keepTrailingZeros: keepTrailingZeros,
+          );
+          controller.selection = TextSelection.fromPosition(
+            TextPosition(offset: controller.text.length),
+          );
+          onChanged(controller.text);
+        },
       ),
     );
   }
@@ -527,6 +594,108 @@ class _TransactionEditScreenState extends State<TransactionEditScreen> {
           const SizedBox(height: 8),
           Row(
             children: [
+              Expanded(
+                child: Row(
+                  children: [
+                    _buildFormulaNumberInput(
+                      controller: unitPriceController,
+                      hint: '0.00',
+                      width: 62,
+                      keepTrailingZeros: true,
+                      onChanged: (_) => _recalculateItemAmount(id),
+                    ),
+                    const SizedBox(width: 4),
+                    Text(
+                      _currency,
+                      style: TextStyle(
+                        color: Colors.grey.shade400,
+                        fontSize: 11,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                    const SizedBox(width: 4),
+                    Text(
+                      'x',
+                      style: TextStyle(
+                        color: Colors.grey.shade400,
+                        fontSize: 12,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                    const SizedBox(width: 4),
+                    _buildFormulaNumberInput(
+                      controller: qtyController,
+                      hint: '1',
+                      width: 52,
+                      onChanged: (_) => _recalculateItemAmount(id),
+                    ),
+                    const SizedBox(width: 4),
+                    Text(
+                      _displayUnit(unit),
+                      style: TextStyle(
+                        color: Colors.grey.shade400,
+                        fontSize: 11,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                    const SizedBox(width: 4),
+                    Text(
+                      '=',
+                      style: TextStyle(
+                        color: Colors.grey.shade400,
+                        fontSize: 12,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(width: 6),
+              SizedBox(
+                width: 116,
+                child: TextField(
+                  controller: amountController,
+                  textAlign: TextAlign.right,
+                  keyboardType: const TextInputType.numberWithOptions(
+                    decimal: true,
+                  ),
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontSize: 15,
+                    fontWeight: FontWeight.bold,
+                  ),
+                  decoration: const InputDecoration(
+                    border: InputBorder.none,
+                    isDense: true,
+                  ),
+                  onChanged: (_) => _recalculateTotal(),
+                  onSubmitted: (_) {
+                    if (amountController == null) return;
+                    amountController.text = _formatNumberForInput(
+                      amountController.text,
+                      decimals: 2,
+                      keepTrailingZeros: true,
+                    );
+                    amountController.selection = TextSelection.fromPosition(
+                      TextPosition(offset: amountController.text.length),
+                    );
+                    _recalculateTotal();
+                  },
+                ),
+              ),
+              Text(
+                ' $_currency',
+                style: const TextStyle(
+                  color: Colors.white,
+                  fontSize: 14,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 10),
+          Row(
+            children: [
               GestureDetector(
                 onTap: () => _showCategoryPicker(id),
                 child: Container(
@@ -547,89 +716,6 @@ class _TransactionEditScreenState extends State<TransactionEditScreen> {
                       fontWeight: FontWeight.bold,
                     ),
                   ),
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 8),
-          Row(
-            children: [
-              Expanded(
-                child: SingleChildScrollView(
-                  scrollDirection: Axis.horizontal,
-                  child: Row(
-                    children: [
-                      _buildFormulaNumberInput(
-                        controller: unitPriceController,
-                        hint: '0.00',
-                        width: 82,
-                        onChanged: (_) => _recalculateItemAmount(id),
-                      ),
-                      Text(
-                        ' x ',
-                        style: TextStyle(
-                          color: Colors.grey.shade400,
-                          fontSize: 13,
-                          fontWeight: FontWeight.w500,
-                        ),
-                      ),
-                      _buildFormulaNumberInput(
-                        controller: qtyController,
-                        hint: '1',
-                        width: 62,
-                        onChanged: (_) => _recalculateItemAmount(id),
-                      ),
-                      if (unit != null && unit.isNotEmpty) ...[
-                        const SizedBox(width: 4),
-                        Text(
-                          unit,
-                          style: TextStyle(
-                            color: Colors.grey.shade400,
-                            fontSize: 12,
-                            fontWeight: FontWeight.w500,
-                          ),
-                        ),
-                      ],
-                      const SizedBox(width: 6),
-                      Text(
-                        '=',
-                        style: TextStyle(
-                          color: Colors.grey.shade400,
-                          fontSize: 13,
-                          fontWeight: FontWeight.w500,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-              const SizedBox(width: 8),
-              SizedBox(
-                width: 126,
-                child: TextField(
-                  controller: amountController,
-                  textAlign: TextAlign.right,
-                  keyboardType: const TextInputType.numberWithOptions(
-                    decimal: true,
-                  ),
-                  style: const TextStyle(
-                    color: Colors.white,
-                    fontSize: 16,
-                    fontWeight: FontWeight.bold,
-                  ),
-                  decoration: const InputDecoration(
-                    border: InputBorder.none,
-                    isDense: true,
-                  ),
-                  onChanged: (_) => _recalculateTotal(),
-                ),
-              ),
-              Text(
-                ' $_currency',
-                style: const TextStyle(
-                  color: Colors.white,
-                  fontSize: 15,
-                  fontWeight: FontWeight.bold,
                 ),
               ),
             ],
