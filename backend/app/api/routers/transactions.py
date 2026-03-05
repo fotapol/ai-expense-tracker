@@ -2,16 +2,19 @@
 
 import logging
 import uuid
+from collections import defaultdict
 from decimal import Decimal
-from typing import Annotated, Any
+from typing import Annotated
 
 from fastapi import APIRouter, Depends, HTTPException, Request, status
-from sqlalchemy import func
+from sqlalchemy import func, or_
 from sqlmodel import Session, select
 
 from app.auth.deps import get_current_user
 from app.core.db import get_session
 from app.core.rate_limiter import limiter
+from app.models.shared.enums import CategoryScope
+from app.models.taxonomy.category import Category
 from app.models.transactions.transaction import Transaction
 from app.models.transactions.transaction_item import TransactionItem
 from app.models.users.user import User
@@ -20,6 +23,182 @@ from app.schemas.transactions import TransactionItemRead, TransactionListFilter,
 logger = logging.getLogger(__name__)
 
 router = APIRouter(prefix="/v1", tags=["transactions"])
+
+
+def _parse_uuid_csv(raw: str | None) -> list[uuid.UUID]:
+    if not raw:
+        return []
+    parsed: list[uuid.UUID] = []
+    for value in raw.split(","):
+        value = value.strip()
+        if not value:
+            continue
+        try:
+            parsed.append(uuid.UUID(value))
+        except ValueError:
+            continue
+    return parsed
+
+
+def _get_user_visible_item_categories(session: Session, current_user: User) -> list[Category]:
+    return session.exec(
+        select(Category).where(
+            Category.scope == CategoryScope.ITEM,
+            Category.is_active == True,
+            or_(Category.user_id == None, Category.user_id == current_user.id),
+        )
+    ).all()
+
+
+def _resolve_top_level_item_category(
+    category_id: uuid.UUID,
+    category_by_id: dict[uuid.UUID, Category],
+) -> Category | None:
+    current = category_by_id.get(category_id)
+    if current is None:
+        return None
+
+    visited: set[uuid.UUID] = set()
+    while current.parent_id is not None and current.parent_id in category_by_id:
+        if current.id in visited:
+            break
+        visited.add(current.id)
+        current = category_by_id[current.parent_id]
+    return current
+
+
+def _collect_descendants(
+    root_ids: set[uuid.UUID],
+    children_by_parent: dict[uuid.UUID, set[uuid.UUID]],
+) -> set[uuid.UUID]:
+    descendants = set(root_ids)
+    stack = list(root_ids)
+    while stack:
+        current = stack.pop()
+        for child_id in children_by_parent.get(current, set()):
+            if child_id in descendants:
+                continue
+            descendants.add(child_id)
+            stack.append(child_id)
+    return descendants
+
+
+def _build_category_filter_predicate(
+    session: Session,
+    current_user: User,
+    category_ids_csv: str | None,
+):
+    descendant_item_ids, tx_category_ids = _resolve_category_filter_sets(
+        session=session,
+        current_user=current_user,
+        category_ids_csv=category_ids_csv,
+    )
+    predicates = []
+    if tx_category_ids:
+        predicates.append(Transaction.category_id.in_(tx_category_ids))
+    if descendant_item_ids:
+        predicates.append(
+            select(TransactionItem.transaction_id)
+            .where(
+                TransactionItem.transaction_id == Transaction.id,
+                TransactionItem.category_id.in_(descendant_item_ids),
+            )
+            .exists()
+        )
+    if not predicates:
+        return None
+    return or_(*predicates)
+
+
+def _resolve_category_filter_sets(
+    session: Session,
+    current_user: User,
+    category_ids_csv: str | None,
+) -> tuple[set[uuid.UUID], list[uuid.UUID]]:
+    requested_ids = _parse_uuid_csv(category_ids_csv)
+    if not requested_ids:
+        return set(), []
+
+    item_categories = _get_user_visible_item_categories(session, current_user)
+    category_by_id = {cat.id: cat for cat in item_categories}
+
+    selected_top_level_ids: set[uuid.UUID] = set()
+    selected_codes: set[str] = set()
+    for cat_id in requested_ids:
+        top_level = _resolve_top_level_item_category(cat_id, category_by_id)
+        if top_level is None:
+            continue
+        selected_top_level_ids.add(top_level.id)
+        selected_codes.add(top_level.code)
+
+    if not selected_top_level_ids and not selected_codes:
+        return set(), []
+
+    children_by_parent: dict[uuid.UUID, set[uuid.UUID]] = defaultdict(set)
+    for category in item_categories:
+        if category.parent_id is None:
+            continue
+        children_by_parent[category.parent_id].add(category.id)
+    descendant_item_ids = _collect_descendants(selected_top_level_ids, children_by_parent)
+
+    tx_category_ids: list[uuid.UUID] = []
+    if selected_codes:
+        tx_category_ids = session.exec(
+            select(Category.id).where(
+                Category.scope == CategoryScope.TRANSACTION,
+                Category.code.in_(selected_codes),
+                Category.is_active == True,
+                or_(Category.user_id == None, Category.user_id == current_user.id),
+            )
+        ).all()
+
+    return descendant_item_ids, tx_category_ids
+
+
+def _build_subcategory_filter_predicate(
+    session: Session,
+    current_user: User,
+    subcategory_ids_csv: str | None,
+):
+    valid_subcategory_ids = _resolve_subcategory_filter_ids(
+        session=session,
+        current_user=current_user,
+        subcategory_ids_csv=subcategory_ids_csv,
+    )
+    if not valid_subcategory_ids:
+        return None
+
+    return (
+        select(TransactionItem.transaction_id)
+        .where(
+            TransactionItem.transaction_id == Transaction.id,
+            TransactionItem.category_id.in_(valid_subcategory_ids),
+        )
+        .exists()
+    )
+
+
+def _resolve_subcategory_filter_ids(
+    session: Session,
+    current_user: User,
+    subcategory_ids_csv: str | None,
+) -> set[uuid.UUID]:
+    requested_ids = _parse_uuid_csv(subcategory_ids_csv)
+    if not requested_ids:
+        return set()
+
+    valid_subcategory_ids = set(
+        session.exec(
+            select(Category.id).where(
+                Category.scope == CategoryScope.ITEM,
+                Category.parent_id != None,
+                Category.is_active == True,
+                Category.id.in_(requested_ids),
+                or_(Category.user_id == None, Category.user_id == current_user.id),
+            )
+        ).all()
+    )
+    return valid_subcategory_ids
 
 @router.get("/transactions", response_model=list[TransactionRead])
 @limiter.limit("60/minute")
@@ -38,13 +217,14 @@ async def list_transactions(
         query = query.where(Transaction.occurred_at <= filters.to_occurred_at)
     if filters.merchant_id:
         query = query.where(Transaction.merchant_id == filters.merchant_id)
-    if filters.category_ids:
-        try:
-            cat_ids = [uuid.UUID(uid.strip()) for uid in filters.category_ids.split(",") if uid.strip()]
-            if cat_ids:
-                query = query.where(Transaction.category_id.in_(cat_ids))
-        except ValueError:
-            pass # ignore invalid uuids
+    category_predicate = _build_category_filter_predicate(session, current_user, filters.category_ids)
+    if category_predicate is not None:
+        query = query.where(category_predicate)
+    subcategory_predicate = _build_subcategory_filter_predicate(
+        session, current_user, filters.subcategory_ids
+    )
+    if subcategory_predicate is not None:
+        query = query.where(subcategory_predicate)
     if filters.merchant_name_search:
         search_term = f"%{filters.merchant_name_search}%"
         query = query.where(Transaction.merchant_name.ilike(search_term))
@@ -100,23 +280,35 @@ async def get_transactions_summary(
     current_user: User = Depends(get_current_user),  # noqa: B008
 ):
     """Get aggregated summary of transactions split by category."""
-    
+    category_descendant_item_ids, _ = _resolve_category_filter_sets(
+        session=session,
+        current_user=current_user,
+        category_ids_csv=filters.category_ids,
+    )
+    selected_subcategory_ids = _resolve_subcategory_filter_ids(
+        session=session,
+        current_user=current_user,
+        subcategory_ids_csv=filters.subcategory_ids,
+    )
+    has_item_filters = bool(category_descendant_item_ids or selected_subcategory_ids)
+
     # 1. Base Query for the user's transactions in the date range
     base_query = select(Transaction.id).where(Transaction.user_id == current_user.id)
-    
+
     if filters.from_occurred_at:
         base_query = base_query.where(Transaction.occurred_at >= filters.from_occurred_at)
     if filters.to_occurred_at:
         base_query = base_query.where(Transaction.occurred_at <= filters.to_occurred_at)
     if filters.merchant_id:
         base_query = base_query.where(Transaction.merchant_id == filters.merchant_id)
-    if filters.category_ids:
-        try:
-            cat_ids = [uuid.UUID(uid.strip()) for uid in filters.category_ids.split(",") if uid.strip()]
-            if cat_ids:
-                base_query = base_query.where(Transaction.category_id.in_(cat_ids))
-        except ValueError:
-            pass
+    category_predicate = _build_category_filter_predicate(session, current_user, filters.category_ids)
+    if category_predicate is not None:
+        base_query = base_query.where(category_predicate)
+    subcategory_predicate = _build_subcategory_filter_predicate(
+        session, current_user, filters.subcategory_ids
+    )
+    if subcategory_predicate is not None:
+        base_query = base_query.where(subcategory_predicate)
     if filters.merchant_name_search:
         search_term = f"%{filters.merchant_name_search}%"
         base_query = base_query.where(Transaction.merchant_name.ilike(search_term))
@@ -132,37 +324,61 @@ async def get_transactions_summary(
         base_query = base_query.where(Transaction.source == filters.source)
     if filters.currency:
         base_query = base_query.where(Transaction.currency == filters.currency)
-        
+
     transaction_ids_subquery = base_query.subquery()
 
-    # 2. Get total sum and count across all matching transactions
-    total_query = select(func.sum(Transaction.amount_total), func.count(Transaction.id)).where(Transaction.id.in_(select(transaction_ids_subquery.c.id)))
-    result = session.exec(total_query).first()
-    total_amount = result[0] or Decimal("0.00")
-    total_transactions = result[1] or 0
-    
-    # 3. Group by category on TransactionItem
-    from app.models.taxonomy.category import Category  # Local import to avoid circular dependencies if any
-    
+    item_scope_query = (
+        select(TransactionItem)
+        .where(TransactionItem.transaction_id.in_(select(transaction_ids_subquery.c.id)))
+    )
+    if has_item_filters:
+        if category_descendant_item_ids:
+            item_scope_query = item_scope_query.where(
+                TransactionItem.category_id.in_(category_descendant_item_ids)
+            )
+        if selected_subcategory_ids:
+            item_scope_query = item_scope_query.where(
+                TransactionItem.category_id.in_(selected_subcategory_ids)
+            )
+
+    item_scope_subquery = item_scope_query.subquery()
+
+    # 2. Totals
+    if has_item_filters:
+        total_amount_query = select(func.sum(item_scope_subquery.c.amount))
+        total_amount_result = session.exec(total_amount_query).first()
+        total_amount = total_amount_result or Decimal("0.00")
+        total_transactions_query = select(func.count(func.distinct(item_scope_subquery.c.transaction_id)))
+        total_transactions_result = session.exec(total_transactions_query).first()
+        total_transactions = int(total_transactions_result or 0)
+    else:
+        total_query = select(
+            func.sum(Transaction.amount_total),
+            func.count(Transaction.id),
+        ).where(Transaction.id.in_(select(transaction_ids_subquery.c.id)))
+        result = session.exec(total_query).first()
+        total_amount = result[0] or Decimal("0.00")
+        total_transactions = result[1] or 0
+
+    # 3. Group by category on filtered TransactionItem scope
     category_query = (
         select(
             Category.id,
             Category.name,
             Category.code,
             Category.parent_id,
-            func.sum(TransactionItem.amount).label("category_total")
+            func.sum(item_scope_subquery.c.amount).label("category_total")
         )
-        .join(TransactionItem, TransactionItem.category_id == Category.id)
-        .where(TransactionItem.transaction_id.in_(select(transaction_ids_subquery.c.id)))
+        .join(item_scope_subquery, item_scope_subquery.c.category_id == Category.id)
         .group_by(Category.id, Category.name, Category.code, Category.parent_id)
-        .order_by(func.sum(TransactionItem.amount).desc())
+        .order_by(func.sum(item_scope_subquery.c.amount).desc())
     )
-    
+
     category_results = session.exec(category_query).all()
-    
+
     # Pre-fetch all parent categories to get their names and codes if we need to roll up
     parent_ids = {cat.parent_id for cat in category_results if cat.parent_id is not None}
-    
+
     parent_map = {}
     if parent_ids:
         parents = session.exec(select(Category).where(Category.id.in_(parent_ids))).all()
@@ -182,7 +398,7 @@ async def get_transactions_summary(
             target_id = cat_id
             target_name = cat_name
             target_code = cat_code
-            
+
         if target_id not in rolled_up_totals:
             rolled_up_totals[target_id] = {
                 "name": target_name,
@@ -201,7 +417,7 @@ async def get_transactions_summary(
             "amount": float(data["amount"]),
             "percentage": float(percentage)
         })
-        
+
     # Re-sort by amount descending since the rollup might have changed the order
     categories_breakdown.sort(key=lambda x: x["amount"], reverse=True)
 
@@ -331,3 +547,49 @@ async def update_transaction(
     read = TransactionRead.model_validate(transaction)
     read.items = [TransactionItemRead.model_validate(item) for item in items]
     return read
+
+
+@router.delete("/transactions/{transaction_id}/items/{item_id}", status_code=status.HTTP_204_NO_CONTENT)
+@limiter.limit("30/minute")
+async def delete_transaction_item(
+    request: Request,
+    transaction_id: uuid.UUID,
+    item_id: uuid.UUID,
+    session: Session = Depends(get_session),  # noqa: B008
+    current_user: User = Depends(get_current_user),  # noqa: B008
+):
+    """Delete a single item from a transaction and keep transaction total in sync."""
+    transaction = session.exec(
+        select(Transaction).where(
+            Transaction.id == transaction_id,
+            Transaction.user_id == current_user.id,
+        )
+    ).first()
+    if transaction is None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Transaction not found.",
+        )
+
+    item = session.exec(
+        select(TransactionItem).where(
+            TransactionItem.id == item_id,
+            TransactionItem.transaction_id == transaction_id,
+        )
+    ).first()
+    if item is None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Transaction item not found.",
+        )
+
+    session.delete(item)
+    session.flush()
+
+    remaining_total = session.exec(
+        select(func.sum(TransactionItem.amount)).where(TransactionItem.transaction_id == transaction_id)
+    ).first()
+    transaction.amount_total = remaining_total or Decimal("0.00")
+    session.add(transaction)
+    session.commit()
+    return None
