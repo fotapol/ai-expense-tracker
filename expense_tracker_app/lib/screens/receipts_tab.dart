@@ -19,6 +19,7 @@ class _ReceiptsTabState extends State<ReceiptsTab> {
   String _selectedPeriod = PeriodFilter.last3Months;
   String _merchantSearch = '';
   List<String> _selectedCategoryIds = [];
+  List<String> _selectedSubcategoryIds = [];
   final TextEditingController _searchController = TextEditingController();
 
   @override
@@ -38,8 +39,17 @@ class _ReceiptsTabState extends State<ReceiptsTab> {
       final searchText = _searchController.text.trim();
       final data = await ApiClient.listTransactions(
         fromDate: startDate,
-        merchantNameSearch: searchText.isNotEmpty ? searchText : _merchantSearch.isNotEmpty ? _merchantSearch : null,
-        categoryIds: _selectedCategoryIds.isNotEmpty ? _selectedCategoryIds : null,
+        merchantNameSearch: searchText.isNotEmpty
+            ? searchText
+            : _merchantSearch.isNotEmpty
+            ? _merchantSearch
+            : null,
+        categoryIds: _selectedCategoryIds.isNotEmpty
+            ? _selectedCategoryIds
+            : null,
+        subcategoryIds: _selectedSubcategoryIds.isNotEmpty
+            ? _selectedSubcategoryIds
+            : null,
       );
       setState(() {
         _transactions = data;
@@ -58,12 +68,16 @@ class _ReceiptsTabState extends State<ReceiptsTab> {
       context,
       selectedPeriod: _selectedPeriod,
       selectedCategoryIds: _selectedCategoryIds,
+      selectedSubcategoryIds: _selectedSubcategoryIds,
     );
 
     if (result != null) {
       setState(() {
         _selectedPeriod = result['period'] as String;
         _selectedCategoryIds = List<String>.from(result['category_ids'] ?? []);
+        _selectedSubcategoryIds = List<String>.from(
+          result['subcategory_ids'] ?? [],
+        );
       });
       _fetchTransactions();
     }
@@ -77,9 +91,14 @@ class _ReceiptsTabState extends State<ReceiptsTab> {
       context: context,
       builder: (context) => AlertDialog(
         title: const Text('Delete Receipt'),
-        content: const Text('This will permanently delete the receipt and all its items. Are you sure?'),
+        content: const Text(
+          'This will permanently delete the receipt and all its items. Are you sure?',
+        ),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(context, false), child: const Text('Cancel')),
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: const Text('Cancel'),
+          ),
           FilledButton(
             onPressed: () => Navigator.pop(context, true),
             style: FilledButton.styleFrom(backgroundColor: Colors.red),
@@ -94,9 +113,9 @@ class _ReceiptsTabState extends State<ReceiptsTab> {
         await ApiClient.deleteReceipt(receiptId);
         _fetchTransactions();
         if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Receipt deleted.')),
-          );
+          ScaffoldMessenger.of(
+            context,
+          ).showSnackBar(const SnackBar(content: Text('Receipt deleted.')));
         }
       } catch (e) {
         if (mounted) {
@@ -115,7 +134,10 @@ class _ReceiptsTabState extends State<ReceiptsTab> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           _buildTopBar(),
-          if (_selectedPeriod != PeriodFilter.last3Months || _merchantSearch.isNotEmpty || _selectedCategoryIds.isNotEmpty)
+          if (_selectedPeriod != PeriodFilter.last3Months ||
+              _merchantSearch.isNotEmpty ||
+              _selectedCategoryIds.isNotEmpty ||
+              _selectedSubcategoryIds.isNotEmpty)
             _buildActiveFilterChips(),
           Expanded(child: _buildTransactionList()),
           _buildBottomSummary(),
@@ -171,21 +193,36 @@ class _ReceiptsTabState extends State<ReceiptsTab> {
               decoration: BoxDecoration(
                 color: Theme.of(context).colorScheme.primary.withAlpha(25),
                 borderRadius: BorderRadius.circular(20),
-                border: Border.all(color: Theme.of(context).colorScheme.primary.withAlpha(80)),
+                border: Border.all(
+                  color: Theme.of(context).colorScheme.primary.withAlpha(80),
+                ),
               ),
               child: Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  Icon(Icons.calendar_today, size: 14, color: Theme.of(context).colorScheme.primary),
+                  Icon(
+                    Icons.calendar_today,
+                    size: 14,
+                    color: Theme.of(context).colorScheme.primary,
+                  ),
                   const SizedBox(width: 6),
-                  Text(_selectedPeriod, style: TextStyle(color: Theme.of(context).colorScheme.primary, fontSize: 13)),
+                  Text(
+                    _selectedPeriod,
+                    style: TextStyle(
+                      color: Theme.of(context).colorScheme.primary,
+                      fontSize: 13,
+                    ),
+                  ),
                 ],
               ),
             ),
             if (_merchantSearch.isNotEmpty) ...[
               const SizedBox(width: 8),
               Chip(
-                label: Text(_merchantSearch, style: const TextStyle(fontSize: 12)),
+                label: Text(
+                  _merchantSearch,
+                  style: const TextStyle(fontSize: 12),
+                ),
                 deleteIcon: const Icon(Icons.close, size: 16),
                 onDeleted: () {
                   setState(() => _merchantSearch = '');
@@ -196,10 +233,30 @@ class _ReceiptsTabState extends State<ReceiptsTab> {
             if (_selectedCategoryIds.isNotEmpty) ...[
               const SizedBox(width: 8),
               Chip(
-                label: Text('${_selectedCategoryIds.length} categories', style: const TextStyle(fontSize: 12)),
+                label: Text(
+                  '${_selectedCategoryIds.length} categories',
+                  style: const TextStyle(fontSize: 12),
+                ),
                 deleteIcon: const Icon(Icons.close, size: 16),
                 onDeleted: () {
-                  setState(() => _selectedCategoryIds.clear());
+                  setState(() {
+                    _selectedCategoryIds.clear();
+                    _selectedSubcategoryIds.clear();
+                  });
+                  _fetchTransactions();
+                },
+              ),
+            ],
+            if (_selectedSubcategoryIds.isNotEmpty) ...[
+              const SizedBox(width: 8),
+              Chip(
+                label: Text(
+                  '${_selectedSubcategoryIds.length} subcategories',
+                  style: const TextStyle(fontSize: 12),
+                ),
+                deleteIcon: const Icon(Icons.close, size: 16),
+                onDeleted: () {
+                  setState(() => _selectedSubcategoryIds.clear());
                   _fetchTransactions();
                 },
               ),
@@ -216,23 +273,35 @@ class _ReceiptsTabState extends State<ReceiptsTab> {
 
     if (_error != null) {
       return Center(
-        child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [
-          const Icon(Icons.error_outline, color: Colors.red, size: 48),
-          const SizedBox(height: 16),
-          Text('Error: $_error', textAlign: TextAlign.center),
-          const SizedBox(height: 16),
-          ElevatedButton(onPressed: _fetchTransactions, child: const Text('Retry')),
-        ]),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            const Icon(Icons.error_outline, color: Colors.red, size: 48),
+            const SizedBox(height: 16),
+            Text('Error: $_error', textAlign: TextAlign.center),
+            const SizedBox(height: 16),
+            ElevatedButton(
+              onPressed: _fetchTransactions,
+              child: const Text('Retry'),
+            ),
+          ],
+        ),
       );
     }
 
     if (_transactions.isEmpty) {
       return Center(
-        child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [
-          Icon(Icons.receipt_long, size: 64, color: Colors.grey.shade600),
-          const SizedBox(height: 16),
-          Text('No receipts found', style: TextStyle(color: Colors.grey.shade400, fontSize: 16)),
-        ]),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(Icons.receipt_long, size: 64, color: Colors.grey.shade600),
+            const SizedBox(height: 16),
+            Text(
+              'No receipts found',
+              style: TextStyle(color: Colors.grey.shade400, fontSize: 16),
+            ),
+          ],
+        ),
       );
     }
 
@@ -257,7 +326,8 @@ class _ReceiptsTabState extends State<ReceiptsTab> {
           final txsForMonth = groupedTransactions[monthKey]!;
           double monthTotal = 0;
           for (var tx in txsForMonth) {
-            monthTotal += double.tryParse((tx['amount_total'] ?? '0').toString()) ?? 0;
+            monthTotal +=
+                double.tryParse((tx['amount_total'] ?? '0').toString()) ?? 0;
           }
 
           return Column(
@@ -268,8 +338,20 @@ class _ReceiptsTabState extends State<ReceiptsTab> {
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Text(monthKey, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
-                    Text('RSD ${monthTotal.toStringAsFixed(2)}', style: TextStyle(color: Colors.grey.shade400, fontSize: 14)),
+                    Text(
+                      monthKey,
+                      style: const TextStyle(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 16,
+                      ),
+                    ),
+                    Text(
+                      'RSD ${monthTotal.toStringAsFixed(2)}',
+                      style: TextStyle(
+                        color: Colors.grey.shade400,
+                        fontSize: 14,
+                      ),
+                    ),
                   ],
                 ),
               ),
@@ -313,7 +395,10 @@ class _ReceiptsTabState extends State<ReceiptsTab> {
         onTap: () {
           Navigator.push(
             context,
-            MaterialPageRoute(builder: (context) => TransactionEditScreen(transactionId: tx['id'])),
+            MaterialPageRoute(
+              builder: (context) =>
+                  TransactionEditScreen(transactionId: tx['id']),
+            ),
           ).then((_) => _fetchTransactions());
         },
         child: Container(
@@ -323,26 +408,55 @@ class _ReceiptsTabState extends State<ReceiptsTab> {
             color: Theme.of(context).colorScheme.surface,
             borderRadius: BorderRadius.circular(16),
           ),
-          child: Row(children: [
-            Container(
-              width: 48, height: 48,
-              decoration: BoxDecoration(
-                color: Theme.of(context).colorScheme.primary.withAlpha(20),
-                borderRadius: BorderRadius.circular(12),
+          child: Row(
+            children: [
+              Container(
+                width: 48,
+                height: 48,
+                decoration: BoxDecoration(
+                  color: Theme.of(context).colorScheme.primary.withAlpha(20),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Icon(
+                  Icons.shopping_bag,
+                  color: Theme.of(context).colorScheme.primary,
+                ),
               ),
-              child: Icon(Icons.shopping_bag, color: Theme.of(context).colorScheme.primary),
-            ),
-            const SizedBox(width: 16),
-            Expanded(
-              child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                Text(storeName, style: const TextStyle(fontWeight: FontWeight.w500, fontSize: 16), maxLines: 1, overflow: TextOverflow.ellipsis),
-                const SizedBox(height: 4),
-                if (formattedTime.isNotEmpty)
-                  Text(formattedTime, style: TextStyle(color: Colors.grey.shade500, fontSize: 12)),
-              ]),
-            ),
-            Text('RSD ${amount.toStringAsFixed(2)}', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
-          ]),
+              const SizedBox(width: 16),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      storeName,
+                      style: const TextStyle(
+                        fontWeight: FontWeight.w500,
+                        fontSize: 16,
+                      ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                    const SizedBox(height: 4),
+                    if (formattedTime.isNotEmpty)
+                      Text(
+                        formattedTime,
+                        style: TextStyle(
+                          color: Colors.grey.shade500,
+                          fontSize: 12,
+                        ),
+                      ),
+                  ],
+                ),
+              ),
+              Text(
+                'RSD ${amount.toStringAsFixed(2)}',
+                style: const TextStyle(
+                  fontWeight: FontWeight.bold,
+                  fontSize: 16,
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );
@@ -351,7 +465,8 @@ class _ReceiptsTabState extends State<ReceiptsTab> {
   Widget _buildBottomSummary() {
     double totalPeriodExpense = 0;
     for (var tx in _transactions) {
-      totalPeriodExpense += double.tryParse((tx['amount_total'] ?? '0').toString()) ?? 0;
+      totalPeriodExpense +=
+          double.tryParse((tx['amount_total'] ?? '0').toString()) ?? 0;
     }
 
     return Container(
@@ -363,12 +478,27 @@ class _ReceiptsTabState extends State<ReceiptsTab> {
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-            Text('Total for period', style: TextStyle(color: Colors.grey.shade400, fontSize: 12)),
-            const SizedBox(height: 4),
-            Text('RSD ${totalPeriodExpense.toStringAsFixed(2)}', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 20)),
-          ]),
-          Text('${_transactions.length} receipts', style: TextStyle(color: Colors.grey.shade400, fontSize: 14)),
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                'Total for period',
+                style: TextStyle(color: Colors.grey.shade400, fontSize: 12),
+              ),
+              const SizedBox(height: 4),
+              Text(
+                'RSD ${totalPeriodExpense.toStringAsFixed(2)}',
+                style: const TextStyle(
+                  fontWeight: FontWeight.bold,
+                  fontSize: 20,
+                ),
+              ),
+            ],
+          ),
+          Text(
+            '${_transactions.length} receipts',
+            style: TextStyle(color: Colors.grey.shade400, fontSize: 14),
+          ),
         ],
       ),
     );

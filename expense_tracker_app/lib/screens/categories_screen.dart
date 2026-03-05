@@ -88,39 +88,86 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
 
   Future<void> _showAddCategoryDialog() async {
     final controller = TextEditingController();
-    final result = await showDialog<String>(
+    final parentOptions = _categories
+        .where((c) => c['parent_id'] == null)
+        .toList();
+    String? selectedParentId = parentOptions.isNotEmpty
+        ? parentOptions.first['id'] as String
+        : null;
+
+    final result = await showDialog<Map<String, String>>(
       context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('New Category'),
-        content: TextField(
-          controller: controller,
-          decoration: const InputDecoration(
-            hintText: 'Category name (e.g., Groceries)',
-            border: OutlineInputBorder(),
+      builder: (context) => StatefulBuilder(
+        builder: (context, setDialogState) => AlertDialog(
+          title: const Text('New Subcategory'),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              DropdownButtonFormField<String>(
+                value: selectedParentId,
+                decoration: const InputDecoration(
+                  labelText: 'Parent category',
+                  border: OutlineInputBorder(),
+                ),
+                items: parentOptions
+                    .map(
+                      (parent) => DropdownMenuItem<String>(
+                        value: parent['id'] as String,
+                        child: Text(parent['name'] as String),
+                      ),
+                    )
+                    .toList(),
+                onChanged: (value) =>
+                    setDialogState(() => selectedParentId = value),
+              ),
+              const SizedBox(height: 12),
+              TextField(
+                controller: controller,
+                decoration: const InputDecoration(
+                  hintText: 'Subcategory name (e.g., Coffee)',
+                  border: OutlineInputBorder(),
+                ),
+                autofocus: true,
+                textCapitalization: TextCapitalization.words,
+              ),
+            ],
           ),
-          autofocus: true,
-          textCapitalization: TextCapitalization.words,
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text('Cancel'),
+            ),
+            FilledButton(
+              onPressed: () {
+                final name = controller.text.trim();
+                if (name.isEmpty || selectedParentId == null) {
+                  Navigator.pop(context);
+                  return;
+                }
+                Navigator.pop(context, {
+                  'name': name,
+                  'parent_id': selectedParentId!,
+                });
+              },
+              child: const Text('Create'),
+            ),
+          ],
         ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('Cancel'),
-          ),
-          FilledButton(
-            onPressed: () => Navigator.pop(context, controller.text),
-            child: const Text('Create'),
-          ),
-        ],
       ),
     );
 
-    if (result != null && result.trim().isNotEmpty) {
+    if (result != null &&
+        result['name'] != null &&
+        result['parent_id'] != null) {
       try {
-        await ApiClient.createCategory(result.trim());
+        await ApiClient.createCategory(
+          result['name']!,
+          parentId: result['parent_id'],
+        );
         _fetchCategories();
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('Category "$result" created!')),
+            SnackBar(content: Text('Subcategory "${result['name']}" created!')),
           );
         }
       } catch (e) {
@@ -158,9 +205,9 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
         await ApiClient.deleteCategory(id);
         _fetchCategories();
         if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('"$name" deleted.')),
-          );
+          ScaffoldMessenger.of(
+            context,
+          ).showSnackBar(SnackBar(content: Text('"$name" deleted.')));
         }
       } catch (e) {
         if (mounted) {
@@ -177,7 +224,7 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
     final name = cat['name'] as String? ?? '';
     final isDefault = cat['is_default'] as bool? ?? false;
     final id = cat['id'] as String;
-    
+
     final color = _getCategoryColor(index);
     final icon = _getCategoryIcon(code);
 
@@ -186,10 +233,8 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
         Navigator.push(
           context,
           MaterialPageRoute(
-            builder: (context) => SubcategoriesScreen(
-              parentId: id,
-              parentName: name,
-            ),
+            builder: (context) =>
+                SubcategoriesScreen(parentId: id, parentName: name),
           ),
         );
       },
@@ -216,10 +261,13 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(name, style: const TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.w500
-                  )),
+                  Text(
+                    name,
+                    style: const TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
                   const SizedBox(height: 2),
                   Text(
                     isDefault ? 'Built-in' : 'Custom',
@@ -230,7 +278,11 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
             ),
             if (!isDefault)
               IconButton(
-                icon: const Icon(Icons.delete_outline, color: Colors.redAccent, size: 20),
+                icon: const Icon(
+                  Icons.delete_outline,
+                  color: Colors.redAccent,
+                  size: 20,
+                ),
                 onPressed: () {
                   _deleteCategory(id, name);
                 },
@@ -254,7 +306,7 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
       floatingActionButton: FloatingActionButton.extended(
         onPressed: _showAddCategoryDialog,
         icon: const Icon(Icons.add),
-        label: const Text('Add Category'),
+        label: const Text('Add Subcategory'),
         backgroundColor: Theme.of(context).colorScheme.primary,
       ),
     );
@@ -283,7 +335,9 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
     }
 
     // Only show parent categories (those without a parent_id)
-    final topLevelCats = _categories.where((c) => c['parent_id'] == null).toList();
+    final topLevelCats = _categories
+        .where((c) => c['parent_id'] == null)
+        .toList();
 
     return RefreshIndicator(
       onRefresh: _fetchCategories,

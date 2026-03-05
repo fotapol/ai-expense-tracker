@@ -18,6 +18,8 @@ class _AnalyticsTabState extends State<AnalyticsTab> {
   Map<String, dynamic>? _summaryData;
   String _selectedPeriod = PeriodFilter.last3Months;
   List<String> _selectedCategoryIds = [];
+  List<String> _selectedSubcategoryIds = [];
+  Map<String, String> _categoryNamesById = {};
 
   // Consistent color palette for categories
   static const List<Color> _categoryColors = [
@@ -42,14 +44,29 @@ class _AnalyticsTabState extends State<AnalyticsTab> {
   }
 
   Future<void> _loadFiltersAndFetch() async {
-    final prefs = await SharedPreferences.getInstance();
+    final prefsFuture = SharedPreferences.getInstance();
+    final categoriesFuture = ApiClient.listCategories();
+
+    final prefs = await prefsFuture;
     final savedPeriod = prefs.getString('analytics_period');
     final savedCats = prefs.getStringList('analytics_category_ids');
+    final savedSubcats = prefs.getStringList('analytics_subcategory_ids');
+    Map<String, String> categoryNames = {};
+    try {
+      final categories = await categoriesFuture;
+      categoryNames = {
+        for (final cat in categories)
+          if (cat['id'] != null && cat['name'] != null)
+            cat['id'].toString(): cat['name'].toString(),
+      };
+    } catch (_) {}
 
     if (mounted) {
       setState(() {
         if (savedPeriod != null) _selectedPeriod = savedPeriod;
         if (savedCats != null) _selectedCategoryIds = savedCats;
+        if (savedSubcats != null) _selectedSubcategoryIds = savedSubcats;
+        _categoryNamesById = categoryNames;
       });
       _fetchSummary();
     }
@@ -59,6 +76,10 @@ class _AnalyticsTabState extends State<AnalyticsTab> {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setString('analytics_period', _selectedPeriod);
     await prefs.setStringList('analytics_category_ids', _selectedCategoryIds);
+    await prefs.setStringList(
+      'analytics_subcategory_ids',
+      _selectedSubcategoryIds,
+    );
   }
 
   Future<void> _fetchSummary() async {
@@ -71,7 +92,12 @@ class _AnalyticsTabState extends State<AnalyticsTab> {
       final startDate = PeriodFilter.getStartDate(_selectedPeriod);
       final data = await ApiClient.getTransactionsSummary(
         fromDate: startDate,
-        categoryIds: _selectedCategoryIds.isNotEmpty ? _selectedCategoryIds : null,
+        categoryIds: _selectedCategoryIds.isNotEmpty
+            ? _selectedCategoryIds
+            : null,
+        subcategoryIds: _selectedSubcategoryIds.isNotEmpty
+            ? _selectedSubcategoryIds
+            : null,
       );
       setState(() {
         _summaryData = data;
@@ -96,9 +122,9 @@ class _AnalyticsTabState extends State<AnalyticsTab> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           _buildTopBar(),
-          Expanded(
-            child: _buildContent(),
-          ),
+          _buildActiveFiltersBar(),
+          const SizedBox(height: 8),
+          Expanded(child: _buildContent()),
         ],
       ),
     );
@@ -112,10 +138,7 @@ class _AnalyticsTabState extends State<AnalyticsTab> {
         children: [
           const Text(
             'Analytics',
-            style: TextStyle(
-              fontSize: 24,
-              fontWeight: FontWeight.bold,
-            ),
+            style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
           ),
           IconButton(
             icon: const Icon(Icons.tune),
@@ -132,15 +155,117 @@ class _AnalyticsTabState extends State<AnalyticsTab> {
       context,
       selectedPeriod: _selectedPeriod,
       selectedCategoryIds: _selectedCategoryIds,
+      selectedSubcategoryIds: _selectedSubcategoryIds,
     );
     if (result != null) {
       setState(() {
         _selectedPeriod = result['period'] as String;
         _selectedCategoryIds = List<String>.from(result['category_ids'] ?? []);
+        _selectedSubcategoryIds = List<String>.from(
+          result['subcategory_ids'] ?? [],
+        );
       });
       _saveFilters();
       _fetchSummary();
     }
+  }
+
+  Future<void> _clearFilters() async {
+    setState(() {
+      _selectedPeriod = PeriodFilter.last3Months;
+      _selectedCategoryIds.clear();
+      _selectedSubcategoryIds.clear();
+    });
+    await _saveFilters();
+    _fetchSummary();
+  }
+
+  Widget _buildFilterChip(String label, {IconData? icon, Color? color}) {
+    final chipColor = color ?? Theme.of(context).colorScheme.primary;
+    return Container(
+      margin: const EdgeInsets.only(right: 8),
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+      decoration: BoxDecoration(
+        color: chipColor.withAlpha(35),
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: chipColor.withAlpha(100)),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          if (icon != null) ...[
+            Icon(icon, size: 14, color: chipColor),
+            const SizedBox(width: 6),
+          ],
+          Text(
+            label,
+            style: TextStyle(
+              color: chipColor,
+              fontSize: 13,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildActiveFiltersBar() {
+    final hasRemovableFilters =
+        _selectedPeriod != PeriodFilter.last3Months ||
+        _selectedCategoryIds.isNotEmpty ||
+        _selectedSubcategoryIds.isNotEmpty;
+
+    final categoryLabels = _selectedCategoryIds
+        .map((id) => _categoryNamesById[id] ?? 'Category')
+        .toList();
+    final subcategoryLabels = _selectedSubcategoryIds
+        .map((id) => _categoryNamesById[id] ?? 'Subcategory')
+        .toList();
+
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16),
+      child: Row(
+        children: [
+          Expanded(
+            child: SingleChildScrollView(
+              scrollDirection: Axis.horizontal,
+              child: Row(
+                children: [
+                  _buildFilterChip(
+                    _selectedPeriod,
+                    icon: Icons.calendar_today,
+                    color: const Color(0xFF19D3AE),
+                  ),
+                  ...categoryLabels.map(
+                    (label) => _buildFilterChip(
+                      label,
+                      icon: Icons.category,
+                      color: const Color(0xFFAB47BC),
+                    ),
+                  ),
+                  ...subcategoryLabels.map(
+                    (label) => _buildFilterChip(
+                      label,
+                      icon: Icons.account_tree,
+                      color: const Color(0xFF29B6F6),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+          const SizedBox(width: 8),
+          if (hasRemovableFilters)
+            IconButton(
+              onPressed: _clearFilters,
+              icon: const Icon(Icons.cancel),
+              color: Colors.grey.shade400,
+              tooltip: 'Clear filters',
+            ),
+        ],
+      ),
+    );
   }
 
   Widget _buildContent() {
@@ -160,14 +285,16 @@ class _AnalyticsTabState extends State<AnalyticsTab> {
             ElevatedButton(
               onPressed: _fetchSummary,
               child: const Text('Retry'),
-            )
+            ),
           ],
         ),
       );
     }
 
-    final totalAmount = (_summaryData?['total_amount'] as num?)?.toDouble() ?? 0.0;
-    final totalTransactions = (_summaryData?['total_transactions'] as num?)?.toInt() ?? 0;
+    final totalAmount =
+        (_summaryData?['total_amount'] as num?)?.toDouble() ?? 0.0;
+    final totalTransactions =
+        (_summaryData?['total_transactions'] as num?)?.toInt() ?? 0;
     final categories = _summaryData?['categories'] as List<dynamic>? ?? [];
 
     if (totalAmount == 0 && categories.isEmpty) {
@@ -175,10 +302,16 @@ class _AnalyticsTabState extends State<AnalyticsTab> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(Icons.pie_chart_outline, size: 64, color: Colors.grey.shade600),
+            Icon(
+              Icons.pie_chart_outline,
+              size: 64,
+              color: Colors.grey.shade600,
+            ),
             const SizedBox(height: 16),
-            Text('No expenses data found',
-              style: TextStyle(color: Colors.grey.shade400, fontSize: 16)),
+            Text(
+              'No expenses data found',
+              style: TextStyle(color: Colors.grey.shade400, fontSize: 16),
+            ),
           ],
         ),
       );
@@ -208,7 +341,11 @@ class _AnalyticsTabState extends State<AnalyticsTab> {
     // Calculate days in the selected period for the average
     int periodDays = 30;
     if (_selectedPeriod == PeriodFilter.last3Months) periodDays = 90;
-    if (_selectedPeriod == PeriodFilter.thisYear) periodDays = DateTime.now().difference(DateTime(DateTime.now().year, 1, 1)).inDays.clamp(1, 366);
+    if (_selectedPeriod == PeriodFilter.thisYear)
+      periodDays = DateTime.now()
+          .difference(DateTime(DateTime.now().year, 1, 1))
+          .inDays
+          .clamp(1, 366);
 
     return Container(
       width: double.infinity,
@@ -218,10 +355,7 @@ class _AnalyticsTabState extends State<AnalyticsTab> {
         gradient: const LinearGradient(
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
-          colors: [
-            Color(0xFF4A148C),
-            Color(0xFF311B92),
-          ],
+          colors: [Color(0xFF4A148C), Color(0xFF311B92)],
         ),
       ),
       child: Column(
@@ -275,7 +409,7 @@ class _AnalyticsTabState extends State<AnalyticsTab> {
                 ],
               ),
             ],
-          )
+          ),
         ],
       ),
     );
@@ -330,13 +464,10 @@ class _AnalyticsTabState extends State<AnalyticsTab> {
               ),
               Text(
                 'Total Spent',
-                style: TextStyle(
-                  fontSize: 12,
-                  color: Colors.grey.shade400,
-                ),
+                style: TextStyle(fontSize: 12, color: Colors.grey.shade400),
               ),
             ],
-          )
+          ),
         ],
       ),
     );
@@ -358,10 +489,7 @@ class _AnalyticsTabState extends State<AnalyticsTab> {
             Container(
               width: 12,
               height: 12,
-              decoration: BoxDecoration(
-                color: color,
-                shape: BoxShape.circle,
-              ),
+              decoration: BoxDecoration(color: color, shape: BoxShape.circle),
             ),
             const SizedBox(width: 8),
             Text(name, style: TextStyle(color: Colors.grey.shade300)),
