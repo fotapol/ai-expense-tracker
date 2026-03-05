@@ -38,8 +38,13 @@ async def list_transactions(
         query = query.where(Transaction.occurred_at <= filters.to_occurred_at)
     if filters.merchant_id:
         query = query.where(Transaction.merchant_id == filters.merchant_id)
-    if filters.category_id:
-        query = query.where(Transaction.category_id == filters.category_id)
+    if filters.category_ids:
+        try:
+            cat_ids = [uuid.UUID(uid.strip()) for uid in filters.category_ids.split(",") if uid.strip()]
+            if cat_ids:
+                query = query.where(Transaction.category_id.in_(cat_ids))
+        except ValueError:
+            pass # ignore invalid uuids
     if filters.merchant_name_search:
         search_term = f"%{filters.merchant_name_search}%"
         query = query.where(Transaction.merchant_name.ilike(search_term))
@@ -103,6 +108,30 @@ async def get_transactions_summary(
         base_query = base_query.where(Transaction.occurred_at >= filters.from_occurred_at)
     if filters.to_occurred_at:
         base_query = base_query.where(Transaction.occurred_at <= filters.to_occurred_at)
+    if filters.merchant_id:
+        base_query = base_query.where(Transaction.merchant_id == filters.merchant_id)
+    if filters.category_ids:
+        try:
+            cat_ids = [uuid.UUID(uid.strip()) for uid in filters.category_ids.split(",") if uid.strip()]
+            if cat_ids:
+                base_query = base_query.where(Transaction.category_id.in_(cat_ids))
+        except ValueError:
+            pass
+    if filters.merchant_name_search:
+        search_term = f"%{filters.merchant_name_search}%"
+        base_query = base_query.where(Transaction.merchant_name.ilike(search_term))
+    if filters.label_id:
+        from app.models.labels.transaction_label import TransactionLabel
+        label_subquery = select(TransactionLabel.transaction_id).where(
+            TransactionLabel.label_id == filters.label_id
+        ).subquery()
+        base_query = base_query.where(Transaction.id.in_(select(label_subquery.c.transaction_id)))
+    if filters.status:
+        base_query = base_query.where(Transaction.status == filters.status)
+    if filters.source:
+        base_query = base_query.where(Transaction.source == filters.source)
+    if filters.currency:
+        base_query = base_query.where(Transaction.currency == filters.currency)
         
     transaction_ids_subquery = base_query.subquery()
 
@@ -120,26 +149,61 @@ async def get_transactions_summary(
             Category.id,
             Category.name,
             Category.code,
+            Category.parent_id,
             func.sum(TransactionItem.amount).label("category_total")
         )
         .join(TransactionItem, TransactionItem.category_id == Category.id)
         .where(TransactionItem.transaction_id.in_(select(transaction_ids_subquery.c.id)))
-        .group_by(Category.id, Category.name, Category.code)
+        .group_by(Category.id, Category.name, Category.code, Category.parent_id)
         .order_by(func.sum(TransactionItem.amount).desc())
     )
     
     category_results = session.exec(category_query).all()
     
+    # Pre-fetch all parent categories to get their names and codes if we need to roll up
+    parent_ids = {cat.parent_id for cat in category_results if cat.parent_id is not None}
+    
+    parent_map = {}
+    if parent_ids:
+        parents = session.exec(select(Category).where(Category.id.in_(parent_ids))).all()
+        for p in parents:
+            parent_map[p.id] = {"name": p.name, "code": p.code}
+
+    # Roll up totals into parents
+    rolled_up_totals = {}
+    for cat_id, cat_name, cat_code, cat_parent_id, cat_total in category_results:
+        if cat_parent_id:
+            # It's a subcategory, roll it into the parent
+            target_id = cat_parent_id
+            target_name = parent_map.get(cat_parent_id, {}).get("name", "Unknown Parent")
+            target_code = parent_map.get(cat_parent_id, {}).get("code", "OTHER")
+        else:
+            # It's already a top-level category
+            target_id = cat_id
+            target_name = cat_name
+            target_code = cat_code
+            
+        if target_id not in rolled_up_totals:
+            rolled_up_totals[target_id] = {
+                "name": target_name,
+                "code": target_code,
+                "amount": Decimal("0")
+            }
+        rolled_up_totals[target_id]["amount"] += cat_total
+
     categories_breakdown = []
-    for cat_id, cat_name, cat_code, cat_total in category_results:
-        percentage = (cat_total / total_amount * 100) if total_amount > 0 else Decimal("0")
+    for cat_id, data in rolled_up_totals.items():
+        percentage = (data["amount"] / total_amount * 100) if total_amount > 0 else Decimal("0")
         categories_breakdown.append({
             "category_id": cat_id,
-            "name": cat_name,
-            "code": cat_code,
-            "amount": float(cat_total),
+            "name": data["name"],
+            "code": data["code"],
+            "amount": float(data["amount"]),
             "percentage": float(percentage)
         })
+        
+    # Re-sort by amount descending since the rollup might have changed the order
+    categories_breakdown.sort(key=lambda x: x["amount"], reverse=True)
 
     return {
         "total_amount": float(total_amount),

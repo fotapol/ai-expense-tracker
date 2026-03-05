@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:fl_chart/fl_chart.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import '../core/api_client.dart';
 import '../core/period_filter.dart';
 import '../widgets/filter_bottom_sheet.dart';
@@ -15,7 +16,8 @@ class _AnalyticsTabState extends State<AnalyticsTab> {
   bool _isLoading = true;
   String? _error;
   Map<String, dynamic>? _summaryData;
-  String _selectedFilter = PeriodFilter.last3Months;
+  String _selectedPeriod = PeriodFilter.last3Months;
+  List<String> _selectedCategoryIds = [];
 
   // Consistent color palette for categories
   static const List<Color> _categoryColors = [
@@ -36,7 +38,27 @@ class _AnalyticsTabState extends State<AnalyticsTab> {
   @override
   void initState() {
     super.initState();
-    _fetchSummary();
+    _loadFiltersAndFetch();
+  }
+
+  Future<void> _loadFiltersAndFetch() async {
+    final prefs = await SharedPreferences.getInstance();
+    final savedPeriod = prefs.getString('analytics_period');
+    final savedCats = prefs.getStringList('analytics_category_ids');
+
+    if (mounted) {
+      setState(() {
+        if (savedPeriod != null) _selectedPeriod = savedPeriod;
+        if (savedCats != null) _selectedCategoryIds = savedCats;
+      });
+      _fetchSummary();
+    }
+  }
+
+  Future<void> _saveFilters() async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString('analytics_period', _selectedPeriod);
+    await prefs.setStringList('analytics_category_ids', _selectedCategoryIds);
   }
 
   Future<void> _fetchSummary() async {
@@ -46,8 +68,11 @@ class _AnalyticsTabState extends State<AnalyticsTab> {
     });
 
     try {
-      final startDate = PeriodFilter.getStartDate(_selectedFilter);
-      final data = await ApiClient.getTransactionsSummary(fromDate: startDate);
+      final startDate = PeriodFilter.getStartDate(_selectedPeriod);
+      final data = await ApiClient.getTransactionsSummary(
+        fromDate: startDate,
+        categoryIds: _selectedCategoryIds.isNotEmpty ? _selectedCategoryIds : null,
+      );
       setState(() {
         _summaryData = data;
         _isLoading = false;
@@ -71,7 +96,6 @@ class _AnalyticsTabState extends State<AnalyticsTab> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           _buildTopBar(),
-          _buildFilterPill(),
           Expanded(
             child: _buildContent(),
           ),
@@ -81,60 +105,22 @@ class _AnalyticsTabState extends State<AnalyticsTab> {
   }
 
   Widget _buildTopBar() {
-    return const Padding(
-      padding: EdgeInsets.all(16.0),
-      child: Text(
-        'Analytics',
-        style: TextStyle(
-          fontSize: 24,
-          fontWeight: FontWeight.bold,
-        ),
-      ),
-    );
-  }
-
-  Widget _buildFilterPill() {
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16.0),
+      padding: const EdgeInsets.all(16.0),
       child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          GestureDetector(
-            onTap: _openFilters,
-            child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-              decoration: BoxDecoration(
-                color: Theme.of(context).colorScheme.surface,
-                borderRadius: BorderRadius.circular(20),
-              ),
-              child: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Icon(Icons.calendar_today, size: 14, color: Theme.of(context).colorScheme.primary),
-                  const SizedBox(width: 8),
-                  Text(_selectedFilter, style: TextStyle(color: Theme.of(context).colorScheme.primary)),
-                ],
-              ),
+          const Text(
+            'Analytics',
+            style: TextStyle(
+              fontSize: 24,
+              fontWeight: FontWeight.bold,
             ),
           ),
-          const SizedBox(width: 8),
-          GestureDetector(
-            onTap: _openFilters,
-            child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-              decoration: BoxDecoration(
-                color: Theme.of(context).colorScheme.primary.withAlpha(20),
-                borderRadius: BorderRadius.circular(20),
-                border: Border.all(color: Theme.of(context).colorScheme.primary.withAlpha(60)),
-              ),
-              child: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Icon(Icons.tune, size: 16, color: Theme.of(context).colorScheme.primary),
-                  const SizedBox(width: 6),
-                  Text('Filters', style: TextStyle(color: Theme.of(context).colorScheme.primary, fontSize: 13, fontWeight: FontWeight.w600)),
-                ],
-              ),
-            ),
+          IconButton(
+            icon: const Icon(Icons.tune),
+            color: Theme.of(context).colorScheme.primary,
+            onPressed: _openFilters,
           ),
         ],
       ),
@@ -144,10 +130,15 @@ class _AnalyticsTabState extends State<AnalyticsTab> {
   Future<void> _openFilters() async {
     final result = await FilterBottomSheet.show(
       context,
-      selectedPeriod: _selectedFilter,
+      selectedPeriod: _selectedPeriod,
+      selectedCategoryIds: _selectedCategoryIds,
     );
     if (result != null) {
-      setState(() => _selectedFilter = result['period'] as String);
+      setState(() {
+        _selectedPeriod = result['period'] as String;
+        _selectedCategoryIds = List<String>.from(result['category_ids'] ?? []);
+      });
+      _saveFilters();
       _fetchSummary();
     }
   }
@@ -216,8 +207,8 @@ class _AnalyticsTabState extends State<AnalyticsTab> {
   Widget _buildTotalCard(double totalAmount, int totalTransactions) {
     // Calculate days in the selected period for the average
     int periodDays = 30;
-    if (_selectedFilter == PeriodFilter.last3Months) periodDays = 90;
-    if (_selectedFilter == PeriodFilter.thisYear) periodDays = DateTime.now().difference(DateTime(DateTime.now().year, 1, 1)).inDays.clamp(1, 366);
+    if (_selectedPeriod == PeriodFilter.last3Months) periodDays = 90;
+    if (_selectedPeriod == PeriodFilter.thisYear) periodDays = DateTime.now().difference(DateTime(DateTime.now().year, 1, 1)).inDays.clamp(1, 366);
 
     return Container(
       width: double.infinity,
@@ -236,7 +227,7 @@ class _AnalyticsTabState extends State<AnalyticsTab> {
       child: Column(
         children: [
           Text(
-            _selectedFilter.toUpperCase(),
+            _selectedPeriod.toUpperCase(),
             style: const TextStyle(
               color: Colors.white70,
               fontSize: 12,
