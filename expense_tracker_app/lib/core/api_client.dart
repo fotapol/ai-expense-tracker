@@ -167,7 +167,7 @@ class ApiClient {
   static Future<List<dynamic>> listTransactions({
     DateTime? fromDate,
     String? merchantNameSearch,
-    String? categoryId,
+    List<String>? categoryIds,
     String? labelId,
   }) async {
     final token = await _getToken();
@@ -180,8 +180,8 @@ class ApiClient {
     if (merchantNameSearch != null && merchantNameSearch.isNotEmpty) {
       url += '&merchant_name_search=${Uri.encodeComponent(merchantNameSearch)}';
     }
-    if (categoryId != null) {
-      url += '&category_id=$categoryId';
+    if (categoryIds != null && categoryIds.isNotEmpty) {
+      url += '&category_ids=${categoryIds.join(',')}';
     }
     if (labelId != null) {
       url += '&label_id=$labelId';
@@ -204,13 +204,25 @@ class ApiClient {
   }
 
   /// GET /v1/transactions/summary
-  static Future<Map<String, dynamic>> getTransactionsSummary({DateTime? fromDate}) async {
+  static Future<Map<String, dynamic>> getTransactionsSummary({
+    DateTime? fromDate,
+    List<String>? categoryIds,
+  }) async {
     final token = await _getToken();
     
     // Build query params
     String url = '$apiBaseUrl/v1/transactions/summary';
+    final params = <String>[];
+    
     if (fromDate != null) {
-      url += '?from_occurred_at=${fromDate.toUtc().toIso8601String()}';
+      params.add('from_occurred_at=${fromDate.toUtc().toIso8601String()}');
+    }
+    if (categoryIds != null && categoryIds.isNotEmpty) {
+      params.add('category_ids=${categoryIds.join(',')}');
+    }
+    
+    if (params.isNotEmpty) {
+      url += '?${params.join('&')}';
     }
 
     final response = await http.get(
@@ -247,20 +259,61 @@ class ApiClient {
   }
 
   /// POST /v1/categories
-  static Future<Map<String, dynamic>> createCategory(String name) async {
+  static Future<Map<String, dynamic>> createCategory(
+    String name, {
+    String? parentId,
+    String? icon,
+    String? color,
+  }) async {
     final token = await _getToken();
+    final body = {
+      'name': name,
+      if (parentId != null) 'parent_id': parentId,
+      if (icon != null) 'icon': icon,
+      if (color != null) 'color': color,
+    };
     final response = await http.post(
       Uri.parse('$apiBaseUrl/v1/categories'),
       headers: {
         'Authorization': 'Bearer $token',
         'Content-Type': 'application/json',
       },
-      body: jsonEncode({'name': name}),
+      body: jsonEncode(body),
     );
     if (response.statusCode == 201) {
       return jsonDecode(response.body) as Map<String, dynamic>;
     } else {
       throw Exception('Failed to create category: ${response.statusCode} ${response.body}');
+    }
+  }
+
+  /// PUT /v1/categories/{id}
+  static Future<Map<String, dynamic>> updateCategory(
+    String id, {
+    String? name,
+    String? parentId,
+    String? icon,
+    String? color,
+  }) async {
+    final token = await _getToken();
+    final body = <String, dynamic>{};
+    if (name != null) body['name'] = name;
+    if (parentId != null) body['parent_id'] = parentId;
+    if (icon != null) body['icon'] = icon;
+    if (color != null) body['color'] = color;
+    
+    final response = await http.put(
+      Uri.parse('$apiBaseUrl/v1/categories/$id'),
+      headers: {
+        'Authorization': 'Bearer $token',
+        'Content-Type': 'application/json',
+      },
+      body: jsonEncode(body),
+    );
+    if (response.statusCode == 200) {
+      return jsonDecode(response.body) as Map<String, dynamic>;
+    } else {
+      throw Exception('Failed to update category: ${response.statusCode} ${response.body}');
     }
   }
 
