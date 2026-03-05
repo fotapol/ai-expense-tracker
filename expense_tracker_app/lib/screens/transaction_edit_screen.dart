@@ -198,29 +198,49 @@ class _TransactionEditScreenState extends State<TransactionEditScreen> {
     return fixed.replaceFirst(RegExp(r'\.?0+$'), '');
   }
 
-  String _displayUnit(String? rawUnit) {
+  String _inferUnitFromDescription(String description) {
+    final upper = description.toUpperCase();
+    if (RegExp(r'\bKG\b|\bKGS\b').hasMatch(upper)) return 'kg';
+    if (RegExp(r'\bG\b').hasMatch(upper)) return 'kg';
+    if (RegExp(r'\bML\b').hasMatch(upper)) return 'l';
+    if (RegExp(r'\bL\b|\bLTR\b|\bLITAR\b|\bLITER\b').hasMatch(upper)) {
+      return 'l';
+    }
+    return 'pc';
+  }
+
+  String _displayUnit(String? rawUnit, {String? description}) {
     final normalized = (rawUnit ?? '').trim().toUpperCase();
     switch (normalized) {
       case 'KG':
       case 'KGS':
         return 'kg';
       case 'G':
-        return 'g';
+        return 'kg';
       case 'L':
       case 'LT':
       case 'LITER':
       case 'LITAR':
         return 'l';
       case 'ML':
-        return 'ml';
+        return 'l';
       case 'KOM':
       case 'PCS':
       case 'PC':
       case 'UNIT':
       case 'UN':
-        return 'unit';
+        return 'pc';
       default:
-        return normalized.isEmpty ? 'unit' : normalized.toLowerCase();
+        if (normalized.isEmpty) {
+          return _inferUnitFromDescription(description ?? '');
+        }
+        if (RegExp(r'\bKG\b|\bKGS\b|\bG\b').hasMatch(normalized)) return 'kg';
+        if (RegExp(
+          r'\bL\b|\bLT\b|\bLITER\b|\bLITAR\b|\bML\b',
+        ).hasMatch(normalized)) {
+          return 'l';
+        }
+        return 'pc';
     }
   }
 
@@ -554,6 +574,11 @@ class _TransactionEditScreenState extends State<TransactionEditScreen> {
         ? const Color(0xFFAB47BC)
         : Colors.grey; // Hardcoded purple like first screens, or from cat data
     final unit = item['unit']?.toString().trim();
+    final resolvedUnit = _displayUnit(
+      unit,
+      description:
+          nameController?.text ?? item['description']?.toString() ?? '',
+    );
 
     return Container(
       margin: const EdgeInsets.only(bottom: 12),
@@ -578,8 +603,6 @@ class _TransactionEditScreenState extends State<TransactionEditScreen> {
                   ),
                 ),
               ),
-              const Icon(Icons.edit, color: Colors.white24, size: 14),
-              const SizedBox(width: 8),
               IconButton(
                 icon: const Icon(
                   Icons.delete_outline,
@@ -594,101 +617,48 @@ class _TransactionEditScreenState extends State<TransactionEditScreen> {
           const SizedBox(height: 8),
           Row(
             children: [
-              Expanded(
-                child: Row(
-                  children: [
-                    _buildFormulaNumberInput(
-                      controller: unitPriceController,
-                      hint: '0.00',
-                      width: 62,
-                      keepTrailingZeros: true,
-                      onChanged: (_) => _recalculateItemAmount(id),
-                    ),
-                    const SizedBox(width: 4),
-                    Text(
-                      _currency,
-                      style: TextStyle(
-                        color: Colors.grey.shade400,
-                        fontSize: 11,
-                        fontWeight: FontWeight.w500,
-                      ),
-                    ),
-                    const SizedBox(width: 4),
-                    Text(
-                      'x',
-                      style: TextStyle(
-                        color: Colors.grey.shade400,
-                        fontSize: 12,
-                        fontWeight: FontWeight.w500,
-                      ),
-                    ),
-                    const SizedBox(width: 4),
-                    _buildFormulaNumberInput(
-                      controller: qtyController,
-                      hint: '1',
-                      width: 52,
-                      onChanged: (_) => _recalculateItemAmount(id),
-                    ),
-                    const SizedBox(width: 4),
-                    Text(
-                      _displayUnit(unit),
-                      style: TextStyle(
-                        color: Colors.grey.shade400,
-                        fontSize: 11,
-                        fontWeight: FontWeight.w500,
-                      ),
-                    ),
-                    const SizedBox(width: 4),
-                    Text(
-                      '=',
-                      style: TextStyle(
-                        color: Colors.grey.shade400,
-                        fontSize: 12,
-                        fontWeight: FontWeight.w500,
-                      ),
-                    ),
-                  ],
+              _buildFormulaNumberInput(
+                controller: unitPriceController,
+                hint: '0.00',
+                width: 76,
+                keepTrailingZeros: true,
+                onChanged: (_) => _recalculateItemAmount(id),
+              ),
+              const SizedBox(width: 4),
+              Text(
+                '$_currency x',
+                style: TextStyle(
+                  color: Colors.grey.shade400,
+                  fontSize: 12,
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+              const SizedBox(width: 4),
+              _buildFormulaNumberInput(
+                controller: qtyController,
+                hint: '1',
+                width: 50,
+                onChanged: (_) => _recalculateItemAmount(id),
+              ),
+              const SizedBox(width: 4),
+              Text(
+                '$resolvedUnit =',
+                style: TextStyle(
+                  color: Colors.grey.shade400,
+                  fontSize: 12,
+                  fontWeight: FontWeight.w500,
                 ),
               ),
               const SizedBox(width: 6),
-              SizedBox(
-                width: 116,
-                child: TextField(
-                  controller: amountController,
+              Expanded(
+                child: Text(
+                  '${_formatNumberForInput(amountController?.text, decimals: 2, keepTrailingZeros: true)} $_currency',
                   textAlign: TextAlign.right,
-                  keyboardType: const TextInputType.numberWithOptions(
-                    decimal: true,
-                  ),
                   style: const TextStyle(
                     color: Colors.white,
                     fontSize: 15,
                     fontWeight: FontWeight.bold,
                   ),
-                  decoration: const InputDecoration(
-                    border: InputBorder.none,
-                    isDense: true,
-                  ),
-                  onChanged: (_) => _recalculateTotal(),
-                  onSubmitted: (_) {
-                    if (amountController == null) return;
-                    amountController.text = _formatNumberForInput(
-                      amountController.text,
-                      decimals: 2,
-                      keepTrailingZeros: true,
-                    );
-                    amountController.selection = TextSelection.fromPosition(
-                      TextPosition(offset: amountController.text.length),
-                    );
-                    _recalculateTotal();
-                  },
-                ),
-              ),
-              Text(
-                ' $_currency',
-                style: const TextStyle(
-                  color: Colors.white,
-                  fontSize: 14,
-                  fontWeight: FontWeight.bold,
                 ),
               ),
             ],

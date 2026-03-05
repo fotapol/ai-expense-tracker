@@ -73,29 +73,49 @@ class _AnalyticsSubcategoryItemsScreenState
     return text.replaceFirst(RegExp(r'\.?0+$'), '');
   }
 
-  String _displayUnit(String? unit) {
+  String _inferUnitFromDescription(String description) {
+    final upper = description.toUpperCase();
+    if (RegExp(r'\bKG\b|\bKGS\b').hasMatch(upper)) return 'kg';
+    if (RegExp(r'\bG\b').hasMatch(upper)) return 'kg';
+    if (RegExp(r'\bML\b').hasMatch(upper)) return 'l';
+    if (RegExp(r'\bL\b|\bLTR\b|\bLITAR\b|\bLITER\b').hasMatch(upper)) {
+      return 'l';
+    }
+    return 'pc';
+  }
+
+  String _displayUnit(String? unit, {String? description}) {
     final normalized = (unit ?? '').trim().toUpperCase();
     switch (normalized) {
       case 'KG':
       case 'KGS':
         return 'kg';
       case 'G':
-        return 'g';
+        return 'kg';
       case 'L':
       case 'LT':
       case 'LITER':
       case 'LITAR':
         return 'l';
       case 'ML':
-        return 'ml';
+        return 'l';
       case 'KOM':
       case 'PCS':
       case 'PC':
       case 'UNIT':
       case 'UN':
-        return 'units';
+        return 'pc';
       default:
-        return normalized.isEmpty ? 'units' : normalized.toLowerCase();
+        if (normalized.isEmpty) {
+          return _inferUnitFromDescription(description ?? '');
+        }
+        if (RegExp(r'\bKG\b|\bKGS\b|\bG\b').hasMatch(normalized)) return 'kg';
+        if (RegExp(
+          r'\bL\b|\bLT\b|\bLITER\b|\bLITAR\b|\bML\b',
+        ).hasMatch(normalized)) {
+          return 'l';
+        }
+        return 'pc';
     }
   }
 
@@ -103,6 +123,7 @@ class _AnalyticsSubcategoryItemsScreenState
     required int occurrences,
     required double? totalQty,
     required String? unit,
+    required String description,
   }) {
     final timesText = occurrences == 1
         ? 'Bought once'
@@ -110,7 +131,7 @@ class _AnalyticsSubcategoryItemsScreenState
     if (totalQty == null) return timesText;
 
     final qtyText =
-        'Total quantity ${_formatQty(totalQty)} ${_displayUnit(unit)}';
+        'Total quantity ${_formatQty(totalQty)} ${_displayUnit(unit, description: description)}';
     return '$timesText - $qtyText';
   }
 
@@ -204,6 +225,7 @@ class _AnalyticsSubcategoryItemsScreenState
               occurrences: occurrences,
               totalQty: totalQty,
               unit: unit,
+              description: name,
             );
 
             return Container(
