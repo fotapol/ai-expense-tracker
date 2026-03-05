@@ -3,6 +3,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import '../core/api_client.dart';
 import 'login_screen.dart';
+import 'receipt_upload_screen.dart';
 
 /// Screen that displays the authenticated user's profile from the backend.
 class MeScreen extends StatefulWidget {
@@ -63,6 +64,15 @@ class _MeScreenState extends State<MeScreen> {
         ],
       ),
       body: _buildBody(),
+      floatingActionButton: FloatingActionButton.extended(
+        onPressed: () {
+          Navigator.of(context).push(
+            MaterialPageRoute(builder: (_) => const ReceiptUploadScreen()),
+          );
+        },
+        icon: const Icon(Icons.receipt_long),
+        label: const Text('Scan Receipt'),
+      ),
     );
   }
 

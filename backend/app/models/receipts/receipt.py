@@ -1,7 +1,7 @@
 import datetime
 import uuid
 
-from sqlalchemy import Column, DateTime
+from sqlalchemy import Column, DateTime, Index
 from sqlalchemy import Enum as SAEnum
 from sqlmodel import Field, SQLModel
 
@@ -32,6 +32,9 @@ class Receipt(ReceiptBase, TimestampedModel, table=True):
     """Stored receipt object tracked through asynchronous extraction lifecycle."""
 
     __tablename__ = "receipts"
+    __table_args__ = (
+        Index("ix_receipts_user_id_status", "user_id", "status"),
+    )
 
     id: uuid.UUID = Field(default_factory=uuid.uuid4, primary_key=True)
     user_id: uuid.UUID = Field(nullable=False, index=True, foreign_key="users.id")
