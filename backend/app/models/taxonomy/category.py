@@ -1,6 +1,6 @@
 import uuid
 
-from sqlalchemy import Column, Index, UniqueConstraint
+from sqlalchemy import Column, Index, String, UniqueConstraint
 from sqlalchemy import Enum as SAEnum
 from sqlmodel import Field, SQLModel
 
@@ -20,6 +20,8 @@ class CategoryBase(SQLModel):
     code: str = Field(max_length=64, nullable=False)
     name: str = Field(max_length=120, nullable=False)
     parent_id: uuid.UUID | None = Field(default=None, foreign_key="categories.id", index=True)
+    icon: str | None = Field(default=None, sa_column=Column(String(50)))
+    color: str | None = Field(default=None, sa_column=Column(String(50)))
     is_active: bool = Field(default=True, nullable=False)
 
 
