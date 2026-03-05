@@ -4,6 +4,8 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 
+import 'transaction_edit_screen.dart';
+
 import '../core/api_client.dart';
 
 /// Receipt upload screen implementing the full presigned-URL upload flow:
@@ -17,9 +19,8 @@ class ReceiptUploadScreen extends StatefulWidget {
 
 class _ReceiptUploadScreenState extends State<ReceiptUploadScreen> {
   XFile? _pickedFile;
-  String _status = 'idle'; // idle | uploading | processing | done | failed
+  String _status = 'idle'; // idle | uploading | processing | failed
   String? _receiptId;
-  String? _transactionId;
   String? _error;
   double _progress = 0;
 
@@ -109,16 +110,22 @@ class _ReceiptUploadScreenState extends State<ReceiptUploadScreen> {
     for (int i = 0; i < maxAttempts; i++) {
       await Future.delayed(const Duration(seconds: 2));
 
+      if (!mounted) return;
+
       try {
         final data = await ApiClient.getReceiptStatus(_receiptId!);
         final status = data['status'] as String;
 
         if (status == 'COMPLETED') {
-          setState(() {
-            _status = 'done';
-            _progress = 1.0;
-            _transactionId = data['transaction_id']?.toString();
-          });
+          final txId = data['transaction_id']?.toString();
+          if (txId != null && mounted) {
+            Navigator.pushReplacement(
+              context,
+              MaterialPageRoute(
+                builder: (context) => TransactionEditScreen(transactionId: txId),
+              ),
+            );
+          }
           return;
         } else if (status == 'FAILED') {
           setState(() {
@@ -138,10 +145,12 @@ class _ReceiptUploadScreenState extends State<ReceiptUploadScreen> {
       }
     }
 
-    setState(() {
-      _status = 'failed';
-      _error = 'Extraction timed out after 2 minutes.';
-    });
+    if (mounted) {
+      setState(() {
+        _status = 'failed';
+        _error = 'Extraction timed out after 2 minutes.';
+      });
+    }
   }
 
   String _mimeForExtension(String ext) {
@@ -237,38 +246,6 @@ class _ReceiptUploadScreenState extends State<ReceiptUploadScreen> {
                     : 'Processing with AI... This may take a minute.',
                 textAlign: TextAlign.center,
                 style: Theme.of(context).textTheme.bodyMedium,
-              ),
-            ],
-
-            // Done
-            if (_status == 'done') ...[
-              const Icon(Icons.check_circle, color: Colors.green, size: 64),
-              const SizedBox(height: 12),
-              Text(
-                'Receipt processed successfully!',
-                textAlign: TextAlign.center,
-                style: Theme.of(context).textTheme.titleMedium,
-              ),
-              if (_transactionId != null) ...[
-                const SizedBox(height: 8),
-                Text(
-                  'Transaction: $_transactionId',
-                  style: Theme.of(context).textTheme.bodySmall,
-                  textAlign: TextAlign.center,
-                ),
-              ],
-              const SizedBox(height: 20),
-              FilledButton(
-                onPressed: () {
-                  setState(() {
-                    _status = 'idle';
-                    _pickedFile = null;
-                    _receiptId = null;
-                    _transactionId = null;
-                    _progress = 0;
-                  });
-                },
-                child: const Text('Upload Another'),
               ),
             ],
 

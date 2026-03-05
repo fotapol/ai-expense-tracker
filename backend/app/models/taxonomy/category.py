@@ -1,6 +1,6 @@
 import uuid
 
-from sqlalchemy import Column, Index, UniqueConstraint
+from sqlalchemy import Column, Index, String, text
 from sqlalchemy import Enum as SAEnum
 from sqlmodel import Field, SQLModel
 
@@ -20,7 +20,11 @@ class CategoryBase(SQLModel):
     code: str = Field(max_length=64, nullable=False)
     name: str = Field(max_length=120, nullable=False)
     parent_id: uuid.UUID | None = Field(default=None, foreign_key="categories.id", index=True)
+    icon: str | None = Field(default=None, sa_column=Column(String(50)))
+    color: str | None = Field(default=None, sa_column=Column(String(50)))
     is_active: bool = Field(default=True, nullable=False)
+    user_id: uuid.UUID | None = Field(default=None, foreign_key="users.id", index=True)
+    is_custom: bool = Field(default=False, nullable=False)
 
 
 class Category(CategoryBase, TimestampedModel, table=True):
@@ -28,8 +32,29 @@ class Category(CategoryBase, TimestampedModel, table=True):
 
     __tablename__ = "categories"
     __table_args__ = (
-        UniqueConstraint("scope", "code", name="uq_categories_scope_code"),
         Index("ix_categories_scope_name", "scope", "name"),
+        Index(
+            "uq_categories_global_scope_code",
+            "scope",
+            "code",
+            unique=True,
+            postgresql_where=text("user_id IS NULL"),
+        ),
+        Index(
+            "uq_categories_user_scope_code",
+            "scope",
+            "user_id",
+            "code",
+            unique=True,
+            postgresql_where=text("user_id IS NOT NULL"),
+        ),
+        Index(
+            "ix_categories_scope_user_code_active",
+            "scope",
+            "user_id",
+            "code",
+            "is_active",
+        ),
     )
 
     id: uuid.UUID = Field(default_factory=uuid.uuid4, primary_key=True)

@@ -24,8 +24,10 @@ import sys
 import time
 import traceback
 import uuid
+from decimal import Decimal
 
 import aio_pika
+from sqlalchemy import case, or_
 from sqlmodel import Session, select
 
 # ---------------------------------------------------------------------------
@@ -61,7 +63,12 @@ QUEUE_NAME = "receipt_extraction"
 # Vision LLM call
 # ---------------------------------------------------------------------------
 
-def _call_vision_llm(image_bytes: bytes, mime_type: str) -> dict:
+def _call_vision_llm(
+    image_bytes: bytes,
+    mime_type: str,
+    transaction_category_list: list[str],
+    item_subcategory_list: list[str],
+) -> dict:
     """Send image to Gemini and get structured receipt data back via LangChain structured output.
 
     Returns the extracted dict from the LLM along with metadata.
@@ -80,8 +87,23 @@ def _call_vision_llm(image_bytes: bytes, mime_type: str) -> dict:
 
     b64_image = base64.b64encode(image_bytes).decode("utf-8")
 
-    prompt = """You are an expert accounting system and receipt parser. 
-Analyze this receipt image and extract structured data accurately."""
+    tx_cat_lines = "\n".join(f"- {c}" for c in transaction_category_list)
+    item_cat_lines = "\n".join(f"- {c}" for c in item_subcategory_list)
+
+    prompt = f"""You are an expert accounting system and receipt parser. 
+Analyze this receipt image and extract structured data accurately.
+
+For the `occurred_at` field, extract BOTH the date AND the exact time (HH:mm) if it is visible on the receipt. If only the date is visible, extract just the date.
+
+For `primary_category_code`, choose the single best code from this TRANSACTION category list:
+{tx_cat_lines}
+
+For every single `item` you extract, you MUST provide a `category_code`.
+You must choose the best fitting ITEM subcategory ONLY from this list:
+{item_cat_lines}
+
+If no item subcategory matches confidently, use UNKNOWN_ITEM.
+"""
 
     message = HumanMessage(
         content=[
@@ -107,43 +129,177 @@ Analyze this receipt image and extract structured data accurately."""
 
 
 # ---------------------------------------------------------------------------
-# Resolve or create UNCATEGORIZED category
+# Category resolution helpers
 # ---------------------------------------------------------------------------
 
-def _get_uncategorized_category_id(session: Session) -> uuid.UUID:
-    """Return the UUID of the UNCATEGORIZED item category, creating it if needed."""
+def _get_or_create_global_category(
+    session: Session,
+    *,
+    scope: CategoryScope,
+    code: str,
+    name: str,
+    parent_id: uuid.UUID | None = None,
+) -> Category:
     cat = session.exec(
         select(Category).where(
-            Category.scope == CategoryScope.ITEM,
-            Category.code == "UNCATEGORIZED",
+            Category.scope == scope,
+            Category.code == code,
+            Category.user_id == None,
         )
     ).first()
     if cat is not None:
-        return cat.id
+        cat.name = name
+        cat.parent_id = parent_id
+        cat.is_active = True
+        session.add(cat)
+        session.commit()
+        session.refresh(cat)
+        return cat
 
     cat = Category(
-        scope=CategoryScope.ITEM,
-        code="UNCATEGORIZED",
-        name="Uncategorized",
+        scope=scope,
+        code=code,
+        name=name,
+        parent_id=parent_id,
+        user_id=None,
+        is_custom=False,
     )
     session.add(cat)
     session.commit()
     session.refresh(cat)
-    logger.info("Created UNCATEGORIZED item category id=%s.", cat.id)
-    return cat.id
+    logger.info("Created fallback category scope=%s code=%s id=%s.", scope.value, code, cat.id)
+    return cat
+
+
+def _resolve_category_with_scope(
+    session: Session,
+    *,
+    scope: CategoryScope,
+    user_id: uuid.UUID,
+    code: str | None,
+) -> Category | None:
+    if not code:
+        return None
+
+    clean_code = code.strip().upper()
+    candidates = session.exec(
+        select(Category).where(
+            Category.scope == scope,
+            Category.code == clean_code,
+            Category.is_active == True,
+            or_(Category.user_id == None, Category.user_id == user_id),
+        )
+        .order_by(
+            case(
+                (Category.user_id == user_id, 0),
+                else_=1,
+            )
+        )
+    ).all()
+    return candidates[0] if candidates else None
+
+
+def _get_uncategorized_category_id(session: Session) -> uuid.UUID:
+    """Return the UUID of the global UNCATEGORIZED ITEM category."""
+    other_item = _get_or_create_global_category(
+        session,
+        scope=CategoryScope.ITEM,
+        code="OTHER",
+        name="Other",
+    )
+    uncategorized = _get_or_create_global_category(
+        session,
+        scope=CategoryScope.ITEM,
+        code="UNCATEGORIZED",
+        name="Uncategorized",
+        parent_id=other_item.id,
+    )
+    return uncategorized.id
+
+
+def _get_other_transaction_category_id(session: Session) -> uuid.UUID:
+    """Return the UUID of the global OTHER TRANSACTION category."""
+    category = _get_or_create_global_category(
+        session,
+        scope=CategoryScope.TRANSACTION,
+        code="OTHER",
+        name="Other",
+    )
+    return category.id
+
+
+def _resolve_item_category_id(
+    session: Session,
+    user_id: uuid.UUID,
+    code: str | None,
+    fallback_id: uuid.UUID,
+) -> uuid.UUID:
+    category = _resolve_category_with_scope(
+        session,
+        scope=CategoryScope.ITEM,
+        user_id=user_id,
+        code=code,
+    )
+    if category is None:
+        return fallback_id
+    return category.id
+
+
+def _resolve_transaction_category_id(
+    session: Session,
+    user_id: uuid.UUID,
+    code: str | None,
+) -> uuid.UUID | None:
+    category = _resolve_category_with_scope(
+        session,
+        scope=CategoryScope.TRANSACTION,
+        user_id=user_id,
+        code=code,
+    )
+    return category.id if category else None
+
+
+def _derive_transaction_category_id_from_items(
+    session: Session,
+    user_id: uuid.UUID,
+    resolved_item_category_ids: list[tuple[uuid.UUID, Decimal]],
+) -> uuid.UUID | None:
+    if not resolved_item_category_ids:
+        return None
+
+    item_category_ids = {category_id for category_id, _ in resolved_item_category_ids}
+    categories = session.exec(select(Category).where(Category.id.in_(item_category_ids))).all()
+    category_by_id = {cat.id: cat for cat in categories}
+
+    parent_ids = {cat.parent_id for cat in categories if cat.parent_id is not None}
+    parent_by_id: dict[uuid.UUID, Category] = {}
+    if parent_ids:
+        parents = session.exec(select(Category).where(Category.id.in_(parent_ids))).all()
+        parent_by_id = {cat.id: cat for cat in parents}
+
+    totals_by_parent_code: dict[str, Decimal] = {}
+    for category_id, amount in resolved_item_category_ids:
+        category = category_by_id.get(category_id)
+        if category is None:
+            continue
+        if category.parent_id is not None and category.parent_id in parent_by_id:
+            parent_code = parent_by_id[category.parent_id].code
+        else:
+            parent_code = category.code
+        totals_by_parent_code[parent_code] = totals_by_parent_code.get(parent_code, Decimal("0")) + (
+            amount or Decimal("0")
+        )
+
+    if not totals_by_parent_code:
+        return None
+
+    best_parent_code = max(totals_by_parent_code.items(), key=lambda x: x[1])[0]
+    return _resolve_transaction_category_id(session, user_id, best_parent_code)
 
 
 def _resolve_category_id(session: Session, code: str | None, fallback_id: uuid.UUID) -> uuid.UUID:
-    """Try to find an ITEM-scope category by code; fall back to *fallback_id*."""
-    if not code:
-        return fallback_id
-    cat = session.exec(
-        select(Category).where(
-            Category.scope == CategoryScope.ITEM,
-            Category.code == code.strip().upper(),
-        )
-    ).first()
-    return cat.id if cat else fallback_id
+    """Backward-compatible wrapper used by legacy scripts."""
+    return _resolve_item_category_id(session, uuid.UUID(int=0), code, fallback_id)
 
 
 # ---------------------------------------------------------------------------
@@ -191,7 +347,42 @@ def process_receipt(receipt_id: str) -> None:
 
             # --- Call Vision LLM ---------------------------------------------
             logger.info("Calling Vision LLM for receipt %s ...", receipt_id)
-            llm_result = _call_vision_llm(image_bytes, receipt.mime_type)
+
+            tx_category_codes = session.exec(
+                select(Category.code).where(
+                    Category.scope == CategoryScope.TRANSACTION,
+                    Category.is_active == True,
+                    Category.parent_id == None,
+                    or_(Category.user_id == None, Category.user_id == receipt.user_id),
+                )
+            ).all()
+            if not tx_category_codes:
+                tx_category_codes = ["OTHER"]
+
+            item_subcategory_codes = session.exec(
+                select(Category.code).where(
+                    Category.scope == CategoryScope.ITEM,
+                    Category.is_active == True,
+                    Category.parent_id != None,
+                    Category.code != "UNCATEGORIZED",
+                    or_(Category.user_id == None, Category.user_id == receipt.user_id),
+                )
+            ).all()
+            if not item_subcategory_codes:
+                item_subcategory_codes = ["UNKNOWN_ITEM"]
+
+            logger.info(
+                "Using %d transaction categories and %d item subcategories for LLM prompt.",
+                len(tx_category_codes),
+                len(item_subcategory_codes),
+            )
+
+            llm_result = _call_vision_llm(
+                image_bytes=image_bytes,
+                mime_type=receipt.mime_type,
+                transaction_category_list=tx_category_codes,
+                item_subcategory_list=item_subcategory_codes,
+            )
             raw_json = llm_result["raw_json"]
 
             # --- Validate with Pydantic --------------------------------------
@@ -211,6 +402,31 @@ def process_receipt(receipt_id: str) -> None:
 
             # --- Resolve categories ------------------------------------------
             uncategorized_id = _get_uncategorized_category_id(session)
+            resolved_items: list[tuple[int, object, uuid.UUID]] = []
+            resolved_item_amounts: list[tuple[uuid.UUID, Decimal]] = []
+            for idx, item in enumerate(extracted.items, start=1):
+                resolved_category_id = _resolve_item_category_id(
+                    session,
+                    user_id=receipt.user_id,
+                    code=item.category_code,
+                    fallback_id=uncategorized_id,
+                )
+                resolved_items.append((item.line_no or idx, item, resolved_category_id))
+                resolved_item_amounts.append((resolved_category_id, item.amount or Decimal("0")))
+
+            transaction_category_id = _resolve_transaction_category_id(
+                session,
+                user_id=receipt.user_id,
+                code=extracted.primary_category_code,
+            )
+            if transaction_category_id is None:
+                transaction_category_id = _derive_transaction_category_id_from_items(
+                    session,
+                    user_id=receipt.user_id,
+                    resolved_item_category_ids=resolved_item_amounts,
+                )
+            if transaction_category_id is None:
+                transaction_category_id = _get_other_transaction_category_id(session)
 
             # --- Create Transaction ------------------------------------------
             transaction = Transaction(
@@ -220,6 +436,7 @@ def process_receipt(receipt_id: str) -> None:
                 amount_total=extracted.amount_total,
                 currency=extracted.currency,
                 merchant_name=extracted.merchant_name,
+                category_id=transaction_category_id,
                 source=TransactionSource.RECEIPT,
                 status="DRAFT",
             )
@@ -228,11 +445,10 @@ def process_receipt(receipt_id: str) -> None:
             session.refresh(transaction)
 
             # --- Create TransactionItems -------------------------------------
-            for idx, item in enumerate(extracted.items, start=1):
-                cat_id = _resolve_category_id(session, item.category_code, uncategorized_id)
+            for line_no, item, cat_id in resolved_items:
                 ti = TransactionItem(
                     transaction_id=transaction.id,
-                    line_no=item.line_no or idx,
+                    line_no=line_no,
                     description=item.description,
                     qty=item.qty,
                     unit=item.unit,

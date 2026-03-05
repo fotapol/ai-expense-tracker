@@ -11,6 +11,8 @@ from app.models.transactions.transaction import Transaction, TransactionBase
 from app.models.transactions.transaction_item import TransactionItem
 from app.models.users.profile import Profile, ProfileBase
 from app.models.users.user import User, UserBase
+from app.models.labels.label import Label, LabelBase
+from app.models.labels.transaction_label import TransactionLabel
 
 __all__ = [
     "Category",
@@ -35,6 +37,9 @@ __all__ = [
     "UserBase",
     "UserCategoryOverride",
     "UserItemCategoryOverride",
+    "Label",
+    "LabelBase",
+    "TransactionLabel",
 ]
 
 # Suggested DB indexes and unique constraints:
