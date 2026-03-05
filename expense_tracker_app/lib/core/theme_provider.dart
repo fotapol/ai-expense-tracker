@@ -38,10 +38,10 @@ class ThemeProvider extends ChangeNotifier {
     } else {
       return ThemeData(
         brightness: Brightness.light,
-        scaffoldBackgroundColor: Colors.white,
+        scaffoldBackgroundColor: const Color(0xFFF5F5F7), // Light gray background
         colorScheme: ColorScheme.light(
           primary: Colors.deepPurpleAccent,
-          surface: Colors.grey.shade100,
+          surface: Colors.white, // White surface for elevated elements
           onSurface: Colors.black87,
         ),
         useMaterial3: true,

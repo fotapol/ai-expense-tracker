@@ -154,24 +154,23 @@ class _LabelsScreenState extends State<LabelsScreen> {
           final color = _labelColors[index % _labelColors.length];
 
           return Container(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+            margin: const EdgeInsets.symmetric(vertical: 4),
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
             decoration: BoxDecoration(
-              color: Theme.of(context).colorScheme.surface,
-              borderRadius: BorderRadius.circular(16),
+              color: color.withAlpha(20),
+              border: Border.all(color: color),
+              borderRadius: BorderRadius.circular(12),
             ),
-            child: Row(children: [
-              Container(
-                width: 44, height: 44,
-                decoration: BoxDecoration(color: color.withAlpha(30), borderRadius: BorderRadius.circular(12)),
-                child: Icon(Icons.label, color: color, size: 22),
-              ),
-              const SizedBox(width: 16),
-              Expanded(child: Text(name, style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w500))),
-              IconButton(
-                icon: const Icon(Icons.delete_outline, color: Colors.redAccent, size: 20),
-                onPressed: () => _deleteLabel(label['id'], name),
-              ),
-            ]),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text(name, style: TextStyle(color: color, fontSize: 16, fontWeight: FontWeight.bold)),
+                IconButton(
+                  icon: const Icon(Icons.delete_outline, color: Colors.redAccent, size: 20),
+                  onPressed: () => _deleteLabel(label['id'], name),
+                ),
+              ],
+            ),
           );
         },
       ),
