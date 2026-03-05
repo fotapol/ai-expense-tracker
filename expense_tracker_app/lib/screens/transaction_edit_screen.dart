@@ -26,9 +26,9 @@ class _TransactionEditScreenState extends State<TransactionEditScreen> {
 
   final Map<String, TextEditingController> _itemDescControllers = {};
   final Map<String, TextEditingController> _itemAmountControllers = {};
+  final Map<String, TextEditingController> _itemQtyControllers = {};
+  final Map<String, TextEditingController> _itemUnitPriceControllers = {};
   final Map<String, String?> _itemCategoryIds = {};
-  final NumberFormat _moneyFormat = NumberFormat('#,##0.00');
-  final NumberFormat _qtyFormat = NumberFormat('#,##0.###');
 
   @override
   void initState() {
@@ -44,6 +44,12 @@ class _TransactionEditScreenState extends State<TransactionEditScreen> {
       c.dispose();
     }
     for (var c in _itemAmountControllers.values) {
+      c.dispose();
+    }
+    for (var c in _itemQtyControllers.values) {
+      c.dispose();
+    }
+    for (var c in _itemUnitPriceControllers.values) {
       c.dispose();
     }
     super.dispose();
@@ -77,6 +83,12 @@ class _TransactionEditScreenState extends State<TransactionEditScreen> {
           );
           _itemAmountControllers[id] = TextEditingController(
             text: item['amount']?.toString() ?? '0.00',
+          );
+          _itemQtyControllers[id] = TextEditingController(
+            text: item['qty']?.toString() ?? '',
+          );
+          _itemUnitPriceControllers[id] = TextEditingController(
+            text: item['unit_price']?.toString() ?? '',
           );
           _itemCategoryIds[id] = item['category_id']?.toString();
         }
@@ -115,6 +127,9 @@ class _TransactionEditScreenState extends State<TransactionEditScreen> {
           'amount':
               double.tryParse(_itemAmountControllers[id]?.text ?? '0.00') ??
               0.0,
+          'qty': _toDouble(_itemQtyControllers[id]?.text),
+          'unit_price': _toDouble(_itemUnitPriceControllers[id]?.text),
+          'unit': item['unit'],
           'category_id': _itemCategoryIds[id],
         });
       }
@@ -156,9 +171,64 @@ class _TransactionEditScreenState extends State<TransactionEditScreen> {
     return double.tryParse(normalized);
   }
 
-  String _formatQty(double value) {
-    if (value % 1 == 0) return value.toInt().toString();
-    return _qtyFormat.format(value);
+  void _recalculateItemAmount(String itemId) {
+    final qty = _toDouble(_itemQtyControllers[itemId]?.text);
+    final unitPrice = _toDouble(_itemUnitPriceControllers[itemId]?.text);
+    if (qty != null && unitPrice != null) {
+      final amount = qty * unitPrice;
+      final amountController = _itemAmountControllers[itemId];
+      if (amountController != null) {
+        amountController.text = amount.toStringAsFixed(2);
+        amountController.selection = TextSelection.fromPosition(
+          TextPosition(offset: amountController.text.length),
+        );
+      }
+    }
+    _recalculateTotal();
+  }
+
+  Widget _buildFormulaNumberInput({
+    required TextEditingController? controller,
+    required String hint,
+    required double width,
+    required ValueChanged<String> onChanged,
+  }) {
+    return SizedBox(
+      width: width,
+      height: 30,
+      child: TextField(
+        controller: controller,
+        keyboardType: const TextInputType.numberWithOptions(decimal: true),
+        textAlign: TextAlign.right,
+        style: const TextStyle(
+          color: Colors.white,
+          fontSize: 13,
+          fontWeight: FontWeight.w500,
+        ),
+        decoration: InputDecoration(
+          hintText: hint,
+          hintStyle: TextStyle(color: Colors.grey.shade600, fontSize: 13),
+          isDense: true,
+          contentPadding: const EdgeInsets.symmetric(
+            horizontal: 6,
+            vertical: 6,
+          ),
+          border: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(6),
+            borderSide: BorderSide(color: Colors.grey.shade800),
+          ),
+          enabledBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(6),
+            borderSide: BorderSide(color: Colors.grey.shade800),
+          ),
+          focusedBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(6),
+            borderSide: const BorderSide(color: Color(0xFFAB47BC)),
+          ),
+        ),
+        onChanged: onChanged,
+      ),
+    );
   }
 
   Future<void> _deleteItem(Map<String, dynamic> item) async {
@@ -195,6 +265,8 @@ class _TransactionEditScreenState extends State<TransactionEditScreen> {
         _items.removeWhere((element) => element['id'].toString() == itemId);
         _itemDescControllers.remove(itemId)?.dispose();
         _itemAmountControllers.remove(itemId)?.dispose();
+        _itemQtyControllers.remove(itemId)?.dispose();
+        _itemUnitPriceControllers.remove(itemId)?.dispose();
         _itemCategoryIds.remove(itemId);
       });
       _recalculateTotal();
@@ -215,8 +287,9 @@ class _TransactionEditScreenState extends State<TransactionEditScreen> {
 
   @override
   Widget build(BuildContext context) {
-    if (_isLoading)
+    if (_isLoading) {
       return const Scaffold(body: Center(child: CircularProgressIndicator()));
+    }
     if (_error != null) {
       return Scaffold(
         appBar: AppBar(title: const Text('Error')),
@@ -400,6 +473,8 @@ class _TransactionEditScreenState extends State<TransactionEditScreen> {
     final id = item['id'].toString();
     final nameController = _itemDescControllers[id];
     final amountController = _itemAmountControllers[id];
+    final qtyController = _itemQtyControllers[id];
+    final unitPriceController = _itemUnitPriceControllers[id];
     final selectedCatId = _itemCategoryIds[id];
 
     // Find category info
@@ -411,10 +486,7 @@ class _TransactionEditScreenState extends State<TransactionEditScreen> {
     final catColor = category != null
         ? const Color(0xFFAB47BC)
         : Colors.grey; // Hardcoded purple like first screens, or from cat data
-    final qty = _toDouble(item['qty']);
-    final unitPrice = _toDouble(item['unit_price']);
     final unit = item['unit']?.toString().trim();
-    final hasUnitBreakdown = qty != null && unitPrice != null && qty > 0;
 
     return Container(
       margin: const EdgeInsets.only(bottom: 12),
@@ -452,13 +524,6 @@ class _TransactionEditScreenState extends State<TransactionEditScreen> {
               ),
             ],
           ),
-          if (hasUnitBreakdown) ...[
-            const SizedBox(height: 4),
-            Text(
-              '${_moneyFormat.format(unitPrice)} x ${_formatQty(qty)}${(unit != null && unit.isNotEmpty) ? ' $unit' : ''}',
-              style: TextStyle(color: Colors.grey.shade400, fontSize: 12),
-            ),
-          ],
           const SizedBox(height: 8),
           Row(
             children: [
@@ -484,36 +549,86 @@ class _TransactionEditScreenState extends State<TransactionEditScreen> {
                   ),
                 ),
               ),
-              const Spacer(),
-              if (hasUnitBreakdown)
-                Text(
-                  '=',
-                  style: TextStyle(color: Colors.grey.shade500, fontSize: 14),
+            ],
+          ),
+          const SizedBox(height: 8),
+          Row(
+            children: [
+              Expanded(
+                child: SingleChildScrollView(
+                  scrollDirection: Axis.horizontal,
+                  child: Row(
+                    children: [
+                      _buildFormulaNumberInput(
+                        controller: unitPriceController,
+                        hint: '0.00',
+                        width: 82,
+                        onChanged: (_) => _recalculateItemAmount(id),
+                      ),
+                      Text(
+                        ' x ',
+                        style: TextStyle(
+                          color: Colors.grey.shade400,
+                          fontSize: 13,
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                      _buildFormulaNumberInput(
+                        controller: qtyController,
+                        hint: '1',
+                        width: 62,
+                        onChanged: (_) => _recalculateItemAmount(id),
+                      ),
+                      if (unit != null && unit.isNotEmpty) ...[
+                        const SizedBox(width: 4),
+                        Text(
+                          unit,
+                          style: TextStyle(
+                            color: Colors.grey.shade400,
+                            fontSize: 12,
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                      ],
+                      const SizedBox(width: 6),
+                      Text(
+                        '=',
+                        style: TextStyle(
+                          color: Colors.grey.shade400,
+                          fontSize: 13,
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
-              if (hasUnitBreakdown) const SizedBox(width: 8),
+              ),
+              const SizedBox(width: 8),
               SizedBox(
-                width: 110,
+                width: 126,
                 child: TextField(
                   controller: amountController,
                   textAlign: TextAlign.right,
                   keyboardType: const TextInputType.numberWithOptions(
                     decimal: true,
                   ),
-                  style: const TextStyle(color: Colors.white, fontSize: 14),
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold,
+                  ),
                   decoration: const InputDecoration(
                     border: InputBorder.none,
                     isDense: true,
                   ),
-                  onChanged: (v) {
-                    _recalculateTotal();
-                  },
+                  onChanged: (_) => _recalculateTotal(),
                 ),
               ),
               Text(
                 ' $_currency',
                 style: const TextStyle(
                   color: Colors.white,
-                  fontSize: 14,
+                  fontSize: 15,
                   fontWeight: FontWeight.bold,
                 ),
               ),
@@ -539,9 +654,11 @@ class _TransactionEditScreenState extends State<TransactionEditScreen> {
       onTap: () {
         final id = DateTime.now().millisecondsSinceEpoch.toString();
         setState(() {
-          _items.add({'id': id, 'description': '', 'amount': 0.0});
+          _items.add({'id': id, 'description': '', 'amount': 0.0, 'qty': 1.0});
           _itemDescControllers[id] = TextEditingController();
           _itemAmountControllers[id] = TextEditingController(text: '0.00');
+          _itemQtyControllers[id] = TextEditingController(text: '1');
+          _itemUnitPriceControllers[id] = TextEditingController(text: '0.00');
           _itemCategoryIds[id] = null;
         });
       },
