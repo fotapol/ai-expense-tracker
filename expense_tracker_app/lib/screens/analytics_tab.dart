@@ -445,57 +445,58 @@ class _AnalyticsTabState extends State<AnalyticsTab> {
       ]);
     }
 
-    return SizedBox(
-      height: 280,
-      child: Column(
-        children: [
-          SizedBox(
-            height: 230,
-            child: Stack(
-              alignment: Alignment.center,
-              children: [
-                PieChart(
-                  PieChartData(
-                    sectionsSpace: 2,
-                    centerSpaceRadius: 68,
-                    sections: sections,
-                  ),
+    return Column(
+      children: [
+        SizedBox(
+          height: 236,
+          child: Stack(
+            alignment: Alignment.center,
+            children: [
+              PieChart(
+                PieChartData(
+                  sectionsSpace: 2,
+                  centerSpaceRadius: 68,
+                  sections: sections,
                 ),
-                Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    if (hasData) ...[
-                      Text(
-                        'RSD ${totalAmount.toStringAsFixed(2)}',
-                        style: const TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.bold,
-                        ),
+              ),
+              Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  if (hasData) ...[
+                    Text(
+                      'RSD ${totalAmount.toStringAsFixed(2)}',
+                      style: const TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
                       ),
-                      Text(
-                        'Total Spent',
-                        style: TextStyle(
-                          fontSize: 12,
-                          color: Colors.grey.shade400,
-                        ),
+                    ),
+                    Text(
+                      'Total Spent',
+                      style: TextStyle(
+                        fontSize: 12,
+                        color: Colors.grey.shade400,
                       ),
-                    ] else
-                      Text(
-                        'No Data',
-                        style: TextStyle(
-                          fontSize: 22,
-                          color: Colors.grey.shade500,
-                          fontWeight: FontWeight.w600,
-                        ),
+                    ),
+                  ] else
+                    Text(
+                      'No Data',
+                      style: TextStyle(
+                        fontSize: 22,
+                        color: Colors.grey.shade500,
+                        fontWeight: FontWeight.w600,
                       ),
-                  ],
-                ),
-              ],
-            ),
+                    ),
+                ],
+              ),
+            ],
           ),
-          if (hasData)
-            Wrap(
-              spacing: 16,
+        ),
+        if (hasData) ...[
+          const SizedBox(height: 16),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 8),
+            child: Wrap(
+              spacing: 14,
               runSpacing: 8,
               alignment: WrapAlignment.center,
               children: categories.map((raw) {
@@ -519,8 +520,9 @@ class _AnalyticsTabState extends State<AnalyticsTab> {
                 );
               }).toList(),
             ),
+          ),
         ],
-      ),
+      ],
     );
   }
 

@@ -176,7 +176,6 @@ class _SubcategoriesScreenState extends State<SubcategoriesScreen> {
                 final cat = _subcategories[index];
                 final name = cat['name'] as String;
                 final id = cat['id'] as String;
-                final isDefault = cat['is_default'] as bool? ?? false;
                 final color = _getCategoryColor(index);
 
                 return Container(
@@ -211,15 +210,14 @@ class _SubcategoriesScreenState extends State<SubcategoriesScreen> {
                           ),
                         ),
                       ),
-                      if (!isDefault)
-                        IconButton(
-                          icon: const Icon(
-                            Icons.delete_outline,
-                            color: Colors.redAccent,
-                            size: 20,
-                          ),
-                          onPressed: () => _deleteSubcategory(id, name),
+                      IconButton(
+                        icon: const Icon(
+                          Icons.delete_outline,
+                          color: Colors.redAccent,
+                          size: 20,
                         ),
+                        onPressed: () => _deleteSubcategory(id, name),
+                      ),
                     ],
                   ),
                 );
