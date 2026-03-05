@@ -15,7 +15,7 @@ class _TransactionEditScreenState extends State<TransactionEditScreen> {
   bool _isLoading = true;
   bool _isSaving = false;
   String? _error;
-  
+
   List<dynamic> _items = [];
   List<dynamic> _categories = [];
 
@@ -23,10 +23,12 @@ class _TransactionEditScreenState extends State<TransactionEditScreen> {
   final _amountController = TextEditingController();
   DateTime? _occurredAt;
   String _currency = 'RSD';
-  
+
   final Map<String, TextEditingController> _itemDescControllers = {};
   final Map<String, TextEditingController> _itemAmountControllers = {};
   final Map<String, String?> _itemCategoryIds = {};
+  final NumberFormat _moneyFormat = NumberFormat('#,##0.00');
+  final NumberFormat _qtyFormat = NumberFormat('#,##0.###');
 
   @override
   void initState() {
@@ -55,26 +57,30 @@ class _TransactionEditScreenState extends State<TransactionEditScreen> {
     try {
       final txData = await ApiClient.getTransaction(widget.transactionId);
       final catsData = await ApiClient.listCategories();
-      
+
       setState(() {
         _categories = catsData;
         _items = List.from(txData['items'] ?? []);
-        
+
         _merchantController.text = txData['merchant_name'] ?? '';
         _amountController.text = txData['amount_total']?.toString() ?? '0.00';
         _currency = txData['currency'] ?? 'RSD';
-        
+
         if (txData['occurred_at'] != null) {
           _occurredAt = DateTime.tryParse(txData['occurred_at']);
         }
-        
+
         for (final item in _items) {
           final id = item['id'].toString();
-          _itemDescControllers[id] = TextEditingController(text: item['description'] ?? '');
-          _itemAmountControllers[id] = TextEditingController(text: item['amount']?.toString() ?? '0.00');
+          _itemDescControllers[id] = TextEditingController(
+            text: item['description'] ?? '',
+          );
+          _itemAmountControllers[id] = TextEditingController(
+            text: item['amount']?.toString() ?? '0.00',
+          );
           _itemCategoryIds[id] = item['category_id']?.toString();
         }
-        
+
         _isLoading = false;
       });
     } catch (e) {
@@ -95,7 +101,7 @@ class _TransactionEditScreenState extends State<TransactionEditScreen> {
         'amount_total': double.tryParse(_amountController.text) ?? 0.0,
         'currency': _currency,
       };
-      
+
       if (_occurredAt != null) {
         payload['occurred_at'] = _occurredAt!.toIso8601String();
       }
@@ -106,24 +112,29 @@ class _TransactionEditScreenState extends State<TransactionEditScreen> {
         updatedItems.add({
           'id': id,
           'description': _itemDescControllers[id]?.text ?? '',
-          'amount': double.tryParse(_itemAmountControllers[id]?.text ?? '0.00') ?? 0.0,
+          'amount':
+              double.tryParse(_itemAmountControllers[id]?.text ?? '0.00') ??
+              0.0,
           'category_id': _itemCategoryIds[id],
         });
       }
       payload['items'] = updatedItems;
 
       await ApiClient.updateTransaction(widget.transactionId, payload);
-      
+
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Saved Successfully')),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(const SnackBar(content: Text('Saved Successfully')));
         Navigator.pop(context, true);
       }
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error saving: $e'), backgroundColor: Colors.red),
+          SnackBar(
+            content: Text('Error saving: $e'),
+            backgroundColor: Colors.red,
+          ),
         );
       }
     } finally {
@@ -131,9 +142,81 @@ class _TransactionEditScreenState extends State<TransactionEditScreen> {
     }
   }
 
+  bool _isUuid(String value) {
+    final uuidPattern = RegExp(
+      r'^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-5][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}$',
+    );
+    return uuidPattern.hasMatch(value);
+  }
+
+  double? _toDouble(dynamic value) {
+    if (value == null) return null;
+    if (value is num) return value.toDouble();
+    final normalized = value.toString().replaceAll(',', '.').trim();
+    return double.tryParse(normalized);
+  }
+
+  String _formatQty(double value) {
+    if (value % 1 == 0) return value.toInt().toString();
+    return _qtyFormat.format(value);
+  }
+
+  Future<void> _deleteItem(Map<String, dynamic> item) async {
+    final itemId = item['id']?.toString() ?? '';
+    final itemName = item['description']?.toString() ?? 'item';
+
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Delete Item'),
+        content: Text('Delete "$itemName" from this receipt?'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: const Text('Cancel'),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.pop(context, true),
+            style: FilledButton.styleFrom(backgroundColor: Colors.red),
+            child: const Text('Delete'),
+          ),
+        ],
+      ),
+    );
+
+    if (confirmed != true) return;
+
+    try {
+      if (_isUuid(itemId)) {
+        await ApiClient.deleteTransactionItem(widget.transactionId, itemId);
+      }
+
+      setState(() {
+        _items.removeWhere((element) => element['id'].toString() == itemId);
+        _itemDescControllers.remove(itemId)?.dispose();
+        _itemAmountControllers.remove(itemId)?.dispose();
+        _itemCategoryIds.remove(itemId);
+      });
+      _recalculateTotal();
+
+      if (mounted) {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(const SnackBar(content: Text('Item deleted.')));
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Error: $e'), backgroundColor: Colors.red),
+        );
+      }
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
-    if (_isLoading) return const Scaffold(body: Center(child: CircularProgressIndicator()));
+    if (_isLoading)
+      return const Scaffold(body: Center(child: CircularProgressIndicator()));
     if (_error != null) {
       return Scaffold(
         appBar: AppBar(title: const Text('Error')),
@@ -152,19 +235,36 @@ class _TransactionEditScreenState extends State<TransactionEditScreen> {
         ),
         title: TextField(
           controller: _merchantController,
-          style: const TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold),
-          decoration: const InputDecoration(border: InputBorder.none, hintText: 'Merchant Name', hintStyle: TextStyle(color: Colors.white54)),
+          style: const TextStyle(
+            color: Colors.white,
+            fontSize: 18,
+            fontWeight: FontWeight.bold,
+          ),
+          decoration: const InputDecoration(
+            border: InputBorder.none,
+            hintText: 'Merchant Name',
+            hintStyle: TextStyle(color: Colors.white54),
+          ),
           textAlign: TextAlign.center,
         ),
         centerTitle: true,
         actions: [
           if (_isSaving)
-            const Center(child: Padding(padding: EdgeInsets.only(right: 16), child: SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2))))
+            const Center(
+              child: Padding(
+                padding: EdgeInsets.only(right: 16),
+                child: SizedBox(
+                  width: 20,
+                  height: 20,
+                  child: CircularProgressIndicator(strokeWidth: 2),
+                ),
+              ),
+            )
           else
             IconButton(
               icon: const Icon(Icons.done, color: Colors.purpleAccent),
               onPressed: _saveTransaction,
-            )
+            ),
         ],
       ),
       body: Column(
@@ -187,6 +287,7 @@ class _TransactionEditScreenState extends State<TransactionEditScreen> {
   }
 
   Widget _buildActionBadges() {
+    final occurred = _occurredAt;
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 8.0, horizontal: 16),
       child: SingleChildScrollView(
@@ -194,8 +295,10 @@ class _TransactionEditScreenState extends State<TransactionEditScreen> {
         child: Row(
           children: [
             _buildBadge(
-              icon: Icons.calendar_today, 
-              label: _occurredAt != null ? DateFormat('dd.MM.yyyy').format(_occurredAt!) : 'Set Date',
+              icon: Icons.calendar_today,
+              label: occurred != null
+                  ? DateFormat('dd.MM.yyyy').format(occurred)
+                  : 'Set Date',
               onTap: () async {
                 final date = await showDatePicker(
                   context: context,
@@ -203,13 +306,54 @@ class _TransactionEditScreenState extends State<TransactionEditScreen> {
                   firstDate: DateTime(2000),
                   lastDate: DateTime(2100),
                 );
-                if (date != null) setState(() => _occurredAt = date);
+                if (date != null) {
+                  final base = _occurredAt ?? DateTime.now();
+                  setState(() {
+                    _occurredAt = DateTime(
+                      date.year,
+                      date.month,
+                      date.day,
+                      base.hour,
+                      base.minute,
+                      base.second,
+                      base.millisecond,
+                      base.microsecond,
+                    );
+                  });
+                }
+              },
+            ),
+            _buildBadge(
+              icon: Icons.access_time,
+              label: occurred != null
+                  ? DateFormat('HH:mm').format(occurred)
+                  : 'Set Time',
+              onTap: () async {
+                final base = _occurredAt ?? DateTime.now();
+                final selected = await showTimePicker(
+                  context: context,
+                  initialTime: TimeOfDay(hour: base.hour, minute: base.minute),
+                );
+                if (selected != null) {
+                  setState(() {
+                    _occurredAt = DateTime(
+                      base.year,
+                      base.month,
+                      base.day,
+                      selected.hour,
+                      selected.minute,
+                      base.second,
+                      base.millisecond,
+                      base.microsecond,
+                    );
+                  });
+                }
               },
             ),
             _buildBadge(icon: Icons.translate, label: 'Translate'),
             _buildBadge(icon: Icons.image_outlined, label: 'Photo'),
             _buildBadge(
-              icon: Icons.currency_exchange, 
+              icon: Icons.currency_exchange,
               label: _currency,
               onTap: () {
                 // simple cycle for demo or a dialog
@@ -222,7 +366,11 @@ class _TransactionEditScreenState extends State<TransactionEditScreen> {
     );
   }
 
-  Widget _buildBadge({required IconData icon, required String label, VoidCallback? onTap}) {
+  Widget _buildBadge({
+    required IconData icon,
+    required String label,
+    VoidCallback? onTap,
+  }) {
     return GestureDetector(
       onTap: onTap,
       child: Container(
@@ -238,7 +386,10 @@ class _TransactionEditScreenState extends State<TransactionEditScreen> {
           children: [
             Icon(icon, color: Colors.white70, size: 16),
             const SizedBox(width: 6),
-            Text(label, style: const TextStyle(color: Colors.white70, fontSize: 13)),
+            Text(
+              label,
+              style: const TextStyle(color: Colors.white70, fontSize: 13),
+            ),
           ],
         ),
       ),
@@ -250,11 +401,20 @@ class _TransactionEditScreenState extends State<TransactionEditScreen> {
     final nameController = _itemDescControllers[id];
     final amountController = _itemAmountControllers[id];
     final selectedCatId = _itemCategoryIds[id];
-    
+
     // Find category info
-    final category = _categories.firstWhere((c) => c['id'].toString() == selectedCatId, orElse: () => null);
+    final category = _categories.firstWhere(
+      (c) => c['id'].toString() == selectedCatId,
+      orElse: () => null,
+    );
     final catName = category != null ? category['name'] : 'Select Category';
-    final catColor = category != null ? const Color(0xFFAB47BC) : Colors.grey; // Hardcoded purple like first screens, or from cat data
+    final catColor = category != null
+        ? const Color(0xFFAB47BC)
+        : Colors.grey; // Hardcoded purple like first screens, or from cat data
+    final qty = _toDouble(item['qty']);
+    final unitPrice = _toDouble(item['unit_price']);
+    final unit = item['unit']?.toString().trim();
+    final hasUnitBreakdown = qty != null && unitPrice != null && qty > 0;
 
     return Container(
       margin: const EdgeInsets.only(bottom: 12),
@@ -272,43 +432,91 @@ class _TransactionEditScreenState extends State<TransactionEditScreen> {
                 child: TextField(
                   controller: nameController,
                   style: const TextStyle(color: Colors.white, fontSize: 16),
-                  decoration: const InputDecoration(border: InputBorder.none, hintText: 'Item Name', hintStyle: TextStyle(color: Colors.white24)),
+                  decoration: const InputDecoration(
+                    border: InputBorder.none,
+                    hintText: 'Item Name',
+                    hintStyle: TextStyle(color: Colors.white24),
+                  ),
                 ),
               ),
               const Icon(Icons.edit, color: Colors.white24, size: 14),
+              const SizedBox(width: 8),
+              IconButton(
+                icon: const Icon(
+                  Icons.delete_outline,
+                  color: Colors.redAccent,
+                  size: 18,
+                ),
+                splashRadius: 18,
+                onPressed: () => _deleteItem(item),
+              ),
             ],
           ),
+          if (hasUnitBreakdown) ...[
+            const SizedBox(height: 4),
+            Text(
+              '${_moneyFormat.format(unitPrice)} x ${_formatQty(qty)}${(unit != null && unit.isNotEmpty) ? ' $unit' : ''}',
+              style: TextStyle(color: Colors.grey.shade400, fontSize: 12),
+            ),
+          ],
           const SizedBox(height: 8),
           Row(
             children: [
               GestureDetector(
                 onTap: () => _showCategoryPicker(id),
                 child: Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 10,
+                    vertical: 4,
+                  ),
                   decoration: BoxDecoration(
                     color: catColor.withAlpha(30),
                     borderRadius: BorderRadius.circular(8),
                     border: Border.all(color: catColor.withAlpha(100)),
                   ),
-                  child: Text(catName, style: TextStyle(color: catColor, fontSize: 12, fontWeight: FontWeight.bold)),
+                  child: Text(
+                    catName,
+                    style: TextStyle(
+                      color: catColor,
+                      fontSize: 12,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
                 ),
               ),
               const Spacer(),
-              const Text('1 x ', style: TextStyle(color: Colors.white54, fontSize: 14)),
+              if (hasUnitBreakdown)
+                Text(
+                  '=',
+                  style: TextStyle(color: Colors.grey.shade500, fontSize: 14),
+                ),
+              if (hasUnitBreakdown) const SizedBox(width: 8),
               SizedBox(
-                width: 70,
+                width: 110,
                 child: TextField(
                   controller: amountController,
                   textAlign: TextAlign.right,
-                  keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                  keyboardType: const TextInputType.numberWithOptions(
+                    decimal: true,
+                  ),
                   style: const TextStyle(color: Colors.white, fontSize: 14),
-                  decoration: const InputDecoration(border: InputBorder.none, isDense: true),
+                  decoration: const InputDecoration(
+                    border: InputBorder.none,
+                    isDense: true,
+                  ),
                   onChanged: (v) {
                     _recalculateTotal();
                   },
                 ),
               ),
-              Text(' $_currency', style: const TextStyle(color: Colors.white, fontSize: 14, fontWeight: FontWeight.bold)),
+              Text(
+                ' $_currency',
+                style: const TextStyle(
+                  color: Colors.white,
+                  fontSize: 14,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
             ],
           ),
         ],
@@ -342,10 +550,16 @@ class _TransactionEditScreenState extends State<TransactionEditScreen> {
         padding: const EdgeInsets.symmetric(vertical: 16),
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: Colors.white24, style: BorderStyle.solid), // Dashed borders need a CustomPainter, use solid for now
+          border: Border.all(
+            color: Colors.white24,
+            style: BorderStyle.solid,
+          ), // Dashed borders need a CustomPainter, use solid for now
         ),
         child: const Center(
-          child: Text('+ Add item', style: TextStyle(color: Colors.white38, fontSize: 16)),
+          child: Text(
+            '+ Add item',
+            style: TextStyle(color: Colors.white38, fontSize: 16),
+          ),
         ),
       ),
     );
@@ -359,9 +573,23 @@ class _TransactionEditScreenState extends State<TransactionEditScreen> {
         top: false,
         child: Row(
           children: [
-            const Text('Total Amount:', style: TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold)),
+            const Text(
+              'Total Amount:',
+              style: TextStyle(
+                color: Colors.white,
+                fontSize: 18,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
             const Spacer(),
-            Text('$_currency ${_amountController.text}', style: const TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold)),
+            Text(
+              '$_currency ${_amountController.text}',
+              style: const TextStyle(
+                color: Colors.white,
+                fontSize: 18,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
             const SizedBox(width: 8),
             // IconButton(icon: const Icon(Icons.edit, color: Colors.white, size: 18), onPressed: () {}),
           ],
@@ -374,7 +602,9 @@ class _TransactionEditScreenState extends State<TransactionEditScreen> {
     showModalBottomSheet(
       context: context,
       backgroundColor: const Color(0xFF1E1E1E),
-      shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(20))),
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
       builder: (context) {
         return ListView.builder(
           padding: const EdgeInsets.all(16),
@@ -382,7 +612,10 @@ class _TransactionEditScreenState extends State<TransactionEditScreen> {
           itemBuilder: (context, index) {
             final cat = _categories[index];
             return ListTile(
-              title: Text(cat['name'], style: const TextStyle(color: Colors.white)),
+              title: Text(
+                cat['name'],
+                style: const TextStyle(color: Colors.white),
+              ),
               onTap: () {
                 setState(() {
                   _itemCategoryIds[itemId] = cat['id'].toString();
@@ -392,8 +625,7 @@ class _TransactionEditScreenState extends State<TransactionEditScreen> {
             );
           },
         );
-      }
+      },
     );
   }
 }
-
