@@ -1,0 +1,98 @@
+services:
+  # FASTAPI BACKEND
+  backend:
+    container_name: fastapi
+    build: 
+      context: .
+      dockerfile: Dockerfile
+    env_file:
+      - .env
+    depends_on:
+      - postgres
+      - redis
+      - rabbitmq
+    restart: unless-stopped
+    networks:
+      - backend
+    ports:
+      - 8000:8000
+    volumes:
+      - ./backend/.secrets/firebase_sa.json:/run/secrets/firebase_sa.json:ro
+  # POSTGRESQL DATABASE
+  postgres:
+    container_name: postgres
+    image: postgres:16
+    restart: always
+    env_file:
+      - .env
+    networks:
+      - backend
+    ports:
+      - 5432:5432
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+  # REDIS CACHE
+  redis:
+    container_name: redis
+    image: redis:8.2.5
+    restart: always
+    env_file:
+      - .env
+    ports:
+      - 6379:6379
+    networks:
+      - backend
+  # MINIO S3 BUCKET
+  minio:
+    container_name: minio
+    image: minio/minio:latest
+    restart: unless-stopped
+    env_file:
+      - .env
+    ports:
+      - "9000:9000" # S3 API
+      - "9001:9001" # Web console
+    volumes:
+      - minio-data:/data
+    command: server /data --console-address ":9001"
+    networks:
+      - backend
+  # RABBITMQ QUEUE
+  rabbitmq:
+    container_name: rabbitmq
+    image: rabbitmq:4.2.4-management
+    restart: always
+    env_file:
+      - .env
+    networks:
+      - backend
+    ports:
+      - "5672:5672"   # AMQP (clients)
+      - "15672:15672" # Web UI
+  # RECEIPT PROCESSING WORKER
+  worker:
+    container_name: receipt_worker
+    build:
+      context: .
+      dockerfile: Dockerfile
+    env_file:
+      - .env
+    depends_on:
+      - postgres
+      - redis
+      - rabbitmq
+      - minio
+    restart: unless-stopped
+    networks:
+      - backend
+    command: ["uv", "run", "python", "-m", "app.worker.receipt_processor"]
+    volumes:
+      - ./backend/.secrets/firebase_sa.json:/run/secrets/firebase_sa.json:ro
+
+volumes:
+  minio-data:
+  postgres-data:
+  
+networks:
+  backend:
+    driver: bridge
