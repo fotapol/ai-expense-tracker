@@ -7,20 +7,17 @@ import '../core/period_filter.dart';
 class FilterBottomSheet extends StatefulWidget {
   final String selectedPeriod;
   final List<String>? selectedCategoryIds;
-  final String? merchantSearch;
 
   const FilterBottomSheet({
     super.key,
     required this.selectedPeriod,
     this.selectedCategoryIds,
-    this.merchantSearch,
   });
 
   static Future<Map<String, dynamic>?> show(
     BuildContext context, {
     required String selectedPeriod,
     List<String>? selectedCategoryIds,
-    String? merchantSearch,
   }) {
     return showModalBottomSheet<Map<String, dynamic>>(
       context: context,
@@ -32,7 +29,6 @@ class FilterBottomSheet extends StatefulWidget {
       builder: (context) => FilterBottomSheet(
         selectedPeriod: selectedPeriod,
         selectedCategoryIds: selectedCategoryIds,
-        merchantSearch: merchantSearch,
       ),
     );
   }
@@ -44,7 +40,6 @@ class FilterBottomSheet extends StatefulWidget {
 class _FilterBottomSheetState extends State<FilterBottomSheet> {
   late String _selectedPeriod;
   late Set<String> _selectedCategoryIds;
-  late TextEditingController _merchantController;
   List<dynamic> _categories = [];
   List<dynamic> _labels = [];
   bool _loadingCats = true;
@@ -54,7 +49,6 @@ class _FilterBottomSheetState extends State<FilterBottomSheet> {
     super.initState();
     _selectedPeriod = widget.selectedPeriod;
     _selectedCategoryIds = Set.from(widget.selectedCategoryIds ?? []);
-    _merchantController = TextEditingController(text: widget.merchantSearch ?? '');
     _loadData();
   }
 
@@ -79,7 +73,6 @@ class _FilterBottomSheetState extends State<FilterBottomSheet> {
     int count = 0;
     if (_selectedPeriod != PeriodFilter.last3Months) count++;
     if (_selectedCategoryIds.isNotEmpty) count++;
-    if (_merchantController.text.trim().isNotEmpty) count++;
     return count;
   }
 
@@ -87,7 +80,6 @@ class _FilterBottomSheetState extends State<FilterBottomSheet> {
     setState(() {
       _selectedPeriod = PeriodFilter.last3Months;
       _selectedCategoryIds.clear();
-      _merchantController.clear();
     });
   }
 
@@ -95,7 +87,6 @@ class _FilterBottomSheetState extends State<FilterBottomSheet> {
     Navigator.pop(context, {
       'period': _selectedPeriod,
       'category_ids': _selectedCategoryIds.toList(),
-      'merchant_search': _merchantController.text.trim(),
     });
   }
 
@@ -155,10 +146,6 @@ class _FilterBottomSheetState extends State<FilterBottomSheet> {
                   _buildSectionTitle(Icons.calendar_today, 'Period'),
                   const SizedBox(height: 8),
                   _buildPeriodChips(),
-                  const SizedBox(height: 24),
-                  _buildSectionTitle(Icons.store, 'Merchant'),
-                  const SizedBox(height: 8),
-                  _buildMerchantSearch(),
                   const SizedBox(height: 24),
                   _buildSectionTitle(Icons.category, 'Category'),
                   const SizedBox(height: 8),
@@ -227,18 +214,6 @@ class _FilterBottomSheetState extends State<FilterBottomSheet> {
     );
   }
 
-  Widget _buildMerchantSearch() {
-    return TextField(
-      controller: _merchantController,
-      decoration: InputDecoration(
-        hintText: 'Search by store name...',
-        prefixIcon: const Icon(Icons.search),
-        border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
-        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-      ),
-    );
-  }
-
   Widget _buildCategoryChips() {
     if (_loadingCats) {
       return const Center(child: CircularProgressIndicator());
@@ -279,9 +254,4 @@ class _FilterBottomSheetState extends State<FilterBottomSheet> {
     );
   }
 
-  @override
-  void dispose() {
-    _merchantController.dispose();
-    super.dispose();
-  }
 }

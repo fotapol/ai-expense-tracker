@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 import '../core/api_client.dart';
 
 class TransactionEditScreen extends StatefulWidget {
@@ -15,28 +16,28 @@ class _TransactionEditScreenState extends State<TransactionEditScreen> {
   bool _isSaving = false;
   String? _error;
   
-  Map<String, dynamic>? _transaction;
   List<dynamic> _items = [];
+  List<dynamic> _categories = [];
 
   final _merchantController = TextEditingController();
   final _amountController = TextEditingController();
-  final _dateController = TextEditingController();
+  DateTime? _occurredAt;
+  String _currency = 'RSD';
   
-  // A map of item IDs (or index) to their controllers for easy editing
   final Map<String, TextEditingController> _itemDescControllers = {};
   final Map<String, TextEditingController> _itemAmountControllers = {};
+  final Map<String, String?> _itemCategoryIds = {};
 
   @override
   void initState() {
     super.initState();
-    _fetchTransaction();
+    _fetchData();
   }
 
   @override
   void dispose() {
     _merchantController.dispose();
     _amountController.dispose();
-    _dateController.dispose();
     for (var c in _itemDescControllers.values) {
       c.dispose();
     }
@@ -46,66 +47,67 @@ class _TransactionEditScreenState extends State<TransactionEditScreen> {
     super.dispose();
   }
 
-  Future<void> _fetchTransaction() async {
+  Future<void> _fetchData() async {
+    setState(() {
+      _isLoading = true;
+      _error = null;
+    });
     try {
-      final data = await ApiClient.getTransaction(widget.transactionId);
+      final txData = await ApiClient.getTransaction(widget.transactionId);
+      final catsData = await ApiClient.listCategories();
+      
       setState(() {
-        _transaction = data;
-        _items = List.from(data['items'] ?? []);
+        _categories = catsData;
+        _items = List.from(txData['items'] ?? []);
         
-        _merchantController.text = data['merchant_name'] ?? '';
-        _amountController.text = data['amount_total']?.toString() ?? '0.00';
+        _merchantController.text = txData['merchant_name'] ?? '';
+        _amountController.text = txData['amount_total']?.toString() ?? '0.00';
+        _currency = txData['currency'] ?? 'RSD';
         
-        if (data['occurred_at'] != null) {
-          // Simplistic date format parsing: "2023-10-12T10:00:00Z" -> "2023-10-12"
-          final dt = DateTime.tryParse(data['occurred_at']);
-          _dateController.text = dt != null ? "${dt.year}-${dt.month.toString().padLeft(2, '0')}-${dt.day.toString().padLeft(2, '0')}" : data['occurred_at'];
+        if (txData['occurred_at'] != null) {
+          _occurredAt = DateTime.tryParse(txData['occurred_at']);
         }
         
         for (final item in _items) {
-          final id = item['id'];
+          final id = item['id'].toString();
           _itemDescControllers[id] = TextEditingController(text: item['description'] ?? '');
           _itemAmountControllers[id] = TextEditingController(text: item['amount']?.toString() ?? '0.00');
+          _itemCategoryIds[id] = item['category_id']?.toString();
         }
         
         _isLoading = false;
       });
     } catch (e) {
-      setState(() {
-        _error = e.toString();
-        _isLoading = false;
-      });
+      if (mounted) {
+        setState(() {
+          _error = e.toString();
+          _isLoading = false;
+        });
+      }
     }
   }
 
   Future<void> _saveTransaction() async {
     setState(() => _isSaving = true);
     try {
-      // Build the updated payload
       final payload = {
         'merchant_name': _merchantController.text,
         'amount_total': double.tryParse(_amountController.text) ?? 0.0,
+        'currency': _currency,
       };
       
-      // Parse the date if possible
-      if (_dateController.text.isNotEmpty) {
-        final dt = DateTime.tryParse(_dateController.text);
-        if (dt != null) {
-          payload['occurred_at'] = dt.toIso8601String();
-        }
+      if (_occurredAt != null) {
+        payload['occurred_at'] = _occurredAt!.toIso8601String();
       }
 
-      // Rebuild items
       final updatedItems = [];
       for (final item in _items) {
-        final id = item['id'];
-        final desc = _itemDescControllers[id]?.text ?? item['description'];
-        final amount = double.tryParse(_itemAmountControllers[id]?.text ?? '') ?? item['amount'];
-        
+        final id = item['id'].toString();
         updatedItems.add({
           'id': id,
-          'description': desc,
-          'amount': amount,
+          'description': _itemDescControllers[id]?.text ?? '',
+          'amount': double.tryParse(_itemAmountControllers[id]?.text ?? '0.00') ?? 0.0,
+          'category_id': _itemCategoryIds[id],
         });
       }
       payload['items'] = updatedItems;
@@ -114,9 +116,9 @@ class _TransactionEditScreenState extends State<TransactionEditScreen> {
       
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Transaction saved!')),
+          const SnackBar(content: Text('Saved Successfully')),
         );
-        Navigator.pop(context); // Go back to Home/MainScreen
+        Navigator.pop(context, true);
       }
     } catch (e) {
       if (mounted) {
@@ -125,131 +127,273 @@ class _TransactionEditScreenState extends State<TransactionEditScreen> {
         );
       }
     } finally {
-      if (mounted) {
-        setState(() => _isSaving = false);
-      }
+      if (mounted) setState(() => _isSaving = false);
     }
   }
 
   @override
   Widget build(BuildContext context) {
-    if (_isLoading) {
-      return const Scaffold(
-        body: Center(child: CircularProgressIndicator()),
-      );
-    }
-
+    if (_isLoading) return const Scaffold(body: Center(child: CircularProgressIndicator()));
     if (_error != null) {
       return Scaffold(
-        appBar: AppBar(title: const Text('Edit Transaction')),
-        body: Center(
-          child: Padding(
-            padding: const EdgeInsets.all(16.0),
-            child: Text('Error loading transaction:\n$_error'),
-          ),
-        ),
+        appBar: AppBar(title: const Text('Error')),
+        body: Center(child: Text(_error!)),
       );
     }
 
     return Scaffold(
+      backgroundColor: Colors.black,
       appBar: AppBar(
-        title: const Text('Review Extracted Data'),
+        backgroundColor: Colors.transparent,
+        elevation: 0,
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back_ios_new, color: Colors.white),
+          onPressed: () => Navigator.pop(context),
+        ),
+        title: TextField(
+          controller: _merchantController,
+          style: const TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold),
+          decoration: const InputDecoration(border: InputBorder.none, hintText: 'Merchant Name', hintStyle: TextStyle(color: Colors.white54)),
+          textAlign: TextAlign.center,
+        ),
+        centerTitle: true,
         actions: [
-          _isSaving
-              ? const Center(child: Padding(padding: EdgeInsets.symmetric(horizontal: 16), child: SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2))))
-              : IconButton(
-                  icon: const Icon(Icons.check),
-                  onPressed: _saveTransaction,
-                  tooltip: 'Save',
-                ),
+          if (_isSaving)
+            const Center(child: Padding(padding: EdgeInsets.only(right: 16), child: SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2))))
+          else
+            IconButton(
+              icon: const Icon(Icons.done, color: Colors.purpleAccent),
+              onPressed: _saveTransaction,
+            )
         ],
       ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
+      body: Column(
+        children: [
+          _buildActionBadges(),
+          Expanded(
+            child: ListView.builder(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+              itemCount: _items.length + 1,
+              itemBuilder: (context, index) {
+                if (index == _items.length) return _buildAddItemButton();
+                return _buildItemCard(_items[index], index);
+              },
+            ),
+          ),
+          _buildFixedFooter(),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildActionBadges() {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 8.0, horizontal: 16),
+      child: SingleChildScrollView(
+        scrollDirection: Axis.horizontal,
+        child: Row(
           children: [
-            const Text('OVERVIEW', style: TextStyle(color: Colors.grey, fontSize: 12, fontWeight: FontWeight.bold)),
-            const SizedBox(height: 12),
-            TextField(
-              controller: _merchantController,
-              decoration: const InputDecoration(labelText: 'Merchant Name', border: OutlineInputBorder()),
+            _buildBadge(
+              icon: Icons.calendar_today, 
+              label: _occurredAt != null ? DateFormat('dd.MM.yyyy').format(_occurredAt!) : 'Set Date',
+              onTap: () async {
+                final date = await showDatePicker(
+                  context: context,
+                  initialDate: _occurredAt ?? DateTime.now(),
+                  firstDate: DateTime(2000),
+                  lastDate: DateTime(2100),
+                );
+                if (date != null) setState(() => _occurredAt = date);
+              },
             ),
-            const SizedBox(height: 16),
-            Row(
-              children: [
-                Expanded(
-                  child: TextField(
-                    controller: _amountController,
-                    keyboardType: const TextInputType.numberWithOptions(decimal: true),
-                    decoration: const InputDecoration(
-                      labelText: 'Total Amount',
-                      prefixText: 'RSD ',
-                      border: OutlineInputBorder(),
-                    ),
-                  ),
-                ),
-                const SizedBox(width: 16),
-                Expanded(
-                  child: TextField(
-                    controller: _dateController,
-                    decoration: const InputDecoration(
-                      labelText: 'Date (YYYY-MM-DD)',
-                      border: OutlineInputBorder(),
-                    ),
-                  ),
-                ),
-              ],
+            _buildBadge(icon: Icons.translate, label: 'Translate'),
+            _buildBadge(icon: Icons.image_outlined, label: 'Photo'),
+            _buildBadge(
+              icon: Icons.currency_exchange, 
+              label: _currency,
+              onTap: () {
+                // simple cycle for demo or a dialog
+                setState(() => _currency = _currency == 'RSD' ? 'EUR' : 'RSD');
+              },
             ),
-            const SizedBox(height: 32),
-            const Text('RECEIPT ITEMS', style: TextStyle(color: Colors.grey, fontSize: 12, fontWeight: FontWeight.bold)),
-            const SizedBox(height: 12),
-            if (_items.isEmpty)
-              const Text('No items extracted.', style: TextStyle(color: Colors.grey, fontStyle: FontStyle.italic)),
-            for (int i = 0; i < _items.length; i++) _buildItemEditor(_items[i], i + 1),
           ],
         ),
       ),
     );
   }
 
-  Widget _buildItemEditor(Map<String, dynamic> item, int index) {
-    final id = item['id'];
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 16.0),
+  Widget _buildBadge({required IconData icon, required String label, VoidCallback? onTap}) {
+    return GestureDetector(
+      onTap: onTap,
       child: Container(
-        padding: const EdgeInsets.all(12),
+        margin: const EdgeInsets.only(right: 8),
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
         decoration: BoxDecoration(
-          color: Theme.of(context).colorScheme.surface,
-          borderRadius: BorderRadius.circular(8),
+          color: Colors.grey.withAlpha(20),
+          borderRadius: BorderRadius.circular(20),
+          border: Border.all(color: Colors.grey.withAlpha(40)),
         ),
         child: Row(
-          crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisSize: MainAxisSize.min,
           children: [
-            Padding(
-              padding: const EdgeInsets.only(top: 8.0, right: 12.0),
-              child: Text('$index.', style: const TextStyle(color: Colors.grey, fontWeight: FontWeight.bold)),
-            ),
-            Expanded(
-              flex: 2,
-              child: TextField(
-                controller: _itemDescControllers[id],
-                decoration: const InputDecoration(labelText: 'Description', isDense: true),
-              ),
-            ),
-            const SizedBox(width: 12),
-            Expanded(
-              flex: 1,
-              child: TextField(
-                controller: _itemAmountControllers[id],
-                keyboardType: const TextInputType.numberWithOptions(decimal: true),
-                textAlign: TextAlign.right,
-                decoration: const InputDecoration(labelText: 'Amount', isDense: true),
-              ),
-            ),
+            Icon(icon, color: Colors.white70, size: 16),
+            const SizedBox(width: 6),
+            Text(label, style: const TextStyle(color: Colors.white70, fontSize: 13)),
           ],
         ),
       ),
     );
   }
+
+  Widget _buildItemCard(Map<String, dynamic> item, int index) {
+    final id = item['id'].toString();
+    final nameController = _itemDescControllers[id];
+    final amountController = _itemAmountControllers[id];
+    final selectedCatId = _itemCategoryIds[id];
+    
+    // Find category info
+    final category = _categories.firstWhere((c) => c['id'].toString() == selectedCatId, orElse: () => null);
+    final catName = category != null ? category['name'] : 'Select Category';
+    final catColor = category != null ? const Color(0xFFAB47BC) : Colors.grey; // Hardcoded purple like first screens, or from cat data
+
+    return Container(
+      margin: const EdgeInsets.only(bottom: 12),
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: const Color(0xFF121212),
+        borderRadius: BorderRadius.circular(16),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Expanded(
+                child: TextField(
+                  controller: nameController,
+                  style: const TextStyle(color: Colors.white, fontSize: 16),
+                  decoration: const InputDecoration(border: InputBorder.none, hintText: 'Item Name', hintStyle: TextStyle(color: Colors.white24)),
+                ),
+              ),
+              const Icon(Icons.edit, color: Colors.white24, size: 14),
+            ],
+          ),
+          const SizedBox(height: 8),
+          Row(
+            children: [
+              GestureDetector(
+                onTap: () => _showCategoryPicker(id),
+                child: Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                  decoration: BoxDecoration(
+                    color: catColor.withAlpha(30),
+                    borderRadius: BorderRadius.circular(8),
+                    border: Border.all(color: catColor.withAlpha(100)),
+                  ),
+                  child: Text(catName, style: TextStyle(color: catColor, fontSize: 12, fontWeight: FontWeight.bold)),
+                ),
+              ),
+              const Spacer(),
+              const Text('1 x ', style: TextStyle(color: Colors.white54, fontSize: 14)),
+              SizedBox(
+                width: 70,
+                child: TextField(
+                  controller: amountController,
+                  textAlign: TextAlign.right,
+                  keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                  style: const TextStyle(color: Colors.white, fontSize: 14),
+                  decoration: const InputDecoration(border: InputBorder.none, isDense: true),
+                  onChanged: (v) {
+                    _recalculateTotal();
+                  },
+                ),
+              ),
+              Text(' $_currency', style: const TextStyle(color: Colors.white, fontSize: 14, fontWeight: FontWeight.bold)),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _recalculateTotal() {
+    double total = 0;
+    for (var c in _itemAmountControllers.values) {
+      total += double.tryParse(c.text) ?? 0;
+    }
+    setState(() {
+      _amountController.text = total.toStringAsFixed(2);
+    });
+  }
+
+  Widget _buildAddItemButton() {
+    return GestureDetector(
+      onTap: () {
+        final id = DateTime.now().millisecondsSinceEpoch.toString();
+        setState(() {
+          _items.add({'id': id, 'description': '', 'amount': 0.0});
+          _itemDescControllers[id] = TextEditingController();
+          _itemAmountControllers[id] = TextEditingController(text: '0.00');
+          _itemCategoryIds[id] = null;
+        });
+      },
+      child: Container(
+        margin: const EdgeInsets.only(top: 8, bottom: 32),
+        padding: const EdgeInsets.symmetric(vertical: 16),
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(color: Colors.white24, style: BorderStyle.solid), // Dashed borders need a CustomPainter, use solid for now
+        ),
+        child: const Center(
+          child: Text('+ Add item', style: TextStyle(color: Colors.white38, fontSize: 16)),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildFixedFooter() {
+    return Container(
+      padding: const EdgeInsets.all(20),
+      color: Colors.black,
+      child: SafeArea(
+        top: false,
+        child: Row(
+          children: [
+            const Text('Total Amount:', style: TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold)),
+            const Spacer(),
+            Text('$_currency ${_amountController.text}', style: const TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold)),
+            const SizedBox(width: 8),
+            // IconButton(icon: const Icon(Icons.edit, color: Colors.white, size: 18), onPressed: () {}),
+          ],
+        ),
+      ),
+    );
+  }
+
+  void _showCategoryPicker(String itemId) {
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: const Color(0xFF1E1E1E),
+      shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(20))),
+      builder: (context) {
+        return ListView.builder(
+          padding: const EdgeInsets.all(16),
+          itemCount: _categories.length,
+          itemBuilder: (context, index) {
+            final cat = _categories[index];
+            return ListTile(
+              title: Text(cat['name'], style: const TextStyle(color: Colors.white)),
+              onTap: () {
+                setState(() {
+                  _itemCategoryIds[itemId] = cat['id'].toString();
+                });
+                Navigator.pop(context);
+              },
+            );
+          },
+        );
+      }
+    );
+  }
 }
+

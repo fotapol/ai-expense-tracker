@@ -39,7 +39,7 @@ class _ReceiptsTabState extends State<ReceiptsTab> {
       final data = await ApiClient.listTransactions(
         fromDate: startDate,
         merchantNameSearch: searchText.isNotEmpty ? searchText : _merchantSearch.isNotEmpty ? _merchantSearch : null,
-        categoryId: _selectedCategoryIds.isNotEmpty ? _selectedCategoryIds.first : null,
+        categoryIds: _selectedCategoryIds.isNotEmpty ? _selectedCategoryIds : null,
       );
       setState(() {
         _transactions = data;
@@ -58,14 +58,12 @@ class _ReceiptsTabState extends State<ReceiptsTab> {
       context,
       selectedPeriod: _selectedPeriod,
       selectedCategoryIds: _selectedCategoryIds,
-      merchantSearch: _merchantSearch,
     );
 
     if (result != null) {
       setState(() {
         _selectedPeriod = result['period'] as String;
         _selectedCategoryIds = List<String>.from(result['category_ids'] ?? []);
-        _merchantSearch = result['merchant_search'] as String? ?? '';
       });
       _fetchTransactions();
     }
