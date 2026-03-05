@@ -1,9 +1,12 @@
-import 'package:flutter/material.dart';
 import 'package:fl_chart/fl_chart.dart';
+import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+
 import '../core/api_client.dart';
+import '../core/category_style.dart';
 import '../core/period_filter.dart';
 import '../widgets/filter_bottom_sheet.dart';
+import 'analytics_category_detail_screen.dart';
 
 class AnalyticsTab extends StatefulWidget {
   const AnalyticsTab({super.key});
@@ -20,22 +23,6 @@ class _AnalyticsTabState extends State<AnalyticsTab> {
   List<String> _selectedCategoryIds = [];
   List<String> _selectedSubcategoryIds = [];
   Map<String, String> _categoryNamesById = {};
-
-  // Consistent color palette for categories
-  static const List<Color> _categoryColors = [
-    Color(0xFFFF7043), // Deep Orange
-    Color(0xFFAB47BC), // Purple
-    Color(0xFF29B6F6), // Light Blue
-    Color(0xFFFFCA28), // Amber
-    Color(0xFF66BB6A), // Green
-    Color(0xFFEC407A), // Pink
-    Color(0xFF8D6E63), // Brown
-    Color(0xFF26A69A), // Teal
-    Color(0xFF5C6BC0), // Indigo
-    Color(0xFFEF5350), // Red
-    Color(0xFF42A5F5), // Blue
-    Color(0xFFFFA726), // Orange
-  ];
 
   @override
   void initState() {
@@ -61,15 +48,14 @@ class _AnalyticsTabState extends State<AnalyticsTab> {
       };
     } catch (_) {}
 
-    if (mounted) {
-      setState(() {
-        if (savedPeriod != null) _selectedPeriod = savedPeriod;
-        if (savedCats != null) _selectedCategoryIds = savedCats;
-        if (savedSubcats != null) _selectedSubcategoryIds = savedSubcats;
-        _categoryNamesById = categoryNames;
-      });
-      _fetchSummary();
-    }
+    if (!mounted) return;
+    setState(() {
+      if (savedPeriod != null) _selectedPeriod = savedPeriod;
+      if (savedCats != null) _selectedCategoryIds = savedCats;
+      if (savedSubcats != null) _selectedSubcategoryIds = savedSubcats;
+      _categoryNamesById = categoryNames;
+    });
+    _fetchSummary();
   }
 
   Future<void> _saveFilters() async {
@@ -99,55 +85,18 @@ class _AnalyticsTabState extends State<AnalyticsTab> {
             ? _selectedSubcategoryIds
             : null,
       );
+      if (!mounted) return;
       setState(() {
         _summaryData = data;
         _isLoading = false;
       });
     } catch (e) {
+      if (!mounted) return;
       setState(() {
         _error = e.toString();
         _isLoading = false;
       });
     }
-  }
-
-  Color _getColor(int index) {
-    return _categoryColors[index % _categoryColors.length];
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return SafeArea(
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          _buildTopBar(),
-          _buildActiveFiltersBar(),
-          const SizedBox(height: 8),
-          Expanded(child: _buildContent()),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildTopBar() {
-    return Padding(
-      padding: const EdgeInsets.all(16.0),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          const Text(
-            'Analytics',
-            style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
-          ),
-          IconButton(
-            icon: const Icon(Icons.tune),
-            color: Theme.of(context).colorScheme.primary,
-            onPressed: _openFilters,
-          ),
-        ],
-      ),
-    );
   }
 
   Future<void> _openFilters() async {
@@ -157,22 +106,21 @@ class _AnalyticsTabState extends State<AnalyticsTab> {
       selectedCategoryIds: _selectedCategoryIds,
       selectedSubcategoryIds: _selectedSubcategoryIds,
     );
-    if (result != null) {
-      setState(() {
-        _selectedPeriod = result['period'] as String;
-        _selectedCategoryIds = List<String>.from(result['category_ids'] ?? []);
-        _selectedSubcategoryIds = List<String>.from(
-          result['subcategory_ids'] ?? [],
-        );
-      });
-      _saveFilters();
-      _fetchSummary();
-    }
+    if (result == null) return;
+
+    setState(() {
+      _selectedPeriod = result['period'] as String;
+      _selectedCategoryIds = List<String>.from(result['category_ids'] ?? []);
+      _selectedSubcategoryIds = List<String>.from(
+        result['subcategory_ids'] ?? [],
+      );
+    });
+    await _saveFilters();
+    _fetchSummary();
   }
 
-  Future<void> _clearFilters() async {
+  Future<void> _clearCategoryFilters() async {
     setState(() {
-      _selectedPeriod = PeriodFilter.last3Months;
       _selectedCategoryIds.clear();
       _selectedSubcategoryIds.clear();
     });
@@ -211,10 +159,9 @@ class _AnalyticsTabState extends State<AnalyticsTab> {
   }
 
   Widget _buildActiveFiltersBar() {
-    final hasRemovableFilters =
-        _selectedPeriod != PeriodFilter.last3Months ||
-        _selectedCategoryIds.isNotEmpty ||
-        _selectedSubcategoryIds.isNotEmpty;
+    final hasCategoryFilters =
+        _selectedCategoryIds.isNotEmpty || _selectedSubcategoryIds.isNotEmpty;
+    if (!hasCategoryFilters) return const SizedBox.shrink();
 
     final categoryLabels = _selectedCategoryIds
         .map((id) => _categoryNamesById[id] ?? 'Category')
@@ -232,11 +179,6 @@ class _AnalyticsTabState extends State<AnalyticsTab> {
               scrollDirection: Axis.horizontal,
               child: Row(
                 children: [
-                  _buildFilterChip(
-                    _selectedPeriod,
-                    icon: Icons.calendar_today,
-                    color: const Color(0xFF19D3AE),
-                  ),
                   ...categoryLabels.map(
                     (label) => _buildFilterChip(
                       label,
@@ -256,13 +198,74 @@ class _AnalyticsTabState extends State<AnalyticsTab> {
             ),
           ),
           const SizedBox(width: 8),
-          if (hasRemovableFilters)
-            IconButton(
-              onPressed: _clearFilters,
-              icon: const Icon(Icons.cancel),
-              color: Colors.grey.shade400,
-              tooltip: 'Clear filters',
-            ),
+          IconButton(
+            onPressed: _clearCategoryFilters,
+            icon: const Icon(Icons.cancel),
+            color: Colors.grey.shade400,
+            tooltip: 'Clear category filters',
+          ),
+        ],
+      ),
+    );
+  }
+
+  Color _categoryColor(Map<String, dynamic> cat) {
+    return CategoryStyle.colorForCode(cat['code']?.toString());
+  }
+
+  void _openCategoryDetails(Map<String, dynamic> category) {
+    final categoryId = category['category_id']?.toString();
+    if (categoryId == null || categoryId.isEmpty) return;
+
+    final name = category['name']?.toString() ?? 'Category';
+    final code = category['code']?.toString() ?? '';
+    final fromDate = PeriodFilter.getStartDate(_selectedPeriod);
+
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => AnalyticsCategoryDetailScreen(
+          categoryId: categoryId,
+          categoryName: name,
+          categoryCode: code,
+          fromDate: fromDate,
+          selectedCategoryIds: _selectedCategoryIds,
+          selectedSubcategoryIds: _selectedSubcategoryIds,
+        ),
+      ),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return SafeArea(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          _buildTopBar(),
+          _buildActiveFiltersBar(),
+          const SizedBox(height: 8),
+          Expanded(child: _buildContent()),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildTopBar() {
+    return Padding(
+      padding: const EdgeInsets.all(16.0),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          const Text(
+            'Analytics',
+            style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+          ),
+          IconButton(
+            icon: const Icon(Icons.tune),
+            color: Theme.of(context).colorScheme.primary,
+            onPressed: _openFilters,
+          ),
         ],
       ),
     );
@@ -297,55 +300,36 @@ class _AnalyticsTabState extends State<AnalyticsTab> {
         (_summaryData?['total_transactions'] as num?)?.toInt() ?? 0;
     final categories = _summaryData?['categories'] as List<dynamic>? ?? [];
 
-    if (totalAmount == 0 && categories.isEmpty) {
-      return Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(
-              Icons.pie_chart_outline,
-              size: 64,
-              color: Colors.grey.shade600,
-            ),
-            const SizedBox(height: 16),
-            Text(
-              'No expenses data found',
-              style: TextStyle(color: Colors.grey.shade400, fontSize: 16),
-            ),
-          ],
-        ),
-      );
-    }
-
     return SingleChildScrollView(
       padding: const EdgeInsets.all(16.0),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           _buildTotalCard(totalAmount, totalTransactions),
-          const SizedBox(height: 32),
+          const SizedBox(height: 28),
           const Text(
             'Expense Categories',
             style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
           ),
-          const SizedBox(height: 32),
+          const SizedBox(height: 24),
           _buildPieChart(categories, totalAmount),
+          const SizedBox(height: 20),
+          _buildCategoryBreakdown(categories),
           const SizedBox(height: 32),
-          _buildCategoryLegend(categories),
         ],
       ),
     );
   }
 
   Widget _buildTotalCard(double totalAmount, int totalTransactions) {
-    // Calculate days in the selected period for the average
     int periodDays = 30;
     if (_selectedPeriod == PeriodFilter.last3Months) periodDays = 90;
-    if (_selectedPeriod == PeriodFilter.thisYear)
+    if (_selectedPeriod == PeriodFilter.thisYear) {
       periodDays = DateTime.now()
           .difference(DateTime(DateTime.now().year, 1, 1))
           .inDays
           .clamp(1, 366);
+    }
 
     return Container(
       width: double.infinity,
@@ -355,7 +339,7 @@ class _AnalyticsTabState extends State<AnalyticsTab> {
         gradient: const LinearGradient(
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
-          colors: [Color(0xFF4A148C), Color(0xFF311B92)],
+          colors: [Color(0xFF6A1B9A), Color(0xFF4527A0)],
         ),
       ),
       child: Column(
@@ -416,86 +400,220 @@ class _AnalyticsTabState extends State<AnalyticsTab> {
   }
 
   Widget _buildPieChart(List<dynamic> categories, double totalAmount) {
-    if (categories.isEmpty) return const SizedBox.shrink();
+    final hasData = categories.isNotEmpty && totalAmount > 0;
 
-    List<PieChartSectionData> sections = [];
-    for (int i = 0; i < categories.length; i++) {
-      final cat = categories[i];
-      final amount = (cat['amount'] as num?)?.toDouble() ?? 0.0;
-      final percentage = (cat['percentage'] as num?)?.toDouble() ?? 0.0;
-      final color = _getColor(i);
-
-      sections.add(
-        PieChartSectionData(
-          color: color,
-          value: amount,
-          title: '${percentage.toStringAsFixed(1)}%',
-          radius: 50,
-          titleStyle: const TextStyle(
-            fontSize: 12,
-            fontWeight: FontWeight.bold,
-            color: Colors.white,
+    final sections = <PieChartSectionData>[];
+    if (hasData) {
+      for (final raw in categories) {
+        final cat = raw as Map<String, dynamic>;
+        final amount = (cat['amount'] as num?)?.toDouble() ?? 0.0;
+        final percentage = (cat['percentage'] as num?)?.toDouble() ?? 0.0;
+        sections.add(
+          PieChartSectionData(
+            color: _categoryColor(cat),
+            value: amount,
+            title: percentage >= 5 ? '${percentage.toStringAsFixed(1)}%' : '',
+            radius: 54,
+            titleStyle: const TextStyle(
+              fontSize: 12,
+              fontWeight: FontWeight.bold,
+              color: Colors.white,
+            ),
           ),
+        );
+      }
+    } else {
+      sections.addAll([
+        PieChartSectionData(
+          color: Color(0xFF2D2D37),
+          value: 34,
+          title: '',
+          radius: 54,
         ),
-      );
+        PieChartSectionData(
+          color: Color(0xFF24242D),
+          value: 33,
+          title: '',
+          radius: 54,
+        ),
+        PieChartSectionData(
+          color: Color(0xFF1E1E26),
+          value: 33,
+          title: '',
+          radius: 54,
+        ),
+      ]);
     }
 
     return SizedBox(
-      height: 250,
-      child: Stack(
-        alignment: Alignment.center,
+      height: 280,
+      child: Column(
         children: [
-          PieChart(
-            PieChartData(
-              sectionsSpace: 2,
-              centerSpaceRadius: 70,
-              sections: sections,
+          SizedBox(
+            height: 230,
+            child: Stack(
+              alignment: Alignment.center,
+              children: [
+                PieChart(
+                  PieChartData(
+                    sectionsSpace: 2,
+                    centerSpaceRadius: 68,
+                    sections: sections,
+                  ),
+                ),
+                Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    if (hasData) ...[
+                      Text(
+                        'RSD ${totalAmount.toStringAsFixed(2)}',
+                        style: const TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      Text(
+                        'Total Spent',
+                        style: TextStyle(
+                          fontSize: 12,
+                          color: Colors.grey.shade400,
+                        ),
+                      ),
+                    ] else
+                      Text(
+                        'No Data',
+                        style: TextStyle(
+                          fontSize: 22,
+                          color: Colors.grey.shade500,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                  ],
+                ),
+              ],
             ),
           ),
-          Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Text(
-                'RSD ${totalAmount.toStringAsFixed(2)}',
-                style: const TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-              Text(
-                'Total Spent',
-                style: TextStyle(fontSize: 12, color: Colors.grey.shade400),
-              ),
-            ],
-          ),
+          if (hasData)
+            Wrap(
+              spacing: 16,
+              runSpacing: 8,
+              alignment: WrapAlignment.center,
+              children: categories.map((raw) {
+                final cat = raw as Map<String, dynamic>;
+                final name = cat['name']?.toString() ?? 'Unknown';
+                final color = _categoryColor(cat);
+                return Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Container(
+                      width: 12,
+                      height: 12,
+                      decoration: BoxDecoration(
+                        color: color,
+                        shape: BoxShape.circle,
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    Text(name, style: TextStyle(color: Colors.grey.shade300)),
+                  ],
+                );
+              }).toList(),
+            ),
         ],
       ),
     );
   }
 
-  Widget _buildCategoryLegend(List<dynamic> categories) {
-    return Wrap(
-      spacing: 16,
-      runSpacing: 16,
-      alignment: WrapAlignment.center,
-      children: List.generate(categories.length, (index) {
-        final cat = categories[index];
-        // Use the API name directly instead of hardcoded switch
-        final name = cat['name'] as String? ?? 'Unknown';
-        final color = _getColor(index);
-        return Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Container(
-              width: 12,
-              height: 12,
-              decoration: BoxDecoration(color: color, shape: BoxShape.circle),
+  Widget _buildCategoryBreakdown(List<dynamic> categories) {
+    if (categories.isEmpty) {
+      return Padding(
+        padding: const EdgeInsets.only(top: 8),
+        child: Text(
+          'No category data for selected filters.',
+          style: TextStyle(color: Colors.grey.shade500, fontSize: 14),
+        ),
+      );
+    }
+
+    return Column(
+      children: categories.asMap().entries.map((entry) {
+        final index = entry.key;
+        final cat = entry.value as Map<String, dynamic>;
+        final name = cat['name']?.toString() ?? 'Category';
+        final code = cat['code']?.toString() ?? '';
+        final amount = (cat['amount'] as num?)?.toDouble() ?? 0.0;
+        final itemCount = (cat['item_count'] as num?)?.toInt() ?? 0;
+        final percentage = (cat['percentage'] as num?)?.toDouble() ?? 0.0;
+        final color = _categoryColor(cat);
+        final icon = CategoryStyle.iconForCode(code);
+
+        return Container(
+          margin: const EdgeInsets.only(bottom: 12),
+          decoration: BoxDecoration(
+            color: Theme.of(context).colorScheme.surface.withAlpha(180),
+            borderRadius: BorderRadius.circular(16),
+          ),
+          child: InkWell(
+            borderRadius: BorderRadius.circular(16),
+            onTap: () => _openCategoryDetails(cat),
+            child: Padding(
+              padding: const EdgeInsets.all(14),
+              child: Row(
+                children: [
+                  Container(
+                    width: 44,
+                    height: 44,
+                    decoration: BoxDecoration(
+                      color: color.withAlpha(35),
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: Icon(icon, color: color),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          name,
+                          style: const TextStyle(
+                            fontSize: 18,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                        const SizedBox(height: 4),
+                        Text(
+                          'RSD ${amount.toStringAsFixed(2)} • $itemCount purchases',
+                          style: TextStyle(color: Colors.grey.shade400),
+                        ),
+                      ],
+                    ),
+                  ),
+                  Row(
+                    children: [
+                      Text(
+                        '${percentage.toStringAsFixed(1)}%',
+                        style: TextStyle(
+                          color: Colors.grey.shade300,
+                          fontSize: 18,
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                      const SizedBox(width: 2),
+                      Icon(
+                        Icons.chevron_right,
+                        color: index.isEven
+                            ? Colors.grey.shade500
+                            : Colors.grey.shade400,
+                      ),
+                    ],
+                  ),
+                ],
+              ),
             ),
-            const SizedBox(width: 8),
-            Text(name, style: TextStyle(color: Colors.grey.shade300)),
-          ],
+          ),
         );
-      }),
+      }).toList(),
     );
   }
 }

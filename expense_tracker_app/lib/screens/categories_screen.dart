@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../core/api_client.dart';
+import '../core/category_style.dart';
 import 'subcategories_screen.dart';
 
 class CategoriesScreen extends StatefulWidget {
@@ -39,53 +40,6 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
     }
   }
 
-  Color _getCategoryColor(int index) {
-    const colors = [
-      Color(0xFFFF7043), // Deep Orange
-      Color(0xFFAB47BC), // Purple
-      Color(0xFF29B6F6), // Light Blue
-      Color(0xFFFFCA28), // Amber
-      Color(0xFF66BB6A), // Green
-      Color(0xFFEC407A), // Pink
-      Color(0xFF8D6E63), // Brown
-      Color(0xFF26A69A), // Teal
-      Color(0xFF5C6BC0), // Indigo
-      Color(0xFFEF5350), // Red
-      Color(0xFF42A5F5), // Blue
-      Color(0xFFFFA726), // Orange
-    ];
-    return colors[index % colors.length];
-  }
-
-  IconData _getCategoryIcon(String code) {
-    switch (code) {
-      case 'FOOD':
-        return Icons.restaurant;
-      case 'CLOTHING':
-        return Icons.checkroom;
-      case 'TRANSPORT':
-        return Icons.directions_car;
-      case 'UTILITIES':
-        return Icons.bolt;
-      case 'HEALTH':
-        return Icons.favorite;
-      case 'ENTERTAINMENT':
-        return Icons.movie;
-      case 'HOME':
-        return Icons.home;
-      case 'ELECTRONICS':
-        return Icons.devices;
-      case 'EDUCATION':
-        return Icons.school;
-      case 'PERSONAL_CARE':
-        return Icons.spa;
-      case 'OTHER':
-        return Icons.more_horiz;
-      default:
-        return Icons.label;
-    }
-  }
-
   Future<void> _showAddCategoryDialog() async {
     final controller = TextEditingController();
     final parentOptions = _categories
@@ -104,7 +58,7 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
             mainAxisSize: MainAxisSize.min,
             children: [
               DropdownButtonFormField<String>(
-                value: selectedParentId,
+                initialValue: selectedParentId,
                 decoration: const InputDecoration(
                   labelText: 'Parent category',
                   border: OutlineInputBorder(),
@@ -219,14 +173,14 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
     }
   }
 
-  Widget _buildCategoryItem(Map<String, dynamic> cat, int index) {
+  Widget _buildCategoryItem(Map<String, dynamic> cat) {
     final code = cat['code'] as String? ?? '';
     final name = cat['name'] as String? ?? '';
     final isDefault = cat['is_default'] as bool? ?? false;
     final id = cat['id'] as String;
 
-    final color = _getCategoryColor(index);
-    final icon = _getCategoryIcon(code);
+    final color = CategoryStyle.colorForCode(code);
+    final icon = CategoryStyle.iconForCode(code);
 
     return InkWell(
       onTap: () {
@@ -348,7 +302,7 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
           final cat = topLevelCats[index];
           return Padding(
             padding: const EdgeInsets.only(bottom: 8.0),
-            child: _buildCategoryItem(cat, index),
+            child: _buildCategoryItem(cat),
           );
         },
       ),

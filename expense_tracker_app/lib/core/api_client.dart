@@ -275,6 +275,90 @@ class ApiClient {
     }
   }
 
+  /// GET /v1/transactions/summary/categories/{categoryId}/subcategories
+  static Future<Map<String, dynamic>> getCategorySubcategorySummary({
+    required String categoryId,
+    DateTime? fromDate,
+    List<String>? categoryIds,
+    List<String>? subcategoryIds,
+  }) async {
+    final token = await _getToken();
+
+    String url =
+        '$apiBaseUrl/v1/transactions/summary/categories/$categoryId/subcategories';
+    final params = <String>[];
+    if (fromDate != null) {
+      params.add('from_occurred_at=${fromDate.toUtc().toIso8601String()}');
+    }
+    if (categoryIds != null && categoryIds.isNotEmpty) {
+      params.add('category_ids=${categoryIds.join(',')}');
+    }
+    if (subcategoryIds != null && subcategoryIds.isNotEmpty) {
+      params.add('subcategory_ids=${subcategoryIds.join(',')}');
+    }
+    if (params.isNotEmpty) {
+      url += '?${params.join('&')}';
+    }
+
+    final response = await http.get(
+      Uri.parse(url),
+      headers: {
+        'Authorization': 'Bearer $token',
+        'Content-Type': 'application/json',
+      },
+    );
+
+    if (response.statusCode == 200) {
+      return jsonDecode(response.body) as Map<String, dynamic>;
+    } else {
+      throw Exception(
+        'Failed to fetch subcategories summary: ${response.statusCode} ${response.body}',
+      );
+    }
+  }
+
+  /// GET /v1/transactions/summary/subcategories/{subcategoryId}/items
+  static Future<Map<String, dynamic>> getSubcategoryItemsSummary({
+    required String subcategoryId,
+    DateTime? fromDate,
+    List<String>? categoryIds,
+    List<String>? subcategoryIds,
+  }) async {
+    final token = await _getToken();
+
+    String url =
+        '$apiBaseUrl/v1/transactions/summary/subcategories/$subcategoryId/items';
+    final params = <String>[];
+    if (fromDate != null) {
+      params.add('from_occurred_at=${fromDate.toUtc().toIso8601String()}');
+    }
+    if (categoryIds != null && categoryIds.isNotEmpty) {
+      params.add('category_ids=${categoryIds.join(',')}');
+    }
+    if (subcategoryIds != null && subcategoryIds.isNotEmpty) {
+      params.add('subcategory_ids=${subcategoryIds.join(',')}');
+    }
+    if (params.isNotEmpty) {
+      url += '?${params.join('&')}';
+    }
+
+    final response = await http.get(
+      Uri.parse(url),
+      headers: {
+        'Authorization': 'Bearer $token',
+        'Content-Type': 'application/json',
+      },
+    );
+
+    if (response.statusCode == 200) {
+      return jsonDecode(response.body) as Map<String, dynamic>;
+    } else {
+      throw Exception(
+        'Failed to fetch subcategory items: ${response.statusCode} ${response.body}',
+      );
+    }
+  }
+
   /// GET /v1/categories
   static Future<List<dynamic>> listCategories() async {
     final token = await _getToken();
@@ -300,12 +384,12 @@ class ApiClient {
     String? color,
   }) async {
     final token = await _getToken();
-    final body = {
+    final body = <String, dynamic>{
       'name': name,
-      if (parentId != null) 'parent_id': parentId,
-      if (icon != null) 'icon': icon,
-      if (color != null) 'color': color,
-    };
+      'parent_id': parentId,
+      'icon': icon,
+      'color': color,
+    }..removeWhere((_, value) => value == null);
     final response = await http.post(
       Uri.parse('$apiBaseUrl/v1/categories'),
       headers: {
@@ -332,11 +416,12 @@ class ApiClient {
     String? color,
   }) async {
     final token = await _getToken();
-    final body = <String, dynamic>{};
-    if (name != null) body['name'] = name;
-    if (parentId != null) body['parent_id'] = parentId;
-    if (icon != null) body['icon'] = icon;
-    if (color != null) body['color'] = color;
+    final body = <String, dynamic>{
+      'name': name,
+      'parent_id': parentId,
+      'icon': icon,
+      'color': color,
+    }..removeWhere((_, value) => value == null);
 
     final response = await http.put(
       Uri.parse('$apiBaseUrl/v1/categories/$id'),
