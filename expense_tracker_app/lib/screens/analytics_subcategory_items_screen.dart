@@ -10,6 +10,7 @@ class AnalyticsSubcategoryItemsScreen extends StatefulWidget {
   final DateTime? fromDate;
   final List<String> selectedCategoryIds;
   final List<String> selectedSubcategoryIds;
+  final List<String> selectedLabelIds;
 
   const AnalyticsSubcategoryItemsScreen({
     super.key,
@@ -19,6 +20,7 @@ class AnalyticsSubcategoryItemsScreen extends StatefulWidget {
     required this.fromDate,
     required this.selectedCategoryIds,
     required this.selectedSubcategoryIds,
+    required this.selectedLabelIds,
   });
 
   @override
@@ -31,6 +33,30 @@ class _AnalyticsSubcategoryItemsScreenState
   bool _isLoading = true;
   String? _error;
   Map<String, dynamic>? _data;
+
+  String _currencySymbol(String code) {
+    switch (code.toUpperCase()) {
+      case 'EUR':
+        return '€';
+      case 'USD':
+        return '\$';
+      case 'GBP':
+        return '£';
+      case 'RSD':
+        return 'RSD ';
+      default:
+        return '${code.toUpperCase()} ';
+    }
+  }
+
+  String _formatMoney(String currency, double amount) {
+    final symbol = _currencySymbol(currency);
+    if (symbol.trim().length == 1 || symbol == 'RSD ') {
+      final sign = amount < 0 ? '-' : '';
+      return '$sign$symbol${amount.abs().toStringAsFixed(2)}';
+    }
+    return '${currency.toUpperCase()} ${amount.toStringAsFixed(2)}';
+  }
 
   @override
   void initState() {
@@ -52,6 +78,9 @@ class _AnalyticsSubcategoryItemsScreenState
             : null,
         subcategoryIds: widget.selectedSubcategoryIds.isNotEmpty
             ? widget.selectedSubcategoryIds
+            : null,
+        labelIds: widget.selectedLabelIds.isNotEmpty
+            ? widget.selectedLabelIds
             : null,
       );
       if (!mounted) return;
@@ -160,6 +189,7 @@ class _AnalyticsSubcategoryItemsScreenState
     final totalAmount = (_data?['total_amount'] as num?)?.toDouble() ?? 0.0;
     final totalItems = (_data?['total_items'] as num?)?.toInt() ?? 0;
     final items = _data?['items'] as List<dynamic>? ?? [];
+    final currency = (_data?['currency']?.toString() ?? 'EUR').toUpperCase();
 
     return RefreshIndicator(
       onRefresh: _fetchData,
@@ -186,7 +216,7 @@ class _AnalyticsSubcategoryItemsScreenState
                 ),
                 const SizedBox(height: 8),
                 Text(
-                  'RSD ${totalAmount.toStringAsFixed(2)}',
+                  _formatMoney(currency, totalAmount),
                   style: const TextStyle(
                     fontSize: 28,
                     fontWeight: FontWeight.bold,
@@ -274,7 +304,7 @@ class _AnalyticsSubcategoryItemsScreenState
                   SizedBox(
                     width: 128,
                     child: Text(
-                      'RSD ${amount.toStringAsFixed(2)}',
+                      _formatMoney(currency, amount),
                       textAlign: TextAlign.right,
                       style: const TextStyle(
                         fontSize: 14,

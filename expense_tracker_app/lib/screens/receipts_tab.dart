@@ -16,16 +16,65 @@ class _ReceiptsTabState extends State<ReceiptsTab> {
   bool _isLoading = true;
   String? _error;
   List<dynamic> _transactions = [];
+  String _preferredCurrency = 'EUR';
   String _selectedPeriod = PeriodFilter.last3Months;
   String _merchantSearch = '';
   List<String> _selectedCategoryIds = [];
   List<String> _selectedSubcategoryIds = [];
+  List<String> _selectedLabelIds = [];
   final TextEditingController _searchController = TextEditingController();
 
   @override
   void initState() {
     super.initState();
+    _loadPreferredCurrency();
     _fetchTransactions();
+  }
+
+  Future<void> _loadPreferredCurrency() async {
+    try {
+      final me = await ApiClient.getMe();
+      final currency = me['default_currency']?.toString().trim();
+      if (!mounted || currency == null || currency.isEmpty) return;
+      setState(() => _preferredCurrency = currency.toUpperCase());
+    } catch (_) {}
+  }
+
+  String _currencySymbol(String code) {
+    switch (code.toUpperCase()) {
+      case 'EUR':
+        return '€';
+      case 'USD':
+        return '\$';
+      case 'GBP':
+        return '£';
+      case 'RSD':
+        return 'RSD ';
+      default:
+        return '${code.toUpperCase()} ';
+    }
+  }
+
+  String _formatMoney(String currency, double amount) {
+    final symbol = _currencySymbol(currency);
+    if (symbol.trim().length == 1 || symbol == 'RSD ') {
+      final sign = amount < 0 ? '-' : '';
+      return '$sign$symbol${amount.abs().toStringAsFixed(2)}';
+    }
+    return '${currency.toUpperCase()} ${amount.toStringAsFixed(2)}';
+  }
+
+  double _displayAmountOf(Map<String, dynamic> tx) {
+    final raw = tx['display_amount_total'] ?? tx['amount_total'] ?? 0;
+    return double.tryParse(raw.toString()) ?? 0;
+  }
+
+  String _displayCurrencyOf(Map<String, dynamic> tx) {
+    final hasConvertedValue = tx['display_amount_total'] != null;
+    final raw = hasConvertedValue
+        ? (tx['display_currency'] ?? tx['currency'] ?? _preferredCurrency)
+        : (tx['currency'] ?? _preferredCurrency);
+    return raw.toString().toUpperCase();
   }
 
   Future<void> _fetchTransactions() async {
@@ -50,6 +99,7 @@ class _ReceiptsTabState extends State<ReceiptsTab> {
         subcategoryIds: _selectedSubcategoryIds.isNotEmpty
             ? _selectedSubcategoryIds
             : null,
+        labelIds: _selectedLabelIds.isNotEmpty ? _selectedLabelIds : null,
       );
       setState(() {
         _transactions = data;
@@ -69,6 +119,7 @@ class _ReceiptsTabState extends State<ReceiptsTab> {
       selectedPeriod: _selectedPeriod,
       selectedCategoryIds: _selectedCategoryIds,
       selectedSubcategoryIds: _selectedSubcategoryIds,
+      selectedLabelIds: _selectedLabelIds,
     );
 
     if (result != null) {
@@ -78,6 +129,7 @@ class _ReceiptsTabState extends State<ReceiptsTab> {
         _selectedSubcategoryIds = List<String>.from(
           result['subcategory_ids'] ?? [],
         );
+        _selectedLabelIds = List<String>.from(result['label_ids'] ?? []);
       });
       _fetchTransactions();
     }
@@ -137,7 +189,8 @@ class _ReceiptsTabState extends State<ReceiptsTab> {
           if (_selectedPeriod != PeriodFilter.last3Months ||
               _merchantSearch.isNotEmpty ||
               _selectedCategoryIds.isNotEmpty ||
-              _selectedSubcategoryIds.isNotEmpty)
+              _selectedSubcategoryIds.isNotEmpty ||
+              _selectedLabelIds.isNotEmpty)
             _buildActiveFilterChips(),
           Expanded(child: _buildTransactionList()),
           _buildBottomSummary(),
@@ -261,6 +314,20 @@ class _ReceiptsTabState extends State<ReceiptsTab> {
                 },
               ),
             ],
+            if (_selectedLabelIds.isNotEmpty) ...[
+              const SizedBox(width: 8),
+              Chip(
+                label: Text(
+                  '${_selectedLabelIds.length} labels',
+                  style: const TextStyle(fontSize: 12),
+                ),
+                deleteIcon: const Icon(Icons.close, size: 16),
+                onDeleted: () {
+                  setState(() => _selectedLabelIds.clear());
+                  _fetchTransactions();
+                },
+              ),
+            ],
             const SizedBox(width: 8),
           ],
         ),
@@ -325,9 +392,11 @@ class _ReceiptsTabState extends State<ReceiptsTab> {
           final monthKey = groupedTransactions.keys.elementAt(index);
           final txsForMonth = groupedTransactions[monthKey]!;
           double monthTotal = 0;
+          String monthCurrency = _preferredCurrency;
           for (var tx in txsForMonth) {
-            monthTotal +=
-                double.tryParse((tx['amount_total'] ?? '0').toString()) ?? 0;
+            final txMap = tx as Map<String, dynamic>;
+            monthTotal += _displayAmountOf(txMap);
+            monthCurrency = _displayCurrencyOf(txMap);
           }
 
           return Column(
@@ -346,7 +415,7 @@ class _ReceiptsTabState extends State<ReceiptsTab> {
                       ),
                     ),
                     Text(
-                      'RSD ${monthTotal.toStringAsFixed(2)}',
+                      _formatMoney(monthCurrency, monthTotal),
                       style: TextStyle(
                         color: Colors.grey.shade400,
                         fontSize: 14,
@@ -366,7 +435,16 @@ class _ReceiptsTabState extends State<ReceiptsTab> {
 
   Widget _buildTransactionCard(Map<String, dynamic> tx) {
     final storeName = tx['merchant_name'] ?? 'Unknown Store';
-    final amount = double.tryParse((tx['amount_total'] ?? '0').toString()) ?? 0;
+    final displayAmount = _displayAmountOf(tx);
+    final displayCurrency = _displayCurrencyOf(tx);
+    final sourceAmount =
+        double.tryParse((tx['amount_total'] ?? '0').toString()) ?? 0;
+    final sourceCurrency =
+        (tx['currency'] ?? displayCurrency).toString().toUpperCase();
+    final showOriginal =
+        tx['display_amount_total'] != null &&
+        (displayCurrency != sourceCurrency ||
+            (displayAmount - sourceAmount).abs() > 0.00001);
     String formattedTime = '';
     final occurredAtStr = tx['occurred_at'] as String?;
     if (occurredAtStr != null) {
@@ -448,12 +526,25 @@ class _ReceiptsTabState extends State<ReceiptsTab> {
                   ],
                 ),
               ),
-              Text(
-                'RSD ${amount.toStringAsFixed(2)}',
-                style: const TextStyle(
-                  fontWeight: FontWeight.bold,
-                  fontSize: 16,
-                ),
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.end,
+                children: [
+                  Text(
+                    _formatMoney(displayCurrency, displayAmount),
+                    style: const TextStyle(
+                      fontWeight: FontWeight.bold,
+                      fontSize: 16,
+                    ),
+                  ),
+                  if (showOriginal)
+                    Text(
+                      _formatMoney(sourceCurrency, sourceAmount),
+                      style: TextStyle(
+                        color: Colors.grey.shade500,
+                        fontSize: 12,
+                      ),
+                    ),
+                ],
               ),
             ],
           ),
@@ -464,9 +555,11 @@ class _ReceiptsTabState extends State<ReceiptsTab> {
 
   Widget _buildBottomSummary() {
     double totalPeriodExpense = 0;
+    String totalCurrency = _preferredCurrency;
     for (var tx in _transactions) {
-      totalPeriodExpense +=
-          double.tryParse((tx['amount_total'] ?? '0').toString()) ?? 0;
+      final txMap = tx as Map<String, dynamic>;
+      totalPeriodExpense += _displayAmountOf(txMap);
+      totalCurrency = _displayCurrencyOf(txMap);
     }
 
     return Container(
@@ -487,7 +580,7 @@ class _ReceiptsTabState extends State<ReceiptsTab> {
               ),
               const SizedBox(height: 4),
               Text(
-                'RSD ${totalPeriodExpense.toStringAsFixed(2)}',
+                _formatMoney(totalCurrency, totalPeriodExpense),
                 style: const TextStyle(
                   fontWeight: FontWeight.bold,
                   fontSize: 20,

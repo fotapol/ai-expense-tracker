@@ -43,6 +43,7 @@ dependencies:
   intl: ^0.20.2
   fl_chart: ^1.1.1
   shared_preferences: ^2.5.4
+  currency_picker: ^2.0.21
 
 dev_dependencies:
   flutter_test:

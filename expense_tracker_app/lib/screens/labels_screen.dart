@@ -147,7 +147,7 @@ class _LabelsScreenState extends State<LabelsScreen> {
       child: ListView.separated(
         padding: const EdgeInsets.all(16),
         itemCount: _labels.length,
-        separatorBuilder: (_, __) => const SizedBox(height: 8),
+        separatorBuilder: (_, index) => const SizedBox(height: 8),
         itemBuilder: (context, index) {
           final label = _labels[index];
           final name = label['name'] as String? ?? '';

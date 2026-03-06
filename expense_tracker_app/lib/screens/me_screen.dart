@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:currency_picker/currency_picker.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import '../core/api_client.dart';
 import '../main.dart';
@@ -19,6 +20,7 @@ class _MeScreenState extends State<MeScreen> {
   Map<String, dynamic>? _profileData;
   bool _isLoading = true;
   String? _error;
+  bool _isUpdatingCurrency = false;
 
   // Local state for settings
   bool _notificationsEnabled = false;
@@ -32,6 +34,59 @@ class _MeScreenState extends State<MeScreen> {
   void _showComingSoon() {
     ScaffoldMessenger.of(context).showSnackBar(
       const SnackBar(content: Text('This feature is coming soon!')),
+    );
+  }
+
+  String _currentCurrencyCode() {
+    return (_profileData?['default_currency'] ?? 'EUR')
+        .toString()
+        .toUpperCase();
+  }
+
+  String _currencySubtitle() {
+    final currency = CurrencyService().findByCode(_currentCurrencyCode());
+    if (currency == null) return _currentCurrencyCode();
+    return '${currency.symbol} ${currency.name}';
+  }
+
+  Future<void> _updateDefaultCurrency(String code) async {
+    if (_isUpdatingCurrency) return;
+
+    setState(() => _isUpdatingCurrency = true);
+    try {
+      final updated = await ApiClient.updateMe({
+        'default_currency': code.toUpperCase(),
+      });
+      if (!mounted) return;
+      setState(() => _profileData = updated);
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Currency updated to ${code.toUpperCase()}')),
+      );
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Failed to update currency: $e'),
+          backgroundColor: Colors.red,
+        ),
+      );
+    } finally {
+      if (mounted) setState(() => _isUpdatingCurrency = false);
+    }
+  }
+
+  void _openCurrencyPicker() {
+    final currentCode = _currentCurrencyCode();
+    showCurrencyPicker(
+      context: context,
+      showSearchField: true,
+      showFlag: false,
+      favorite: [currentCode],
+      onSelect: (currency) {
+        final selectedCode = currency.code.toUpperCase();
+        if (selectedCode == currentCode) return;
+        _updateDefaultCurrency(selectedCode);
+      },
     );
   }
 
@@ -116,9 +171,15 @@ class _MeScreenState extends State<MeScreen> {
                 _buildSettingsTile(
                   icon: Icons.attach_money,
                   title: 'Currency',
-                  subtitle: 'дин. Serbian Dinar',
-                  trailing: const Icon(Icons.chevron_right, color: Colors.grey),
-                  onTap: _showComingSoon,
+                  subtitle: _currencySubtitle(),
+                  trailing: _isUpdatingCurrency
+                      ? const SizedBox(
+                          width: 16,
+                          height: 16,
+                          child: CircularProgressIndicator(strokeWidth: 2),
+                        )
+                      : const Icon(Icons.chevron_right, color: Colors.grey),
+                  onTap: _openCurrencyPicker,
                 ),
                 _buildDivider(),
                 _buildSettingsTile(
@@ -178,7 +239,7 @@ class _MeScreenState extends State<MeScreen> {
                         _notificationsEnabled = val;
                       });
                     },
-                    activeColor: Theme.of(context).colorScheme.primary,
+                    activeThumbColor: Theme.of(context).colorScheme.primary,
                   ),
                 ),
                 _buildDivider(),
@@ -189,7 +250,7 @@ class _MeScreenState extends State<MeScreen> {
                   trailing: Switch(
                     value: themeProvider.isDarkMode,
                     onChanged: (val) => themeProvider.toggle(),
-                    activeColor: Theme.of(context).colorScheme.primary,
+                    activeThumbColor: Theme.of(context).colorScheme.primary,
                   ),
                 ),
               ],
