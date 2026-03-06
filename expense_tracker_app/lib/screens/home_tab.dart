@@ -228,18 +228,18 @@ class _HomeTabState extends State<HomeTab> {
             ),
           ],
         ),
-        Container(
-          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-          decoration: BoxDecoration(
-            color: Theme.of(context).colorScheme.surface,
-            borderRadius: BorderRadius.circular(20),
-            border: Border.all(color: Colors.grey.shade800),
-          ),
-          child: Text(
-            '${_daysWithData()}/7',
-            style: const TextStyle(fontSize: 12),
-          ),
-        ),
+        // Container(
+        //   padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+        //   decoration: BoxDecoration(
+        //     color: Theme.of(context).colorScheme.surface,
+        //     borderRadius: BorderRadius.circular(20),
+        //     border: Border.all(color: Colors.grey.shade800),
+        //   ),
+        //   child: Text(
+        //     '${_daysWithData()}/7',
+        //     style: const TextStyle(fontSize: 12),
+        //   ),
+        // ),
       ],
     );
   }
