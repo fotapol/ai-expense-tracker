@@ -85,10 +85,10 @@ async def get_current_user(
 
     cached = await get_cached_user(redis, uid)
     if cached is not None:
+        cached = session.merge(cached)
         # Even on cache hit, sync email if it changed.
         if email and cached.email != email:
             cached.email = email
-            session.add(cached)
             session.commit()
             session.refresh(cached)
             await invalidate_user_cache(redis, uid)

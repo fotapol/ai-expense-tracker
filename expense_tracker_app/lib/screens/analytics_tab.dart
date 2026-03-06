@@ -22,7 +22,33 @@ class _AnalyticsTabState extends State<AnalyticsTab> {
   String _selectedPeriod = PeriodFilter.last3Months;
   List<String> _selectedCategoryIds = [];
   List<String> _selectedSubcategoryIds = [];
+  List<String> _selectedLabelIds = [];
   Map<String, String> _categoryNamesById = {};
+  Map<String, String> _labelNamesById = {};
+
+  String _currencySymbol(String code) {
+    switch (code.toUpperCase()) {
+      case 'EUR':
+        return '€';
+      case 'USD':
+        return '\$';
+      case 'GBP':
+        return '£';
+      case 'RSD':
+        return 'RSD ';
+      default:
+        return '${code.toUpperCase()} ';
+    }
+  }
+
+  String _formatMoney(String currency, double amount) {
+    final symbol = _currencySymbol(currency);
+    if (symbol.trim().length == 1 || symbol == 'RSD ') {
+      final sign = amount < 0 ? '-' : '';
+      return '$sign$symbol${amount.abs().toStringAsFixed(2)}';
+    }
+    return '${currency.toUpperCase()} ${amount.toStringAsFixed(2)}';
+  }
 
   @override
   void initState() {
@@ -33,12 +59,15 @@ class _AnalyticsTabState extends State<AnalyticsTab> {
   Future<void> _loadFiltersAndFetch() async {
     final prefsFuture = SharedPreferences.getInstance();
     final categoriesFuture = ApiClient.listCategories();
+    final labelsFuture = ApiClient.listLabels();
 
     final prefs = await prefsFuture;
     final savedPeriod = prefs.getString('analytics_period');
     final savedCats = prefs.getStringList('analytics_category_ids');
     final savedSubcats = prefs.getStringList('analytics_subcategory_ids');
+    final savedLabels = prefs.getStringList('analytics_label_ids');
     Map<String, String> categoryNames = {};
+    Map<String, String> labelNames = {};
     try {
       final categories = await categoriesFuture;
       categoryNames = {
@@ -47,13 +76,23 @@ class _AnalyticsTabState extends State<AnalyticsTab> {
             cat['id'].toString(): cat['name'].toString(),
       };
     } catch (_) {}
+    try {
+      final labels = await labelsFuture;
+      labelNames = {
+        for (final label in labels)
+          if (label['id'] != null && label['name'] != null)
+            label['id'].toString(): label['name'].toString(),
+      };
+    } catch (_) {}
 
     if (!mounted) return;
     setState(() {
       if (savedPeriod != null) _selectedPeriod = savedPeriod;
       if (savedCats != null) _selectedCategoryIds = savedCats;
       if (savedSubcats != null) _selectedSubcategoryIds = savedSubcats;
+      if (savedLabels != null) _selectedLabelIds = savedLabels;
       _categoryNamesById = categoryNames;
+      _labelNamesById = labelNames;
     });
     _fetchSummary();
   }
@@ -66,6 +105,7 @@ class _AnalyticsTabState extends State<AnalyticsTab> {
       'analytics_subcategory_ids',
       _selectedSubcategoryIds,
     );
+    await prefs.setStringList('analytics_label_ids', _selectedLabelIds);
   }
 
   Future<void> _fetchSummary() async {
@@ -84,6 +124,7 @@ class _AnalyticsTabState extends State<AnalyticsTab> {
         subcategoryIds: _selectedSubcategoryIds.isNotEmpty
             ? _selectedSubcategoryIds
             : null,
+        labelIds: _selectedLabelIds.isNotEmpty ? _selectedLabelIds : null,
       );
       if (!mounted) return;
       setState(() {
@@ -105,6 +146,7 @@ class _AnalyticsTabState extends State<AnalyticsTab> {
       selectedPeriod: _selectedPeriod,
       selectedCategoryIds: _selectedCategoryIds,
       selectedSubcategoryIds: _selectedSubcategoryIds,
+      selectedLabelIds: _selectedLabelIds,
     );
     if (result == null) return;
 
@@ -114,15 +156,17 @@ class _AnalyticsTabState extends State<AnalyticsTab> {
       _selectedSubcategoryIds = List<String>.from(
         result['subcategory_ids'] ?? [],
       );
+      _selectedLabelIds = List<String>.from(result['label_ids'] ?? []);
     });
     await _saveFilters();
     _fetchSummary();
   }
 
-  Future<void> _clearCategoryFilters() async {
+  Future<void> _clearFilters() async {
     setState(() {
       _selectedCategoryIds.clear();
       _selectedSubcategoryIds.clear();
+      _selectedLabelIds.clear();
     });
     await _saveFilters();
     _fetchSummary();
@@ -159,15 +203,20 @@ class _AnalyticsTabState extends State<AnalyticsTab> {
   }
 
   Widget _buildActiveFiltersBar() {
-    final hasCategoryFilters =
-        _selectedCategoryIds.isNotEmpty || _selectedSubcategoryIds.isNotEmpty;
-    if (!hasCategoryFilters) return const SizedBox.shrink();
+    final hasFilters =
+        _selectedCategoryIds.isNotEmpty ||
+        _selectedSubcategoryIds.isNotEmpty ||
+        _selectedLabelIds.isNotEmpty;
+    if (!hasFilters) return const SizedBox.shrink();
 
     final categoryLabels = _selectedCategoryIds
         .map((id) => _categoryNamesById[id] ?? 'Category')
         .toList();
     final subcategoryLabels = _selectedSubcategoryIds
         .map((id) => _categoryNamesById[id] ?? 'Subcategory')
+        .toList();
+    final labelLabels = _selectedLabelIds
+        .map((id) => _labelNamesById[id] ?? 'Label')
         .toList();
 
     return Padding(
@@ -193,16 +242,23 @@ class _AnalyticsTabState extends State<AnalyticsTab> {
                       color: const Color(0xFF29B6F6),
                     ),
                   ),
+                  ...labelLabels.map(
+                    (label) => _buildFilterChip(
+                      label,
+                      icon: Icons.label,
+                      color: const Color(0xFF66BB6A),
+                    ),
+                  ),
                 ],
               ),
             ),
           ),
           const SizedBox(width: 8),
           IconButton(
-            onPressed: _clearCategoryFilters,
+            onPressed: _clearFilters,
             icon: const Icon(Icons.cancel),
             color: Colors.grey.shade400,
-            tooltip: 'Clear category filters',
+            tooltip: 'Clear filters',
           ),
         ],
       ),
@@ -229,11 +285,12 @@ class _AnalyticsTabState extends State<AnalyticsTab> {
           categoryName: name,
           categoryCode: code,
           fromDate: fromDate,
-          selectedCategoryIds: _selectedCategoryIds,
-          selectedSubcategoryIds: _selectedSubcategoryIds,
+            selectedCategoryIds: _selectedCategoryIds,
+            selectedSubcategoryIds: _selectedSubcategoryIds,
+            selectedLabelIds: _selectedLabelIds,
+          ),
         ),
-      ),
-    );
+      );
   }
 
   @override
@@ -299,29 +356,35 @@ class _AnalyticsTabState extends State<AnalyticsTab> {
     final totalTransactions =
         (_summaryData?['total_transactions'] as num?)?.toInt() ?? 0;
     final categories = _summaryData?['categories'] as List<dynamic>? ?? [];
+    final currency = (_summaryData?['currency']?.toString() ?? 'EUR')
+        .toUpperCase();
 
     return SingleChildScrollView(
       padding: const EdgeInsets.all(16.0),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          _buildTotalCard(totalAmount, totalTransactions),
+          _buildTotalCard(totalAmount, totalTransactions, currency),
           const SizedBox(height: 28),
           const Text(
             'Expense Categories',
             style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
           ),
           const SizedBox(height: 24),
-          _buildPieChart(categories, totalAmount),
+          _buildPieChart(categories, totalAmount, currency),
           const SizedBox(height: 20),
-          _buildCategoryBreakdown(categories),
+          _buildCategoryBreakdown(categories, currency),
           const SizedBox(height: 32),
         ],
       ),
     );
   }
 
-  Widget _buildTotalCard(double totalAmount, int totalTransactions) {
+  Widget _buildTotalCard(
+    double totalAmount,
+    int totalTransactions,
+    String currency,
+  ) {
     int periodDays = 30;
     if (_selectedPeriod == PeriodFilter.last3Months) periodDays = 90;
     if (_selectedPeriod == PeriodFilter.thisYear) {
@@ -354,7 +417,7 @@ class _AnalyticsTabState extends State<AnalyticsTab> {
           ),
           const SizedBox(height: 12),
           Text(
-            'RSD ${totalAmount.toStringAsFixed(2)}',
+            _formatMoney(currency, totalAmount),
             style: const TextStyle(
               color: Colors.white,
               fontSize: 40,
@@ -373,7 +436,7 @@ class _AnalyticsTabState extends State<AnalyticsTab> {
                   ),
                   const SizedBox(height: 4),
                   Text(
-                    'RSD ${(totalAmount / periodDays).toStringAsFixed(2)}',
+                    _formatMoney(currency, totalAmount / periodDays),
                     style: const TextStyle(color: Colors.white, fontSize: 16),
                   ),
                 ],
@@ -399,7 +462,11 @@ class _AnalyticsTabState extends State<AnalyticsTab> {
     );
   }
 
-  Widget _buildPieChart(List<dynamic> categories, double totalAmount) {
+  Widget _buildPieChart(
+    List<dynamic> categories,
+    double totalAmount,
+    String currency,
+  ) {
     final hasData = categories.isNotEmpty && totalAmount > 0;
 
     final sections = <PieChartSectionData>[];
@@ -464,7 +531,7 @@ class _AnalyticsTabState extends State<AnalyticsTab> {
                 children: [
                   if (hasData) ...[
                     Text(
-                      'RSD ${totalAmount.toStringAsFixed(2)}',
+                      _formatMoney(currency, totalAmount),
                       style: const TextStyle(
                         fontSize: 16,
                         fontWeight: FontWeight.bold,
@@ -526,7 +593,7 @@ class _AnalyticsTabState extends State<AnalyticsTab> {
     );
   }
 
-  Widget _buildCategoryBreakdown(List<dynamic> categories) {
+  Widget _buildCategoryBreakdown(List<dynamic> categories, String currency) {
     if (categories.isEmpty) {
       return Padding(
         padding: const EdgeInsets.only(top: 8),
@@ -585,7 +652,7 @@ class _AnalyticsTabState extends State<AnalyticsTab> {
                         ),
                         const SizedBox(height: 4),
                         Text(
-                          'RSD ${amount.toStringAsFixed(2)} - $itemCount purchases',
+                          '${_formatMoney(currency, amount)} - $itemCount purchases',
                           style: TextStyle(color: Colors.grey.shade400),
                         ),
                       ],

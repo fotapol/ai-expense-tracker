@@ -5,6 +5,7 @@ import uuid
 
 from fastapi import APIRouter, Depends, HTTPException, Request, status
 from pydantic import BaseModel, Field
+from sqlalchemy.exc import IntegrityError
 from sqlmodel import Session, select
 
 from app.auth.deps import get_current_user
@@ -12,6 +13,7 @@ from app.core.db import get_session
 from app.core.rate_limiter import limiter
 from app.models.labels.label import Label
 from app.models.labels.transaction_label import TransactionLabel
+from app.models.transactions.transaction import Transaction
 from app.models.users.user import User
 
 logger = logging.getLogger(__name__)
@@ -125,6 +127,25 @@ async def assign_label(
     current_user: User = Depends(get_current_user),  # noqa: B008
 ):
     """Assign a label to a transaction."""
+    transaction = session.exec(
+        select(Transaction).where(
+            Transaction.id == payload.transaction_id,
+            Transaction.user_id == current_user.id,
+        )
+    ).first()
+    if transaction is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Transaction not found.")
+
+    label = session.exec(
+        select(Label).where(
+            Label.id == payload.label_id,
+            Label.user_id == current_user.id,
+            Label.is_active == True,
+        )
+    ).first()
+    if label is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Label not found.")
+
     # Check if already assigned
     existing = session.exec(
         select(TransactionLabel).where(
@@ -140,7 +161,11 @@ async def assign_label(
         label_id=payload.label_id,
     )
     session.add(link)
-    session.commit()
+    try:
+        session.commit()
+    except IntegrityError:
+        session.rollback()
+        return {"status": "already_assigned"}
     return {"status": "assigned"}
 
 
@@ -153,6 +178,25 @@ async def unassign_label(
     current_user: User = Depends(get_current_user),  # noqa: B008
 ):
     """Remove a label from a transaction."""
+    transaction = session.exec(
+        select(Transaction).where(
+            Transaction.id == payload.transaction_id,
+            Transaction.user_id == current_user.id,
+        )
+    ).first()
+    if transaction is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Transaction not found.")
+
+    label = session.exec(
+        select(Label).where(
+            Label.id == payload.label_id,
+            Label.user_id == current_user.id,
+            Label.is_active == True,
+        )
+    ).first()
+    if label is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Label not found.")
+
     link = session.exec(
         select(TransactionLabel).where(
             TransactionLabel.transaction_id == payload.transaction_id,

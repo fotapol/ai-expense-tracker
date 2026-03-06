@@ -1,12 +1,14 @@
 """Transaction API endpoints for editing and viewing ledgers."""
 
+import datetime as dt
 import logging
 import uuid
 from collections import defaultdict
 from decimal import Decimal
-from typing import Annotated
+from typing import Annotated, Any
 
 from fastapi import APIRouter, Depends, HTTPException, Request, status
+from pydantic import TypeAdapter
 from sqlalchemy import func, or_
 from sqlmodel import Session, select
 
@@ -15,14 +17,27 @@ from app.core.db import get_session
 from app.core.rate_limiter import limiter
 from app.models.shared.enums import CategoryScope
 from app.models.taxonomy.category import Category
+from app.models.labels.label import Label
+from app.models.labels.transaction_label import TransactionLabel
+from app.models.receipts.receipt_extraction import ReceiptExtraction
 from app.models.transactions.transaction import Transaction
 from app.models.transactions.transaction_item import TransactionItem
 from app.models.users.user import User
-from app.schemas.transactions import TransactionItemRead, TransactionListFilter, TransactionRead, TransactionUpdateRequest
+from app.schemas.extraction import ExtractionWarning
+from app.schemas.shared import normalize_currency_code, quantize_amount, quantize_unit_price
+from app.schemas.transactions import (
+    TransactionItemRead,
+    TransactionLabelRead,
+    TransactionListFilter,
+    TransactionRead,
+    TransactionUpdateRequest,
+)
+from app.services.fx_rates import convert_amount, resolve_conversion_date
 
 logger = logging.getLogger(__name__)
 
 router = APIRouter(prefix="/v1", tags=["transactions"])
+_warnings_adapter = TypeAdapter(list[ExtractionWarning])
 
 
 def _parse_uuid_csv(raw: str | None) -> list[uuid.UUID]:
@@ -38,6 +53,17 @@ def _parse_uuid_csv(raw: str | None) -> list[uuid.UUID]:
         except ValueError:
             continue
     return parsed
+
+
+def _resolve_label_filter_ids(filters: TransactionListFilter) -> set[uuid.UUID]:
+    label_ids = set(_parse_uuid_csv(filters.label_ids))
+    if filters.label_id is not None:
+        label_ids.add(filters.label_id)
+    return label_ids
+
+
+def _resolve_target_currency(filters: TransactionListFilter, current_user: User) -> str:
+    return normalize_currency_code(filters.target_currency or current_user.default_currency)
 
 
 def _get_user_visible_item_categories(session: Session, current_user: User) -> list[Category]:
@@ -259,12 +285,18 @@ def _build_filtered_transaction_ids_query(
     if filters.merchant_name_search:
         search_term = f"%{filters.merchant_name_search}%"
         query = query.where(Transaction.merchant_name.ilike(search_term))
-    if filters.label_id:
-        from app.models.labels.transaction_label import TransactionLabel
-
-        label_subquery = select(TransactionLabel.transaction_id).where(
-            TransactionLabel.label_id == filters.label_id
-        ).subquery()
+    label_filter_ids = _resolve_label_filter_ids(filters)
+    if label_filter_ids:
+        label_subquery = (
+            select(TransactionLabel.transaction_id)
+            .join(Label, Label.id == TransactionLabel.label_id)
+            .where(
+                TransactionLabel.label_id.in_(label_filter_ids),
+                Label.user_id == current_user.id,
+                Label.is_active == True,
+            )
+            .subquery()
+        )
         query = query.where(Transaction.id.in_(select(label_subquery.c.transaction_id)))
     if filters.status:
         query = query.where(Transaction.status == filters.status)
@@ -295,6 +327,128 @@ def _build_item_scope_query(
 
     return query, has_item_filters
 
+
+def _extract_warnings_from_structured_json(structured_json: dict[str, Any] | None) -> list[ExtractionWarning]:
+    if not isinstance(structured_json, dict):
+        return []
+    raw_warnings = structured_json.get("warnings")
+    if not isinstance(raw_warnings, list):
+        return []
+    try:
+        return _warnings_adapter.validate_python(raw_warnings)
+    except Exception:
+        logger.warning("Failed to parse extraction warnings payload.", exc_info=True)
+        return []
+
+
+def _load_labels_by_transaction_id(
+    session: Session,
+    *,
+    transaction_ids: list[uuid.UUID],
+    current_user: User,
+) -> dict[uuid.UUID, list[TransactionLabelRead]]:
+    if not transaction_ids:
+        return {}
+
+    rows = session.exec(
+        select(
+            TransactionLabel.transaction_id,
+            Label.id,
+            Label.name,
+            Label.color,
+        )
+        .join(Label, Label.id == TransactionLabel.label_id)
+        .where(
+            TransactionLabel.transaction_id.in_(transaction_ids),
+            Label.user_id == current_user.id,
+            Label.is_active == True,
+        )
+        .order_by(Label.name.asc())
+    ).all()
+
+    labels_by_tx: dict[uuid.UUID, list[TransactionLabelRead]] = defaultdict(list)
+    for transaction_id, label_id, name, color in rows:
+        labels_by_tx[transaction_id].append(
+            TransactionLabelRead(id=label_id, name=name, color=color)
+        )
+    return labels_by_tx
+
+
+def _load_category_names_by_id(
+    session: Session,
+    *,
+    category_ids: list[uuid.UUID],
+) -> dict[uuid.UUID, str]:
+    if not category_ids:
+        return {}
+
+    rows = session.exec(
+        select(Category.id, Category.name).where(Category.id.in_(category_ids))
+    ).all()
+    return {category_id: name for category_id, name in rows}
+
+
+def _load_warnings_by_receipt_id(
+    session: Session,
+    *,
+    receipt_ids: list[uuid.UUID],
+) -> dict[uuid.UUID, list[ExtractionWarning]]:
+    if not receipt_ids:
+        return {}
+
+    rows = session.exec(
+        select(ReceiptExtraction.receipt_id, ReceiptExtraction.structured_json).where(
+            ReceiptExtraction.receipt_id.in_(receipt_ids)
+        )
+    ).all()
+
+    warnings_by_receipt: dict[uuid.UUID, list[ExtractionWarning]] = {}
+    for receipt_id, structured_json in rows:
+        warnings_by_receipt[receipt_id] = _extract_warnings_from_structured_json(structured_json)
+    return warnings_by_receipt
+
+
+def _apply_display_conversion(
+    *,
+    read: TransactionRead,
+    session: Session,
+    target_currency: str,
+) -> None:
+    conversion_date = resolve_conversion_date(read.occurred_at, read.created_at)
+    tx_converted = convert_amount(
+        amount=read.amount_total,
+        base_currency=read.currency,
+        target_currency=target_currency,
+        target_date=conversion_date,
+        session=session,
+        quantizer=quantize_amount,
+    )
+
+    read.display_currency = tx_converted.currency
+    read.display_amount_total = tx_converted.value
+    read.display_rate_date = tx_converted.rate_date
+    read.display_rate_fallback = tx_converted.rate_fallback
+
+    for item in read.items:
+        amount_converted = convert_amount(
+            amount=item.amount,
+            base_currency=read.currency,
+            target_currency=target_currency,
+            target_date=conversion_date,
+            session=session,
+            quantizer=quantize_amount,
+        )
+        unit_price_converted = convert_amount(
+            amount=item.unit_price,
+            base_currency=read.currency,
+            target_currency=target_currency,
+            target_date=conversion_date,
+            session=session,
+            quantizer=quantize_unit_price,
+        )
+        item.display_amount = amount_converted.value
+        item.display_unit_price = unit_price_converted.value
+
 @router.get("/transactions", response_model=list[TransactionRead])
 @limiter.limit("60/minute")
 async def list_transactions(
@@ -304,6 +458,7 @@ async def list_transactions(
     current_user: User = Depends(get_current_user),  # noqa: B008
 ):
     """List transactions for the current user."""
+    target_currency = _resolve_target_currency(filters, current_user)
     query = select(Transaction).where(Transaction.user_id == current_user.id)
 
     if filters.from_occurred_at:
@@ -323,11 +478,18 @@ async def list_transactions(
     if filters.merchant_name_search:
         search_term = f"%{filters.merchant_name_search}%"
         query = query.where(Transaction.merchant_name.ilike(search_term))
-    if filters.label_id:
-        from app.models.labels.transaction_label import TransactionLabel
-        label_subquery = select(TransactionLabel.transaction_id).where(
-            TransactionLabel.label_id == filters.label_id
-        ).subquery()
+    label_filter_ids = _resolve_label_filter_ids(filters)
+    if label_filter_ids:
+        label_subquery = (
+            select(TransactionLabel.transaction_id)
+            .join(Label, Label.id == TransactionLabel.label_id)
+            .where(
+                TransactionLabel.label_id.in_(label_filter_ids),
+                Label.user_id == current_user.id,
+                Label.is_active == True,
+            )
+            .subquery()
+        )
         query = query.where(Transaction.id.in_(select(label_subquery.c.transaction_id)))
     if filters.status:
         query = query.where(Transaction.status == filters.status)
@@ -349,9 +511,24 @@ async def list_transactions(
     results = []
     if transactions: # Only fetch items if transactions exist to save an empty query
         transaction_ids = [t.id for t in transactions]
+        receipt_ids = [t.receipt_id for t in transactions if t.receipt_id is not None]
+        category_ids = [t.category_id for t in transactions if t.category_id is not None]
         items = session.exec(
             select(TransactionItem).where(TransactionItem.transaction_id.in_(transaction_ids))
         ).all()
+        labels_by_tx = _load_labels_by_transaction_id(
+            session,
+            transaction_ids=transaction_ids,
+            current_user=current_user,
+        )
+        category_names_by_id = _load_category_names_by_id(
+            session,
+            category_ids=category_ids,
+        )
+        warnings_by_receipt = _load_warnings_by_receipt_id(
+            session,
+            receipt_ids=receipt_ids,
+        )
         
         items_by_tx = {}
         for item in items:
@@ -361,6 +538,17 @@ async def list_transactions(
             read = TransactionRead.model_validate(t)
             tx_items = items_by_tx.get(t.id, [])
             read.items = [TransactionItemRead.model_validate(i) for i in sorted(tx_items, key=lambda x: x.line_no)]
+            read.labels = labels_by_tx.get(t.id, [])
+            read.category_name = (
+                category_names_by_id.get(t.category_id) if t.category_id is not None else None
+            )
+            tx_warnings = warnings_by_receipt.get(t.receipt_id, []) if t.receipt_id else []
+            read.has_extraction_warnings = len(tx_warnings) > 0
+            _apply_display_conversion(
+                read=read,
+                session=session,
+                target_currency=target_currency,
+            )
             results.append(read)
 
     return results
@@ -375,6 +563,7 @@ async def get_transactions_summary(
     current_user: User = Depends(get_current_user),  # noqa: B008
 ):
     """Get aggregated summary of transactions split by category."""
+    target_currency = _resolve_target_currency(filters, current_user)
     category_descendant_item_ids, _ = _resolve_category_filter_sets(
         session=session,
         current_user=current_user,
@@ -401,40 +590,108 @@ async def get_transactions_summary(
 
     # 2. Totals
     if has_item_filters:
-        total_amount_query = select(func.sum(item_scope_subquery.c.amount))
-        total_amount_result = session.exec(total_amount_query).first()
-        total_amount = total_amount_result or Decimal("0.00")
-        total_transactions_query = select(func.count(func.distinct(item_scope_subquery.c.transaction_id)))
-        total_transactions_result = session.exec(total_transactions_query).first()
-        total_transactions = int(total_transactions_result or 0)
+        total_item_rows = session.exec(
+            select(
+                item_scope_subquery.c.transaction_id,
+                item_scope_subquery.c.amount,
+                Transaction.currency,
+                Transaction.occurred_at,
+                Transaction.created_at,
+            ).join(
+                Transaction,
+                Transaction.id == item_scope_subquery.c.transaction_id,
+            )
+        ).all()
+        total_amount = Decimal("0.00")
+        tx_ids: set[uuid.UUID] = set()
+        for tx_id, amount, tx_currency, tx_occurred_at, tx_created_at in total_item_rows:
+            tx_ids.add(tx_id)
+            converted = convert_amount(
+                amount=amount,
+                base_currency=tx_currency,
+                target_currency=target_currency,
+                target_date=resolve_conversion_date(tx_occurred_at, tx_created_at),
+                session=session,
+                quantizer=quantize_amount,
+            )
+            total_amount += converted.value if converted.value is not None else quantize_amount(amount)
+        total_transactions = len(tx_ids)
     else:
-        total_query = select(
-            func.sum(Transaction.amount_total),
-            func.count(Transaction.id),
-        ).where(Transaction.id.in_(select(transaction_ids_subquery.c.id)))
-        result = session.exec(total_query).first()
-        total_amount = result[0] or Decimal("0.00")
-        total_transactions = result[1] or 0
+        transaction_rows = session.exec(
+            select(
+                Transaction.amount_total,
+                Transaction.currency,
+                Transaction.occurred_at,
+                Transaction.created_at,
+            ).where(Transaction.id.in_(select(transaction_ids_subquery.c.id)))
+        ).all()
+        total_amount = Decimal("0.00")
+        for amount_total, tx_currency, tx_occurred_at, tx_created_at in transaction_rows:
+            converted = convert_amount(
+                amount=amount_total,
+                base_currency=tx_currency,
+                target_currency=target_currency,
+                target_date=resolve_conversion_date(tx_occurred_at, tx_created_at),
+                session=session,
+                quantizer=quantize_amount,
+            )
+            if amount_total is not None:
+                total_amount += (
+                    converted.value if converted.value is not None else quantize_amount(amount_total)
+                )
+        total_transactions = len(transaction_rows)
 
-    # 3. Group by category on filtered TransactionItem scope
-    category_query = (
+    # 3. Group by category on filtered TransactionItem scope and convert row-by-row
+    category_item_rows = session.exec(
         select(
             Category.id,
             Category.name,
             Category.code,
             Category.parent_id,
-            func.sum(item_scope_subquery.c.amount).label("category_total"),
-            func.count(item_scope_subquery.c.id).label("item_count"),
+            item_scope_subquery.c.amount,
+            item_scope_subquery.c.transaction_id,
+            Transaction.currency,
+            Transaction.occurred_at,
+            Transaction.created_at,
         )
         .join(item_scope_subquery, item_scope_subquery.c.category_id == Category.id)
-        .group_by(Category.id, Category.name, Category.code, Category.parent_id)
-        .order_by(func.sum(item_scope_subquery.c.amount).desc())
-    )
+        .join(Transaction, Transaction.id == item_scope_subquery.c.transaction_id)
+    ).all()
 
-    category_results = session.exec(category_query).all()
+    category_results: dict[uuid.UUID, dict[str, Any]] = {}
+    for (
+        cat_id,
+        cat_name,
+        cat_code,
+        cat_parent_id,
+        amount,
+        _tx_id,
+        tx_currency,
+        tx_occurred_at,
+        tx_created_at,
+    ) in category_item_rows:
+        converted = convert_amount(
+            amount=amount,
+            base_currency=tx_currency,
+            target_currency=target_currency,
+            target_date=resolve_conversion_date(tx_occurred_at, tx_created_at),
+            session=session,
+            quantizer=quantize_amount,
+        )
+        converted_amount = converted.value if converted.value is not None else quantize_amount(amount)
+        if cat_id not in category_results:
+            category_results[cat_id] = {
+                "name": cat_name,
+                "code": cat_code,
+                "parent_id": cat_parent_id,
+                "amount": Decimal("0"),
+                "item_count": 0,
+            }
+        category_results[cat_id]["amount"] += converted_amount
+        category_results[cat_id]["item_count"] += 1
 
     # Pre-fetch all parent categories to get their names and codes if we need to roll up
-    parent_ids = {cat.parent_id for cat in category_results if cat.parent_id is not None}
+    parent_ids = {cat_data["parent_id"] for cat_data in category_results.values() if cat_data["parent_id"] is not None}
 
     parent_map = {}
     if parent_ids:
@@ -444,7 +701,12 @@ async def get_transactions_summary(
 
     # Roll up totals into parents
     rolled_up_totals = {}
-    for cat_id, cat_name, cat_code, cat_parent_id, cat_total, item_count in category_results:
+    for cat_id, cat_data in category_results.items():
+        cat_name = cat_data["name"]
+        cat_code = cat_data["code"]
+        cat_parent_id = cat_data["parent_id"]
+        cat_total = cat_data["amount"]
+        item_count = cat_data["item_count"]
         if cat_parent_id:
             # It's a subcategory, roll it into the parent
             target_id = cat_parent_id
@@ -484,7 +746,7 @@ async def get_transactions_summary(
     return {
         "total_amount": float(total_amount),
         "total_transactions": total_transactions,
-        "currency": "EUR",
+        "currency": target_currency,
         "categories": categories_breakdown,
     }
 
@@ -499,6 +761,7 @@ async def get_category_subcategory_summary(
     current_user: User = Depends(get_current_user),  # noqa: B008
 ):
     """Get subcategory breakdown for a single top-level category."""
+    target_currency = _resolve_target_currency(filters, current_user)
     item_categories = _get_user_visible_item_categories(session, current_user)
     category_by_id = {cat.id: cat for cat in item_categories}
 
@@ -543,15 +806,26 @@ async def get_category_subcategory_summary(
     category_rows = session.exec(
         select(
             item_scope_subquery.c.category_id,
-            func.sum(item_scope_subquery.c.amount).label("subcategory_total"),
-            func.count(item_scope_subquery.c.id).label("item_count"),
+            item_scope_subquery.c.amount,
+            item_scope_subquery.c.transaction_id,
+            Transaction.currency,
+            Transaction.occurred_at,
+            Transaction.created_at,
         )
-        .group_by(item_scope_subquery.c.category_id)
-        .order_by(func.sum(item_scope_subquery.c.amount).desc())
+        .join(Transaction, Transaction.id == item_scope_subquery.c.transaction_id)
     ).all()
 
     rolled_up_subcategories: dict[uuid.UUID, dict] = {}
-    for raw_category_id, amount, item_count in category_rows:
+    for raw_category_id, amount, _tx_id, tx_currency, tx_occurred_at, tx_created_at in category_rows:
+        converted = convert_amount(
+            amount=amount,
+            base_currency=tx_currency,
+            target_currency=target_currency,
+            target_date=resolve_conversion_date(tx_occurred_at, tx_created_at),
+            session=session,
+            quantizer=quantize_amount,
+        )
+        converted_amount = converted.value if converted.value is not None else quantize_amount(amount)
         direct_child = _resolve_direct_child_under_top_level(
             category_id=raw_category_id,
             top_level_id=top_level_category.id,
@@ -566,8 +840,8 @@ async def get_category_subcategory_summary(
                 "amount": Decimal("0"),
                 "item_count": 0,
             }
-        rolled_up_subcategories[direct_child.id]["amount"] += amount or Decimal("0")
-        rolled_up_subcategories[direct_child.id]["item_count"] += int(item_count or 0)
+        rolled_up_subcategories[direct_child.id]["amount"] += converted_amount
+        rolled_up_subcategories[direct_child.id]["item_count"] += 1
 
     rolled_up_total = sum(
         (entry["amount"] for entry in rolled_up_subcategories.values()),
@@ -598,7 +872,7 @@ async def get_category_subcategory_summary(
         "category_name": top_level_category.name,
         "category_code": top_level_category.code,
         "total_amount": float(rolled_up_total),
-        "currency": "EUR",
+        "currency": target_currency,
         "subcategories": subcategories,
     }
 
@@ -613,6 +887,7 @@ async def get_subcategory_item_summary(
     current_user: User = Depends(get_current_user),  # noqa: B008
 ):
     """Get purchased item breakdown for one subcategory."""
+    target_currency = _resolve_target_currency(filters, current_user)
     subcategory = session.exec(
         select(Category).where(
             Category.id == subcategory_id,
@@ -652,51 +927,85 @@ async def get_subcategory_item_summary(
     item_scope_query = item_scope_query.where(TransactionItem.category_id == subcategory_id)
     item_scope_subquery = item_scope_query.subquery()
 
-    total_amount_result = session.exec(select(func.sum(item_scope_subquery.c.amount))).first()
-    total_amount = total_amount_result or Decimal("0")
-
-    description_expr = func.coalesce(
-        func.nullif(func.trim(item_scope_subquery.c.description), ""),
-        "Unknown item",
-    )
     item_rows = session.exec(
         select(
-            description_expr.label("description"),
-            func.sum(item_scope_subquery.c.amount).label("item_total"),
-            func.count(item_scope_subquery.c.id).label("occurrences"),
-            func.sum(item_scope_subquery.c.qty).label("qty_total"),
-            func.max(item_scope_subquery.c.unit).label("unit"),
+            item_scope_subquery.c.description,
+            item_scope_subquery.c.amount,
+            item_scope_subquery.c.qty,
+            item_scope_subquery.c.unit,
+            Transaction.currency,
+            Transaction.occurred_at,
+            Transaction.created_at,
         )
-        .group_by(description_expr)
-        .order_by(func.sum(item_scope_subquery.c.amount).desc())
+        .join(Transaction, Transaction.id == item_scope_subquery.c.transaction_id)
     ).all()
+
+    total_amount = Decimal("0")
+    grouped: dict[str, dict[str, Any]] = {}
+    for description, amount, qty, unit, tx_currency, tx_occurred_at, tx_created_at in item_rows:
+        clean_description = (description or "").strip() or "Unknown item"
+        converted = convert_amount(
+            amount=amount,
+            base_currency=tx_currency,
+            target_currency=target_currency,
+            target_date=resolve_conversion_date(tx_occurred_at, tx_created_at),
+            session=session,
+            quantizer=quantize_amount,
+        )
+        converted_amount = converted.value if converted.value is not None else quantize_amount(amount)
+        total_amount += converted_amount
+
+        entry = grouped.setdefault(
+            clean_description,
+            {
+                "amount": Decimal("0"),
+                "occurrences": 0,
+                "total_qty": None,
+                "unit": unit,
+            },
+        )
+        entry["amount"] += converted_amount
+        entry["occurrences"] += 1
+        if entry["unit"] is None and unit is not None:
+            entry["unit"] = unit
+
+        if qty is not None:
+            if entry["total_qty"] is None:
+                entry["total_qty"] = qty
+            else:
+                entry["total_qty"] += qty
 
     items = []
     total_item_rows = 0
-    for description, item_total, occurrences, qty_total, unit in item_rows:
+    for description, row in grouped.items():
+        item_total = row["amount"]
+        occurrences = int(row["occurrences"] or 0)
+        qty_total = row["total_qty"]
+        unit = row["unit"]
         qty_value = qty_total if qty_total is not None else None
         avg_unit_price = None
         if qty_value not in (None, 0):
             avg_unit_price = float((item_total or Decimal("0")) / qty_value)
 
-        total_item_rows += int(occurrences or 0)
+        total_item_rows += occurrences
         items.append(
             {
                 "description": description,
                 "amount": float(item_total or Decimal("0")),
-                "occurrences": int(occurrences or 0),
+                "occurrences": occurrences,
                 "total_qty": float(qty_value) if qty_value is not None else None,
                 "unit": unit,
                 "avg_unit_price": avg_unit_price,
             }
         )
+    items.sort(key=lambda row: row["amount"], reverse=True)
 
     return {
         "subcategory_id": subcategory.id,
         "subcategory_name": subcategory.name,
         "subcategory_code": subcategory.code,
         "total_amount": float(total_amount),
-        "currency": "EUR",
+        "currency": target_currency,
         "total_items": total_item_rows,
         "items": items,
     }
@@ -707,6 +1016,7 @@ async def get_subcategory_item_summary(
 async def get_transaction(
     request: Request,
     transaction_id: uuid.UUID,
+    target_currency: str | None = None,
     session: Session = Depends(get_session),  # noqa: B008
     current_user: User = Depends(get_current_user),  # noqa: B008
 ):
@@ -732,6 +1042,31 @@ async def get_transaction(
     # Construct the response model manually to combine models
     read = TransactionRead.model_validate(transaction)
     read.items = [TransactionItemRead.model_validate(item) for item in items]
+    read.category_name = (
+        session.exec(
+            select(Category.name).where(Category.id == transaction.category_id)
+        ).first()
+        if transaction.category_id is not None
+        else None
+    )
+    read.labels = _load_labels_by_transaction_id(
+        session,
+        transaction_ids=[transaction.id],
+        current_user=current_user,
+    ).get(transaction.id, [])
+    tx_warnings = []
+    if transaction.receipt_id is not None:
+        tx_warnings = _load_warnings_by_receipt_id(
+            session,
+            receipt_ids=[transaction.receipt_id],
+        ).get(transaction.receipt_id, [])
+    read.has_extraction_warnings = len(tx_warnings) > 0
+    read.extraction_warnings = tx_warnings
+    _apply_display_conversion(
+        read=read,
+        session=session,
+        target_currency=normalize_currency_code(target_currency or current_user.default_currency),
+    )
     return read
 
 
@@ -741,6 +1076,7 @@ async def update_transaction(
     request: Request,
     transaction_id: uuid.UUID,
     payload: TransactionUpdateRequest,
+    target_currency: str | None = None,
     session: Session = Depends(get_session),  # noqa: B008
     current_user: User = Depends(get_current_user),  # noqa: B008
 ):
@@ -819,6 +1155,31 @@ async def update_transaction(
     # Build response
     read = TransactionRead.model_validate(transaction)
     read.items = [TransactionItemRead.model_validate(item) for item in items]
+    read.category_name = (
+        session.exec(
+            select(Category.name).where(Category.id == transaction.category_id)
+        ).first()
+        if transaction.category_id is not None
+        else None
+    )
+    read.labels = _load_labels_by_transaction_id(
+        session,
+        transaction_ids=[transaction.id],
+        current_user=current_user,
+    ).get(transaction.id, [])
+    tx_warnings = []
+    if transaction.receipt_id is not None:
+        tx_warnings = _load_warnings_by_receipt_id(
+            session,
+            receipt_ids=[transaction.receipt_id],
+        ).get(transaction.receipt_id, [])
+    read.has_extraction_warnings = len(tx_warnings) > 0
+    read.extraction_warnings = tx_warnings
+    _apply_display_conversion(
+        read=read,
+        session=session,
+        target_currency=normalize_currency_code(target_currency or current_user.default_currency),
+    )
     return read
 
 

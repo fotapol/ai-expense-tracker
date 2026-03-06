@@ -36,6 +36,29 @@ class ApiClient {
     }
   }
 
+  /// PATCH /v1/me
+  static Future<Map<String, dynamic>> updateMe(
+    Map<String, dynamic> payload,
+  ) async {
+    final token = await _getToken();
+    final response = await http.patch(
+      Uri.parse('$apiBaseUrl/v1/me'),
+      headers: {
+        'Authorization': 'Bearer $token',
+        'Content-Type': 'application/json',
+      },
+      body: jsonEncode(payload),
+    );
+
+    if (response.statusCode == 200) {
+      return jsonDecode(response.body) as Map<String, dynamic>;
+    } else {
+      throw Exception(
+        'Failed to update profile: ${response.statusCode} ${response.body}',
+      );
+    }
+  }
+
   /// POST /v1/receipts — create receipt and get presigned upload URL.
   static Future<Map<String, dynamic>> createReceipt({
     required String mimeType,
@@ -123,10 +146,17 @@ class ApiClient {
   }
 
   /// GET /v1/transactions/{id}
-  static Future<Map<String, dynamic>> getTransaction(String id) async {
+  static Future<Map<String, dynamic>> getTransaction(
+    String id, {
+    String? targetCurrency,
+  }) async {
     final token = await _getToken();
+    String url = '$apiBaseUrl/v1/transactions/$id';
+    if (targetCurrency != null && targetCurrency.isNotEmpty) {
+      url += '?target_currency=${Uri.encodeComponent(targetCurrency)}';
+    }
     final response = await http.get(
-      Uri.parse('$apiBaseUrl/v1/transactions/$id'),
+      Uri.parse(url),
       headers: {
         'Authorization': 'Bearer $token',
         'Content-Type': 'application/json',
@@ -146,10 +176,15 @@ class ApiClient {
   static Future<Map<String, dynamic>> updateTransaction(
     String id,
     Map<String, dynamic> payload,
+    {String? targetCurrency}
   ) async {
     final token = await _getToken();
+    String url = '$apiBaseUrl/v1/transactions/$id';
+    if (targetCurrency != null && targetCurrency.isNotEmpty) {
+      url += '?target_currency=${Uri.encodeComponent(targetCurrency)}';
+    }
     final response = await http.put(
-      Uri.parse('$apiBaseUrl/v1/transactions/$id'),
+      Uri.parse(url),
       headers: {
         'Authorization': 'Bearer $token',
         'Content-Type': 'application/json',
@@ -193,7 +228,9 @@ class ApiClient {
     String? merchantNameSearch,
     List<String>? categoryIds,
     List<String>? subcategoryIds,
+    List<String>? labelIds,
     String? labelId,
+    String? targetCurrency,
   }) async {
     final token = await _getToken();
 
@@ -213,6 +250,12 @@ class ApiClient {
     }
     if (labelId != null) {
       url += '&label_id=$labelId';
+    }
+    if (labelIds != null && labelIds.isNotEmpty) {
+      url += '&label_ids=${labelIds.join(',')}';
+    }
+    if (targetCurrency != null && targetCurrency.isNotEmpty) {
+      url += '&target_currency=${Uri.encodeComponent(targetCurrency)}';
     }
 
     final response = await http.get(
@@ -237,6 +280,8 @@ class ApiClient {
     DateTime? fromDate,
     List<String>? categoryIds,
     List<String>? subcategoryIds,
+    List<String>? labelIds,
+    String? targetCurrency,
   }) async {
     final token = await _getToken();
 
@@ -252,6 +297,12 @@ class ApiClient {
     }
     if (subcategoryIds != null && subcategoryIds.isNotEmpty) {
       params.add('subcategory_ids=${subcategoryIds.join(',')}');
+    }
+    if (labelIds != null && labelIds.isNotEmpty) {
+      params.add('label_ids=${labelIds.join(',')}');
+    }
+    if (targetCurrency != null && targetCurrency.isNotEmpty) {
+      params.add('target_currency=${Uri.encodeComponent(targetCurrency)}');
     }
 
     if (params.isNotEmpty) {
@@ -281,6 +332,8 @@ class ApiClient {
     DateTime? fromDate,
     List<String>? categoryIds,
     List<String>? subcategoryIds,
+    List<String>? labelIds,
+    String? targetCurrency,
   }) async {
     final token = await _getToken();
 
@@ -295,6 +348,12 @@ class ApiClient {
     }
     if (subcategoryIds != null && subcategoryIds.isNotEmpty) {
       params.add('subcategory_ids=${subcategoryIds.join(',')}');
+    }
+    if (labelIds != null && labelIds.isNotEmpty) {
+      params.add('label_ids=${labelIds.join(',')}');
+    }
+    if (targetCurrency != null && targetCurrency.isNotEmpty) {
+      params.add('target_currency=${Uri.encodeComponent(targetCurrency)}');
     }
     if (params.isNotEmpty) {
       url += '?${params.join('&')}';
@@ -323,6 +382,8 @@ class ApiClient {
     DateTime? fromDate,
     List<String>? categoryIds,
     List<String>? subcategoryIds,
+    List<String>? labelIds,
+    String? targetCurrency,
   }) async {
     final token = await _getToken();
 
@@ -337,6 +398,12 @@ class ApiClient {
     }
     if (subcategoryIds != null && subcategoryIds.isNotEmpty) {
       params.add('subcategory_ids=${subcategoryIds.join(',')}');
+    }
+    if (labelIds != null && labelIds.isNotEmpty) {
+      params.add('label_ids=${labelIds.join(',')}');
+    }
+    if (targetCurrency != null && targetCurrency.isNotEmpty) {
+      params.add('target_currency=${Uri.encodeComponent(targetCurrency)}');
     }
     if (params.isNotEmpty) {
       url += '?${params.join('&')}';
@@ -529,6 +596,58 @@ class ApiClient {
     if (response.statusCode != 204) {
       throw Exception(
         'Failed to delete label: ${response.statusCode} ${response.body}',
+      );
+    }
+  }
+
+  /// POST /v1/labels/assign
+  static Future<Map<String, dynamic>> assignLabel({
+    required String transactionId,
+    required String labelId,
+  }) async {
+    final token = await _getToken();
+    final response = await http.post(
+      Uri.parse('$apiBaseUrl/v1/labels/assign'),
+      headers: {
+        'Authorization': 'Bearer $token',
+        'Content-Type': 'application/json',
+      },
+      body: jsonEncode({
+        'transaction_id': transactionId,
+        'label_id': labelId,
+      }),
+    );
+    if (response.statusCode == 201 || response.statusCode == 200) {
+      return jsonDecode(response.body) as Map<String, dynamic>;
+    } else {
+      throw Exception(
+        'Failed to assign label: ${response.statusCode} ${response.body}',
+      );
+    }
+  }
+
+  /// POST /v1/labels/unassign
+  static Future<Map<String, dynamic>> unassignLabel({
+    required String transactionId,
+    required String labelId,
+  }) async {
+    final token = await _getToken();
+    final response = await http.post(
+      Uri.parse('$apiBaseUrl/v1/labels/unassign'),
+      headers: {
+        'Authorization': 'Bearer $token',
+        'Content-Type': 'application/json',
+      },
+      body: jsonEncode({
+        'transaction_id': transactionId,
+        'label_id': labelId,
+      }),
+    );
+    if (response.statusCode == 200) {
+      return jsonDecode(response.body) as Map<String, dynamic>;
+    } else {
+      throw Exception(
+        'Failed to unassign label: ${response.statusCode} ${response.body}',
       );
     }
   }

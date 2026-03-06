@@ -8,12 +8,14 @@ class FilterBottomSheet extends StatefulWidget {
   final String selectedPeriod;
   final List<String>? selectedCategoryIds;
   final List<String>? selectedSubcategoryIds;
+  final List<String>? selectedLabelIds;
 
   const FilterBottomSheet({
     super.key,
     required this.selectedPeriod,
     this.selectedCategoryIds,
     this.selectedSubcategoryIds,
+    this.selectedLabelIds,
   });
 
   static Future<Map<String, dynamic>?> show(
@@ -21,6 +23,7 @@ class FilterBottomSheet extends StatefulWidget {
     required String selectedPeriod,
     List<String>? selectedCategoryIds,
     List<String>? selectedSubcategoryIds,
+    List<String>? selectedLabelIds,
   }) {
     return showModalBottomSheet<Map<String, dynamic>>(
       context: context,
@@ -33,6 +36,7 @@ class FilterBottomSheet extends StatefulWidget {
         selectedPeriod: selectedPeriod,
         selectedCategoryIds: selectedCategoryIds,
         selectedSubcategoryIds: selectedSubcategoryIds,
+        selectedLabelIds: selectedLabelIds,
       ),
     );
   }
@@ -45,6 +49,7 @@ class _FilterBottomSheetState extends State<FilterBottomSheet> {
   late String _selectedPeriod;
   late Set<String> _selectedCategoryIds;
   late Set<String> _selectedSubcategoryIds;
+  late Set<String> _selectedLabelIds;
   List<dynamic> _categories = [];
   List<dynamic> _labels = [];
   bool _loadingCats = true;
@@ -55,6 +60,7 @@ class _FilterBottomSheetState extends State<FilterBottomSheet> {
     _selectedPeriod = widget.selectedPeriod;
     _selectedCategoryIds = Set.from(widget.selectedCategoryIds ?? []);
     _selectedSubcategoryIds = Set.from(widget.selectedSubcategoryIds ?? []);
+    _selectedLabelIds = Set.from(widget.selectedLabelIds ?? []);
     _loadData();
   }
 
@@ -81,6 +87,7 @@ class _FilterBottomSheetState extends State<FilterBottomSheet> {
     if (_selectedPeriod != PeriodFilter.last3Months) count++;
     if (_selectedCategoryIds.isNotEmpty) count++;
     if (_selectedSubcategoryIds.isNotEmpty) count++;
+    if (_selectedLabelIds.isNotEmpty) count++;
     return count;
   }
 
@@ -110,6 +117,7 @@ class _FilterBottomSheetState extends State<FilterBottomSheet> {
       _selectedPeriod = PeriodFilter.last3Months;
       _selectedCategoryIds.clear();
       _selectedSubcategoryIds.clear();
+      _selectedLabelIds.clear();
     });
   }
 
@@ -118,6 +126,7 @@ class _FilterBottomSheetState extends State<FilterBottomSheet> {
       'period': _selectedPeriod,
       'category_ids': _selectedCategoryIds.toList(),
       'subcategory_ids': _selectedSubcategoryIds.toList(),
+      'label_ids': _selectedLabelIds.toList(),
     });
   }
 
@@ -303,10 +312,7 @@ class _FilterBottomSheetState extends State<FilterBottomSheet> {
                   if (_labels.isNotEmpty) ...[
                     _buildSectionTitle(Icons.label, 'Labels'),
                     const SizedBox(height: 8),
-                    Text(
-                      'Coming soon',
-                      style: TextStyle(color: Colors.grey.shade500),
-                    ),
+                    _buildLabelChips(),
                     const SizedBox(height: 24),
                   ],
                   // Clear all button
@@ -471,6 +477,53 @@ class _FilterBottomSheetState extends State<FilterBottomSheet> {
           ),
         ],
       ],
+    );
+  }
+
+  Widget _buildLabelChips() {
+    if (_labels.isEmpty) {
+      return Text(
+        'No labels available',
+        style: TextStyle(color: Colors.grey.shade500),
+      );
+    }
+
+    final sortedLabels = [..._labels]
+      ..sort((a, b) {
+        final nameA = (a['name'] as String? ?? '').toLowerCase();
+        final nameB = (b['name'] as String? ?? '').toLowerCase();
+        return nameA.compareTo(nameB);
+      });
+
+    return Wrap(
+      spacing: 8,
+      runSpacing: 8,
+      children: sortedLabels.map((raw) {
+        final label = raw as Map<String, dynamic>;
+        final id = label['id']?.toString() ?? '';
+        final name = label['name']?.toString() ?? 'Label';
+        final isSelected = _selectedLabelIds.contains(id);
+        return FilterChip(
+          label: Text(name),
+          selected: isSelected,
+          onSelected: (selected) {
+            setState(() {
+              if (selected) {
+                _selectedLabelIds.add(id);
+              } else {
+                _selectedLabelIds.remove(id);
+              }
+            });
+          },
+          selectedColor: Theme.of(context).colorScheme.primary.withAlpha(40),
+          checkmarkColor: Theme.of(context).colorScheme.primary,
+          side: BorderSide(
+            color: isSelected
+                ? Theme.of(context).colorScheme.primary
+                : Colors.grey.shade700,
+          ),
+        );
+      }).toList(),
     );
   }
 }

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import '../core/api_client.dart';
+import '../core/category_style.dart';
 import '../core/period_filter.dart';
 import '../widgets/filter_bottom_sheet.dart';
 import 'transaction_edit_screen.dart';
@@ -16,16 +17,118 @@ class _ReceiptsTabState extends State<ReceiptsTab> {
   bool _isLoading = true;
   String? _error;
   List<dynamic> _transactions = [];
+  String _preferredCurrency = 'EUR';
   String _selectedPeriod = PeriodFilter.last3Months;
   String _merchantSearch = '';
   List<String> _selectedCategoryIds = [];
   List<String> _selectedSubcategoryIds = [];
+  List<String> _selectedLabelIds = [];
   final TextEditingController _searchController = TextEditingController();
+  Map<String, Map<String, dynamic>> _categoriesById = {};
 
   @override
   void initState() {
     super.initState();
+    _loadPreferredCurrency();
+    _loadCategories();
     _fetchTransactions();
+  }
+
+  Future<void> _loadPreferredCurrency() async {
+    try {
+      final me = await ApiClient.getMe();
+      final currency = me['default_currency']?.toString().trim();
+      if (!mounted || currency == null || currency.isEmpty) return;
+      setState(() => _preferredCurrency = currency.toUpperCase());
+    } catch (_) {}
+  }
+
+  Future<void> _loadCategories() async {
+    try {
+      final categories = await ApiClient.listCategories();
+      if (!mounted) return;
+      setState(() {
+        _categoriesById = {
+          for (final raw in categories)
+            if ((raw as Map<String, dynamic>)['id'] != null)
+              raw['id'].toString(): raw,
+        };
+      });
+    } catch (_) {}
+  }
+
+  Map<String, dynamic>? _findCategoryById(String? categoryId) {
+    if (categoryId == null || categoryId.isEmpty) return null;
+    return _categoriesById[categoryId];
+  }
+
+  String? _categoryPathLabel(String? categoryId) {
+    final category = _findCategoryById(categoryId);
+    if (category == null) return null;
+    final childName = category['name']?.toString();
+    if (childName == null || childName.isEmpty) return null;
+    final parentId = category['parent_id']?.toString();
+    if (parentId == null || parentId.isEmpty) {
+      return childName;
+    }
+    final parent = _findCategoryById(parentId);
+    final parentName = parent?['name']?.toString();
+    if (parentName == null || parentName.isEmpty) {
+      return childName;
+    }
+    return '$parentName * $childName';
+  }
+
+  Color _parseHexColor(String? raw, Color fallback) {
+    final value = raw?.trim();
+    if (value == null || value.isEmpty) return fallback;
+
+    var hex = value.startsWith('#') ? value.substring(1) : value;
+    if (hex.length == 6) {
+      hex = 'FF$hex';
+    }
+    if (hex.length != 8) return fallback;
+
+    final parsed = int.tryParse(hex, radix: 16);
+    if (parsed == null) return fallback;
+    return Color(parsed);
+  }
+
+  String _currencySymbol(String code) {
+    switch (code.toUpperCase()) {
+      case 'EUR':
+        return '€';
+      case 'USD':
+        return '\$';
+      case 'GBP':
+        return '£';
+      case 'RSD':
+        return 'RSD ';
+      default:
+        return '${code.toUpperCase()} ';
+    }
+  }
+
+  String _formatMoney(String currency, double amount) {
+    final symbol = _currencySymbol(currency);
+    if (symbol.trim().length == 1 || symbol == 'RSD ') {
+      final sign = amount < 0 ? '-' : '';
+      return '$sign$symbol${amount.abs().toStringAsFixed(2)}';
+    }
+    return '${currency.toUpperCase()} ${amount.toStringAsFixed(2)}';
+  }
+
+  double _displayAmountOf(Map<String, dynamic> tx) {
+    final raw = tx['display_amount_total'] ?? tx['amount_total'] ?? 0;
+    return double.tryParse(raw.toString()) ?? 0;
+  }
+
+  String _displayCurrencyOf(Map<String, dynamic> tx) {
+    final hasConvertedValue = tx['display_amount_total'] != null;
+    final raw = hasConvertedValue
+        ? (tx['display_currency'] ?? tx['currency'] ?? _preferredCurrency)
+        : (tx['currency'] ?? _preferredCurrency);
+    return raw.toString().toUpperCase();
   }
 
   Future<void> _fetchTransactions() async {
@@ -50,6 +153,7 @@ class _ReceiptsTabState extends State<ReceiptsTab> {
         subcategoryIds: _selectedSubcategoryIds.isNotEmpty
             ? _selectedSubcategoryIds
             : null,
+        labelIds: _selectedLabelIds.isNotEmpty ? _selectedLabelIds : null,
       );
       setState(() {
         _transactions = data;
@@ -69,6 +173,7 @@ class _ReceiptsTabState extends State<ReceiptsTab> {
       selectedPeriod: _selectedPeriod,
       selectedCategoryIds: _selectedCategoryIds,
       selectedSubcategoryIds: _selectedSubcategoryIds,
+      selectedLabelIds: _selectedLabelIds,
     );
 
     if (result != null) {
@@ -78,6 +183,7 @@ class _ReceiptsTabState extends State<ReceiptsTab> {
         _selectedSubcategoryIds = List<String>.from(
           result['subcategory_ids'] ?? [],
         );
+        _selectedLabelIds = List<String>.from(result['label_ids'] ?? []);
       });
       _fetchTransactions();
     }
@@ -137,7 +243,8 @@ class _ReceiptsTabState extends State<ReceiptsTab> {
           if (_selectedPeriod != PeriodFilter.last3Months ||
               _merchantSearch.isNotEmpty ||
               _selectedCategoryIds.isNotEmpty ||
-              _selectedSubcategoryIds.isNotEmpty)
+              _selectedSubcategoryIds.isNotEmpty ||
+              _selectedLabelIds.isNotEmpty)
             _buildActiveFilterChips(),
           Expanded(child: _buildTransactionList()),
           _buildBottomSummary(),
@@ -261,6 +368,20 @@ class _ReceiptsTabState extends State<ReceiptsTab> {
                 },
               ),
             ],
+            if (_selectedLabelIds.isNotEmpty) ...[
+              const SizedBox(width: 8),
+              Chip(
+                label: Text(
+                  '${_selectedLabelIds.length} labels',
+                  style: const TextStyle(fontSize: 12),
+                ),
+                deleteIcon: const Icon(Icons.close, size: 16),
+                onDeleted: () {
+                  setState(() => _selectedLabelIds.clear());
+                  _fetchTransactions();
+                },
+              ),
+            ],
             const SizedBox(width: 8),
           ],
         ),
@@ -325,9 +446,11 @@ class _ReceiptsTabState extends State<ReceiptsTab> {
           final monthKey = groupedTransactions.keys.elementAt(index);
           final txsForMonth = groupedTransactions[monthKey]!;
           double monthTotal = 0;
+          String monthCurrency = _preferredCurrency;
           for (var tx in txsForMonth) {
-            monthTotal +=
-                double.tryParse((tx['amount_total'] ?? '0').toString()) ?? 0;
+            final txMap = tx as Map<String, dynamic>;
+            monthTotal += _displayAmountOf(txMap);
+            monthCurrency = _displayCurrencyOf(txMap);
           }
 
           return Column(
@@ -346,7 +469,7 @@ class _ReceiptsTabState extends State<ReceiptsTab> {
                       ),
                     ),
                     Text(
-                      'RSD ${monthTotal.toStringAsFixed(2)}',
+                      _formatMoney(monthCurrency, monthTotal),
                       style: TextStyle(
                         color: Colors.grey.shade400,
                         fontSize: 14,
@@ -366,13 +489,52 @@ class _ReceiptsTabState extends State<ReceiptsTab> {
 
   Widget _buildTransactionCard(Map<String, dynamic> tx) {
     final storeName = tx['merchant_name'] ?? 'Unknown Store';
-    final amount = double.tryParse((tx['amount_total'] ?? '0').toString()) ?? 0;
+    final displayAmount = _displayAmountOf(tx);
+    final displayCurrency = _displayCurrencyOf(tx);
+    final sourceAmount =
+        double.tryParse((tx['amount_total'] ?? '0').toString()) ?? 0;
+    final sourceCurrency = (tx['currency'] ?? displayCurrency)
+        .toString()
+        .toUpperCase();
+    final showOriginal =
+        tx['display_amount_total'] != null &&
+        (displayCurrency != sourceCurrency ||
+            (displayAmount - sourceAmount).abs() > 0.00001);
     String formattedTime = '';
     final occurredAtStr = tx['occurred_at'] as String?;
     if (occurredAtStr != null) {
       final date = DateTime.tryParse(occurredAtStr);
       if (date != null) formattedTime = DateFormat('d MMM, HH:mm').format(date);
     }
+
+    final txCategoryId = tx['category_id']?.toString();
+    final txCategory = _findCategoryById(txCategoryId);
+    final txCategoryNameRaw = tx['category_name']?.toString().trim();
+    final txCategoryLabel =
+        (txCategoryNameRaw != null && txCategoryNameRaw.isNotEmpty)
+        ? txCategoryNameRaw
+        : _categoryPathLabel(txCategoryId);
+    final txCategoryCode = txCategory?['code']?.toString() ?? '';
+    final iconColor = txCategory != null
+        ? CategoryStyle.colorForCode(txCategoryCode)
+        : Theme.of(context).colorScheme.primary;
+    final iconData = txCategory != null
+        ? CategoryStyle.iconForCode(txCategoryCode)
+        : Icons.shopping_bag;
+
+    final allLabelsRaw = tx['labels'];
+    final allLabels = allLabelsRaw is List
+        ? allLabelsRaw.whereType<Map<String, dynamic>>().toList()
+        : <Map<String, dynamic>>[];
+    final pinnedLabels = allLabels
+        .where((label) => label['is_pinned'] == true)
+        .toList();
+    final labelsToRender = (pinnedLabels.isNotEmpty ? pinnedLabels : allLabels)
+        .take(3)
+        .toList();
+    final hasMetaRow =
+        (txCategoryLabel != null && txCategoryLabel.isNotEmpty) ||
+        labelsToRender.isNotEmpty;
 
     return Dismissible(
       key: Key(tx['id'] ?? ''),
@@ -414,13 +576,10 @@ class _ReceiptsTabState extends State<ReceiptsTab> {
                 width: 48,
                 height: 48,
                 decoration: BoxDecoration(
-                  color: Theme.of(context).colorScheme.primary.withAlpha(20),
+                  color: iconColor.withAlpha(20),
                   borderRadius: BorderRadius.circular(12),
                 ),
-                child: Icon(
-                  Icons.shopping_bag,
-                  color: Theme.of(context).colorScheme.primary,
-                ),
+                child: Icon(iconData, color: iconColor),
               ),
               const SizedBox(width: 16),
               Expanded(
@@ -445,15 +604,62 @@ class _ReceiptsTabState extends State<ReceiptsTab> {
                           fontSize: 12,
                         ),
                       ),
+                    if (hasMetaRow) ...[
+                      const SizedBox(height: 8),
+                      Wrap(
+                        spacing: 6,
+                        runSpacing: 6,
+                        children: [
+                          if (txCategoryLabel != null &&
+                              txCategoryLabel.isNotEmpty)
+                            _buildMetaChip(
+                              label: txCategoryLabel,
+                              icon: Icons.category_outlined,
+                              color: iconColor,
+                            ),
+                          ...labelsToRender.map((label) {
+                            final fallbackColor = Theme.of(
+                              context,
+                            ).colorScheme.primary;
+                            final chipColor = _parseHexColor(
+                              label['color']?.toString(),
+                              fallbackColor,
+                            );
+                            final labelName = label['name']?.toString() ?? '';
+                            if (labelName.isEmpty) {
+                              return const SizedBox.shrink();
+                            }
+                            return _buildMetaChip(
+                              label: labelName,
+                              icon: Icons.push_pin_outlined,
+                              color: chipColor,
+                            );
+                          }),
+                        ],
+                      ),
+                    ],
                   ],
                 ),
               ),
-              Text(
-                'RSD ${amount.toStringAsFixed(2)}',
-                style: const TextStyle(
-                  fontWeight: FontWeight.bold,
-                  fontSize: 16,
-                ),
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.end,
+                children: [
+                  Text(
+                    _formatMoney(displayCurrency, displayAmount),
+                    style: const TextStyle(
+                      fontWeight: FontWeight.bold,
+                      fontSize: 16,
+                    ),
+                  ),
+                  if (showOriginal)
+                    Text(
+                      _formatMoney(sourceCurrency, sourceAmount),
+                      style: TextStyle(
+                        color: Colors.grey.shade500,
+                        fontSize: 12,
+                      ),
+                    ),
+                ],
               ),
             ],
           ),
@@ -462,11 +668,43 @@ class _ReceiptsTabState extends State<ReceiptsTab> {
     );
   }
 
+  Widget _buildMetaChip({
+    required String label,
+    required IconData icon,
+    required Color color,
+  }) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+      decoration: BoxDecoration(
+        color: color.withAlpha(30),
+        borderRadius: BorderRadius.circular(999),
+        border: Border.all(color: color.withAlpha(100)),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(icon, size: 12, color: color),
+          const SizedBox(width: 4),
+          Text(
+            label,
+            style: TextStyle(
+              color: color,
+              fontSize: 11,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
   Widget _buildBottomSummary() {
     double totalPeriodExpense = 0;
+    String totalCurrency = _preferredCurrency;
     for (var tx in _transactions) {
-      totalPeriodExpense +=
-          double.tryParse((tx['amount_total'] ?? '0').toString()) ?? 0;
+      final txMap = tx as Map<String, dynamic>;
+      totalPeriodExpense += _displayAmountOf(txMap);
+      totalCurrency = _displayCurrencyOf(txMap);
     }
 
     return Container(
@@ -487,7 +725,7 @@ class _ReceiptsTabState extends State<ReceiptsTab> {
               ),
               const SizedBox(height: 4),
               Text(
-                'RSD ${totalPeriodExpense.toStringAsFixed(2)}',
+                _formatMoney(totalCurrency, totalPeriodExpense),
                 style: const TextStyle(
                   fontWeight: FontWeight.bold,
                   fontSize: 20,

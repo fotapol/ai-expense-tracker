@@ -8,6 +8,7 @@ from uuid import UUID
 from pydantic import Field, field_validator
 
 from app.models.shared.enums import TransactionSource
+from app.schemas.extraction import ExtractionWarning
 from app.schemas.shared import (
     Amount2DP,
     CurrencyCode,
@@ -83,6 +84,8 @@ class TransactionItemRead(UUIDTimestampSchema):
     is_adjustment: bool
     category_id: UUID
     raw_line: str | None
+    display_amount: Amount2DP | None = None
+    display_unit_price: UnitPrice4DP | None = None
 
 
 class TransactionItemUpdate(SchemaBase):
@@ -127,6 +130,14 @@ class TransactionCreateManual(SchemaBase):
         return quantize_amount(value)
 
 
+class TransactionLabelRead(SchemaBase):
+    """Read model for labels assigned to a transaction."""
+
+    id: UUID
+    name: str
+    color: str | None = None
+
+
 class TransactionRead(UUIDTimestampSchema):
     """Read model for transaction records."""
 
@@ -138,9 +149,17 @@ class TransactionRead(UUIDTimestampSchema):
     merchant_id: UUID | None
     merchant_name: str | None
     category_id: UUID | None
+    category_name: str | None = None
     source: TransactionSource
     status: TransactionStatus
     items: list[TransactionItemRead] = Field(default_factory=list)
+    display_currency: CurrencyCode | None = None
+    display_amount_total: Amount2DP | None = None
+    display_rate_date: dt.date | None = None
+    display_rate_fallback: bool | None = None
+    labels: list[TransactionLabelRead] = Field(default_factory=list)
+    has_extraction_warnings: bool = False
+    extraction_warnings: list[ExtractionWarning] = Field(default_factory=list)
 
 
 class TransactionUpdateRequest(SchemaBase):
@@ -169,14 +188,25 @@ class TransactionListFilter(PaginationParams):
     subcategory_ids: str | None = None  # Comma-separated UUIDs
     merchant_name_search: str | None = None  # Text search on merchant_name
     label_id: UUID | None = None
+    label_ids: str | None = None  # Comma-separated UUIDs for multi-select OR filter
     status: TransactionStatus | None = None
     source: TransactionSource | None = None
     currency: CurrencyCode | None = None
+    target_currency: CurrencyCode | None = None
 
     @field_validator("currency")
     @classmethod
     def normalize_currency(cls, value: str | None) -> str | None:
         """Normalize optional currency code casing."""
+
+        if value is None:
+            return None
+        return normalize_currency_code(value)
+
+    @field_validator("target_currency")
+    @classmethod
+    def normalize_target_currency(cls, value: str | None) -> str | None:
+        """Normalize optional display currency code casing."""
 
         if value is None:
             return None

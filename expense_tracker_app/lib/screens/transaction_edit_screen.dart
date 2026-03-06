@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:currency_picker/currency_picker.dart';
 import 'package:intl/intl.dart';
 import '../core/api_client.dart';
 
@@ -18,11 +19,17 @@ class _TransactionEditScreenState extends State<TransactionEditScreen> {
 
   List<dynamic> _items = [];
   List<dynamic> _categories = [];
+  List<dynamic> _labels = [];
+  Set<String> _selectedLabelIds = {};
+  List<dynamic> _serverWarnings = [];
+  bool _hasLocalEdits = false;
 
   final _merchantController = TextEditingController();
   final _amountController = TextEditingController();
   DateTime? _occurredAt;
   String _currency = 'RSD';
+  String _displayCurrency = 'RSD';
+  double _displayRate = 1.0;
 
   final Map<String, TextEditingController> _itemDescControllers = {};
   final Map<String, TextEditingController> _itemAmountControllers = {};
@@ -63,10 +70,21 @@ class _TransactionEditScreenState extends State<TransactionEditScreen> {
     try {
       final txData = await ApiClient.getTransaction(widget.transactionId);
       final catsData = await ApiClient.listCategories();
+      final labelsData = await ApiClient.listLabels();
 
       setState(() {
+        _hasLocalEdits = false;
         _categories = catsData;
+        _labels = labelsData;
         _items = List.from(txData['items'] ?? []);
+        _selectedLabelIds = Set<String>.from(
+          (txData['labels'] as List<dynamic>? ?? const [])
+              .map((label) => label['id']?.toString() ?? '')
+              .where((id) => id.isNotEmpty),
+        );
+        _serverWarnings = List<dynamic>.from(
+          txData['extraction_warnings'] as List<dynamic>? ?? const [],
+        );
 
         _merchantController.text = txData['merchant_name'] ?? '';
         _amountController.text = _formatNumberForInput(
@@ -78,6 +96,20 @@ class _TransactionEditScreenState extends State<TransactionEditScreen> {
           _amountController.text = '0.00';
         }
         _currency = txData['currency'] ?? 'RSD';
+        final sourceTotal = _toDouble(txData['amount_total']);
+        final displayTotal = _toDouble(txData['display_amount_total']);
+        _displayCurrency = displayTotal != null
+            ? (txData['display_currency'] ?? _currency).toString()
+            : _currency;
+        if (_displayCurrency.toUpperCase() == _currency.toUpperCase()) {
+          _displayRate = 1.0;
+        } else if (sourceTotal != null &&
+            sourceTotal != 0 &&
+            displayTotal != null) {
+          _displayRate = displayTotal / sourceTotal;
+        } else {
+          _displayRate = 1.0;
+        }
 
         if (txData['occurred_at'] != null) {
           _occurredAt = DateTime.tryParse(txData['occurred_at']);
@@ -196,6 +228,302 @@ class _TransactionEditScreenState extends State<TransactionEditScreen> {
     final fixed = parsed.toStringAsFixed(decimals);
     if (keepTrailingZeros) return fixed;
     return fixed.replaceFirst(RegExp(r'\.?0+$'), '');
+  }
+
+  String _currencySymbol(String code) {
+    switch (code.toUpperCase()) {
+      case 'EUR':
+        return '€';
+      case 'USD':
+        return '\$';
+      case 'GBP':
+        return '£';
+      case 'RSD':
+        return 'RSD ';
+      default:
+        return '${code.toUpperCase()} ';
+    }
+  }
+
+  String _formatMoney(String currency, double amount) {
+    final symbol = _currencySymbol(currency);
+    if (symbol.trim().length == 1 || symbol == 'RSD ') {
+      final sign = amount < 0 ? '-' : '';
+      return '$sign$symbol${amount.abs().toStringAsFixed(2)}';
+    }
+    return '${currency.toUpperCase()} ${amount.toStringAsFixed(2)}';
+  }
+
+  void _openReceiptCurrencyPicker() {
+    showCurrencyPicker(
+      context: context,
+      showSearchField: true,
+      showFlag: false,
+      favorite: [_currency.toUpperCase()],
+      onSelect: (currency) {
+        final nextCode = currency.code.toUpperCase();
+        if (nextCode == _currency.toUpperCase()) return;
+        setState(() {
+          _hasLocalEdits = true;
+          _currency = nextCode;
+          // Keep edit mode amounts coherent in source currency until next backend refresh.
+          _displayCurrency = _currency;
+          _displayRate = 1.0;
+        });
+      },
+    );
+  }
+
+  Map<String, dynamic>? _findCategoryById(String? categoryId) {
+    if (categoryId == null || categoryId.isEmpty) return null;
+    for (final raw in _categories) {
+      final category = raw as Map<String, dynamic>;
+      if (category['id']?.toString() == categoryId) {
+        return category;
+      }
+    }
+    return null;
+  }
+
+  String _itemCategoryLabel(String? categoryId) {
+    final category = _findCategoryById(categoryId);
+    if (category == null) return 'Select Category';
+    final childName = category['name']?.toString() ?? 'Select Category';
+    final parentId = category['parent_id']?.toString();
+    if (parentId == null || parentId.isEmpty) {
+      return childName;
+    }
+    final parent = _findCategoryById(parentId);
+    final parentName = parent?['name']?.toString();
+    if (parentName == null || parentName.isEmpty) {
+      return childName;
+    }
+    return '$parentName * $childName';
+  }
+
+  List<String> _itemCategoryTags(String? categoryId) {
+    final category = _findCategoryById(categoryId);
+    if (category == null) return const ['Select Category'];
+
+    final childName = category['name']?.toString().trim();
+    if (childName == null || childName.isEmpty) {
+      return const ['Select Category'];
+    }
+
+    final parentId = category['parent_id']?.toString();
+    if (parentId == null || parentId.isEmpty) {
+      return [childName];
+    }
+
+    final parentName = _findCategoryById(parentId)?['name']?.toString().trim();
+    if (parentName == null || parentName.isEmpty) {
+      return [childName];
+    }
+
+    return [parentName, childName];
+  }
+
+  double _round2(double value) => double.parse(value.toStringAsFixed(2));
+
+  double _toDisplayAmount(double sourceAmount) {
+    return _round2(sourceAmount * _displayRate);
+  }
+
+  Map<String, Map<String, double>> _computeLineMismatches() {
+    final mismatches = <String, Map<String, double>>{};
+    for (final item in _items) {
+      final itemId = item['id'].toString();
+      final qty = _toDouble(_itemQtyControllers[itemId]?.text);
+      final unitPrice = _toDouble(_itemUnitPriceControllers[itemId]?.text);
+      final amount = _toDouble(_itemAmountControllers[itemId]?.text);
+      if (qty == null || unitPrice == null || amount == null) continue;
+      final expected = _round2(qty * unitPrice);
+      final actual = _round2(amount);
+      if (expected != actual) {
+        mismatches[itemId] = {
+          'expected': expected,
+          'actual': actual,
+          'difference': _round2(actual - expected),
+        };
+      }
+    }
+    return mismatches;
+  }
+
+  Map<String, double>? _computeTotalMismatch() {
+    final txTotal = _toDouble(_amountController.text);
+    if (txTotal == null) return null;
+
+    double sumItems = 0;
+    for (final controller in _itemAmountControllers.values) {
+      sumItems += _toDouble(controller.text) ?? 0;
+    }
+    final expected = _round2(sumItems);
+    final actual = _round2(txTotal);
+    if (expected == actual) return null;
+    return {
+      'expected': expected,
+      'actual': actual,
+      'difference': _round2(actual - expected),
+    };
+  }
+
+  Future<void> _toggleLabel({
+    required String labelId,
+    required bool selected,
+  }) async {
+    try {
+      if (selected) {
+        await ApiClient.assignLabel(
+          transactionId: widget.transactionId,
+          labelId: labelId,
+        );
+      } else {
+        await ApiClient.unassignLabel(
+          transactionId: widget.transactionId,
+          labelId: labelId,
+        );
+      }
+      if (!mounted) return;
+      setState(() {
+        if (selected) {
+          _selectedLabelIds.add(labelId);
+        } else {
+          _selectedLabelIds.remove(labelId);
+        }
+      });
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Failed to update labels: $e'),
+          backgroundColor: Colors.red,
+        ),
+      );
+    }
+  }
+
+  Future<void> _createAndAssignLabel() async {
+    final controller = TextEditingController();
+    final name = await showDialog<String>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Create Label'),
+        content: TextField(
+          controller: controller,
+          autofocus: true,
+          decoration: const InputDecoration(
+            hintText: 'Label name',
+            border: OutlineInputBorder(),
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Cancel'),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.pop(context, controller.text.trim()),
+            child: const Text('Create'),
+          ),
+        ],
+      ),
+    );
+
+    if (!mounted || name == null || name.isEmpty) return;
+    try {
+      final created = await ApiClient.createLabel(name);
+      final newId = created['id']?.toString();
+      if (newId == null || newId.isEmpty) return;
+      setState(() {
+        _labels = [..._labels, created];
+      });
+      await _toggleLabel(labelId: newId, selected: true);
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Failed to create label: $e'),
+          backgroundColor: Colors.red,
+        ),
+      );
+    }
+  }
+
+  Future<void> _openLabelsPicker() async {
+    await showModalBottomSheet<void>(
+      context: context,
+      isScrollControlled: true,
+      builder: (context) {
+        final sortedLabels = [..._labels]
+          ..sort((a, b) {
+            final aName = (a['name'] ?? '').toString().toLowerCase();
+            final bName = (b['name'] ?? '').toString().toLowerCase();
+            return aName.compareTo(bName);
+          });
+        return SafeArea(
+          child: Padding(
+            padding: const EdgeInsets.all(16),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Row(
+                  children: [
+                    const Text(
+                      'Select Labels',
+                      style: TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    const Spacer(),
+                    TextButton.icon(
+                      onPressed: () async {
+                        Navigator.pop(context);
+                        await _createAndAssignLabel();
+                      },
+                      icon: const Icon(Icons.add),
+                      label: const Text('New'),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 8),
+                if (sortedLabels.isEmpty)
+                  Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 20),
+                    child: Text(
+                      'No labels yet. Create one first.',
+                      style: TextStyle(color: Colors.grey.shade500),
+                    ),
+                  )
+                else
+                  Flexible(
+                    child: ListView.builder(
+                      shrinkWrap: true,
+                      itemCount: sortedLabels.length,
+                      itemBuilder: (context, index) {
+                        final label =
+                            sortedLabels[index] as Map<String, dynamic>;
+                        final id = label['id']?.toString() ?? '';
+                        final name = label['name']?.toString() ?? 'Label';
+                        final selected = _selectedLabelIds.contains(id);
+                        return CheckboxListTile(
+                          value: selected,
+                          title: Text(name),
+                          onChanged: (value) {
+                            Navigator.pop(context);
+                            _toggleLabel(labelId: id, selected: value == true);
+                          },
+                        );
+                      },
+                    ),
+                  ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
   }
 
   String _inferUnitFromDescription(String description) {
@@ -349,6 +677,7 @@ class _TransactionEditScreenState extends State<TransactionEditScreen> {
       }
 
       setState(() {
+        _hasLocalEdits = true;
         _items.removeWhere((element) => element['id'].toString() == itemId);
         _itemDescControllers.remove(itemId)?.dispose();
         _itemAmountControllers.remove(itemId)?.dispose();
@@ -383,6 +712,14 @@ class _TransactionEditScreenState extends State<TransactionEditScreen> {
         body: Center(child: Text(_error!)),
       );
     }
+
+    final lineMismatches = _computeLineMismatches();
+    final totalMismatch = _computeTotalMismatch();
+    final showServerWarnings = !_hasLocalEdits && _serverWarnings.isNotEmpty;
+    final hasWarnings =
+        lineMismatches.isNotEmpty ||
+        totalMismatch != null ||
+        showServerWarnings;
 
     return Scaffold(
       backgroundColor: Colors.black,
@@ -430,18 +767,134 @@ class _TransactionEditScreenState extends State<TransactionEditScreen> {
       body: Column(
         children: [
           _buildActionBadges(),
+          if (hasWarnings)
+            _buildWarningsBanner(
+              lineMismatchCount: lineMismatches.length,
+              hasTotalMismatch: totalMismatch != null,
+              serverWarningCount: showServerWarnings
+                  ? _serverWarnings.length
+                  : 0,
+            ),
           Expanded(
-            child: ListView.builder(
+            child: ListView(
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-              itemCount: _items.length + 1,
-              itemBuilder: (context, index) {
-                if (index == _items.length) return _buildAddItemButton();
-                return _buildItemCard(_items[index], index);
-              },
+              children: [
+                _buildLabelsSection(),
+                const SizedBox(height: 12),
+                ..._items.map((item) {
+                  final itemId = item['id'].toString();
+                  return _buildItemCard(item, lineMismatches[itemId]);
+                }),
+                _buildAddItemButton(),
+              ],
             ),
           ),
-          _buildFixedFooter(),
+          _buildFixedFooter(totalMismatch: totalMismatch),
         ],
+      ),
+    );
+  }
+
+  Widget _buildWarningsBanner({
+    required int lineMismatchCount,
+    required bool hasTotalMismatch,
+    required int serverWarningCount,
+  }) {
+    final lineText = lineMismatchCount == 1
+        ? '1 line total mismatch'
+        : '$lineMismatchCount line total mismatches';
+    final parts = <String>[];
+    if (lineMismatchCount > 0) {
+      parts.add(lineText);
+    }
+    if (hasTotalMismatch) {
+      parts.add('receipt total mismatch');
+    }
+    if (serverWarningCount > 0) {
+      parts.add(
+        serverWarningCount == 1
+            ? '1 extraction warning'
+            : '$serverWarningCount extraction warnings',
+      );
+    }
+
+    return Container(
+      width: double.infinity,
+      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: Colors.orange.withAlpha(25),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: Colors.orange.withAlpha(120)),
+      ),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Icon(
+            Icons.warning_amber_rounded,
+            color: Colors.orange,
+            size: 20,
+          ),
+          const SizedBox(width: 8),
+          Expanded(
+            child: Text(
+              'Review extraction: ${parts.join(' • ')}',
+              style: const TextStyle(
+                color: Colors.orangeAccent,
+                fontSize: 13,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildLabelsSection() {
+    final selectedLabels = _labels.where((label) {
+      final id = label['id']?.toString() ?? '';
+      return _selectedLabelIds.contains(id);
+    }).toList();
+
+    return GestureDetector(
+      onTap: _openLabelsPicker,
+      child: Container(
+        padding: const EdgeInsets.all(12),
+        decoration: BoxDecoration(
+          color: const Color(0xFF121212),
+          borderRadius: BorderRadius.circular(14),
+        ),
+        child: Row(
+          children: [
+            const Icon(Icons.label_outline, color: Colors.white70, size: 18),
+            const SizedBox(width: 10),
+            Expanded(
+              child: selectedLabels.isEmpty
+                  ? Text(
+                      'Add labels',
+                      style: TextStyle(
+                        color: Colors.grey.shade400,
+                        fontSize: 16,
+                      ),
+                    )
+                  : Wrap(
+                      spacing: 6,
+                      runSpacing: 6,
+                      children: selectedLabels.map((raw) {
+                        final label = raw as Map<String, dynamic>;
+                        final name = label['name']?.toString() ?? 'Label';
+                        return Chip(
+                          label: Text(name),
+                          visualDensity: VisualDensity.compact,
+                          padding: EdgeInsets.zero,
+                        );
+                      }).toList(),
+                    ),
+            ),
+            const Icon(Icons.chevron_right, color: Colors.white54),
+          ],
+        ),
       ),
     );
   }
@@ -515,10 +968,7 @@ class _TransactionEditScreenState extends State<TransactionEditScreen> {
             _buildBadge(
               icon: Icons.currency_exchange,
               label: _currency,
-              onTap: () {
-                // simple cycle for demo or a dialog
-                setState(() => _currency = _currency == 'RSD' ? 'EUR' : 'RSD');
-              },
+              onTap: _openReceiptCurrencyPicker,
             ),
           ],
         ),
@@ -556,7 +1006,10 @@ class _TransactionEditScreenState extends State<TransactionEditScreen> {
     );
   }
 
-  Widget _buildItemCard(Map<String, dynamic> item, int index) {
+  Widget _buildItemCard(
+    Map<String, dynamic> item,
+    Map<String, double>? mismatch,
+  ) {
     final id = item['id'].toString();
     final nameController = _itemDescControllers[id];
     final amountController = _itemAmountControllers[id];
@@ -564,12 +1017,8 @@ class _TransactionEditScreenState extends State<TransactionEditScreen> {
     final unitPriceController = _itemUnitPriceControllers[id];
     final selectedCatId = _itemCategoryIds[id];
 
-    // Find category info
-    final category = _categories.firstWhere(
-      (c) => c['id'].toString() == selectedCatId,
-      orElse: () => null,
-    );
-    final catName = category != null ? category['name'] : 'Select Category';
+    final category = _findCategoryById(selectedCatId);
+    final catTags = _itemCategoryTags(selectedCatId);
     final catColor = category != null
         ? const Color(0xFFAB47BC)
         : Colors.grey; // Hardcoded purple like first screens, or from cat data
@@ -579,6 +1028,8 @@ class _TransactionEditScreenState extends State<TransactionEditScreen> {
       description:
           nameController?.text ?? item['description']?.toString() ?? '',
     );
+    final sourceAmount = _toDouble(amountController?.text) ?? 0;
+    final displayAmount = _toDisplayAmount(sourceAmount);
 
     return Container(
       margin: const EdgeInsets.only(bottom: 12),
@@ -651,41 +1102,74 @@ class _TransactionEditScreenState extends State<TransactionEditScreen> {
               ),
               const SizedBox(width: 6),
               Expanded(
-                child: Text(
-                  '${_formatNumberForInput(amountController?.text, decimals: 2, keepTrailingZeros: true)} $_currency',
-                  textAlign: TextAlign.right,
-                  style: const TextStyle(
-                    color: Colors.white,
-                    fontSize: 15,
-                    fontWeight: FontWeight.bold,
-                  ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.end,
+                  children: [
+                    Text(
+                      _formatMoney(_displayCurrency, displayAmount),
+                      textAlign: TextAlign.right,
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontSize: 15,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    if (_displayCurrency.toUpperCase() !=
+                        _currency.toUpperCase())
+                      Text(
+                        _formatMoney(_currency, sourceAmount),
+                        style: TextStyle(
+                          color: Colors.grey.shade400,
+                          fontSize: 12,
+                        ),
+                      ),
+                  ],
                 ),
               ),
             ],
           ),
+          if (mismatch != null) ...[
+            const SizedBox(height: 8),
+            Text(
+              'Mismatch: expected ${_formatMoney(_currency, mismatch['expected'] ?? 0)} but extracted ${_formatMoney(_currency, mismatch['actual'] ?? 0)}',
+              style: const TextStyle(
+                color: Colors.orangeAccent,
+                fontSize: 12,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+          ],
           const SizedBox(height: 10),
           Row(
             children: [
               GestureDetector(
                 onTap: () => _showCategoryPicker(id),
-                child: Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 10,
-                    vertical: 4,
-                  ),
-                  decoration: BoxDecoration(
-                    color: catColor.withAlpha(30),
-                    borderRadius: BorderRadius.circular(8),
-                    border: Border.all(color: catColor.withAlpha(100)),
-                  ),
-                  child: Text(
-                    catName,
-                    style: TextStyle(
-                      color: catColor,
-                      fontSize: 12,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
+                child: Wrap(
+                  spacing: 8,
+                  runSpacing: 6,
+                  children: catTags
+                      .map(
+                        (tag) => Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 10,
+                            vertical: 4,
+                          ),
+                          decoration: BoxDecoration(
+                            color: catColor.withAlpha(30),
+                            borderRadius: BorderRadius.circular(8),
+                            border: Border.all(color: catColor.withAlpha(100)),
+                          ),
+                          child: Text(
+                            tag,
+                            style: TextStyle(
+                              color: catColor,
+                              fontSize: 12,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ),
+                      )
+                      .toList(),
                 ),
               ),
             ],
@@ -701,6 +1185,7 @@ class _TransactionEditScreenState extends State<TransactionEditScreen> {
       total += double.tryParse(c.text) ?? 0;
     }
     setState(() {
+      _hasLocalEdits = true;
       _amountController.text = total.toStringAsFixed(2);
     });
   }
@@ -710,6 +1195,7 @@ class _TransactionEditScreenState extends State<TransactionEditScreen> {
       onTap: () {
         final id = DateTime.now().millisecondsSinceEpoch.toString();
         setState(() {
+          _hasLocalEdits = true;
           _items.add({'id': id, 'description': '', 'amount': 0.0, 'qty': 1.0});
           _itemDescControllers[id] = TextEditingController();
           _itemAmountControllers[id] = TextEditingController(text: '0.00');
@@ -738,33 +1224,63 @@ class _TransactionEditScreenState extends State<TransactionEditScreen> {
     );
   }
 
-  Widget _buildFixedFooter() {
+  Widget _buildFixedFooter({Map<String, double>? totalMismatch}) {
+    final sourceTotal = _toDouble(_amountController.text) ?? 0;
+    final displayTotal = _toDisplayAmount(sourceTotal);
     return Container(
       padding: const EdgeInsets.all(20),
       color: Colors.black,
       child: SafeArea(
         top: false,
-        child: Row(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Text(
-              'Total Amount:',
-              style: TextStyle(
-                color: Colors.white,
-                fontSize: 18,
-                fontWeight: FontWeight.bold,
-              ),
+            Row(
+              children: [
+                const Text(
+                  'Total Amount:',
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                const Spacer(),
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.end,
+                  children: [
+                    Text(
+                      _formatMoney(_displayCurrency, displayTotal),
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    if (_displayCurrency.toUpperCase() !=
+                        _currency.toUpperCase())
+                      Text(
+                        _formatMoney(_currency, sourceTotal),
+                        style: TextStyle(
+                          color: Colors.grey.shade400,
+                          fontSize: 13,
+                        ),
+                      ),
+                  ],
+                ),
+              ],
             ),
-            const Spacer(),
-            Text(
-              '$_currency ${_amountController.text}',
-              style: const TextStyle(
-                color: Colors.white,
-                fontSize: 18,
-                fontWeight: FontWeight.bold,
+            if (totalMismatch != null) ...[
+              const SizedBox(height: 8),
+              Text(
+                'Total mismatch: expected ${_formatMoney(_currency, totalMismatch['expected'] ?? 0)} but extracted ${_formatMoney(_currency, totalMismatch['actual'] ?? 0)}',
+                style: const TextStyle(
+                  color: Colors.orangeAccent,
+                  fontSize: 12,
+                  fontWeight: FontWeight.w600,
+                ),
               ),
-            ),
-            const SizedBox(width: 8),
-            // IconButton(icon: const Icon(Icons.edit, color: Colors.white, size: 18), onPressed: () {}),
+            ],
           ],
         ),
       ),
@@ -784,9 +1300,10 @@ class _TransactionEditScreenState extends State<TransactionEditScreen> {
           itemCount: _categories.length,
           itemBuilder: (context, index) {
             final cat = _categories[index];
+            final catId = cat['id']?.toString();
             return ListTile(
               title: Text(
-                cat['name'],
+                _itemCategoryLabel(catId),
                 style: const TextStyle(color: Colors.white),
               ),
               onTap: () {

@@ -13,6 +13,7 @@ from app.models.users.profile import Profile, ProfileBase
 from app.models.users.user import User, UserBase
 from app.models.labels.label import Label, LabelBase
 from app.models.labels.transaction_label import TransactionLabel
+from app.models.fx.exchange_rate import ExchangeRate
 
 __all__ = [
     "Category",
@@ -40,6 +41,7 @@ __all__ = [
     "Label",
     "LabelBase",
     "TransactionLabel",
+    "ExchangeRate",
 ]
 
 # Suggested DB indexes and unique constraints:

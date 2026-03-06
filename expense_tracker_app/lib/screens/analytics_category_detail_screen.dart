@@ -11,6 +11,7 @@ class AnalyticsCategoryDetailScreen extends StatefulWidget {
   final DateTime? fromDate;
   final List<String> selectedCategoryIds;
   final List<String> selectedSubcategoryIds;
+  final List<String> selectedLabelIds;
 
   const AnalyticsCategoryDetailScreen({
     super.key,
@@ -20,6 +21,7 @@ class AnalyticsCategoryDetailScreen extends StatefulWidget {
     required this.fromDate,
     required this.selectedCategoryIds,
     required this.selectedSubcategoryIds,
+    required this.selectedLabelIds,
   });
 
   @override
@@ -32,6 +34,30 @@ class _AnalyticsCategoryDetailScreenState
   bool _isLoading = true;
   String? _error;
   Map<String, dynamic>? _data;
+
+  String _currencySymbol(String code) {
+    switch (code.toUpperCase()) {
+      case 'EUR':
+        return '€';
+      case 'USD':
+        return '\$';
+      case 'GBP':
+        return '£';
+      case 'RSD':
+        return 'RSD ';
+      default:
+        return '${code.toUpperCase()} ';
+    }
+  }
+
+  String _formatMoney(String currency, double amount) {
+    final symbol = _currencySymbol(currency);
+    if (symbol.trim().length == 1 || symbol == 'RSD ') {
+      final sign = amount < 0 ? '-' : '';
+      return '$sign$symbol${amount.abs().toStringAsFixed(2)}';
+    }
+    return '${currency.toUpperCase()} ${amount.toStringAsFixed(2)}';
+  }
 
   @override
   void initState() {
@@ -54,6 +80,9 @@ class _AnalyticsCategoryDetailScreenState
             : null,
         subcategoryIds: widget.selectedSubcategoryIds.isNotEmpty
             ? widget.selectedSubcategoryIds
+            : null,
+        labelIds: widget.selectedLabelIds.isNotEmpty
+            ? widget.selectedLabelIds
             : null,
       );
       if (!mounted) return;
@@ -84,6 +113,7 @@ class _AnalyticsCategoryDetailScreenState
           fromDate: widget.fromDate,
           selectedCategoryIds: widget.selectedCategoryIds,
           selectedSubcategoryIds: widget.selectedSubcategoryIds,
+          selectedLabelIds: widget.selectedLabelIds,
         ),
       ),
     );
@@ -113,6 +143,7 @@ class _AnalyticsCategoryDetailScreenState
   Widget _buildContent(Color categoryColor) {
     final subcategories = _data?['subcategories'] as List<dynamic>? ?? [];
     final totalAmount = (_data?['total_amount'] as num?)?.toDouble() ?? 0.0;
+    final currency = (_data?['currency']?.toString() ?? 'EUR').toUpperCase();
 
     return RefreshIndicator(
       onRefresh: _fetchData,
@@ -139,7 +170,7 @@ class _AnalyticsCategoryDetailScreenState
                 ),
                 const SizedBox(height: 8),
                 Text(
-                  'RSD ${totalAmount.toStringAsFixed(2)}',
+                  _formatMoney(currency, totalAmount),
                   style: const TextStyle(
                     fontSize: 28,
                     fontWeight: FontWeight.bold,
@@ -216,7 +247,7 @@ class _AnalyticsCategoryDetailScreenState
                             ),
                             const SizedBox(height: 3),
                             Text(
-                              'RSD ${amount.toStringAsFixed(2)} - $itemCount purchases',
+                              '${_formatMoney(currency, amount)} - $itemCount purchases',
                               style: TextStyle(color: Colors.grey.shade400),
                             ),
                           ],
