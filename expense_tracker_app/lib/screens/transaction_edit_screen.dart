@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:currency_picker/currency_picker.dart';
 import 'package:intl/intl.dart';
 import '../core/api_client.dart';
 
@@ -253,6 +254,75 @@ class _TransactionEditScreenState extends State<TransactionEditScreen> {
     return '${currency.toUpperCase()} ${amount.toStringAsFixed(2)}';
   }
 
+  void _openReceiptCurrencyPicker() {
+    showCurrencyPicker(
+      context: context,
+      showSearchField: true,
+      showFlag: false,
+      favorite: [_currency.toUpperCase()],
+      onSelect: (currency) {
+        final nextCode = currency.code.toUpperCase();
+        if (nextCode == _currency.toUpperCase()) return;
+        setState(() {
+          _hasLocalEdits = true;
+          _currency = nextCode;
+          // Keep edit mode amounts coherent in source currency until next backend refresh.
+          _displayCurrency = _currency;
+          _displayRate = 1.0;
+        });
+      },
+    );
+  }
+
+  Map<String, dynamic>? _findCategoryById(String? categoryId) {
+    if (categoryId == null || categoryId.isEmpty) return null;
+    for (final raw in _categories) {
+      final category = raw as Map<String, dynamic>;
+      if (category['id']?.toString() == categoryId) {
+        return category;
+      }
+    }
+    return null;
+  }
+
+  String _itemCategoryLabel(String? categoryId) {
+    final category = _findCategoryById(categoryId);
+    if (category == null) return 'Select Category';
+    final childName = category['name']?.toString() ?? 'Select Category';
+    final parentId = category['parent_id']?.toString();
+    if (parentId == null || parentId.isEmpty) {
+      return childName;
+    }
+    final parent = _findCategoryById(parentId);
+    final parentName = parent?['name']?.toString();
+    if (parentName == null || parentName.isEmpty) {
+      return childName;
+    }
+    return '$parentName * $childName';
+  }
+
+  List<String> _itemCategoryTags(String? categoryId) {
+    final category = _findCategoryById(categoryId);
+    if (category == null) return const ['Select Category'];
+
+    final childName = category['name']?.toString().trim();
+    if (childName == null || childName.isEmpty) {
+      return const ['Select Category'];
+    }
+
+    final parentId = category['parent_id']?.toString();
+    if (parentId == null || parentId.isEmpty) {
+      return [childName];
+    }
+
+    final parentName = _findCategoryById(parentId)?['name']?.toString().trim();
+    if (parentName == null || parentName.isEmpty) {
+      return [childName];
+    }
+
+    return [parentName, childName];
+  }
+
   double _round2(double value) => double.parse(value.toStringAsFixed(2));
 
   double _toDisplayAmount(double sourceAmount) {
@@ -432,7 +502,8 @@ class _TransactionEditScreenState extends State<TransactionEditScreen> {
                       shrinkWrap: true,
                       itemCount: sortedLabels.length,
                       itemBuilder: (context, index) {
-                        final label = sortedLabels[index] as Map<String, dynamic>;
+                        final label =
+                            sortedLabels[index] as Map<String, dynamic>;
                         final id = label['id']?.toString() ?? '';
                         final name = label['name']?.toString() ?? 'Label';
                         final selected = _selectedLabelIds.contains(id);
@@ -646,7 +717,9 @@ class _TransactionEditScreenState extends State<TransactionEditScreen> {
     final totalMismatch = _computeTotalMismatch();
     final showServerWarnings = !_hasLocalEdits && _serverWarnings.isNotEmpty;
     final hasWarnings =
-        lineMismatches.isNotEmpty || totalMismatch != null || showServerWarnings;
+        lineMismatches.isNotEmpty ||
+        totalMismatch != null ||
+        showServerWarnings;
 
     return Scaffold(
       backgroundColor: Colors.black,
@@ -698,7 +771,9 @@ class _TransactionEditScreenState extends State<TransactionEditScreen> {
             _buildWarningsBanner(
               lineMismatchCount: lineMismatches.length,
               hasTotalMismatch: totalMismatch != null,
-              serverWarningCount: showServerWarnings ? _serverWarnings.length : 0,
+              serverWarningCount: showServerWarnings
+                  ? _serverWarnings.length
+                  : 0,
             ),
           Expanded(
             child: ListView(
@@ -708,10 +783,7 @@ class _TransactionEditScreenState extends State<TransactionEditScreen> {
                 const SizedBox(height: 12),
                 ..._items.map((item) {
                   final itemId = item['id'].toString();
-                  return _buildItemCard(
-                    item,
-                    lineMismatches[itemId],
-                  );
+                  return _buildItemCard(item, lineMismatches[itemId]);
                 }),
                 _buildAddItemButton(),
               ],
@@ -758,7 +830,11 @@ class _TransactionEditScreenState extends State<TransactionEditScreen> {
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Icon(Icons.warning_amber_rounded, color: Colors.orange, size: 20),
+          const Icon(
+            Icons.warning_amber_rounded,
+            color: Colors.orange,
+            size: 20,
+          ),
           const SizedBox(width: 8),
           Expanded(
             child: Text(
@@ -797,7 +873,10 @@ class _TransactionEditScreenState extends State<TransactionEditScreen> {
               child: selectedLabels.isEmpty
                   ? Text(
                       'Add labels',
-                      style: TextStyle(color: Colors.grey.shade400, fontSize: 16),
+                      style: TextStyle(
+                        color: Colors.grey.shade400,
+                        fontSize: 16,
+                      ),
                     )
                   : Wrap(
                       spacing: 6,
@@ -888,9 +967,8 @@ class _TransactionEditScreenState extends State<TransactionEditScreen> {
             _buildBadge(icon: Icons.image_outlined, label: 'Photo'),
             _buildBadge(
               icon: Icons.currency_exchange,
-              label: _displayCurrency.toUpperCase() == _currency.toUpperCase()
-                  ? _currency
-                  : '${_displayCurrency.toUpperCase()} ($_currency source)',
+              label: _currency,
+              onTap: _openReceiptCurrencyPicker,
             ),
           ],
         ),
@@ -939,12 +1017,8 @@ class _TransactionEditScreenState extends State<TransactionEditScreen> {
     final unitPriceController = _itemUnitPriceControllers[id];
     final selectedCatId = _itemCategoryIds[id];
 
-    // Find category info
-    final category = _categories.firstWhere(
-      (c) => c['id'].toString() == selectedCatId,
-      orElse: () => null,
-    );
-    final catName = category != null ? category['name'] : 'Select Category';
+    final category = _findCategoryById(selectedCatId);
+    final catTags = _itemCategoryTags(selectedCatId);
     final catColor = category != null
         ? const Color(0xFFAB47BC)
         : Colors.grey; // Hardcoded purple like first screens, or from cat data
@@ -1040,7 +1114,8 @@ class _TransactionEditScreenState extends State<TransactionEditScreen> {
                         fontWeight: FontWeight.bold,
                       ),
                     ),
-                    if (_displayCurrency.toUpperCase() != _currency.toUpperCase())
+                    if (_displayCurrency.toUpperCase() !=
+                        _currency.toUpperCase())
                       Text(
                         _formatMoney(_currency, sourceAmount),
                         style: TextStyle(
@@ -1069,24 +1144,32 @@ class _TransactionEditScreenState extends State<TransactionEditScreen> {
             children: [
               GestureDetector(
                 onTap: () => _showCategoryPicker(id),
-                child: Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 10,
-                    vertical: 4,
-                  ),
-                  decoration: BoxDecoration(
-                    color: catColor.withAlpha(30),
-                    borderRadius: BorderRadius.circular(8),
-                    border: Border.all(color: catColor.withAlpha(100)),
-                  ),
-                  child: Text(
-                    catName,
-                    style: TextStyle(
-                      color: catColor,
-                      fontSize: 12,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
+                child: Wrap(
+                  spacing: 8,
+                  runSpacing: 6,
+                  children: catTags
+                      .map(
+                        (tag) => Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 10,
+                            vertical: 4,
+                          ),
+                          decoration: BoxDecoration(
+                            color: catColor.withAlpha(30),
+                            borderRadius: BorderRadius.circular(8),
+                            border: Border.all(color: catColor.withAlpha(100)),
+                          ),
+                          child: Text(
+                            tag,
+                            style: TextStyle(
+                              color: catColor,
+                              fontSize: 12,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ),
+                      )
+                      .toList(),
                 ),
               ),
             ],
@@ -1174,7 +1257,8 @@ class _TransactionEditScreenState extends State<TransactionEditScreen> {
                         fontWeight: FontWeight.bold,
                       ),
                     ),
-                    if (_displayCurrency.toUpperCase() != _currency.toUpperCase())
+                    if (_displayCurrency.toUpperCase() !=
+                        _currency.toUpperCase())
                       Text(
                         _formatMoney(_currency, sourceTotal),
                         style: TextStyle(
@@ -1216,9 +1300,10 @@ class _TransactionEditScreenState extends State<TransactionEditScreen> {
           itemCount: _categories.length,
           itemBuilder: (context, index) {
             final cat = _categories[index];
+            final catId = cat['id']?.toString();
             return ListTile(
               title: Text(
-                cat['name'],
+                _itemCategoryLabel(catId),
                 style: const TextStyle(color: Colors.white),
               ),
               onTap: () {
@@ -1234,4 +1319,3 @@ class _TransactionEditScreenState extends State<TransactionEditScreen> {
     );
   }
 }
-
