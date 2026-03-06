@@ -1,7 +1,25 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
+
+import '../l10n/app_localizations.dart';
 
 class HomeTab extends StatelessWidget {
   const HomeTab({super.key});
+
+  String _resolveDisplayName(BuildContext context) {
+    final user = FirebaseAuth.instance.currentUser;
+    final displayName = user?.displayName?.trim();
+    if (displayName != null && displayName.isNotEmpty) return displayName;
+
+    final email = user?.email?.trim();
+    if (email != null && email.contains('@')) {
+      final localPart = email.split('@').first.trim();
+      if (localPart.isNotEmpty) return localPart;
+    }
+
+    return context.tr('home_default_user');
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -36,12 +54,12 @@ class HomeTab extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              'Welcome,',
+              context.tr('home_welcome'),
               style: TextStyle(fontSize: 14, color: Colors.grey.shade400),
             ),
             const SizedBox(height: 4),
-            const Text(
-              'kirya',
+            Text(
+              _resolveDisplayName(context),
               style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
             ),
           ],
@@ -54,7 +72,7 @@ class HomeTab extends StatelessWidget {
             border: Border.all(color: Colors.grey.shade800),
           ),
           child: const Text('0/10', style: TextStyle(fontSize: 12)),
-        )
+        ),
       ],
     );
   }
@@ -77,15 +95,18 @@ class HomeTab extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text(
-            'Daily spending',
-            style: TextStyle(color: Colors.white70, fontSize: 14),
+          Text(
+            context.tr('home_daily_spending'),
+            style: const TextStyle(color: Colors.white70, fontSize: 14),
           ),
           const SizedBox(height: 8),
           const Text(
             'RSD 0.00',
             style: TextStyle(
-                color: Colors.white, fontSize: 32, fontWeight: FontWeight.w500),
+              color: Colors.white,
+              fontSize: 32,
+              fontWeight: FontWeight.w500,
+            ),
           ),
           const SizedBox(height: 24),
           // Progress bar
@@ -108,7 +129,9 @@ class HomeTab extends StatelessWidget {
                 ),
               ),
               Positioned(
-                right: MediaQuery.of(context).size.width * 0.3 - 24, // Position dot at 70%
+                right:
+                    MediaQuery.of(context).size.width * 0.3 -
+                    24, // Position dot at 70%
                 top: -3,
                 child: Container(
                   width: 10,
@@ -118,22 +141,22 @@ class HomeTab extends StatelessWidget {
                     shape: BoxShape.circle,
                   ),
                 ),
-              )
+              ),
             ],
-          )
+          ),
         ],
       ),
     );
   }
 
   Widget _buildDateScroller(BuildContext context) {
-    // Mock the date scroller
-    final dates = [
-      {'label': '1 Mar', 'selected': false},
-      {'label': '2 Mar', 'selected': false},
-      {'label': '3 Mar', 'selected': true, 'hasData': true},
-      {'label': '4 Mar', 'selected': false},
-    ];
+    final locale = Localizations.localeOf(context).toLanguageTag();
+    final today = DateTime.now();
+    final dates = List.generate(4, (index) {
+      final date = today.subtract(Duration(days: 3 - index));
+      final label = DateFormat('d MMM', locale).format(date);
+      return {'label': label, 'selected': index == 3, 'hasData': index == 3};
+    });
 
     return SingleChildScrollView(
       scrollDirection: Axis.horizontal,
@@ -157,7 +180,9 @@ class HomeTab extends StatelessWidget {
                   date['label'] as String,
                   style: TextStyle(
                     color: isSelected ? Colors.white : Colors.grey.shade400,
-                    fontWeight: isSelected ? FontWeight.w500 : FontWeight.normal,
+                    fontWeight: isSelected
+                        ? FontWeight.w500
+                        : FontWeight.normal,
                   ),
                 ),
                 if (hasData) ...[
@@ -169,8 +194,8 @@ class HomeTab extends StatelessWidget {
                       color: Theme.of(context).colorScheme.primary,
                       shape: BoxShape.circle,
                     ),
-                  )
-                ]
+                  ),
+                ],
               ],
             ),
           );
@@ -209,7 +234,7 @@ class HomeTab extends StatelessWidget {
           ),
           const SizedBox(height: 24),
           Text(
-            'No receipts found',
+            context.tr('home_no_receipts'),
             style: TextStyle(
               fontSize: 18,
               color: Colors.grey.shade300,
@@ -218,12 +243,9 @@ class HomeTab extends StatelessWidget {
           ),
           const SizedBox(height: 8),
           Text(
-            'You haven\'t added any receipts for this\nday',
+            context.tr('home_no_receipts_for_day'),
             textAlign: TextAlign.center,
-            style: TextStyle(
-              fontSize: 14,
-              color: Colors.grey.shade500,
-            ),
+            style: TextStyle(fontSize: 14, color: Colors.grey.shade500),
           ),
         ],
       ),

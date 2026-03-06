@@ -19,6 +19,29 @@ class PeriodFilter {
     allTime,
   ];
 
+  static String localizationKey(String filter) {
+    switch (filter) {
+      case last7Days:
+        return 'period_last_7_days';
+      case thisMonth:
+        return 'period_this_month';
+      case last30Days:
+        return 'period_last_30_days';
+      case last3Months:
+        return 'period_last_3_months';
+      case last6Months:
+        return 'period_last_6_months';
+      case last12Months:
+        return 'period_last_12_months';
+      case thisYear:
+        return 'period_this_year';
+      case allTime:
+        return 'period_all_time';
+      default:
+        return 'period_last_3_months';
+    }
+  }
+
   /// Returns the start date for the given filter, or null for All Time.
   static DateTime? getStartDate(String filter) {
     final now = DateTime.now();

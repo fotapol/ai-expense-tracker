@@ -5,6 +5,8 @@ import 'package:shared_preferences/shared_preferences.dart';
 import '../core/api_client.dart';
 import '../core/category_style.dart';
 import '../core/period_filter.dart';
+import '../core/taxonomy_localization.dart';
+import '../l10n/app_localizations.dart';
 import '../widgets/filter_bottom_sheet.dart';
 import 'analytics_category_detail_screen.dart';
 
@@ -70,10 +72,15 @@ class _AnalyticsTabState extends State<AnalyticsTab> {
     Map<String, String> labelNames = {};
     try {
       final categories = await categoriesFuture;
+      if (!mounted) return;
       categoryNames = {
         for (final cat in categories)
-          if (cat['id'] != null && cat['name'] != null)
-            cat['id'].toString(): cat['name'].toString(),
+          if (cat['id'] != null)
+            cat['id'].toString(): localizeCategoryByCode(
+              context,
+              code: cat['code']?.toString(),
+              fallbackName: cat['name']?.toString(),
+            ),
       };
     } catch (_) {}
     try {
@@ -210,13 +217,15 @@ class _AnalyticsTabState extends State<AnalyticsTab> {
     if (!hasFilters) return const SizedBox.shrink();
 
     final categoryLabels = _selectedCategoryIds
-        .map((id) => _categoryNamesById[id] ?? 'Category')
+        .map((id) => _categoryNamesById[id] ?? context.tr('filters_category'))
         .toList();
     final subcategoryLabels = _selectedSubcategoryIds
-        .map((id) => _categoryNamesById[id] ?? 'Subcategory')
+        .map(
+          (id) => _categoryNamesById[id] ?? context.tr('filters_subcategory'),
+        )
         .toList();
     final labelLabels = _selectedLabelIds
-        .map((id) => _labelNamesById[id] ?? 'Label')
+        .map((id) => _labelNamesById[id] ?? context.tr('filters_labels'))
         .toList();
 
     return Padding(
@@ -258,7 +267,7 @@ class _AnalyticsTabState extends State<AnalyticsTab> {
             onPressed: _clearFilters,
             icon: const Icon(Icons.cancel),
             color: Colors.grey.shade400,
-            tooltip: 'Clear filters',
+            tooltip: context.tr('filters_clear_all'),
           ),
         ],
       ),
@@ -273,7 +282,11 @@ class _AnalyticsTabState extends State<AnalyticsTab> {
     final categoryId = category['category_id']?.toString();
     if (categoryId == null || categoryId.isEmpty) return;
 
-    final name = category['name']?.toString() ?? 'Category';
+    final name = localizeCategoryByCode(
+      context,
+      code: category['code']?.toString(),
+      fallbackName: category['name']?.toString(),
+    );
     final code = category['code']?.toString() ?? '';
     final fromDate = PeriodFilter.getStartDate(_selectedPeriod);
 
@@ -285,12 +298,12 @@ class _AnalyticsTabState extends State<AnalyticsTab> {
           categoryName: name,
           categoryCode: code,
           fromDate: fromDate,
-            selectedCategoryIds: _selectedCategoryIds,
-            selectedSubcategoryIds: _selectedSubcategoryIds,
-            selectedLabelIds: _selectedLabelIds,
-          ),
+          selectedCategoryIds: _selectedCategoryIds,
+          selectedSubcategoryIds: _selectedSubcategoryIds,
+          selectedLabelIds: _selectedLabelIds,
         ),
-      );
+      ),
+    );
   }
 
   @override
@@ -314,8 +327,8 @@ class _AnalyticsTabState extends State<AnalyticsTab> {
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          const Text(
-            'Analytics',
+          Text(
+            context.tr('nav_analytics'),
             style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
           ),
           IconButton(
@@ -340,11 +353,14 @@ class _AnalyticsTabState extends State<AnalyticsTab> {
           children: [
             const Icon(Icons.error_outline, color: Colors.red, size: 48),
             const SizedBox(height: 16),
-            Text('Error: $_error', textAlign: TextAlign.center),
+            Text(
+              _error ?? context.tr('common_error'),
+              textAlign: TextAlign.center,
+            ),
             const SizedBox(height: 16),
             ElevatedButton(
               onPressed: _fetchSummary,
-              child: const Text('Retry'),
+              child: Text(context.tr('common_retry')),
             ),
           ],
         ),
@@ -366,8 +382,8 @@ class _AnalyticsTabState extends State<AnalyticsTab> {
         children: [
           _buildTotalCard(totalAmount, totalTransactions, currency),
           const SizedBox(height: 28),
-          const Text(
-            'Expense Categories',
+          Text(
+            context.tr('analytics_expense_categories'),
             style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
           ),
           const SizedBox(height: 24),
@@ -408,7 +424,9 @@ class _AnalyticsTabState extends State<AnalyticsTab> {
       child: Column(
         children: [
           Text(
-            _selectedPeriod.toUpperCase(),
+            context
+                .tr(PeriodFilter.localizationKey(_selectedPeriod))
+                .toUpperCase(),
             style: const TextStyle(
               color: Colors.white70,
               fontSize: 12,
@@ -430,8 +448,8 @@ class _AnalyticsTabState extends State<AnalyticsTab> {
             children: [
               Column(
                 children: [
-                  const Text(
-                    'Average per day',
+                  Text(
+                    context.tr('analytics_average_per_day'),
                     style: TextStyle(color: Colors.white70, fontSize: 12),
                   ),
                   const SizedBox(height: 4),
@@ -444,8 +462,8 @@ class _AnalyticsTabState extends State<AnalyticsTab> {
               Container(width: 1, height: 40, color: Colors.white24),
               Column(
                 children: [
-                  const Text(
-                    'Total Transactions',
+                  Text(
+                    context.tr('analytics_total_transactions'),
                     style: TextStyle(color: Colors.white70, fontSize: 12),
                   ),
                   const SizedBox(height: 4),
@@ -538,7 +556,7 @@ class _AnalyticsTabState extends State<AnalyticsTab> {
                       ),
                     ),
                     Text(
-                      'Total Spent',
+                      context.tr('analytics_total_spent'),
                       style: TextStyle(
                         fontSize: 12,
                         color: Colors.grey.shade400,
@@ -546,7 +564,7 @@ class _AnalyticsTabState extends State<AnalyticsTab> {
                     ),
                   ] else
                     Text(
-                      'No Data',
+                      context.tr('analytics_no_data'),
                       style: TextStyle(
                         fontSize: 22,
                         color: Colors.grey.shade500,
@@ -568,7 +586,11 @@ class _AnalyticsTabState extends State<AnalyticsTab> {
               alignment: WrapAlignment.center,
               children: categories.map((raw) {
                 final cat = raw as Map<String, dynamic>;
-                final name = cat['name']?.toString() ?? 'Unknown';
+                final name = localizeCategoryByCode(
+                  context,
+                  code: cat['code']?.toString(),
+                  fallbackName: cat['name']?.toString(),
+                );
                 final color = _categoryColor(cat);
                 return Row(
                   mainAxisSize: MainAxisSize.min,
@@ -598,7 +620,7 @@ class _AnalyticsTabState extends State<AnalyticsTab> {
       return Padding(
         padding: const EdgeInsets.only(top: 8),
         child: Text(
-          'No category data for selected filters.',
+          context.tr('analytics_no_category_data'),
           style: TextStyle(color: Colors.grey.shade500, fontSize: 14),
         ),
       );
@@ -608,7 +630,11 @@ class _AnalyticsTabState extends State<AnalyticsTab> {
       children: categories.asMap().entries.map((entry) {
         final index = entry.key;
         final cat = entry.value as Map<String, dynamic>;
-        final name = cat['name']?.toString() ?? 'Category';
+        final name = localizeCategoryByCode(
+          context,
+          code: cat['code']?.toString(),
+          fallbackName: cat['name']?.toString(),
+        );
         final code = cat['code']?.toString() ?? '';
         final amount = (cat['amount'] as num?)?.toDouble() ?? 0.0;
         final itemCount = (cat['item_count'] as num?)?.toInt() ?? 0;
@@ -652,7 +678,13 @@ class _AnalyticsTabState extends State<AnalyticsTab> {
                         ),
                         const SizedBox(height: 4),
                         Text(
-                          '${_formatMoney(currency, amount)} - $itemCount purchases',
+                          context.tr(
+                            'analytics_money_and_purchases',
+                            params: {
+                              'amount': _formatMoney(currency, amount),
+                              'count': itemCount.toString(),
+                            },
+                          ),
                           style: TextStyle(color: Colors.grey.shade400),
                         ),
                       ],

@@ -7,6 +7,7 @@ import 'package:image_picker/image_picker.dart';
 import 'transaction_edit_screen.dart';
 
 import '../core/api_client.dart';
+import '../l10n/app_localizations.dart';
 
 /// Receipt upload screen implementing the full presigned-URL upload flow:
 /// pick image → create receipt → PUT to MinIO → confirm → poll until done.
@@ -40,7 +41,12 @@ class _ReceiptUploadScreenState extends State<ReceiptUploadScreen> {
         });
       }
     } catch (e) {
-      setState(() => _error = 'Failed to pick image: $e');
+      setState(() {
+        _error = context.tr(
+          'upload_pick_failed',
+          params: {'error': e.toString()},
+        );
+      });
     }
   }
 
@@ -72,8 +78,9 @@ class _ReceiptUploadScreenState extends State<ReceiptUploadScreen> {
       );
       _receiptId = createResult['receipt_id'];
       final uploadUrl = createResult['upload_url'] as String;
-      final requiredHeaders =
-          Map<String, String>.from(createResult['required_headers'] as Map);
+      final requiredHeaders = Map<String, String>.from(
+        createResult['required_headers'] as Map,
+      );
 
       setState(() => _progress = 0.3);
 
@@ -122,7 +129,8 @@ class _ReceiptUploadScreenState extends State<ReceiptUploadScreen> {
             Navigator.pushReplacement(
               context,
               MaterialPageRoute(
-                builder: (context) => TransactionEditScreen(transactionId: txId),
+                builder: (context) =>
+                    TransactionEditScreen(transactionId: txId),
               ),
             );
           }
@@ -130,7 +138,9 @@ class _ReceiptUploadScreenState extends State<ReceiptUploadScreen> {
         } else if (status == 'FAILED') {
           setState(() {
             _status = 'failed';
-            _error = data['failure_reason']?.toString() ?? 'Extraction failed';
+            _error =
+                data['failure_reason']?.toString() ??
+                context.tr('upload_extraction_failed');
           });
           return;
         }
@@ -148,7 +158,7 @@ class _ReceiptUploadScreenState extends State<ReceiptUploadScreen> {
     if (mounted) {
       setState(() {
         _status = 'failed';
-        _error = 'Extraction timed out after 2 minutes.';
+        _error = context.tr('upload_timed_out');
       });
     }
   }
@@ -180,7 +190,7 @@ class _ReceiptUploadScreenState extends State<ReceiptUploadScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Upload Receipt')),
+      appBar: AppBar(title: Text(context.tr('upload_title'))),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(20),
         child: Column(
@@ -214,7 +224,7 @@ class _ReceiptUploadScreenState extends State<ReceiptUploadScreen> {
                     child: OutlinedButton.icon(
                       onPressed: () => _pickImage(ImageSource.gallery),
                       icon: const Icon(Icons.photo_library),
-                      label: const Text('Gallery'),
+                      label: Text(context.tr('upload_gallery')),
                     ),
                   ),
                   const SizedBox(width: 12),
@@ -222,7 +232,7 @@ class _ReceiptUploadScreenState extends State<ReceiptUploadScreen> {
                     child: OutlinedButton.icon(
                       onPressed: () => _pickImage(ImageSource.camera),
                       icon: const Icon(Icons.camera_alt),
-                      label: const Text('Camera'),
+                      label: Text(context.tr('upload_camera')),
                     ),
                   ),
                 ],
@@ -232,7 +242,7 @@ class _ReceiptUploadScreenState extends State<ReceiptUploadScreen> {
                 FilledButton.icon(
                   onPressed: _startUpload,
                   icon: const Icon(Icons.cloud_upload),
-                  label: const Text('Upload & Extract'),
+                  label: Text(context.tr('upload_action_extract')),
                 ),
             ],
 
@@ -242,8 +252,8 @@ class _ReceiptUploadScreenState extends State<ReceiptUploadScreen> {
               const SizedBox(height: 12),
               Text(
                 _status == 'uploading'
-                    ? 'Uploading receipt...'
-                    : 'Processing with AI... This may take a minute.',
+                    ? context.tr('upload_status_uploading')
+                    : context.tr('upload_status_processing'),
                 textAlign: TextAlign.center,
                 style: Theme.of(context).textTheme.bodyMedium,
               ),
@@ -273,7 +283,7 @@ class _ReceiptUploadScreenState extends State<ReceiptUploadScreen> {
                       _progress = 0;
                     });
                   },
-                  child: const Text('Try Again'),
+                  child: Text(context.tr('upload_try_again')),
                 ),
             ],
           ],

@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 
 import '../core/api_client.dart';
 import '../core/category_style.dart';
+import '../core/taxonomy_localization.dart';
+import '../l10n/app_localizations.dart';
 import 'analytics_subcategory_items_screen.dart';
 
 class AnalyticsCategoryDetailScreen extends StatefulWidget {
@@ -108,7 +110,11 @@ class _AnalyticsCategoryDetailScreenState
       MaterialPageRoute(
         builder: (context) => AnalyticsSubcategoryItemsScreen(
           subcategoryId: subcategoryId,
-          subcategoryName: subcategory['name']?.toString() ?? 'Subcategory',
+          subcategoryName: localizeCategoryByCode(
+            context,
+            code: subcategory['code']?.toString(),
+            fallbackName: subcategory['name']?.toString(),
+          ),
           subcategoryCode: subcategory['code']?.toString() ?? '',
           fromDate: widget.fromDate,
           selectedCategoryIds: widget.selectedCategoryIds,
@@ -131,7 +137,7 @@ class _AnalyticsCategoryDetailScreenState
               child: Padding(
                 padding: const EdgeInsets.all(16),
                 child: Text(
-                  'Error: $_error',
+                  _error ?? context.tr('common_error'),
                   style: const TextStyle(color: Colors.red),
                 ),
               ),
@@ -178,15 +184,18 @@ class _AnalyticsCategoryDetailScreenState
                 ),
                 const SizedBox(height: 4),
                 Text(
-                  '${subcategories.length} subcategories',
+                  context.tr(
+                    'analytics_subcategories_count',
+                    params: {'count': subcategories.length.toString()},
+                  ),
                   style: TextStyle(color: Colors.grey.shade400),
                 ),
               ],
             ),
           ),
           const SizedBox(height: 20),
-          const Text(
-            'Subcategories',
+          Text(
+            context.tr('filters_subcategory'),
             style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
           ),
           const SizedBox(height: 12),
@@ -194,14 +203,18 @@ class _AnalyticsCategoryDetailScreenState
             Padding(
               padding: const EdgeInsets.only(top: 24),
               child: Text(
-                'No subcategory data for current filters.',
+                context.tr('analytics_no_subcategory_data'),
                 style: TextStyle(color: Colors.grey.shade500),
               ),
             ),
           ...subcategories.map((raw) {
             final sub = raw as Map<String, dynamic>;
-            final subName = sub['name']?.toString() ?? 'Subcategory';
             final subCode = sub['code']?.toString() ?? '';
+            final subName = localizeCategoryByCode(
+              context,
+              code: subCode,
+              fallbackName: sub['name']?.toString(),
+            );
             final amount = (sub['amount'] as num?)?.toDouble() ?? 0.0;
             final percentage = (sub['percentage'] as num?)?.toDouble() ?? 0.0;
             final itemCount = (sub['item_count'] as num?)?.toInt() ?? 0;
@@ -247,7 +260,13 @@ class _AnalyticsCategoryDetailScreenState
                             ),
                             const SizedBox(height: 3),
                             Text(
-                              '${_formatMoney(currency, amount)} - $itemCount purchases',
+                              context.tr(
+                                'analytics_money_and_purchases',
+                                params: {
+                                  'amount': _formatMoney(currency, amount),
+                                  'count': itemCount.toString(),
+                                },
+                              ),
                               style: TextStyle(color: Colors.grey.shade400),
                             ),
                           ],

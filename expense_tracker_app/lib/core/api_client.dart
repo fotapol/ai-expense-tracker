@@ -175,9 +175,9 @@ class ApiClient {
   /// PUT /v1/transactions/{id}
   static Future<Map<String, dynamic>> updateTransaction(
     String id,
-    Map<String, dynamic> payload,
-    {String? targetCurrency}
-  ) async {
+    Map<String, dynamic> payload, {
+    String? targetCurrency,
+  }) async {
     final token = await _getToken();
     String url = '$apiBaseUrl/v1/transactions/$id';
     if (targetCurrency != null && targetCurrency.isNotEmpty) {
@@ -612,10 +612,7 @@ class ApiClient {
         'Authorization': 'Bearer $token',
         'Content-Type': 'application/json',
       },
-      body: jsonEncode({
-        'transaction_id': transactionId,
-        'label_id': labelId,
-      }),
+      body: jsonEncode({'transaction_id': transactionId, 'label_id': labelId}),
     );
     if (response.statusCode == 201 || response.statusCode == 200) {
       return jsonDecode(response.body) as Map<String, dynamic>;
@@ -638,10 +635,7 @@ class ApiClient {
         'Authorization': 'Bearer $token',
         'Content-Type': 'application/json',
       },
-      body: jsonEncode({
-        'transaction_id': transactionId,
-        'label_id': labelId,
-      }),
+      body: jsonEncode({'transaction_id': transactionId, 'label_id': labelId}),
     );
     if (response.statusCode == 200) {
       return jsonDecode(response.body) as Map<String, dynamic>;

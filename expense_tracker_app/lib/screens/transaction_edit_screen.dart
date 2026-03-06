@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:currency_picker/currency_picker.dart';
 import 'package:intl/intl.dart';
 import '../core/api_client.dart';
+import '../core/taxonomy_localization.dart';
+import '../l10n/app_localizations.dart';
 
 class TransactionEditScreen extends StatefulWidget {
   final String transactionId;
@@ -185,16 +187,21 @@ class _TransactionEditScreenState extends State<TransactionEditScreen> {
       await ApiClient.updateTransaction(widget.transactionId, payload);
 
       if (mounted) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(const SnackBar(content: Text('Saved Successfully')));
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(context.tr('transaction_saved_successfully'))),
+        );
         Navigator.pop(context, true);
       }
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Error saving: $e'),
+            content: Text(
+              context.tr(
+                'common_error_with_message',
+                params: {'message': e.toString()},
+              ),
+            ),
             backgroundColor: Colors.red,
           ),
         );
@@ -287,15 +294,23 @@ class _TransactionEditScreenState extends State<TransactionEditScreen> {
 
   String _itemCategoryLabel(String? categoryId) {
     final category = _findCategoryById(categoryId);
-    if (category == null) return 'Select Category';
-    final childName = category['name']?.toString() ?? 'Select Category';
+    if (category == null) return context.tr('transaction_select_category');
+    final childName = localizeCategoryByCode(
+      context,
+      code: category['code']?.toString(),
+      fallbackName: category['name']?.toString(),
+    );
     final parentId = category['parent_id']?.toString();
     if (parentId == null || parentId.isEmpty) {
       return childName;
     }
     final parent = _findCategoryById(parentId);
-    final parentName = parent?['name']?.toString();
-    if (parentName == null || parentName.isEmpty) {
+    final parentName = localizeCategoryByCode(
+      context,
+      code: parent?['code']?.toString(),
+      fallbackName: parent?['name']?.toString(),
+    );
+    if (parentName.isEmpty) {
       return childName;
     }
     return '$parentName * $childName';
@@ -303,11 +318,15 @@ class _TransactionEditScreenState extends State<TransactionEditScreen> {
 
   List<String> _itemCategoryTags(String? categoryId) {
     final category = _findCategoryById(categoryId);
-    if (category == null) return const ['Select Category'];
+    if (category == null) return [context.tr('transaction_select_category')];
 
-    final childName = category['name']?.toString().trim();
-    if (childName == null || childName.isEmpty) {
-      return const ['Select Category'];
+    final childName = localizeCategoryByCode(
+      context,
+      code: category['code']?.toString(),
+      fallbackName: category['name']?.toString(),
+    ).trim();
+    if (childName.isEmpty) {
+      return [context.tr('transaction_select_category')];
     }
 
     final parentId = category['parent_id']?.toString();
@@ -315,8 +334,13 @@ class _TransactionEditScreenState extends State<TransactionEditScreen> {
       return [childName];
     }
 
-    final parentName = _findCategoryById(parentId)?['name']?.toString().trim();
-    if (parentName == null || parentName.isEmpty) {
+    final parent = _findCategoryById(parentId);
+    final parentName = localizeCategoryByCode(
+      context,
+      code: parent?['code']?.toString(),
+      fallbackName: parent?['name']?.toString(),
+    ).trim();
+    if (parentName.isEmpty) {
       return [childName];
     }
 
@@ -396,7 +420,12 @@ class _TransactionEditScreenState extends State<TransactionEditScreen> {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('Failed to update labels: $e'),
+          content: Text(
+            context.tr(
+              'common_error_with_message',
+              params: {'message': e.toString()},
+            ),
+          ),
           backgroundColor: Colors.red,
         ),
       );
@@ -408,23 +437,23 @@ class _TransactionEditScreenState extends State<TransactionEditScreen> {
     final name = await showDialog<String>(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Create Label'),
+        title: Text(context.tr('labels_new_label')),
         content: TextField(
           controller: controller,
           autofocus: true,
-          decoration: const InputDecoration(
-            hintText: 'Label name',
-            border: OutlineInputBorder(),
+          decoration: InputDecoration(
+            hintText: context.tr('labels_name_hint'),
+            border: const OutlineInputBorder(),
           ),
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: const Text('Cancel'),
+            child: Text(context.tr('common_cancel')),
           ),
           FilledButton(
             onPressed: () => Navigator.pop(context, controller.text.trim()),
-            child: const Text('Create'),
+            child: Text(context.tr('common_create')),
           ),
         ],
       ),
@@ -443,7 +472,12 @@ class _TransactionEditScreenState extends State<TransactionEditScreen> {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('Failed to create label: $e'),
+          content: Text(
+            context.tr(
+              'common_error_with_message',
+              params: {'message': e.toString()},
+            ),
+          ),
           backgroundColor: Colors.red,
         ),
       );
@@ -469,8 +503,8 @@ class _TransactionEditScreenState extends State<TransactionEditScreen> {
               children: [
                 Row(
                   children: [
-                    const Text(
-                      'Select Labels',
+                    Text(
+                      context.tr('transaction_select_labels'),
                       style: TextStyle(
                         fontSize: 18,
                         fontWeight: FontWeight.bold,
@@ -483,7 +517,7 @@ class _TransactionEditScreenState extends State<TransactionEditScreen> {
                         await _createAndAssignLabel();
                       },
                       icon: const Icon(Icons.add),
-                      label: const Text('New'),
+                      label: Text(context.tr('common_new')),
                     ),
                   ],
                 ),
@@ -492,7 +526,7 @@ class _TransactionEditScreenState extends State<TransactionEditScreen> {
                   Padding(
                     padding: const EdgeInsets.symmetric(vertical: 20),
                     child: Text(
-                      'No labels yet. Create one first.',
+                      context.tr('labels_empty_subtitle'),
                       style: TextStyle(color: Colors.grey.shade500),
                     ),
                   )
@@ -505,7 +539,9 @@ class _TransactionEditScreenState extends State<TransactionEditScreen> {
                         final label =
                             sortedLabels[index] as Map<String, dynamic>;
                         final id = label['id']?.toString() ?? '';
-                        final name = label['name']?.toString() ?? 'Label';
+                        final name =
+                            label['name']?.toString() ??
+                            context.tr('labels_title');
                         final selected = _selectedLabelIds.contains(id);
                         return CheckboxListTile(
                           value: selected,
@@ -648,22 +684,28 @@ class _TransactionEditScreenState extends State<TransactionEditScreen> {
 
   Future<void> _deleteItem(Map<String, dynamic> item) async {
     final itemId = item['id']?.toString() ?? '';
-    final itemName = item['description']?.toString() ?? 'item';
+    final itemName =
+        item['description']?.toString() ?? context.tr('transaction_item');
 
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Delete Item'),
-        content: Text('Delete "$itemName" from this receipt?'),
+        title: Text(context.tr('transaction_delete_item_title')),
+        content: Text(
+          context.tr(
+            'transaction_delete_item_confirm',
+            params: {'name': itemName},
+          ),
+        ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context, false),
-            child: const Text('Cancel'),
+            child: Text(context.tr('common_cancel')),
           ),
           FilledButton(
             onPressed: () => Navigator.pop(context, true),
             style: FilledButton.styleFrom(backgroundColor: Colors.red),
-            child: const Text('Delete'),
+            child: Text(context.tr('common_delete')),
           ),
         ],
       ),
@@ -688,14 +730,22 @@ class _TransactionEditScreenState extends State<TransactionEditScreen> {
       _recalculateTotal();
 
       if (mounted) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(const SnackBar(content: Text('Item deleted.')));
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(context.tr('transaction_item_deleted'))),
+        );
       }
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error: $e'), backgroundColor: Colors.red),
+          SnackBar(
+            content: Text(
+              context.tr(
+                'common_error_with_message',
+                params: {'message': e.toString()},
+              ),
+            ),
+            backgroundColor: Colors.red,
+          ),
         );
       }
     }
@@ -708,7 +758,7 @@ class _TransactionEditScreenState extends State<TransactionEditScreen> {
     }
     if (_error != null) {
       return Scaffold(
-        appBar: AppBar(title: const Text('Error')),
+        appBar: AppBar(title: Text(context.tr('common_error'))),
         body: Center(child: Text(_error!)),
       );
     }
@@ -737,10 +787,10 @@ class _TransactionEditScreenState extends State<TransactionEditScreen> {
             fontSize: 18,
             fontWeight: FontWeight.bold,
           ),
-          decoration: const InputDecoration(
+          decoration: InputDecoration(
             border: InputBorder.none,
-            hintText: 'Merchant Name',
-            hintStyle: TextStyle(color: Colors.white54),
+            hintText: context.tr('transaction_merchant_name'),
+            hintStyle: const TextStyle(color: Colors.white54),
           ),
           textAlign: TextAlign.center,
         ),
@@ -801,20 +851,26 @@ class _TransactionEditScreenState extends State<TransactionEditScreen> {
     required int serverWarningCount,
   }) {
     final lineText = lineMismatchCount == 1
-        ? '1 line total mismatch'
-        : '$lineMismatchCount line total mismatches';
+        ? context.tr('transaction_one_line_total_mismatch')
+        : context.tr(
+            'transaction_line_total_mismatches',
+            params: {'count': lineMismatchCount.toString()},
+          );
     final parts = <String>[];
     if (lineMismatchCount > 0) {
       parts.add(lineText);
     }
     if (hasTotalMismatch) {
-      parts.add('receipt total mismatch');
+      parts.add(context.tr('transaction_receipt_total_mismatch'));
     }
     if (serverWarningCount > 0) {
       parts.add(
         serverWarningCount == 1
-            ? '1 extraction warning'
-            : '$serverWarningCount extraction warnings',
+            ? context.tr('transaction_one_extraction_warning')
+            : context.tr(
+                'transaction_extraction_warnings',
+                params: {'count': serverWarningCount.toString()},
+              ),
       );
     }
 
@@ -838,7 +894,10 @@ class _TransactionEditScreenState extends State<TransactionEditScreen> {
           const SizedBox(width: 8),
           Expanded(
             child: Text(
-              'Review extraction: ${parts.join(' • ')}',
+              context.tr(
+                'transaction_review_extraction',
+                params: {'details': parts.join(' | ')},
+              ),
               style: const TextStyle(
                 color: Colors.orangeAccent,
                 fontSize: 13,
@@ -872,7 +931,7 @@ class _TransactionEditScreenState extends State<TransactionEditScreen> {
             Expanded(
               child: selectedLabels.isEmpty
                   ? Text(
-                      'Add labels',
+                      context.tr('transaction_add_labels'),
                       style: TextStyle(
                         color: Colors.grey.shade400,
                         fontSize: 16,
@@ -883,7 +942,9 @@ class _TransactionEditScreenState extends State<TransactionEditScreen> {
                       runSpacing: 6,
                       children: selectedLabels.map((raw) {
                         final label = raw as Map<String, dynamic>;
-                        final name = label['name']?.toString() ?? 'Label';
+                        final name =
+                            label['name']?.toString() ??
+                            context.tr('labels_title');
                         return Chip(
                           label: Text(name),
                           visualDensity: VisualDensity.compact,
@@ -911,7 +972,7 @@ class _TransactionEditScreenState extends State<TransactionEditScreen> {
               icon: Icons.calendar_today,
               label: occurred != null
                   ? DateFormat('dd.MM.yyyy').format(occurred)
-                  : 'Set Date',
+                  : context.tr('transaction_set_date'),
               onTap: () async {
                 final date = await showDatePicker(
                   context: context,
@@ -940,7 +1001,7 @@ class _TransactionEditScreenState extends State<TransactionEditScreen> {
               icon: Icons.access_time,
               label: occurred != null
                   ? DateFormat('HH:mm').format(occurred)
-                  : 'Set Time',
+                  : context.tr('transaction_set_time'),
               onTap: () async {
                 final base = _occurredAt ?? DateTime.now();
                 final selected = await showTimePicker(
@@ -963,8 +1024,14 @@ class _TransactionEditScreenState extends State<TransactionEditScreen> {
                 }
               },
             ),
-            _buildBadge(icon: Icons.translate, label: 'Translate'),
-            _buildBadge(icon: Icons.image_outlined, label: 'Photo'),
+            _buildBadge(
+              icon: Icons.translate,
+              label: context.tr('transaction_translate'),
+            ),
+            _buildBadge(
+              icon: Icons.image_outlined,
+              label: context.tr('transaction_photo'),
+            ),
             _buildBadge(
               icon: Icons.currency_exchange,
               label: _currency,
@@ -1047,10 +1114,10 @@ class _TransactionEditScreenState extends State<TransactionEditScreen> {
                 child: TextField(
                   controller: nameController,
                   style: const TextStyle(color: Colors.white, fontSize: 16),
-                  decoration: const InputDecoration(
+                  decoration: InputDecoration(
                     border: InputBorder.none,
-                    hintText: 'Item Name',
-                    hintStyle: TextStyle(color: Colors.white24),
+                    hintText: context.tr('transaction_item_name'),
+                    hintStyle: const TextStyle(color: Colors.white24),
                   ),
                 ),
               ),
@@ -1131,7 +1198,16 @@ class _TransactionEditScreenState extends State<TransactionEditScreen> {
           if (mismatch != null) ...[
             const SizedBox(height: 8),
             Text(
-              'Mismatch: expected ${_formatMoney(_currency, mismatch['expected'] ?? 0)} but extracted ${_formatMoney(_currency, mismatch['actual'] ?? 0)}',
+              context.tr(
+                'transaction_line_mismatch',
+                params: {
+                  'expected': _formatMoney(
+                    _currency,
+                    mismatch['expected'] ?? 0,
+                  ),
+                  'actual': _formatMoney(_currency, mismatch['actual'] ?? 0),
+                },
+              ),
               style: const TextStyle(
                 color: Colors.orangeAccent,
                 fontSize: 12,
@@ -1214,10 +1290,10 @@ class _TransactionEditScreenState extends State<TransactionEditScreen> {
             style: BorderStyle.solid,
           ), // Dashed borders need a CustomPainter, use solid for now
         ),
-        child: const Center(
+        child: Center(
           child: Text(
-            '+ Add item',
-            style: TextStyle(color: Colors.white38, fontSize: 16),
+            context.tr('transaction_add_item'),
+            style: const TextStyle(color: Colors.white38, fontSize: 16),
           ),
         ),
       ),
@@ -1237,8 +1313,8 @@ class _TransactionEditScreenState extends State<TransactionEditScreen> {
           children: [
             Row(
               children: [
-                const Text(
-                  'Total Amount:',
+                Text(
+                  context.tr('transaction_total_amount'),
                   style: TextStyle(
                     color: Colors.white,
                     fontSize: 18,
@@ -1273,7 +1349,19 @@ class _TransactionEditScreenState extends State<TransactionEditScreen> {
             if (totalMismatch != null) ...[
               const SizedBox(height: 8),
               Text(
-                'Total mismatch: expected ${_formatMoney(_currency, totalMismatch['expected'] ?? 0)} but extracted ${_formatMoney(_currency, totalMismatch['actual'] ?? 0)}',
+                context.tr(
+                  'transaction_total_mismatch',
+                  params: {
+                    'expected': _formatMoney(
+                      _currency,
+                      totalMismatch['expected'] ?? 0,
+                    ),
+                    'actual': _formatMoney(
+                      _currency,
+                      totalMismatch['actual'] ?? 0,
+                    ),
+                  },
+                ),
                 style: const TextStyle(
                   color: Colors.orangeAccent,
                   fontSize: 12,

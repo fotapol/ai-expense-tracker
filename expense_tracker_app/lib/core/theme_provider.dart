@@ -38,7 +38,9 @@ class ThemeProvider extends ChangeNotifier {
     } else {
       return ThemeData(
         brightness: Brightness.light,
-        scaffoldBackgroundColor: const Color(0xFFF5F5F7), // Light gray background
+        scaffoldBackgroundColor: const Color(
+          0xFFF5F5F7,
+        ), // Light gray background
         colorScheme: ColorScheme.light(
           primary: Colors.deepPurpleAccent,
           surface: Colors.white, // White surface for elevated elements
