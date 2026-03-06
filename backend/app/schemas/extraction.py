@@ -2,6 +2,7 @@
 
 import datetime as dt
 from decimal import Decimal
+from typing import Annotated, Literal
 
 from pydantic import Field, field_validator
 
@@ -70,6 +71,31 @@ class ExtractedTransactionItem(SchemaBase):
         return value.strip().upper()
 
 
+class LineTotalMismatchWarning(SchemaBase):
+    """Warning emitted when qty * unit_price is not equal to extracted line total."""
+
+    type: Literal["LINE_TOTAL_MISMATCH"] = "LINE_TOTAL_MISMATCH"
+    line_no: int = Field(ge=1)
+    expected_amount: Amount2DP
+    extracted_amount: Amount2DP
+    difference: Amount2DP
+
+
+class ReceiptTotalMismatchWarning(SchemaBase):
+    """Warning emitted when sum of extracted item totals != receipt total."""
+
+    type: Literal["RECEIPT_TOTAL_MISMATCH"] = "RECEIPT_TOTAL_MISMATCH"
+    expected_total: Amount2DP
+    extracted_total: Amount2DP
+    difference: Amount2DP
+
+
+ExtractionWarning = Annotated[
+    LineTotalMismatchWarning | ReceiptTotalMismatchWarning,
+    Field(discriminator="type"),
+]
+
+
 class ExtractedReceiptData(SchemaBase):
     """Canonical structured extraction object consumed by transaction creation logic."""
 
@@ -82,6 +108,7 @@ class ExtractedReceiptData(SchemaBase):
     tax_total: Amount2DP | None = None
     primary_category_code: str | None = Field(default=None, max_length=64)
     items: list[ExtractedTransactionItem] = Field(default_factory=list)
+    warnings: list[ExtractionWarning] = Field(default_factory=list)
     confidence: float | None = Field(default=None, ge=0.0, le=1.0)
 
     @field_validator("currency")

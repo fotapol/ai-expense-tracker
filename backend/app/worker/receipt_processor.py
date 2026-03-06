@@ -53,7 +53,12 @@ from app.models.shared.enums import CategoryScope, ReceiptStatus, TransactionSou
 from app.models.taxonomy.category import Category  # noqa: E402
 from app.models.transactions.transaction import Transaction  # noqa: E402
 from app.models.transactions.transaction_item import TransactionItem  # noqa: E402
-from app.schemas.extraction import ExtractedReceiptData  # noqa: E402
+from app.schemas.extraction import (  # noqa: E402
+    ExtractedReceiptData,
+    LineTotalMismatchWarning,
+    ReceiptTotalMismatchWarning,
+)
+from app.schemas.shared import quantize_amount  # noqa: E402
 
 RABBITMQ_URL: str = os.environ.get("RABBITMQ_URL", "amqp://guest:guest@rabbitmq:5672/")
 QUEUE_NAME = "receipt_extraction"
@@ -126,6 +131,44 @@ If no item subcategory matches confidently, use UNKNOWN_ITEM.
         "model_name": llm_settings.MODEL_NAME,
         "latency_ms": latency_ms,
     }
+
+
+def _compute_extraction_warnings(extracted: ExtractedReceiptData) -> list:
+    """Build strict extraction mismatch warnings."""
+
+    warnings = []
+
+    for idx, item in enumerate(extracted.items, start=1):
+        if item.qty is None or item.unit_price is None or item.amount is None:
+            continue
+
+        expected_amount = quantize_amount(item.qty * item.unit_price)
+        extracted_amount = quantize_amount(item.amount)
+        if expected_amount != extracted_amount:
+            warnings.append(
+                LineTotalMismatchWarning(
+                    line_no=item.line_no or idx,
+                    expected_amount=expected_amount,
+                    extracted_amount=extracted_amount,
+                    difference=quantize_amount(extracted_amount - expected_amount),
+                )
+            )
+
+    if extracted.amount_total is not None:
+        expected_total = quantize_amount(
+            sum((item.amount or Decimal("0")) for item in extracted.items)
+        )
+        extracted_total = quantize_amount(extracted.amount_total)
+        if expected_total != extracted_total:
+            warnings.append(
+                ReceiptTotalMismatchWarning(
+                    expected_total=expected_total,
+                    extracted_total=extracted_total,
+                    difference=quantize_amount(extracted_total - expected_total),
+                )
+            )
+
+    return warnings
 
 
 # ---------------------------------------------------------------------------
@@ -387,6 +430,11 @@ def process_receipt(receipt_id: str) -> None:
 
             # --- Validate with Pydantic --------------------------------------
             extracted = ExtractedReceiptData.model_validate(raw_json)
+            computed_warnings = _compute_extraction_warnings(extracted)
+            if computed_warnings:
+                extracted = extracted.model_copy(
+                    update={"warnings": [*extracted.warnings, *computed_warnings]}
+                )
 
             # --- Save ReceiptExtraction --------------------------------------
             extraction = ReceiptExtraction(
