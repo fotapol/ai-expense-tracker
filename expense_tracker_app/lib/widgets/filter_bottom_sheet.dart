@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import '../core/api_client.dart';
 import '../core/period_filter.dart';
+import '../core/taxonomy_localization.dart';
+import '../l10n/app_localizations.dart';
 
 /// Reusable filter bottom sheet matching the screenshot design.
 /// Returns a Map of selected filters or null if cancelled.
@@ -91,18 +93,36 @@ class _FilterBottomSheetState extends State<FilterBottomSheet> {
     return count;
   }
 
+  String _localizedCategoryName(Map<String, dynamic> category) {
+    return localizeCategoryByCode(
+      context,
+      code: category['code']?.toString(),
+      fallbackName: category['name']?.toString(),
+    );
+  }
+
   List<dynamic> get _topLevelCategories {
-    return _categories.where((c) => c['parent_id'] == null).toList()
-      ..sort((a, b) => (a['name'] as String).compareTo(b['name'] as String));
+    return _categories.where((c) => c['parent_id'] == null).toList()..sort(
+      (a, b) => _localizedCategoryName(a as Map<String, dynamic>)
+          .toLowerCase()
+          .compareTo(
+            _localizedCategoryName(b as Map<String, dynamic>).toLowerCase(),
+          ),
+    );
   }
 
   List<dynamic> get _availableSubcategories {
     if (_selectedCategoryIds.isEmpty) return [];
     return _categories.where((c) {
-        final parentId = c['parent_id'] as String?;
-        return parentId != null && _selectedCategoryIds.contains(parentId);
-      }).toList()
-      ..sort((a, b) => (a['name'] as String).compareTo(b['name'] as String));
+      final parentId = c['parent_id'] as String?;
+      return parentId != null && _selectedCategoryIds.contains(parentId);
+    }).toList()..sort(
+      (a, b) => _localizedCategoryName(a as Map<String, dynamic>)
+          .toLowerCase()
+          .compareTo(
+            _localizedCategoryName(b as Map<String, dynamic>).toLowerCase(),
+          ),
+    );
   }
 
   void _pruneUnavailableSubcategories() {
@@ -149,7 +169,9 @@ class _FilterBottomSheetState extends State<FilterBottomSheet> {
         return StatefulBuilder(
           builder: (context, setModalState) {
             final filtered = available.where((subcat) {
-              final name = (subcat['name'] as String).toLowerCase();
+              final name = _localizedCategoryName(
+                subcat as Map<String, dynamic>,
+              ).toLowerCase();
               return name.contains(search.toLowerCase());
             }).toList();
 
@@ -164,19 +186,19 @@ class _FilterBottomSheetState extends State<FilterBottomSheet> {
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    const Text(
-                      'Select Subcategories',
-                      style: TextStyle(
+                    Text(
+                      context.tr('filters_select_subcategories'),
+                      style: const TextStyle(
                         fontSize: 18,
                         fontWeight: FontWeight.bold,
                       ),
                     ),
                     const SizedBox(height: 12),
                     TextField(
-                      decoration: const InputDecoration(
-                        hintText: 'Search subcategory...',
-                        prefixIcon: Icon(Icons.search),
-                        border: OutlineInputBorder(),
+                      decoration: InputDecoration(
+                        hintText: context.tr('filters_search_subcategory'),
+                        prefixIcon: const Icon(Icons.search),
+                        border: const OutlineInputBorder(),
                       ),
                       onChanged: (value) => setModalState(() => search = value),
                     ),
@@ -184,15 +206,19 @@ class _FilterBottomSheetState extends State<FilterBottomSheet> {
                     SizedBox(
                       height: 320,
                       child: filtered.isEmpty
-                          ? const Center(
-                              child: Text('No matching subcategories'),
+                          ? Center(
+                              child: Text(
+                                context.tr('filters_no_matching_subcategories'),
+                              ),
                             )
                           : ListView.builder(
                               itemCount: filtered.length,
                               itemBuilder: (context, index) {
                                 final subcat = filtered[index];
                                 final id = subcat['id'] as String;
-                                final name = subcat['name'] as String;
+                                final name = _localizedCategoryName(
+                                  subcat as Map<String, dynamic>,
+                                );
                                 final checked = selected.contains(id);
                                 return CheckboxListTile(
                                   value: checked,
@@ -215,12 +241,12 @@ class _FilterBottomSheetState extends State<FilterBottomSheet> {
                       children: [
                         TextButton(
                           onPressed: () => Navigator.pop(context),
-                          child: const Text('Cancel'),
+                          child: Text(context.tr('common_cancel')),
                         ),
                         const Spacer(),
                         FilledButton(
                           onPressed: () => Navigator.pop(context, selected),
-                          child: const Text('Apply'),
+                          child: Text(context.tr('common_apply')),
                         ),
                       ],
                     ),
@@ -268,10 +294,18 @@ class _FilterBottomSheetState extends State<FilterBottomSheet> {
                 children: [
                   TextButton(
                     onPressed: () => Navigator.pop(context),
-                    child: const Text('Cancel', style: TextStyle(fontSize: 16)),
+                    child: Text(
+                      context.tr('common_cancel'),
+                      style: const TextStyle(fontSize: 16),
+                    ),
                   ),
                   Text(
-                    'Filters${_activeFilterCount > 0 ? ' ($_activeFilterCount)' : ''}',
+                    _activeFilterCount > 0
+                        ? context.tr(
+                            'filters_title_with_count',
+                            params: {'count': _activeFilterCount.toString()},
+                          )
+                        : context.tr('filters_title'),
                     style: const TextStyle(
                       fontSize: 18,
                       fontWeight: FontWeight.bold,
@@ -280,7 +314,7 @@ class _FilterBottomSheetState extends State<FilterBottomSheet> {
                   TextButton(
                     onPressed: _apply,
                     child: Text(
-                      'Apply',
+                      context.tr('common_apply'),
                       style: TextStyle(
                         fontSize: 16,
                         color: Theme.of(context).colorScheme.primary,
@@ -297,20 +331,32 @@ class _FilterBottomSheetState extends State<FilterBottomSheet> {
                 controller: scrollController,
                 padding: const EdgeInsets.symmetric(horizontal: 16),
                 children: [
-                  _buildSectionTitle(Icons.calendar_today, 'Period'),
+                  _buildSectionTitle(
+                    Icons.calendar_today,
+                    context.tr('filters_period'),
+                  ),
                   const SizedBox(height: 8),
                   _buildPeriodChips(),
                   const SizedBox(height: 24),
-                  _buildSectionTitle(Icons.category, 'Category'),
+                  _buildSectionTitle(
+                    Icons.category,
+                    context.tr('filters_category'),
+                  ),
                   const SizedBox(height: 8),
                   _buildCategoryChips(),
                   const SizedBox(height: 24),
-                  _buildSectionTitle(Icons.account_tree, 'Subcategory'),
+                  _buildSectionTitle(
+                    Icons.account_tree,
+                    context.tr('filters_subcategory'),
+                  ),
                   const SizedBox(height: 8),
                   _buildSubcategoryPicker(),
                   const SizedBox(height: 24),
                   if (_labels.isNotEmpty) ...[
-                    _buildSectionTitle(Icons.label, 'Labels'),
+                    _buildSectionTitle(
+                      Icons.label,
+                      context.tr('filters_labels'),
+                    ),
                     const SizedBox(height: 8),
                     _buildLabelChips(),
                     const SizedBox(height: 24),
@@ -323,7 +369,7 @@ class _FilterBottomSheetState extends State<FilterBottomSheet> {
                       color: Colors.red.shade400,
                     ),
                     label: Text(
-                      'Clear All Filters',
+                      context.tr('filters_clear_all'),
                       style: TextStyle(
                         color: Colors.red.shade400,
                         fontSize: 16,
@@ -360,7 +406,7 @@ class _FilterBottomSheetState extends State<FilterBottomSheet> {
       children: PeriodFilter.values.map((period) {
         final isSelected = _selectedPeriod == period;
         return ChoiceChip(
-          label: Text(period),
+          label: Text(context.tr(PeriodFilter.localizationKey(period))),
           selected: isSelected,
           onSelected: (selected) {
             if (selected) setState(() => _selectedPeriod = period);
@@ -386,7 +432,7 @@ class _FilterBottomSheetState extends State<FilterBottomSheet> {
     }
     if (_categories.isEmpty) {
       return Text(
-        'No categories available',
+        context.tr('filters_no_categories'),
         style: TextStyle(color: Colors.grey.shade500),
       );
     }
@@ -396,7 +442,7 @@ class _FilterBottomSheetState extends State<FilterBottomSheet> {
       runSpacing: 8,
       children: _topLevelCategories.map((cat) {
         final id = cat['id'] as String;
-        final name = cat['name'] as String? ?? '';
+        final name = _localizedCategoryName(cat as Map<String, dynamic>);
         final isSelected = _selectedCategoryIds.contains(id);
 
         return FilterChip(
@@ -430,14 +476,14 @@ class _FilterBottomSheetState extends State<FilterBottomSheet> {
     }
     if (_selectedCategoryIds.isEmpty) {
       return Text(
-        'Select one or more categories to choose subcategories.',
+        context.tr('filters_select_categories_for_subcategories'),
         style: TextStyle(color: Colors.grey.shade500),
       );
     }
     final available = _availableSubcategories;
     if (available.isEmpty) {
       return Text(
-        'No subcategories available for selected categories.',
+        context.tr('filters_no_subcategories_for_categories'),
         style: TextStyle(color: Colors.grey.shade500),
       );
     }
@@ -450,8 +496,13 @@ class _FilterBottomSheetState extends State<FilterBottomSheet> {
           icon: const Icon(Icons.arrow_drop_down),
           label: Text(
             _selectedSubcategoryIds.isEmpty
-                ? 'Select subcategories'
-                : '${_selectedSubcategoryIds.length} selected',
+                ? context.tr('filters_select_subcategories')
+                : context.tr(
+                    'filters_selected_count',
+                    params: {
+                      'count': _selectedSubcategoryIds.length.toString(),
+                    },
+                  ),
           ),
         ),
         if (_selectedSubcategoryIds.isNotEmpty) ...[
@@ -465,7 +516,9 @@ class _FilterBottomSheetState extends State<FilterBottomSheet> {
                 )
                 .map((subcat) {
                   final id = subcat['id'] as String;
-                  final name = subcat['name'] as String;
+                  final name = _localizedCategoryName(
+                    subcat as Map<String, dynamic>,
+                  );
                   return Chip(
                     label: Text(name),
                     onDeleted: () {
@@ -483,7 +536,7 @@ class _FilterBottomSheetState extends State<FilterBottomSheet> {
   Widget _buildLabelChips() {
     if (_labels.isEmpty) {
       return Text(
-        'No labels available',
+        context.tr('filters_no_labels'),
         style: TextStyle(color: Colors.grey.shade500),
       );
     }
@@ -501,7 +554,7 @@ class _FilterBottomSheetState extends State<FilterBottomSheet> {
       children: sortedLabels.map((raw) {
         final label = raw as Map<String, dynamic>;
         final id = label['id']?.toString() ?? '';
-        final name = label['name']?.toString() ?? 'Label';
+        final name = label['name']?.toString() ?? context.tr('labels_title');
         final isSelected = _selectedLabelIds.contains(id);
         return FilterChip(
           label: Text(name),

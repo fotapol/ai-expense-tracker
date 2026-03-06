@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../core/api_client.dart';
 import '../core/category_style.dart';
+import '../l10n/app_localizations.dart';
 
 class AnalyticsSubcategoryItemsScreen extends StatefulWidget {
   final String subcategoryId;
@@ -155,12 +156,20 @@ class _AnalyticsSubcategoryItemsScreenState
     required String description,
   }) {
     final timesText = occurrences == 1
-        ? 'Bought once'
-        : 'Bought $occurrences times';
+        ? context.tr('analytics_bought_once')
+        : context.tr(
+            'analytics_bought_times',
+            params: {'count': occurrences.toString()},
+          );
     if (totalQty == null) return timesText;
 
-    final qtyText =
-        'Total quantity ${_formatQty(totalQty)} ${_displayUnit(unit, description: description)}';
+    final qtyText = context.tr(
+      'analytics_total_quantity',
+      params: {
+        'qty': _formatQty(totalQty),
+        'unit': _displayUnit(unit, description: description),
+      },
+    );
     return '$timesText - $qtyText';
   }
 
@@ -176,7 +185,7 @@ class _AnalyticsSubcategoryItemsScreenState
               child: Padding(
                 padding: const EdgeInsets.all(16),
                 child: Text(
-                  'Error: $_error',
+                  _error ?? context.tr('common_error'),
                   style: const TextStyle(color: Colors.red),
                 ),
               ),
@@ -224,15 +233,18 @@ class _AnalyticsSubcategoryItemsScreenState
                 ),
                 const SizedBox(height: 4),
                 Text(
-                  '$totalItems purchases',
+                  context.tr(
+                    'analytics_purchases_count',
+                    params: {'count': totalItems.toString()},
+                  ),
                   style: TextStyle(color: Colors.grey.shade400),
                 ),
               ],
             ),
           ),
           const SizedBox(height: 20),
-          const Text(
-            'Purchased Items',
+          Text(
+            context.tr('analytics_purchased_items'),
             style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
           ),
           const SizedBox(height: 12),
@@ -240,13 +252,15 @@ class _AnalyticsSubcategoryItemsScreenState
             Padding(
               padding: const EdgeInsets.only(top: 24),
               child: Text(
-                'No items found for this subcategory.',
+                context.tr('analytics_no_items_for_subcategory'),
                 style: TextStyle(color: Colors.grey.shade500),
               ),
             ),
           ...items.map((raw) {
             final item = raw as Map<String, dynamic>;
-            final name = item['description']?.toString() ?? 'Unknown item';
+            final name =
+                item['description']?.toString() ??
+                context.tr('analytics_unknown_item');
             final amount = (item['amount'] as num?)?.toDouble() ?? 0.0;
             final occurrences = (item['occurrences'] as num?)?.toInt() ?? 0;
             final totalQty = (item['total_qty'] as num?)?.toDouble();

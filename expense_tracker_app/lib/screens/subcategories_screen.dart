@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import '../core/api_client.dart';
+import '../core/taxonomy_localization.dart';
+import '../l10n/app_localizations.dart';
 
 class SubcategoriesScreen extends StatefulWidget {
   final String parentId;
@@ -64,12 +66,17 @@ class _SubcategoriesScreenState extends State<SubcategoriesScreen> {
     final result = await showDialog<String>(
       context: context,
       builder: (context) => AlertDialog(
-        title: Text('New Subcategory for ${widget.parentName}'),
+        title: Text(
+          context.tr(
+            'subcategories_new_for_parent',
+            params: {'name': widget.parentName},
+          ),
+        ),
         content: TextField(
           controller: controller,
-          decoration: const InputDecoration(
-            hintText: 'Subcategory name',
-            border: OutlineInputBorder(),
+          decoration: InputDecoration(
+            hintText: context.tr('subcategories_name_hint'),
+            border: const OutlineInputBorder(),
           ),
           autofocus: true,
           textCapitalization: TextCapitalization.words,
@@ -77,11 +84,11 @@ class _SubcategoriesScreenState extends State<SubcategoriesScreen> {
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: const Text('Cancel'),
+            child: Text(context.tr('common_cancel')),
           ),
           FilledButton(
             onPressed: () => Navigator.pop(context, controller.text),
-            child: const Text('Create'),
+            child: Text(context.tr('common_create')),
           ),
         ],
       ),
@@ -96,13 +103,25 @@ class _SubcategoriesScreenState extends State<SubcategoriesScreen> {
         _fetchSubcategories();
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('Subcategory "$result" created!')),
+            SnackBar(
+              content: Text(
+                context.tr('subcategories_created', params: {'name': result}),
+              ),
+            ),
           );
         }
       } catch (e) {
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('Error: $e'), backgroundColor: Colors.red),
+            SnackBar(
+              content: Text(
+                context.tr(
+                  'common_error_with_message',
+                  params: {'message': e.toString()},
+                ),
+              ),
+              backgroundColor: Colors.red,
+            ),
           );
         }
       }
@@ -113,17 +132,19 @@ class _SubcategoriesScreenState extends State<SubcategoriesScreen> {
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Delete Subcategory'),
-        content: Text('Are you sure you want to delete "$name"?'),
+        title: Text(context.tr('subcategories_delete_title')),
+        content: Text(
+          context.tr('subcategories_delete_confirm', params: {'name': name}),
+        ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context, false),
-            child: const Text('Cancel'),
+            child: Text(context.tr('common_cancel')),
           ),
           FilledButton(
             onPressed: () => Navigator.pop(context, true),
             style: FilledButton.styleFrom(backgroundColor: Colors.red),
-            child: const Text('Delete'),
+            child: Text(context.tr('common_delete')),
           ),
         ],
       ),
@@ -134,14 +155,26 @@ class _SubcategoriesScreenState extends State<SubcategoriesScreen> {
         await ApiClient.deleteCategory(id);
         _fetchSubcategories();
         if (mounted) {
-          ScaffoldMessenger.of(
-            context,
-          ).showSnackBar(SnackBar(content: Text('"$name" deleted.')));
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(
+                context.tr('subcategories_deleted', params: {'name': name}),
+              ),
+            ),
+          );
         }
       } catch (e) {
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('Error: $e'), backgroundColor: Colors.red),
+            SnackBar(
+              content: Text(
+                context.tr(
+                  'common_error_with_message',
+                  params: {'message': e.toString()},
+                ),
+              ),
+              backgroundColor: Colors.red,
+            ),
           );
         }
       }
@@ -152,7 +185,12 @@ class _SubcategoriesScreenState extends State<SubcategoriesScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('${widget.parentName} Subcategories'),
+        title: Text(
+          context.tr(
+            'subcategories_title_for_parent',
+            params: {'name': widget.parentName},
+          ),
+        ),
         backgroundColor: Colors.transparent,
         elevation: 0,
       ),
@@ -165,7 +203,10 @@ class _SubcategoriesScreenState extends State<SubcategoriesScreen> {
           : _subcategories.isEmpty
           ? Center(
               child: Text(
-                'No subcategories found for ${widget.parentName}.',
+                context.tr(
+                  'subcategories_not_found_for_parent',
+                  params: {'name': widget.parentName},
+                ),
                 style: TextStyle(color: Colors.grey.shade400),
               ),
             )
@@ -174,7 +215,11 @@ class _SubcategoriesScreenState extends State<SubcategoriesScreen> {
               itemCount: _subcategories.length,
               itemBuilder: (context, index) {
                 final cat = _subcategories[index];
-                final name = cat['name'] as String;
+                final name = localizeCategoryByCode(
+                  context,
+                  code: cat['code']?.toString(),
+                  fallbackName: cat['name'] as String?,
+                );
                 final id = cat['id'] as String;
                 final color = _getCategoryColor(index);
 
@@ -226,7 +271,7 @@ class _SubcategoriesScreenState extends State<SubcategoriesScreen> {
       floatingActionButton: FloatingActionButton.extended(
         onPressed: _showAddSubcategoryDialog,
         icon: const Icon(Icons.add),
-        label: const Text('Add Subcategory'),
+        label: Text(context.tr('categories_add_subcategory')),
       ),
     );
   }

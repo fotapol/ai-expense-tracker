@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:google_sign_in/google_sign_in.dart';
+import '../l10n/app_localizations.dart';
 import 'me_screen.dart';
 
 /// Login screen with a "Continue with Google" button.
@@ -20,8 +21,8 @@ class _LoginScreenState extends State<LoginScreen> {
     try {
       // Trigger interactive Google Sign-In (v7 API).
       // authenticate() throws GoogleSignInException on cancel/failure.
-      final GoogleSignInAccount googleUser =
-          await GoogleSignIn.instance.authenticate();
+      final GoogleSignInAccount googleUser = await GoogleSignIn.instance
+          .authenticate();
 
       // Obtain the Google ID token for Firebase credential exchange.
       final String? googleIdToken = googleUser.authentication.idToken;
@@ -33,9 +34,9 @@ class _LoginScreenState extends State<LoginScreen> {
       await FirebaseAuth.instance.signInWithCredential(credential);
 
       if (mounted) {
-        Navigator.of(context).pushReplacement(
-          MaterialPageRoute(builder: (_) => const MeScreen()),
-        );
+        Navigator.of(
+          context,
+        ).pushReplacement(MaterialPageRoute(builder: (_) => const MeScreen()));
       }
     } on GoogleSignInException catch (e) {
       // User canceled sign-in or other Google Sign-In specific error.
@@ -44,13 +45,24 @@ class _LoginScreenState extends State<LoginScreen> {
         debugPrint('Google Sign-In canceled by user.');
       } else if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Google Sign-In error: ${e.description}')),
+          SnackBar(
+            content: Text(
+              context.tr(
+                'login_google_error',
+                params: {'error': e.description ?? 'Unknown'},
+              ),
+            ),
+          ),
         );
       }
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Sign in failed: $e')),
+          SnackBar(
+            content: Text(
+              context.tr('login_failed', params: {'error': e.toString()}),
+            ),
+          ),
         );
       }
     } finally {
@@ -61,13 +73,13 @@ class _LoginScreenState extends State<LoginScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Login')),
+      appBar: AppBar(title: Text(context.tr('login_title'))),
       body: Center(
         child: _isLoading
             ? const CircularProgressIndicator()
             : ElevatedButton.icon(
                 icon: const Icon(Icons.login),
-                label: const Text('Continue with Google'),
+                label: Text(context.tr('login_continue_google')),
                 onPressed: _signInWithGoogle,
               ),
       ),

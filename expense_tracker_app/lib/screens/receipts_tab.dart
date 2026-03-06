@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import '../core/api_client.dart';
 import '../core/category_style.dart';
+import '../core/taxonomy_localization.dart';
+import '../l10n/app_localizations.dart';
 import '../core/period_filter.dart';
 import '../widgets/filter_bottom_sheet.dart';
 import 'transaction_edit_screen.dart';
@@ -65,15 +67,23 @@ class _ReceiptsTabState extends State<ReceiptsTab> {
   String? _categoryPathLabel(String? categoryId) {
     final category = _findCategoryById(categoryId);
     if (category == null) return null;
-    final childName = category['name']?.toString();
-    if (childName == null || childName.isEmpty) return null;
+    final childName = localizeCategoryByCode(
+      context,
+      code: category['code']?.toString(),
+      fallbackName: category['name']?.toString(),
+    );
+    if (childName.isEmpty) return null;
     final parentId = category['parent_id']?.toString();
     if (parentId == null || parentId.isEmpty) {
       return childName;
     }
     final parent = _findCategoryById(parentId);
-    final parentName = parent?['name']?.toString();
-    if (parentName == null || parentName.isEmpty) {
+    final parentName = localizeCategoryByCode(
+      context,
+      code: parent?['code']?.toString(),
+      fallbackName: parent?['name']?.toString(),
+    );
+    if (parentName.isEmpty) {
       return childName;
     }
     return '$parentName * $childName';
@@ -196,19 +206,17 @@ class _ReceiptsTabState extends State<ReceiptsTab> {
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Delete Receipt'),
-        content: const Text(
-          'This will permanently delete the receipt and all its items. Are you sure?',
-        ),
+        title: Text(context.tr('receipts_delete_title')),
+        content: Text(context.tr('receipts_delete_confirm')),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context, false),
-            child: const Text('Cancel'),
+            child: Text(context.tr('common_cancel')),
           ),
           FilledButton(
             onPressed: () => Navigator.pop(context, true),
             style: FilledButton.styleFrom(backgroundColor: Colors.red),
-            child: const Text('Delete'),
+            child: Text(context.tr('common_delete')),
           ),
         ],
       ),
@@ -219,14 +227,22 @@ class _ReceiptsTabState extends State<ReceiptsTab> {
         await ApiClient.deleteReceipt(receiptId);
         _fetchTransactions();
         if (mounted) {
-          ScaffoldMessenger.of(
-            context,
-          ).showSnackBar(const SnackBar(content: Text('Receipt deleted.')));
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text(context.tr('receipts_deleted'))),
+          );
         }
       } catch (e) {
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('Error: $e'), backgroundColor: Colors.red),
+            SnackBar(
+              content: Text(
+                context.tr(
+                  'common_error_with_message',
+                  params: {'message': e.toString()},
+                ),
+              ),
+              backgroundColor: Colors.red,
+            ),
           );
         }
       }
@@ -267,11 +283,11 @@ class _ReceiptsTabState extends State<ReceiptsTab> {
               ),
               child: TextField(
                 controller: _searchController,
-                decoration: const InputDecoration(
-                  hintText: 'Search by store...',
-                  prefixIcon: Icon(Icons.search, color: Colors.grey),
+                decoration: InputDecoration(
+                  hintText: context.tr('receipts_search_hint'),
+                  prefixIcon: const Icon(Icons.search, color: Colors.grey),
                   border: InputBorder.none,
-                  contentPadding: EdgeInsets.symmetric(vertical: 14),
+                  contentPadding: const EdgeInsets.symmetric(vertical: 14),
                 ),
                 onSubmitted: (_) => _fetchTransactions(),
               ),
@@ -314,7 +330,7 @@ class _ReceiptsTabState extends State<ReceiptsTab> {
                   ),
                   const SizedBox(width: 6),
                   Text(
-                    _selectedPeriod,
+                    context.tr(PeriodFilter.localizationKey(_selectedPeriod)),
                     style: TextStyle(
                       color: Theme.of(context).colorScheme.primary,
                       fontSize: 13,
@@ -341,7 +357,10 @@ class _ReceiptsTabState extends State<ReceiptsTab> {
               const SizedBox(width: 8),
               Chip(
                 label: Text(
-                  '${_selectedCategoryIds.length} categories',
+                  context.tr(
+                    'filters_categories_count',
+                    params: {'count': _selectedCategoryIds.length.toString()},
+                  ),
                   style: const TextStyle(fontSize: 12),
                 ),
                 deleteIcon: const Icon(Icons.close, size: 16),
@@ -358,7 +377,12 @@ class _ReceiptsTabState extends State<ReceiptsTab> {
               const SizedBox(width: 8),
               Chip(
                 label: Text(
-                  '${_selectedSubcategoryIds.length} subcategories',
+                  context.tr(
+                    'filters_subcategories_count',
+                    params: {
+                      'count': _selectedSubcategoryIds.length.toString(),
+                    },
+                  ),
                   style: const TextStyle(fontSize: 12),
                 ),
                 deleteIcon: const Icon(Icons.close, size: 16),
@@ -372,7 +396,10 @@ class _ReceiptsTabState extends State<ReceiptsTab> {
               const SizedBox(width: 8),
               Chip(
                 label: Text(
-                  '${_selectedLabelIds.length} labels',
+                  context.tr(
+                    'filters_labels_count',
+                    params: {'count': _selectedLabelIds.length.toString()},
+                  ),
                   style: const TextStyle(fontSize: 12),
                 ),
                 deleteIcon: const Icon(Icons.close, size: 16),
@@ -399,11 +426,14 @@ class _ReceiptsTabState extends State<ReceiptsTab> {
           children: [
             const Icon(Icons.error_outline, color: Colors.red, size: 48),
             const SizedBox(height: 16),
-            Text('Error: $_error', textAlign: TextAlign.center),
+            Text(
+              _error ?? context.tr('common_error'),
+              textAlign: TextAlign.center,
+            ),
             const SizedBox(height: 16),
             ElevatedButton(
               onPressed: _fetchTransactions,
-              child: const Text('Retry'),
+              child: Text(context.tr('common_retry')),
             ),
           ],
         ),
@@ -418,7 +448,7 @@ class _ReceiptsTabState extends State<ReceiptsTab> {
             Icon(Icons.receipt_long, size: 64, color: Colors.grey.shade600),
             const SizedBox(height: 16),
             Text(
-              'No receipts found',
+              context.tr('receipts_no_data'),
               style: TextStyle(color: Colors.grey.shade400, fontSize: 16),
             ),
           ],
@@ -427,13 +457,14 @@ class _ReceiptsTabState extends State<ReceiptsTab> {
     }
 
     // Group transactions by month
+    final localeTag = Localizations.localeOf(context).toString();
     final groupedTransactions = <String, List<dynamic>>{};
     for (var tx in _transactions) {
       final occurredAtStr = tx['occurred_at'] as String?;
       if (occurredAtStr == null) continue;
       final date = DateTime.tryParse(occurredAtStr);
       if (date == null) continue;
-      final monthKey = DateFormat('MMMM yyyy').format(date);
+      final monthKey = DateFormat('MMMM yyyy', localeTag).format(date);
       groupedTransactions.putIfAbsent(monthKey, () => []).add(tx);
     }
 
@@ -488,7 +519,8 @@ class _ReceiptsTabState extends State<ReceiptsTab> {
   }
 
   Widget _buildTransactionCard(Map<String, dynamic> tx) {
-    final storeName = tx['merchant_name'] ?? 'Unknown Store';
+    final storeName =
+        tx['merchant_name'] ?? context.tr('receipts_unknown_store');
     final displayAmount = _displayAmountOf(tx);
     final displayCurrency = _displayCurrencyOf(tx);
     final sourceAmount =
@@ -501,19 +533,32 @@ class _ReceiptsTabState extends State<ReceiptsTab> {
         (displayCurrency != sourceCurrency ||
             (displayAmount - sourceAmount).abs() > 0.00001);
     String formattedTime = '';
+    final localeTag = Localizations.localeOf(context).toString();
     final occurredAtStr = tx['occurred_at'] as String?;
     if (occurredAtStr != null) {
       final date = DateTime.tryParse(occurredAtStr);
-      if (date != null) formattedTime = DateFormat('d MMM, HH:mm').format(date);
+      if (date != null) {
+        formattedTime = DateFormat('d MMM, HH:mm', localeTag).format(date);
+      }
     }
 
     final txCategoryId = tx['category_id']?.toString();
     final txCategory = _findCategoryById(txCategoryId);
     final txCategoryNameRaw = tx['category_name']?.toString().trim();
-    final txCategoryLabel =
-        (txCategoryNameRaw != null && txCategoryNameRaw.isNotEmpty)
-        ? txCategoryNameRaw
-        : _categoryPathLabel(txCategoryId);
+    String? txCategoryLabel = _categoryPathLabel(txCategoryId);
+    final categoryCode =
+        txCategory?['code']?.toString() ?? tx['category_code']?.toString();
+    final hasCategoryHint =
+        (categoryCode != null && categoryCode.isNotEmpty) ||
+        (txCategoryNameRaw != null && txCategoryNameRaw.isNotEmpty);
+    if ((txCategoryLabel == null || txCategoryLabel.isEmpty) &&
+        hasCategoryHint) {
+      txCategoryLabel = localizeCategoryByCode(
+        context,
+        code: categoryCode,
+        fallbackName: txCategoryNameRaw,
+      );
+    }
     final txCategoryCode = txCategory?['code']?.toString() ?? '';
     final iconColor = txCategory != null
         ? CategoryStyle.colorForCode(txCategoryCode)
@@ -720,7 +765,7 @@ class _ReceiptsTabState extends State<ReceiptsTab> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
-                'Total for period',
+                context.tr('receipts_total_for_period'),
                 style: TextStyle(color: Colors.grey.shade400, fontSize: 12),
               ),
               const SizedBox(height: 4),
@@ -734,7 +779,10 @@ class _ReceiptsTabState extends State<ReceiptsTab> {
             ],
           ),
           Text(
-            '${_transactions.length} receipts',
+            context.tr(
+              'receipts_count',
+              params: {'count': _transactions.length.toString()},
+            ),
             style: TextStyle(color: Colors.grey.shade400, fontSize: 14),
           ),
         ],

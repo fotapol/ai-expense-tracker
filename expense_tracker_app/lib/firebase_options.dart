@@ -63,9 +63,10 @@ class DefaultFirebaseOptions {
     messagingSenderId: '897439875337',
     projectId: 'ai-expense-tracker-51635',
     storageBucket: 'ai-expense-tracker-51635.firebasestorage.app',
-    androidClientId: '897439875337-qtbbnvrfps8ot7qncd2i8pbi19304gfi.apps.googleusercontent.com',
-    iosClientId: '897439875337-noj8tvs63gpasg9eg3nrlrf3aorjm93i.apps.googleusercontent.com',
+    androidClientId:
+        '897439875337-qtbbnvrfps8ot7qncd2i8pbi19304gfi.apps.googleusercontent.com',
+    iosClientId:
+        '897439875337-noj8tvs63gpasg9eg3nrlrf3aorjm93i.apps.googleusercontent.com',
     iosBundleId: 'com.example.expenseTrackerApp',
   );
-
 }

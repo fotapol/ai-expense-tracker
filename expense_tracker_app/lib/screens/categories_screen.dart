@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import '../core/api_client.dart';
 import '../core/category_style.dart';
+import '../core/taxonomy_localization.dart';
+import '../l10n/app_localizations.dart';
 import 'subcategories_screen.dart';
 
 class CategoriesScreen extends StatefulWidget {
@@ -53,21 +55,27 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
       context: context,
       builder: (context) => StatefulBuilder(
         builder: (context, setDialogState) => AlertDialog(
-          title: const Text('New Subcategory'),
+          title: Text(context.tr('categories_new_subcategory')),
           content: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
               DropdownButtonFormField<String>(
                 initialValue: selectedParentId,
-                decoration: const InputDecoration(
-                  labelText: 'Parent category',
-                  border: OutlineInputBorder(),
+                decoration: InputDecoration(
+                  labelText: context.tr('categories_parent_category'),
+                  border: const OutlineInputBorder(),
                 ),
                 items: parentOptions
                     .map(
                       (parent) => DropdownMenuItem<String>(
                         value: parent['id'] as String,
-                        child: Text(parent['name'] as String),
+                        child: Text(
+                          localizeCategoryByCode(
+                            context,
+                            code: parent['code']?.toString(),
+                            fallbackName: parent['name'] as String?,
+                          ),
+                        ),
                       ),
                     )
                     .toList(),
@@ -77,9 +85,9 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
               const SizedBox(height: 12),
               TextField(
                 controller: controller,
-                decoration: const InputDecoration(
-                  hintText: 'Subcategory name (e.g., Coffee)',
-                  border: OutlineInputBorder(),
+                decoration: InputDecoration(
+                  hintText: context.tr('categories_subcategory_hint'),
+                  border: const OutlineInputBorder(),
                 ),
                 autofocus: true,
                 textCapitalization: TextCapitalization.words,
@@ -89,7 +97,7 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
           actions: [
             TextButton(
               onPressed: () => Navigator.pop(context),
-              child: const Text('Cancel'),
+              child: Text(context.tr('common_cancel')),
             ),
             FilledButton(
               onPressed: () {
@@ -103,7 +111,7 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
                   'parent_id': selectedParentId!,
                 });
               },
-              child: const Text('Create'),
+              child: Text(context.tr('common_create')),
             ),
           ],
         ),
@@ -121,13 +129,28 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
         _fetchCategories();
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('Subcategory "${result['name']}" created!')),
+            SnackBar(
+              content: Text(
+                context.tr(
+                  'categories_subcategory_created',
+                  params: {'name': result['name']!},
+                ),
+              ),
+            ),
           );
         }
       } catch (e) {
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('Error: $e'), backgroundColor: Colors.red),
+            SnackBar(
+              content: Text(
+                context.tr(
+                  'common_error_with_message',
+                  params: {'message': e.toString()},
+                ),
+              ),
+              backgroundColor: Colors.red,
+            ),
           );
         }
       }
@@ -138,17 +161,19 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Delete Category'),
-        content: Text('Are you sure you want to delete "$name"?'),
+        title: Text(context.tr('categories_delete_title')),
+        content: Text(
+          context.tr('categories_delete_confirm', params: {'name': name}),
+        ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context, false),
-            child: const Text('Cancel'),
+            child: Text(context.tr('common_cancel')),
           ),
           FilledButton(
             onPressed: () => Navigator.pop(context, true),
             style: FilledButton.styleFrom(backgroundColor: Colors.red),
-            child: const Text('Delete'),
+            child: Text(context.tr('common_delete')),
           ),
         ],
       ),
@@ -159,14 +184,26 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
         await ApiClient.deleteCategory(id);
         _fetchCategories();
         if (mounted) {
-          ScaffoldMessenger.of(
-            context,
-          ).showSnackBar(SnackBar(content: Text('"$name" deleted.')));
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(
+                context.tr('categories_deleted', params: {'name': name}),
+              ),
+            ),
+          );
         }
       } catch (e) {
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('Error: $e'), backgroundColor: Colors.red),
+            SnackBar(
+              content: Text(
+                context.tr(
+                  'common_error_with_message',
+                  params: {'message': e.toString()},
+                ),
+              ),
+              backgroundColor: Colors.red,
+            ),
           );
         }
       }
@@ -175,7 +212,11 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
 
   Widget _buildCategoryItem(Map<String, dynamic> cat) {
     final code = cat['code'] as String? ?? '';
-    final name = cat['name'] as String? ?? '';
+    final name = localizeCategoryByCode(
+      context,
+      code: code,
+      fallbackName: cat['name'] as String?,
+    );
     final isDefault = cat['is_default'] as bool? ?? false;
     final id = cat['id'] as String;
 
@@ -224,7 +265,9 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
                   ),
                   const SizedBox(height: 2),
                   Text(
-                    isDefault ? 'Built-in' : 'Custom',
+                    isDefault
+                        ? context.tr('categories_built_in')
+                        : context.tr('categories_custom'),
                     style: TextStyle(fontSize: 12, color: Colors.grey.shade500),
                   ),
                 ],
@@ -252,7 +295,7 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Categories'),
+        title: Text(context.tr('categories_title')),
         backgroundColor: Colors.transparent,
         elevation: 0,
       ),
@@ -260,7 +303,7 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
       floatingActionButton: FloatingActionButton.extended(
         onPressed: _showAddCategoryDialog,
         icon: const Icon(Icons.add),
-        label: const Text('Add Subcategory'),
+        label: Text(context.tr('categories_add_subcategory')),
         backgroundColor: Theme.of(context).colorScheme.primary,
       ),
     );
@@ -282,7 +325,7 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
     if (_categories.isEmpty) {
       return Center(
         child: Text(
-          'No categories found.',
+          context.tr('categories_not_found'),
           style: TextStyle(color: Colors.grey.shade400, fontSize: 16),
         ),
       );

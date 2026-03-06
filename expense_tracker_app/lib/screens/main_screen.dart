@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../l10n/app_localizations.dart';
 import 'home_tab.dart';
 import 'me_screen.dart';
 import 'receipt_upload_screen.dart';
@@ -14,15 +15,6 @@ class MainScreen extends StatefulWidget {
 
 class _MainScreenState extends State<MainScreen> {
   int _selectedIndex = 0;
-
-  // We lazily load the screens to avoid initializing them all at once.
-  static final List<Widget> _widgetOptions = <Widget>[
-    const HomeTab(),
-    const ReceiptsTab(),
-    const Center(child: Text('Placeholder for Scan')), // Replaced by floating action button intercept
-    const AnalyticsTab(),
-    const MeScreen(), // The previous Profile/Me screen
-  ];
 
   void _onItemTapped(int index) {
     if (index == 2) {
@@ -40,36 +32,43 @@ class _MainScreenState extends State<MainScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final widgetOptions = <Widget>[
+      const HomeTab(),
+      const ReceiptsTab(),
+      const SizedBox.shrink(),
+      const AnalyticsTab(),
+      const MeScreen(),
+    ];
+
     return Scaffold(
-      body: _widgetOptions.elementAt(_selectedIndex),
+      body: widgetOptions.elementAt(_selectedIndex),
       bottomNavigationBar: BottomNavigationBar(
         type: BottomNavigationBarType.fixed,
-        backgroundColor: Theme.of(context).scaffoldBackgroundColor, // Dark grey matching body
-        selectedItemColor: Theme.of(context).colorScheme.primary, // Teal
+        backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+        selectedItemColor: Theme.of(context).colorScheme.primary,
         unselectedItemColor: Colors.grey,
         currentIndex: _selectedIndex,
         onTap: _onItemTapped,
-        items: const <BottomNavigationBarItem>[
+        items: <BottomNavigationBarItem>[
           BottomNavigationBarItem(
-            icon: Icon(Icons.home),
-            label: 'Home',
+            icon: const Icon(Icons.home),
+            label: context.tr('nav_home'),
           ),
           BottomNavigationBarItem(
-            icon: Icon(Icons.receipt_long),
-            label: 'Receipts',
+            icon: const Icon(Icons.receipt_long),
+            label: context.tr('nav_receipts'),
           ),
           BottomNavigationBarItem(
-            // Special icon matching the design's center scan button
-            icon: Icon(Icons.document_scanner_outlined, size: 36),
-            label: 'Scan Receipt',
+            icon: const Icon(Icons.document_scanner_outlined, size: 36),
+            label: context.tr('nav_scan_receipt'),
           ),
           BottomNavigationBarItem(
-            icon: Icon(Icons.bar_chart),
-            label: 'Analytics',
+            icon: const Icon(Icons.bar_chart),
+            label: context.tr('nav_analytics'),
           ),
           BottomNavigationBarItem(
-            icon: Icon(Icons.person),
-            label: 'Profile',
+            icon: const Icon(Icons.person),
+            label: context.tr('nav_profile'),
           ),
         ],
       ),

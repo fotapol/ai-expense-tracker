@@ -1,8 +1,11 @@
-import 'package:flutter/material.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:currency_picker/currency_picker.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter/material.dart';
 import 'package:google_sign_in/google_sign_in.dart';
+
 import '../core/api_client.dart';
+import '../l10n/app_localizations.dart';
+import '../l10n/app_languages.dart';
 import '../main.dart';
 import 'categories_screen.dart';
 import 'labels_screen.dart';
@@ -22,7 +25,6 @@ class _MeScreenState extends State<MeScreen> {
   String? _error;
   bool _isUpdatingCurrency = false;
 
-  // Local state for settings
   bool _notificationsEnabled = false;
 
   @override
@@ -33,7 +35,7 @@ class _MeScreenState extends State<MeScreen> {
 
   void _showComingSoon() {
     ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('This feature is coming soon!')),
+      SnackBar(content: Text(context.tr('settings_feature_coming_soon'))),
     );
   }
 
@@ -49,6 +51,20 @@ class _MeScreenState extends State<MeScreen> {
     return '${currency.symbol} ${currency.name}';
   }
 
+  String _languageNameForCode(String code) {
+    final normalized = code.toLowerCase();
+    for (final language in appLanguages) {
+      if (language.code == normalized) {
+        return language.nativeName;
+      }
+    }
+    return code.toUpperCase();
+  }
+
+  String _currentLanguageSubtitle() {
+    return _languageNameForCode(localeProvider.locale.languageCode);
+  }
+
   Future<void> _updateDefaultCurrency(String code) async {
     if (_isUpdatingCurrency) return;
 
@@ -60,13 +76,25 @@ class _MeScreenState extends State<MeScreen> {
       if (!mounted) return;
       setState(() => _profileData = updated);
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Currency updated to ${code.toUpperCase()}')),
+        SnackBar(
+          content: Text(
+            context.tr(
+              'settings_currency_updated',
+              params: {'code': code.toUpperCase()},
+            ),
+          ),
+        ),
       );
     } catch (e) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('Failed to update currency: $e'),
+          content: Text(
+            context.tr(
+              'settings_currency_update_failed',
+              params: {'error': e.toString()},
+            ),
+          ),
           backgroundColor: Colors.red,
         ),
       );
@@ -90,6 +118,127 @@ class _MeScreenState extends State<MeScreen> {
     );
   }
 
+  Future<void> _updateLanguage(String code) async {
+    await localeProvider.setLocale(Locale(code));
+    if (!mounted) return;
+    setState(() {});
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(
+          context.tr(
+            'settings_language_updated',
+            params: {'language': _languageNameForCode(code)},
+          ),
+        ),
+      ),
+    );
+  }
+
+  void _openLanguagePicker() {
+    showModalBottomSheet<void>(
+      context: context,
+      isScrollControlled: true,
+      builder: (context) {
+        String query = '';
+        final currentCode = localeProvider.locale.languageCode;
+        return StatefulBuilder(
+          builder: (context, setModalState) {
+            final normalizedQuery = query.trim().toLowerCase();
+            final filtered = appLanguages.where((language) {
+              if (normalizedQuery.isEmpty) return true;
+              if (language.nativeName.toLowerCase().contains(normalizedQuery)) {
+                return true;
+              }
+              if (language.code.toLowerCase().contains(normalizedQuery)) {
+                return true;
+              }
+              for (final keyword in language.searchKeywords) {
+                if (keyword.toLowerCase().contains(normalizedQuery)) {
+                  return true;
+                }
+              }
+              return false;
+            }).toList();
+
+            return SafeArea(
+              child: Padding(
+                padding: EdgeInsets.only(
+                  left: 16,
+                  right: 16,
+                  top: 16,
+                  bottom: 16 + MediaQuery.of(context).viewInsets.bottom,
+                ),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Container(
+                      width: 40,
+                      height: 4,
+                      margin: const EdgeInsets.only(bottom: 16),
+                      decoration: BoxDecoration(
+                        color: Colors.grey.shade600,
+                        borderRadius: BorderRadius.circular(999),
+                      ),
+                    ),
+                    Align(
+                      alignment: Alignment.centerLeft,
+                      child: Text(
+                        context.tr('language_picker_title'),
+                        style: const TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+                    TextField(
+                      onChanged: (value) => setModalState(() => query = value),
+                      decoration: InputDecoration(
+                        hintText: context.tr('language_picker_search'),
+                        prefixIcon: const Icon(Icons.search),
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(14),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+                    SizedBox(
+                      height: MediaQuery.of(context).size.height * 0.55,
+                      child: ListView.separated(
+                        itemCount: filtered.length,
+                        separatorBuilder: (_, _) => const SizedBox(height: 2),
+                        itemBuilder: (context, index) {
+                          final language = filtered[index];
+                          final code = language.code;
+                          final selected = code == currentCode;
+                          return ListTile(
+                            title: Text(language.nativeName),
+                            trailing: Icon(
+                              selected
+                                  ? Icons.radio_button_checked
+                                  : Icons.radio_button_off,
+                              color: selected
+                                  ? Theme.of(context).colorScheme.primary
+                                  : Colors.grey.shade500,
+                            ),
+                            onTap: () {
+                              Navigator.pop(context);
+                              _updateLanguage(code);
+                            },
+                          );
+                        },
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            );
+          },
+        );
+      },
+    );
+  }
+
   Future<void> _fetchProfile() async {
     try {
       final data = await ApiClient.getMe();
@@ -99,7 +248,10 @@ class _MeScreenState extends State<MeScreen> {
       });
     } catch (e) {
       setState(() {
-        _error = e.toString();
+        _error = context.tr(
+          'settings_failed_load_profile',
+          params: {'error': e.toString()},
+        );
         _isLoading = false;
       });
     }
@@ -110,9 +262,9 @@ class _MeScreenState extends State<MeScreen> {
     await FirebaseAuth.instance.signOut();
 
     if (mounted) {
-      Navigator.of(context).pushReplacement(
-        MaterialPageRoute(builder: (_) => const LoginScreen()),
-      );
+      Navigator.of(
+        context,
+      ).pushReplacement(MaterialPageRoute(builder: (_) => const LoginScreen()));
     }
   }
 
@@ -120,7 +272,10 @@ class _MeScreenState extends State<MeScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Settings', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 24)),
+        title: Text(
+          context.tr('settings_title'),
+          style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 24),
+        ),
         backgroundColor: Colors.transparent,
         elevation: 0,
         centerTitle: false,
@@ -139,7 +294,7 @@ class _MeScreenState extends State<MeScreen> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Text('Error: $_error', style: const TextStyle(color: Colors.red)),
+            Text(_error!, style: const TextStyle(color: Colors.red)),
             const SizedBox(height: 16),
             ElevatedButton(
               onPressed: () {
@@ -149,14 +304,13 @@ class _MeScreenState extends State<MeScreen> {
                 });
                 _fetchProfile();
               },
-              child: const Text('Retry'),
+              child: Text(context.tr('common_retry')),
             ),
           ],
         ),
       );
     }
 
-    // Build the beautiful settings menu modeled after the provided image
     return SingleChildScrollView(
       padding: const EdgeInsets.all(16.0),
       child: Column(
@@ -170,7 +324,7 @@ class _MeScreenState extends State<MeScreen> {
               children: [
                 _buildSettingsTile(
                   icon: Icons.attach_money,
-                  title: 'Currency',
+                  title: context.tr('settings_currency'),
                   subtitle: _currencySubtitle(),
                   trailing: _isUpdatingCurrency
                       ? const SizedBox(
@@ -184,49 +338,55 @@ class _MeScreenState extends State<MeScreen> {
                 _buildDivider(),
                 _buildSettingsTile(
                   icon: Icons.translate,
-                  title: 'Language',
-                  subtitle: 'English',
+                  title: context.tr('settings_language'),
+                  subtitle: _currentLanguageSubtitle(),
                   trailing: const Icon(Icons.chevron_right, color: Colors.grey),
-                  onTap: _showComingSoon,
+                  onTap: _openLanguagePicker,
                 ),
                 _buildDivider(),
                 _buildSettingsTile(
                   icon: Icons.g_translate,
-                  title: 'Items translation language',
-                  subtitle: 'Русский',
+                  title: context.tr('settings_items_language'),
+                  subtitle: _languageNameForCode('ru'),
                   trailing: const Icon(Icons.chevron_right, color: Colors.grey),
                   onTap: _showComingSoon,
                 ),
                 _buildDivider(),
                 _buildSettingsTile(
                   icon: Icons.list,
-                  title: 'Categories & Subcategories',
-                  subtitle: 'Manage categories & subcategories',
+                  title: context.tr('settings_categories_subcategories'),
+                  subtitle: context.tr(
+                    'settings_manage_categories_subcategories',
+                  ),
                   trailing: const Icon(Icons.chevron_right, color: Colors.grey),
                   onTap: () {
                     Navigator.push(
                       context,
-                      MaterialPageRoute(builder: (context) => const CategoriesScreen()),
+                      MaterialPageRoute(
+                        builder: (context) => const CategoriesScreen(),
+                      ),
                     );
                   },
                 ),
                 _buildDivider(),
                 _buildSettingsTile(
                   icon: Icons.label_outline,
-                  title: 'Labels',
-                  subtitle: 'Manage Labels',
+                  title: context.tr('settings_labels'),
+                  subtitle: context.tr('settings_manage_labels'),
                   trailing: const Icon(Icons.chevron_right, color: Colors.grey),
                   onTap: () {
                     Navigator.push(
                       context,
-                      MaterialPageRoute(builder: (context) => const LabelsScreen()),
+                      MaterialPageRoute(
+                        builder: (context) => const LabelsScreen(),
+                      ),
                     );
                   },
                 ),
                 _buildDivider(),
                 _buildSettingsTile(
                   icon: Icons.notifications_off_outlined,
-                  title: 'Notifications',
+                  title: context.tr('settings_notifications'),
                   onTap: () {
                     setState(() {
                       _notificationsEnabled = !_notificationsEnabled;
@@ -245,7 +405,7 @@ class _MeScreenState extends State<MeScreen> {
                 _buildDivider(),
                 _buildSettingsTile(
                   icon: Icons.dark_mode_outlined,
-                  title: 'Dark Mode',
+                  title: context.tr('settings_dark_mode'),
                   onTap: () => themeProvider.toggle(),
                   trailing: Switch(
                     value: themeProvider.isDarkMode,
@@ -257,7 +417,6 @@ class _MeScreenState extends State<MeScreen> {
             ),
           ),
           const SizedBox(height: 24),
-          // User Info & Sign Out
           Container(
             width: double.infinity,
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 20),
@@ -269,9 +428,16 @@ class _MeScreenState extends State<MeScreen> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 if (_profileData != null) ...[
-                  Text('Signed in as', style: TextStyle(color: Colors.grey.shade400, fontSize: 12)),
+                  Text(
+                    context.tr('settings_signed_in_as'),
+                    style: TextStyle(color: Colors.grey.shade400, fontSize: 12),
+                  ),
                   const SizedBox(height: 4),
-                  Text(_profileData!['email'] ?? 'Unknown Email', style: const TextStyle(fontSize: 16)),
+                  Text(
+                    _profileData!['email'] ??
+                        context.tr('settings_unknown_email'),
+                    style: const TextStyle(fontSize: 16),
+                  ),
                   const SizedBox(height: 24),
                 ],
                 SizedBox(
@@ -279,7 +445,10 @@ class _MeScreenState extends State<MeScreen> {
                   child: OutlinedButton.icon(
                     onPressed: _signOut,
                     icon: const Icon(Icons.logout, color: Colors.redAccent),
-                    label: const Text('Sign Out', style: TextStyle(color: Colors.redAccent)),
+                    label: Text(
+                      context.tr('settings_sign_out'),
+                      style: const TextStyle(color: Colors.redAccent),
+                    ),
                     style: OutlinedButton.styleFrom(
                       side: const BorderSide(color: Colors.redAccent),
                       padding: const EdgeInsets.symmetric(vertical: 12),
@@ -303,9 +472,21 @@ class _MeScreenState extends State<MeScreen> {
     VoidCallback? onTap,
   }) {
     return ListTile(
-      leading: Icon(icon, color: Theme.of(context).colorScheme.primary, size: 28),
-      title: Text(title, style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w500)),
-      subtitle: subtitle != null ? Text(subtitle, style: TextStyle(color: Colors.grey.shade500, fontSize: 13)) : null,
+      leading: Icon(
+        icon,
+        color: Theme.of(context).colorScheme.primary,
+        size: 28,
+      ),
+      title: Text(
+        title,
+        style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
+      ),
+      subtitle: subtitle != null
+          ? Text(
+              subtitle,
+              style: TextStyle(color: Colors.grey.shade500, fontSize: 13),
+            )
+          : null,
       trailing: trailing,
       onTap: onTap,
       contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
