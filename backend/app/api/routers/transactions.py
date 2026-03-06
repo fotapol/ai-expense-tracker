@@ -374,6 +374,20 @@ def _load_labels_by_transaction_id(
     return labels_by_tx
 
 
+def _load_category_names_by_id(
+    session: Session,
+    *,
+    category_ids: list[uuid.UUID],
+) -> dict[uuid.UUID, str]:
+    if not category_ids:
+        return {}
+
+    rows = session.exec(
+        select(Category.id, Category.name).where(Category.id.in_(category_ids))
+    ).all()
+    return {category_id: name for category_id, name in rows}
+
+
 def _load_warnings_by_receipt_id(
     session: Session,
     *,
@@ -498,6 +512,7 @@ async def list_transactions(
     if transactions: # Only fetch items if transactions exist to save an empty query
         transaction_ids = [t.id for t in transactions]
         receipt_ids = [t.receipt_id for t in transactions if t.receipt_id is not None]
+        category_ids = [t.category_id for t in transactions if t.category_id is not None]
         items = session.exec(
             select(TransactionItem).where(TransactionItem.transaction_id.in_(transaction_ids))
         ).all()
@@ -505,6 +520,10 @@ async def list_transactions(
             session,
             transaction_ids=transaction_ids,
             current_user=current_user,
+        )
+        category_names_by_id = _load_category_names_by_id(
+            session,
+            category_ids=category_ids,
         )
         warnings_by_receipt = _load_warnings_by_receipt_id(
             session,
@@ -520,6 +539,9 @@ async def list_transactions(
             tx_items = items_by_tx.get(t.id, [])
             read.items = [TransactionItemRead.model_validate(i) for i in sorted(tx_items, key=lambda x: x.line_no)]
             read.labels = labels_by_tx.get(t.id, [])
+            read.category_name = (
+                category_names_by_id.get(t.category_id) if t.category_id is not None else None
+            )
             tx_warnings = warnings_by_receipt.get(t.receipt_id, []) if t.receipt_id else []
             read.has_extraction_warnings = len(tx_warnings) > 0
             _apply_display_conversion(
@@ -1020,6 +1042,13 @@ async def get_transaction(
     # Construct the response model manually to combine models
     read = TransactionRead.model_validate(transaction)
     read.items = [TransactionItemRead.model_validate(item) for item in items]
+    read.category_name = (
+        session.exec(
+            select(Category.name).where(Category.id == transaction.category_id)
+        ).first()
+        if transaction.category_id is not None
+        else None
+    )
     read.labels = _load_labels_by_transaction_id(
         session,
         transaction_ids=[transaction.id],
@@ -1126,6 +1155,13 @@ async def update_transaction(
     # Build response
     read = TransactionRead.model_validate(transaction)
     read.items = [TransactionItemRead.model_validate(item) for item in items]
+    read.category_name = (
+        session.exec(
+            select(Category.name).where(Category.id == transaction.category_id)
+        ).first()
+        if transaction.category_id is not None
+        else None
+    )
     read.labels = _load_labels_by_transaction_id(
         session,
         transaction_ids=[transaction.id],

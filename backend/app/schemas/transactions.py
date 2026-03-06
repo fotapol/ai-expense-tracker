@@ -149,6 +149,7 @@ class TransactionRead(UUIDTimestampSchema):
     merchant_id: UUID | None
     merchant_name: str | None
     category_id: UUID | None
+    category_name: str | None = None
     source: TransactionSource
     status: TransactionStatus
     items: list[TransactionItemRead] = Field(default_factory=list)
