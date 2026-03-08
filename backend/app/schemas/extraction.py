@@ -4,7 +4,7 @@ import datetime as dt
 from decimal import Decimal
 from typing import Annotated, Literal
 
-from pydantic import Field, field_validator
+from pydantic import Field, field_validator, model_validator
 
 from app.schemas.shared import (
     Amount2DP,
@@ -13,6 +13,7 @@ from app.schemas.shared import (
     SchemaBase,
     UnitPrice4DP,
     normalize_currency_code,
+    normalize_language_code,
     quantize_amount,
     quantize_quantity,
     quantize_unit_price,
@@ -101,6 +102,7 @@ class ExtractedReceiptData(SchemaBase):
 
     merchant_name: str | None = Field(default=None, max_length=255)
     merchant_country: str | None = Field(default=None, min_length=2, max_length=2)
+    receipt_language: str | None = Field(default=None, max_length=16)
     occurred_at: dt.datetime | None = None
     currency: CurrencyCode = "EUR"
     amount_total: Amount2DP | None = None
@@ -110,6 +112,74 @@ class ExtractedReceiptData(SchemaBase):
     items: list[ExtractedTransactionItem] = Field(default_factory=list)
     warnings: list[ExtractionWarning] = Field(default_factory=list)
     confidence: float | None = Field(default=None, ge=0.0, le=1.0)
+
+    @model_validator(mode="before")
+    @classmethod
+    def normalize_legacy_warning_tags(cls, data):
+        """Map legacy warning discriminator values to current canonical tags."""
+
+        if not isinstance(data, dict):
+            return data
+
+        warnings = data.get("warnings")
+        if not isinstance(warnings, list):
+            return data
+
+        legacy_to_canonical = {
+            "LINE_ITEM_AMOUNT_MISMATCH": "LINE_TOTAL_MISMATCH",
+            "LINE_AMOUNT_MISMATCH": "LINE_TOTAL_MISMATCH",
+            "RECEIPT_AMOUNT_MISMATCH": "RECEIPT_TOTAL_MISMATCH",
+            "TOTAL_AMOUNT_MISMATCH": "RECEIPT_TOTAL_MISMATCH",
+        }
+
+        canonical_types = {
+            "LINE_TOTAL_MISMATCH",
+            "RECEIPT_TOTAL_MISMATCH",
+        }
+        required_fields_by_type = {
+            "LINE_TOTAL_MISMATCH": {
+                "line_no",
+                "expected_amount",
+                "extracted_amount",
+                "difference",
+            },
+            "RECEIPT_TOTAL_MISMATCH": {
+                "expected_total",
+                "extracted_total",
+                "difference",
+            },
+        }
+
+        normalized_warnings = []
+        for warning in warnings:
+            if not isinstance(warning, dict):
+                continue
+            warning_type = warning.get("type")
+            if not isinstance(warning_type, str):
+                continue
+
+            normalized_type = legacy_to_canonical.get(
+                warning_type.strip().upper(),
+                warning_type.strip().upper(),
+            )
+            if normalized_type not in canonical_types:
+                continue
+
+            required_fields = required_fields_by_type[normalized_type]
+            if not required_fields.issubset(set(warning.keys())):
+                continue
+
+            normalized_warnings.append(
+                {
+                    **warning,
+                    "type": normalized_type,
+                }
+            )
+
+        return {
+            **data,
+            "warnings": normalized_warnings,
+        }
 
     @field_validator("currency")
     @classmethod
@@ -135,3 +205,13 @@ class ExtractedReceiptData(SchemaBase):
         if value is None:
             return None
         return value.strip().upper()
+
+    @field_validator("receipt_language")
+    @classmethod
+    def normalize_receipt_language(cls, value: str | None) -> str | None:
+        """Normalize extracted receipt language code text."""
+
+        if value is None:
+            return None
+        normalized = normalize_language_code(value)
+        return normalized or None
