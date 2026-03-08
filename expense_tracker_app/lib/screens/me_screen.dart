@@ -24,6 +24,7 @@ class _MeScreenState extends State<MeScreen> {
   bool _isLoading = true;
   String? _error;
   bool _isUpdatingCurrency = false;
+  bool _isUpdatingItemsLanguage = false;
 
   bool _notificationsEnabled = false;
 
@@ -31,12 +32,6 @@ class _MeScreenState extends State<MeScreen> {
   void initState() {
     super.initState();
     _fetchProfile();
-  }
-
-  void _showComingSoon() {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(context.tr('settings_feature_coming_soon'))),
-    );
   }
 
   String _currentCurrencyCode() {
@@ -63,6 +58,18 @@ class _MeScreenState extends State<MeScreen> {
 
   String _currentLanguageSubtitle() {
     return _languageNameForCode(localeProvider.locale.languageCode);
+  }
+
+  String _currentItemsLanguageCode() {
+    final saved = _profileData?['items_language']?.toString().trim();
+    if (saved != null && saved.isNotEmpty) {
+      return saved.toLowerCase();
+    }
+    return localeProvider.locale.languageCode.toLowerCase();
+  }
+
+  String _currentItemsLanguageSubtitle() {
+    return _languageNameForCode(_currentItemsLanguageCode());
   }
 
   Future<void> _updateDefaultCurrency(String code) async {
@@ -132,6 +139,44 @@ class _MeScreenState extends State<MeScreen> {
         ),
       ),
     );
+  }
+
+  Future<void> _updateItemsLanguage(String code) async {
+    if (_isUpdatingItemsLanguage) return;
+    final normalized = code.toLowerCase();
+    if (normalized == _currentItemsLanguageCode()) return;
+
+    setState(() => _isUpdatingItemsLanguage = true);
+    try {
+      final updated = await ApiClient.updateMe({'items_language': normalized});
+      if (!mounted) return;
+      setState(() => _profileData = updated);
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            context.tr(
+              'settings_language_updated',
+              params: {'language': _languageNameForCode(normalized)},
+            ),
+          ),
+        ),
+      );
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            context.tr(
+              'common_error_with_message',
+              params: {'message': e.toString()},
+            ),
+          ),
+          backgroundColor: Colors.red,
+        ),
+      );
+    } finally {
+      if (mounted) setState(() => _isUpdatingItemsLanguage = false);
+    }
   }
 
   void _openLanguagePicker() {
@@ -224,6 +269,111 @@ class _MeScreenState extends State<MeScreen> {
                             onTap: () {
                               Navigator.pop(context);
                               _updateLanguage(code);
+                            },
+                          );
+                        },
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            );
+          },
+        );
+      },
+    );
+  }
+
+  void _openItemsLanguagePicker() {
+    showModalBottomSheet<void>(
+      context: context,
+      isScrollControlled: true,
+      builder: (context) {
+        String query = '';
+        final currentCode = _currentItemsLanguageCode();
+        return StatefulBuilder(
+          builder: (context, setModalState) {
+            final normalizedQuery = query.trim().toLowerCase();
+            final filtered = appLanguages.where((language) {
+              if (normalizedQuery.isEmpty) return true;
+              if (language.nativeName.toLowerCase().contains(normalizedQuery)) {
+                return true;
+              }
+              if (language.code.toLowerCase().contains(normalizedQuery)) {
+                return true;
+              }
+              for (final keyword in language.searchKeywords) {
+                if (keyword.toLowerCase().contains(normalizedQuery)) {
+                  return true;
+                }
+              }
+              return false;
+            }).toList();
+
+            return SafeArea(
+              child: Padding(
+                padding: EdgeInsets.only(
+                  left: 16,
+                  right: 16,
+                  top: 16,
+                  bottom: 16 + MediaQuery.of(context).viewInsets.bottom,
+                ),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Container(
+                      width: 40,
+                      height: 4,
+                      margin: const EdgeInsets.only(bottom: 16),
+                      decoration: BoxDecoration(
+                        color: Colors.grey.shade600,
+                        borderRadius: BorderRadius.circular(999),
+                      ),
+                    ),
+                    Align(
+                      alignment: Alignment.centerLeft,
+                      child: Text(
+                        context.tr('language_picker_title'),
+                        style: const TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+                    TextField(
+                      onChanged: (value) => setModalState(() => query = value),
+                      decoration: InputDecoration(
+                        hintText: context.tr('language_picker_search'),
+                        prefixIcon: const Icon(Icons.search),
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(14),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+                    SizedBox(
+                      height: MediaQuery.of(context).size.height * 0.55,
+                      child: ListView.separated(
+                        itemCount: filtered.length,
+                        separatorBuilder: (_, _) => const SizedBox(height: 2),
+                        itemBuilder: (context, index) {
+                          final language = filtered[index];
+                          final code = language.code;
+                          final selected = code == currentCode;
+                          return ListTile(
+                            title: Text(language.nativeName),
+                            trailing: Icon(
+                              selected
+                                  ? Icons.radio_button_checked
+                                  : Icons.radio_button_off,
+                              color: selected
+                                  ? Theme.of(context).colorScheme.primary
+                                  : Colors.grey.shade500,
+                            ),
+                            onTap: () {
+                              Navigator.pop(context);
+                              _updateItemsLanguage(code);
                             },
                           );
                         },
@@ -347,9 +497,15 @@ class _MeScreenState extends State<MeScreen> {
                 _buildSettingsTile(
                   icon: Icons.g_translate,
                   title: context.tr('settings_items_language'),
-                  subtitle: _languageNameForCode('ru'),
-                  trailing: const Icon(Icons.chevron_right, color: Colors.grey),
-                  onTap: _showComingSoon,
+                  subtitle: _currentItemsLanguageSubtitle(),
+                  trailing: _isUpdatingItemsLanguage
+                      ? const SizedBox(
+                          width: 16,
+                          height: 16,
+                          child: CircularProgressIndicator(strokeWidth: 2),
+                        )
+                      : const Icon(Icons.chevron_right, color: Colors.grey),
+                  onTap: _openItemsLanguagePicker,
                 ),
                 _buildDivider(),
                 _buildSettingsTile(

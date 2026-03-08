@@ -1,9 +1,13 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:currency_picker/currency_picker.dart';
 import 'package:intl/intl.dart';
 import '../core/api_client.dart';
+import '../core/item_translation_service.dart';
 import '../core/taxonomy_localization.dart';
 import '../l10n/app_localizations.dart';
+import '../main.dart';
 
 class TransactionEditScreen extends StatefulWidget {
   final String transactionId;
@@ -25,6 +29,7 @@ class _TransactionEditScreenState extends State<TransactionEditScreen> {
   Set<String> _selectedLabelIds = {};
   List<dynamic> _serverWarnings = [];
   bool _hasLocalEdits = false;
+  bool _isTranslatingItems = false;
 
   final _merchantController = TextEditingController();
   final _amountController = TextEditingController();
@@ -32,6 +37,8 @@ class _TransactionEditScreenState extends State<TransactionEditScreen> {
   String _currency = 'RSD';
   String _displayCurrency = 'RSD';
   double _displayRate = 1.0;
+  String _appLanguage = '';
+  String _effectiveItemsLanguage = '';
 
   final Map<String, TextEditingController> _itemDescControllers = {};
   final Map<String, TextEditingController> _itemAmountControllers = {};
@@ -47,6 +54,7 @@ class _TransactionEditScreenState extends State<TransactionEditScreen> {
 
   @override
   void dispose() {
+    unawaited(ItemTranslationService.instance.flushPending());
     _merchantController.dispose();
     _amountController.dispose();
     for (var c in _itemDescControllers.values) {
@@ -70,14 +78,58 @@ class _TransactionEditScreenState extends State<TransactionEditScreen> {
       _error = null;
     });
     try {
-      final txData = await ApiClient.getTransaction(widget.transactionId);
-      final catsData = await ApiClient.listCategories();
-      final labelsData = await ApiClient.listLabels();
+      final appLanguage = _resolveAppLanguage();
+      Map<String, dynamic>? meData;
+      try {
+        meData = await ApiClient.getMe();
+      } catch (_) {
+        meData = null;
+      }
+      final preferredItemsLanguage = _normalizeLanguageCode(
+        meData?['items_language']?.toString(),
+      );
+
+      final txFuture = ApiClient.getTransaction(
+        widget.transactionId,
+        itemLanguage: preferredItemsLanguage.isNotEmpty
+            ? preferredItemsLanguage
+            : null,
+        appLanguage: appLanguage.isNotEmpty ? appLanguage : null,
+      );
+      final catsFuture = ApiClient.listCategories();
+      final labelsFuture = ApiClient.listLabels();
+
+      final txData = await txFuture;
+      final catsData = await catsFuture;
+      final labelsData = await labelsFuture;
+      final effectiveItemsLanguage = preferredItemsLanguage.isNotEmpty
+          ? preferredItemsLanguage
+          : appLanguage;
+
+      for (final c in _itemDescControllers.values) {
+        c.dispose();
+      }
+      for (final c in _itemAmountControllers.values) {
+        c.dispose();
+      }
+      for (final c in _itemQtyControllers.values) {
+        c.dispose();
+      }
+      for (final c in _itemUnitPriceControllers.values) {
+        c.dispose();
+      }
+      _itemDescControllers.clear();
+      _itemAmountControllers.clear();
+      _itemQtyControllers.clear();
+      _itemUnitPriceControllers.clear();
+      _itemCategoryIds.clear();
 
       setState(() {
         _hasLocalEdits = false;
         _categories = catsData;
         _labels = labelsData;
+        _appLanguage = appLanguage;
+        _effectiveItemsLanguage = effectiveItemsLanguage;
         _items = List.from(txData['items'] ?? []);
         _selectedLabelIds = Set<String>.from(
           (txData['labels'] as List<dynamic>? ?? const [])
@@ -144,6 +196,14 @@ class _TransactionEditScreenState extends State<TransactionEditScreen> {
 
         _isLoading = false;
       });
+
+      if (effectiveItemsLanguage.isNotEmpty) {
+        unawaited(
+          _translateMissingTransactionItems(
+            targetLanguage: effectiveItemsLanguage,
+          ),
+        );
+      }
     } catch (e) {
       if (mounted) {
         setState(() {
@@ -184,7 +244,14 @@ class _TransactionEditScreenState extends State<TransactionEditScreen> {
       }
       payload['items'] = updatedItems;
 
-      await ApiClient.updateTransaction(widget.transactionId, payload);
+      await ApiClient.updateTransaction(
+        widget.transactionId,
+        payload,
+        itemLanguage: _effectiveItemsLanguage.isNotEmpty
+            ? _effectiveItemsLanguage
+            : null,
+        appLanguage: _appLanguage.isNotEmpty ? _appLanguage : null,
+      );
 
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -259,6 +326,109 @@ class _TransactionEditScreenState extends State<TransactionEditScreen> {
       return '$sign$symbol${amount.abs().toStringAsFixed(2)}';
     }
     return '${currency.toUpperCase()} ${amount.toStringAsFixed(2)}';
+  }
+
+  String _normalizeLanguageCode(String? raw) {
+    return ItemTranslationService.instance.normalizeLanguageCode(raw);
+  }
+
+  String _normalizeText(String? raw) {
+    return ItemTranslationService.instance.normalizeSourceText(raw ?? '');
+  }
+
+  String _resolveAppLanguage() {
+    final fromLocale = _normalizeLanguageCode(
+      localeProvider.locale.languageCode,
+    );
+    if (fromLocale.isNotEmpty) {
+      return fromLocale;
+    }
+    return _normalizeLanguageCode(
+      WidgetsBinding.instance.platformDispatcher.locale.languageCode,
+    );
+  }
+
+  String? _guessSourceLanguageHint(String text) {
+    final normalizedText = _normalizeText(text).toLowerCase();
+    if (normalizedText.isEmpty) return null;
+    if (_currency.toUpperCase() == 'RSD') return 'sr';
+    if (RegExp(
+      r'[\u010D\u0107\u017E\u0161\u0111]|\b(sa|za|u|od)\b',
+    ).hasMatch(normalizedText)) {
+      return 'sr';
+    }
+    return null;
+  }
+
+  Future<void> _translateMissingTransactionItems({
+    required String targetLanguage,
+    bool forceRefresh = false,
+  }) async {
+    if (targetLanguage.isEmpty || _isTranslatingItems) return;
+
+    setState(() => _isTranslatingItems = true);
+    try {
+      for (final raw in _items) {
+        final item = raw as Map<String, dynamic>;
+        final itemId = item['id']?.toString();
+        if (itemId == null || itemId.isEmpty) continue;
+
+        final description = _normalizeText(
+          _itemDescControllers[itemId]?.text ?? item['description']?.toString(),
+        );
+        if (description.isEmpty) continue;
+
+        final existingTranslation = _normalizeText(
+          item['translated_description']?.toString(),
+        );
+        if (!forceRefresh && existingTranslation.isNotEmpty) continue;
+
+        var sourceLanguage = _normalizeLanguageCode(
+          item['description_lang']?.toString(),
+        );
+        sourceLanguage = sourceLanguage.isNotEmpty
+            ? sourceLanguage
+            : (_guessSourceLanguageHint(description) ?? '');
+        final result = await ItemTranslationService.instance.translate(
+          sourceText: description,
+          sourceLanguage: sourceLanguage.isNotEmpty ? sourceLanguage : null,
+          targetLanguage: targetLanguage,
+          forceRefresh: forceRefresh,
+        );
+        if (result == null || !mounted) continue;
+
+        final currentDescription = _normalizeText(
+          _itemDescControllers[itemId]?.text,
+        );
+        if (currentDescription != description) continue;
+
+        setState(() {
+          item['translated_description'] = result.translatedText;
+          item['translation_language'] = result.targetLanguage;
+          item['translation_source_language'] = result.sourceLanguage;
+          if ((item['description_lang']?.toString().trim().isEmpty ?? true)) {
+            item['description_lang'] = result.sourceLanguage;
+          }
+        });
+      }
+    } finally {
+      if (mounted) {
+        setState(() => _isTranslatingItems = false);
+      }
+    }
+  }
+
+  Future<void> _forceRetranslateItems() async {
+    if (_effectiveItemsLanguage.isEmpty || _isTranslatingItems) return;
+    await _translateMissingTransactionItems(
+      targetLanguage: _effectiveItemsLanguage,
+      forceRefresh: true,
+    );
+    if (!mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text(context.tr('transaction_translate'))),
+    );
+    unawaited(ItemTranslationService.instance.flushPending());
   }
 
   void _openReceiptCurrencyPicker() {
@@ -1026,7 +1196,12 @@ class _TransactionEditScreenState extends State<TransactionEditScreen> {
             ),
             _buildBadge(
               icon: Icons.translate,
-              label: context.tr('transaction_translate'),
+              label: _isTranslatingItems
+                  ? '${context.tr('transaction_translate')}...'
+                  : context.tr('transaction_translate'),
+              onTap: _effectiveItemsLanguage.isNotEmpty
+                  ? _forceRetranslateItems
+                  : null,
             ),
             _buildBadge(
               icon: Icons.image_outlined,
@@ -1097,6 +1272,15 @@ class _TransactionEditScreenState extends State<TransactionEditScreen> {
     );
     final sourceAmount = _toDouble(amountController?.text) ?? 0;
     final displayAmount = _toDisplayAmount(sourceAmount);
+    final currentName = _normalizeText(
+      nameController?.text ?? item['description']?.toString(),
+    );
+    final translatedName = _normalizeText(
+      item['translated_description']?.toString(),
+    );
+    final hasTranslatedName =
+        translatedName.isNotEmpty &&
+        translatedName.toLowerCase() != currentName.toLowerCase();
 
     return Container(
       margin: const EdgeInsets.only(bottom: 12),
@@ -1111,14 +1295,41 @@ class _TransactionEditScreenState extends State<TransactionEditScreen> {
           Row(
             children: [
               Expanded(
-                child: TextField(
-                  controller: nameController,
-                  style: const TextStyle(color: Colors.white, fontSize: 16),
-                  decoration: InputDecoration(
-                    border: InputBorder.none,
-                    hintText: context.tr('transaction_item_name'),
-                    hintStyle: const TextStyle(color: Colors.white24),
-                  ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    TextField(
+                      controller: nameController,
+                      style: const TextStyle(color: Colors.white, fontSize: 16),
+                      decoration: InputDecoration(
+                        border: InputBorder.none,
+                        hintText: context.tr('transaction_item_name'),
+                        hintStyle: const TextStyle(color: Colors.white24),
+                      ),
+                      onChanged: (value) {
+                        setState(() {
+                          _hasLocalEdits = true;
+                          item['description'] = value;
+                          item['translated_description'] = null;
+                          item['translation_language'] = null;
+                          item['translation_source_language'] = null;
+                        });
+                      },
+                    ),
+                    if (hasTranslatedName)
+                      Padding(
+                        padding: const EdgeInsets.only(top: 2),
+                        child: Text(
+                          translatedName,
+                          maxLines: 2,
+                          overflow: TextOverflow.ellipsis,
+                          style: TextStyle(
+                            color: Colors.grey.shade400,
+                            fontSize: 13,
+                          ),
+                        ),
+                      ),
+                  ],
                 ),
               ),
               IconButton(
