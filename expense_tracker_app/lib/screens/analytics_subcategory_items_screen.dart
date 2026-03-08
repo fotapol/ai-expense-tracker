@@ -83,20 +83,6 @@ class _AnalyticsSubcategoryItemsScreenState
     );
   }
 
-  String? _guessSourceLanguageHint(String text) {
-    final normalizedText = _normalizeText(text).toLowerCase();
-    if (normalizedText.isEmpty) return null;
-    final responseCurrency = (_data?['currency']?.toString() ?? '')
-        .toUpperCase();
-    if (responseCurrency == 'RSD') return 'sr';
-    if (RegExp(
-      r'[\u010D\u0107\u017E\u0161\u0111]|\b(sa|za|u|od)\b',
-    ).hasMatch(normalizedText)) {
-      return 'sr';
-    }
-    return null;
-  }
-
   Future<void> _translateMissingItems({required String targetLanguage}) async {
     if (targetLanguage.isEmpty || _data == null) return;
     final rawItems = _data?['items'];
@@ -115,9 +101,11 @@ class _AnalyticsSubcategoryItemsScreenState
       var sourceLanguage = _normalizeLanguageCode(
         item['description_lang']?.toString(),
       );
-      sourceLanguage = sourceLanguage.isNotEmpty
-          ? sourceLanguage
-          : (_guessSourceLanguageHint(description) ?? '');
+      if (sourceLanguage.isEmpty) {
+        sourceLanguage = _normalizeLanguageCode(
+          item['translation_source_language']?.toString(),
+        );
+      }
       final result = await ItemTranslationService.instance.translate(
         sourceText: description,
         sourceLanguage: sourceLanguage.isNotEmpty ? sourceLanguage : null,
@@ -129,8 +117,13 @@ class _AnalyticsSubcategoryItemsScreenState
         item['translated_description'] = result.translatedText;
         item['translation_language'] = result.targetLanguage;
         item['translation_source_language'] = result.sourceLanguage;
+        if ((item['description_lang']?.toString().trim().isEmpty ?? true)) {
+          item['description_lang'] = result.sourceLanguage;
+        }
       });
     }
+
+    unawaited(ItemTranslationService.instance.flushPending());
   }
 
   @override
@@ -307,7 +300,7 @@ class _AnalyticsSubcategoryItemsScreenState
     return RefreshIndicator(
       onRefresh: _fetchData,
       child: ListView(
-        padding: const EdgeInsets.all(16),
+        padding: const EdgeInsets.fromLTRB(16, 16, 16, 96),
         children: [
           Container(
             padding: const EdgeInsets.all(20),

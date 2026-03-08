@@ -213,15 +213,28 @@ class ItemTranslationService {
       return normalized;
     }
 
+    var prepared = normalized;
     final uppercaseLetters = lettersOnly.replaceAll(
       RegExp(r'[^A-Z\u0400-\u042F]'),
       '',
     );
     final uppercaseRatio = uppercaseLetters.length / lettersOnly.length;
     if (uppercaseRatio >= 0.65) {
-      return normalized.toLowerCase();
+      prepared = prepared.toLowerCase();
     }
-    return normalized;
+
+    // Remove noisy receipt fragments that degrade translation quality.
+    prepared = prepared.replaceAll(RegExp(r'\b\d+\s*/\s*\d+\b'), ' ');
+    prepared = prepared.replaceAll(
+      RegExp(r'\b\d+(?:[.,]\d+)?\s*(kg|g|gr|ml|l|kom|pcs|pc)\b', caseSensitive: false),
+      ' ',
+    );
+    prepared = prepared.replaceFirst(
+      RegExp(r'^(?:[a-z]{1,3}\s+){1,2}(?=[a-z]{3,})'),
+      '',
+    );
+    prepared = normalizeSourceText(prepared);
+    return prepared.isEmpty ? normalized : prepared;
   }
 
   void _enqueueBatch({

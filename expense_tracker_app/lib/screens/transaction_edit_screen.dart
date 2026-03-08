@@ -348,18 +348,6 @@ class _TransactionEditScreenState extends State<TransactionEditScreen> {
     );
   }
 
-  String? _guessSourceLanguageHint(String text) {
-    final normalizedText = _normalizeText(text).toLowerCase();
-    if (normalizedText.isEmpty) return null;
-    if (_currency.toUpperCase() == 'RSD') return 'sr';
-    if (RegExp(
-      r'[\u010D\u0107\u017E\u0161\u0111]|\b(sa|za|u|od)\b',
-    ).hasMatch(normalizedText)) {
-      return 'sr';
-    }
-    return null;
-  }
-
   Future<void> _translateMissingTransactionItems({
     required String targetLanguage,
     bool forceRefresh = false,
@@ -386,9 +374,11 @@ class _TransactionEditScreenState extends State<TransactionEditScreen> {
         var sourceLanguage = _normalizeLanguageCode(
           item['description_lang']?.toString(),
         );
-        sourceLanguage = sourceLanguage.isNotEmpty
-            ? sourceLanguage
-            : (_guessSourceLanguageHint(description) ?? '');
+        if (sourceLanguage.isEmpty) {
+          sourceLanguage = _normalizeLanguageCode(
+            item['translation_source_language']?.toString(),
+          );
+        }
         final result = await ItemTranslationService.instance.translate(
           sourceText: description,
           sourceLanguage: sourceLanguage.isNotEmpty ? sourceLanguage : null,
@@ -462,28 +452,51 @@ class _TransactionEditScreenState extends State<TransactionEditScreen> {
     return null;
   }
 
-  String _itemCategoryLabel(String? categoryId) {
-    final category = _findCategoryById(categoryId);
-    if (category == null) return context.tr('transaction_select_category');
-    final childName = localizeCategoryByCode(
+  bool _isItemScopeCategory(Map<String, dynamic> category) {
+    final scope = (category['scope']?.toString() ?? '').trim().toLowerCase();
+    if (scope.isEmpty) return true;
+    return scope == 'item';
+  }
+
+  String _localizedCategoryName(Map<String, dynamic> category) {
+    return localizeCategoryByCode(
       context,
       code: category['code']?.toString(),
       fallbackName: category['name']?.toString(),
     );
-    final parentId = category['parent_id']?.toString();
-    if (parentId == null || parentId.isEmpty) {
-      return childName;
-    }
-    final parent = _findCategoryById(parentId);
-    final parentName = localizeCategoryByCode(
-      context,
-      code: parent?['code']?.toString(),
-      fallbackName: parent?['name']?.toString(),
+  }
+
+  List<Map<String, dynamic>> _topLevelItemCategories() {
+    final topLevel = _categories
+        .whereType<Map<String, dynamic>>()
+        .where((category) {
+          final parentId = category['parent_id']?.toString();
+          return _isItemScopeCategory(category) &&
+              (parentId == null || parentId.isEmpty);
+        })
+        .toList();
+    topLevel.sort(
+      (a, b) => _localizedCategoryName(
+        a,
+      ).toLowerCase().compareTo(_localizedCategoryName(b).toLowerCase()),
     );
-    if (parentName.isEmpty) {
-      return childName;
-    }
-    return '$parentName * $childName';
+    return topLevel;
+  }
+
+  List<Map<String, dynamic>> _itemSubcategoriesForParent(String parentId) {
+    final subcategories = _categories
+        .whereType<Map<String, dynamic>>()
+        .where((category) {
+          final categoryParentId = category['parent_id']?.toString();
+          return _isItemScopeCategory(category) && categoryParentId == parentId;
+        })
+        .toList();
+    subcategories.sort(
+      (a, b) => _localizedCategoryName(
+        a,
+      ).toLowerCase().compareTo(_localizedCategoryName(b).toLowerCase()),
+    );
+    return subcategories;
   }
 
   List<String> _itemCategoryTags(String? categoryId) {
@@ -1586,8 +1599,105 @@ class _TransactionEditScreenState extends State<TransactionEditScreen> {
     );
   }
 
-  void _showCategoryPicker(String itemId) {
-    showModalBottomSheet(
+  Future<String?> _pickParentCategory(String? selectedParentId) {
+    final topLevel = _topLevelItemCategories();
+    if (topLevel.isEmpty) {
+      return Future.value(null);
+    }
+
+    return showModalBottomSheet<String>(
+      context: context,
+      backgroundColor: const Color(0xFF1E1E1E),
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (context) {
+        String? currentSelectedParentId = selectedParentId;
+        return StatefulBuilder(
+          builder: (context, setModalState) {
+            return SafeArea(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.fromLTRB(16, 12, 16, 8),
+                    child: Row(
+                      children: [
+                        Text(
+                          context.tr('filters_category'),
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontSize: 18,
+                            fontWeight: FontWeight.w700,
+                          ),
+                        ),
+                        const Spacer(),
+                        TextButton(
+                          onPressed: () => Navigator.pop(context),
+                          child: Text(context.tr('common_cancel')),
+                        ),
+                      ],
+                    ),
+                  ),
+                  Flexible(
+                    child: ListView.builder(
+                      padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+                      shrinkWrap: true,
+                      itemCount: topLevel.length,
+                      itemBuilder: (context, index) {
+                        final category = topLevel[index];
+                        final categoryId = category['id']?.toString() ?? '';
+                        final selected = categoryId == currentSelectedParentId;
+                        return ListTile(
+                          contentPadding: EdgeInsets.zero,
+                          title: Text(
+                            _localizedCategoryName(category),
+                            style: TextStyle(
+                              color: selected
+                                  ? Theme.of(context).colorScheme.primary
+                                  : Colors.white,
+                              fontWeight: selected
+                                  ? FontWeight.w700
+                                  : FontWeight.w400,
+                            ),
+                          ),
+                          trailing: Icon(
+                            selected
+                                ? Icons.radio_button_checked
+                                : Icons.radio_button_off,
+                            color: selected
+                                ? Theme.of(context).colorScheme.primary
+                                : Colors.white38,
+                          ),
+                          onTap: () {
+                            setModalState(
+                              () => currentSelectedParentId = categoryId,
+                            );
+                            Navigator.pop(context, categoryId);
+                          },
+                        );
+                      },
+                    ),
+                  ),
+                ],
+              ),
+            );
+          },
+        );
+      },
+    );
+  }
+
+  Future<String?> _pickSubcategory({
+    required String parentCategoryId,
+    String? selectedSubcategoryId,
+  }) {
+    final subcategories = _itemSubcategoriesForParent(parentCategoryId);
+    if (subcategories.isEmpty) {
+      return Future.value(null);
+    }
+
+    return showModalBottomSheet<String>(
       context: context,
       backgroundColor: const Color(0xFF1E1E1E),
       shape: const RoundedRectangleBorder(
@@ -1595,26 +1705,86 @@ class _TransactionEditScreenState extends State<TransactionEditScreen> {
       ),
       builder: (context) {
         return ListView.builder(
-          padding: const EdgeInsets.all(16),
-          itemCount: _categories.length,
+          padding: const EdgeInsets.fromLTRB(16, 12, 16, 16),
+          itemCount: subcategories.length + 1,
           itemBuilder: (context, index) {
-            final cat = _categories[index];
-            final catId = cat['id']?.toString();
+            if (index == 0) {
+              return Padding(
+                padding: const EdgeInsets.only(bottom: 8),
+                child: Row(
+                  children: [
+                    Text(
+                      context.tr('filters_subcategory'),
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontSize: 18,
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
+                    const Spacer(),
+                    TextButton(
+                      onPressed: () => Navigator.pop(context),
+                      child: Text(context.tr('common_cancel')),
+                    ),
+                  ],
+                ),
+              );
+            }
+
+            final category = subcategories[index - 1];
+            final categoryId = category['id']?.toString() ?? '';
+            final selected = categoryId == selectedSubcategoryId;
             return ListTile(
+              contentPadding: EdgeInsets.zero,
               title: Text(
-                _itemCategoryLabel(catId),
-                style: const TextStyle(color: Colors.white),
+                _localizedCategoryName(category),
+                style: TextStyle(
+                  color: selected
+                      ? Theme.of(context).colorScheme.primary
+                      : Colors.white,
+                  fontWeight: selected ? FontWeight.w700 : FontWeight.w400,
+                ),
               ),
-              onTap: () {
-                setState(() {
-                  _itemCategoryIds[itemId] = cat['id'].toString();
-                });
-                Navigator.pop(context);
-              },
+              trailing: Icon(
+                selected ? Icons.radio_button_checked : Icons.radio_button_off,
+                color: selected
+                    ? Theme.of(context).colorScheme.primary
+                    : Colors.white38,
+              ),
+              onTap: () => Navigator.pop(context, categoryId),
             );
           },
         );
       },
     );
+  }
+
+  Future<void> _showCategoryPicker(String itemId) async {
+    final selectedCategory = _findCategoryById(_itemCategoryIds[itemId]);
+    var selectedParentId = selectedCategory?['parent_id']?.toString();
+    if (selectedParentId == null || selectedParentId.isEmpty) {
+      selectedParentId = selectedCategory == null
+          ? null
+          : selectedCategory['id']?.toString();
+    }
+
+    final parentCategoryId = await _pickParentCategory(selectedParentId);
+    if (!mounted || parentCategoryId == null || parentCategoryId.isEmpty) {
+      return;
+    }
+
+    final selectedSubcategoryId = await _pickSubcategory(
+      parentCategoryId: parentCategoryId,
+      selectedSubcategoryId: _itemCategoryIds[itemId],
+    );
+    if (!mounted) return;
+
+    setState(() {
+      _hasLocalEdits = true;
+      _itemCategoryIds[itemId] =
+          (selectedSubcategoryId == null || selectedSubcategoryId.isEmpty)
+          ? parentCategoryId
+          : selectedSubcategoryId;
+    });
   }
 }
