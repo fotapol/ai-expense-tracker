@@ -14,6 +14,10 @@ class UserBase(SQLModel):
         default="EUR",
         sa_column=Column(CHAR(3), nullable=False, default="EUR"),
     )
+    items_language: str | None = Field(
+        default=None,
+        sa_column=Column(String(16), nullable=True),
+    )
     is_active: bool = Field(default=True, nullable=False)
 
 

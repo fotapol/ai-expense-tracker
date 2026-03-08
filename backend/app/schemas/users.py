@@ -9,6 +9,7 @@ from app.schemas.shared import (
     SchemaBase,
     UUIDTimestampSchema,
     normalize_currency_code,
+    normalize_language_code,
 )
 
 
@@ -19,6 +20,7 @@ class UserCreate(SchemaBase):
     auth_subject: str = Field(min_length=1, max_length=255)
     email: str | None = Field(default=None, max_length=320)
     default_currency: CurrencyCode = "EUR"
+    items_language: str | None = Field(default=None, max_length=16)
     is_active: bool = True
 
     @field_validator("default_currency")
@@ -28,12 +30,23 @@ class UserCreate(SchemaBase):
 
         return normalize_currency_code(value)
 
+    @field_validator("items_language")
+    @classmethod
+    def normalize_items_language(cls, value: str | None) -> str | None:
+        """Normalize items translation language code casing."""
+
+        if value is None:
+            return None
+        normalized = normalize_language_code(value)
+        return normalized or None
+
 
 class UserUpdate(SchemaBase):
     """Partial update payload for user settings."""
 
     email: str | None = Field(default=None, max_length=320)
     default_currency: CurrencyCode | None = None
+    items_language: str | None = Field(default=None, max_length=16)
     is_active: bool | None = None
 
     @field_validator("default_currency")
@@ -45,6 +58,16 @@ class UserUpdate(SchemaBase):
             return None
         return normalize_currency_code(value)
 
+    @field_validator("items_language")
+    @classmethod
+    def normalize_items_language(cls, value: str | None) -> str | None:
+        """Normalize items translation language code casing."""
+
+        if value is None:
+            return None
+        normalized = normalize_language_code(value)
+        return normalized or None
+
 
 class UserRead(UUIDTimestampSchema):
     """Read model for local user records."""
@@ -53,6 +76,7 @@ class UserRead(UUIDTimestampSchema):
     auth_subject: str
     email: str | None
     default_currency: CurrencyCode
+    items_language: str | None
     is_active: bool
 
 

@@ -28,6 +28,7 @@ class TransactionItem(TimestampedModel, table=True):
     line_no: int = Field(nullable=False)
 
     description: str = Field(sa_column=Column(String(500), nullable=False))
+    description_lang: str | None = Field(default=None, max_length=16, index=True)
 
     qty: Decimal | None = Field(default=None, sa_column=Column(Numeric(12, 3), nullable=True))
     unit: str | None = Field(default=None, max_length=32)

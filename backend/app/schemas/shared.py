@@ -28,6 +28,15 @@ def normalize_currency_code(value: str) -> str:
     return value.strip().upper()
 
 
+def normalize_language_code(value: str) -> str:
+    """Normalize language code to lowercase short form."""
+
+    normalized = value.strip().lower().replace("_", "-")
+    if "-" in normalized:
+        normalized = normalized.split("-", 1)[0]
+    return normalized
+
+
 def quantize_quantity(value: Decimal) -> Decimal:
     """Quantize a decimal quantity to the model precision."""
 
