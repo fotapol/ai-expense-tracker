@@ -7,8 +7,16 @@ from fastapi import FastAPI
 from slowapi import _rate_limit_exceeded_handler
 from slowapi.errors import RateLimitExceeded
 
-from app.api.routers import users, receipts, transactions, categories, labels
+from app.api.routers import (
+    categories,
+    item_translations,
+    labels,
+    receipts,
+    transactions,
+    users,
+)
 from app.auth.firebase_admin import initialize_firebase
+from app.core.migrations import run_startup_migrations
 from app.core.rabbitmq import check_rabbitmq_health, close_rabbitmq, connect_rabbitmq
 from app.core.rate_limiter import limiter
 from app.core.redis import check_redis_health, close_redis_pool
@@ -24,6 +32,7 @@ logger = logging.getLogger(__name__)
 async def lifespan(app: FastAPI):
     """Application startup and shutdown lifecycle handler."""
     # --- Startup ---------------------------------------------------------
+    await run_startup_migrations()
     initialize_firebase()
 
     redis_ok = await check_redis_health()
@@ -65,6 +74,7 @@ app.include_router(receipts.router)
 app.include_router(transactions.router)
 app.include_router(categories.router)
 app.include_router(labels.router)
+app.include_router(item_translations.router)
 
 @app.get("/", tags=["health"])
 async def healthcheck():

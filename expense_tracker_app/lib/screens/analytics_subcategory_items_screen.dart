@@ -1,8 +1,12 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 
 import '../core/api_client.dart';
 import '../core/category_style.dart';
+import '../core/item_translation_service.dart';
 import '../l10n/app_localizations.dart';
+import '../main.dart';
 
 class AnalyticsSubcategoryItemsScreen extends StatefulWidget {
   final String subcategoryId;
@@ -59,10 +63,79 @@ class _AnalyticsSubcategoryItemsScreenState
     return '${currency.toUpperCase()} ${amount.toStringAsFixed(2)}';
   }
 
+  String _normalizeLanguageCode(String? raw) {
+    return ItemTranslationService.instance.normalizeLanguageCode(raw);
+  }
+
+  String _normalizeText(String? raw) {
+    return ItemTranslationService.instance.normalizeSourceText(raw ?? '');
+  }
+
+  String _resolveAppLanguage() {
+    final fromLocale = _normalizeLanguageCode(
+      localeProvider.locale.languageCode,
+    );
+    if (fromLocale.isNotEmpty) {
+      return fromLocale;
+    }
+    return _normalizeLanguageCode(
+      WidgetsBinding.instance.platformDispatcher.locale.languageCode,
+    );
+  }
+
+  Future<void> _translateMissingItems({required String targetLanguage}) async {
+    if (targetLanguage.isEmpty || _data == null) return;
+    final rawItems = _data?['items'];
+    if (rawItems is! List<dynamic>) return;
+
+    for (final raw in rawItems) {
+      final item = raw as Map<String, dynamic>;
+      final description = _normalizeText(item['description']?.toString());
+      if (description.isEmpty) continue;
+
+      final translated = _normalizeText(
+        item['translated_description']?.toString(),
+      );
+      if (translated.isNotEmpty) continue;
+
+      var sourceLanguage = _normalizeLanguageCode(
+        item['description_lang']?.toString(),
+      );
+      if (sourceLanguage.isEmpty) {
+        sourceLanguage = _normalizeLanguageCode(
+          item['translation_source_language']?.toString(),
+        );
+      }
+      final result = await ItemTranslationService.instance.translate(
+        sourceText: description,
+        sourceLanguage: sourceLanguage.isNotEmpty ? sourceLanguage : null,
+        targetLanguage: targetLanguage,
+      );
+      if (result == null || !mounted) continue;
+
+      setState(() {
+        item['translated_description'] = result.translatedText;
+        item['translation_language'] = result.targetLanguage;
+        item['translation_source_language'] = result.sourceLanguage;
+        if ((item['description_lang']?.toString().trim().isEmpty ?? true)) {
+          item['description_lang'] = result.sourceLanguage;
+        }
+      });
+    }
+
+    unawaited(ItemTranslationService.instance.flushPending());
+  }
+
   @override
   void initState() {
     super.initState();
     _fetchData();
+  }
+
+  @override
+  void dispose() {
+    unawaited(ItemTranslationService.instance.flushPending());
+    super.dispose();
   }
 
   Future<void> _fetchData() async {
@@ -71,6 +144,21 @@ class _AnalyticsSubcategoryItemsScreenState
       _error = null;
     });
     try {
+      final appLanguage = _resolveAppLanguage();
+      Map<String, dynamic>? meData;
+      try {
+        meData = await ApiClient.getMe();
+      } catch (_) {
+        meData = null;
+      }
+
+      final preferredItemsLanguage = _normalizeLanguageCode(
+        meData?['items_language']?.toString(),
+      );
+      final effectiveItemsLanguage = preferredItemsLanguage.isNotEmpty
+          ? preferredItemsLanguage
+          : appLanguage;
+
       final data = await ApiClient.getSubcategoryItemsSummary(
         subcategoryId: widget.subcategoryId,
         fromDate: widget.fromDate,
@@ -83,12 +171,21 @@ class _AnalyticsSubcategoryItemsScreenState
         labelIds: widget.selectedLabelIds.isNotEmpty
             ? widget.selectedLabelIds
             : null,
+        itemLanguage: preferredItemsLanguage.isNotEmpty
+            ? preferredItemsLanguage
+            : null,
+        appLanguage: appLanguage.isNotEmpty ? appLanguage : null,
       );
       if (!mounted) return;
       setState(() {
         _data = data;
         _isLoading = false;
       });
+      if (effectiveItemsLanguage.isNotEmpty) {
+        unawaited(
+          _translateMissingItems(targetLanguage: effectiveItemsLanguage),
+        );
+      }
     } catch (e) {
       if (!mounted) return;
       setState(() {
@@ -203,7 +300,7 @@ class _AnalyticsSubcategoryItemsScreenState
     return RefreshIndicator(
       onRefresh: _fetchData,
       child: ListView(
-        padding: const EdgeInsets.all(16),
+        padding: const EdgeInsets.fromLTRB(16, 16, 16, 96),
         children: [
           Container(
             padding: const EdgeInsets.all(20),
@@ -261,6 +358,12 @@ class _AnalyticsSubcategoryItemsScreenState
             final name =
                 item['description']?.toString() ??
                 context.tr('analytics_unknown_item');
+            final translatedName = _normalizeText(
+              item['translated_description']?.toString(),
+            );
+            final hasTranslatedName =
+                translatedName.isNotEmpty &&
+                translatedName.toLowerCase() != name.trim().toLowerCase();
             final amount = (item['amount'] as num?)?.toDouble() ?? 0.0;
             final occurrences = (item['occurrences'] as num?)?.toInt() ?? 0;
             final totalQty = (item['total_qty'] as num?)?.toDouble();
@@ -304,6 +407,18 @@ class _AnalyticsSubcategoryItemsScreenState
                           maxLines: 2,
                           overflow: TextOverflow.ellipsis,
                         ),
+                        if (hasTranslatedName) ...[
+                          const SizedBox(height: 2),
+                          Text(
+                            translatedName,
+                            style: TextStyle(
+                              fontSize: 12,
+                              color: Colors.grey.shade300,
+                            ),
+                            maxLines: 2,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ],
                         const SizedBox(height: 4),
                         Text(
                           details,

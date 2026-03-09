@@ -149,11 +149,23 @@ class ApiClient {
   static Future<Map<String, dynamic>> getTransaction(
     String id, {
     String? targetCurrency,
+    String? itemLanguage,
+    String? appLanguage,
   }) async {
     final token = await _getToken();
     String url = '$apiBaseUrl/v1/transactions/$id';
+    final params = <String>[];
     if (targetCurrency != null && targetCurrency.isNotEmpty) {
-      url += '?target_currency=${Uri.encodeComponent(targetCurrency)}';
+      params.add('target_currency=${Uri.encodeComponent(targetCurrency)}');
+    }
+    if (itemLanguage != null && itemLanguage.isNotEmpty) {
+      params.add('item_language=${Uri.encodeComponent(itemLanguage)}');
+    }
+    if (appLanguage != null && appLanguage.isNotEmpty) {
+      params.add('app_language=${Uri.encodeComponent(appLanguage)}');
+    }
+    if (params.isNotEmpty) {
+      url += '?${params.join('&')}';
     }
     final response = await http.get(
       Uri.parse(url),
@@ -177,11 +189,23 @@ class ApiClient {
     String id,
     Map<String, dynamic> payload, {
     String? targetCurrency,
+    String? itemLanguage,
+    String? appLanguage,
   }) async {
     final token = await _getToken();
     String url = '$apiBaseUrl/v1/transactions/$id';
+    final params = <String>[];
     if (targetCurrency != null && targetCurrency.isNotEmpty) {
-      url += '?target_currency=${Uri.encodeComponent(targetCurrency)}';
+      params.add('target_currency=${Uri.encodeComponent(targetCurrency)}');
+    }
+    if (itemLanguage != null && itemLanguage.isNotEmpty) {
+      params.add('item_language=${Uri.encodeComponent(itemLanguage)}');
+    }
+    if (appLanguage != null && appLanguage.isNotEmpty) {
+      params.add('app_language=${Uri.encodeComponent(appLanguage)}');
+    }
+    if (params.isNotEmpty) {
+      url += '?${params.join('&')}';
     }
     final response = await http.put(
       Uri.parse(url),
@@ -384,6 +408,8 @@ class ApiClient {
     List<String>? subcategoryIds,
     List<String>? labelIds,
     String? targetCurrency,
+    String? itemLanguage,
+    String? appLanguage,
   }) async {
     final token = await _getToken();
 
@@ -404,6 +430,12 @@ class ApiClient {
     }
     if (targetCurrency != null && targetCurrency.isNotEmpty) {
       params.add('target_currency=${Uri.encodeComponent(targetCurrency)}');
+    }
+    if (itemLanguage != null && itemLanguage.isNotEmpty) {
+      params.add('item_language=${Uri.encodeComponent(itemLanguage)}');
+    }
+    if (appLanguage != null && appLanguage.isNotEmpty) {
+      params.add('app_language=${Uri.encodeComponent(appLanguage)}');
     }
     if (params.isNotEmpty) {
       url += '?${params.join('&')}';
@@ -642,6 +674,33 @@ class ApiClient {
     } else {
       throw Exception(
         'Failed to unassign label: ${response.statusCode} ${response.body}',
+      );
+    }
+  }
+
+  /// POST /v1/item-translations/batch
+  static Future<Map<String, dynamic>> postItemTranslationsBatch(
+    List<Map<String, String>> items,
+  ) async {
+    if (items.isEmpty) {
+      return {'inserted_count': 0, 'updated_count': 0, 'provider': 'mlkit'};
+    }
+
+    final token = await _getToken();
+    final response = await http.post(
+      Uri.parse('$apiBaseUrl/v1/item-translations/batch'),
+      headers: {
+        'Authorization': 'Bearer $token',
+        'Content-Type': 'application/json',
+      },
+      body: jsonEncode({'items': items}),
+    );
+
+    if (response.statusCode == 200) {
+      return jsonDecode(response.body) as Map<String, dynamic>;
+    } else {
+      throw Exception(
+        'Failed to upsert item translations: ${response.statusCode} ${response.body}',
       );
     }
   }

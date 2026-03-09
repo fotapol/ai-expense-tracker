@@ -99,6 +99,8 @@ def _call_vision_llm(
 Analyze this receipt image and extract structured data accurately.
 
 For the `occurred_at` field, extract BOTH the date AND the exact time (HH:mm) if it is visible on the receipt. If only the date is visible, extract just the date.
+For the `receipt_language` field, return the best-known language code of the receipt text in lowercase short form (for example: en, de, fr, sr, es).
+Set the `warnings` field to an empty list. The backend computes strict warnings after extraction.
 
 For `primary_category_code`, choose the single best code from this TRANSACTION category list:
 {tx_cat_lines}
@@ -498,6 +500,7 @@ def process_receipt(receipt_id: str) -> None:
                     transaction_id=transaction.id,
                     line_no=line_no,
                     description=item.description,
+                    description_lang=extracted.receipt_language,
                     qty=item.qty,
                     unit=item.unit,
                     unit_price=item.unit_price,

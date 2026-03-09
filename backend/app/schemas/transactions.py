@@ -18,6 +18,7 @@ from app.schemas.shared import (
     UnitPrice4DP,
     UUIDTimestampSchema,
     normalize_currency_code,
+    normalize_language_code,
     quantize_amount,
     quantize_quantity,
     quantize_unit_price,
@@ -31,6 +32,7 @@ class TransactionItemCreate(SchemaBase):
 
     line_no: int = Field(ge=1)
     description: str = Field(min_length=1, max_length=500)
+    description_lang: str | None = Field(default=None, max_length=16)
     qty: Quantity3DP | None = None
     unit: str | None = Field(default=None, max_length=32)
     unit_price: UnitPrice4DP | None = None
@@ -68,6 +70,16 @@ class TransactionItemCreate(SchemaBase):
             return None
         return quantize_amount(value)
 
+    @field_validator("description_lang")
+    @classmethod
+    def normalize_description_lang(cls, value: str | None) -> str | None:
+        """Normalize source language code when provided."""
+
+        if value is None:
+            return None
+        normalized = normalize_language_code(value)
+        return normalized or None
+
 
 class TransactionItemRead(UUIDTimestampSchema):
     """Read model for persisted transaction item lines."""
@@ -75,6 +87,7 @@ class TransactionItemRead(UUIDTimestampSchema):
     transaction_id: UUID
     line_no: int
     description: str
+    description_lang: str | None
     qty: Quantity3DP | None
     unit: str | None
     unit_price: UnitPrice4DP | None
@@ -86,12 +99,16 @@ class TransactionItemRead(UUIDTimestampSchema):
     raw_line: str | None
     display_amount: Amount2DP | None = None
     display_unit_price: UnitPrice4DP | None = None
+    translated_description: str | None = None
+    translation_language: str | None = None
+    translation_source_language: str | None = None
 
 
 class TransactionItemUpdate(SchemaBase):
     """Update payload for a single transaction line item."""
     id: UUID | None = Field(default=None, description="Provide ID to update existing item, omit to create new.")
     description: str | None = None
+    description_lang: str | None = Field(default=None, max_length=16)
     qty: Quantity3DP | None = None
     unit: str | None = None
     unit_price: UnitPrice4DP | None = None
@@ -100,6 +117,16 @@ class TransactionItemUpdate(SchemaBase):
     discount_amount: Amount2DP | None = None
     is_adjustment: bool | None = None
     category_id: UUID | None = None
+
+    @field_validator("description_lang")
+    @classmethod
+    def normalize_description_lang(cls, value: str | None) -> str | None:
+        """Normalize source language code when provided."""
+
+        if value is None:
+            return None
+        normalized = normalize_language_code(value)
+        return normalized or None
 
 
 class TransactionCreateManual(SchemaBase):
@@ -193,6 +220,8 @@ class TransactionListFilter(PaginationParams):
     source: TransactionSource | None = None
     currency: CurrencyCode | None = None
     target_currency: CurrencyCode | None = None
+    item_language: str | None = Field(default=None, max_length=16)
+    app_language: str | None = Field(default=None, max_length=16)
 
     @field_validator("currency")
     @classmethod
@@ -211,6 +240,16 @@ class TransactionListFilter(PaginationParams):
         if value is None:
             return None
         return normalize_currency_code(value)
+
+    @field_validator("item_language", "app_language")
+    @classmethod
+    def normalize_item_language(cls, value: str | None) -> str | None:
+        """Normalize optional item translation language code."""
+
+        if value is None:
+            return None
+        normalized = normalize_language_code(value)
+        return normalized or None
 
 
 class TransactionConfirm(SchemaBase):

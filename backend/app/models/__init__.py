@@ -7,6 +7,7 @@ from app.models.receipts.receipt_extraction import ReceiptExtraction
 from app.models.shared.enums import CategoryScope, ReceiptStatus, TransactionSource
 from app.models.shared.timestamps import TimestampedModel
 from app.models.taxonomy.category import Category, CategoryBase
+from app.models.translations.item_translation import ItemTranslation
 from app.models.transactions.transaction import Transaction, TransactionBase
 from app.models.transactions.transaction_item import TransactionItem
 from app.models.users.profile import Profile, ProfileBase
@@ -42,6 +43,7 @@ __all__ = [
     "LabelBase",
     "TransactionLabel",
     "ExchangeRate",
+    "ItemTranslation",
 ]
 
 # Suggested DB indexes and unique constraints:

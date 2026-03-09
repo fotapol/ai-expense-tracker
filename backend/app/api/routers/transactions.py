@@ -20,11 +20,18 @@ from app.models.taxonomy.category import Category
 from app.models.labels.label import Label
 from app.models.labels.transaction_label import TransactionLabel
 from app.models.receipts.receipt_extraction import ReceiptExtraction
+from app.models.translations.item_translation import ItemTranslation
 from app.models.transactions.transaction import Transaction
 from app.models.transactions.transaction_item import TransactionItem
 from app.models.users.user import User
+from app.schemas.item_translations import normalized_source_text_key
 from app.schemas.extraction import ExtractionWarning
-from app.schemas.shared import normalize_currency_code, quantize_amount, quantize_unit_price
+from app.schemas.shared import (
+    normalize_currency_code,
+    normalize_language_code,
+    quantize_amount,
+    quantize_unit_price,
+)
 from app.schemas.transactions import (
     TransactionItemRead,
     TransactionLabelRead,
@@ -64,6 +71,81 @@ def _resolve_label_filter_ids(filters: TransactionListFilter) -> set[uuid.UUID]:
 
 def _resolve_target_currency(filters: TransactionListFilter, current_user: User) -> str:
     return normalize_currency_code(filters.target_currency or current_user.default_currency)
+
+
+def _resolve_item_language(
+    *,
+    item_language: str | None,
+    app_language: str | None,
+    current_user: User,
+) -> str | None:
+    for candidate in (item_language, current_user.items_language, app_language):
+        if not candidate:
+            continue
+        normalized = normalize_language_code(candidate)
+        if normalized:
+            return normalized
+    return None
+
+
+def _load_translation_lookup(
+    session: Session,
+    *,
+    current_user: User,
+    target_language: str | None,
+    source_entries: list[tuple[str, str]],
+) -> dict[tuple[str, str, str], str]:
+    if not target_language or not source_entries:
+        return {}
+
+    normalized_texts = {normalized_source_text_key(text) for text, _ in source_entries if text.strip()}
+    source_languages = {normalize_language_code(lang) for _, lang in source_entries if lang.strip()}
+    if not normalized_texts or not source_languages:
+        return {}
+
+    rows = session.exec(
+        select(ItemTranslation).where(
+            ItemTranslation.user_id == current_user.id,
+            ItemTranslation.target_language == target_language,
+            ItemTranslation.normalized_source_text.in_(normalized_texts),
+            ItemTranslation.source_language.in_(source_languages),
+        )
+    ).all()
+
+    return {
+        (row.normalized_source_text, row.source_language, row.target_language): row.translated_text
+        for row in rows
+    }
+
+
+def _enrich_transaction_items_with_translations(
+    *,
+    items: list[TransactionItemRead],
+    target_language: str | None,
+    lookup: dict[tuple[str, str, str], str],
+) -> None:
+    for item in items:
+        item.translated_description = None
+        item.translation_language = None
+        item.translation_source_language = None
+        if not target_language:
+            continue
+        if item.description_lang is None or not item.description_lang.strip():
+            continue
+
+        source_language = normalize_language_code(item.description_lang)
+        key = (
+            normalized_source_text_key(item.description),
+            source_language,
+            target_language,
+        )
+        translated = lookup.get(key)
+        if translated is None:
+            continue
+
+        item.translated_description = translated
+        item.translation_language = target_language
+        item.translation_source_language = source_language
 
 
 def _get_user_visible_item_categories(session: Session, current_user: User) -> list[Category]:
@@ -888,6 +970,11 @@ async def get_subcategory_item_summary(
 ):
     """Get purchased item breakdown for one subcategory."""
     target_currency = _resolve_target_currency(filters, current_user)
+    effective_item_language = _resolve_item_language(
+        item_language=filters.item_language,
+        app_language=filters.app_language,
+        current_user=current_user,
+    )
     subcategory = session.exec(
         select(Category).where(
             Category.id == subcategory_id,
@@ -930,6 +1017,7 @@ async def get_subcategory_item_summary(
     item_rows = session.exec(
         select(
             item_scope_subquery.c.description,
+            item_scope_subquery.c.description_lang,
             item_scope_subquery.c.amount,
             item_scope_subquery.c.qty,
             item_scope_subquery.c.unit,
@@ -941,8 +1029,17 @@ async def get_subcategory_item_summary(
     ).all()
 
     total_amount = Decimal("0")
-    grouped: dict[str, dict[str, Any]] = {}
-    for description, amount, qty, unit, tx_currency, tx_occurred_at, tx_created_at in item_rows:
+    grouped: dict[tuple[str, str | None], dict[str, Any]] = {}
+    for (
+        description,
+        description_lang,
+        amount,
+        qty,
+        unit,
+        tx_currency,
+        tx_occurred_at,
+        tx_created_at,
+    ) in item_rows:
         clean_description = (description or "").strip() or "Unknown item"
         converted = convert_amount(
             amount=amount,
@@ -956,7 +1053,7 @@ async def get_subcategory_item_summary(
         total_amount += converted_amount
 
         entry = grouped.setdefault(
-            clean_description,
+            (clean_description, normalize_language_code(description_lang) if description_lang else None),
             {
                 "amount": Decimal("0"),
                 "occurrences": 0,
@@ -975,9 +1072,20 @@ async def get_subcategory_item_summary(
             else:
                 entry["total_qty"] += qty
 
+    translation_lookup = _load_translation_lookup(
+        session,
+        current_user=current_user,
+        target_language=effective_item_language,
+        source_entries=[
+            (description, description_lang)
+            for (description, description_lang) in grouped.keys()
+            if description_lang is not None
+        ],
+    )
+
     items = []
     total_item_rows = 0
-    for description, row in grouped.items():
+    for (description, description_lang), row in grouped.items():
         item_total = row["amount"]
         occurrences = int(row["occurrences"] or 0)
         qty_total = row["total_qty"]
@@ -987,15 +1095,35 @@ async def get_subcategory_item_summary(
         if qty_value not in (None, 0):
             avg_unit_price = float((item_total or Decimal("0")) / qty_value)
 
+        translated_description = None
+        translation_language = None
+        translation_source_language = None
+        if effective_item_language and description_lang:
+            source_lang = normalize_language_code(description_lang)
+            translated_description = translation_lookup.get(
+                (
+                    normalized_source_text_key(description),
+                    source_lang,
+                    effective_item_language,
+                )
+            )
+            if translated_description is not None:
+                translation_language = effective_item_language
+                translation_source_language = source_lang
+
         total_item_rows += occurrences
         items.append(
             {
                 "description": description,
+                "description_lang": description_lang,
                 "amount": float(item_total or Decimal("0")),
                 "occurrences": occurrences,
                 "total_qty": float(qty_value) if qty_value is not None else None,
                 "unit": unit,
                 "avg_unit_price": avg_unit_price,
+                "translated_description": translated_description,
+                "translation_language": translation_language,
+                "translation_source_language": translation_source_language,
             }
         )
     items.sort(key=lambda row: row["amount"], reverse=True)
@@ -1017,6 +1145,8 @@ async def get_transaction(
     request: Request,
     transaction_id: uuid.UUID,
     target_currency: str | None = None,
+    item_language: str | None = None,
+    app_language: str | None = None,
     session: Session = Depends(get_session),  # noqa: B008
     current_user: User = Depends(get_current_user),  # noqa: B008
 ):
@@ -1042,6 +1172,26 @@ async def get_transaction(
     # Construct the response model manually to combine models
     read = TransactionRead.model_validate(transaction)
     read.items = [TransactionItemRead.model_validate(item) for item in items]
+    effective_item_language = _resolve_item_language(
+        item_language=item_language,
+        app_language=app_language,
+        current_user=current_user,
+    )
+    translation_lookup = _load_translation_lookup(
+        session,
+        current_user=current_user,
+        target_language=effective_item_language,
+        source_entries=[
+            (item.description, item.description_lang)
+            for item in read.items
+            if item.description_lang is not None
+        ],
+    )
+    _enrich_transaction_items_with_translations(
+        items=read.items,
+        target_language=effective_item_language,
+        lookup=translation_lookup,
+    )
     read.category_name = (
         session.exec(
             select(Category.name).where(Category.id == transaction.category_id)
@@ -1077,6 +1227,8 @@ async def update_transaction(
     transaction_id: uuid.UUID,
     payload: TransactionUpdateRequest,
     target_currency: str | None = None,
+    item_language: str | None = None,
+    app_language: str | None = None,
     session: Session = Depends(get_session),  # noqa: B008
     current_user: User = Depends(get_current_user),  # noqa: B008
 ):
@@ -1120,6 +1272,12 @@ async def update_transaction(
                 # Update existing
                 existing_item = existing_items_map[item_data.id]
                 item_changes = item_data.model_dump(exclude_unset=True, exclude={"id"})
+                if (
+                    "description" in item_changes
+                    and "description_lang" not in item_changes
+                    and item_changes["description"] != existing_item.description
+                ):
+                    existing_item.description_lang = None
                 for k, v in item_changes.items():
                     setattr(existing_item, k, v)
                 session.add(existing_item)
@@ -1131,6 +1289,7 @@ async def update_transaction(
                     transaction_id=transaction.id,
                     line_no=max_line_no,
                     description=item_data.description or "New Item",
+                    description_lang=item_data.description_lang,
                     qty=item_data.qty,
                     unit=item_data.unit,
                     unit_price=item_data.unit_price,
@@ -1155,6 +1314,26 @@ async def update_transaction(
     # Build response
     read = TransactionRead.model_validate(transaction)
     read.items = [TransactionItemRead.model_validate(item) for item in items]
+    effective_item_language = _resolve_item_language(
+        item_language=item_language,
+        app_language=app_language,
+        current_user=current_user,
+    )
+    translation_lookup = _load_translation_lookup(
+        session,
+        current_user=current_user,
+        target_language=effective_item_language,
+        source_entries=[
+            (item.description, item.description_lang)
+            for item in read.items
+            if item.description_lang is not None
+        ],
+    )
+    _enrich_transaction_items_with_translations(
+        items=read.items,
+        target_language=effective_item_language,
+        lookup=translation_lookup,
+    )
     read.category_name = (
         session.exec(
             select(Category.name).where(Category.id == transaction.category_id)

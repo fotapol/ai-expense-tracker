@@ -1,9 +1,13 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:currency_picker/currency_picker.dart';
 import 'package:intl/intl.dart';
 import '../core/api_client.dart';
+import '../core/item_translation_service.dart';
 import '../core/taxonomy_localization.dart';
 import '../l10n/app_localizations.dart';
+import '../main.dart';
 
 class TransactionEditScreen extends StatefulWidget {
   final String transactionId;
@@ -25,6 +29,7 @@ class _TransactionEditScreenState extends State<TransactionEditScreen> {
   Set<String> _selectedLabelIds = {};
   List<dynamic> _serverWarnings = [];
   bool _hasLocalEdits = false;
+  bool _isTranslatingItems = false;
 
   final _merchantController = TextEditingController();
   final _amountController = TextEditingController();
@@ -32,6 +37,8 @@ class _TransactionEditScreenState extends State<TransactionEditScreen> {
   String _currency = 'RSD';
   String _displayCurrency = 'RSD';
   double _displayRate = 1.0;
+  String _appLanguage = '';
+  String _effectiveItemsLanguage = '';
 
   final Map<String, TextEditingController> _itemDescControllers = {};
   final Map<String, TextEditingController> _itemAmountControllers = {};
@@ -47,6 +54,7 @@ class _TransactionEditScreenState extends State<TransactionEditScreen> {
 
   @override
   void dispose() {
+    unawaited(ItemTranslationService.instance.flushPending());
     _merchantController.dispose();
     _amountController.dispose();
     for (var c in _itemDescControllers.values) {
@@ -70,14 +78,58 @@ class _TransactionEditScreenState extends State<TransactionEditScreen> {
       _error = null;
     });
     try {
-      final txData = await ApiClient.getTransaction(widget.transactionId);
-      final catsData = await ApiClient.listCategories();
-      final labelsData = await ApiClient.listLabels();
+      final appLanguage = _resolveAppLanguage();
+      Map<String, dynamic>? meData;
+      try {
+        meData = await ApiClient.getMe();
+      } catch (_) {
+        meData = null;
+      }
+      final preferredItemsLanguage = _normalizeLanguageCode(
+        meData?['items_language']?.toString(),
+      );
+
+      final txFuture = ApiClient.getTransaction(
+        widget.transactionId,
+        itemLanguage: preferredItemsLanguage.isNotEmpty
+            ? preferredItemsLanguage
+            : null,
+        appLanguage: appLanguage.isNotEmpty ? appLanguage : null,
+      );
+      final catsFuture = ApiClient.listCategories();
+      final labelsFuture = ApiClient.listLabels();
+
+      final txData = await txFuture;
+      final catsData = await catsFuture;
+      final labelsData = await labelsFuture;
+      final effectiveItemsLanguage = preferredItemsLanguage.isNotEmpty
+          ? preferredItemsLanguage
+          : appLanguage;
+
+      for (final c in _itemDescControllers.values) {
+        c.dispose();
+      }
+      for (final c in _itemAmountControllers.values) {
+        c.dispose();
+      }
+      for (final c in _itemQtyControllers.values) {
+        c.dispose();
+      }
+      for (final c in _itemUnitPriceControllers.values) {
+        c.dispose();
+      }
+      _itemDescControllers.clear();
+      _itemAmountControllers.clear();
+      _itemQtyControllers.clear();
+      _itemUnitPriceControllers.clear();
+      _itemCategoryIds.clear();
 
       setState(() {
         _hasLocalEdits = false;
         _categories = catsData;
         _labels = labelsData;
+        _appLanguage = appLanguage;
+        _effectiveItemsLanguage = effectiveItemsLanguage;
         _items = List.from(txData['items'] ?? []);
         _selectedLabelIds = Set<String>.from(
           (txData['labels'] as List<dynamic>? ?? const [])
@@ -144,6 +196,14 @@ class _TransactionEditScreenState extends State<TransactionEditScreen> {
 
         _isLoading = false;
       });
+
+      if (effectiveItemsLanguage.isNotEmpty) {
+        unawaited(
+          _translateMissingTransactionItems(
+            targetLanguage: effectiveItemsLanguage,
+          ),
+        );
+      }
     } catch (e) {
       if (mounted) {
         setState(() {
@@ -184,7 +244,14 @@ class _TransactionEditScreenState extends State<TransactionEditScreen> {
       }
       payload['items'] = updatedItems;
 
-      await ApiClient.updateTransaction(widget.transactionId, payload);
+      await ApiClient.updateTransaction(
+        widget.transactionId,
+        payload,
+        itemLanguage: _effectiveItemsLanguage.isNotEmpty
+            ? _effectiveItemsLanguage
+            : null,
+        appLanguage: _appLanguage.isNotEmpty ? _appLanguage : null,
+      );
 
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -261,6 +328,99 @@ class _TransactionEditScreenState extends State<TransactionEditScreen> {
     return '${currency.toUpperCase()} ${amount.toStringAsFixed(2)}';
   }
 
+  String _normalizeLanguageCode(String? raw) {
+    return ItemTranslationService.instance.normalizeLanguageCode(raw);
+  }
+
+  String _normalizeText(String? raw) {
+    return ItemTranslationService.instance.normalizeSourceText(raw ?? '');
+  }
+
+  String _resolveAppLanguage() {
+    final fromLocale = _normalizeLanguageCode(
+      localeProvider.locale.languageCode,
+    );
+    if (fromLocale.isNotEmpty) {
+      return fromLocale;
+    }
+    return _normalizeLanguageCode(
+      WidgetsBinding.instance.platformDispatcher.locale.languageCode,
+    );
+  }
+
+  Future<void> _translateMissingTransactionItems({
+    required String targetLanguage,
+    bool forceRefresh = false,
+  }) async {
+    if (targetLanguage.isEmpty || _isTranslatingItems) return;
+
+    setState(() => _isTranslatingItems = true);
+    try {
+      for (final raw in _items) {
+        final item = raw as Map<String, dynamic>;
+        final itemId = item['id']?.toString();
+        if (itemId == null || itemId.isEmpty) continue;
+
+        final description = _normalizeText(
+          _itemDescControllers[itemId]?.text ?? item['description']?.toString(),
+        );
+        if (description.isEmpty) continue;
+
+        final existingTranslation = _normalizeText(
+          item['translated_description']?.toString(),
+        );
+        if (!forceRefresh && existingTranslation.isNotEmpty) continue;
+
+        var sourceLanguage = _normalizeLanguageCode(
+          item['description_lang']?.toString(),
+        );
+        if (sourceLanguage.isEmpty) {
+          sourceLanguage = _normalizeLanguageCode(
+            item['translation_source_language']?.toString(),
+          );
+        }
+        final result = await ItemTranslationService.instance.translate(
+          sourceText: description,
+          sourceLanguage: sourceLanguage.isNotEmpty ? sourceLanguage : null,
+          targetLanguage: targetLanguage,
+          forceRefresh: forceRefresh,
+        );
+        if (result == null || !mounted) continue;
+
+        final currentDescription = _normalizeText(
+          _itemDescControllers[itemId]?.text,
+        );
+        if (currentDescription != description) continue;
+
+        setState(() {
+          item['translated_description'] = result.translatedText;
+          item['translation_language'] = result.targetLanguage;
+          item['translation_source_language'] = result.sourceLanguage;
+          if ((item['description_lang']?.toString().trim().isEmpty ?? true)) {
+            item['description_lang'] = result.sourceLanguage;
+          }
+        });
+      }
+    } finally {
+      if (mounted) {
+        setState(() => _isTranslatingItems = false);
+      }
+    }
+  }
+
+  Future<void> _forceRetranslateItems() async {
+    if (_effectiveItemsLanguage.isEmpty || _isTranslatingItems) return;
+    await _translateMissingTransactionItems(
+      targetLanguage: _effectiveItemsLanguage,
+      forceRefresh: true,
+    );
+    if (!mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text(context.tr('transaction_translate'))),
+    );
+    unawaited(ItemTranslationService.instance.flushPending());
+  }
+
   void _openReceiptCurrencyPicker() {
     showCurrencyPicker(
       context: context,
@@ -292,28 +452,51 @@ class _TransactionEditScreenState extends State<TransactionEditScreen> {
     return null;
   }
 
-  String _itemCategoryLabel(String? categoryId) {
-    final category = _findCategoryById(categoryId);
-    if (category == null) return context.tr('transaction_select_category');
-    final childName = localizeCategoryByCode(
+  bool _isItemScopeCategory(Map<String, dynamic> category) {
+    final scope = (category['scope']?.toString() ?? '').trim().toLowerCase();
+    if (scope.isEmpty) return true;
+    return scope == 'item';
+  }
+
+  String _localizedCategoryName(Map<String, dynamic> category) {
+    return localizeCategoryByCode(
       context,
       code: category['code']?.toString(),
       fallbackName: category['name']?.toString(),
     );
-    final parentId = category['parent_id']?.toString();
-    if (parentId == null || parentId.isEmpty) {
-      return childName;
-    }
-    final parent = _findCategoryById(parentId);
-    final parentName = localizeCategoryByCode(
-      context,
-      code: parent?['code']?.toString(),
-      fallbackName: parent?['name']?.toString(),
+  }
+
+  List<Map<String, dynamic>> _topLevelItemCategories() {
+    final topLevel = _categories
+        .whereType<Map<String, dynamic>>()
+        .where((category) {
+          final parentId = category['parent_id']?.toString();
+          return _isItemScopeCategory(category) &&
+              (parentId == null || parentId.isEmpty);
+        })
+        .toList();
+    topLevel.sort(
+      (a, b) => _localizedCategoryName(
+        a,
+      ).toLowerCase().compareTo(_localizedCategoryName(b).toLowerCase()),
     );
-    if (parentName.isEmpty) {
-      return childName;
-    }
-    return '$parentName * $childName';
+    return topLevel;
+  }
+
+  List<Map<String, dynamic>> _itemSubcategoriesForParent(String parentId) {
+    final subcategories = _categories
+        .whereType<Map<String, dynamic>>()
+        .where((category) {
+          final categoryParentId = category['parent_id']?.toString();
+          return _isItemScopeCategory(category) && categoryParentId == parentId;
+        })
+        .toList();
+    subcategories.sort(
+      (a, b) => _localizedCategoryName(
+        a,
+      ).toLowerCase().compareTo(_localizedCategoryName(b).toLowerCase()),
+    );
+    return subcategories;
   }
 
   List<String> _itemCategoryTags(String? categoryId) {
@@ -1026,7 +1209,12 @@ class _TransactionEditScreenState extends State<TransactionEditScreen> {
             ),
             _buildBadge(
               icon: Icons.translate,
-              label: context.tr('transaction_translate'),
+              label: _isTranslatingItems
+                  ? '${context.tr('transaction_translate')}...'
+                  : context.tr('transaction_translate'),
+              onTap: _effectiveItemsLanguage.isNotEmpty
+                  ? _forceRetranslateItems
+                  : null,
             ),
             _buildBadge(
               icon: Icons.image_outlined,
@@ -1097,6 +1285,15 @@ class _TransactionEditScreenState extends State<TransactionEditScreen> {
     );
     final sourceAmount = _toDouble(amountController?.text) ?? 0;
     final displayAmount = _toDisplayAmount(sourceAmount);
+    final currentName = _normalizeText(
+      nameController?.text ?? item['description']?.toString(),
+    );
+    final translatedName = _normalizeText(
+      item['translated_description']?.toString(),
+    );
+    final hasTranslatedName =
+        translatedName.isNotEmpty &&
+        translatedName.toLowerCase() != currentName.toLowerCase();
 
     return Container(
       margin: const EdgeInsets.only(bottom: 12),
@@ -1111,14 +1308,41 @@ class _TransactionEditScreenState extends State<TransactionEditScreen> {
           Row(
             children: [
               Expanded(
-                child: TextField(
-                  controller: nameController,
-                  style: const TextStyle(color: Colors.white, fontSize: 16),
-                  decoration: InputDecoration(
-                    border: InputBorder.none,
-                    hintText: context.tr('transaction_item_name'),
-                    hintStyle: const TextStyle(color: Colors.white24),
-                  ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    TextField(
+                      controller: nameController,
+                      style: const TextStyle(color: Colors.white, fontSize: 16),
+                      decoration: InputDecoration(
+                        border: InputBorder.none,
+                        hintText: context.tr('transaction_item_name'),
+                        hintStyle: const TextStyle(color: Colors.white24),
+                      ),
+                      onChanged: (value) {
+                        setState(() {
+                          _hasLocalEdits = true;
+                          item['description'] = value;
+                          item['translated_description'] = null;
+                          item['translation_language'] = null;
+                          item['translation_source_language'] = null;
+                        });
+                      },
+                    ),
+                    if (hasTranslatedName)
+                      Padding(
+                        padding: const EdgeInsets.only(top: 2),
+                        child: Text(
+                          translatedName,
+                          maxLines: 2,
+                          overflow: TextOverflow.ellipsis,
+                          style: TextStyle(
+                            color: Colors.grey.shade400,
+                            fontSize: 13,
+                          ),
+                        ),
+                      ),
+                  ],
                 ),
               ),
               IconButton(
@@ -1375,8 +1599,105 @@ class _TransactionEditScreenState extends State<TransactionEditScreen> {
     );
   }
 
-  void _showCategoryPicker(String itemId) {
-    showModalBottomSheet(
+  Future<String?> _pickParentCategory(String? selectedParentId) {
+    final topLevel = _topLevelItemCategories();
+    if (topLevel.isEmpty) {
+      return Future.value(null);
+    }
+
+    return showModalBottomSheet<String>(
+      context: context,
+      backgroundColor: const Color(0xFF1E1E1E),
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (context) {
+        String? currentSelectedParentId = selectedParentId;
+        return StatefulBuilder(
+          builder: (context, setModalState) {
+            return SafeArea(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.fromLTRB(16, 12, 16, 8),
+                    child: Row(
+                      children: [
+                        Text(
+                          context.tr('filters_category'),
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontSize: 18,
+                            fontWeight: FontWeight.w700,
+                          ),
+                        ),
+                        const Spacer(),
+                        TextButton(
+                          onPressed: () => Navigator.pop(context),
+                          child: Text(context.tr('common_cancel')),
+                        ),
+                      ],
+                    ),
+                  ),
+                  Flexible(
+                    child: ListView.builder(
+                      padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+                      shrinkWrap: true,
+                      itemCount: topLevel.length,
+                      itemBuilder: (context, index) {
+                        final category = topLevel[index];
+                        final categoryId = category['id']?.toString() ?? '';
+                        final selected = categoryId == currentSelectedParentId;
+                        return ListTile(
+                          contentPadding: EdgeInsets.zero,
+                          title: Text(
+                            _localizedCategoryName(category),
+                            style: TextStyle(
+                              color: selected
+                                  ? Theme.of(context).colorScheme.primary
+                                  : Colors.white,
+                              fontWeight: selected
+                                  ? FontWeight.w700
+                                  : FontWeight.w400,
+                            ),
+                          ),
+                          trailing: Icon(
+                            selected
+                                ? Icons.radio_button_checked
+                                : Icons.radio_button_off,
+                            color: selected
+                                ? Theme.of(context).colorScheme.primary
+                                : Colors.white38,
+                          ),
+                          onTap: () {
+                            setModalState(
+                              () => currentSelectedParentId = categoryId,
+                            );
+                            Navigator.pop(context, categoryId);
+                          },
+                        );
+                      },
+                    ),
+                  ),
+                ],
+              ),
+            );
+          },
+        );
+      },
+    );
+  }
+
+  Future<String?> _pickSubcategory({
+    required String parentCategoryId,
+    String? selectedSubcategoryId,
+  }) {
+    final subcategories = _itemSubcategoriesForParent(parentCategoryId);
+    if (subcategories.isEmpty) {
+      return Future.value(null);
+    }
+
+    return showModalBottomSheet<String>(
       context: context,
       backgroundColor: const Color(0xFF1E1E1E),
       shape: const RoundedRectangleBorder(
@@ -1384,26 +1705,86 @@ class _TransactionEditScreenState extends State<TransactionEditScreen> {
       ),
       builder: (context) {
         return ListView.builder(
-          padding: const EdgeInsets.all(16),
-          itemCount: _categories.length,
+          padding: const EdgeInsets.fromLTRB(16, 12, 16, 16),
+          itemCount: subcategories.length + 1,
           itemBuilder: (context, index) {
-            final cat = _categories[index];
-            final catId = cat['id']?.toString();
+            if (index == 0) {
+              return Padding(
+                padding: const EdgeInsets.only(bottom: 8),
+                child: Row(
+                  children: [
+                    Text(
+                      context.tr('filters_subcategory'),
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontSize: 18,
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
+                    const Spacer(),
+                    TextButton(
+                      onPressed: () => Navigator.pop(context),
+                      child: Text(context.tr('common_cancel')),
+                    ),
+                  ],
+                ),
+              );
+            }
+
+            final category = subcategories[index - 1];
+            final categoryId = category['id']?.toString() ?? '';
+            final selected = categoryId == selectedSubcategoryId;
             return ListTile(
+              contentPadding: EdgeInsets.zero,
               title: Text(
-                _itemCategoryLabel(catId),
-                style: const TextStyle(color: Colors.white),
+                _localizedCategoryName(category),
+                style: TextStyle(
+                  color: selected
+                      ? Theme.of(context).colorScheme.primary
+                      : Colors.white,
+                  fontWeight: selected ? FontWeight.w700 : FontWeight.w400,
+                ),
               ),
-              onTap: () {
-                setState(() {
-                  _itemCategoryIds[itemId] = cat['id'].toString();
-                });
-                Navigator.pop(context);
-              },
+              trailing: Icon(
+                selected ? Icons.radio_button_checked : Icons.radio_button_off,
+                color: selected
+                    ? Theme.of(context).colorScheme.primary
+                    : Colors.white38,
+              ),
+              onTap: () => Navigator.pop(context, categoryId),
             );
           },
         );
       },
     );
+  }
+
+  Future<void> _showCategoryPicker(String itemId) async {
+    final selectedCategory = _findCategoryById(_itemCategoryIds[itemId]);
+    var selectedParentId = selectedCategory?['parent_id']?.toString();
+    if (selectedParentId == null || selectedParentId.isEmpty) {
+      selectedParentId = selectedCategory == null
+          ? null
+          : selectedCategory['id']?.toString();
+    }
+
+    final parentCategoryId = await _pickParentCategory(selectedParentId);
+    if (!mounted || parentCategoryId == null || parentCategoryId.isEmpty) {
+      return;
+    }
+
+    final selectedSubcategoryId = await _pickSubcategory(
+      parentCategoryId: parentCategoryId,
+      selectedSubcategoryId: _itemCategoryIds[itemId],
+    );
+    if (!mounted) return;
+
+    setState(() {
+      _hasLocalEdits = true;
+      _itemCategoryIds[itemId] =
+          (selectedSubcategoryId == null || selectedSubcategoryId.isEmpty)
+          ? parentCategoryId
+          : selectedSubcategoryId;
+    });
   }
 }

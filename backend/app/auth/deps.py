@@ -5,6 +5,7 @@ import logging
 from fastapi import Depends, HTTPException, Request, status
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from firebase_admin import auth as firebase_auth
+from sqlalchemy.exc import IntegrityError
 from sqlmodel import Session, select
 
 from app.auth.firebase_admin import verify_token
@@ -82,24 +83,31 @@ async def get_current_user(
 
     # --- Cache-first lookup ----------------------------------------------
     redis = get_redis()
-
-    cached = await get_cached_user(redis, uid)
-    if cached is not None:
-        cached = session.merge(cached)
-        # Even on cache hit, sync email if it changed.
-        if email and cached.email != email:
-            cached.email = email
-            session.commit()
-            session.refresh(cached)
-            await invalidate_user_cache(redis, uid)
-            await cache_user(redis, cached)
-        return cached
-
-    # --- DB lookup -------------------------------------------------------
     statement = select(User).where(
         User.auth_subject == uid,
         User.auth_provider == "firebase",
     )
+
+    cached = await get_cached_user(redis, uid)
+    if cached is not None:
+        user = session.exec(select(User).where(User.id == cached.id)).first()
+        if user is None:
+            # Cache may be stale relative to DB; fall back to auth_subject lookup.
+            user = session.exec(statement).first()
+        if user is not None:
+            # Even on cache hit, sync email if it changed.
+            if email and user.email != email:
+                user.email = email
+                session.add(user)
+                session.commit()
+                session.refresh(user)
+                await invalidate_user_cache(redis, uid)
+                await cache_user(redis, user)
+            return user
+
+        await invalidate_user_cache(redis, uid)
+
+    # --- DB lookup -------------------------------------------------------
     user = session.exec(statement).first()
 
     if user is not None:
@@ -126,8 +134,15 @@ async def get_current_user(
         auth_subject=uid,
     )
     session.add(user)
-    session.commit()
-    session.refresh(user)
+    try:
+        session.commit()
+        session.refresh(user)
+    except IntegrityError:
+        # Concurrent request created the same user first.
+        session.rollback()
+        user = session.exec(statement).first()
+        if user is None:
+            raise
 
     logger.info("Created new local user id=%s for firebase uid=%s.", user.id, uid)
     await cache_user(redis, user)
