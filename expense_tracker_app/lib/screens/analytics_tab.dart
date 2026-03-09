@@ -390,6 +390,8 @@ class _AnalyticsTabState extends State<AnalyticsTab> {
           _buildPieChart(categories, totalAmount, currency),
           const SizedBox(height: 20),
           _buildCategoryBreakdown(categories, currency),
+          const SizedBox(height: 24),
+          _buildDiscountSection(currency),
           const SizedBox(height: 32),
         ],
       ),
@@ -715,6 +717,171 @@ class _AnalyticsTabState extends State<AnalyticsTab> {
           ),
         );
       }).toList(),
+    );
+  }
+
+  Widget _buildDiscountSection(String currency) {
+    final discountsRaw = _summaryData?['discounts'];
+    if (discountsRaw is! Map<String, dynamic>) {
+      return const SizedBox.shrink();
+    }
+
+    final totalSavings = (discountsRaw['total_savings'] as num?)?.toDouble() ??
+        0.0;
+    final itemsWithDiscount =
+        (discountsRaw['items_with_discount'] as num?)?.toInt() ?? 0;
+    final biggestDiscountRaw = discountsRaw['biggest_discount'];
+    final biggestDiscount =
+        biggestDiscountRaw is Map<String, dynamic> ? biggestDiscountRaw : null;
+
+    if (totalSavings <= 0 && itemsWithDiscount <= 0 && biggestDiscount == null) {
+      return Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            context.tr('analytics_discounts_title'),
+            style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+          ),
+          const SizedBox(height: 12),
+          Container(
+            width: double.infinity,
+            padding: const EdgeInsets.symmetric(vertical: 24, horizontal: 16),
+            decoration: BoxDecoration(
+              color: Theme.of(context).colorScheme.surface.withAlpha(200),
+              borderRadius: BorderRadius.circular(18),
+            ),
+            child: Center(
+              child: Text(
+                context.tr('analytics_no_discounts'),
+                style: TextStyle(
+                  color: Colors.grey.shade500,
+                  fontSize: 16,
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+            ),
+          ),
+        ],
+      );
+    }
+
+    final accent = const Color(0xFF2ED7A4);
+    final biggestDescription =
+        biggestDiscount?['description']?.toString().trim() ?? '';
+    final biggestAmount =
+        (biggestDiscount?['amount'] as num?)?.toDouble() ?? 0.0;
+    final biggestPercentage =
+        (biggestDiscount?['percentage'] as num?)?.toDouble();
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          context.tr('analytics_discounts_title'),
+          style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+        ),
+        const SizedBox(height: 12),
+        Container(
+          width: double.infinity,
+          padding: const EdgeInsets.all(16),
+          decoration: BoxDecoration(
+            color: Theme.of(context).colorScheme.surface.withAlpha(200),
+            borderRadius: BorderRadius.circular(18),
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          _formatMoney(currency, totalSavings),
+                          style: TextStyle(
+                            color: accent,
+                            fontSize: 34,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                        const SizedBox(height: 4),
+                        Text(
+                          context.tr('analytics_total_savings'),
+                          style: TextStyle(
+                            color: Colors.grey.shade400,
+                            fontSize: 14,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          '$itemsWithDiscount',
+                          style: const TextStyle(
+                            fontSize: 34,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                        const SizedBox(height: 4),
+                        Text(
+                          context.tr('analytics_items_with_discount'),
+                          style: TextStyle(
+                            color: Colors.grey.shade400,
+                            fontSize: 14,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+              if (biggestDescription.isNotEmpty && biggestAmount > 0) ...[
+                const SizedBox(height: 16),
+                Divider(color: Colors.grey.shade800),
+                const SizedBox(height: 12),
+                Row(
+                  children: [
+                    Icon(Icons.sell_outlined, color: accent, size: 18),
+                    const SizedBox(width: 8),
+                    Text(
+                      context.tr('analytics_biggest_discount'),
+                      style: TextStyle(
+                        color: Colors.grey.shade400,
+                        fontSize: 14,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  biggestDescription,
+                  style: const TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  biggestPercentage != null
+                      ? '${_formatMoney(currency, biggestAmount)} (${biggestPercentage.toStringAsFixed(1)}%)'
+                      : _formatMoney(currency, biggestAmount),
+                  style: TextStyle(
+                    color: accent,
+                    fontSize: 20,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ],
+            ],
+          ),
+        ),
+      ],
     );
   }
 }

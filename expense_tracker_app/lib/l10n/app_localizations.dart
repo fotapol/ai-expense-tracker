@@ -99,6 +99,8 @@ class AppLocalizations {
           'This will permanently delete the receipt and all its items. Are you sure?',
       'receipts_deleted': 'Receipt deleted.',
       'receipts_no_data': 'No receipts found',
+      'receipts_no_discounts': 'No discounts in this period',
+      'transaction_no_discounts': 'No discounts on this receipt',
       'receipts_total_for_period': 'Total for period',
       'receipts_count': '{count} receipts',
       'receipts_unknown_store': 'Unknown Store',
@@ -198,6 +200,11 @@ class AppLocalizations {
       'analytics_bought_times': 'Bought {count} times',
       'analytics_total_quantity': 'Total quantity {qty} {unit}',
       'analytics_purchased_items': 'Purchased Items',
+      'analytics_discounts_title': 'Discounts',
+      'analytics_total_savings': 'Total savings',
+      'analytics_items_with_discount': 'Items with discount',
+      'analytics_biggest_discount': 'Biggest discount',
+      'analytics_no_discounts': 'Do not have receipts with discounts',
       'analytics_no_items_for_subcategory':
           'No items found for this subcategory.',
       'analytics_unknown_item': 'Unknown item',
@@ -226,6 +233,7 @@ class AppLocalizations {
           'Mismatch: expected {expected} but extracted {actual}',
       'transaction_add_item': '+ Add item',
       'transaction_total_amount': 'Total Amount:',
+      'transaction_total_savings': 'Total Savings:',
       'transaction_total_mismatch':
           'Total mismatch: expected {expected} but extracted {actual}',
       'taxonomy_food': 'Food',

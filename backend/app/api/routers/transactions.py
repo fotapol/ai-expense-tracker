@@ -825,11 +825,113 @@ async def get_transactions_summary(
     # Re-sort by amount descending since the rollup might have changed the order
     categories_breakdown.sort(key=lambda x: x["amount"], reverse=True)
 
+    # 4. Discount analytics on filtered TransactionItem scope
+    discount_rows = session.exec(
+        select(
+            item_scope_subquery.c.description,
+            item_scope_subquery.c.discount_amount,
+            item_scope_subquery.c.amount_before_discount,
+            item_scope_subquery.c.qty,
+            item_scope_subquery.c.unit_price,
+            item_scope_subquery.c.amount,
+            Transaction.currency,
+            Transaction.occurred_at,
+            Transaction.created_at,
+        )
+        .join(Transaction, Transaction.id == item_scope_subquery.c.transaction_id)
+    ).all()
+
+    total_savings = Decimal("0")
+    items_with_discount = 0
+    biggest_discount_entry: dict[str, Any] | None = None
+    biggest_discount_amount = Decimal("0")
+
+    for (
+        description,
+        discount_amount,
+        amount_before_discount,
+        qty,
+        unit_price,
+        line_amount,
+        tx_currency,
+        tx_occurred_at,
+        tx_created_at,
+    ) in discount_rows:
+        effective_discount = discount_amount
+        if effective_discount is None and amount_before_discount is not None and line_amount is not None:
+            derived_discount = quantize_amount(amount_before_discount - line_amount)
+            if derived_discount > 0:
+                effective_discount = derived_discount
+        if effective_discount is None and qty is not None and unit_price is not None and line_amount is not None:
+            derived_discount = quantize_amount((qty * unit_price) - line_amount)
+            if derived_discount > 0:
+                effective_discount = derived_discount
+
+        if effective_discount is None:
+            continue
+
+        discount_abs = quantize_amount(abs(effective_discount))
+        if discount_abs <= 0:
+            continue
+
+        items_with_discount += 1
+        converted_discount = convert_amount(
+            amount=discount_abs,
+            base_currency=tx_currency,
+            target_currency=target_currency,
+            target_date=resolve_conversion_date(tx_occurred_at, tx_created_at),
+            session=session,
+            quantizer=quantize_amount,
+        )
+        converted_discount_value = (
+            converted_discount.value
+            if converted_discount.value is not None
+            else discount_abs
+        )
+        total_savings += converted_discount_value
+
+        base_before = amount_before_discount
+        if base_before is None and line_amount is not None:
+            base_before = quantize_amount(line_amount + discount_abs)
+
+        percentage = None
+        if base_before is not None and base_before > 0:
+            converted_before = convert_amount(
+                amount=base_before,
+                base_currency=tx_currency,
+                target_currency=target_currency,
+                target_date=resolve_conversion_date(tx_occurred_at, tx_created_at),
+                session=session,
+                quantizer=quantize_amount,
+            )
+            converted_before_value = (
+                converted_before.value
+                if converted_before.value is not None
+                else quantize_amount(base_before)
+            )
+            if converted_before_value > 0:
+                percentage = float(
+                    quantize_amount((converted_discount_value / converted_before_value) * 100)
+                )
+
+        if converted_discount_value > biggest_discount_amount:
+            biggest_discount_amount = converted_discount_value
+            biggest_discount_entry = {
+                "description": (description or "").strip() or "Unknown item",
+                "amount": float(converted_discount_value),
+                "percentage": percentage,
+            }
+
     return {
         "total_amount": float(total_amount),
         "total_transactions": total_transactions,
         "currency": target_currency,
         "categories": categories_breakdown,
+        "discounts": {
+            "total_savings": float(total_savings),
+            "items_with_discount": items_with_discount,
+            "biggest_discount": biggest_discount_entry,
+        },
     }
 
 

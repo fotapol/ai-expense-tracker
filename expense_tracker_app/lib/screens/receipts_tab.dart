@@ -581,6 +581,37 @@ class _ReceiptsTabState extends State<ReceiptsTab> {
         (txCategoryLabel != null && txCategoryLabel.isNotEmpty) ||
         labelsToRender.isNotEmpty;
 
+    double receiptSavingsSource = 0;
+    final itemsRaw = tx['items'];
+    if (itemsRaw is List) {
+      for (var rawItem in itemsRaw) {
+        if (rawItem is Map<String, dynamic>) {
+          var discountRaw =
+              double.tryParse(rawItem['discount_amount']?.toString() ?? '0') ??
+              0;
+          if (discountRaw == 0) {
+            final amountBefore =
+                double.tryParse(
+                  rawItem['amount_before_discount']?.toString() ?? '0',
+                ) ??
+                0;
+            final amountLine =
+                double.tryParse(rawItem['amount']?.toString() ?? '0') ?? 0;
+            if (amountBefore > 0 &&
+                amountLine > 0 &&
+                amountBefore > amountLine) {
+              discountRaw = amountBefore - amountLine;
+            }
+          }
+          if (discountRaw > 0) {
+            receiptSavingsSource += discountRaw;
+          }
+        }
+      }
+    }
+    final rate = sourceAmount > 0 ? displayAmount / sourceAmount : 1.0;
+    final receiptSavings = receiptSavingsSource * rate;
+
     return Dismissible(
       key: Key(tx['id'] ?? ''),
       direction: DismissDirection.endToStart,
@@ -704,6 +735,15 @@ class _ReceiptsTabState extends State<ReceiptsTab> {
                         fontSize: 12,
                       ),
                     ),
+                  if (receiptSavings > 0)
+                    Text(
+                      '- ${_formatMoney(displayCurrency, receiptSavings)}',
+                      style: TextStyle(
+                        color: Colors.orange.shade300,
+                        fontSize: 12,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
                 ],
               ),
             ],
@@ -745,11 +785,56 @@ class _ReceiptsTabState extends State<ReceiptsTab> {
 
   Widget _buildBottomSummary() {
     double totalPeriodExpense = 0;
+    double totalPeriodSavings = 0;
     String totalCurrency = _preferredCurrency;
+    
     for (var tx in _transactions) {
       final txMap = tx as Map<String, dynamic>;
       totalPeriodExpense += _displayAmountOf(txMap);
       totalCurrency = _displayCurrencyOf(txMap);
+      
+      final itemsRaw = txMap['items'];
+      if (itemsRaw is List) {
+        final amountTotal =
+            double.tryParse(txMap['amount_total']?.toString() ?? '0') ?? 0;
+        final displayAmountTotal =
+            double.tryParse(txMap['display_amount_total']?.toString() ?? '0') ??
+            0;
+        final rate = amountTotal > 0 ? displayAmountTotal / amountTotal : 1.0;
+
+        double receiptSourceSavings = 0;
+
+        for (var rawItem in itemsRaw) {
+          if (rawItem is Map<String, dynamic>) {
+            var discountRaw =
+                double.tryParse(
+                  rawItem['discount_amount']?.toString() ?? '0',
+                ) ??
+                0;
+            if (discountRaw == 0) {
+              final amountBefore =
+                  double.tryParse(
+                    rawItem['amount_before_discount']?.toString() ?? '0',
+                  ) ??
+                  0;
+              final amountLine =
+                  double.tryParse(rawItem['amount']?.toString() ?? '0') ?? 0;
+              if (amountBefore > 0 &&
+                  amountLine > 0 &&
+                  amountBefore > amountLine) {
+                discountRaw = amountBefore - amountLine;
+              }
+            }
+            if (discountRaw > 0) {
+              receiptSourceSavings += discountRaw;
+            }
+          }
+        }
+        
+        if (receiptSourceSavings > 0) {
+          totalPeriodSavings += receiptSourceSavings * rate;
+        }
+      }
     }
 
     return Container(
@@ -758,32 +843,70 @@ class _ReceiptsTabState extends State<ReceiptsTab> {
         color: Theme.of(context).colorScheme.surface,
         border: Border(top: BorderSide(color: Colors.grey.shade800)),
       ),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Text(
-                context.tr('receipts_total_for_period'),
-                style: TextStyle(color: Colors.grey.shade400, fontSize: 12),
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    context.tr('receipts_total_for_period'),
+                    style: TextStyle(color: Colors.grey.shade400, fontSize: 12),
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    _formatMoney(totalCurrency, totalPeriodExpense),
+                    style: const TextStyle(
+                      fontWeight: FontWeight.bold,
+                      fontSize: 20,
+                    ),
+                  ),
+                ],
               ),
-              const SizedBox(height: 4),
               Text(
-                _formatMoney(totalCurrency, totalPeriodExpense),
-                style: const TextStyle(
-                  fontWeight: FontWeight.bold,
-                  fontSize: 20,
+                context.tr(
+                  'receipts_count',
+                  params: {'count': _transactions.length.toString()},
                 ),
+                style: TextStyle(color: Colors.grey.shade400, fontSize: 14),
               ),
             ],
           ),
-          Text(
-            context.tr(
-              'receipts_count',
-              params: {'count': _transactions.length.toString()},
-            ),
-            style: TextStyle(color: Colors.grey.shade400, fontSize: 14),
+          const SizedBox(height: 10),
+          Row(
+            children: [
+              if (totalPeriodSavings > 0) ...[
+                Text(
+                  context.tr('transaction_total_savings'),
+                  style: TextStyle(
+                    color: Colors.orange.shade300,
+                    fontSize: 16,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+                const Spacer(),
+                Text(
+                  _formatMoney(totalCurrency, totalPeriodSavings),
+                  style: TextStyle(
+                    color: Colors.orange.shade300,
+                    fontSize: 16,
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+              ] else ...[
+                Text(
+                  context.tr('receipts_no_discounts'),
+                  style: TextStyle(
+                    color: Colors.grey.shade500,
+                    fontSize: 16,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+              ],
+            ],
           ),
         ],
       ),

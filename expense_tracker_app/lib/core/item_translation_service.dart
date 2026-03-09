@@ -153,6 +153,10 @@ class ItemTranslationService {
     required String sourceLanguage,
     required String targetLanguage,
   }) async {
+    final extractedUnitMatch = RegExp(r'\b\d+(?:[.,]\d+)?\s*(kg|g|gr|ml|l|kom|pcs|pc)\b', caseSensitive: false)
+        .firstMatch(sourceText);
+    final extractedUnit = extractedUnitMatch?.group(0);
+
     final preparedSourceText = _prepareSourceText(sourceText);
     final sourceMl = _toMlKitLanguage(sourceLanguage);
     final targetMl = _toMlKitLanguage(targetLanguage);
@@ -174,7 +178,10 @@ class ItemTranslationService {
         targetLanguage: targetMl,
       );
       try {
-        final translated = await translator.translateText(preparedSourceText);
+        String translated = await translator.translateText(preparedSourceText);
+        if (extractedUnit != null) {
+          translated = '$translated $extractedUnit';
+        }
         final normalizedTranslated = normalizeSourceText(translated);
         if (normalizedTranslated.isEmpty) return null;
         return ItemTranslationResult(
