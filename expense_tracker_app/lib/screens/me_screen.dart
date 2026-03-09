@@ -179,6 +179,42 @@ class _MeScreenState extends State<MeScreen> {
     }
   }
 
+  void _showItemsLanguageBetaInfo() {
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(
+        content: Text('This feature is in development.'),
+        duration: Duration(seconds: 2),
+      ),
+    );
+  }
+
+  Widget _buildBetaTag() {
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        borderRadius: BorderRadius.circular(999),
+        onTap: _showItemsLanguageBetaInfo,
+        child: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+          decoration: BoxDecoration(
+            color: Colors.orange.withAlpha(30),
+            borderRadius: BorderRadius.circular(999),
+            border: Border.all(color: Colors.orange.withAlpha(140)),
+          ),
+          child: const Text(
+            'BETA',
+            style: TextStyle(
+              color: Colors.orangeAccent,
+              fontSize: 10,
+              fontWeight: FontWeight.w700,
+              letterSpacing: 0.6,
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
   void _openLanguagePicker() {
     showModalBottomSheet<void>(
       context: context,
@@ -498,13 +534,20 @@ class _MeScreenState extends State<MeScreen> {
                   icon: Icons.g_translate,
                   title: context.tr('settings_items_language'),
                   subtitle: _currentItemsLanguageSubtitle(),
-                  trailing: _isUpdatingItemsLanguage
-                      ? const SizedBox(
-                          width: 16,
-                          height: 16,
-                          child: CircularProgressIndicator(strokeWidth: 2),
-                        )
-                      : const Icon(Icons.chevron_right, color: Colors.grey),
+                  trailing: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      _buildBetaTag(),
+                      const SizedBox(width: 10),
+                      _isUpdatingItemsLanguage
+                          ? const SizedBox(
+                              width: 16,
+                              height: 16,
+                              child: CircularProgressIndicator(strokeWidth: 2),
+                            )
+                          : const Icon(Icons.chevron_right, color: Colors.grey),
+                    ],
+                  ),
                   onTap: _openItemsLanguagePicker,
                 ),
                 _buildDivider(),
