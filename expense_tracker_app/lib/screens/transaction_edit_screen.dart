@@ -182,13 +182,12 @@ class _TransactionEditScreenState extends State<TransactionEditScreen> {
             ),
           );
           _itemQtyControllers[id] = TextEditingController(
-            text: _formatNumberForInput(item['qty'], decimals: 2),
+            text: _formatNumberForInput(item['qty'], decimals: 3),
           );
           _itemUnitPriceControllers[id] = TextEditingController(
             text: _formatNumberForInput(
               item['unit_price'],
-              decimals: 2,
-              keepTrailingZeros: true,
+              decimals: 3,
             ),
           );
           _itemCategoryIds[id] = item['category_id']?.toString();
@@ -231,7 +230,7 @@ class _TransactionEditScreenState extends State<TransactionEditScreen> {
       for (final item in _items) {
         final id = item['id'].toString();
         updatedItems.add({
-          'id': id,
+          if (_isUuid(id)) 'id': id,
           'description': _itemDescControllers[id]?.text ?? '',
           'amount':
               double.tryParse(_itemAmountControllers[id]?.text ?? '0.00') ??
@@ -543,8 +542,9 @@ class _TransactionEditScreenState extends State<TransactionEditScreen> {
       final qty = _toDouble(_itemQtyControllers[itemId]?.text);
       final unitPrice = _toDouble(_itemUnitPriceControllers[itemId]?.text);
       final amount = _toDouble(_itemAmountControllers[itemId]?.text);
+      final discount = _toDouble(item['discount_amount']) ?? 0.0;
       if (qty == null || unitPrice == null || amount == null) continue;
-      final expected = _round2(qty * unitPrice);
+      final expected = _round2((qty * unitPrice) - discount);
       final actual = _round2(amount);
       if (expected != actual) {
         mismatches[itemId] = {
@@ -756,7 +756,7 @@ class _TransactionEditScreenState extends State<TransactionEditScreen> {
     return 'pc';
   }
 
-  String _displayUnit(String? rawUnit, {String? description}) {
+  String _displayUnit(String? rawUnit, {String? description, double? qty}) {
     final normalized = (rawUnit ?? '').trim().toUpperCase();
     switch (normalized) {
       case 'KG':
@@ -779,7 +779,11 @@ class _TransactionEditScreenState extends State<TransactionEditScreen> {
         return 'pc';
       default:
         if (normalized.isEmpty) {
-          return _inferUnitFromDescription(description ?? '');
+          final inferred = _inferUnitFromDescription(description ?? '');
+          if (inferred == 'pc' && qty != null && (qty % 1) != 0) {
+            return 'kg';
+          }
+          return inferred;
         }
         if (RegExp(r'\bKG\b|\bKGS\b|\bG\b').hasMatch(normalized)) return 'kg';
         if (RegExp(
@@ -787,6 +791,7 @@ class _TransactionEditScreenState extends State<TransactionEditScreen> {
         ).hasMatch(normalized)) {
           return 'l';
         }
+        if (qty != null && (qty % 1) != 0) return 'kg';
         return 'pc';
     }
   }
@@ -1033,6 +1038,10 @@ class _TransactionEditScreenState extends State<TransactionEditScreen> {
     required bool hasTotalMismatch,
     required int serverWarningCount,
   }) {
+    if (lineMismatchCount == 0 && !hasTotalMismatch) {
+      return const SizedBox.shrink();
+    }
+
     final lineText = lineMismatchCount == 1
         ? context.tr('transaction_one_line_total_mismatch')
         : context.tr(
@@ -1278,10 +1287,12 @@ class _TransactionEditScreenState extends State<TransactionEditScreen> {
         ? const Color(0xFFAB47BC)
         : Colors.grey; // Hardcoded purple like first screens, or from cat data
     final unit = item['unit']?.toString().trim();
+    final sourceQty = _toDouble(qtyController?.text) ?? _toDouble(item['qty']);
     final resolvedUnit = _displayUnit(
       unit,
       description:
           nameController?.text ?? item['description']?.toString() ?? '',
+      qty: sourceQty,
     );
     final sourceAmount = _toDouble(amountController?.text) ?? 0;
     final displayAmount = _toDisplayAmount(sourceAmount);
@@ -1361,9 +1372,9 @@ class _TransactionEditScreenState extends State<TransactionEditScreen> {
             children: [
               _buildFormulaNumberInput(
                 controller: unitPriceController,
-                hint: '0.00',
+                hint: '0.000',
                 width: 76,
-                keepTrailingZeros: true,
+                decimals: 3,
                 onChanged: (_) => _recalculateItemAmount(id),
               ),
               const SizedBox(width: 4),
@@ -1379,7 +1390,8 @@ class _TransactionEditScreenState extends State<TransactionEditScreen> {
               _buildFormulaNumberInput(
                 controller: qtyController,
                 hint: '1',
-                width: 50,
+                width: 60,
+                decimals: 3,
                 onChanged: (_) => _recalculateItemAmount(id),
               ),
               const SizedBox(width: 4),
@@ -1392,10 +1404,39 @@ class _TransactionEditScreenState extends State<TransactionEditScreen> {
                 ),
               ),
               const SizedBox(width: 6),
+              const SizedBox(width: 6),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.end,
                   children: [
+                    if (item['amount_before_discount'] != null &&
+                        _toDouble(item['amount_before_discount']) != null &&
+                        _toDouble(item['amount_before_discount'])! >
+                            sourceAmount)
+                      Text(
+                        _formatMoney(
+                            _displayCurrency,
+                            _toDisplayAmount(
+                                _toDouble(item['amount_before_discount'])!)),
+                        textAlign: TextAlign.right,
+                        style: TextStyle(
+                          color: Colors.grey.shade500,
+                          fontSize: 13,
+                          decoration: TextDecoration.lineThrough,
+                        ),
+                      ),
+                    if (item['discount_amount'] != null &&
+                        _toDouble(item['discount_amount']) != null &&
+                        _toDouble(item['discount_amount'])! > 0)
+                      Text(
+                        '- ${_formatMoney(_displayCurrency, _toDisplayAmount(_toDouble(item['discount_amount'])!))}',
+                        textAlign: TextAlign.right,
+                        style: TextStyle(
+                          color: Colors.orange.shade300,
+                          fontSize: 13,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
                     Text(
                       _formatMoney(_displayCurrency, displayAmount),
                       textAlign: TextAlign.right,
@@ -1490,6 +1531,59 @@ class _TransactionEditScreenState extends State<TransactionEditScreen> {
     });
   }
 
+  double _computeTotalSavingsSource() {
+    double totalSavings = 0;
+    for (final raw in _items) {
+      final item = raw as Map<String, dynamic>;
+      var discount = _toDouble(item['discount_amount']);
+      if (discount == null || discount == 0) {
+        final before = _toDouble(item['amount_before_discount']);
+        final currentAmount = _toDouble(item['amount']);
+        if (before != null && currentAmount != null) {
+          final derived = before - currentAmount;
+          if (derived > 0) {
+            discount = derived;
+          }
+        }
+      }
+      if (discount == null || discount == 0) {
+        final itemId = item['id']?.toString();
+        final before = _toDouble(item['amount_before_discount']);
+        final currentAmount = _toDouble(
+          itemId == null ? null : _itemAmountControllers[itemId]?.text,
+        );
+        if (before != null && currentAmount != null) {
+          final derived = before - currentAmount;
+          if (derived > 0) {
+            discount = derived;
+          }
+        }
+      }
+      if (discount == null || discount == 0) {
+        final itemId = item['id']?.toString();
+        final qty = _toDouble(itemId == null ? null : _itemQtyControllers[itemId]?.text) ??
+            _toDouble(item['qty']);
+        final unitPrice = _toDouble(
+              itemId == null ? null : _itemUnitPriceControllers[itemId]?.text,
+            ) ??
+            _toDouble(item['unit_price']);
+        final amount = _toDouble(itemId == null ? null : _itemAmountControllers[itemId]?.text) ??
+            _toDouble(item['amount']);
+        if (qty != null && unitPrice != null && amount != null) {
+          final derived = _round2((qty * unitPrice) - amount);
+          if (derived > 0) {
+            discount = derived;
+          }
+        }
+      }
+      if (discount == null || discount == 0) {
+        continue;
+      }
+      totalSavings += discount.abs();
+    }
+    return _round2(totalSavings);
+  }
+
   Widget _buildAddItemButton() {
     return GestureDetector(
       onTap: () {
@@ -1527,6 +1621,8 @@ class _TransactionEditScreenState extends State<TransactionEditScreen> {
   Widget _buildFixedFooter({Map<String, double>? totalMismatch}) {
     final sourceTotal = _toDouble(_amountController.text) ?? 0;
     final displayTotal = _toDisplayAmount(sourceTotal);
+    final sourceSavings = _computeTotalSavingsSource();
+    final displaySavings = _toDisplayAmount(sourceSavings);
     return Container(
       padding: const EdgeInsets.all(20),
       color: Colors.black,
@@ -1570,6 +1666,58 @@ class _TransactionEditScreenState extends State<TransactionEditScreen> {
                 ),
               ],
             ),
+            if (sourceSavings > 0) ...[
+              const SizedBox(height: 10),
+              Row(
+                children: [
+                  Text(
+                    context.tr('transaction_total_savings'),
+                    style: TextStyle(
+                      color: Colors.orange.shade300,
+                      fontSize: 16,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                  const Spacer(),
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.end,
+                    children: [
+                      Text(
+                        _formatMoney(_displayCurrency, displaySavings),
+                        style: TextStyle(
+                          color: Colors.orange.shade300,
+                          fontSize: 16,
+                          fontWeight: FontWeight.w700,
+                        ),
+                      ),
+                      if (_displayCurrency.toUpperCase() !=
+                          _currency.toUpperCase())
+                        Text(
+                          _formatMoney(_currency, sourceSavings),
+                          style: TextStyle(
+                            color: Colors.grey.shade400,
+                            fontSize: 12,
+                          ),
+                        ),
+                    ],
+                  ),
+                ],
+              ),
+            ] else ...[
+              const SizedBox(height: 10),
+              Row(
+                children: [
+                  Text(
+                    context.tr('transaction_no_discounts'),
+                    style: TextStyle(
+                      color: Colors.grey.shade500,
+                      fontSize: 16,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                ],
+              ),
+            ],
             if (totalMismatch != null) ...[
               const SizedBox(height: 8),
               Text(
