@@ -5,6 +5,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'firebase_options.dart';
 import 'core/locale_provider.dart';
+import 'core/revenuecat_service.dart';
 import 'core/theme_provider.dart';
 import 'l10n/app_localizations.dart';
 import 'screens/login_screen.dart';
@@ -17,6 +18,7 @@ void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
   await GoogleSignIn.instance.initialize();
+  await RevenueCatService.logInCurrentUser();
   await localeProvider.load();
   runApp(const MyApp());
 }
