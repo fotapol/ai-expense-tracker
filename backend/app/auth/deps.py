@@ -93,7 +93,8 @@ async def get_current_user(
             detail="Token does not contain a valid uid.",
         )
 
-    should_be_admin = _email_is_dev_billing_admin(email)
+    trusted_email = email if email_verified else None
+    should_be_admin = _email_is_dev_billing_admin(trusted_email)
 
     # --- Cache-first lookup ----------------------------------------------
     redis = get_redis()
@@ -111,8 +112,8 @@ async def get_current_user(
         if user is not None:
             # Even on cache hit, sync email if it changed.
             changed = False
-            if email and user.email != email:
-                user.email = email
+            if trusted_email and user.email != trusted_email:
+                user.email = trusted_email
                 changed = True
             if user.is_admin != should_be_admin:
                 user.is_admin = should_be_admin
@@ -133,8 +134,8 @@ async def get_current_user(
     if user is not None:
         # Update email if it changed on the provider side.
         changed = False
-        if email and user.email != email:
-            user.email = email
+        if trusted_email and user.email != trusted_email:
+            user.email = trusted_email
             changed = True
         if user.is_admin != should_be_admin:
             user.is_admin = should_be_admin
@@ -155,7 +156,7 @@ async def get_current_user(
         )
 
     user = User(
-        email=email,
+        email=trusted_email,
         auth_provider="firebase",
         auth_subject=uid,
         is_admin=should_be_admin,
