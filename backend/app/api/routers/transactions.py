@@ -726,9 +726,8 @@ async def get_transactions_summary(
                 quantizer=quantize_amount,
             )
             if amount_total is not None:
-                total_amount += (
-                    converted.value if converted.value is not None else quantize_amount(amount_total)
-                )
+                val = converted.value
+                total_amount += val if val is not None else quantize_amount(amount_total)
         total_transactions = len(transaction_rows)
 
     # 3. Group by category on filtered TransactionItem scope and convert row-by-row
@@ -768,7 +767,8 @@ async def get_transactions_summary(
             session=session,
             quantizer=quantize_amount,
         )
-        converted_amount = converted.value if converted.value is not None else quantize_amount(amount)
+        val = converted.value
+        converted_amount = val if val is not None else quantize_amount(amount)
         if cat_id not in category_results:
             category_results[cat_id] = {
                 "name": cat_name,
@@ -777,8 +777,8 @@ async def get_transactions_summary(
                 "amount": Decimal("0"),
                 "item_count": 0,
             }
-        category_results[cat_id]["amount"] += converted_amount
-        category_results[cat_id]["item_count"] += 1
+        category_results[cat_id]["amount"] = category_results[cat_id]["amount"] + converted_amount
+        category_results[cat_id]["item_count"] = category_results[cat_id]["item_count"] + 1
 
     # Pre-fetch all parent categories to get their names and codes if we need to roll up
     parent_ids = {cat_data["parent_id"] for cat_data in category_results.values() if cat_data["parent_id"] is not None}
@@ -815,12 +815,13 @@ async def get_transactions_summary(
                 "amount": Decimal("0"),
                 "item_count": 0,
             }
-        rolled_up_totals[target_id]["amount"] += cat_total
-        rolled_up_totals[target_id]["item_count"] += int(item_count or 0)
+        rolled_up_totals[target_id]["amount"] = rolled_up_totals[target_id]["amount"] + cat_total
+        rolled_up_totals[target_id]["item_count"] = rolled_up_totals[target_id]["item_count"] + int(item_count or 0)
 
     categories_breakdown = []
     for cat_id, data in rolled_up_totals.items():
-        percentage = (data["amount"] / total_amount * 100) if total_amount > 0 else Decimal("0")
+        amt: Decimal = data["amount"]
+        percentage = (amt / total_amount * 100) if total_amount > 0 else Decimal("0")
         categories_breakdown.append({
             "category_id": cat_id,
             "name": data["name"],
