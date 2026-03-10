@@ -95,7 +95,10 @@ def _assert_dev_billing_access(request: Request, current_user: User) -> None:
 
     expected_secret = os.environ.get("DEV_BILLING_INTERNAL_SECRET")
     if not expected_secret:
-        return
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Development billing secret is not configured.",
+        )
     provided_secret = request.headers.get("X-Internal-Dev-Key")
     if provided_secret != expected_secret:
         raise HTTPException(

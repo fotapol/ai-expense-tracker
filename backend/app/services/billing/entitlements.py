@@ -41,7 +41,10 @@ def decide_entitlement_state(
     """Resolve whether a subscription state should grant premium entitlements."""
 
     current_time = now or _utcnow()
-    if subscription_status in {SubscriptionStatus.ACTIVE, SubscriptionStatus.GRACE_PERIOD}:
+    
+    valid_expires = expires_at is None or expires_at > current_time
+
+    if subscription_status in {SubscriptionStatus.ACTIVE, SubscriptionStatus.GRACE_PERIOD} and valid_expires:
         return EntitlementDecision(
             should_grant=True,
             terminal_status=None,

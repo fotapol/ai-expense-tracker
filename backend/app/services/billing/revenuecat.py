@@ -92,7 +92,7 @@ def _resolve_entitlement_status(
     billing_issues_detected_at: dt.datetime | None,
     unsubscribe_detected_at: dt.datetime | None,
 ) -> SubscriptionStatus:
-    if expires_at is not None and expires_at <= now:
+    if expires_at is None or expires_at <= now:
         return SubscriptionStatus.EXPIRED
     if billing_issues_detected_at is not None:
         return SubscriptionStatus.GRACE_PERIOD

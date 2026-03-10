@@ -8,6 +8,7 @@ from collections.abc import Mapping, Sequence
 from typing import Any, Literal
 
 from sqlmodel import Session, select
+from sqlalchemy.exc import IntegrityError
 
 from app.models.billing.subscription import Subscription
 from app.models.shared.enums import SubscriptionProvider, SubscriptionStatus
@@ -36,7 +37,7 @@ def subscription_grants_premium_access(
 
     current_time = now or _utcnow()
     if status in {SubscriptionStatus.ACTIVE, SubscriptionStatus.GRACE_PERIOD}:
-        return True
+        return expires_at is None or expires_at > current_time
     return status == SubscriptionStatus.CANCELLED and expires_at is not None and expires_at > current_time
 
 
@@ -49,13 +50,14 @@ def subscription_priority_tier(
     """Return deterministic resolver tier (3 is highest priority)."""
 
     current_time = now or _utcnow()
-    if status in {SubscriptionStatus.ACTIVE, SubscriptionStatus.GRACE_PERIOD}:
+    valid_expires = expires_at is None or expires_at > current_time
+    if status in {SubscriptionStatus.ACTIVE, SubscriptionStatus.GRACE_PERIOD} and valid_expires:
         return 3
     if status == SubscriptionStatus.CANCELLED and expires_at is not None and expires_at > current_time:
         return 3
     if status == SubscriptionStatus.PENDING:
         return 2
-    if status in {SubscriptionStatus.EXPIRED, SubscriptionStatus.REVOKED, SubscriptionStatus.CANCELLED}:
+    if status in {SubscriptionStatus.EXPIRED, SubscriptionStatus.REVOKED, SubscriptionStatus.CANCELLED, SubscriptionStatus.ACTIVE, SubscriptionStatus.GRACE_PERIOD}:
         return 1
     return 0
 
@@ -218,7 +220,35 @@ class SubscriptionSyncService(BillingEventHandler):
             existing.internal_metadata = event.internal_metadata
 
         self.session.add(existing)
-        self.session.flush()
+        try:
+            self.session.flush()
+        except IntegrityError:
+            self.session.rollback()
+            existing = self.session.exec(
+                select(Subscription).where(
+                    Subscription.user_id == event.user_id,
+                    Subscription.provider == event.provider,
+                    Subscription.product_id == event.product_id,
+                )
+            ).first()
+            if existing is None:
+                raise
+            
+            existing.status = event.status
+            existing.started_at = event.started_at
+            existing.expires_at = event.expires_at
+            existing.auto_renew = event.auto_renew
+            existing.external_customer_id = event.external_customer_id
+            existing.external_subscription_id = event.external_subscription_id
+            existing.external_purchase_id = event.external_purchase_id
+            existing.latest_event_at = event.latest_event_at
+            if event.raw_payload is not None:
+                existing.raw_payload = event.raw_payload
+            if event.internal_metadata is not None:
+                existing.internal_metadata = event.internal_metadata
+
+            self.session.add(existing)
+            self.session.flush()
         sync_subscription_entitlements(self.session, existing)
         self.session.commit()
         self.session.refresh(existing)
@@ -253,11 +283,12 @@ class SubscriptionSyncService(BillingEventHandler):
         for row in rows:
             if exclude_subscription_id is not None and row.id == exclude_subscription_id:
                 continue
-            if row.status == terminal_status and (row.expires_at or event_time) <= target_expires_at:
+            if row.status == terminal_status and row.expires_at is not None and row.expires_at <= target_expires_at:
                 continue
 
             row.status = terminal_status
-            row.expires_at = target_expires_at
+            if row.expires_at is None or row.expires_at > target_expires_at:
+                row.expires_at = target_expires_at
             row.auto_renew = False
             row.latest_event_at = event_time
             if metadata_patch:
