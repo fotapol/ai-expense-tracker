@@ -242,10 +242,10 @@ async def delete_category(
     ).first()
     if visible_category is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Category not found.")
-    if visible_category.user_id is None and visible_category.parent_id is None:
+    if visible_category.user_id is None:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
-            detail="Built-in top-level categories cannot be deleted.",
+            detail="Built-in categories cannot be deleted.",
         )
     cat = visible_category
 
