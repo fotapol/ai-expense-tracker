@@ -10,6 +10,7 @@ from slowapi.errors import RateLimitExceeded
 from app.api.routers import (
     billing,
     categories,
+    data,
     item_translations,
     labels,
     receipts,
@@ -77,6 +78,7 @@ app.include_router(categories.router)
 app.include_router(labels.router)
 app.include_router(item_translations.router)
 app.include_router(billing.router)
+app.include_router(data.router)
 if billing.should_include_dev_billing_router():
     app.include_router(billing.dev_router)
 
