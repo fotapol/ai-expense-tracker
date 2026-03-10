@@ -1347,6 +1347,31 @@ async def update_transaction(
             detail="Transaction not found."
         )
 
+    # Enforce category visibility
+    requested_category_ids = set()
+    update_data = payload.model_dump(exclude_unset=True, exclude={"items"})
+    if "category_id" in update_data and update_data["category_id"] is not None:
+        requested_category_ids.add(update_data["category_id"])
+    if payload.items is not None:
+        for item_data in payload.items:
+            if item_data.category_id is not None:
+                requested_category_ids.add(item_data.category_id)
+    if requested_category_ids:
+        valid_category_ids = set(
+            session.exec(
+                select(Category.id).where(
+                    Category.id.in_(requested_category_ids),
+                    Category.is_active == True,
+                    or_(Category.user_id == None, Category.user_id == current_user.id),
+                )
+            ).all()
+        )
+        if len(valid_category_ids) != len(requested_category_ids):
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="One or more categories are invalid or not active.",
+            )
+
     # 1. Update Core Transaction fields
     update_data = payload.model_dump(exclude_unset=True, exclude={"items"})
     for key, value in update_data.items():
