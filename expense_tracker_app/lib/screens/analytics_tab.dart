@@ -726,15 +726,18 @@ class _AnalyticsTabState extends State<AnalyticsTab> {
       return const SizedBox.shrink();
     }
 
-    final totalSavings = (discountsRaw['total_savings'] as num?)?.toDouble() ??
-        0.0;
+    final totalSavings =
+        (discountsRaw['total_savings'] as num?)?.toDouble() ?? 0.0;
     final itemsWithDiscount =
         (discountsRaw['items_with_discount'] as num?)?.toInt() ?? 0;
     final biggestDiscountRaw = discountsRaw['biggest_discount'];
-    final biggestDiscount =
-        biggestDiscountRaw is Map<String, dynamic> ? biggestDiscountRaw : null;
+    final biggestDiscount = biggestDiscountRaw is Map<String, dynamic>
+        ? biggestDiscountRaw
+        : null;
 
-    if (totalSavings <= 0 && itemsWithDiscount <= 0 && biggestDiscount == null) {
+    if (totalSavings <= 0 &&
+        itemsWithDiscount <= 0 &&
+        biggestDiscount == null) {
       return Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -765,13 +768,13 @@ class _AnalyticsTabState extends State<AnalyticsTab> {
       );
     }
 
-    final accent = const Color(0xFF2ED7A4);
+    final accent = const Color(0xFFF7D74B);
     final biggestDescription =
         biggestDiscount?['description']?.toString().trim() ?? '';
     final biggestAmount =
         (biggestDiscount?['amount'] as num?)?.toDouble() ?? 0.0;
-    final biggestPercentage =
-        (biggestDiscount?['percentage'] as num?)?.toDouble();
+    final biggestPercentage = (biggestDiscount?['percentage'] as num?)
+        ?.toDouble();
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -809,7 +812,7 @@ class _AnalyticsTabState extends State<AnalyticsTab> {
                         Text(
                           context.tr('analytics_total_savings'),
                           style: TextStyle(
-                            color: Colors.grey.shade400,
+                            color: accent.withAlpha(230),
                             fontSize: 14,
                           ),
                         ),
@@ -822,7 +825,8 @@ class _AnalyticsTabState extends State<AnalyticsTab> {
                       children: [
                         Text(
                           '$itemsWithDiscount',
-                          style: const TextStyle(
+                          style: TextStyle(
+                            color: accent,
                             fontSize: 34,
                             fontWeight: FontWeight.bold,
                           ),
@@ -831,7 +835,7 @@ class _AnalyticsTabState extends State<AnalyticsTab> {
                         Text(
                           context.tr('analytics_items_with_discount'),
                           style: TextStyle(
-                            color: Colors.grey.shade400,
+                            color: accent.withAlpha(230),
                             fontSize: 14,
                           ),
                         ),
@@ -851,7 +855,7 @@ class _AnalyticsTabState extends State<AnalyticsTab> {
                     Text(
                       context.tr('analytics_biggest_discount'),
                       style: TextStyle(
-                        color: Colors.grey.shade400,
+                        color: accent.withAlpha(230),
                         fontSize: 14,
                         fontWeight: FontWeight.w600,
                       ),
@@ -861,7 +865,8 @@ class _AnalyticsTabState extends State<AnalyticsTab> {
                 const SizedBox(height: 8),
                 Text(
                   biggestDescription,
-                  style: const TextStyle(
+                  style: TextStyle(
+                    color: accent.withAlpha(240),
                     fontSize: 18,
                     fontWeight: FontWeight.w600,
                   ),
