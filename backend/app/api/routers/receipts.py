@@ -151,9 +151,9 @@ async def confirm_upload(
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail={
-                "code": "free_monthly_scan_limit_reached",
+                "code": "free_rolling_scan_limit_reached",
                 "message": (
-                    f"Free plan allows up to {usage.limit} AI scans per UTC month. "
+                    f"Free plan allows up to {usage.limit} AI scans per 30-day rolling window. "
                     "Upgrade to PRO for unlimited receipt scans."
                 ),
                 "used": usage.used,

@@ -29,41 +29,22 @@ class ReceiptScanUsage:
     period_end_at: dt.datetime
 
 
-def current_utc_month_window(*, now: dt.datetime | None = None) -> tuple[dt.datetime, dt.datetime]:
-    """Return the current UTC calendar month [start, end) window."""
+def rolling_30_day_window(*, now: dt.datetime | None = None) -> tuple[dt.datetime, dt.datetime]:
+    """Return the 30-day rolling [start, end) window."""
 
     current_time = now or dt.datetime.now(dt.UTC)
-    month_start = dt.datetime(
-        year=current_time.year,
-        month=current_time.month,
-        day=1,
-        tzinfo=dt.UTC,
-    )
-    if month_start.month == 12:
-        next_month_start = dt.datetime(
-            year=month_start.year + 1,
-            month=1,
-            day=1,
-            tzinfo=dt.UTC,
-        )
-    else:
-        next_month_start = dt.datetime(
-            year=month_start.year,
-            month=month_start.month + 1,
-            day=1,
-            tzinfo=dt.UTC,
-        )
-    return month_start, next_month_start
+    window_start = current_time - dt.timedelta(days=30)
+    return window_start, current_time
 
 
-def count_user_monthly_processed_receipts(
+def count_user_processed_receipts_in_window(
     session: Session,
     user_id: uuid.UUID,
     *,
     period_start_at: dt.datetime,
     period_end_at: dt.datetime,
 ) -> int:
-    """Count receipts processed in the UTC month window.
+    """Count receipts processed in the given time window.
 
     Usage is consumed when AI processing is requested at confirm-upload time,
     represented by a non-null ``uploaded_at`` timestamp.
@@ -88,8 +69,8 @@ def resolve_receipt_scan_usage(
 ) -> ReceiptScanUsage:
     """Resolve receipt scan usage from entitlements + persisted receipts."""
 
-    period_start_at, period_end_at = current_utc_month_window(now=now)
-    used = count_user_monthly_processed_receipts(
+    period_start_at, period_end_at = rolling_30_day_window(now=now)
+    used = count_user_processed_receipts_in_window(
         session,
         user_id,
         period_start_at=period_start_at,
