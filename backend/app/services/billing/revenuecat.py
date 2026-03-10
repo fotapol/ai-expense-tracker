@@ -225,7 +225,7 @@ class RevenueCatClient:
         self.base_url = base_url.rstrip("/")
         self.timeout_seconds = timeout_seconds
 
-    def fetch_subscriber_payload(self, *, app_user_id: str) -> dict[str, Any]:
+    async def fetch_subscriber_payload(self, *, app_user_id: str) -> dict[str, Any]:
         if not self.secret_api_key:
             raise HTTPException(
                 status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
@@ -238,11 +238,11 @@ class RevenueCatClient:
             "Accept": "application/json",
         }
         try:
-            response = httpx.get(
-                url,
-                headers=headers,
-                timeout=self.timeout_seconds,
-            )
+            async with httpx.AsyncClient(timeout=self.timeout_seconds) as client:
+                response = await client.get(
+                    url,
+                    headers=headers,
+                )
             response.raise_for_status()
         except httpx.HTTPStatusError as exc:
             raise HTTPException(
@@ -264,7 +264,7 @@ class RevenueCatClient:
         return dict(payload)
 
 
-def sync_revenuecat_subscription_for_user(
+async def sync_revenuecat_subscription_for_user(
     *,
     session: Session,
     current_user: User,
@@ -288,7 +288,7 @@ def sync_revenuecat_subscription_for_user(
         base_url=_get_env("REVENUECAT_API_BASE_URL", "https://api.revenuecat.com"),
         timeout_seconds=max(timeout_seconds, 1.0),
     )
-    payload = client.fetch_subscriber_payload(app_user_id=app_user_id)
+    payload = await client.fetch_subscriber_payload(app_user_id=app_user_id)
 
     provider = RevenueCatProvider(
         premium_entitlement_id=_get_env(

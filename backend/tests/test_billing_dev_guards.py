@@ -48,6 +48,9 @@ def test_dev_router_mounts_in_local_even_if_flag_disabled(monkeypatch) -> None:
 
     monkeypatch.setenv("APP_ENV", "development")
     monkeypatch.setenv("ENABLE_DEV_BILLING_ENDPOINTS", "false")
+    assert should_include_dev_billing_router() is False
+
+    monkeypatch.setenv("ENABLE_DEV_BILLING_ENDPOINTS", "true")
     assert should_include_dev_billing_router() is True
 
     monkeypatch.setenv("APP_ENV", "production")

@@ -114,8 +114,12 @@ async def confirm_upload(
     actual size.  Receipt status moves from CREATED → UPLOADED and an
     extraction job is published to RabbitMQ.
     """
+    # Lock the target receipt row first to prevent duplicate confirms
+    # from concurrently transitioning the same receipt.
     receipt = session.exec(
-        select(Receipt).where(Receipt.id == receipt_id, Receipt.user_id == current_user.id)
+        select(Receipt)
+        .where(Receipt.id == receipt_id, Receipt.user_id == current_user.id)
+        .with_for_update()
     ).first()
 
     if receipt is None:
@@ -137,6 +141,11 @@ async def confirm_upload(
             detail="File not found in storage. Please upload the file first.",
         ) from None
 
+    # Serialize quota checks per user to avoid race conditions where
+    # multiple concurrent confirms can exceed the monthly free limit.
+    session.exec(
+        select(User.id).where(User.id == current_user.id).with_for_update()
+    ).first()
     usage = resolve_receipt_scan_usage(session, current_user.id)
     if receipt_scan_limit_reached(usage):
         raise HTTPException(

@@ -114,8 +114,8 @@ async def get_current_user(
             if email and user.email != email:
                 user.email = email
                 changed = True
-            if should_be_admin and not user.is_admin:
-                user.is_admin = True
+            if user.is_admin != should_be_admin:
+                user.is_admin = should_be_admin
                 changed = True
             if changed:
                 session.add(user)
@@ -136,8 +136,8 @@ async def get_current_user(
         if email and user.email != email:
             user.email = email
             changed = True
-        if should_be_admin and not user.is_admin:
-            user.is_admin = True
+        if user.is_admin != should_be_admin:
+            user.is_admin = should_be_admin
             changed = True
         if changed:
             session.add(user)

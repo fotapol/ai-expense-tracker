@@ -60,7 +60,7 @@ def _dev_billing_routes_enabled() -> bool:
 def should_include_dev_billing_router() -> bool:
     """Return whether dev billing routes should be mounted for this environment."""
 
-    return _is_local_or_development_environment()
+    return _dev_billing_routes_enabled()
 
 
 def _build_usage_payload(*, used: int, limit: int | None, remaining: int | None, is_unlimited: bool, period_start_at: dt.datetime, period_end_at: dt.datetime) -> ReceiptScanUsageRead:
@@ -151,7 +151,7 @@ async def sync_revenuecat_subscription(
 ):
     """Synchronize current user's subscription state from RevenueCat."""
 
-    subscription = sync_revenuecat_subscription_for_user(
+    subscription = await sync_revenuecat_subscription_for_user(
         session=session,
         current_user=current_user,
     )

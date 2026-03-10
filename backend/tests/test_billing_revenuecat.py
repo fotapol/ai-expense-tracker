@@ -113,17 +113,19 @@ def test_revenuecat_provider_falls_back_to_subscription_entry_status_when_entitl
     assert event.status == SubscriptionStatus.ACTIVE
 
 
-def test_sync_revenuecat_requires_secret_key(monkeypatch) -> None:
+@pytest.mark.anyio
+async def test_sync_revenuecat_requires_secret_key(monkeypatch) -> None:
     monkeypatch.setenv("REVENUECAT_SECRET_API_KEY", "")
     with pytest.raises(HTTPException) as exc_info:
-        sync_revenuecat_subscription_for_user(
+        await sync_revenuecat_subscription_for_user(
             session=object(),
             current_user=SimpleNamespace(id=uuid.uuid4(), auth_subject="uid-1"),
         )
     assert exc_info.value.status_code == 503
 
 
-def test_sync_revenuecat_uses_sync_service(monkeypatch) -> None:
+@pytest.mark.anyio
+async def test_sync_revenuecat_uses_sync_service(monkeypatch) -> None:
     fake_subscription = SimpleNamespace(
         status=SubscriptionStatus.ACTIVE,
         expires_at=dt.datetime(2099, 1, 1, tzinfo=dt.UTC),
@@ -133,7 +135,7 @@ def test_sync_revenuecat_uses_sync_service(monkeypatch) -> None:
         def __init__(self, **kwargs):
             pass
 
-        def fetch_subscriber_payload(self, *, app_user_id: str):
+        async def fetch_subscriber_payload(self, *, app_user_id: str):
             return _payload_with_entitlement(expires_date="2099-03-10T10:00:00Z")
 
     class FakeSyncService:
@@ -147,7 +149,7 @@ def test_sync_revenuecat_uses_sync_service(monkeypatch) -> None:
     monkeypatch.setattr("app.services.billing.revenuecat.RevenueCatClient", FakeClient)
     monkeypatch.setattr("app.services.billing.revenuecat.SubscriptionSyncService", FakeSyncService)
 
-    result = sync_revenuecat_subscription_for_user(
+    result = await sync_revenuecat_subscription_for_user(
         session=object(),
         current_user=SimpleNamespace(id=uuid.uuid4(), auth_subject="uid-1"),
     )
