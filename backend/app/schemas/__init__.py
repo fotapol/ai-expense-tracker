@@ -1,6 +1,15 @@
 """Schema package exports for API and worker DTOs."""
 
 from app.schemas.auth import FirebaseIdentityIn, FirebaseIdentityOut, TokenExchangeRequest
+from app.schemas.billing import (
+    DevSubscriptionActionRequest,
+    DevSubscriptionActionResponse,
+    MeEntitlementsResponse,
+    MeSubscriptionResponse,
+    ReceiptScanUsageRead,
+    RevenueCatSyncResponse,
+    SubscriptionRead,
+)
 from app.schemas.categories import CategoryCreate, CategoryRead, CategoryTreeNode, CategoryUpdate
 from app.schemas.extraction import ExtractedReceiptData, ExtractedTransactionItem
 from app.schemas.merchants import MerchantAliasCreate, MerchantAliasRead, MerchantRead
@@ -57,10 +66,14 @@ __all__ = [
     "CategoryUpdate",
     "Cost6DP",
     "CurrencyCode",
+    "DevSubscriptionActionRequest",
+    "DevSubscriptionActionResponse",
     "ExtractedReceiptData",
     "ExtractedTransactionItem",
     "FirebaseIdentityIn",
     "FirebaseIdentityOut",
+    "MeEntitlementsResponse",
+    "MeSubscriptionResponse",
     "MerchantAliasCreate",
     "MerchantAliasRead",
     "MerchantRead",
@@ -75,8 +88,11 @@ __all__ = [
     "ReceiptCreateResponse",
     "ReceiptExtractionRead",
     "ReceiptRead",
+    "ReceiptScanUsageRead",
     "ReceiptStatusUpdate",
+    "RevenueCatSyncResponse",
     "SchemaBase",
+    "SubscriptionRead",
     "TimestampSchema",
     "TokenExchangeRequest",
     "TransactionConfirm",

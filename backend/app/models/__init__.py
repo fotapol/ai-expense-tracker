@@ -1,25 +1,42 @@
 """ORM model package exports for metadata registration and app imports."""
 
+from app.models.billing.entitlement import Entitlement
+from app.models.billing.subscription import Subscription
+from app.models.fx.exchange_rate import ExchangeRate
+from app.models.labels.label import Label, LabelBase
+from app.models.labels.transaction_label import TransactionLabel
 from app.models.merchants.merchant import Merchant, MerchantAlias, MerchantAliasBase, MerchantBase
 from app.models.overrides.user_category import UserCategoryOverride, UserItemCategoryOverride
 from app.models.receipts.receipt import Receipt, ReceiptBase
 from app.models.receipts.receipt_extraction import ReceiptExtraction
-from app.models.shared.enums import CategoryScope, ReceiptStatus, TransactionSource
+from app.models.shared.enums import (
+    CategoryScope,
+    EntitlementScopeType,
+    EntitlementStatus,
+    ReceiptStatus,
+    SubscriptionProvider,
+    SubscriptionStatus,
+    TransactionSource,
+)
 from app.models.shared.timestamps import TimestampedModel
 from app.models.taxonomy.category import Category, CategoryBase
-from app.models.translations.item_translation import ItemTranslation
 from app.models.transactions.transaction import Transaction, TransactionBase
 from app.models.transactions.transaction_item import TransactionItem
+from app.models.translations.item_translation import ItemTranslation
 from app.models.users.profile import Profile, ProfileBase
 from app.models.users.user import User, UserBase
-from app.models.labels.label import Label, LabelBase
-from app.models.labels.transaction_label import TransactionLabel
-from app.models.fx.exchange_rate import ExchangeRate
 
 __all__ = [
     "Category",
     "CategoryBase",
     "CategoryScope",
+    "Entitlement",
+    "EntitlementScopeType",
+    "EntitlementStatus",
+    "ExchangeRate",
+    "ItemTranslation",
+    "Label",
+    "LabelBase",
     "Merchant",
     "MerchantAlias",
     "MerchantAliasBase",
@@ -30,20 +47,19 @@ __all__ = [
     "ReceiptBase",
     "ReceiptExtraction",
     "ReceiptStatus",
+    "Subscription",
+    "SubscriptionProvider",
+    "SubscriptionStatus",
     "TimestampedModel",
     "Transaction",
     "TransactionBase",
     "TransactionItem",
+    "TransactionLabel",
     "TransactionSource",
     "User",
     "UserBase",
     "UserCategoryOverride",
     "UserItemCategoryOverride",
-    "Label",
-    "LabelBase",
-    "TransactionLabel",
-    "ExchangeRate",
-    "ItemTranslation",
 ]
 
 # Suggested DB indexes and unique constraints:
