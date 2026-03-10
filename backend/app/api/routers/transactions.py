@@ -459,13 +459,21 @@ def _load_category_names_by_id(
     session: Session,
     *,
     category_ids: list[uuid.UUID],
+    current_user: User | None = None,
 ) -> dict[uuid.UUID, str]:
     if not category_ids:
         return {}
+    
+    query = select(Category.id, Category.name).where(Category.id.in_(category_ids))
+    
+    if current_user:
+        from app.models.taxonomy.category_hidden import UserHiddenCategory
+        hidden_subquery = select(UserHiddenCategory.category_id).where(
+            UserHiddenCategory.user_id == current_user.id
+        )
+        query = query.where(Category.id.notin_(hidden_subquery))
 
-    rows = session.exec(
-        select(Category.id, Category.name).where(Category.id.in_(category_ids))
-    ).all()
+    rows = session.exec(query).all()
     return {category_id: name for category_id, name in rows}
 
 
@@ -605,6 +613,7 @@ async def list_transactions(
         category_names_by_id = _load_category_names_by_id(
             session,
             category_ids=category_ids,
+            current_user=current_user,
         )
         warnings_by_receipt = _load_warnings_by_receipt_id(
             session,

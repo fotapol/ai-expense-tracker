@@ -37,10 +37,10 @@ from app.services.billing.subscriptions import (
 )
 from app.services.billing.usage import (
     ReceiptScanUsage,
-    count_user_monthly_processed_receipts,
-    current_utc_month_window,
+    count_user_processed_receipts_in_window,
     receipt_scan_limit_reached,
     resolve_receipt_scan_usage,
+    rolling_30_day_window,
 )
 
 __all__ = [
@@ -60,8 +60,8 @@ __all__ = [
     "RevenueCatProvider",
     "SubscriptionSyncService",
     "build_manual_subscription_event",
-    "count_user_monthly_processed_receipts",
-    "current_utc_month_window",
+    "count_user_processed_receipts_in_window",
+    "rolling_30_day_window",
     "decide_entitlement_state",
     "feature_codes_for_product",
     "receipt_scan_limit_reached",
