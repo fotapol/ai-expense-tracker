@@ -18,6 +18,8 @@ class UserBase(SQLModel):
         default=None,
         sa_column=Column(String(16), nullable=True),
     )
+    # Temporary operational flag for dev/internal billing endpoints.
+    is_admin: bool = Field(default=False, nullable=False)
     is_active: bool = Field(default=True, nullable=False)
 
 
