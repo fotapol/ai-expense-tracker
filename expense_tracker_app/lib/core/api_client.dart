@@ -828,4 +828,45 @@ class ApiClient {
       );
     }
   }
+
+  /// POST /v1/data/import
+  static Future<Map<String, dynamic>> importData(Map<String, dynamic> payload) async {
+    final token = await _getToken();
+    final response = await http.post(
+      Uri.parse('$apiBaseUrl/v1/data/import'),
+      headers: {
+        'Authorization': 'Bearer $token',
+        'Content-Type': 'application/json',
+      },
+      body: jsonEncode(payload),
+    );
+
+    if (response.statusCode == 201) {
+      return jsonDecode(response.body) as Map<String, dynamic>;
+    } else {
+      throw Exception(
+        'Failed to import data: ${response.statusCode} ${response.body}',
+      );
+    }
+  }
+
+  /// GET /v1/data/export
+  static Future<Map<String, dynamic>> exportData() async {
+    final token = await _getToken();
+    final response = await http.get(
+      Uri.parse('$apiBaseUrl/v1/data/export'),
+      headers: {
+        'Authorization': 'Bearer $token',
+        'Content-Type': 'application/json',
+      },
+    );
+
+    if (response.statusCode == 200) {
+      return jsonDecode(response.body) as Map<String, dynamic>;
+    } else {
+      throw Exception(
+        'Failed to export data: ${response.statusCode} ${response.body}',
+      );
+    }
+  }
 }
