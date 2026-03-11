@@ -4,6 +4,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:purchases_flutter/purchases_flutter.dart';
+import 'dart:convert';
+import 'dart:io';
+import 'package:file_picker/file_picker.dart';
+import 'package:share_plus/share_plus.dart';
+import 'package:path_provider/path_provider.dart';
 
 import '../core/api_client.dart';
 import '../core/revenuecat_service.dart';
@@ -844,6 +849,113 @@ class _MeScreenState extends State<MeScreen> {
     }
   }
 
+  Future<void> _exportData() async {
+    try {
+      showDialog(
+        context: context,
+        barrierDismissible: false,
+        builder: (ctx) => const Center(child: CircularProgressIndicator()),
+      );
+      final data = await ApiClient.exportData();
+      final jsonString = jsonEncode(data);
+      
+      final directory = await getApplicationDocumentsDirectory();
+      final dateStr = DateTime.now().toIso8601String().replaceAll(':', '-').split('.')[0];
+      final file = File('${directory.path}/ai_expense_tracker_export_$dateStr.json');
+      await file.writeAsString(jsonString);
+      
+      if (!mounted) return;
+      Navigator.pop(context); 
+      
+      await Share.shareXFiles(
+        [XFile(file.path)],
+        text: 'AI Expense Tracker Export',
+      );
+    } catch (e) {
+      if (!mounted) return;
+      Navigator.pop(context); 
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            context.tr(
+              'common_error_with_message',
+              params: {'message': e.toString()},
+            ),
+          ),
+          backgroundColor: Colors.red,
+        ),
+      );
+    }
+  }
+
+  Future<void> _importData() async {
+    var dialogShown = false;
+    try {
+      final result = await FilePicker.platform.pickFiles(
+        type: FileType.custom,
+        allowedExtensions: ['json'],
+        withData: true,
+      );
+      if (result == null || result.files.isEmpty) return;
+
+      showDialog(
+        context: context,
+        barrierDismissible: false,
+        builder: (ctx) => const Center(child: CircularProgressIndicator()),
+      );
+      dialogShown = true;
+
+      final pickedFile = result.files.single;
+      var fileBytes = pickedFile.bytes;
+      if (fileBytes == null && pickedFile.path != null) {
+        fileBytes = await File(pickedFile.path!).readAsBytes();
+      }
+      if (fileBytes == null || fileBytes.isEmpty) {
+        throw Exception('Failed to read selected JSON file.');
+      }
+
+      var content = utf8.decode(fileBytes, allowMalformed: true);
+      if (content.isNotEmpty && content.codeUnitAt(0) == 0xFEFF) {
+        content = content.substring(1);
+      }
+
+      final decoded = jsonDecode(content);
+      if (decoded is! Map<String, dynamic>) {
+        throw Exception('Invalid import JSON: root payload must be an object.');
+      }
+
+      final payload = decoded;
+      await ApiClient.importData(payload);
+
+      if (!mounted) return;
+      if (dialogShown && Navigator.of(context, rootNavigator: true).canPop()) {
+        Navigator.of(context, rootNavigator: true).pop();
+      }
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Data imported successfully.'),
+        ),
+      );
+    } catch (e) {
+      if (!mounted) return;
+      if (dialogShown && Navigator.of(context, rootNavigator: true).canPop()) {
+        Navigator.of(context, rootNavigator: true).pop();
+      }
+      String errBody = e.toString();
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            context.tr(
+              'common_error_with_message',
+              params: {'message': errBody},
+            ),
+          ),
+          backgroundColor: Colors.red,
+        ),
+      );
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -984,6 +1096,22 @@ class _MeScreenState extends State<MeScreen> {
                       ),
                     );
                   },
+                ),
+                _buildDivider(),
+                _buildSettingsTile(
+                  icon: Icons.file_download_outlined,
+                  title: 'Export Data',
+                  subtitle: 'Save categories and transactions to a JSON file',
+                  trailing: const Icon(Icons.chevron_right, color: Colors.grey),
+                  onTap: _exportData,
+                ),
+                _buildDivider(),
+                _buildSettingsTile(
+                  icon: Icons.file_upload_outlined,
+                  title: 'Import Data',
+                  subtitle: 'Restore categories and transactions from a JSON file',
+                  trailing: const Icon(Icons.chevron_right, color: Colors.grey),
+                  onTap: _importData,
                 ),
                 _buildDivider(),
                 _buildSettingsTile(
