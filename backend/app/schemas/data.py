@@ -41,6 +41,7 @@ class TransactionExportData(SchemaBase):
 
     id: UUID
     title: str | None = None
+    merchant_name: str | None = None
     occurred_at: dt.datetime
     amount_total: float
     currency: str = Field(max_length=3)
@@ -60,5 +61,7 @@ class DataExportPayload(SchemaBase):
 class DataImportPayload(SchemaBase):
     """Payload to import data."""
 
+    version: int | None = None
+    exported_at: dt.datetime | None = None
     categories: list[CategoryExportData] = Field(default_factory=list)
     transactions: list[TransactionExportData] = Field(default_factory=list)
