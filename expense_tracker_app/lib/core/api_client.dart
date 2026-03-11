@@ -8,6 +8,10 @@ class ApiClient {
     'API_BASE_URL',
     defaultValue: 'http://10.0.2.2:8000',
   );
+  static const String devBillingSecret = String.fromEnvironment(
+    'DEV_BILLING_INTERNAL_SECRET',
+    defaultValue: '',
+  );
 
   /// Get a Firebase ID token for the current user.
   static Future<String> _getToken() async {
@@ -119,6 +123,22 @@ class ApiClient {
     if (response.statusCode == 200) {
       return jsonDecode(response.body) as Map<String, dynamic>;
     } else {
+      if (response.statusCode == 403) {
+        String? limitMessage;
+        try {
+          final payload = jsonDecode(response.body);
+          if (payload is Map<String, dynamic>) {
+            final detail = payload['detail'];
+            if (detail is Map<String, dynamic> &&
+                detail['code'] == 'free_monthly_scan_limit_reached') {
+              limitMessage = detail['message']?.toString();
+            }
+          }
+        } catch (_) {}
+        if (limitMessage != null && limitMessage.trim().isNotEmpty) {
+          throw Exception(limitMessage);
+        }
+      }
       throw Exception(
         'Confirm upload failed: ${response.statusCode} ${response.body}',
       );
@@ -674,6 +694,110 @@ class ApiClient {
     } else {
       throw Exception(
         'Failed to unassign label: ${response.statusCode} ${response.body}',
+      );
+    }
+  }
+
+  /// GET /v1/me/subscription
+  static Future<Map<String, dynamic>> getMeSubscription() async {
+    final token = await _getToken();
+    final response = await http.get(
+      Uri.parse('$apiBaseUrl/v1/me/subscription'),
+      headers: {
+        'Authorization': 'Bearer $token',
+        'Content-Type': 'application/json',
+      },
+    );
+
+    if (response.statusCode == 200) {
+      return jsonDecode(response.body) as Map<String, dynamic>;
+    } else {
+      throw Exception(
+        'Failed to load subscription: ${response.statusCode} ${response.body}',
+      );
+    }
+  }
+
+  /// GET /v1/me/entitlements
+  static Future<Map<String, dynamic>> getMeEntitlements() async {
+    final token = await _getToken();
+    final response = await http.get(
+      Uri.parse('$apiBaseUrl/v1/me/entitlements'),
+      headers: {
+        'Authorization': 'Bearer $token',
+        'Content-Type': 'application/json',
+      },
+    );
+
+    if (response.statusCode == 200) {
+      return jsonDecode(response.body) as Map<String, dynamic>;
+    } else {
+      throw Exception(
+        'Failed to load entitlements: ${response.statusCode} ${response.body}',
+      );
+    }
+  }
+
+  /// POST /v1/billing/revenuecat/sync
+  static Future<Map<String, dynamic>> syncRevenueCatSubscription() async {
+    final token = await _getToken();
+    final response = await http.post(
+      Uri.parse('$apiBaseUrl/v1/billing/revenuecat/sync'),
+      headers: {
+        'Authorization': 'Bearer $token',
+        'Content-Type': 'application/json',
+      },
+    );
+
+    if (response.statusCode == 200) {
+      return jsonDecode(response.body) as Map<String, dynamic>;
+    } else {
+      throw Exception(
+        'Failed to sync subscription: ${response.statusCode} ${response.body}',
+      );
+    }
+  }
+
+  /// POST /internal/dev/billing/subscriptions/manual
+  static Future<Map<String, dynamic>> applyDevManualSubscriptionAction({
+    required String targetUserId,
+    required String action,
+    String productId = 'personal_premium',
+    DateTime? expiresAt,
+    String? reason,
+  }) async {
+    final token = await _getToken();
+    final headers = <String, String>{
+      'Authorization': 'Bearer $token',
+      'Content-Type': 'application/json',
+    };
+    if (devBillingSecret.trim().isNotEmpty) {
+      headers['X-Internal-Dev-Key'] = devBillingSecret.trim();
+    }
+
+    final payload = <String, dynamic>{
+      'target_user_id': targetUserId,
+      'action': action,
+      'product_id': productId,
+    };
+    if (expiresAt != null) {
+      payload['expires_at'] = expiresAt.toUtc().toIso8601String();
+    }
+    if (reason != null && reason.trim().isNotEmpty) {
+      payload['reason'] = reason.trim();
+    }
+
+    final response = await http.post(
+      Uri.parse('$apiBaseUrl/internal/dev/billing/subscriptions/manual'),
+      headers: headers,
+      body: jsonEncode(payload),
+    );
+
+    if (response.statusCode == 200) {
+      return jsonDecode(response.body) as Map<String, dynamic>;
+    } else {
+      throw Exception(
+        'Failed to apply dev subscription action: ${response.statusCode} ${response.body}',
       );
     }
   }

@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:google_sign_in/google_sign_in.dart';
+import '../core/revenuecat_service.dart';
 import '../l10n/app_localizations.dart';
-import 'me_screen.dart';
+import 'main_screen.dart';
 
 /// Login screen with a "Continue with Google" button.
 class LoginScreen extends StatefulWidget {
@@ -32,11 +33,12 @@ class _LoginScreenState extends State<LoginScreen> {
       );
 
       await FirebaseAuth.instance.signInWithCredential(credential);
+      await RevenueCatService.logInCurrentUser();
 
       if (mounted) {
         Navigator.of(
           context,
-        ).pushReplacement(MaterialPageRoute(builder: (_) => const MeScreen()));
+        ).pushReplacement(MaterialPageRoute(builder: (_) => const MainScreen()));
       }
     } on GoogleSignInException catch (e) {
       // User canceled sign-in or other Google Sign-In specific error.

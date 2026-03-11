@@ -16,7 +16,7 @@ from sqlmodel import Session, select
 
 from app.auth.deps import get_current_user
 from app.core.db import get_session
-from app.core.minio import ensure_bucket, generate_presigned_put, head_object
+from app.core.minio import generate_presigned_put, head_object
 from app.core.rabbitmq import get_rabbitmq_connection
 from app.core.rate_limiter import limiter
 from app.models.receipts.receipt import Receipt
@@ -29,6 +29,7 @@ from app.schemas.receipts import (
     ReceiptCreateResponse,
     ReceiptRead,
 )
+from app.services.billing import receipt_scan_limit_reached, resolve_receipt_scan_usage
 
 logger = logging.getLogger(__name__)
 
@@ -113,8 +114,12 @@ async def confirm_upload(
     actual size.  Receipt status moves from CREATED → UPLOADED and an
     extraction job is published to RabbitMQ.
     """
+    # Lock the target receipt row first to prevent duplicate confirms
+    # from concurrently transitioning the same receipt.
     receipt = session.exec(
-        select(Receipt).where(Receipt.id == receipt_id, Receipt.user_id == current_user.id)
+        select(Receipt)
+        .where(Receipt.id == receipt_id, Receipt.user_id == current_user.id)
+        .with_for_update()
     ).first()
 
     if receipt is None:
@@ -136,9 +141,32 @@ async def confirm_upload(
             detail="File not found in storage. Please upload the file first.",
         ) from None
 
+    # Serialize quota checks per user to avoid race conditions where
+    # multiple concurrent confirms can exceed the monthly free limit.
+    session.exec(
+        select(User.id).where(User.id == current_user.id).with_for_update()
+    ).first()
+    usage = resolve_receipt_scan_usage(session, current_user.id)
+    if receipt_scan_limit_reached(usage):
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail={
+                "code": "free_rolling_scan_limit_reached",
+                "message": (
+                    f"Free plan allows up to {usage.limit} AI scans per 30-day rolling window. "
+                    "Upgrade to PRO for unlimited receipt scans."
+                ),
+                "used": usage.used,
+                "limit": usage.limit,
+                "remaining": usage.remaining,
+                "period_start_at": usage.period_start_at.isoformat(),
+                "period_end_at": usage.period_end_at.isoformat(),
+            },
+        )
+
     # Update receipt
     receipt.status = ReceiptStatus.UPLOADED
-    receipt.uploaded_at = dt.datetime.now(dt.timezone.utc)
+    receipt.uploaded_at = dt.datetime.now(dt.UTC)
     receipt.size_bytes = obj_info["size_bytes"]
     if obj_info.get("content_type"):
         receipt.mime_type = obj_info["content_type"]
@@ -213,9 +241,9 @@ async def delete_receipt(
     current_user: User = Depends(get_current_user),  # noqa: B008
 ):
     """Delete a receipt and its associated transaction + items."""
-    from app.models.transactions.transaction_item import TransactionItem
-    from app.models.receipts.receipt_extraction import ReceiptExtraction
     from app.models.labels.transaction_label import TransactionLabel
+    from app.models.receipts.receipt_extraction import ReceiptExtraction
+    from app.models.transactions.transaction_item import TransactionItem
 
     receipt = session.exec(
         select(Receipt).where(Receipt.id == receipt_id, Receipt.user_id == current_user.id)

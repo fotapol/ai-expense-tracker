@@ -28,22 +28,22 @@ class ThemeProvider extends ChangeNotifier {
     if (_isDarkMode) {
       return ThemeData(
         brightness: Brightness.dark,
-        scaffoldBackgroundColor: const Color(0xFF161618),
+        scaffoldBackgroundColor: const Color(0xFF120A1F),
         colorScheme: const ColorScheme.dark(
-          primary: Colors.deepPurpleAccent,
-          surface: Color(0xFF1E1E24),
+          primary: Color(0xFFB388FF),
+          secondary: Color(0xFFE1BEE7),
+          surface: Color(0xFF1A1230),
         ),
         useMaterial3: true,
       );
     } else {
       return ThemeData(
         brightness: Brightness.light,
-        scaffoldBackgroundColor: const Color(
-          0xFFF5F5F7,
-        ), // Light gray background
-        colorScheme: ColorScheme.light(
-          primary: Colors.deepPurpleAccent,
-          surface: Colors.white, // White surface for elevated elements
+        scaffoldBackgroundColor: const Color(0xFFF5EFFF),
+        colorScheme: const ColorScheme.light(
+          primary: Color(0xFF7E57C2),
+          secondary: Color(0xFFA855F7),
+          surface: Colors.white,
           onSurface: Colors.black87,
         ),
         useMaterial3: true,

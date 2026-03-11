@@ -20,6 +20,10 @@ class _HomeTabState extends State<HomeTab> {
   bool _isLoading = true;
   String? _error;
   String _preferredCurrency = 'RSD';
+  int _receiptScanUsed = 0;
+  int _receiptScanLimit = 10;
+  bool _receiptScanUnlimited = false;
+  bool _hasUsageSnapshot = false;
   List<Map<String, dynamic>> _transactions = [];
   late List<DateTime> _last7Days;
   late DateTime _selectedDay;
@@ -53,12 +57,21 @@ class _HomeTabState extends State<HomeTab> {
       final results = await Future.wait([
         ApiClient.getMe(),
         ApiClient.listTransactions(fromDate: fromDate),
+        ApiClient.getMeSubscription(),
       ]);
 
       final me = results[0] as Map<String, dynamic>;
       final rawTransactions = results[1] as List<dynamic>;
+      final subscriptionPayload = results[2] as Map<String, dynamic>;
       final defaultCurrency = me['default_currency']?.toString().trim();
       final txs = rawTransactions.whereType<Map<String, dynamic>>().toList();
+      final usageRaw = subscriptionPayload['receipt_scan_usage'];
+      final usage = usageRaw is Map<String, dynamic>
+          ? usageRaw
+          : const <String, dynamic>{};
+      final isUnlimited = usage['is_unlimited'] == true;
+      final used = int.tryParse((usage['used'] ?? 0).toString()) ?? 0;
+      final limit = int.tryParse((usage['limit'] ?? 10).toString()) ?? 10;
 
       txs.sort((a, b) {
         final aDate =
@@ -73,6 +86,10 @@ class _HomeTabState extends State<HomeTab> {
         if (defaultCurrency != null && defaultCurrency.isNotEmpty) {
           _preferredCurrency = defaultCurrency.toUpperCase();
         }
+        _receiptScanUsed = used;
+        _receiptScanLimit = limit > 0 ? limit : 10;
+        _receiptScanUnlimited = isUnlimited;
+        _hasUsageSnapshot = true;
         _transactions = txs;
         _isLoading = false;
       });
@@ -120,8 +137,13 @@ class _HomeTabState extends State<HomeTab> {
     }).toList();
   }
 
-  int _daysWithData() =>
-      _last7Days.where((day) => _transactionsForDay(day).isNotEmpty).length;
+  String _receiptUsageLabel() {
+    if (_receiptScanUnlimited) {
+      return '$_receiptScanUsed';
+    }
+    final shownUsed = math.min(_receiptScanUsed, _receiptScanLimit);
+    return '$shownUsed/$_receiptScanLimit';
+  }
 
   String _currencySymbol(String code) {
     switch (code.toUpperCase()) {
@@ -228,26 +250,85 @@ class _HomeTabState extends State<HomeTab> {
             ),
           ],
         ),
-        // Container(
-        //   padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-        //   decoration: BoxDecoration(
-        //     color: Theme.of(context).colorScheme.surface,
-        //     borderRadius: BorderRadius.circular(20),
-        //     border: Border.all(color: Colors.grey.shade800),
-        //   ),
-        //   child: Text(
-        //     '${_daysWithData()}/7',
-        //     style: const TextStyle(fontSize: 12),
-        //   ),
-        // ),
+        Container(
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 7),
+          decoration: BoxDecoration(
+            color: const Color(0xFF261238),
+            borderRadius: BorderRadius.circular(14),
+            border: Border.all(color: const Color(0xFF7C4DFF).withAlpha(170)),
+          ),
+          child: _buildUsageCounter(context),
+        ),
       ],
+    );
+  }
+
+  Widget _buildUsageCounter(BuildContext context) {
+    if (!_hasUsageSnapshot && _isLoading) {
+      return const SizedBox(
+        height: 36,
+        width: 120,
+        child: Center(
+          child: SizedBox(
+            width: 16,
+            height: 16,
+            child: CircularProgressIndicator(strokeWidth: 2),
+          ),
+        ),
+      );
+    }
+    if (!_hasUsageSnapshot) {
+      return const SizedBox(
+        width: 140,
+        child: Text(
+          '--',
+          textAlign: TextAlign.right,
+          style: TextStyle(
+            fontSize: 14,
+            fontWeight: FontWeight.w700,
+            color: Color(0xFFE7D3FF),
+          ),
+        ),
+      );
+    }
+
+    final valueColor = _receiptScanUnlimited
+        ? const Color(0xFFF7D74B)
+        : (_receiptScanUsed >= _receiptScanLimit
+              ? const Color(0xFF8C1D40)
+              : const Color(0xFFE7D3FF));
+
+    return ConstrainedBox(
+      constraints: const BoxConstraints(maxWidth: 220),
+      child: RichText(
+        textAlign: TextAlign.right,
+        text: TextSpan(
+          children: [
+            TextSpan(
+              text: 'Scans this month ',
+              style: TextStyle(
+                fontSize: 12,
+                color: Colors.grey.shade300,
+                fontWeight: FontWeight.w500,
+              ),
+            ),
+            TextSpan(
+              text: _receiptUsageLabel(),
+              style: TextStyle(
+                fontSize: 15,
+                color: valueColor,
+                fontWeight: FontWeight.w700,
+              ),
+            ),
+          ],
+        ),
+      ),
     );
   }
 
   Widget _buildDailySpendingCard(BuildContext context) {
     final total = _dailyTotal(_selectedDay);
     final currency = _dailyCurrency(_selectedDay);
-
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.all(20),
@@ -266,7 +347,7 @@ class _HomeTabState extends State<HomeTab> {
             context.tr('home_daily_spending'),
             style: const TextStyle(color: Colors.white70, fontSize: 14),
           ),
-          const SizedBox(height: 8),
+          const SizedBox(height: 10),
           Text(
             _formatMoney(currency, total),
             style: const TextStyle(
@@ -276,7 +357,7 @@ class _HomeTabState extends State<HomeTab> {
             ),
           ),
           const SizedBox(height: 14),
-          SizedBox(height: 70, child: _buildSpendingChart()),
+          SizedBox(height: 94, child: _buildSpendingChart()),
         ],
       ),
     );
@@ -294,7 +375,46 @@ class _HomeTabState extends State<HomeTab> {
         minY: 0,
         maxY: maxY,
         gridData: const FlGridData(show: false),
-        titlesData: const FlTitlesData(show: false),
+        titlesData: FlTitlesData(
+          show: true,
+          leftTitles: const AxisTitles(
+            sideTitles: SideTitles(showTitles: false),
+          ),
+          topTitles: const AxisTitles(
+            sideTitles: SideTitles(showTitles: false),
+          ),
+          rightTitles: const AxisTitles(
+            sideTitles: SideTitles(showTitles: false),
+          ),
+          bottomTitles: AxisTitles(
+            sideTitles: SideTitles(
+              showTitles: true,
+              interval: 1,
+              reservedSize: 24,
+              getTitlesWidget: (value, meta) {
+                final index = value.round();
+                if (index < 0 || index >= _last7Days.length) {
+                  return const SizedBox.shrink();
+                }
+                if ((value - index).abs() > 0.001) {
+                  return const SizedBox.shrink();
+                }
+                return SideTitleWidget(
+                  meta: meta,
+                  space: 8,
+                  child: Text(
+                    '${_last7Days[index].day}',
+                    style: TextStyle(
+                      color: Colors.white.withAlpha(190),
+                      fontSize: 11,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                );
+              },
+            ),
+          ),
+        ),
         borderData: FlBorderData(show: false),
         lineTouchData: const LineTouchData(enabled: false),
         extraLinesData: ExtraLinesData(
@@ -315,7 +435,16 @@ class _HomeTabState extends State<HomeTab> {
             isCurved: true,
             barWidth: 3,
             color: const Color(0xFFE040FB),
-            dotData: const FlDotData(show: false),
+            dotData: FlDotData(
+              show: true,
+              getDotPainter: (spot, percent, barData, index) =>
+                  FlDotCirclePainter(
+                radius: 3.5,
+                color: const Color(0xFFE040FB),
+                strokeWidth: 1.5,
+                strokeColor: Colors.white.withAlpha(185),
+              ),
+            ),
             belowBarData: BarAreaData(
               show: true,
               color: Colors.white.withAlpha(20),

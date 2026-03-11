@@ -1,15 +1,19 @@
 import 'package:currency_picker/currency_picker.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:google_sign_in/google_sign_in.dart';
+import 'package:purchases_flutter/purchases_flutter.dart';
 
 import '../core/api_client.dart';
+import '../core/revenuecat_service.dart';
 import '../l10n/app_localizations.dart';
 import '../l10n/app_languages.dart';
 import '../main.dart';
 import 'categories_screen.dart';
 import 'labels_screen.dart';
 import 'login_screen.dart';
+import 'subscription_screen.dart';
 
 /// Screen that displays the authenticated user's profile from the backend.
 class MeScreen extends StatefulWidget {
@@ -20,11 +24,27 @@ class MeScreen extends StatefulWidget {
 }
 
 class _MeScreenState extends State<MeScreen> {
+  static const Duration _billingInitialLoadMinDuration = Duration(
+    milliseconds: 350,
+  );
+  static const bool _showDevBillingTools = bool.fromEnvironment(
+    'ENABLE_DEV_BILLING_TOOLS',
+    defaultValue: false,
+  );
+
   Map<String, dynamic>? _profileData;
   bool _isLoading = true;
   String? _error;
   bool _isUpdatingCurrency = false;
   bool _isUpdatingItemsLanguage = false;
+  bool _isBillingLoading = true;
+  bool _billingCardReady = false;
+  bool _isBillingActionInProgress = false;
+  String? _billingError;
+  Map<String, dynamic>? _subscriptionPayload;
+  Package? _monthlyPackage;
+  Package? _yearlyPackage;
+  Package? _selectedPackage;
 
   bool _notificationsEnabled = false;
 
@@ -32,6 +52,7 @@ class _MeScreenState extends State<MeScreen> {
   void initState() {
     super.initState();
     _fetchProfile();
+    _loadBillingData();
   }
 
   String _currentCurrencyCode() {
@@ -210,6 +231,374 @@ class _MeScreenState extends State<MeScreen> {
               letterSpacing: 0.6,
             ),
           ),
+        ),
+      ),
+    );
+  }
+
+  bool get _hasActiveSubscription =>
+      (_subscriptionPayload?['has_active_subscription'] as bool?) ?? false;
+
+  Map<String, dynamic>? get _subscription =>
+      _subscriptionPayload?['subscription'] as Map<String, dynamic>?;
+
+  String _billingStatusLabel() {
+    final status = (_subscription?['status'] ?? 'inactive').toString();
+    return status.replaceAll('_', ' ').toUpperCase();
+  }
+
+  String _validUntilLabel() {
+    final raw = _subscription?['expires_at'];
+    if (raw == null) return '--';
+    final parsed = DateTime.tryParse(raw.toString());
+    if (parsed == null) return raw.toString();
+    final local = parsed.toLocal();
+    final mm = local.month.toString().padLeft(2, '0');
+    final dd = local.day.toString().padLeft(2, '0');
+    return '${local.year}-$mm-$dd';
+  }
+
+  String _usageSummaryLabel() {
+    final usageRaw = _subscriptionPayload?['receipt_scan_usage'];
+    if (usageRaw is! Map<String, dynamic>) return 'Monthly scans: --';
+    final isUnlimited = usageRaw['is_unlimited'] == true;
+    final used = int.tryParse((usageRaw['used'] ?? 0).toString()) ?? 0;
+    if (isUnlimited) {
+      return 'Monthly scans: $used (unlimited)';
+    }
+    final limit = int.tryParse((usageRaw['limit'] ?? 10).toString()) ?? 10;
+    final remaining = int.tryParse((usageRaw['remaining'] ?? 0).toString()) ?? 0;
+    return 'Monthly scans: $used/$limit, remaining: $remaining';
+  }
+
+  String _packagePlanLabel(Package package) {
+    if (package.packageType == PackageType.annual) return 'Yearly PRO';
+    if (package.packageType == PackageType.monthly) return 'Monthly PRO';
+    final identifier = package.identifier.toLowerCase();
+    if (identifier.contains('year') || identifier.contains('annual')) {
+      return 'Yearly PRO';
+    }
+    if (identifier.contains('month')) {
+      return 'Monthly PRO';
+    }
+    return 'PRO';
+  }
+
+  String _purchaseCtaLabel() {
+    final package = _selectedPackage;
+    if (package == null) return 'Upgrade to PRO';
+    final priceLabel = package.storeProduct.priceString;
+    if (priceLabel.trim().isEmpty) return 'Upgrade to PRO';
+    return 'Buy ${_packagePlanLabel(package)} - $priceLabel';
+  }
+
+  void _applyPackageOptions(List<Package> packages) {
+    Package? monthly;
+    Package? yearly;
+    Package? fallback;
+    final selectedIdentifier = _selectedPackage?.identifier;
+    Package? selectedMatch;
+
+    for (final package in packages) {
+      fallback ??= package;
+      if (selectedIdentifier != null && package.identifier == selectedIdentifier) {
+        selectedMatch = package;
+      }
+      if (package.packageType == PackageType.monthly) {
+        monthly ??= package;
+        continue;
+      }
+      if (package.packageType == PackageType.annual) {
+        yearly ??= package;
+        continue;
+      }
+      final identifier = package.identifier.toLowerCase();
+      if (yearly == null &&
+          (identifier.contains('year') || identifier.contains('annual'))) {
+        yearly = package;
+        continue;
+      }
+      if (monthly == null && identifier.contains('month')) {
+        monthly = package;
+      }
+    }
+
+    _monthlyPackage = monthly;
+    _yearlyPackage = yearly;
+    _selectedPackage = selectedMatch ?? yearly ?? monthly ?? fallback;
+  }
+
+  bool _isOperationInProgressError(Object error) {
+    if (error is! PlatformException) return false;
+    final details = error.details;
+    String? readableCode;
+    if (details is Map) {
+      readableCode = details['readable_error_code']?.toString() ??
+          details['readableErrorCode']?.toString();
+    }
+    final normalizedCode = (readableCode ?? error.code).toLowerCase();
+    return normalizedCode.contains('operationalreadyinprogresserror') ||
+        error.code == '15';
+  }
+
+  String _friendlyBillingError(Object error) {
+    if (error is PlatformException) {
+      final details = error.details;
+      String? readableCode;
+      String? detailMessage;
+      if (details is Map) {
+        readableCode = details['readable_error_code']?.toString() ??
+            details['readableErrorCode']?.toString();
+        detailMessage = details['message']?.toString() ??
+            details['underlyingErrorMessage']?.toString();
+      }
+      final normalizedCode = (readableCode ?? error.code).toLowerCase();
+      if (normalizedCode.contains('operationalreadyinprogresserror') ||
+          error.code == '15') {
+        return 'Another billing operation is in progress. Please try again in a few seconds.';
+      }
+      if (normalizedCode.contains('purchasecancellederror')) {
+        return 'Purchase canceled.';
+      }
+      if (normalizedCode.contains('networkerror')) {
+        return 'Network error while contacting the store.';
+      }
+      if (normalizedCode.contains('storeproblemerror')) {
+        return 'Store is temporarily unavailable.';
+      }
+      final message = detailMessage ?? error.message;
+      if (message != null && message.trim().isNotEmpty) {
+        return message;
+      }
+    }
+    return error.toString();
+  }
+
+  Future<void> _loadBillingData({bool showLoading = true}) async {
+    final isInitialLoad = !_billingCardReady;
+    final loadStartedAt = DateTime.now();
+    final shouldSyncRevenueCat = RevenueCatService.isAvailable && !_showDevBillingTools;
+
+    Future<void> waitForInitialLoadingWindow() async {
+      if (!isInitialLoad) return;
+      final elapsed = DateTime.now().difference(loadStartedAt);
+      final remaining = _billingInitialLoadMinDuration - elapsed;
+      if (remaining > Duration.zero) {
+        await Future<void>.delayed(remaining);
+      }
+    }
+
+    if (showLoading) {
+      setState(() {
+        _isBillingLoading = true;
+        _billingError = null;
+      });
+    }
+    try {
+      Map<String, dynamic> subscriptionPayload;
+      if (shouldSyncRevenueCat) {
+        try {
+          final syncPayload = await ApiClient.syncRevenueCatSubscription();
+          subscriptionPayload = <String, dynamic>{
+            'has_active_subscription': syncPayload['has_active_subscription'],
+            'subscription': syncPayload['subscription'],
+            'receipt_scan_usage': syncPayload['receipt_scan_usage'],
+          };
+        } catch (_) {
+          subscriptionPayload = await ApiClient.getMeSubscription();
+        }
+      } else {
+        subscriptionPayload = await ApiClient.getMeSubscription();
+      }
+      Offerings? offerings;
+      try {
+        offerings = await RevenueCatService.getOfferings();
+      } catch (_) {}
+      await waitForInitialLoadingWindow();
+      if (!mounted) return;
+      setState(() {
+        _subscriptionPayload = subscriptionPayload;
+        final packages = offerings?.current?.availablePackages ?? const <Package>[];
+        _applyPackageOptions(packages);
+        _isBillingLoading = false;
+        _billingCardReady = true;
+        _billingError = null;
+      });
+    } catch (e) {
+      await waitForInitialLoadingWindow();
+      if (!mounted) return;
+      setState(() {
+        _isBillingLoading = false;
+        _billingCardReady = true;
+        _billingError = e.toString();
+      });
+    }
+  }
+
+  Future<void> _purchasePro() async {
+    if (_isBillingActionInProgress) return;
+    if (!RevenueCatService.isAvailable) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('RevenueCat is not configured in this build.'),
+          backgroundColor: Colors.redAccent,
+        ),
+      );
+      return;
+    }
+
+    Package? package = _selectedPackage;
+    if (package == null) {
+      try {
+        final offerings = await RevenueCatService.getOfferings();
+        final packages = offerings?.current?.availablePackages ?? const <Package>[];
+        if (packages.isNotEmpty) {
+          _applyPackageOptions(packages);
+          package = _selectedPackage;
+          if (mounted) setState(() => _selectedPackage = package);
+        }
+      } catch (_) {}
+    }
+    if (package == null) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('No purchasable package available right now.'),
+          backgroundColor: Colors.redAccent,
+        ),
+      );
+      return;
+    }
+
+    setState(() => _isBillingActionInProgress = true);
+    try {
+      await RevenueCatService.purchasePackage(package);
+      await ApiClient.syncRevenueCatSubscription();
+      await _loadBillingData(showLoading: false);
+      if (!mounted) return;
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('PRO subscription activated.')));
+    } catch (e) {
+      Object effectiveError = e;
+      if (_isOperationInProgressError(e)) {
+        await Future<void>.delayed(const Duration(seconds: 1));
+        try {
+          await RevenueCatService.purchasePackage(package);
+          await ApiClient.syncRevenueCatSubscription();
+          await _loadBillingData(showLoading: false);
+          if (!mounted) return;
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('PRO subscription activated.')),
+          );
+          return;
+        } catch (retryError) {
+          effectiveError = retryError;
+        }
+      }
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Purchase failed: ${_friendlyBillingError(effectiveError)}'),
+          backgroundColor: Colors.redAccent,
+        ),
+      );
+    } finally {
+      if (mounted) setState(() => _isBillingActionInProgress = false);
+    }
+  }
+
+  Future<void> _restorePurchases() async {
+    if (_isBillingActionInProgress) return;
+    if (!RevenueCatService.isAvailable) return;
+    setState(() => _isBillingActionInProgress = true);
+    try {
+      await RevenueCatService.restorePurchases();
+      await ApiClient.syncRevenueCatSubscription();
+      await _loadBillingData(showLoading: false);
+      if (!mounted) return;
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('Purchases restored.')));
+    } catch (e) {
+      Object effectiveError = e;
+      if (_isOperationInProgressError(e)) {
+        await Future<void>.delayed(const Duration(seconds: 1));
+        try {
+          await RevenueCatService.restorePurchases();
+          await ApiClient.syncRevenueCatSubscription();
+          await _loadBillingData(showLoading: false);
+          if (!mounted) return;
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Purchases restored.')),
+          );
+          return;
+        } catch (retryError) {
+          effectiveError = retryError;
+        }
+      }
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Restore failed: ${_friendlyBillingError(effectiveError)}'),
+          backgroundColor: Colors.redAccent,
+        ),
+      );
+    } finally {
+      if (mounted) setState(() => _isBillingActionInProgress = false);
+    }
+  }
+
+  Future<void> _applyDevRevokeSubscription() async {
+    if (_isBillingActionInProgress) return;
+    final targetUserId = _profileData?['id']?.toString().trim() ?? '';
+    if (targetUserId.isEmpty) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Missing user ID for dev revoke action.'),
+          backgroundColor: Colors.redAccent,
+        ),
+      );
+      return;
+    }
+
+    setState(() => _isBillingActionInProgress = true);
+    try {
+      await ApiClient.applyDevManualSubscriptionAction(
+        targetUserId: targetUserId,
+        action: 'revoke',
+      );
+      await _loadBillingData(showLoading: false);
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Dev revoke subscription applied.')),
+      );
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Dev revoke failed: $e'),
+          backgroundColor: Colors.redAccent,
+        ),
+      );
+    } finally {
+      if (mounted) setState(() => _isBillingActionInProgress = false);
+    }
+  }
+
+  void _showFamilyGroupInDevelopment() {
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text('In development')),
+    );
+  }
+
+  void _openSubscriptionDetails() {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => SubscriptionScreen(
+          currentUserId: _profileData?['id']?.toString(),
         ),
       ),
     );
@@ -444,6 +833,7 @@ class _MeScreenState extends State<MeScreen> {
   }
 
   Future<void> _signOut() async {
+    await RevenueCatService.logOut();
     await GoogleSignIn.instance.signOut();
     await FirebaseAuth.instance.signOut();
 
@@ -459,7 +849,7 @@ class _MeScreenState extends State<MeScreen> {
     return Scaffold(
       appBar: AppBar(
         title: Text(
-          context.tr('settings_title'),
+          context.tr('nav_profile'),
           style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 24),
         ),
         backgroundColor: Colors.transparent,
@@ -500,7 +890,20 @@ class _MeScreenState extends State<MeScreen> {
     return SingleChildScrollView(
       padding: const EdgeInsets.all(16.0),
       child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
+          const Text(
+            'Subscription',
+            style: TextStyle(fontSize: 28, fontWeight: FontWeight.w800),
+          ),
+          const SizedBox(height: 10),
+          _buildPremiumCard(),
+          const SizedBox(height: 16),
+          const Text(
+            'Settings',
+            style: TextStyle(fontSize: 28, fontWeight: FontWeight.w800),
+          ),
+          const SizedBox(height: 10),
           Container(
             decoration: BoxDecoration(
               color: Theme.of(context).colorScheme.surface,
@@ -584,6 +987,23 @@ class _MeScreenState extends State<MeScreen> {
                 ),
                 _buildDivider(),
                 _buildSettingsTile(
+                  icon: Icons.group_add_outlined,
+                  title: 'Add account to family group',
+                  subtitle: 'Share premium features with family',
+                  trailing: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      _buildFeatureTag('PREMIUM', const Color(0xFFF7D74B)),
+                      const SizedBox(width: 6),
+                      _buildFeatureTag('BETA', Colors.orangeAccent),
+                      const SizedBox(width: 6),
+                      const Icon(Icons.chevron_right, color: Colors.grey),
+                    ],
+                  ),
+                  onTap: _showFamilyGroupInDevelopment,
+                ),
+                _buildDivider(),
+                _buildSettingsTile(
                   icon: Icons.notifications_off_outlined,
                   title: context.tr('settings_notifications'),
                   onTap: () {
@@ -659,6 +1079,324 @@ class _MeScreenState extends State<MeScreen> {
           ),
           const SizedBox(height: 32),
         ],
+      ),
+    );
+  }
+
+  Widget _buildPremiumCard() {
+    final showInitialLoading = !_billingCardReady;
+    final hasBillingSnapshot = _billingCardReady && _subscriptionPayload != null;
+    final statusColor = showInitialLoading
+        ? Colors.blueGrey.shade300
+        : (_hasActiveSubscription
+              ? const Color(0xFFB388FF)
+              : const Color(0xFFF7D74B));
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(18),
+        gradient: const LinearGradient(
+          colors: [Color(0xFF5A1AA6), Color(0xFF2A0F5C)],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
+        border: Border.all(color: Colors.white.withAlpha(35)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              const Icon(
+                Icons.workspace_premium_rounded,
+                color: Color(0xFFF7D74B),
+              ),
+              const SizedBox(width: 8),
+              const Expanded(
+                child: Text(
+                  'Premium Subscription',
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontSize: 18,
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+              ),
+              if (showInitialLoading)
+                const SizedBox(
+                  width: 18,
+                  height: 18,
+                  child: CircularProgressIndicator(strokeWidth: 2),
+                )
+              else
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(999),
+                    border: Border.all(color: statusColor.withAlpha(220)),
+                  ),
+                  child: Text(
+                    _billingStatusLabel(),
+                    style: TextStyle(
+                      color: statusColor,
+                      fontSize: 11,
+                      fontWeight: FontWeight.w800,
+                      letterSpacing: 0.5,
+                    ),
+                  ),
+                ),
+            ],
+          ),
+          const SizedBox(height: 10),
+          Text(
+            showInitialLoading
+                ? 'Loading subscription status...'
+                : (_hasActiveSubscription
+                      ? 'PRO features are active on your account.'
+                      : 'Unlock unlimited scans and premium features.'),
+            style: TextStyle(
+              color: Colors.white.withAlpha(220),
+              fontSize: 14,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+          const SizedBox(height: 6),
+          Text(
+            hasBillingSnapshot ? _usageSummaryLabel() : 'Monthly scans: --',
+            style: TextStyle(
+              color: Colors.white.withAlpha(200),
+              fontSize: 13,
+            ),
+          ),
+          const SizedBox(height: 4),
+          Text(
+            'Valid until: ${hasBillingSnapshot ? _validUntilLabel() : "--"}',
+            style: TextStyle(
+              color: Colors.white.withAlpha(200),
+              fontSize: 13,
+            ),
+          ),
+          if (_billingError != null) ...[
+            const SizedBox(height: 10),
+            Text(
+              _billingError!,
+              style: const TextStyle(color: Colors.redAccent, fontSize: 12),
+            ),
+          ],
+          const SizedBox(height: 12),
+          if (hasBillingSnapshot && !_hasActiveSubscription) ...[
+            if (_monthlyPackage != null || _yearlyPackage != null) ...[
+              _buildPlanSelector(),
+              const SizedBox(height: 10),
+            ],
+            Row(
+              children: [
+                Expanded(
+                  child: ElevatedButton(
+                    onPressed: (_isBillingLoading || _isBillingActionInProgress)
+                        ? null
+                        : _purchasePro,
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: const Color(0xFF7E57C2),
+                      foregroundColor: Colors.white,
+                    ),
+                    child: Text(_purchaseCtaLabel()),
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 8),
+          ] else if (hasBillingSnapshot) ...[
+            Container(
+              width: double.infinity,
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+              decoration: BoxDecoration(
+                color: Colors.white.withAlpha(20),
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(color: Colors.white.withAlpha(70)),
+              ),
+              child: const Text(
+                'PRO is already active on this account.',
+                style: TextStyle(
+                  color: Colors.white,
+                  fontSize: 13,
+                  fontWeight: FontWeight.w600,
+                ),
+                textAlign: TextAlign.center,
+              ),
+            ),
+            const SizedBox(height: 8),
+          ] else ...[
+            const SizedBox(height: 8),
+          ],
+          const SizedBox(height: 8),
+          Row(
+            children: [
+              Expanded(
+                child: OutlinedButton(
+                  onPressed: hasBillingSnapshot ? _openSubscriptionDetails : null,
+                  style: OutlinedButton.styleFrom(
+                    foregroundColor: Colors.white,
+                    side: BorderSide(color: Colors.white.withAlpha(120)),
+                  ),
+                  child: const Text('Details'),
+                ),
+              ),
+              const SizedBox(width: 8),
+              Expanded(
+                child: OutlinedButton(
+                  onPressed: (!hasBillingSnapshot ||
+                          _isBillingLoading ||
+                          _isBillingActionInProgress)
+                      ? null
+                      : _restorePurchases,
+                  style: OutlinedButton.styleFrom(
+                    foregroundColor: Colors.white,
+                    side: BorderSide(color: Colors.white.withAlpha(120)),
+                  ),
+                  child: const Text('Restore Purchases'),
+                ),
+              ),
+              const SizedBox(width: 8),
+              IconButton(
+                onPressed: (_isBillingLoading || _isBillingActionInProgress)
+                    ? null
+                    : () => _loadBillingData(showLoading: true),
+                icon: const Icon(Icons.refresh_rounded, color: Colors.white),
+              ),
+            ],
+          ),
+          if (_showDevBillingTools) ...[
+            const SizedBox(height: 8),
+            Align(
+              alignment: Alignment.centerRight,
+              child: OutlinedButton.icon(
+                onPressed: (!hasBillingSnapshot ||
+                        _isBillingLoading ||
+                        _isBillingActionInProgress)
+                    ? null
+                    : _applyDevRevokeSubscription,
+                style: OutlinedButton.styleFrom(
+                  foregroundColor: Colors.redAccent,
+                  side: const BorderSide(color: Colors.redAccent),
+                ),
+                icon: const Icon(Icons.block_rounded, size: 18),
+                label: const Text('Dev Revoke'),
+              ),
+            ),
+          ],
+          if (_isBillingLoading || _isBillingActionInProgress) ...[
+            const SizedBox(height: 8),
+            const LinearProgressIndicator(minHeight: 2),
+          ],
+        ],
+      ),
+    );
+  }
+
+  Widget _buildPlanSelector() {
+    final options = <Package>[];
+    if (_monthlyPackage != null) {
+      options.add(_monthlyPackage!);
+    }
+    if (_yearlyPackage != null &&
+        _yearlyPackage!.identifier != _monthlyPackage?.identifier) {
+      options.add(_yearlyPackage!);
+    }
+    if (options.isEmpty && _selectedPackage != null) {
+      options.add(_selectedPackage!);
+    }
+    if (options.length <= 1) {
+      return const SizedBox.shrink();
+    }
+
+    return Row(
+      children: options.map((package) {
+        final isYearly = _yearlyPackage?.identifier == package.identifier;
+        return Expanded(
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 4),
+            child: _buildPlanTile(package: package, isYearly: isYearly),
+          ),
+        );
+      }).toList(),
+    );
+  }
+
+  Widget _buildPlanTile({required Package package, required bool isYearly}) {
+    final selected = _selectedPackage?.identifier == package.identifier;
+    final borderColor = selected
+        ? const Color(0xFFF7D74B)
+        : Colors.white.withAlpha(80);
+
+    return InkWell(
+      borderRadius: BorderRadius.circular(12),
+      onTap: () => setState(() => _selectedPackage = package),
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 10),
+        decoration: BoxDecoration(
+          color: selected
+              ? const Color(0xFF5B2E88).withAlpha(210)
+              : Colors.black.withAlpha(20),
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(color: borderColor),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            if (isYearly)
+              const Text(
+                'BEST VALUE',
+                style: TextStyle(
+                  color: Color(0xFFF7D74B),
+                  fontSize: 10,
+                  fontWeight: FontWeight.w800,
+                  letterSpacing: 0.4,
+                ),
+              ),
+            if (isYearly) const SizedBox(height: 2),
+            Text(
+              _packagePlanLabel(package),
+              style: const TextStyle(
+                color: Colors.white,
+                fontSize: 13,
+                fontWeight: FontWeight.w700,
+              ),
+            ),
+            const SizedBox(height: 2),
+            Text(
+              package.storeProduct.priceString,
+              style: TextStyle(
+                color: selected
+                    ? const Color(0xFFF7D74B)
+                    : Colors.white.withAlpha(220),
+                fontSize: 15,
+                fontWeight: FontWeight.w800,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildFeatureTag(String label, Color color) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 3),
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(999),
+        color: color.withAlpha(24),
+        border: Border.all(color: color.withAlpha(180)),
+      ),
+      child: Text(
+        label,
+        style: TextStyle(
+          color: color,
+          fontSize: 9,
+          fontWeight: FontWeight.w800,
+          letterSpacing: 0.5,
+        ),
       ),
     );
   }

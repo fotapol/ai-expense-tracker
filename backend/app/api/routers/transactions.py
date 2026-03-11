@@ -1,6 +1,5 @@
 """Transaction API endpoints for editing and viewing ledgers."""
 
-import datetime as dt
 import logging
 import uuid
 from collections import defaultdict
@@ -15,17 +14,17 @@ from sqlmodel import Session, select
 from app.auth.deps import get_current_user
 from app.core.db import get_session
 from app.core.rate_limiter import limiter
-from app.models.shared.enums import CategoryScope
-from app.models.taxonomy.category import Category
 from app.models.labels.label import Label
 from app.models.labels.transaction_label import TransactionLabel
 from app.models.receipts.receipt_extraction import ReceiptExtraction
-from app.models.translations.item_translation import ItemTranslation
+from app.models.shared.enums import CategoryScope
+from app.models.taxonomy.category import Category
 from app.models.transactions.transaction import Transaction
 from app.models.transactions.transaction_item import TransactionItem
+from app.models.translations.item_translation import ItemTranslation
 from app.models.users.user import User
-from app.schemas.item_translations import normalized_source_text_key
 from app.schemas.extraction import ExtractionWarning
+from app.schemas.item_translations import normalized_source_text_key
 from app.schemas.shared import (
     normalize_currency_code,
     normalize_language_code,
@@ -460,13 +459,21 @@ def _load_category_names_by_id(
     session: Session,
     *,
     category_ids: list[uuid.UUID],
+    current_user: User | None = None,
 ) -> dict[uuid.UUID, str]:
     if not category_ids:
         return {}
+    
+    query = select(Category.id, Category.name).where(Category.id.in_(category_ids))
+    
+    if current_user:
+        from app.models.taxonomy.category_hidden import UserHiddenCategory
+        hidden_subquery = select(UserHiddenCategory.category_id).where(
+            UserHiddenCategory.user_id == current_user.id
+        )
+        query = query.where(Category.id.notin_(hidden_subquery))
 
-    rows = session.exec(
-        select(Category.id, Category.name).where(Category.id.in_(category_ids))
-    ).all()
+    rows = session.exec(query).all()
     return {category_id: name for category_id, name in rows}
 
 
@@ -606,6 +613,7 @@ async def list_transactions(
         category_names_by_id = _load_category_names_by_id(
             session,
             category_ids=category_ids,
+            current_user=current_user,
         )
         warnings_by_receipt = _load_warnings_by_receipt_id(
             session,
@@ -718,9 +726,8 @@ async def get_transactions_summary(
                 quantizer=quantize_amount,
             )
             if amount_total is not None:
-                total_amount += (
-                    converted.value if converted.value is not None else quantize_amount(amount_total)
-                )
+                val = converted.value
+                total_amount += val if val is not None else quantize_amount(amount_total)
         total_transactions = len(transaction_rows)
 
     # 3. Group by category on filtered TransactionItem scope and convert row-by-row
@@ -760,7 +767,8 @@ async def get_transactions_summary(
             session=session,
             quantizer=quantize_amount,
         )
-        converted_amount = converted.value if converted.value is not None else quantize_amount(amount)
+        val = converted.value
+        converted_amount = val if val is not None else quantize_amount(amount)
         if cat_id not in category_results:
             category_results[cat_id] = {
                 "name": cat_name,
@@ -769,8 +777,8 @@ async def get_transactions_summary(
                 "amount": Decimal("0"),
                 "item_count": 0,
             }
-        category_results[cat_id]["amount"] += converted_amount
-        category_results[cat_id]["item_count"] += 1
+        category_results[cat_id]["amount"] = category_results[cat_id]["amount"] + converted_amount
+        category_results[cat_id]["item_count"] = category_results[cat_id]["item_count"] + 1
 
     # Pre-fetch all parent categories to get their names and codes if we need to roll up
     parent_ids = {cat_data["parent_id"] for cat_data in category_results.values() if cat_data["parent_id"] is not None}
@@ -807,12 +815,13 @@ async def get_transactions_summary(
                 "amount": Decimal("0"),
                 "item_count": 0,
             }
-        rolled_up_totals[target_id]["amount"] += cat_total
-        rolled_up_totals[target_id]["item_count"] += int(item_count or 0)
+        rolled_up_totals[target_id]["amount"] = rolled_up_totals[target_id]["amount"] + cat_total
+        rolled_up_totals[target_id]["item_count"] = rolled_up_totals[target_id]["item_count"] + int(item_count or 0)
 
     categories_breakdown = []
     for cat_id, data in rolled_up_totals.items():
-        percentage = (data["amount"] / total_amount * 100) if total_amount > 0 else Decimal("0")
+        amt: Decimal = data["amount"]
+        percentage = (amt / total_amount * 100) if total_amount > 0 else Decimal("0")
         categories_breakdown.append({
             "category_id": cat_id,
             "name": data["name"],
@@ -1347,6 +1356,31 @@ async def update_transaction(
             status_code=status.HTTP_404_NOT_FOUND, 
             detail="Transaction not found."
         )
+
+    # Enforce category visibility
+    requested_category_ids = set()
+    update_data = payload.model_dump(exclude_unset=True, exclude={"items"})
+    if "category_id" in update_data and update_data["category_id"] is not None:
+        requested_category_ids.add(update_data["category_id"])
+    if payload.items is not None:
+        for item_data in payload.items:
+            if item_data.category_id is not None:
+                requested_category_ids.add(item_data.category_id)
+    if requested_category_ids:
+        valid_category_ids = set(
+            session.exec(
+                select(Category.id).where(
+                    Category.id.in_(requested_category_ids),
+                    Category.is_active == True,
+                    or_(Category.user_id == None, Category.user_id == current_user.id),
+                )
+            ).all()
+        )
+        if len(valid_category_ids) != len(requested_category_ids):
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="One or more categories are invalid or not active.",
+            )
 
     # 1. Update Core Transaction fields
     update_data = payload.model_dump(exclude_unset=True, exclude={"items"})

@@ -14,6 +14,7 @@ from app.core.db import get_session
 from app.core.rate_limiter import limiter
 from app.models.shared.enums import CategoryScope
 from app.models.taxonomy.category import Category
+from app.models.taxonomy.category_hidden import UserHiddenCategory
 from app.models.users.user import User
 
 logger = logging.getLogger(__name__)
@@ -108,7 +109,18 @@ async def list_categories(
         if existing.user_id is None and cat.user_id == current_user.id:
             effective_by_code[key] = cat
 
-    effective_categories = list(effective_by_code.values())
+    hidden_ids = set()
+    if current_user:
+        hidden_rows = session.exec(
+            select(UserHiddenCategory.category_id).where(
+                UserHiddenCategory.user_id == current_user.id
+            )
+        ).all()
+        hidden_ids.update(hidden_rows)
+
+    effective_categories = [
+        cat for cat in effective_by_code.values() if cat.id not in hidden_ids
+    ]
     effective_categories.sort(key=lambda c: (c.parent_id is not None, c.name.lower()))
     return [_to_response(cat) for cat in effective_categories]
 
@@ -232,7 +244,8 @@ async def delete_category(
     session: Session = Depends(get_session),  # noqa: B008
     current_user: User = Depends(get_current_user),  # noqa: B008
 ):
-    """Soft-delete (deactivate) a category."""
+    """Soft-delete a custom category, or hide a built-in category."""
+    from app.models.taxonomy.category_hidden import UserHiddenCategory
     visible_category = session.exec(
         select(Category).where(
             Category.id == category_id,
@@ -242,11 +255,25 @@ async def delete_category(
     ).first()
     if visible_category is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Category not found.")
-    if visible_category.user_id is None and visible_category.parent_id is None:
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail="Built-in top-level categories cannot be deleted.",
-        )
+    if visible_category.user_id is None:
+        # It's a built-in category. Instead of rejecting, mark it as hidden for this user.
+        already_hidden = session.exec(
+            select(UserHiddenCategory).where(
+                UserHiddenCategory.user_id == current_user.id,
+                UserHiddenCategory.category_id == visible_category.id,
+            )
+        ).first()
+
+        if not already_hidden:
+            hidden_cat = UserHiddenCategory(
+                user_id=current_user.id,
+                category_id=visible_category.id,
+            )
+            session.add(hidden_cat)
+            session.commit()
+            
+        return None
+        
     cat = visible_category
 
     has_active_children = session.exec(
@@ -263,3 +290,37 @@ async def delete_category(
     session.commit()
 
     return None
+
+
+# ---------------------------------------------------------------------------
+# RESTORE (un-hide)
+# ---------------------------------------------------------------------------
+
+@router.post("/categories/{category_id}/restore", status_code=status.HTTP_200_OK)
+@limiter.limit("20/minute")
+async def restore_category(
+    category_id: uuid.UUID,
+    request: Request,
+    session: Session = Depends(get_session),  # noqa: B008
+    current_user: User = Depends(get_current_user),  # noqa: B008
+):
+    """Restore a previously hidden built-in category for the current user."""
+    from app.models.taxonomy.category_hidden import UserHiddenCategory
+
+    hidden = session.exec(
+        select(UserHiddenCategory).where(
+            UserHiddenCategory.user_id == current_user.id,
+            UserHiddenCategory.category_id == category_id,
+        )
+    ).first()
+
+    if hidden is None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Category is not hidden, or doesn't exist.",
+        )
+
+    session.delete(hidden)
+    session.commit()
+
+    return {"message": "Category restored successfully."}

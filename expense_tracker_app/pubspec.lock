@@ -501,6 +501,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "2.1.8"
+  purchases_flutter:
+    dependency: "direct main"
+    description:
+      name: purchases_flutter
+      sha256: "3074eb68e8766bceabfbd7e8f5281304e0bb2e1f70004a5ad97747125117493d"
+      url: "https://pub.dev"
+    source: hosted
+    version: "9.13.1"
   shared_preferences:
     dependency: "direct main"
     description:
