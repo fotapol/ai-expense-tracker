@@ -9,12 +9,13 @@ from app.core.db import get_session
 from app.core.rate_limiter import limiter
 from app.core.redis import get_redis
 from app.models.users.user import User
-from app.schemas.users import UserRead, UserUpdate
+from app.models.users.profile import Profile
+from app.schemas.users import UserRead, UserUpdate, UserWithProfileRead
 
 router = APIRouter(prefix="/v1", tags=["users"])
 
 
-@router.get("/me", response_model=UserRead)
+@router.get("/me", response_model=UserWithProfileRead)
 @limiter.limit("30/minute")
 async def get_me(
     request: Request,
@@ -30,7 +31,7 @@ async def get_me(
     return current_user
 
 
-@router.patch("/me", response_model=UserRead)
+@router.patch("/me", response_model=UserWithProfileRead)
 @limiter.limit("30/minute")
 async def patch_me(
     payload: UserUpdate,
@@ -44,6 +45,15 @@ async def patch_me(
     update_data = payload.model_dump(exclude_unset=True)
     if not update_data:
         return current_user
+
+    if "display_name" in update_data:
+        display_name = update_data.pop("display_name")
+        if current_user.profile:
+            current_user.profile.display_name = display_name
+        else:
+            profile = Profile(user_id=current_user.id, display_name=display_name)
+            session.add(profile)
+            current_user.profile = profile
 
     for key, value in update_data.items():
         setattr(current_user, key, value)
