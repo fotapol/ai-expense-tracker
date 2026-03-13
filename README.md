@@ -37,15 +37,35 @@ Copy `.env.sample` to `.env` and configure:
 
 ```bash
 # Start all services
-docker-compose up --build
+docker compose up --build -d
 
 # Run Alembic migrations
 docker exec -it fastapi uv run alembic upgrade head
 
 # Run Flutter app
 cd expense_tracker_app
-flutter run --dart-define=API_BASE_URL=http://<your-host-ip>:8000
+flutter run \
+  --dart-define=API_BASE_URL=http://10.0.2.2:8000 \
+  --dart-define=REVENUECAT_ANDROID_API_KEY=<android_public_sdk_key> \
+  --dart-define=REVENUECAT_IOS_API_KEY=<ios_public_sdk_key> \
+  --dart-define=REVENUECAT_PREMIUM_ENTITLEMENT_ID=personal_premium
 ```
+
+Use `API_BASE_URL=http://10.0.2.2:8000` only for Android emulator.
+For a physical phone on the same Wi-Fi, use your PC LAN IP, for example `API_BASE_URL=http://192.168.1.42:8000`.
+
+## RevenueCat Product Mapping
+
+- Keep backend normalized product types as:
+  - `personal_premium`
+  - `family_premium`
+- Map your RevenueCat store product IDs via `.env`:
+  - `REVENUECAT_PERSONAL_PRODUCT_IDS=personal_premium,individual_plan_monthly,individual_plan_yearly`
+  - `REVENUECAT_FAMILY_PRODUCT_IDS=family_premium,family_plan_monthly,family_plan_yearly`
+- RevenueCat entitlement IDs used by backend:
+  - `REVENUECAT_PERSONAL_PREMIUM_ENTITLEMENT_ID`
+  - `REVENUECAT_FAMILY_PREMIUM_ENTITLEMENT_ID`
+- Flutter runtime uses `REVENUECAT_PREMIUM_ENTITLEMENT_ID` (single dart-define) and does not read backend-only env names.
 
 ## Services
 
