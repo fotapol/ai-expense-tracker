@@ -1,8 +1,12 @@
 import uuid
+from typing import TYPE_CHECKING
 
-from sqlmodel import Field, SQLModel
+from sqlmodel import Field, Relationship, SQLModel
 
 from app.models.shared.timestamps import TimestampedModel
+
+if TYPE_CHECKING:
+    from app.models.users.user import User
 
 
 class ProfileBase(SQLModel):
@@ -24,3 +28,5 @@ class Profile(ProfileBase, TimestampedModel, table=True):
         index=True,
         foreign_key="users.id",
     )
+
+    user: "User" = Relationship(back_populates="profile")
