@@ -141,6 +141,10 @@ class TransactionCreateManual(SchemaBase):
     source: TransactionSource = TransactionSource.MANUAL
     status: TransactionStatus = "DRAFT"
     items: list[TransactionItemCreate] = Field(default_factory=list)
+    # Expense attribution fields (optional — defaults are set by the router)
+    household_id: UUID | None = None
+    owner_user_id: UUID | None = None
+
 
     @field_validator("currency")
     @classmethod
@@ -165,6 +169,22 @@ class TransactionLabelRead(SchemaBase):
     color: str | None = None
 
 
+class TransactionUserSnippetRead(SchemaBase):
+    """Minimal user identity block for transaction attribution."""
+
+    user_id: UUID
+    display_name: str | None = None
+    email: str | None = None
+    avatar_url: str | None = None
+
+
+class TransactionHouseholdSnippetRead(SchemaBase):
+    """Minimal household identity block for transaction attribution."""
+
+    household_id: UUID
+    name: str | None = None
+
+
 class TransactionRead(UUIDTimestampSchema):
     """Read model for transaction records."""
 
@@ -187,6 +207,13 @@ class TransactionRead(UUIDTimestampSchema):
     labels: list[TransactionLabelRead] = Field(default_factory=list)
     has_extraction_warnings: bool = False
     extraction_warnings: list[ExtractionWarning] = Field(default_factory=list)
+    # Expense attribution fields
+    household_id: UUID | None = None
+    created_by_user_id: UUID | None = None
+    owner_user_id: UUID | None = None
+    household: TransactionHouseholdSnippetRead | None = None
+    created_by_user: TransactionUserSnippetRead | None = None
+    owner_user: TransactionUserSnippetRead | None = None
 
 
 class TransactionUpdateRequest(SchemaBase):
@@ -197,9 +224,12 @@ class TransactionUpdateRequest(SchemaBase):
     merchant_name: str | None = None
     category_id: UUID | None = None
     status: TransactionStatus | None = None
+    # Expense attribution fields (optional)
+    household_id: UUID | None = None
+    owner_user_id: UUID | None = None
 
     items: list[TransactionItemUpdate] | None = Field(
-        default=None, 
+        default=None,
         description="If provided, fully replaces or updates the line items."
     )
 

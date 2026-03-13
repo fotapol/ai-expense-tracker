@@ -16,12 +16,14 @@ from app.core.db import get_session
 from app.core.rate_limiter import limiter
 from app.models.labels.label import Label
 from app.models.labels.transaction_label import TransactionLabel
+from app.models.households.household import Household
 from app.models.receipts.receipt_extraction import ReceiptExtraction
 from app.models.shared.enums import CategoryScope
 from app.models.taxonomy.category import Category
 from app.models.transactions.transaction import Transaction
 from app.models.transactions.transaction_item import TransactionItem
 from app.models.translations.item_translation import ItemTranslation
+from app.models.users.profile import Profile
 from app.models.users.user import User
 from app.schemas.extraction import ExtractionWarning
 from app.schemas.item_translations import normalized_source_text_key
@@ -32,10 +34,12 @@ from app.schemas.shared import (
     quantize_unit_price,
 )
 from app.schemas.transactions import (
+    TransactionHouseholdSnippetRead,
     TransactionItemRead,
     TransactionLabelRead,
     TransactionListFilter,
     TransactionRead,
+    TransactionUserSnippetRead,
     TransactionUpdateRequest,
 )
 from app.services.fx_rates import convert_amount, resolve_conversion_date
@@ -495,6 +499,64 @@ def _load_warnings_by_receipt_id(
     for receipt_id, structured_json in rows:
         warnings_by_receipt[receipt_id] = _extract_warnings_from_structured_json(structured_json)
     return warnings_by_receipt
+
+
+def _load_transaction_user_snippets(
+    session: Session,
+    *,
+    user_ids: set[uuid.UUID],
+) -> dict[uuid.UUID, TransactionUserSnippetRead]:
+    if not user_ids:
+        return {}
+
+    rows = session.exec(
+        select(User.id, User.email, Profile.display_name, Profile.avatar_url)
+        .select_from(User)
+        .join(Profile, Profile.user_id == User.id, isouter=True)
+        .where(User.id.in_(user_ids))
+    ).all()
+
+    return {
+        user_id: TransactionUserSnippetRead(
+            user_id=user_id,
+            email=email,
+            display_name=display_name,
+            avatar_url=avatar_url,
+        )
+        for user_id, email, display_name, avatar_url in rows
+    }
+
+
+def _enrich_transaction_attribution_snapshot(
+    session: Session,
+    *,
+    read: TransactionRead,
+) -> None:
+    """Populate read-only attribution snippets for transaction details."""
+    read.household = None
+    read.created_by_user = None
+    read.owner_user = None
+
+    if read.household_id is not None:
+        household_name = session.exec(
+            select(Household.name).where(Household.id == read.household_id)
+        ).first()
+        read.household = TransactionHouseholdSnippetRead(
+            household_id=read.household_id,
+            name=household_name,
+        )
+
+    user_ids: set[uuid.UUID] = set()
+    if read.created_by_user_id is not None:
+        user_ids.add(read.created_by_user_id)
+    if read.owner_user_id is not None:
+        user_ids.add(read.owner_user_id)
+
+    user_snippets = _load_transaction_user_snippets(session, user_ids=user_ids)
+    if read.created_by_user_id is not None:
+        read.created_by_user = user_snippets.get(read.created_by_user_id)
+    if read.owner_user_id is not None:
+        read.owner_user = user_snippets.get(read.owner_user_id)
 
 
 def _apply_display_conversion(
@@ -1323,6 +1385,7 @@ async def get_transaction(
         ).get(transaction.receipt_id, [])
     read.has_extraction_warnings = len(tx_warnings) > 0
     read.extraction_warnings = tx_warnings
+    _enrich_transaction_attribution_snapshot(session, read=read)
     _apply_display_conversion(
         read=read,
         session=session,
@@ -1490,6 +1553,7 @@ async def update_transaction(
         ).get(transaction.receipt_id, [])
     read.has_extraction_warnings = len(tx_warnings) > 0
     read.extraction_warnings = tx_warnings
+    _enrich_transaction_attribution_snapshot(session, read=read)
     _apply_display_conversion(
         read=read,
         session=session,

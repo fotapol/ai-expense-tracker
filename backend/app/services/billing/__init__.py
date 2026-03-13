@@ -8,11 +8,13 @@ from app.services.billing.contracts import (
 from app.services.billing.entitlements import (
     EntitlementDecision,
     decide_entitlement_state,
+    resolve_effective_entitlements,
     resolve_user_entitlements,
     sync_subscription_entitlements,
     user_has_feature,
 )
 from app.services.billing.features import (
+    FAMILY_PREMIUM_PRODUCT_ID,
     FREE_PLAN_RECEIPT_SCAN_LIMIT,
     PERSONAL_PREMIUM_FEATURE_CODES,
     PERSONAL_PREMIUM_PRODUCT_ID,
@@ -44,6 +46,7 @@ from app.services.billing.usage import (
 )
 
 __all__ = [
+    "FAMILY_PREMIUM_PRODUCT_ID",
     "FREE_PLAN_RECEIPT_SCAN_LIMIT",
     "PERSONAL_PREMIUM_FEATURE_CODES",
     "PERSONAL_PREMIUM_PRODUCT_ID",
@@ -65,6 +68,7 @@ __all__ = [
     "decide_entitlement_state",
     "feature_codes_for_product",
     "receipt_scan_limit_reached",
+    "resolve_effective_entitlements",
     "resolve_effective_subscription",
     "resolve_receipt_scan_usage",
     "resolve_user_entitlements",

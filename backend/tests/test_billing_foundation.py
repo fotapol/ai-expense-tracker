@@ -166,7 +166,7 @@ def test_user_has_feature_checks_resolved_entitlements(monkeypatch) -> None:
         return {"premium.exports"}
 
     monkeypatch.setattr(
-        "app.services.billing.entitlements.resolve_user_entitlements",
+        "app.services.billing.entitlements.resolve_effective_entitlements",
         _fake_resolve,
     )
 

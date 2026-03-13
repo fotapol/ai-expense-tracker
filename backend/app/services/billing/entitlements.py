@@ -139,7 +139,13 @@ def resolve_user_entitlements(
     *,
     now: dt.datetime | None = None,
 ) -> set[str]:
-    """Resolve active user-scope feature codes for a user."""
+    """Resolve active user-scope feature codes for a user.
+
+    .. note::
+        This function only returns ``user``-scoped entitlements.
+        Use :func:`resolve_effective_entitlements` to also include
+        household-scoped entitlements from family plans.
+    """
 
     current_time = now or _utcnow()
     rows = session.exec(
@@ -154,6 +160,56 @@ def resolve_user_entitlements(
     return set(rows)
 
 
+def resolve_effective_entitlements(
+    session: Session,
+    user_id: uuid.UUID,
+    *,
+    now: dt.datetime | None = None,
+) -> set[str]:
+    """Resolve all active feature codes for a user, including household-scope.
+
+    Collects:
+    1. Active ``user``-scoped entitlements for ``user_id``.
+    2. Active ``household``-scoped entitlements for any household where
+       the user has an ``active`` membership (family plan support).
+
+    Returns the union of both sets.
+    """
+    from app.models.households.household_member import HouseholdMember
+    from app.models.shared.enums import HouseholdMemberStatus
+
+    current_time = now or _utcnow()
+
+    # --- User-scope entitlements ----------------------------------------
+    feature_codes = resolve_user_entitlements(session, user_id, now=current_time)
+
+    # --- Household-scope entitlements ------------------------------------
+    # Find all households where this user is an active member.
+    active_household_ids = [
+        row.household_id
+        for row in session.exec(
+            select(HouseholdMember).where(
+                HouseholdMember.user_id == user_id,
+                HouseholdMember.status == HouseholdMemberStatus.ACTIVE,
+            )
+        ).all()
+    ]
+
+    if active_household_ids:
+        household_rows = session.exec(
+            select(Entitlement.feature_code).where(
+                Entitlement.scope_type == EntitlementScopeType.HOUSEHOLD,
+                Entitlement.scope_id.in_(active_household_ids),  # type: ignore[attr-defined]
+                Entitlement.status == EntitlementStatus.ACTIVE,
+                Entitlement.starts_at <= current_time,
+                or_(Entitlement.expires_at.is_(None), Entitlement.expires_at > current_time),
+            )
+        ).all()
+        feature_codes = feature_codes | set(household_rows)
+
+    return feature_codes
+
+
 def user_has_feature(
     session: Session,
     user_id: uuid.UUID,
@@ -161,6 +217,9 @@ def user_has_feature(
     *,
     now: dt.datetime | None = None,
 ) -> bool:
-    """Return ``True`` when the given feature code is currently active for the user."""
+    """Return ``True`` when the given feature code is currently active for the user.
 
-    return feature_code in resolve_user_entitlements(session, user_id, now=now)
+    Checks both user-scope and household-scope entitlements.
+    """
+
+    return feature_code in resolve_effective_entitlements(session, user_id, now=now)
