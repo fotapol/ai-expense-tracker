@@ -16,7 +16,10 @@ from sqlmodel import Session
 from app.models.shared.enums import SubscriptionProvider, SubscriptionStatus
 from app.models.users.user import User
 from app.services.billing.contracts import BillingProvider, NormalizedSubscriptionEvent
-from app.services.billing.features import PERSONAL_PREMIUM_PRODUCT_ID
+from app.services.billing.features import (
+    FAMILY_PREMIUM_PRODUCT_ID,
+    PERSONAL_PREMIUM_PRODUCT_ID,
+)
 from app.services.billing.subscriptions import SubscriptionSyncService
 
 
@@ -49,6 +52,24 @@ def _to_mapping(value: Any) -> dict[str, Any]:
 
 def _get_env(name: str, default: str = "") -> str:
     return (os.environ.get(name) or default).strip()
+
+
+def _parse_csv_values(value: str) -> set[str]:
+    return {
+        part.strip().lower()
+        for part in value.split(",")
+        if part.strip()
+    }
+
+
+def _get_env_csv(name: str, default_values: set[str]) -> set[str]:
+    raw = _get_env(name)
+    if not raw:
+        return {entry.strip().lower() for entry in default_values if entry.strip()}
+    parsed = _parse_csv_values(raw)
+    if not parsed:
+        return {entry.strip().lower() for entry in default_values if entry.strip()}
+    return parsed
 
 
 def _resolve_latest_event_at(payload: Mapping[str, Any], now: dt.datetime) -> dt.datetime:
@@ -122,8 +143,34 @@ class RevenueCatProvider(BillingProvider):
 
     provider = SubscriptionProvider.REVENUECAT
 
-    def __init__(self, *, premium_entitlement_id: str):
+    def __init__(
+        self,
+        *,
+        premium_entitlement_id: str,
+        family_premium_entitlement_id: str = FAMILY_PREMIUM_PRODUCT_ID,
+        personal_product_ids: set[str] | None = None,
+        family_product_ids: set[str] | None = None,
+    ):
         self.premium_entitlement_id = premium_entitlement_id
+        self.family_premium_entitlement_id = family_premium_entitlement_id
+        self.personal_product_ids = {
+            entry.strip().lower()
+            for entry in (personal_product_ids or {PERSONAL_PREMIUM_PRODUCT_ID})
+            if entry.strip()
+        } | {PERSONAL_PREMIUM_PRODUCT_ID}
+        self.family_product_ids = {
+            entry.strip().lower()
+            for entry in (family_product_ids or {FAMILY_PREMIUM_PRODUCT_ID})
+            if entry.strip()
+        } | {FAMILY_PREMIUM_PRODUCT_ID}
+
+    def _normalize_product_id(self, external_product_id: str | None) -> str:
+        normalized_external_product_id = (external_product_id or "").strip().lower()
+        if normalized_external_product_id in self.family_product_ids:
+            return FAMILY_PREMIUM_PRODUCT_ID
+        if normalized_external_product_id in self.personal_product_ids:
+            return PERSONAL_PREMIUM_PRODUCT_ID
+        return PERSONAL_PREMIUM_PRODUCT_ID
 
     def normalize_event(
         self,
@@ -134,7 +181,9 @@ class RevenueCatProvider(BillingProvider):
         now = _utcnow()
         subscriber = _to_mapping(payload.get("subscriber"))
         entitlements = _to_mapping(subscriber.get("entitlements"))
-        entitlement = _to_mapping(entitlements.get(self.premium_entitlement_id))
+        personal_entitlement = _to_mapping(entitlements.get(self.premium_entitlement_id))
+        family_entitlement = _to_mapping(entitlements.get(self.family_premium_entitlement_id))
+        entitlement = family_entitlement or personal_entitlement
 
         latest_product_key, latest_subscription_entry = _select_latest_subscription_entry(subscriber)
 
@@ -177,6 +226,13 @@ class RevenueCatProvider(BillingProvider):
             or latest_subscription_entry.get("product_identifier")
             or latest_product_key
         )
+        normalized_product_id = self._normalize_product_id(
+            str(external_purchase_id).strip() if external_purchase_id else None
+        )
+        if family_entitlement:
+            normalized_product_id = FAMILY_PREMIUM_PRODUCT_ID
+        elif personal_entitlement:
+            normalized_product_id = PERSONAL_PREMIUM_PRODUCT_ID
 
         auto_renew = None
         if status_value in {
@@ -189,7 +245,7 @@ class RevenueCatProvider(BillingProvider):
         return NormalizedSubscriptionEvent(
             user_id=user_id,
             provider=self.provider,
-            product_id=PERSONAL_PREMIUM_PRODUCT_ID,
+            product_id=normalized_product_id,
             status=status_value,
             started_at=started_at,
             expires_at=expires_at,
@@ -296,6 +352,19 @@ async def sync_revenuecat_subscription_for_user(
             PERSONAL_PREMIUM_PRODUCT_ID,
         )
         or PERSONAL_PREMIUM_PRODUCT_ID,
+        family_premium_entitlement_id=_get_env(
+            "REVENUECAT_FAMILY_PREMIUM_ENTITLEMENT_ID",
+            FAMILY_PREMIUM_PRODUCT_ID,
+        )
+        or FAMILY_PREMIUM_PRODUCT_ID,
+        personal_product_ids=_get_env_csv(
+            "REVENUECAT_PERSONAL_PRODUCT_IDS",
+            {PERSONAL_PREMIUM_PRODUCT_ID},
+        ),
+        family_product_ids=_get_env_csv(
+            "REVENUECAT_FAMILY_PRODUCT_IDS",
+            {FAMILY_PREMIUM_PRODUCT_ID},
+        ),
     )
     sync_service = SubscriptionSyncService(session)
     return sync_service.handle_provider_event(

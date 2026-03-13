@@ -51,10 +51,37 @@ class Transaction(TransactionBase, TimestampedModel, table=True):
     """
 
     __tablename__ = "transactions"
-    __table_args__ = (Index("ix_transactions_user_occurred_at", "user_id", "occurred_at"),)
+    __table_args__ = (
+        Index("ix_transactions_user_occurred_at", "user_id", "occurred_at"),
+        Index("ix_transactions_household_owner", "household_id", "owner_user_id"),
+        Index("ix_transactions_owner_occurred_at", "owner_user_id", "occurred_at"),
+    )
 
     id: uuid.UUID = Field(default_factory=uuid.uuid4, primary_key=True)
     user_id: uuid.UUID = Field(index=True, nullable=False, foreign_key="users.id")
     receipt_id: uuid.UUID | None = Field(
         default=None, index=True, unique=True, foreign_key="receipts.id"
+    )
+    # --- Expense attribution fields ---
+    # ``household_id`` links this transaction to a family group (optional).
+    # ``created_by_user_id`` records who scanned/created the transaction.
+    # ``owner_user_id`` records who the expense belongs to (may differ from creator).
+    # Both are backfilled from ``user_id`` for pre-existing rows via migration.
+    household_id: uuid.UUID | None = Field(
+        default=None,
+        nullable=True,
+        index=True,
+        foreign_key="households.id",
+    )
+    created_by_user_id: uuid.UUID | None = Field(
+        default=None,
+        nullable=True,
+        index=True,
+        foreign_key="users.id",
+    )
+    owner_user_id: uuid.UUID | None = Field(
+        default=None,
+        nullable=True,
+        index=True,
+        foreign_key="users.id",
     )

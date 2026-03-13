@@ -38,7 +38,9 @@ class _LoginScreenState extends State<LoginScreen> {
       if (mounted) {
         Navigator.of(
           context,
-        ).pushReplacement(MaterialPageRoute(builder: (_) => const MainScreen()));
+        ).pushReplacement(
+          MaterialPageRoute(builder: (_) => const MainScreen()),
+        );
       }
     } on GoogleSignInException catch (e) {
       // User canceled sign-in or other Google Sign-In specific error.

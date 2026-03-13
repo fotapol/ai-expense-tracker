@@ -45,6 +45,7 @@ class UserUpdate(SchemaBase):
     """Partial update payload for user settings."""
 
     email: str | None = Field(default=None, max_length=320)
+    display_name: str | None = Field(default=None, max_length=100)
     default_currency: CurrencyCode | None = None
     items_language: str | None = Field(default=None, max_length=16)
     is_active: bool | None = None

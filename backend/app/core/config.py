@@ -21,5 +21,12 @@ class LLMSettings:
     MODEL_NAME: str = os.environ.get("LLM_MODEL_NAME", "gemini-2.5-flash")
 
 
+class AppSettings:
+    """General application settings read from environment."""
+
+    PUBLIC_APP_BASE_URL: str = os.environ.get("PUBLIC_APP_BASE_URL", "").strip().rstrip("/")
+
+
 s3_settings = S3Settings()
 llm_settings = LLMSettings()
+app_settings = AppSettings()

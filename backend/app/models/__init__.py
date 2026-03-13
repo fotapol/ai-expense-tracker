@@ -3,6 +3,9 @@
 from app.models.billing.entitlement import Entitlement
 from app.models.billing.subscription import Subscription
 from app.models.fx.exchange_rate import ExchangeRate
+from app.models.households.household import Household, HouseholdBase
+from app.models.households.household_invite import HouseholdInvite
+from app.models.households.household_member import HouseholdMember
 from app.models.labels.label import Label, LabelBase
 from app.models.labels.transaction_label import TransactionLabel
 from app.models.merchants.merchant import Merchant, MerchantAlias, MerchantAliasBase, MerchantBase
@@ -13,6 +16,9 @@ from app.models.shared.enums import (
     CategoryScope,
     EntitlementScopeType,
     EntitlementStatus,
+    HouseholdInviteStatus,
+    HouseholdMemberRole,
+    HouseholdMemberStatus,
     ReceiptStatus,
     SubscriptionProvider,
     SubscriptionStatus,
@@ -34,6 +40,13 @@ __all__ = [
     "EntitlementScopeType",
     "EntitlementStatus",
     "ExchangeRate",
+    "Household",
+    "HouseholdBase",
+    "HouseholdInvite",
+    "HouseholdInviteStatus",
+    "HouseholdMember",
+    "HouseholdMemberRole",
+    "HouseholdMemberStatus",
     "ItemTranslation",
     "Label",
     "LabelBase",

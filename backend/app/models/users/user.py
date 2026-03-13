@@ -1,7 +1,11 @@
 import uuid
 
 from sqlalchemy import CHAR, Column, String
-from sqlmodel import Field, SQLModel
+from sqlmodel import Field, Relationship, SQLModel
+
+from typing import TYPE_CHECKING, Optional
+if TYPE_CHECKING:
+    from app.models.users.profile import Profile
 
 from app.models.shared.timestamps import TimestampedModel
 
@@ -39,3 +43,5 @@ class User(UserBase, TimestampedModel, table=True):
         sa_column=Column(String(32), nullable=False, default="firebase"),
     )
     auth_subject: str = Field(max_length=255, nullable=False, unique=True, index=True)
+
+    profile: Optional["Profile"] = Relationship(back_populates="user")

@@ -16,6 +16,7 @@ import '../l10n/app_localizations.dart';
 import '../l10n/app_languages.dart';
 import '../main.dart';
 import 'categories_screen.dart';
+import 'household_screen.dart';
 import 'labels_screen.dart';
 import 'login_screen.dart';
 import 'subscription_screen.dart';
@@ -27,6 +28,8 @@ class MeScreen extends StatefulWidget {
   @override
   State<MeScreen> createState() => _MeScreenState();
 }
+
+enum _PackageAudience { individual, family }
 
 class _MeScreenState extends State<MeScreen> {
   static const Duration _billingInitialLoadMinDuration = Duration(
@@ -50,6 +53,8 @@ class _MeScreenState extends State<MeScreen> {
   Package? _monthlyPackage;
   Package? _yearlyPackage;
   Package? _selectedPackage;
+  List<Package> _availablePackages = const <Package>[];
+  _PackageAudience _selectedPackageAudience = _PackageAudience.individual;
 
   bool _notificationsEnabled = false;
 
@@ -272,21 +277,21 @@ class _MeScreenState extends State<MeScreen> {
       return 'Monthly scans: $used (unlimited)';
     }
     final limit = int.tryParse((usageRaw['limit'] ?? 10).toString()) ?? 10;
-    final remaining = int.tryParse((usageRaw['remaining'] ?? 0).toString()) ?? 0;
+    final remaining =
+        int.tryParse((usageRaw['remaining'] ?? 0).toString()) ?? 0;
     return 'Monthly scans: $used/$limit, remaining: $remaining';
   }
 
   String _packagePlanLabel(Package package) {
-    if (package.packageType == PackageType.annual) return 'Yearly PRO';
-    if (package.packageType == PackageType.monthly) return 'Monthly PRO';
-    final identifier = package.identifier.toLowerCase();
-    if (identifier.contains('year') || identifier.contains('annual')) {
-      return 'Yearly PRO';
+    final isFamily = RevenueCatService.isFamilyPackage(package);
+    final audienceLabel = isFamily ? 'Family' : 'Individual';
+    if (RevenueCatService.isYearlyPackage(package)) {
+      return 'Yearly $audienceLabel';
     }
-    if (identifier.contains('month')) {
-      return 'Monthly PRO';
+    if (RevenueCatService.isMonthlyPackage(package)) {
+      return 'Monthly $audienceLabel';
     }
-    return 'PRO';
+    return '$audienceLabel Plan';
   }
 
   String _purchaseCtaLabel() {
@@ -298,33 +303,46 @@ class _MeScreenState extends State<MeScreen> {
   }
 
   void _applyPackageOptions(List<Package> packages) {
+    _availablePackages = List<Package>.from(packages);
     Package? monthly;
     Package? yearly;
     Package? fallback;
     final selectedIdentifier = _selectedPackage?.identifier;
     Package? selectedMatch;
+    final hasFamily = packages.any(RevenueCatService.isFamilyPackage);
+    final hasIndividual = packages.any(
+      (package) => !RevenueCatService.isFamilyPackage(package),
+    );
 
-    for (final package in packages) {
+    if (!hasFamily) {
+      _selectedPackageAudience = _PackageAudience.individual;
+    } else if (!hasIndividual) {
+      _selectedPackageAudience = _PackageAudience.family;
+    }
+
+    final scopedPackages = packages.where((package) {
+      if (_selectedPackageAudience == _PackageAudience.family) {
+        return RevenueCatService.isFamilyPackage(package);
+      }
+      return !RevenueCatService.isFamilyPackage(package);
+    }).toList();
+    final sourcePackages = scopedPackages.isNotEmpty
+        ? scopedPackages
+        : packages;
+
+    for (final package in sourcePackages) {
       fallback ??= package;
-      if (selectedIdentifier != null && package.identifier == selectedIdentifier) {
+      if (selectedIdentifier != null &&
+          package.identifier == selectedIdentifier) {
         selectedMatch = package;
       }
-      if (package.packageType == PackageType.monthly) {
+      if (RevenueCatService.isMonthlyPackage(package)) {
         monthly ??= package;
         continue;
       }
-      if (package.packageType == PackageType.annual) {
+      if (RevenueCatService.isYearlyPackage(package)) {
         yearly ??= package;
         continue;
-      }
-      final identifier = package.identifier.toLowerCase();
-      if (yearly == null &&
-          (identifier.contains('year') || identifier.contains('annual'))) {
-        yearly = package;
-        continue;
-      }
-      if (monthly == null && identifier.contains('month')) {
-        monthly = package;
       }
     }
 
@@ -333,12 +351,78 @@ class _MeScreenState extends State<MeScreen> {
     _selectedPackage = selectedMatch ?? yearly ?? monthly ?? fallback;
   }
 
+  bool _hasFamilyPackages() =>
+      _availablePackages.any(RevenueCatService.isFamilyPackage);
+
+  bool _hasIndividualPackages() => _availablePackages.any(
+    (package) => !RevenueCatService.isFamilyPackage(package),
+  );
+
+  Widget _buildPackageAudienceSelector() {
+    final canChooseAudience = _hasFamilyPackages() && _hasIndividualPackages();
+    if (!canChooseAudience) return const SizedBox.shrink();
+
+    Widget audienceChip({
+      required String label,
+      required _PackageAudience audience,
+    }) {
+      final isSelected = _selectedPackageAudience == audience;
+      return Expanded(
+        child: InkWell(
+          borderRadius: BorderRadius.circular(999),
+          onTap: () {
+            if (_selectedPackageAudience == audience) return;
+            setState(() {
+              _selectedPackageAudience = audience;
+              _applyPackageOptions(_availablePackages);
+            });
+          },
+          child: Container(
+            padding: const EdgeInsets.symmetric(vertical: 8),
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(999),
+              color: isSelected
+                  ? const Color(0xFF5B2E88).withAlpha(210)
+                  : Colors.black.withAlpha(25),
+              border: Border.all(
+                color: isSelected
+                    ? const Color(0xFFF7D74B)
+                    : Colors.white.withAlpha(90),
+              ),
+            ),
+            alignment: Alignment.center,
+            child: Text(
+              label,
+              style: TextStyle(
+                color: Colors.white,
+                fontSize: 12,
+                fontWeight: isSelected ? FontWeight.w800 : FontWeight.w600,
+              ),
+            ),
+          ),
+        ),
+      );
+    }
+
+    return Row(
+      children: [
+        audienceChip(
+          label: 'Individual',
+          audience: _PackageAudience.individual,
+        ),
+        const SizedBox(width: 8),
+        audienceChip(label: 'Family', audience: _PackageAudience.family),
+      ],
+    );
+  }
+
   bool _isOperationInProgressError(Object error) {
     if (error is! PlatformException) return false;
     final details = error.details;
     String? readableCode;
     if (details is Map) {
-      readableCode = details['readable_error_code']?.toString() ??
+      readableCode =
+          details['readable_error_code']?.toString() ??
           details['readableErrorCode']?.toString();
     }
     final normalizedCode = (readableCode ?? error.code).toLowerCase();
@@ -352,9 +436,11 @@ class _MeScreenState extends State<MeScreen> {
       String? readableCode;
       String? detailMessage;
       if (details is Map) {
-        readableCode = details['readable_error_code']?.toString() ??
+        readableCode =
+            details['readable_error_code']?.toString() ??
             details['readableErrorCode']?.toString();
-        detailMessage = details['message']?.toString() ??
+        detailMessage =
+            details['message']?.toString() ??
             details['underlyingErrorMessage']?.toString();
       }
       final normalizedCode = (readableCode ?? error.code).toLowerCase();
@@ -382,7 +468,8 @@ class _MeScreenState extends State<MeScreen> {
   Future<void> _loadBillingData({bool showLoading = true}) async {
     final isInitialLoad = !_billingCardReady;
     final loadStartedAt = DateTime.now();
-    final shouldSyncRevenueCat = RevenueCatService.isAvailable && !_showDevBillingTools;
+    final shouldSyncRevenueCat =
+        RevenueCatService.isAvailable && !_showDevBillingTools;
 
     Future<void> waitForInitialLoadingWindow() async {
       if (!isInitialLoad) return;
@@ -423,7 +510,14 @@ class _MeScreenState extends State<MeScreen> {
       if (!mounted) return;
       setState(() {
         _subscriptionPayload = subscriptionPayload;
-        final packages = offerings?.current?.availablePackages ?? const <Package>[];
+        final packages = RevenueCatService.flattenAvailablePackages(offerings);
+        for (final package in packages) {
+          debugPrint(
+            '[RC][Me] package=${package.storeProduct.identifier} '
+            'pkgId=${package.identifier} '
+            'family=${RevenueCatService.isFamilyPackage(package)}',
+          );
+        }
         _applyPackageOptions(packages);
         _isBillingLoading = false;
         _billingCardReady = true;
@@ -456,7 +550,7 @@ class _MeScreenState extends State<MeScreen> {
     if (package == null) {
       try {
         final offerings = await RevenueCatService.getOfferings();
-        final packages = offerings?.current?.availablePackages ?? const <Package>[];
+        final packages = RevenueCatService.flattenAvailablePackages(offerings);
         if (packages.isNotEmpty) {
           _applyPackageOptions(packages);
           package = _selectedPackage;
@@ -481,9 +575,9 @@ class _MeScreenState extends State<MeScreen> {
       await ApiClient.syncRevenueCatSubscription();
       await _loadBillingData(showLoading: false);
       if (!mounted) return;
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(const SnackBar(content: Text('PRO subscription activated.')));
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('PRO subscription activated.')),
+      );
     } catch (e) {
       Object effectiveError = e;
       if (_isOperationInProgressError(e)) {
@@ -504,7 +598,9 @@ class _MeScreenState extends State<MeScreen> {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('Purchase failed: ${_friendlyBillingError(effectiveError)}'),
+          content: Text(
+            'Purchase failed: ${_friendlyBillingError(effectiveError)}',
+          ),
           backgroundColor: Colors.redAccent,
         ),
       );
@@ -534,9 +630,9 @@ class _MeScreenState extends State<MeScreen> {
           await ApiClient.syncRevenueCatSubscription();
           await _loadBillingData(showLoading: false);
           if (!mounted) return;
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Purchases restored.')),
-          );
+          ScaffoldMessenger.of(
+            context,
+          ).showSnackBar(const SnackBar(content: Text('Purchases restored.')));
           return;
         } catch (retryError) {
           effectiveError = retryError;
@@ -545,7 +641,9 @@ class _MeScreenState extends State<MeScreen> {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('Restore failed: ${_friendlyBillingError(effectiveError)}'),
+          content: Text(
+            'Restore failed: ${_friendlyBillingError(effectiveError)}',
+          ),
           backgroundColor: Colors.redAccent,
         ),
       );
@@ -592,19 +690,12 @@ class _MeScreenState extends State<MeScreen> {
     }
   }
 
-  void _showFamilyGroupInDevelopment() {
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('In development')),
-    );
-  }
-
   void _openSubscriptionDetails() {
     Navigator.push(
       context,
       MaterialPageRoute(
-        builder: (context) => SubscriptionScreen(
-          currentUserId: _profileData?['id']?.toString(),
-        ),
+        builder: (context) =>
+            SubscriptionScreen(currentUserId: _profileData?['id']?.toString()),
       ),
     );
   }
@@ -822,11 +913,13 @@ class _MeScreenState extends State<MeScreen> {
   Future<void> _fetchProfile() async {
     try {
       final data = await ApiClient.getMe();
+      if (!mounted) return;
       setState(() {
         _profileData = data;
         _isLoading = false;
       });
     } catch (e) {
+      if (!mounted) return;
       setState(() {
         _error = context.tr(
           'settings_failed_load_profile',
@@ -858,22 +951,26 @@ class _MeScreenState extends State<MeScreen> {
       );
       final data = await ApiClient.exportData();
       final jsonString = jsonEncode(data);
-      
+
       final directory = await getApplicationDocumentsDirectory();
-      final dateStr = DateTime.now().toIso8601String().replaceAll(':', '-').split('.')[0];
-      final file = File('${directory.path}/ai_expense_tracker_export_$dateStr.json');
-      await file.writeAsString(jsonString);
-      
-      if (!mounted) return;
-      Navigator.pop(context); 
-      
-      await Share.shareXFiles(
-        [XFile(file.path)],
-        text: 'AI Expense Tracker Export',
+      final dateStr = DateTime.now()
+          .toIso8601String()
+          .replaceAll(':', '-')
+          .split('.')[0];
+      final file = File(
+        '${directory.path}/ai_expense_tracker_export_$dateStr.json',
       );
+      await file.writeAsString(jsonString);
+
+      if (!mounted) return;
+      Navigator.pop(context);
+
+      await Share.shareXFiles([
+        XFile(file.path),
+      ], text: 'AI Expense Tracker Export');
     } catch (e) {
       if (!mounted) return;
-      Navigator.pop(context); 
+      Navigator.pop(context);
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(
@@ -932,9 +1029,7 @@ class _MeScreenState extends State<MeScreen> {
         Navigator.of(context, rootNavigator: true).pop();
       }
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Data imported successfully.'),
-        ),
+        const SnackBar(content: Text('Data imported successfully.')),
       );
     } catch (e) {
       if (!mounted) return;
@@ -1004,6 +1099,8 @@ class _MeScreenState extends State<MeScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
+          _buildProfileCard(),
+          const SizedBox(height: 32),
           const Text(
             'Subscription',
             style: TextStyle(fontSize: 28, fontWeight: FontWeight.w800),
@@ -1109,15 +1206,16 @@ class _MeScreenState extends State<MeScreen> {
                 _buildSettingsTile(
                   icon: Icons.file_upload_outlined,
                   title: 'Import Data',
-                  subtitle: 'Restore categories and transactions from a JSON file',
+                  subtitle:
+                      'Restore categories and transactions from a JSON file',
                   trailing: const Icon(Icons.chevron_right, color: Colors.grey),
                   onTap: _importData,
                 ),
                 _buildDivider(),
                 _buildSettingsTile(
                   icon: Icons.group_add_outlined,
-                  title: 'Add account to family group',
-                  subtitle: 'Share premium features with family',
+                  title: context.tr('household_settings_title'),
+                  subtitle: context.tr('household_settings_subtitle'),
                   trailing: Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [
@@ -1128,7 +1226,14 @@ class _MeScreenState extends State<MeScreen> {
                       const Icon(Icons.chevron_right, color: Colors.grey),
                     ],
                   ),
-                  onTap: _showFamilyGroupInDevelopment,
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => const HouseholdScreen(),
+                      ),
+                    );
+                  },
                 ),
                 _buildDivider(),
                 _buildSettingsTile(
@@ -1211,9 +1316,146 @@ class _MeScreenState extends State<MeScreen> {
     );
   }
 
+  Future<void> _editProfile() async {
+    final profile = _profileData?['profile'];
+    final currentName =
+        (profile is Map ? profile['display_name'] as String? : null) ?? '';
+    final controller = TextEditingController(text: currentName);
+
+    final result = await showDialog<String>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('Edit Profile'),
+        content: TextField(
+          controller: controller,
+          decoration: const InputDecoration(
+            labelText: 'Display Name',
+            hintText: 'Enter your name',
+          ),
+          textCapitalization: TextCapitalization.words,
+          autofocus: true,
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: Text(context.tr('common_cancel')),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, controller.text.trim()),
+            child: Text(context.tr('common_save')),
+          ),
+        ],
+      ),
+    );
+
+    if (result != null && result != currentName) {
+      try {
+        final updated = await ApiClient.updateMe({
+          'display_name': result.isEmpty ? null : result,
+        });
+        if (!mounted) return;
+        setState(() => _profileData = updated);
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Profile updated successfully.')),
+        );
+      } catch (e) {
+        if (!mounted) return;
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Failed to update profile: $e'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    }
+  }
+
+  Widget _buildProfileCard() {
+    final email =
+        _profileData?['email']?.toString() ??
+        context.tr('settings_unknown_email');
+    final profile = _profileData?['profile'];
+    final displayName = profile is Map
+        ? profile['display_name'] as String?
+        : null;
+    final avatarUrl = profile is Map ? profile['avatar_url'] as String? : null;
+
+    final nameInitial = (displayName != null && displayName.isNotEmpty)
+        ? displayName.substring(0, 1).toUpperCase()
+        : (email.isNotEmpty ? email.substring(0, 1).toUpperCase() : '?');
+
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        color: Theme.of(context).colorScheme.surface,
+        borderRadius: BorderRadius.circular(20),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.05),
+            offset: const Offset(0, 4),
+            blurRadius: 10,
+          ),
+        ],
+      ),
+      child: Row(
+        children: [
+          CircleAvatar(
+            radius: 36,
+            backgroundColor: Theme.of(
+              context,
+            ).colorScheme.primary.withOpacity(0.1),
+            backgroundImage: avatarUrl != null ? NetworkImage(avatarUrl) : null,
+            child: avatarUrl == null
+                ? Text(
+                    nameInitial,
+                    style: TextStyle(
+                      fontSize: 28,
+                      fontWeight: FontWeight.bold,
+                      color: Theme.of(context).colorScheme.primary,
+                    ),
+                  )
+                : null,
+          ),
+          const SizedBox(width: 20),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  displayName ?? 'Add a display name',
+                  style: TextStyle(
+                    fontSize: 22,
+                    fontWeight: FontWeight.w700,
+                    color: displayName == null ? Colors.grey : null,
+                  ),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  email,
+                  style: TextStyle(fontSize: 14, color: Colors.grey.shade500),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ],
+            ),
+          ),
+          IconButton(
+            onPressed: _editProfile,
+            icon: const Icon(Icons.edit_outlined),
+            tooltip: 'Edit Profile',
+          ),
+        ],
+      ),
+    );
+  }
+
   Widget _buildPremiumCard() {
     final showInitialLoading = !_billingCardReady;
-    final hasBillingSnapshot = _billingCardReady && _subscriptionPayload != null;
+    final hasBillingSnapshot =
+        _billingCardReady && _subscriptionPayload != null;
     final statusColor = showInitialLoading
         ? Colors.blueGrey.shade300
         : (_hasActiveSubscription
@@ -1259,7 +1501,10 @@ class _MeScreenState extends State<MeScreen> {
                 )
               else
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 10,
+                    vertical: 5,
+                  ),
                   decoration: BoxDecoration(
                     borderRadius: BorderRadius.circular(999),
                     border: Border.all(color: statusColor.withAlpha(220)),
@@ -1292,18 +1537,12 @@ class _MeScreenState extends State<MeScreen> {
           const SizedBox(height: 6),
           Text(
             hasBillingSnapshot ? _usageSummaryLabel() : 'Monthly scans: --',
-            style: TextStyle(
-              color: Colors.white.withAlpha(200),
-              fontSize: 13,
-            ),
+            style: TextStyle(color: Colors.white.withAlpha(200), fontSize: 13),
           ),
           const SizedBox(height: 4),
           Text(
             'Valid until: ${hasBillingSnapshot ? _validUntilLabel() : "--"}',
-            style: TextStyle(
-              color: Colors.white.withAlpha(200),
-              fontSize: 13,
-            ),
+            style: TextStyle(color: Colors.white.withAlpha(200), fontSize: 13),
           ),
           if (_billingError != null) ...[
             const SizedBox(height: 10),
@@ -1315,6 +1554,9 @@ class _MeScreenState extends State<MeScreen> {
           const SizedBox(height: 12),
           if (hasBillingSnapshot && !_hasActiveSubscription) ...[
             if (_monthlyPackage != null || _yearlyPackage != null) ...[
+              _buildPackageAudienceSelector(),
+              if (_hasFamilyPackages() && _hasIndividualPackages())
+                const SizedBox(height: 8),
               _buildPlanSelector(),
               const SizedBox(height: 10),
             ],
@@ -1363,7 +1605,9 @@ class _MeScreenState extends State<MeScreen> {
             children: [
               Expanded(
                 child: OutlinedButton(
-                  onPressed: hasBillingSnapshot ? _openSubscriptionDetails : null,
+                  onPressed: hasBillingSnapshot
+                      ? _openSubscriptionDetails
+                      : null,
                   style: OutlinedButton.styleFrom(
                     foregroundColor: Colors.white,
                     side: BorderSide(color: Colors.white.withAlpha(120)),
@@ -1374,7 +1618,8 @@ class _MeScreenState extends State<MeScreen> {
               const SizedBox(width: 8),
               Expanded(
                 child: OutlinedButton(
-                  onPressed: (!hasBillingSnapshot ||
+                  onPressed:
+                      (!hasBillingSnapshot ||
                           _isBillingLoading ||
                           _isBillingActionInProgress)
                       ? null
@@ -1400,7 +1645,8 @@ class _MeScreenState extends State<MeScreen> {
             Align(
               alignment: Alignment.centerRight,
               child: OutlinedButton.icon(
-                onPressed: (!hasBillingSnapshot ||
+                onPressed:
+                    (!hasBillingSnapshot ||
                         _isBillingLoading ||
                         _isBillingActionInProgress)
                     ? null

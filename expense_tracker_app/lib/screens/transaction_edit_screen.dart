@@ -30,6 +30,7 @@ class _TransactionEditScreenState extends State<TransactionEditScreen> {
   List<dynamic> _serverWarnings = [];
   bool _hasLocalEdits = false;
   bool _isTranslatingItems = false;
+  Map<String, dynamic>? _transactionData;
 
   final _merchantController = TextEditingController();
   final _amountController = TextEditingController();
@@ -126,6 +127,7 @@ class _TransactionEditScreenState extends State<TransactionEditScreen> {
 
       setState(() {
         _hasLocalEdits = false;
+        _transactionData = txData;
         _categories = catsData;
         _labels = labelsData;
         _appLanguage = appLanguage;
@@ -1017,6 +1019,8 @@ class _TransactionEditScreenState extends State<TransactionEditScreen> {
             child: ListView(
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
               children: [
+                _buildAttributionSection(),
+                const SizedBox(height: 12),
                 _buildLabelsSection(),
                 const SizedBox(height: 12),
                 ..._items.map((item) {
@@ -1148,6 +1152,76 @@ class _TransactionEditScreenState extends State<TransactionEditScreen> {
             const Icon(Icons.chevron_right, color: Colors.white54),
           ],
         ),
+      ),
+    );
+  }
+
+  String _displayUserSnippet(dynamic rawUser) {
+    if (rawUser is! Map<String, dynamic>) return context.tr('common_unknown');
+    final displayName = rawUser['display_name']?.toString().trim() ?? '';
+    if (displayName.isNotEmpty) return displayName;
+    final email = rawUser['email']?.toString().trim() ?? '';
+    if (email.isNotEmpty) return email;
+    return context.tr('common_unknown');
+  }
+
+  Widget _buildAttributionSection() {
+    final tx = _transactionData;
+    final household = tx?['household'];
+    final createdBy = tx?['created_by_user'];
+    final owner = tx?['owner_user'];
+
+    final householdName = household is Map<String, dynamic>
+        ? household['name']?.toString().trim()
+        : null;
+    final hasHousehold = householdName != null && householdName.isNotEmpty;
+    final hasCreatedBy = createdBy is Map<String, dynamic>;
+    final hasOwner = owner is Map<String, dynamic>;
+
+    if (!hasHousehold && !hasCreatedBy && !hasOwner) {
+      return const SizedBox.shrink();
+    }
+
+    final rowStyle = TextStyle(color: Colors.grey.shade300, fontSize: 13);
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: const Color(0xFF121212),
+        borderRadius: BorderRadius.circular(14),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            context.tr('transaction_attribution_title'),
+            style: const TextStyle(
+              color: Colors.white,
+              fontSize: 14,
+              fontWeight: FontWeight.w700,
+            ),
+          ),
+          const SizedBox(height: 8),
+          if (hasHousehold)
+            Text(
+              '${context.tr('transaction_attribution_household')}: $householdName',
+              style: rowStyle,
+            ),
+          if (hasCreatedBy) ...[
+            if (hasHousehold) const SizedBox(height: 4),
+            Text(
+              '${context.tr('transaction_attribution_created_by')}: ${_displayUserSnippet(createdBy)}',
+              style: rowStyle,
+            ),
+          ],
+          if (hasOwner) ...[
+            if (hasHousehold || hasCreatedBy) const SizedBox(height: 4),
+            Text(
+              '${context.tr('transaction_attribution_owner')}: ${_displayUserSnippet(owner)}',
+              style: rowStyle,
+            ),
+          ],
+        ],
       ),
     );
   }

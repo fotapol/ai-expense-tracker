@@ -49,14 +49,45 @@ class SubscriptionStatus(str, Enum):  # noqa: UP042
 
 
 class EntitlementScopeType(str, Enum):  # noqa: UP042
-    """Scope discriminator for entitlements."""
+    """Scope discriminator for entitlements.
+
+    ``user`` targets a single user; ``household`` targets all active members
+    of a household and is used for family plan entitlements.
+    """
 
     USER = "user"
+    HOUSEHOLD = "household"
 
 
 class EntitlementStatus(str, Enum):  # noqa: UP042
     """Entitlement lifecycle status."""
 
     ACTIVE = "active"
+    EXPIRED = "expired"
+    REVOKED = "revoked"
+
+
+class HouseholdMemberRole(str, Enum):  # noqa: UP042
+    """Role of a user within a household."""
+
+    OWNER = "owner"
+    ADMIN = "admin"
+    MEMBER = "member"
+
+
+class HouseholdMemberStatus(str, Enum):  # noqa: UP042
+    """Lifecycle status of a household membership row."""
+
+    INVITED = "invited"
+    ACTIVE = "active"
+    LEFT = "left"
+    REMOVED = "removed"
+
+
+class HouseholdInviteStatus(str, Enum):  # noqa: UP042
+    """Lifecycle status of a household invite token."""
+
+    PENDING = "pending"
+    ACCEPTED = "accepted"
     EXPIRED = "expired"
     REVOKED = "revoked"
