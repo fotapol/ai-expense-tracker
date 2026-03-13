@@ -15,6 +15,8 @@ class SubscriptionScreen extends StatefulWidget {
   State<SubscriptionScreen> createState() => _SubscriptionScreenState();
 }
 
+enum _PackageAudience { individual, family }
+
 class _SubscriptionScreenState extends State<SubscriptionScreen> {
   static const bool _showDevTools = bool.fromEnvironment(
     'ENABLE_DEV_BILLING_TOOLS',
@@ -60,6 +62,8 @@ class _SubscriptionScreenState extends State<SubscriptionScreen> {
   Package? _monthlyPackage;
   Package? _yearlyPackage;
   Package? _selectedPackage;
+  List<Package> _availablePackages = const <Package>[];
+  _PackageAudience _selectedPackageAudience = _PackageAudience.individual;
   String? _targetUserId;
   Map<String, dynamic>? _subscriptionPayload;
   Set<String> _activeFeatures = <String>{};
@@ -87,7 +91,8 @@ class _SubscriptionScreenState extends State<SubscriptionScreen> {
 
       Map<String, dynamic> subscriptionPayload;
       Map<String, dynamic> entitlementsPayload;
-      final shouldSyncRevenueCat = RevenueCatService.isAvailable && !_showDevTools;
+      final shouldSyncRevenueCat =
+          RevenueCatService.isAvailable && !_showDevTools;
       if (shouldSyncRevenueCat) {
         try {
           final syncPayload = await ApiClient.syncRevenueCatSubscription();
@@ -145,7 +150,14 @@ class _SubscriptionScreenState extends State<SubscriptionScreen> {
         _receiptScanRemaining = remaining;
         _receiptScanUnlimited = isUnlimited;
         _receiptScanResetAtUtc = periodEndAt;
-        final packages = offerings?.current?.availablePackages ?? const <Package>[];
+        final packages = RevenueCatService.flattenAvailablePackages(offerings);
+        for (final package in packages) {
+          debugPrint(
+            '[RC][Subscription] package=${package.storeProduct.identifier} '
+            'pkgId=${package.identifier} '
+            'family=${RevenueCatService.isFamilyPackage(package)}',
+          );
+        }
         _applyPackageOptions(packages);
         _isLoading = false;
       });
@@ -253,9 +265,11 @@ class _SubscriptionScreenState extends State<SubscriptionScreen> {
       String? readableCode;
       String? detailMessage;
       if (details is Map) {
-        readableCode = details['readable_error_code']?.toString() ??
+        readableCode =
+            details['readable_error_code']?.toString() ??
             details['readableErrorCode']?.toString();
-        detailMessage = details['message']?.toString() ??
+        detailMessage =
+            details['message']?.toString() ??
             details['underlyingErrorMessage']?.toString();
       }
 
@@ -287,7 +301,8 @@ class _SubscriptionScreenState extends State<SubscriptionScreen> {
     final details = error.details;
     String? readableCode;
     if (details is Map) {
-      readableCode = details['readable_error_code']?.toString() ??
+      readableCode =
+          details['readable_error_code']?.toString() ??
           details['readableErrorCode']?.toString();
     }
     final normalizedCode = (readableCode ?? error.code).toLowerCase();
@@ -296,54 +311,129 @@ class _SubscriptionScreenState extends State<SubscriptionScreen> {
   }
 
   String _packagePlanLabel(Package package) {
-    if (package.packageType == PackageType.annual) return 'Yearly PRO';
-    if (package.packageType == PackageType.monthly) return 'Monthly PRO';
-
-    final identifier = package.identifier.toLowerCase();
-    if (identifier.contains('year') || identifier.contains('annual')) {
-      return 'Yearly PRO';
+    final isFamily = RevenueCatService.isFamilyPackage(package);
+    final audienceLabel = isFamily ? 'Family' : 'Individual';
+    if (RevenueCatService.isYearlyPackage(package)) {
+      return 'Yearly $audienceLabel';
     }
-    if (identifier.contains('month')) {
-      return 'Monthly PRO';
+    if (RevenueCatService.isMonthlyPackage(package)) {
+      return 'Monthly $audienceLabel';
     }
-    return 'PRO';
+    return '$audienceLabel Plan';
   }
 
   void _applyPackageOptions(List<Package> packages) {
+    _availablePackages = List<Package>.from(packages);
     Package? monthly;
     Package? yearly;
     Package? fallback;
     final selectedIdentifier = _selectedPackage?.identifier;
     Package? selectedMatch;
+    final hasFamily = packages.any(RevenueCatService.isFamilyPackage);
+    final hasIndividual = packages.any(
+      (package) => !RevenueCatService.isFamilyPackage(package),
+    );
 
-    for (final package in packages) {
+    if (!hasFamily) {
+      _selectedPackageAudience = _PackageAudience.individual;
+    } else if (!hasIndividual) {
+      _selectedPackageAudience = _PackageAudience.family;
+    }
+
+    final scopedPackages = packages.where((package) {
+      if (_selectedPackageAudience == _PackageAudience.family) {
+        return RevenueCatService.isFamilyPackage(package);
+      }
+      return !RevenueCatService.isFamilyPackage(package);
+    }).toList();
+    final sourcePackages = scopedPackages.isNotEmpty
+        ? scopedPackages
+        : packages;
+
+    for (final package in sourcePackages) {
       fallback ??= package;
-      if (selectedIdentifier != null && package.identifier == selectedIdentifier) {
+      if (selectedIdentifier != null &&
+          package.identifier == selectedIdentifier) {
         selectedMatch = package;
       }
-      if (package.packageType == PackageType.monthly) {
+      if (RevenueCatService.isMonthlyPackage(package)) {
         monthly ??= package;
         continue;
       }
-      if (package.packageType == PackageType.annual) {
+      if (RevenueCatService.isYearlyPackage(package)) {
         yearly ??= package;
         continue;
-      }
-
-      final identifier = package.identifier.toLowerCase();
-      if (yearly == null &&
-          (identifier.contains('year') || identifier.contains('annual'))) {
-        yearly = package;
-        continue;
-      }
-      if (monthly == null && identifier.contains('month')) {
-        monthly = package;
       }
     }
 
     _monthlyPackage = monthly;
     _yearlyPackage = yearly;
     _selectedPackage = selectedMatch ?? yearly ?? monthly ?? fallback;
+  }
+
+  bool _hasFamilyPackages() =>
+      _availablePackages.any(RevenueCatService.isFamilyPackage);
+
+  bool _hasIndividualPackages() => _availablePackages.any(
+    (package) => !RevenueCatService.isFamilyPackage(package),
+  );
+
+  Widget _buildPackageAudienceSelector() {
+    final canChooseAudience = _hasFamilyPackages() && _hasIndividualPackages();
+    if (!canChooseAudience) return const SizedBox.shrink();
+
+    Widget audienceChip({
+      required String label,
+      required _PackageAudience audience,
+    }) {
+      final isSelected = _selectedPackageAudience == audience;
+      return Expanded(
+        child: InkWell(
+          borderRadius: BorderRadius.circular(999),
+          onTap: () {
+            if (_selectedPackageAudience == audience) return;
+            setState(() {
+              _selectedPackageAudience = audience;
+              _applyPackageOptions(_availablePackages);
+            });
+          },
+          child: Container(
+            padding: const EdgeInsets.symmetric(vertical: 8),
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(999),
+              color: isSelected
+                  ? const Color(0xFF5B2E88).withAlpha(210)
+                  : Colors.black.withAlpha(25),
+              border: Border.all(
+                color: isSelected
+                    ? const Color(0xFFF7D74B)
+                    : Colors.white.withAlpha(90),
+              ),
+            ),
+            alignment: Alignment.center,
+            child: Text(
+              label,
+              style: TextStyle(
+                color: Colors.white,
+                fontSize: 12,
+                fontWeight: isSelected ? FontWeight.w800 : FontWeight.w600,
+              ),
+            ),
+          ),
+        ),
+      );
+    }
+
+    return Row(
+      children: [
+        audienceChip(
+          label: 'Individual',
+          audience: _PackageAudience.individual,
+        ),
+        const SizedBox(width: 8),
+        audienceChip(label: 'Family', audience: _PackageAudience.family),
+      ],
+    );
   }
 
   Future<void> _purchasePro() async {
@@ -361,7 +451,7 @@ class _SubscriptionScreenState extends State<SubscriptionScreen> {
     if (package == null) {
       try {
         final offerings = await RevenueCatService.getOfferings();
-        final packages = offerings?.current?.availablePackages ?? const <Package>[];
+        final packages = RevenueCatService.flattenAvailablePackages(offerings);
         if (packages.isNotEmpty) {
           _applyPackageOptions(packages);
           package = _selectedPackage;
@@ -445,9 +535,9 @@ class _SubscriptionScreenState extends State<SubscriptionScreen> {
           await ApiClient.syncRevenueCatSubscription();
           await _loadSubscriptionData();
           if (!mounted) return;
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Purchases restored.')),
-          );
+          ScaffoldMessenger.of(
+            context,
+          ).showSnackBar(const SnackBar(content: Text('Purchases restored.')));
           return;
         } catch (retryError) {
           effectiveError = retryError;
@@ -456,7 +546,9 @@ class _SubscriptionScreenState extends State<SubscriptionScreen> {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('Restore failed: ${_friendlyBillingError(effectiveError)}'),
+          content: Text(
+            'Restore failed: ${_friendlyBillingError(effectiveError)}',
+          ),
           backgroundColor: Colors.redAccent,
         ),
       );
@@ -625,11 +717,13 @@ class _SubscriptionScreenState extends State<SubscriptionScreen> {
         itemBuilder: (context, index) {
           final card = _featureCards[index];
           final enabled = _activeFeatures.contains(card.code);
-          final isReceiptScansCard = card.code == 'premium.receipt_scans.unlimited';
+          final isReceiptScansCard =
+              card.code == 'premium.receipt_scans.unlimited';
           final freeValue = isReceiptScansCard
               ? _receiptScansFreeValue()
               : card.freeValue;
-          final freeColor = isReceiptScansCard && _receiptScanUsed >= _receiptScanLimit
+          final freeColor =
+              isReceiptScansCard && _receiptScanUsed >= _receiptScanLimit
               ? const Color(0xFF8C1D40)
               : Colors.white.withAlpha(220);
           return AnimatedContainer(
@@ -862,6 +956,9 @@ class _SubscriptionScreenState extends State<SubscriptionScreen> {
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           if (_monthlyPackage != null || _yearlyPackage != null) ...[
+            _buildPackageAudienceSelector(),
+            if (_hasFamilyPackages() && _hasIndividualPackages())
+              const SizedBox(height: 8),
             _buildPlanSelector(),
             const SizedBox(height: 10),
           ],
@@ -1099,5 +1196,3 @@ class _BenefitPill extends StatelessWidget {
     );
   }
 }
-
-

@@ -142,6 +142,7 @@ class _ReceiptsTabState extends State<ReceiptsTab> {
   }
 
   Future<void> _fetchTransactions() async {
+    if (!mounted) return;
     setState(() {
       _isLoading = true;
       _error = null;
@@ -165,11 +166,13 @@ class _ReceiptsTabState extends State<ReceiptsTab> {
             : null,
         labelIds: _selectedLabelIds.isNotEmpty ? _selectedLabelIds : null,
       );
+      if (!mounted) return;
       setState(() {
         _transactions = data;
         _isLoading = false;
       });
     } catch (e) {
+      if (!mounted) return;
       setState(() {
         _error = e.toString();
         _isLoading = false;

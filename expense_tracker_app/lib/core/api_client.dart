@@ -22,6 +22,25 @@ class ApiClient {
     return await user.getIdToken() ?? '';
   }
 
+  static String _extractErrorMessage(http.Response response) {
+    try {
+      final payload = jsonDecode(response.body);
+      if (payload is Map<String, dynamic>) {
+        final detail = payload['detail'];
+        if (detail is String && detail.trim().isNotEmpty) {
+          return detail;
+        }
+        if (detail is Map<String, dynamic>) {
+          final detailMessage = detail['message']?.toString();
+          if (detailMessage != null && detailMessage.trim().isNotEmpty) {
+            return detailMessage;
+          }
+        }
+      }
+    } catch (_) {}
+    return response.body;
+  }
+
   /// GET /v1/me
   static Future<Map<String, dynamic>> getMe() async {
     final token = await _getToken();
@@ -61,6 +80,194 @@ class ApiClient {
         'Failed to update profile: ${response.statusCode} ${response.body}',
       );
     }
+  }
+
+  /// POST /v1/households
+  static Future<Map<String, dynamic>> createHousehold({
+    required String name,
+  }) async {
+    final token = await _getToken();
+    final response = await http.post(
+      Uri.parse('$apiBaseUrl/v1/households'),
+      headers: {
+        'Authorization': 'Bearer $token',
+        'Content-Type': 'application/json',
+      },
+      body: jsonEncode({'name': name}),
+    );
+
+    if (response.statusCode == 201) {
+      return jsonDecode(response.body) as Map<String, dynamic>;
+    }
+    throw Exception(
+      'Failed to create household: ${response.statusCode} ${_extractErrorMessage(response)}',
+    );
+  }
+
+  /// GET /v1/households/current
+  static Future<Map<String, dynamic>> getCurrentHousehold() async {
+    final token = await _getToken();
+    final response = await http.get(
+      Uri.parse('$apiBaseUrl/v1/households/current'),
+      headers: {
+        'Authorization': 'Bearer $token',
+        'Content-Type': 'application/json',
+      },
+    );
+
+    if (response.statusCode == 200) {
+      return jsonDecode(response.body) as Map<String, dynamic>;
+    }
+    throw Exception(
+      'Failed to load current household: ${response.statusCode} ${_extractErrorMessage(response)}',
+    );
+  }
+
+  /// PATCH /v1/households/current
+  static Future<Map<String, dynamic>> updateCurrentHousehold({
+    required String name,
+  }) async {
+    final token = await _getToken();
+    final response = await http.patch(
+      Uri.parse('$apiBaseUrl/v1/households/current'),
+      headers: {
+        'Authorization': 'Bearer $token',
+        'Content-Type': 'application/json',
+      },
+      body: jsonEncode({'name': name}),
+    );
+
+    if (response.statusCode == 200) {
+      return jsonDecode(response.body) as Map<String, dynamic>;
+    }
+    throw Exception(
+      'Failed to update household: ${response.statusCode} ${_extractErrorMessage(response)}',
+    );
+  }
+
+  /// GET /v1/households/current/members
+  static Future<List<dynamic>> listCurrentHouseholdMembers() async {
+    final token = await _getToken();
+    final response = await http.get(
+      Uri.parse('$apiBaseUrl/v1/households/current/members'),
+      headers: {
+        'Authorization': 'Bearer $token',
+        'Content-Type': 'application/json',
+      },
+    );
+
+    if (response.statusCode == 200) {
+      return jsonDecode(response.body) as List<dynamic>;
+    }
+    throw Exception(
+      'Failed to list household members: ${response.statusCode} ${_extractErrorMessage(response)}',
+    );
+  }
+
+  /// GET /v1/households/current/invites
+  static Future<List<dynamic>> listCurrentHouseholdInvites() async {
+    final token = await _getToken();
+    final response = await http.get(
+      Uri.parse('$apiBaseUrl/v1/households/current/invites'),
+      headers: {
+        'Authorization': 'Bearer $token',
+        'Content-Type': 'application/json',
+      },
+    );
+
+    if (response.statusCode == 200) {
+      return jsonDecode(response.body) as List<dynamic>;
+    }
+    throw Exception(
+      'Failed to list household invites: ${response.statusCode} ${_extractErrorMessage(response)}',
+    );
+  }
+
+  /// POST /v1/households/current/invites
+  static Future<Map<String, dynamic>> createHouseholdInvite({
+    String? invitedEmail,
+    String? invitedUserId,
+  }) async {
+    final token = await _getToken();
+    final payload = <String, dynamic>{};
+    if (invitedEmail != null && invitedEmail.trim().isNotEmpty) {
+      payload['invited_email'] = invitedEmail.trim();
+    }
+    if (invitedUserId != null && invitedUserId.trim().isNotEmpty) {
+      payload['invited_user_id'] = invitedUserId.trim();
+    }
+    final response = await http.post(
+      Uri.parse('$apiBaseUrl/v1/households/current/invites'),
+      headers: {
+        'Authorization': 'Bearer $token',
+        'Content-Type': 'application/json',
+      },
+      body: jsonEncode(payload),
+    );
+
+    if (response.statusCode == 201) {
+      return jsonDecode(response.body) as Map<String, dynamic>;
+    }
+    throw Exception(
+      'Failed to create invite: ${response.statusCode} ${_extractErrorMessage(response)}',
+    );
+  }
+
+  /// POST /v1/households/current/invites/{inviteId}/revoke
+  static Future<Map<String, dynamic>> revokeHouseholdInvite(String inviteId) async {
+    final token = await _getToken();
+    final response = await http.post(
+      Uri.parse('$apiBaseUrl/v1/households/current/invites/$inviteId/revoke'),
+      headers: {
+        'Authorization': 'Bearer $token',
+        'Content-Type': 'application/json',
+      },
+    );
+
+    if (response.statusCode == 200) {
+      return jsonDecode(response.body) as Map<String, dynamic>;
+    }
+    throw Exception(
+      'Failed to revoke invite: ${response.statusCode} ${_extractErrorMessage(response)}',
+    );
+  }
+
+  /// POST /v1/households/current/members/{id}/remove
+  static Future<Map<String, dynamic>> removeHouseholdMember(String memberId) async {
+    final token = await _getToken();
+    final response = await http.post(
+      Uri.parse('$apiBaseUrl/v1/households/current/members/$memberId/remove'),
+      headers: {
+        'Authorization': 'Bearer $token',
+        'Content-Type': 'application/json',
+      },
+    );
+
+    if (response.statusCode == 200) {
+      return jsonDecode(response.body) as Map<String, dynamic>;
+    }
+    throw Exception(
+      'Failed to remove member: ${response.statusCode} ${_extractErrorMessage(response)}',
+    );
+  }
+
+  /// POST /v1/household-invites/{token}/accept
+  static Future<Map<String, dynamic>> acceptHouseholdInvite(String inviteToken) async {
+    final token = await _getToken();
+    final response = await http.post(
+      Uri.parse('$apiBaseUrl/v1/household-invites/$inviteToken/accept'),
+      headers: {
+        'Authorization': 'Bearer $token',
+        'Content-Type': 'application/json',
+      },
+    );
+
+    if (response.statusCode == 200) {
+      return jsonDecode(response.body) as Map<String, dynamic>;
+    }
+    throw Exception(
+      'Failed to accept invite: ${response.statusCode} ${_extractErrorMessage(response)}',
+    );
   }
 
   /// POST /v1/receipts — create receipt and get presigned upload URL.
