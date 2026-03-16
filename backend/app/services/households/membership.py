@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import datetime as dt
 import uuid
 
 from fastapi import HTTPException, status
@@ -81,6 +82,26 @@ def remove_member(
         )
 
     member.status = HouseholdMemberStatus.REMOVED
+    session.add(member)
+    session.commit()
+    session.refresh(member)
+    return member
+
+
+def leave_household(
+    session: Session,
+    member: HouseholdMember,
+) -> HouseholdMember:
+    """Mark a non-owner member as having left the household."""
+
+    if member.role == HouseholdMemberRole.OWNER:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="The household owner must remove the household instead of leaving it.",
+        )
+
+    member.status = HouseholdMemberStatus.LEFT
+    member.joined_at = member.joined_at or dt.datetime.now(dt.UTC)
     session.add(member)
     session.commit()
     session.refresh(member)

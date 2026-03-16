@@ -20,6 +20,7 @@ from app.models.shared.enums import (
 )
 from app.models.users.user import User
 
+
 # NOTE: imported here rather than from households.households to avoid a circular
 # dependency at module load time; the households service is loaded lazily via
 # the services.households package.
@@ -27,6 +28,7 @@ def _get_active_household_for_user(session, user_id):
     """Thin wrapper imported lazily to allow monkeypatching in tests."""
     from app.services.households.households import get_active_household_for_user
     return get_active_household_for_user(session, user_id)
+
 
 _DEFAULT_INVITE_TTL_HOURS = 72
 InviteEffectiveState = Literal["pending", "accepted", "revoked", "expired"]
@@ -198,6 +200,15 @@ def accept_invite(
         )
 
     session.add(member)
+    from app.services.households.households import (
+        attach_existing_manual_transactions_to_household,
+    )
+
+    attach_existing_manual_transactions_to_household(
+        session,
+        user_id=accepting_user.id,
+        household_id=invite.household_id,
+    )
 
     # Mark invite accepted.
     invite.status = HouseholdInviteStatus.ACCEPTED
