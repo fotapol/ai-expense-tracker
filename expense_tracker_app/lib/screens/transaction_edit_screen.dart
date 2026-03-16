@@ -8,11 +8,14 @@ import '../core/item_translation_service.dart';
 import '../core/taxonomy_localization.dart';
 import '../l10n/app_localizations.dart';
 import '../main.dart';
+import 'receipt_photo_view_screen.dart';
 
 class TransactionEditScreen extends StatefulWidget {
-  final String transactionId;
+  final String? transactionId;
 
-  const TransactionEditScreen({super.key, required this.transactionId});
+  const TransactionEditScreen({super.key, this.transactionId});
+
+  const TransactionEditScreen.create({super.key}) : transactionId = null;
 
   @override
   State<TransactionEditScreen> createState() => _TransactionEditScreenState();
@@ -31,6 +34,8 @@ class _TransactionEditScreenState extends State<TransactionEditScreen> {
   bool _hasLocalEdits = false;
   bool _isTranslatingItems = false;
   Map<String, dynamic>? _transactionData;
+  String? _transactionId;
+  String? _viewerUserId;
 
   final _merchantController = TextEditingController();
   final _amountController = TextEditingController();
@@ -47,9 +52,25 @@ class _TransactionEditScreenState extends State<TransactionEditScreen> {
   final Map<String, TextEditingController> _itemUnitPriceControllers = {};
   final Map<String, String?> _itemCategoryIds = {};
 
+  String? get _receiptId {
+    final value = _transactionData?['receipt_id']?.toString();
+    if (value == null || value.isEmpty) return null;
+    return value;
+  }
+
+  bool get _isDraftCreateMode => _transactionId == null;
+
+  bool get _canEditTransaction {
+    if (_isDraftCreateMode) return true;
+    final viewerUserId = _viewerUserId?.trim() ?? '';
+    if (viewerUserId.isEmpty) return true;
+    return _transactionData?['user_id']?.toString() == viewerUserId;
+  }
+
   @override
   void initState() {
     super.initState();
+    _transactionId = widget.transactionId;
     _fetchData();
   }
 
@@ -58,19 +79,126 @@ class _TransactionEditScreenState extends State<TransactionEditScreen> {
     unawaited(ItemTranslationService.instance.flushPending());
     _merchantController.dispose();
     _amountController.dispose();
-    for (var c in _itemDescControllers.values) {
-      c.dispose();
-    }
-    for (var c in _itemAmountControllers.values) {
-      c.dispose();
-    }
-    for (var c in _itemQtyControllers.values) {
-      c.dispose();
-    }
-    for (var c in _itemUnitPriceControllers.values) {
-      c.dispose();
-    }
+    _disposeItemControllers();
     super.dispose();
+  }
+
+  void _disposeItemControllers() {
+    for (final c in _itemDescControllers.values) {
+      c.dispose();
+    }
+    for (final c in _itemAmountControllers.values) {
+      c.dispose();
+    }
+    for (final c in _itemQtyControllers.values) {
+      c.dispose();
+    }
+    for (final c in _itemUnitPriceControllers.values) {
+      c.dispose();
+    }
+    _itemDescControllers.clear();
+    _itemAmountControllers.clear();
+    _itemQtyControllers.clear();
+    _itemUnitPriceControllers.clear();
+    _itemCategoryIds.clear();
+  }
+
+  void _applyTransactionState({
+    required Map<String, dynamic> txData,
+    required List<dynamic> categories,
+    required List<dynamic> labels,
+    required String appLanguage,
+    required String effectiveItemsLanguage,
+  }) {
+    _disposeItemControllers();
+    _hasLocalEdits = false;
+    _transactionData = txData;
+    _categories = categories;
+    _labels = labels;
+    _appLanguage = appLanguage;
+    _effectiveItemsLanguage = effectiveItemsLanguage;
+    _items = List.from(txData['items'] ?? []);
+    _selectedLabelIds = Set<String>.from(
+      (txData['labels'] as List<dynamic>? ?? const [])
+          .map((label) => label['id']?.toString() ?? '')
+          .where((id) => id.isNotEmpty),
+    );
+    _serverWarnings = List<dynamic>.from(
+      txData['extraction_warnings'] as List<dynamic>? ?? const [],
+    );
+
+    _merchantController.text = txData['merchant_name']?.toString() ?? '';
+    _amountController.text = _formatNumberForInput(
+      txData['amount_total'],
+      decimals: 2,
+      keepTrailingZeros: true,
+    );
+    if (!_isDraftCreateMode && _amountController.text.isEmpty) {
+      _amountController.text = '0.00';
+    }
+    _currency = (txData['currency'] ?? 'RSD').toString();
+    final sourceTotal = _toDouble(txData['amount_total']);
+    final displayTotal = _toDouble(txData['display_amount_total']);
+    _displayCurrency = displayTotal != null
+        ? (txData['display_currency'] ?? _currency).toString()
+        : _currency;
+    if (_displayCurrency.toUpperCase() == _currency.toUpperCase()) {
+      _displayRate = 1.0;
+    } else if (sourceTotal != null && sourceTotal != 0 && displayTotal != null) {
+      _displayRate = displayTotal / sourceTotal;
+    } else {
+      _displayRate = 1.0;
+    }
+
+    _occurredAt = txData['occurred_at'] != null
+        ? DateTime.tryParse(txData['occurred_at'].toString())
+        : null;
+
+    for (final item in _items) {
+      final id = item['id'].toString();
+      _itemDescControllers[id] = TextEditingController(
+        text: item['description']?.toString() ?? '',
+      );
+      _itemAmountControllers[id] = TextEditingController(
+        text: _formatNumberForInput(
+          item['amount'],
+          decimals: 2,
+          keepTrailingZeros: true,
+        ),
+      );
+      _itemQtyControllers[id] = TextEditingController(
+        text: _formatNumberForInput(item['qty'], decimals: 3),
+      );
+      _itemUnitPriceControllers[id] = TextEditingController(
+        text: _formatNumberForInput(item['unit_price'], decimals: 3),
+      );
+      _itemCategoryIds[id] = item['category_id']?.toString();
+    }
+  }
+
+  Map<String, dynamic> _blankDraftTransaction({
+    required String currency,
+    required String? currentUserId,
+  }) {
+    final occurredAt = DateTime.now().toIso8601String();
+    return <String, dynamic>{
+      'user_id': currentUserId,
+      'receipt_id': null,
+      'occurred_at': occurredAt,
+      'amount_total': null,
+      'currency': currency,
+      'merchant_name': '',
+      'items': const <dynamic>[],
+      'labels': const <dynamic>[],
+      'extraction_warnings': const <dynamic>[],
+      'source': 'MANUAL',
+      'status': 'DRAFT',
+      'display_currency': currency,
+      'display_amount_total': null,
+      'household': null,
+      'created_by_user': null,
+      'owner_user': null,
+    };
   }
 
   Future<void> _fetchData() async {
@@ -89,112 +217,60 @@ class _TransactionEditScreenState extends State<TransactionEditScreen> {
       final preferredItemsLanguage = _normalizeLanguageCode(
         meData?['items_language']?.toString(),
       );
+      final viewerUserId = meData?['id']?.toString();
+      final defaultCurrency = (meData?['default_currency'] ?? 'RSD').toString();
 
-      final txFuture = ApiClient.getTransaction(
-        widget.transactionId,
-        itemLanguage: preferredItemsLanguage.isNotEmpty
-            ? preferredItemsLanguage
-            : null,
-        appLanguage: appLanguage.isNotEmpty ? appLanguage : null,
-      );
       final catsFuture = ApiClient.listCategories();
       final labelsFuture = ApiClient.listLabels();
-
-      final txData = await txFuture;
       final catsData = await catsFuture;
       final labelsData = await labelsFuture;
       final effectiveItemsLanguage = preferredItemsLanguage.isNotEmpty
           ? preferredItemsLanguage
           : appLanguage;
 
-      for (final c in _itemDescControllers.values) {
-        c.dispose();
+      if (_transactionId == null) {
+        final draft = _blankDraftTransaction(
+          currency: defaultCurrency,
+          currentUserId: viewerUserId,
+        );
+        if (!mounted) return;
+        setState(() {
+          _viewerUserId = viewerUserId;
+          _applyTransactionState(
+            txData: draft,
+            categories: catsData,
+            labels: labelsData,
+            appLanguage: appLanguage,
+            effectiveItemsLanguage: effectiveItemsLanguage,
+          );
+          _currency = defaultCurrency;
+          _displayCurrency = defaultCurrency;
+          _displayRate = 1.0;
+          _occurredAt = DateTime.now();
+          _isLoading = false;
+        });
+        return;
       }
-      for (final c in _itemAmountControllers.values) {
-        c.dispose();
-      }
-      for (final c in _itemQtyControllers.values) {
-        c.dispose();
-      }
-      for (final c in _itemUnitPriceControllers.values) {
-        c.dispose();
-      }
-      _itemDescControllers.clear();
-      _itemAmountControllers.clear();
-      _itemQtyControllers.clear();
-      _itemUnitPriceControllers.clear();
-      _itemCategoryIds.clear();
+
+      final txFuture = ApiClient.getTransaction(
+        _transactionId!,
+        itemLanguage: preferredItemsLanguage.isNotEmpty
+            ? preferredItemsLanguage
+            : null,
+        appLanguage: appLanguage.isNotEmpty ? appLanguage : null,
+      );
+
+      final txData = await txFuture;
 
       setState(() {
-        _hasLocalEdits = false;
-        _transactionData = txData;
-        _categories = catsData;
-        _labels = labelsData;
-        _appLanguage = appLanguage;
-        _effectiveItemsLanguage = effectiveItemsLanguage;
-        _items = List.from(txData['items'] ?? []);
-        _selectedLabelIds = Set<String>.from(
-          (txData['labels'] as List<dynamic>? ?? const [])
-              .map((label) => label['id']?.toString() ?? '')
-              .where((id) => id.isNotEmpty),
+        _viewerUserId = viewerUserId;
+        _applyTransactionState(
+          txData: txData,
+          categories: catsData,
+          labels: labelsData,
+          appLanguage: appLanguage,
+          effectiveItemsLanguage: effectiveItemsLanguage,
         );
-        _serverWarnings = List<dynamic>.from(
-          txData['extraction_warnings'] as List<dynamic>? ?? const [],
-        );
-
-        _merchantController.text = txData['merchant_name'] ?? '';
-        _amountController.text = _formatNumberForInput(
-          txData['amount_total'],
-          decimals: 2,
-          keepTrailingZeros: true,
-        );
-        if (_amountController.text.isEmpty) {
-          _amountController.text = '0.00';
-        }
-        _currency = txData['currency'] ?? 'RSD';
-        final sourceTotal = _toDouble(txData['amount_total']);
-        final displayTotal = _toDouble(txData['display_amount_total']);
-        _displayCurrency = displayTotal != null
-            ? (txData['display_currency'] ?? _currency).toString()
-            : _currency;
-        if (_displayCurrency.toUpperCase() == _currency.toUpperCase()) {
-          _displayRate = 1.0;
-        } else if (sourceTotal != null &&
-            sourceTotal != 0 &&
-            displayTotal != null) {
-          _displayRate = displayTotal / sourceTotal;
-        } else {
-          _displayRate = 1.0;
-        }
-
-        if (txData['occurred_at'] != null) {
-          _occurredAt = DateTime.tryParse(txData['occurred_at']);
-        }
-
-        for (final item in _items) {
-          final id = item['id'].toString();
-          _itemDescControllers[id] = TextEditingController(
-            text: item['description'] ?? '',
-          );
-          _itemAmountControllers[id] = TextEditingController(
-            text: _formatNumberForInput(
-              item['amount'],
-              decimals: 2,
-              keepTrailingZeros: true,
-            ),
-          );
-          _itemQtyControllers[id] = TextEditingController(
-            text: _formatNumberForInput(item['qty'], decimals: 3),
-          );
-          _itemUnitPriceControllers[id] = TextEditingController(
-            text: _formatNumberForInput(
-              item['unit_price'],
-              decimals: 3,
-            ),
-          );
-          _itemCategoryIds[id] = item['category_id']?.toString();
-        }
-
         _isLoading = false;
       });
 
@@ -216,11 +292,20 @@ class _TransactionEditScreenState extends State<TransactionEditScreen> {
   }
 
   Future<void> _saveTransaction() async {
+    final amountText = _amountController.text.trim();
+    final parsedAmount = double.tryParse(amountText.replaceAll(',', '.'));
+    if (parsedAmount == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(context.tr('transaction_amount_required'))),
+      );
+      return;
+    }
+
     setState(() => _isSaving = true);
     try {
       final payload = {
         'merchant_name': _merchantController.text,
-        'amount_total': double.tryParse(_amountController.text) ?? 0.0,
+        'amount_total': parsedAmount,
         'currency': _currency,
       };
 
@@ -229,24 +314,80 @@ class _TransactionEditScreenState extends State<TransactionEditScreen> {
       }
 
       final updatedItems = [];
+      var nextLineNo = 1;
       for (final item in _items) {
         final id = item['id'].toString();
-        updatedItems.add({
-          if (_isUuid(id)) 'id': id,
-          'description': _itemDescControllers[id]?.text ?? '',
-          'amount':
-              double.tryParse(_itemAmountControllers[id]?.text ?? '0.00') ??
-              0.0,
-          'qty': _toDouble(_itemQtyControllers[id]?.text),
-          'unit_price': _toDouble(_itemUnitPriceControllers[id]?.text),
-          'unit': item['unit'],
-          'category_id': _itemCategoryIds[id],
+        final description = (_itemDescControllers[id]?.text ?? '').trim();
+        final amount =
+            double.tryParse(_itemAmountControllers[id]?.text ?? '0.00') ?? 0.0;
+        final qty = _toDouble(_itemQtyControllers[id]?.text);
+        final unitPrice = _toDouble(_itemUnitPriceControllers[id]?.text);
+        final categoryId = _itemCategoryIds[id];
+        final unit = item['unit'];
+        final isBlankDraftItem =
+            description.isEmpty &&
+            amount == 0.0 &&
+            qty == null &&
+            unitPrice == null &&
+            (unit == null || unit.toString().trim().isEmpty) &&
+            (categoryId == null || categoryId.isEmpty);
+        if (_isDraftCreateMode && isBlankDraftItem) {
+          continue;
+        }
+        final itemPayload = <String, dynamic>{
+          'description': description,
+          'amount': amount,
+          'qty': qty,
+          'unit_price': unitPrice,
+          'unit': unit,
+          'category_id': categoryId,
+        };
+        if (_isUuid(id)) {
+          itemPayload['id'] = id;
+        }
+        if (_isDraftCreateMode) {
+          itemPayload['line_no'] = nextLineNo++;
+        }
+        itemPayload.removeWhere((key, value) {
+          if (value == null) return true;
+          if ((key == 'unit' || key == 'category_id') &&
+              value is String &&
+              value.trim().isEmpty) {
+            return true;
+          }
+          return false;
         });
+        updatedItems.add(itemPayload);
       }
       payload['items'] = updatedItems;
 
+      if (_transactionId == null) {
+        final created = await ApiClient.createTransaction(
+          payload,
+          itemLanguage: _effectiveItemsLanguage.isNotEmpty
+              ? _effectiveItemsLanguage
+              : null,
+          appLanguage: _appLanguage.isNotEmpty ? _appLanguage : null,
+        );
+        if (!mounted) return;
+        setState(() {
+          _transactionId = created['id']?.toString();
+          _applyTransactionState(
+            txData: created,
+            categories: _categories,
+            labels: _labels,
+            appLanguage: _appLanguage,
+            effectiveItemsLanguage: _effectiveItemsLanguage,
+          );
+        });
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(context.tr('transaction_created_successfully'))),
+        );
+        return;
+      }
+
       await ApiClient.updateTransaction(
-        widget.transactionId,
+        _transactionId!,
         payload,
         itemLanguage: _effectiveItemsLanguage.isNotEmpty
             ? _effectiveItemsLanguage
@@ -276,6 +417,43 @@ class _TransactionEditScreenState extends State<TransactionEditScreen> {
       }
     } finally {
       if (mounted) setState(() => _isSaving = false);
+    }
+  }
+
+  Future<void> _openReceiptPhoto() async {
+    final receiptId = _receiptId;
+    if (receiptId == null) return;
+
+    try {
+      final payload = await ApiClient.getReceiptViewUrl(receiptId);
+      if (!mounted) return;
+      final viewUrl = payload['view_url']?.toString();
+      if (viewUrl == null || viewUrl.isEmpty) {
+        throw Exception(context.tr('receipt_photo_invalid_url'));
+      }
+      await Navigator.of(context).push(
+        MaterialPageRoute(
+          builder: (_) => ReceiptPhotoViewScreen(
+            title: payload['original_filename']?.toString() ??
+                context.tr('transaction_photo'),
+            viewUrl: viewUrl,
+            mimeType: payload['mime_type']?.toString() ?? '',
+          ),
+        ),
+      );
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            context.tr(
+              'common_error_with_message',
+              params: {'message': e.toString()},
+            ),
+          ),
+          backgroundColor: Colors.red,
+        ),
+      );
     }
   }
 
@@ -581,15 +759,23 @@ class _TransactionEditScreenState extends State<TransactionEditScreen> {
     required String labelId,
     required bool selected,
   }) async {
+    final transactionId = _transactionId;
+    if (transactionId == null) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(context.tr('transaction_save_before_labels'))),
+      );
+      return;
+    }
     try {
       if (selected) {
         await ApiClient.assignLabel(
-          transactionId: widget.transactionId,
+          transactionId: transactionId,
           labelId: labelId,
         );
       } else {
         await ApiClient.unassignLabel(
-          transactionId: widget.transactionId,
+          transactionId: transactionId,
           labelId: labelId,
         );
       }
@@ -670,6 +856,12 @@ class _TransactionEditScreenState extends State<TransactionEditScreen> {
   }
 
   Future<void> _openLabelsPicker() async {
+    if (_transactionId == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(context.tr('transaction_save_before_labels'))),
+      );
+      return;
+    }
     await showModalBottomSheet<void>(
       context: context,
       isScrollControlled: true,
@@ -905,7 +1097,10 @@ class _TransactionEditScreenState extends State<TransactionEditScreen> {
 
     try {
       if (_isUuid(itemId)) {
-        await ApiClient.deleteTransactionItem(widget.transactionId, itemId);
+        final transactionId = _transactionId;
+        if (transactionId != null) {
+          await ApiClient.deleteTransactionItem(transactionId, itemId);
+        }
       }
 
       setState(() {
@@ -972,6 +1167,7 @@ class _TransactionEditScreenState extends State<TransactionEditScreen> {
         ),
         title: TextField(
           controller: _merchantController,
+          readOnly: !_canEditTransaction,
           style: const TextStyle(
             color: Colors.white,
             fontSize: 18,
@@ -1000,7 +1196,7 @@ class _TransactionEditScreenState extends State<TransactionEditScreen> {
           else
             IconButton(
               icon: const Icon(Icons.done, color: Colors.purpleAccent),
-              onPressed: _saveTransaction,
+              onPressed: _canEditTransaction ? _saveTransaction : null,
             ),
         ],
       ),
@@ -1228,6 +1424,7 @@ class _TransactionEditScreenState extends State<TransactionEditScreen> {
 
   Widget _buildActionBadges() {
     final occurred = _occurredAt;
+    final receiptId = _receiptId;
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 8.0, horizontal: 16),
       child: SingleChildScrollView(
@@ -1299,10 +1496,12 @@ class _TransactionEditScreenState extends State<TransactionEditScreen> {
                   ? _forceRetranslateItems
                   : null,
             ),
-            _buildBadge(
-              icon: Icons.image_outlined,
-              label: context.tr('transaction_photo'),
-            ),
+            if (receiptId != null)
+              _buildBadge(
+                icon: Icons.image_outlined,
+                label: context.tr('transaction_photo'),
+                onTap: _openReceiptPhoto,
+              ),
             _buildBadge(
               icon: Icons.currency_exchange,
               label: _currency,
