@@ -8,18 +8,20 @@ from typing import Annotated, Any
 
 from fastapi import APIRouter, Depends, HTTPException, Request, status
 from pydantic import TypeAdapter
-from sqlalchemy import func, or_
+from sqlalchemy import and_, func, or_
 from sqlmodel import Session, select
 
 from app.auth.deps import get_current_user
 from app.core.db import get_session
 from app.core.rate_limiter import limiter
+from app.models.households.household import Household
 from app.models.labels.label import Label
 from app.models.labels.transaction_label import TransactionLabel
-from app.models.households.household import Household
+from app.models.receipts.receipt import Receipt
 from app.models.receipts.receipt_extraction import ReceiptExtraction
-from app.models.shared.enums import CategoryScope
+from app.models.shared.enums import CategoryScope, HouseholdMemberRole, TransactionSource
 from app.models.taxonomy.category import Category
+from app.models.taxonomy.category_hidden import UserHiddenCategory
 from app.models.transactions.transaction import Transaction
 from app.models.transactions.transaction_item import TransactionItem
 from app.models.translations.item_translation import ItemTranslation
@@ -34,15 +36,20 @@ from app.schemas.shared import (
     quantize_unit_price,
 )
 from app.schemas.transactions import (
+    TransactionCreateManual,
     TransactionHouseholdSnippetRead,
     TransactionItemRead,
     TransactionLabelRead,
     TransactionListFilter,
     TransactionRead,
-    TransactionUserSnippetRead,
     TransactionUpdateRequest,
+    TransactionUserSnippetRead,
 )
+from app.services.billing.entitlements import user_has_feature
+from app.services.billing.features import PREMIUM_ANALYTICS_ADVANCED
 from app.services.fx_rates import convert_amount, resolve_conversion_date
+from app.services.households.access import get_active_shared_household_id
+from app.services.households.membership import get_member_for_user, validate_transaction_attribution
 
 logger = logging.getLogger(__name__)
 
@@ -74,6 +81,108 @@ def _resolve_label_filter_ids(filters: TransactionListFilter) -> set[uuid.UUID]:
 
 def _resolve_target_currency(filters: TransactionListFilter, current_user: User) -> str:
     return normalize_currency_code(filters.target_currency or current_user.default_currency)
+
+
+def _resolve_active_shared_household_id(
+    session: Session,
+    current_user: User,
+) -> uuid.UUID | None:
+    return get_active_shared_household_id(session, current_user.id)
+
+
+def _build_transaction_read_visibility_predicate(
+    session: Session,
+    current_user: User,
+):
+    own_solo_predicate = and_(
+        Transaction.user_id == current_user.id,
+        Transaction.household_id.is_(None),
+    )
+    shared_household_id = _resolve_active_shared_household_id(session, current_user)
+    if shared_household_id is None:
+        return own_solo_predicate
+    return or_(
+        own_solo_predicate,
+        Transaction.household_id == shared_household_id,
+    )
+
+
+def _build_transaction_write_visibility_predicate(
+    session: Session,
+    current_user: User,
+):
+    shared_household_id = _resolve_active_shared_household_id(session, current_user)
+    if shared_household_id is None:
+        return and_(
+            Transaction.user_id == current_user.id,
+            Transaction.household_id.is_(None),
+        )
+    return and_(
+        Transaction.user_id == current_user.id,
+        or_(
+            Transaction.household_id.is_(None),
+            Transaction.household_id == shared_household_id,
+        ),
+    )
+
+
+def _assert_household_transaction_access(
+    session: Session,
+    *,
+    current_user: User,
+    household_id: uuid.UUID | None,
+) -> None:
+    if household_id is None:
+        return
+    active_shared_household_id = _resolve_active_shared_household_id(session, current_user)
+    if active_shared_household_id == household_id:
+        return
+    raise HTTPException(
+        status_code=status.HTTP_403_FORBIDDEN,
+        detail="Shared household transactions require an active family household.",
+    )
+
+
+def _get_deleteable_manual_transaction(
+    session: Session,
+    *,
+    transaction_id: uuid.UUID,
+    current_user: User,
+) -> Transaction:
+    """Return a visible manual transaction if the user may delete it."""
+
+    transaction = session.exec(
+        select(Transaction).where(
+            Transaction.id == transaction_id,
+            _build_transaction_read_visibility_predicate(session, current_user),
+        )
+    ).first()
+    if transaction is None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Transaction not found.",
+        )
+    if transaction.receipt_id is not None:
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail="Receipt-backed transactions must be deleted via the receipt endpoint.",
+        )
+    if transaction.user_id == current_user.id:
+        return transaction
+    if transaction.household_id is None:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="You are not allowed to delete this transaction.",
+        )
+
+    member = get_member_for_user(session, transaction.household_id, current_user.id)
+    if member is not None and member.role == HouseholdMemberRole.OWNER:
+        return transaction
+
+    raise HTTPException(
+        status_code=status.HTTP_403_FORBIDDEN,
+        detail="Only the creator or household owner can delete this transaction.",
+    )
 
 
 def _resolve_item_language(
@@ -152,13 +261,126 @@ def _enrich_transaction_items_with_translations(
 
 
 def _get_user_visible_item_categories(session: Session, current_user: User) -> list[Category]:
+    disabled_subquery = select(UserHiddenCategory.category_id).where(
+        UserHiddenCategory.user_id == current_user.id,
+    )
     return session.exec(
         select(Category).where(
             Category.scope == CategoryScope.ITEM,
-            Category.is_active == True,
-            or_(Category.user_id == None, Category.user_id == current_user.id),
+            Category.is_active,
+            Category.id.notin_(disabled_subquery),
+            or_(Category.user_id.is_(None), Category.user_id == current_user.id),
         )
     ).all()
+
+
+def _get_user_visible_category_by_id(
+    session: Session,
+    *,
+    current_user: User,
+    category_id: uuid.UUID,
+) -> Category | None:
+    disabled_subquery = select(UserHiddenCategory.category_id).where(
+        UserHiddenCategory.user_id == current_user.id,
+    )
+    return session.exec(
+        select(Category).where(
+            Category.id == category_id,
+            Category.scope == CategoryScope.ITEM,
+            Category.is_active,
+            Category.id.notin_(disabled_subquery),
+            or_(Category.user_id.is_(None), Category.user_id == current_user.id),
+        )
+    ).first()
+
+
+def _get_or_create_global_category(
+    session: Session,
+    *,
+    scope: CategoryScope,
+    code: str,
+    name: str,
+    parent_id: uuid.UUID | None = None,
+) -> Category:
+    category = session.exec(
+        select(Category).where(
+            Category.scope == scope,
+            Category.code == code,
+            Category.user_id.is_(None),
+        )
+    ).first()
+    if category is not None:
+        category.name = name
+        category.parent_id = parent_id
+        category.is_active = True
+        session.add(category)
+        session.flush()
+        return category
+
+    category = Category(
+        scope=scope,
+        code=code,
+        name=name,
+        parent_id=parent_id,
+        user_id=None,
+        is_custom=False,
+    )
+    session.add(category)
+    session.flush()
+    return category
+
+
+def _get_uncategorized_item_category_id(session: Session) -> uuid.UUID:
+    other_item = _get_or_create_global_category(
+        session,
+        scope=CategoryScope.ITEM,
+        code="OTHER",
+        name="Other",
+    )
+    uncategorized = _get_or_create_global_category(
+        session,
+        scope=CategoryScope.ITEM,
+        code="UNCATEGORIZED",
+        name="Uncategorized",
+        parent_id=other_item.id,
+    )
+    return uncategorized.id
+
+
+def _resolve_transaction_category_from_item_category(
+    session: Session,
+    *,
+    item_category_id: uuid.UUID | None,
+) -> uuid.UUID | None:
+    if item_category_id is None:
+        return None
+
+    category = session.exec(
+        select(Category).where(Category.id == item_category_id)
+    ).first()
+    if category is None:
+        return None
+
+    top_level = category
+    visited: set[uuid.UUID] = set()
+    while top_level.parent_id is not None and top_level.parent_id not in visited:
+        visited.add(top_level.id)
+        parent = session.exec(
+            select(Category).where(Category.id == top_level.parent_id)
+        ).first()
+        if parent is None:
+            break
+        top_level = parent
+
+    match = session.exec(
+        select(Category.id).where(
+            Category.scope == CategoryScope.TRANSACTION,
+            Category.code == top_level.code,
+            Category.is_active,
+            Category.user_id.is_(None),
+        )
+    ).first()
+    return match
 
 
 def _resolve_top_level_item_category(
@@ -282,8 +504,8 @@ def _resolve_category_filter_sets(
             select(Category.id).where(
                 Category.scope == CategoryScope.TRANSACTION,
                 Category.code.in_(selected_codes),
-                Category.is_active == True,
-                or_(Category.user_id == None, Category.user_id == current_user.id),
+                Category.is_active,
+                or_(Category.user_id.is_(None), Category.user_id == current_user.id),
             )
         ).all()
 
@@ -322,14 +544,18 @@ def _resolve_subcategory_filter_ids(
     if not requested_ids:
         return set()
 
+    disabled_subquery = select(UserHiddenCategory.category_id).where(
+        UserHiddenCategory.user_id == current_user.id,
+    )
     valid_subcategory_ids = set(
         session.exec(
             select(Category.id).where(
                 Category.scope == CategoryScope.ITEM,
-                Category.parent_id != None,
-                Category.is_active == True,
+                Category.parent_id.is_not(None),
+                Category.is_active,
+                Category.id.notin_(disabled_subquery),
                 Category.id.in_(requested_ids),
-                or_(Category.user_id == None, Category.user_id == current_user.id),
+                or_(Category.user_id.is_(None), Category.user_id == current_user.id),
             )
         ).all()
     )
@@ -342,7 +568,9 @@ def _build_filtered_transaction_ids_query(
     current_user: User,
     filters: TransactionListFilter,
 ):
-    query = select(Transaction.id).where(Transaction.user_id == current_user.id)
+    query = select(Transaction.id).where(
+        _build_transaction_read_visibility_predicate(session, current_user)
+    )
 
     if filters.from_occurred_at:
         query = query.where(Transaction.occurred_at >= filters.from_occurred_at)
@@ -378,7 +606,7 @@ def _build_filtered_transaction_ids_query(
             .where(
                 TransactionLabel.label_id.in_(label_filter_ids),
                 Label.user_id == current_user.id,
-                Label.is_active == True,
+                Label.is_active,
             )
             .subquery()
         )
@@ -446,7 +674,7 @@ def _load_labels_by_transaction_id(
         .where(
             TransactionLabel.transaction_id.in_(transaction_ids),
             Label.user_id == current_user.id,
-            Label.is_active == True,
+            Label.is_active,
         )
         .order_by(Label.name.asc())
     ).all()
@@ -463,21 +691,13 @@ def _load_category_names_by_id(
     session: Session,
     *,
     category_ids: list[uuid.UUID],
-    current_user: User | None = None,
 ) -> dict[uuid.UUID, str]:
     if not category_ids:
         return {}
-    
-    query = select(Category.id, Category.name).where(Category.id.in_(category_ids))
-    
-    if current_user:
-        from app.models.taxonomy.category_hidden import UserHiddenCategory
-        hidden_subquery = select(UserHiddenCategory.category_id).where(
-            UserHiddenCategory.user_id == current_user.id
-        )
-        query = query.where(Category.id.notin_(hidden_subquery))
 
-    rows = session.exec(query).all()
+    rows = session.exec(
+        select(Category.id, Category.name).where(Category.id.in_(category_ids))
+    ).all()
     return {category_id: name for category_id, name in rows}
 
 
@@ -533,6 +753,17 @@ def _enrich_transaction_attribution_snapshot(
     read: TransactionRead,
 ) -> None:
     """Populate read-only attribution snippets for transaction details."""
+    resolved_created_by_user_id = read.created_by_user_id
+    if resolved_created_by_user_id is None and read.receipt_id is not None:
+        resolved_created_by_user_id = session.exec(
+            select(Receipt.user_id).where(Receipt.id == read.receipt_id)
+        ).first()
+    if resolved_created_by_user_id is None:
+        resolved_created_by_user_id = read.user_id
+
+    resolved_owner_user_id = read.owner_user_id or read.user_id
+    read.created_by_user_id = resolved_created_by_user_id
+    read.owner_user_id = resolved_owner_user_id
     read.household = None
     read.created_by_user = None
     read.owner_user = None
@@ -600,6 +831,219 @@ def _apply_display_conversion(
         item.display_amount = amount_converted.value
         item.display_unit_price = unit_price_converted.value
 
+
+def _build_transaction_read(
+    *,
+    session: Session,
+    current_user: User,
+    transaction: Transaction,
+    items: list[TransactionItem] | None = None,
+    target_currency: str | None = None,
+    item_language: str | None = None,
+    app_language: str | None = None,
+) -> TransactionRead:
+    loaded_items = items
+    if loaded_items is None:
+        loaded_items = session.exec(
+            select(TransactionItem).where(
+                TransactionItem.transaction_id == transaction.id,
+            ).order_by(TransactionItem.line_no)
+        ).all()
+
+    read = TransactionRead.model_validate(transaction)
+    read.items = [TransactionItemRead.model_validate(item) for item in loaded_items]
+    effective_item_language = _resolve_item_language(
+        item_language=item_language,
+        app_language=app_language,
+        current_user=current_user,
+    )
+    translation_lookup = _load_translation_lookup(
+        session,
+        current_user=current_user,
+        target_language=effective_item_language,
+        source_entries=[
+            (item.description, item.description_lang)
+            for item in read.items
+            if item.description_lang is not None
+        ],
+    )
+    _enrich_transaction_items_with_translations(
+        items=read.items,
+        target_language=effective_item_language,
+        lookup=translation_lookup,
+    )
+    read.category_name = (
+        session.exec(
+            select(Category.name).where(Category.id == transaction.category_id)
+        ).first()
+        if transaction.category_id is not None
+        else None
+    )
+    read.labels = _load_labels_by_transaction_id(
+        session,
+        transaction_ids=[transaction.id],
+        current_user=current_user,
+    ).get(transaction.id, [])
+    tx_warnings = []
+    if transaction.receipt_id is not None:
+        tx_warnings = _load_warnings_by_receipt_id(
+            session,
+            receipt_ids=[transaction.receipt_id],
+        ).get(transaction.receipt_id, [])
+    read.has_extraction_warnings = len(tx_warnings) > 0
+    read.extraction_warnings = tx_warnings
+    _enrich_transaction_attribution_snapshot(session, read=read)
+    _apply_display_conversion(
+        read=read,
+        session=session,
+        target_currency=normalize_currency_code(
+            target_currency or current_user.default_currency,
+        ),
+    )
+    return read
+
+
+@router.post("/transactions", response_model=TransactionRead, status_code=status.HTTP_201_CREATED)
+@limiter.limit("30/minute")
+async def create_transaction(
+    request: Request,
+    payload: TransactionCreateManual,
+    target_currency: str | None = None,
+    item_language: str | None = None,
+    app_language: str | None = None,
+    session: Session = Depends(get_session),  # noqa: B008
+    current_user: User = Depends(get_current_user),  # noqa: B008
+):
+    """Create a manual transaction entry."""
+
+    household_id = payload.household_id or _resolve_active_shared_household_id(
+        session,
+        current_user,
+    )
+    _assert_household_transaction_access(
+        session,
+        current_user=current_user,
+        household_id=household_id,
+    )
+    owner_user_id = payload.owner_user_id or current_user.id
+    validate_transaction_attribution(
+        session,
+        household_id=household_id,
+        owner_user_id=owner_user_id,
+    )
+
+    selected_item_category: Category | None = None
+    if payload.category_id is not None:
+        selected_item_category = _get_user_visible_category_by_id(
+            session,
+            current_user=current_user,
+            category_id=payload.category_id,
+        )
+        if selected_item_category is None:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Selected category is invalid or disabled.",
+            )
+
+    fallback_item_category_id = _get_uncategorized_item_category_id(session)
+    item_rows: list[dict[str, Any]] = []
+
+    if payload.items:
+        for index, item_data in enumerate(payload.items, start=1):
+            resolved_category_id = fallback_item_category_id
+            if item_data.category_id is not None:
+                item_category = _get_user_visible_category_by_id(
+                    session,
+                    current_user=current_user,
+                    category_id=item_data.category_id,
+                )
+                if item_category is None:
+                    raise HTTPException(
+                        status_code=status.HTTP_400_BAD_REQUEST,
+                        detail="One or more item categories are invalid or disabled.",
+                    )
+                resolved_category_id = item_category.id
+            elif selected_item_category is not None:
+                resolved_category_id = selected_item_category.id
+
+            item_amount = item_data.amount
+            if item_amount is None and len(payload.items) == 1:
+                item_amount = payload.amount_total
+
+            item_rows.append(
+                {
+                    "line_no": index,
+                    "description": (
+                        item_data.description
+                        or payload.merchant_name
+                        or "Manual entry"
+                    ),
+                    "description_lang": item_data.description_lang,
+                    "qty": item_data.qty,
+                    "unit": item_data.unit,
+                    "unit_price": item_data.unit_price,
+                    "amount": item_amount or Decimal("0.00"),
+                    "amount_before_discount": item_data.amount_before_discount,
+                    "discount_amount": item_data.discount_amount,
+                    "is_adjustment": item_data.is_adjustment or False,
+                    "category_id": resolved_category_id,
+                }
+            )
+    primary_item_category_id = selected_item_category.id if selected_item_category is not None else (
+        item_rows[0]["category_id"] if item_rows else None
+    )
+    transaction = Transaction(
+        user_id=current_user.id,
+        receipt_id=None,
+        occurred_at=payload.occurred_at,
+        amount_total=payload.amount_total,
+        currency=payload.currency,
+        merchant_id=payload.merchant_id,
+        merchant_name=payload.merchant_name,
+        category_id=_resolve_transaction_category_from_item_category(
+            session,
+            item_category_id=primary_item_category_id,
+        ) if primary_item_category_id is not None else None,
+        source=TransactionSource.MANUAL,
+        status=payload.status,
+        household_id=household_id,
+        created_by_user_id=current_user.id,
+        owner_user_id=owner_user_id,
+    )
+    session.add(transaction)
+    session.flush()
+
+    created_items: list[TransactionItem] = []
+    for item_row in item_rows:
+        item = TransactionItem(
+            transaction_id=transaction.id,
+            line_no=item_row["line_no"],
+            description=item_row["description"],
+            description_lang=item_row["description_lang"],
+            qty=item_row["qty"],
+            unit=item_row["unit"],
+            unit_price=item_row["unit_price"],
+            amount=item_row["amount"],
+            amount_before_discount=item_row["amount_before_discount"],
+            discount_amount=item_row["discount_amount"],
+            is_adjustment=item_row["is_adjustment"],
+            category_id=item_row["category_id"],
+        )
+        session.add(item)
+        created_items.append(item)
+
+    session.commit()
+    session.refresh(transaction)
+    return _build_transaction_read(
+        session=session,
+        current_user=current_user,
+        transaction=transaction,
+        items=created_items,
+        target_currency=target_currency,
+        item_language=item_language,
+        app_language=app_language,
+    )
+
 @router.get("/transactions", response_model=list[TransactionRead])
 @limiter.limit("60/minute")
 async def list_transactions(
@@ -610,7 +1054,9 @@ async def list_transactions(
 ):
     """List transactions for the current user."""
     target_currency = _resolve_target_currency(filters, current_user)
-    query = select(Transaction).where(Transaction.user_id == current_user.id)
+    query = select(Transaction).where(
+        _build_transaction_read_visibility_predicate(session, current_user)
+    )
 
     if filters.from_occurred_at:
         query = query.where(Transaction.occurred_at >= filters.from_occurred_at)
@@ -637,7 +1083,7 @@ async def list_transactions(
             .where(
                 TransactionLabel.label_id.in_(label_filter_ids),
                 Label.user_id == current_user.id,
-                Label.is_active == True,
+                Label.is_active,
             )
             .subquery()
         )
@@ -675,7 +1121,6 @@ async def list_transactions(
         category_names_by_id = _load_category_names_by_id(
             session,
             category_ids=category_ids,
-            current_user=current_user,
         )
         warnings_by_receipt = _load_warnings_by_receipt_id(
             session,
@@ -711,10 +1156,27 @@ async def list_transactions(
 async def get_transactions_summary(
     request: Request,
     filters: Annotated[TransactionListFilter, Depends()],
+    group_by: str = "category",
     session: Session = Depends(get_session),  # noqa: B008
     current_user: User = Depends(get_current_user),  # noqa: B008
 ):
     """Get aggregated summary of transactions split by category."""
+    breakdown_mode = (group_by or "category").strip().lower()
+    if breakdown_mode not in {"category", "subcategory"}:
+        raise HTTPException(
+            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+            detail="group_by must be either 'category' or 'subcategory'.",
+        )
+    if breakdown_mode == "subcategory" and not user_has_feature(
+        session,
+        current_user.id,
+        PREMIUM_ANALYTICS_ADVANCED,
+    ):
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Advanced analytics is required for subcategory breakdowns.",
+        )
+
     target_currency = _resolve_target_currency(filters, current_user)
     category_descendant_item_ids, _ = _resolve_category_filter_sets(
         session=session,
@@ -816,7 +1278,7 @@ async def get_transactions_summary(
         cat_code,
         cat_parent_id,
         amount,
-        _tx_id,
+        tx_id,
         tx_currency,
         tx_occurred_at,
         tx_created_at,
@@ -838,9 +1300,11 @@ async def get_transactions_summary(
                 "parent_id": cat_parent_id,
                 "amount": Decimal("0"),
                 "item_count": 0,
+                "transaction_ids": set(),
             }
         category_results[cat_id]["amount"] = category_results[cat_id]["amount"] + converted_amount
         category_results[cat_id]["item_count"] = category_results[cat_id]["item_count"] + 1
+        category_results[cat_id]["transaction_ids"].add(tx_id)
 
     # Pre-fetch all parent categories to get their names and codes if we need to roll up
     parent_ids = {cat_data["parent_id"] for cat_data in category_results.values() if cat_data["parent_id"] is not None}
@@ -895,6 +1359,52 @@ async def get_transactions_summary(
 
     # Re-sort by amount descending since the rollup might have changed the order
     categories_breakdown.sort(key=lambda x: x["amount"], reverse=True)
+
+    subcategory_breakdown = []
+    subcategory_total_amount = Decimal("0")
+    subcategory_transaction_ids: set[uuid.UUID] = set()
+    for cat_id, data in category_results.items():
+        if data["parent_id"] is None:
+            continue
+        amt: Decimal = data["amount"]
+        subcategory_total_amount += amt
+        subcategory_transaction_ids.update(data["transaction_ids"])
+        parent_id = data["parent_id"]
+        parent_name = parent_map.get(data["parent_id"], {}).get("name", data["name"])
+        parent_code = parent_map.get(data["parent_id"], {}).get("code", data["code"])
+        subcategory_name = data["name"]
+        subcategory_code = data["code"]
+        percentage = (
+            (amt / subcategory_total_amount * 100)
+            if subcategory_total_amount > 0
+            else Decimal("0")
+        )
+        subcategory_breakdown.append(
+            {
+                "subcategory_id": cat_id,
+                "name": subcategory_name,
+                "code": subcategory_code,
+                "amount": float(data["amount"]),
+                "percentage": float(percentage),
+                "item_count": data["item_count"],
+                "parent_category_id": parent_id,
+                "parent_category_name": parent_name,
+                "parent_category_code": parent_code,
+            }
+        )
+    if subcategory_breakdown:
+        for row in subcategory_breakdown:
+            amount_decimal = Decimal(str(row["amount"]))
+            row["percentage"] = float(
+                (amount_decimal / subcategory_total_amount * 100)
+                if subcategory_total_amount > 0
+                else Decimal("0")
+            )
+    subcategory_breakdown.sort(key=lambda x: x["amount"], reverse=True)
+
+    if breakdown_mode == "subcategory":
+        total_amount = subcategory_total_amount
+        total_transactions = len(subcategory_transaction_ids)
 
     # 4. Discount analytics on filtered TransactionItem scope
     discount_rows = session.exec(
@@ -997,7 +1507,11 @@ async def get_transactions_summary(
         "total_amount": float(total_amount),
         "total_transactions": total_transactions,
         "currency": target_currency,
-        "categories": categories_breakdown,
+        "breakdown_mode": breakdown_mode,
+        "breakdown": (
+            subcategory_breakdown if breakdown_mode == "subcategory" else categories_breakdown
+        ),
+        "categories": categories_breakdown if breakdown_mode == "category" else [],
         "discounts": {
             "total_savings": float(total_savings),
             "items_with_discount": items_with_discount,
@@ -1086,7 +1600,7 @@ async def get_category_subcategory_summary(
             top_level_id=top_level_category.id,
             category_by_id=category_by_id,
         )
-        if direct_child is None:
+        if direct_child is None or direct_child.id == top_level_category.id:
             continue
         if direct_child.id not in rolled_up_subcategories:
             rolled_up_subcategories[direct_child.id] = {
@@ -1141,7 +1655,7 @@ async def get_subcategory_item_summary(
     session: Session = Depends(get_session),  # noqa: B008
     current_user: User = Depends(get_current_user),  # noqa: B008
 ):
-    """Get purchased item breakdown for one subcategory."""
+    """Get purchased item breakdown for one item-category node."""
     target_currency = _resolve_target_currency(filters, current_user)
     effective_item_language = _resolve_item_language(
         item_language=filters.item_language,
@@ -1152,9 +1666,8 @@ async def get_subcategory_item_summary(
         select(Category).where(
             Category.id == subcategory_id,
             Category.scope == CategoryScope.ITEM,
-            Category.parent_id != None,
-            Category.is_active == True,
-            or_(Category.user_id == None, Category.user_id == current_user.id),
+            Category.is_active,
+            or_(Category.user_id.is_(None), Category.user_id == current_user.id),
         )
     ).first()
     if subcategory is None:
@@ -1251,7 +1764,7 @@ async def get_subcategory_item_summary(
         target_language=effective_item_language,
         source_entries=[
             (description, description_lang)
-            for (description, description_lang) in grouped.keys()
+            for (description, description_lang) in grouped
             if description_lang is not None
         ],
     )
@@ -1326,8 +1839,8 @@ async def get_transaction(
     """Get a transaction and its line items."""
     transaction = session.exec(
         select(Transaction).where(
-            Transaction.id == transaction_id, 
-            Transaction.user_id == current_user.id
+            Transaction.id == transaction_id,
+            _build_transaction_read_visibility_predicate(session, current_user),
         )
     ).first()
 
@@ -1337,61 +1850,14 @@ async def get_transaction(
             detail="Transaction not found."
         )
 
-    items = session.exec(
-        select(TransactionItem).where(TransactionItem.transaction_id == transaction_id)
-        .order_by(TransactionItem.line_no)
-    ).all()
-
-    # Construct the response model manually to combine models
-    read = TransactionRead.model_validate(transaction)
-    read.items = [TransactionItemRead.model_validate(item) for item in items]
-    effective_item_language = _resolve_item_language(
+    return _build_transaction_read(
+        session=session,
+        current_user=current_user,
+        transaction=transaction,
+        target_currency=target_currency,
         item_language=item_language,
         app_language=app_language,
-        current_user=current_user,
     )
-    translation_lookup = _load_translation_lookup(
-        session,
-        current_user=current_user,
-        target_language=effective_item_language,
-        source_entries=[
-            (item.description, item.description_lang)
-            for item in read.items
-            if item.description_lang is not None
-        ],
-    )
-    _enrich_transaction_items_with_translations(
-        items=read.items,
-        target_language=effective_item_language,
-        lookup=translation_lookup,
-    )
-    read.category_name = (
-        session.exec(
-            select(Category.name).where(Category.id == transaction.category_id)
-        ).first()
-        if transaction.category_id is not None
-        else None
-    )
-    read.labels = _load_labels_by_transaction_id(
-        session,
-        transaction_ids=[transaction.id],
-        current_user=current_user,
-    ).get(transaction.id, [])
-    tx_warnings = []
-    if transaction.receipt_id is not None:
-        tx_warnings = _load_warnings_by_receipt_id(
-            session,
-            receipt_ids=[transaction.receipt_id],
-        ).get(transaction.receipt_id, [])
-    read.has_extraction_warnings = len(tx_warnings) > 0
-    read.extraction_warnings = tx_warnings
-    _enrich_transaction_attribution_snapshot(session, read=read)
-    _apply_display_conversion(
-        read=read,
-        session=session,
-        target_currency=normalize_currency_code(target_currency or current_user.default_currency),
-    )
-    return read
 
 
 @router.put("/transactions/{transaction_id}", response_model=TransactionRead)
@@ -1409,8 +1875,8 @@ async def update_transaction(
     """Update a transaction. Optionally updates embedded line items."""
     transaction = session.exec(
         select(Transaction).where(
-            Transaction.id == transaction_id, 
-            Transaction.user_id == current_user.id
+            Transaction.id == transaction_id,
+            _build_transaction_write_visibility_predicate(session, current_user),
         )
     ).first()
 
@@ -1419,6 +1885,22 @@ async def update_transaction(
             status_code=status.HTTP_404_NOT_FOUND, 
             detail="Transaction not found."
         )
+
+    next_household_id = (
+        payload.household_id
+        if payload.household_id is not None
+        else transaction.household_id
+    )
+    _assert_household_transaction_access(
+        session,
+        current_user=current_user,
+        household_id=next_household_id,
+    )
+    validate_transaction_attribution(
+        session,
+        household_id=next_household_id,
+        owner_user_id=payload.owner_user_id if payload.owner_user_id is not None else transaction.owner_user_id,
+    )
 
     # Enforce category visibility
     requested_category_ids = set()
@@ -1430,12 +1912,17 @@ async def update_transaction(
             if item_data.category_id is not None:
                 requested_category_ids.add(item_data.category_id)
     if requested_category_ids:
+        disabled_subquery = select(UserHiddenCategory.category_id).where(
+            UserHiddenCategory.user_id == current_user.id,
+        )
         valid_category_ids = set(
             session.exec(
                 select(Category.id).where(
                     Category.id.in_(requested_category_ids),
-                    Category.is_active == True,
-                    or_(Category.user_id == None, Category.user_id == current_user.id),
+                    Category.scope == CategoryScope.ITEM,
+                    Category.is_active,
+                    Category.id.notin_(disabled_subquery),
+                    or_(Category.user_id.is_(None), Category.user_id == current_user.id),
                 )
             ).all()
         )
@@ -1510,56 +1997,50 @@ async def update_transaction(
     session.commit()
     session.refresh(transaction)
 
-    # Build response
-    read = TransactionRead.model_validate(transaction)
-    read.items = [TransactionItemRead.model_validate(item) for item in items]
-    effective_item_language = _resolve_item_language(
+    return _build_transaction_read(
+        session=session,
+        current_user=current_user,
+        transaction=transaction,
+        items=items,
+        target_currency=target_currency,
         item_language=item_language,
         app_language=app_language,
-        current_user=current_user,
     )
-    translation_lookup = _load_translation_lookup(
+
+
+@router.delete("/transactions/{transaction_id}", status_code=status.HTTP_204_NO_CONTENT)
+@limiter.limit("30/minute")
+async def delete_transaction(
+    request: Request,
+    transaction_id: uuid.UUID,
+    session: Session = Depends(get_session),  # noqa: B008
+    current_user: User = Depends(get_current_user),  # noqa: B008
+):
+    """Delete a manual transaction without an attached receipt."""
+
+    transaction = _get_deleteable_manual_transaction(
         session,
+        transaction_id=transaction_id,
         current_user=current_user,
-        target_language=effective_item_language,
-        source_entries=[
-            (item.description, item.description_lang)
-            for item in read.items
-            if item.description_lang is not None
-        ],
     )
-    _enrich_transaction_items_with_translations(
-        items=read.items,
-        target_language=effective_item_language,
-        lookup=translation_lookup,
-    )
-    read.category_name = (
-        session.exec(
-            select(Category.name).where(Category.id == transaction.category_id)
-        ).first()
-        if transaction.category_id is not None
-        else None
-    )
-    read.labels = _load_labels_by_transaction_id(
-        session,
-        transaction_ids=[transaction.id],
-        current_user=current_user,
-    ).get(transaction.id, [])
-    tx_warnings = []
-    if transaction.receipt_id is not None:
-        tx_warnings = _load_warnings_by_receipt_id(
-            session,
-            receipt_ids=[transaction.receipt_id],
-        ).get(transaction.receipt_id, [])
-    read.has_extraction_warnings = len(tx_warnings) > 0
-    read.extraction_warnings = tx_warnings
-    _enrich_transaction_attribution_snapshot(session, read=read)
-    _apply_display_conversion(
-        read=read,
-        session=session,
-        target_currency=normalize_currency_code(target_currency or current_user.default_currency),
-    )
-    return read
+
+    label_links = session.exec(
+        select(TransactionLabel).where(TransactionLabel.transaction_id == transaction_id)
+    ).all()
+    for row in label_links:
+        session.delete(row)
+
+    items = session.exec(
+        select(TransactionItem).where(TransactionItem.transaction_id == transaction_id)
+    ).all()
+    for item in items:
+        session.delete(item)
+
+    session.flush()
+    session.delete(transaction)
+    session.flush()
+    session.commit()
+    return None
 
 
 @router.delete("/transactions/{transaction_id}/items/{item_id}", status_code=status.HTTP_204_NO_CONTENT)
@@ -1575,7 +2056,7 @@ async def delete_transaction_item(
     transaction = session.exec(
         select(Transaction).where(
             Transaction.id == transaction_id,
-            Transaction.user_id == current_user.id,
+            _build_transaction_write_visibility_predicate(session, current_user),
         )
     ).first()
     if transaction is None:

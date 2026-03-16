@@ -20,7 +20,6 @@ import base64
 import json
 import logging
 import os
-import sys
 import time
 import traceback
 import uuid
@@ -44,13 +43,14 @@ logger = logging.getLogger(__name__)
 # ---------------------------------------------------------------------------
 # Local imports (after path setup)
 # ---------------------------------------------------------------------------
-from app.core.config import llm_settings, s3_settings  # noqa: E402
+from app.core.config import llm_settings  # noqa: E402
 from app.core.db import engine  # noqa: E402
 from app.core.minio import download_object, ensure_bucket  # noqa: E402
 from app.models.receipts.receipt import Receipt  # noqa: E402
 from app.models.receipts.receipt_extraction import ReceiptExtraction  # noqa: E402
 from app.models.shared.enums import CategoryScope, ReceiptStatus, TransactionSource  # noqa: E402
 from app.models.taxonomy.category import Category  # noqa: E402
+from app.models.taxonomy.category_hidden import UserHiddenCategory  # noqa: E402
 from app.models.transactions.transaction import Transaction  # noqa: E402
 from app.models.transactions.transaction_item import TransactionItem  # noqa: E402
 from app.schemas.extraction import (  # noqa: E402
@@ -59,6 +59,7 @@ from app.schemas.extraction import (  # noqa: E402
     ReceiptTotalMismatchWarning,
 )
 from app.schemas.shared import quantize_amount  # noqa: E402
+from app.services.households.access import get_active_shared_household_id  # noqa: E402
 
 RABBITMQ_URL: str = os.environ.get("RABBITMQ_URL", "amqp://guest:guest@rabbitmq:5672/")
 QUEUE_NAME = "receipt_extraction"
@@ -78,8 +79,8 @@ def _call_vision_llm(
 
     Returns the extracted dict from the LLM along with metadata.
     """
-    from langchain_google_genai import ChatGoogleGenerativeAI
     from langchain_core.messages import HumanMessage
+    from langchain_google_genai import ChatGoogleGenerativeAI
 
     model = ChatGoogleGenerativeAI(
         model=llm_settings.MODEL_NAME,
@@ -189,7 +190,7 @@ def _get_or_create_global_category(
         select(Category).where(
             Category.scope == scope,
             Category.code == code,
-            Category.user_id == None,
+            Category.user_id.is_(None),
         )
     ).first()
     if cat is not None:
@@ -216,6 +217,12 @@ def _get_or_create_global_category(
     return cat
 
 
+def _disabled_category_subquery(user_id: uuid.UUID):
+    return select(UserHiddenCategory.category_id).where(
+        UserHiddenCategory.user_id == user_id,
+    )
+
+
 def _resolve_category_with_scope(
     session: Session,
     *,
@@ -231,8 +238,9 @@ def _resolve_category_with_scope(
         select(Category).where(
             Category.scope == scope,
             Category.code == clean_code,
-            Category.is_active == True,
-            or_(Category.user_id == None, Category.user_id == user_id),
+            Category.is_active,
+            Category.id.notin_(_disabled_category_subquery(user_id)),
+            or_(Category.user_id.is_(None), Category.user_id == user_id),
         )
         .order_by(
             case(
@@ -396,9 +404,10 @@ def process_receipt(receipt_id: str) -> None:
             tx_category_codes = session.exec(
                 select(Category.code).where(
                     Category.scope == CategoryScope.TRANSACTION,
-                    Category.is_active == True,
-                    Category.parent_id == None,
-                    or_(Category.user_id == None, Category.user_id == receipt.user_id),
+                    Category.is_active,
+                    Category.parent_id.is_(None),
+                    Category.id.notin_(_disabled_category_subquery(receipt.user_id)),
+                    or_(Category.user_id.is_(None), Category.user_id == receipt.user_id),
                 )
             ).all()
             if not tx_category_codes:
@@ -407,10 +416,11 @@ def process_receipt(receipt_id: str) -> None:
             item_subcategory_codes = session.exec(
                 select(Category.code).where(
                     Category.scope == CategoryScope.ITEM,
-                    Category.is_active == True,
-                    Category.parent_id != None,
+                    Category.is_active,
+                    Category.parent_id.is_not(None),
                     Category.code != "UNCATEGORIZED",
-                    or_(Category.user_id == None, Category.user_id == receipt.user_id),
+                    Category.id.notin_(_disabled_category_subquery(receipt.user_id)),
+                    or_(Category.user_id.is_(None), Category.user_id == receipt.user_id),
                 )
             ).all()
             if not item_subcategory_codes:
@@ -478,6 +488,8 @@ def process_receipt(receipt_id: str) -> None:
             if transaction_category_id is None:
                 transaction_category_id = _get_other_transaction_category_id(session)
 
+            shared_household_id = get_active_shared_household_id(session, receipt.user_id)
+
             # --- Create Transaction ------------------------------------------
             transaction = Transaction(
                 user_id=receipt.user_id,
@@ -489,6 +501,9 @@ def process_receipt(receipt_id: str) -> None:
                 category_id=transaction_category_id,
                 source=TransactionSource.RECEIPT,
                 status="DRAFT",
+                household_id=shared_household_id,
+                created_by_user_id=receipt.user_id,
+                owner_user_id=receipt.user_id,
             )
             session.add(transaction)
             session.commit()

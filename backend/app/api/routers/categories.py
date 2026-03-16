@@ -2,12 +2,11 @@
 
 import logging
 import uuid
-from typing import Annotated
 
 from fastapi import APIRouter, Depends, HTTPException, Request, status
 from pydantic import BaseModel, Field
-from sqlmodel import Session, select
 from sqlalchemy import or_
+from sqlmodel import Session, select
 
 from app.auth.deps import get_current_user
 from app.core.db import get_session
@@ -16,6 +15,12 @@ from app.models.shared.enums import CategoryScope
 from app.models.taxonomy.category import Category
 from app.models.taxonomy.category_hidden import UserHiddenCategory
 from app.models.users.user import User
+from app.services.taxonomy import (
+    collect_disable_target_ids,
+    disable_category_ids_for_user,
+    get_user_disabled_category_ids,
+    restore_category_ids_for_user,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -41,13 +46,14 @@ def _normalize_code(value: str) -> str:
     return "_".join(value.strip().upper().split())
 
 
-def _to_response(cat: Category) -> dict:
+def _to_response(cat: Category, *, is_disabled: bool = False) -> dict:
     return {
         "id": str(cat.id),
         "code": cat.code,
         "name": cat.name,
         "is_default": cat.user_id is None,
         "is_custom": cat.is_custom,
+        "is_disabled": is_disabled,
         "parent_id": str(cat.parent_id) if cat.parent_id else None,
         "icon": cat.icon,
         "color": cat.color,
@@ -59,13 +65,17 @@ def _resolve_parent_or_400(
     current_user: User,
     parent_id: uuid.UUID,
 ) -> Category:
+    disabled_subquery = select(UserHiddenCategory.category_id).where(
+        UserHiddenCategory.user_id == current_user.id
+    )
     parent = session.exec(
         select(Category).where(
             Category.id == parent_id,
             Category.scope == CategoryScope.ITEM,
-            Category.is_active == True,
-            Category.parent_id == None,  # top-level only
-            or_(Category.user_id == None, Category.user_id == current_user.id),
+            Category.is_active,
+            Category.parent_id.is_(None),  # top-level only
+            Category.id.notin_(disabled_subquery),
+            or_(Category.user_id.is_(None), Category.user_id == current_user.id),
         )
     ).first()
     if parent is None:
@@ -84,6 +94,7 @@ def _resolve_parent_or_400(
 @limiter.limit("60/minute")
 async def list_categories(
     request: Request,
+    include_disabled: bool = False,
     session: Session = Depends(get_session),  # noqa: B008
     current_user: User = Depends(get_current_user),  # noqa: B008
 ):
@@ -91,9 +102,9 @@ async def list_categories(
     categories = session.exec(
         select(Category)
         .where(
-            Category.is_active == True,
+            Category.is_active,
             Category.scope == CategoryScope.ITEM,
-            or_(Category.user_id == None, Category.user_id == current_user.id),
+            or_(Category.user_id.is_(None), Category.user_id == current_user.id),
         )
         .order_by(Category.parent_id, Category.name)
     ).all()
@@ -109,20 +120,24 @@ async def list_categories(
         if existing.user_id is None and cat.user_id == current_user.id:
             effective_by_code[key] = cat
 
-    hidden_ids = set()
-    if current_user:
-        hidden_rows = session.exec(
-            select(UserHiddenCategory.category_id).where(
-                UserHiddenCategory.user_id == current_user.id
-            )
-        ).all()
-        hidden_ids.update(hidden_rows)
+    disabled_ids = get_user_disabled_category_ids(session, current_user.id)
 
-    effective_categories = [
-        cat for cat in effective_by_code.values() if cat.id not in hidden_ids
+    effective_categories = list(effective_by_code.values())
+    if not include_disabled:
+        effective_categories = [
+            cat for cat in effective_categories if cat.id not in disabled_ids
+        ]
+    effective_categories.sort(
+        key=lambda c: (
+            c.id in disabled_ids,
+            c.parent_id is not None,
+            c.name.lower(),
+        )
+    )
+    return [
+        _to_response(cat, is_disabled=cat.id in disabled_ids)
+        for cat in effective_categories
     ]
-    effective_categories.sort(key=lambda c: (c.parent_id is not None, c.name.lower()))
-    return [_to_response(cat) for cat in effective_categories]
 
 
 # ---------------------------------------------------------------------------
@@ -138,12 +153,8 @@ async def create_category(
     current_user: User = Depends(get_current_user),  # noqa: B008
 ):
     """Create a new user-defined category."""
-    if payload.parent_id is None:
-        raise HTTPException(
-            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
-            detail="parent_id is required for custom categories.",
-        )
-    _resolve_parent_or_400(session, current_user, payload.parent_id)
+    if payload.parent_id is not None:
+        _resolve_parent_or_400(session, current_user, payload.parent_id)
 
     code = _normalize_code(payload.code or payload.name)
 
@@ -245,39 +256,27 @@ async def delete_category(
     current_user: User = Depends(get_current_user),  # noqa: B008
 ):
     """Soft-delete a custom category, or hide a built-in category."""
-    from app.models.taxonomy.category_hidden import UserHiddenCategory
     visible_category = session.exec(
         select(Category).where(
             Category.id == category_id,
             Category.scope == CategoryScope.ITEM,
-            or_(Category.user_id == None, Category.user_id == current_user.id),
+            or_(Category.user_id.is_(None), Category.user_id == current_user.id),
         )
     ).first()
     if visible_category is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Category not found.")
     if visible_category.user_id is None:
-        # It's a built-in category. Instead of rejecting, mark it as hidden for this user.
-        already_hidden = session.exec(
-            select(UserHiddenCategory).where(
-                UserHiddenCategory.user_id == current_user.id,
-                UserHiddenCategory.category_id == visible_category.id,
-            )
-        ).first()
-
-        if not already_hidden:
-            hidden_cat = UserHiddenCategory(
-                user_id=current_user.id,
-                category_id=visible_category.id,
-            )
-            session.add(hidden_cat)
-            session.commit()
-            
+        disable_category_ids_for_user(
+            session,
+            user_id=current_user.id,
+            category_ids=collect_disable_target_ids(session, visible_category),
+        )
         return None
-        
+
     cat = visible_category
 
     has_active_children = session.exec(
-        select(Category.id).where(Category.parent_id == cat.id, Category.is_active == True)
+        select(Category.id).where(Category.parent_id == cat.id, Category.is_active)
     ).first()
     if has_active_children is not None:
         raise HTTPException(
@@ -305,22 +304,28 @@ async def restore_category(
     current_user: User = Depends(get_current_user),  # noqa: B008
 ):
     """Restore a previously hidden built-in category for the current user."""
-    from app.models.taxonomy.category_hidden import UserHiddenCategory
-
-    hidden = session.exec(
-        select(UserHiddenCategory).where(
-            UserHiddenCategory.user_id == current_user.id,
-            UserHiddenCategory.category_id == category_id,
+    category = session.exec(
+        select(Category).where(
+            Category.id == category_id,
+            Category.scope == CategoryScope.ITEM,
+            Category.user_id.is_(None),
         )
     ).first()
+    if category is None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Built-in category not found.",
+        )
 
-    if hidden is None:
+    restored_count = restore_category_ids_for_user(
+        session,
+        user_id=current_user.id,
+        category_ids=collect_disable_target_ids(session, category),
+    )
+    if restored_count == 0:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail="Category is not hidden, or doesn't exist.",
         )
-
-    session.delete(hidden)
-    session.commit()
 
     return {"message": "Category restored successfully."}

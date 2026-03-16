@@ -26,6 +26,7 @@ from app.schemas.receipts import (
     ReceiptExtractionRead,
     ReceiptRead,
     ReceiptStatusUpdate,
+    ReceiptViewUrlResponse,
 )
 from app.schemas.shared import (
     Amount2DP,
@@ -90,6 +91,7 @@ __all__ = [
     "ReceiptRead",
     "ReceiptScanUsageRead",
     "ReceiptStatusUpdate",
+    "ReceiptViewUrlResponse",
     "RevenueCatSyncResponse",
     "SchemaBase",
     "SubscriptionRead",

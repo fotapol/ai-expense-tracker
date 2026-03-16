@@ -82,6 +82,25 @@ def generate_presigned_put(
     }
 
 
+def generate_presigned_get(
+    key: str,
+    bucket: str | None = None,
+    expiry: int = 600,
+) -> str:
+    """Generate a presigned GET URL for client-side object viewing."""
+
+    bucket = bucket or s3_settings.BUCKET_RECEIPTS
+    client = get_s3_presign_client()
+    return client.generate_presigned_url(
+        "get_object",
+        Params={
+            "Bucket": bucket,
+            "Key": key,
+        },
+        ExpiresIn=expiry,
+    )
+
+
 def head_object(key: str, bucket: str | None = None) -> dict:
     """HEAD an object and return size + content-type.
 
