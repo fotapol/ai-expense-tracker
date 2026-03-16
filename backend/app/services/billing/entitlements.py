@@ -16,7 +16,7 @@ from app.models.shared.enums import (
     EntitlementStatus,
     SubscriptionStatus,
 )
-from app.services.billing.features import feature_codes_for_product
+from app.services.billing.features import FAMILY_PREMIUM_PRODUCT_ID, feature_codes_for_product
 
 
 def _utcnow() -> dt.datetime:
@@ -79,6 +79,7 @@ def sync_subscription_entitlements(
     session: Session,
     subscription: Subscription,
     *,
+    household_id: uuid.UUID | None = None,
     now: dt.datetime | None = None,
 ) -> list[Entitlement]:
     """Create or update entitlements for a subscription's current normalized state."""
@@ -90,25 +91,66 @@ def sync_subscription_entitlements(
         now=current_time,
     )
     feature_codes = feature_codes_for_product(subscription.product_id)
+    touched = _sync_scope_entitlements(
+        session=session,
+        subscription=subscription,
+        scope_type=EntitlementScopeType.USER,
+        scope_id=subscription.user_id,
+        feature_codes=feature_codes,
+        decision=decision,
+        current_time=current_time,
+    )
 
+    household_feature_codes = (
+        feature_codes
+        if subscription.product_id == FAMILY_PREMIUM_PRODUCT_ID and household_id is not None
+        else set()
+    )
+    touched.extend(
+        _sync_scope_entitlements(
+            session=session,
+            subscription=subscription,
+            scope_type=EntitlementScopeType.HOUSEHOLD,
+            scope_id=household_id,
+            feature_codes=household_feature_codes,
+            decision=decision,
+            current_time=current_time,
+        )
+    )
+    return touched
+
+
+def _sync_scope_entitlements(
+    *,
+    session: Session,
+    subscription: Subscription,
+    scope_type: EntitlementScopeType,
+    scope_id: uuid.UUID | None,
+    feature_codes: set[str],
+    decision: EntitlementDecision,
+    current_time: dt.datetime,
+) -> list[Entitlement]:
     existing_rows = session.exec(
         select(Entitlement).where(
-            Entitlement.scope_type == EntitlementScopeType.USER,
-            Entitlement.scope_id == subscription.user_id,
+            Entitlement.scope_type == scope_type,
             Entitlement.source_subscription_id == subscription.id,
         )
     ).all()
-    entitlements_by_feature = {row.feature_code: row for row in existing_rows}
+    entitlements_by_key = {
+        (row.scope_id, row.feature_code): row for row in existing_rows
+    }
 
     touched: list[Entitlement] = []
-    if decision.should_grant:
+    active_keys: set[tuple[uuid.UUID, str]] = set()
+    if decision.should_grant and scope_id is not None:
         starts_at = subscription.started_at or current_time
         for feature_code in sorted(feature_codes):
-            row = entitlements_by_feature.get(feature_code)
+            key = (scope_id, feature_code)
+            row = entitlements_by_key.get(key)
             if row is None:
                 row = Entitlement(
-                    scope_type=EntitlementScopeType.USER,
-                    scope_id=subscription.user_id,
+                    scope_type=scope_type,
+                    scope_id=scope_id,
                     feature_code=feature_code,
                     source_subscription_id=subscription.id,
                     starts_at=starts_at,
@@ -121,9 +163,11 @@ def sync_subscription_entitlements(
                 row.expires_at = subscription.expires_at
             session.add(row)
             touched.append(row)
+            active_keys.add(key)
 
-    for feature_code, row in entitlements_by_feature.items():
-        if feature_code in feature_codes and decision.should_grant:
+    for row in existing_rows:
+        key = (row.scope_id, row.feature_code)
+        if key in active_keys:
             continue
         row.status = decision.terminal_status or EntitlementStatus.EXPIRED
         row.expires_at = decision.terminal_expires_at

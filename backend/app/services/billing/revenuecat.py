@@ -153,6 +153,10 @@ class RevenueCatProvider(BillingProvider):
     ):
         self.premium_entitlement_id = premium_entitlement_id
         self.family_premium_entitlement_id = family_premium_entitlement_id
+        self.expected_product_ids = {
+            PERSONAL_PREMIUM_PRODUCT_ID,
+            FAMILY_PREMIUM_PRODUCT_ID,
+        }
         self.personal_product_ids = {
             entry.strip().lower()
             for entry in (personal_product_ids or {PERSONAL_PREMIUM_PRODUCT_ID})
@@ -172,20 +176,58 @@ class RevenueCatProvider(BillingProvider):
             return PERSONAL_PREMIUM_PRODUCT_ID
         return PERSONAL_PREMIUM_PRODUCT_ID
 
-    def normalize_event(
+    def _select_subscription_entry_for_product(
+        self,
+        subscriber: Mapping[str, Any],
+        normalized_product_id: str,
+    ) -> tuple[str | None, dict[str, Any]]:
+        subscriptions = _to_mapping(subscriber.get("subscriptions"))
+        best_key: str | None = None
+        best_entry: dict[str, Any] = {}
+        best_expires = dt.datetime.min.replace(tzinfo=dt.UTC)
+        best_purchase = dt.datetime.min.replace(tzinfo=dt.UTC)
+        for product_key, raw_entry in subscriptions.items():
+            entry = _to_mapping(raw_entry)
+            entry_product_id = (
+                entry.get("product_identifier")
+                or product_key
+            )
+            if self._normalize_product_id(
+                str(entry_product_id).strip() if entry_product_id else None
+            ) != normalized_product_id:
+                continue
+            expires_at = _parse_datetime(entry.get("expires_date")) or dt.datetime.min.replace(
+                tzinfo=dt.UTC
+            )
+            purchase_at = _parse_datetime(entry.get("purchase_date")) or dt.datetime.min.replace(
+                tzinfo=dt.UTC
+            )
+            if (expires_at, purchase_at, str(product_key)) >= (
+                best_expires,
+                best_purchase,
+                str(best_key),
+            ):
+                best_key = str(product_key)
+                best_entry = entry
+                best_expires = expires_at
+                best_purchase = purchase_at
+        return best_key, best_entry
+
+    def _normalize_product_event(
         self,
         *,
         user_id: uuid.UUID,
         payload: Mapping[str, Any],
-    ) -> NormalizedSubscriptionEvent:
+        normalized_product_id: str,
+        entitlement: Mapping[str, Any],
+        latest_product_key: str | None,
+        latest_subscription_entry: Mapping[str, Any],
+    ) -> NormalizedSubscriptionEvent | None:
         now = _utcnow()
-        subscriber = _to_mapping(payload.get("subscriber"))
-        entitlements = _to_mapping(subscriber.get("entitlements"))
-        personal_entitlement = _to_mapping(entitlements.get(self.premium_entitlement_id))
-        family_entitlement = _to_mapping(entitlements.get(self.family_premium_entitlement_id))
-        entitlement = family_entitlement or personal_entitlement
-
-        latest_product_key, latest_subscription_entry = _select_latest_subscription_entry(subscriber)
+        has_entitlement = bool(entitlement)
+        has_subscription_entry = bool(latest_subscription_entry)
+        if not has_entitlement and not has_subscription_entry:
+            return None
 
         started_at = _parse_datetime(entitlement.get("purchase_date"))
         if started_at is None:
@@ -200,21 +242,19 @@ class RevenueCatProvider(BillingProvider):
                 latest_subscription_entry.get("unsubscribe_detected_at")
             )
 
-        if entitlement:
+        if has_entitlement:
             status_value = _resolve_entitlement_status(
                 now=now,
                 expires_at=expires_at,
                 billing_issues_detected_at=billing_issues_detected_at,
                 unsubscribe_detected_at=unsubscribe_detected_at,
             )
-        elif latest_subscription_entry:
+        else:
             status_value = _resolve_subscription_entry_status(
                 now=now,
                 entry=latest_subscription_entry,
                 expires_at=expires_at,
             )
-        else:
-            status_value = SubscriptionStatus.EXPIRED
 
         external_subscription_id = (
             entitlement.get("store_transaction_id")
@@ -226,14 +266,6 @@ class RevenueCatProvider(BillingProvider):
             or latest_subscription_entry.get("product_identifier")
             or latest_product_key
         )
-        normalized_product_id = self._normalize_product_id(
-            str(external_purchase_id).strip() if external_purchase_id else None
-        )
-        if family_entitlement:
-            normalized_product_id = FAMILY_PREMIUM_PRODUCT_ID
-        elif personal_entitlement:
-            normalized_product_id = PERSONAL_PREMIUM_PRODUCT_ID
-
         auto_renew = None
         if status_value in {
             SubscriptionStatus.ACTIVE,
@@ -242,6 +274,7 @@ class RevenueCatProvider(BillingProvider):
         }:
             auto_renew = status_value != SubscriptionStatus.CANCELLED
 
+        subscriber = _to_mapping(payload.get("subscriber"))
         return NormalizedSubscriptionEvent(
             user_id=user_id,
             provider=self.provider,
@@ -261,6 +294,79 @@ class RevenueCatProvider(BillingProvider):
             external_purchase_id=(
                 str(external_purchase_id).strip() if external_purchase_id else None
             ),
+            latest_event_at=_resolve_latest_event_at(payload, now),
+            raw_payload=dict(payload),
+            internal_metadata=None,
+        )
+
+    def normalize_events(
+        self,
+        *,
+        user_id: uuid.UUID,
+        payload: Mapping[str, Any],
+    ) -> list[NormalizedSubscriptionEvent]:
+        subscriber = _to_mapping(payload.get("subscriber"))
+        entitlements = _to_mapping(subscriber.get("entitlements"))
+        family_entitlement = _to_mapping(entitlements.get(self.family_premium_entitlement_id))
+        personal_entitlement = _to_mapping(entitlements.get(self.premium_entitlement_id))
+
+        events: list[NormalizedSubscriptionEvent] = []
+        for normalized_product_id, entitlement in (
+            (FAMILY_PREMIUM_PRODUCT_ID, family_entitlement),
+            (PERSONAL_PREMIUM_PRODUCT_ID, personal_entitlement),
+        ):
+            latest_product_key, latest_subscription_entry = self._select_subscription_entry_for_product(
+                subscriber,
+                normalized_product_id,
+            )
+            event = self._normalize_product_event(
+                user_id=user_id,
+                payload=payload,
+                normalized_product_id=normalized_product_id,
+                entitlement=entitlement,
+                latest_product_key=latest_product_key,
+                latest_subscription_entry=latest_subscription_entry,
+            )
+            if event is not None:
+                events.append(event)
+        return events
+
+    def normalize_event(
+        self,
+        *,
+        user_id: uuid.UUID,
+        payload: Mapping[str, Any],
+    ) -> NormalizedSubscriptionEvent:
+        events = self.normalize_events(user_id=user_id, payload=payload)
+        if events:
+            family_event = next(
+                (event for event in events if event.product_id == FAMILY_PREMIUM_PRODUCT_ID),
+                None,
+            )
+            return family_event or events[0]
+
+        now = _utcnow()
+        subscriber = _to_mapping(payload.get("subscriber"))
+        latest_product_key, latest_subscription_entry = _select_latest_subscription_entry(subscriber)
+        normalized_product_id = self._normalize_product_id(
+            str(latest_product_key).strip() if latest_product_key else None
+        )
+        fallback_event = self._normalize_product_event(
+            user_id=user_id,
+            payload=payload,
+            normalized_product_id=normalized_product_id,
+            entitlement={},
+            latest_product_key=latest_product_key,
+            latest_subscription_entry=latest_subscription_entry,
+        )
+        if fallback_event is not None:
+            return fallback_event
+
+        return NormalizedSubscriptionEvent(
+            user_id=user_id,
+            provider=self.provider,
+            product_id=PERSONAL_PREMIUM_PRODUCT_ID,
+            status=SubscriptionStatus.EXPIRED,
             latest_event_at=_resolve_latest_event_at(payload, now),
             raw_payload=dict(payload),
             internal_metadata=None,
@@ -311,7 +417,13 @@ class RevenueCatClient:
                 detail="Failed to reach RevenueCat API.",
             ) from exc
 
-        payload = response.json()
+        try:
+            payload = response.json()
+        except ValueError as exc:
+            raise HTTPException(
+                status_code=status.HTTP_502_BAD_GATEWAY,
+                detail="RevenueCat API returned malformed JSON.",
+            ) from exc
         if not isinstance(payload, Mapping):
             raise HTTPException(
                 status_code=status.HTTP_502_BAD_GATEWAY,

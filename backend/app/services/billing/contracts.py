@@ -34,6 +34,16 @@ class BillingProvider(ABC):
 
     provider: SubscriptionProvider
 
+    def normalize_events(
+        self,
+        *,
+        user_id: uuid.UUID,
+        payload: Mapping[str, Any],
+    ) -> list[NormalizedSubscriptionEvent]:
+        """Translate one provider payload into one or more normalized events."""
+
+        return [self.normalize_event(user_id=user_id, payload=payload)]
+
     @abstractmethod
     def normalize_event(
         self,

@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import datetime as dt
+import logging
 import os
 
 from fastapi import APIRouter, Depends, HTTPException, Request, status
@@ -24,15 +25,16 @@ from app.schemas.billing import (
 from app.services.billing import (
     SubscriptionSyncService,
     build_manual_subscription_event,
+    resolve_effective_entitlements,
     resolve_effective_subscription,
     resolve_receipt_scan_usage,
-    resolve_user_entitlements,
     subscription_grants_premium_access,
     sync_revenuecat_subscription_for_user,
 )
 
 router = APIRouter(prefix="/v1", tags=["billing"])
 dev_router = APIRouter(prefix="/internal/dev/billing", tags=["billing-dev"])
+logger = logging.getLogger(__name__)
 
 
 def _is_truthy(value: str | None) -> bool:
@@ -72,6 +74,19 @@ def _build_usage_payload(*, used: int, limit: int | None, remaining: int | None,
         period_start_at=period_start_at,
         period_end_at=period_end_at,
     )
+
+
+def _serialize_subscription_or_none(subscription) -> SubscriptionRead | None:
+    if subscription is None:
+        return None
+    try:
+        return SubscriptionRead.model_validate(subscription)
+    except Exception:
+        logger.exception(
+            "Failed to serialize subscription payload for user %s.",
+            getattr(subscription, "user_id", None),
+        )
+        return None
 
 
 def _assert_dev_billing_enabled() -> None:
@@ -140,7 +155,7 @@ async def get_me_subscription(
             expires_at=effective_subscription.expires_at,
             now=current_time,
         ),
-        subscription=SubscriptionRead.model_validate(effective_subscription),
+        subscription=_serialize_subscription_or_none(effective_subscription),
         receipt_scan_usage=usage_payload,
     )
 
@@ -154,21 +169,37 @@ async def sync_revenuecat_subscription(
 ):
     """Synchronize current user's subscription state from RevenueCat."""
 
-    subscription = await sync_revenuecat_subscription_for_user(
-        session=session,
-        current_user=current_user,
-    )
-    feature_codes = sorted(resolve_user_entitlements(session, current_user.id))
+    try:
+        subscription = await sync_revenuecat_subscription_for_user(
+            session=session,
+            current_user=current_user,
+        )
+    except HTTPException:
+        raise
+    except Exception as exc:
+        logger.exception(
+            "Unexpected RevenueCat sync failure for user %s.",
+            current_user.id,
+        )
+        raise HTTPException(
+            status_code=status.HTTP_502_BAD_GATEWAY,
+            detail="Subscription sync failed unexpectedly.",
+        ) from exc
+    feature_codes = sorted(resolve_effective_entitlements(session, current_user.id))
     current_time = dt.datetime.now(dt.UTC)
     usage = resolve_receipt_scan_usage(session, current_user.id, now=current_time)
-    has_active_subscription = subscription_grants_premium_access(
-        status=subscription.status,
-        expires_at=subscription.expires_at,
-        now=current_time,
+    has_active_subscription = (
+        subscription_grants_premium_access(
+            status=subscription.status,
+            expires_at=subscription.expires_at,
+            now=current_time,
+        )
+        if subscription is not None
+        else False
     )
     return RevenueCatSyncResponse(
         has_active_subscription=has_active_subscription,
-        subscription=SubscriptionRead.model_validate(subscription),
+        subscription=_serialize_subscription_or_none(subscription),
         feature_codes=feature_codes,
         receipt_scan_usage=_build_usage_payload(
             used=usage.used,
@@ -193,8 +224,6 @@ async def get_me_entitlements(
     Includes both user-scope entitlements and household-scope entitlements
     from any active household memberships (family plan support).
     """
-    from app.services.billing import resolve_effective_entitlements
-
     feature_codes = sorted(resolve_effective_entitlements(session, current_user.id))
     return MeEntitlementsResponse(feature_codes=feature_codes)
 
@@ -240,7 +269,7 @@ async def apply_manual_subscription_action(
                 "dev_override_applied_at": event_time.isoformat(),
             },
         )
-    feature_codes = sorted(resolve_user_entitlements(session, payload.target_user_id))
+    feature_codes = sorted(resolve_effective_entitlements(session, payload.target_user_id))
     current_time = dt.datetime.now(dt.UTC)
     has_active_subscription = subscription_grants_premium_access(
         status=subscription.status,
@@ -251,6 +280,6 @@ async def apply_manual_subscription_action(
     return DevSubscriptionActionResponse(
         target_user_id=payload.target_user_id,
         has_active_subscription=has_active_subscription,
-        subscription=SubscriptionRead.model_validate(subscription),
+        subscription=_serialize_subscription_or_none(subscription),
         feature_codes=feature_codes,
     )
