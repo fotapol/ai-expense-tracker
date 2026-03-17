@@ -310,11 +310,19 @@ def _get_or_create_global_category(
         )
     ).first()
     if category is not None:
-        category.name = name
-        category.parent_id = parent_id
-        category.is_active = True
-        session.add(category)
-        session.flush()
+        # Only write if something actually changed to avoid unnecessary DB I/O
+        # on every transaction creation (M-7 fix).
+        needs_update = (
+            category.name != name
+            or category.parent_id != parent_id
+            or not category.is_active
+        )
+        if needs_update:
+            category.name = name
+            category.parent_id = parent_id
+            category.is_active = True
+            session.add(category)
+            session.flush()
         return category
 
     category = Category(
@@ -1141,6 +1149,7 @@ async def list_transactions(
             )
             tx_warnings = warnings_by_receipt.get(t.receipt_id, []) if t.receipt_id else []
             read.has_extraction_warnings = len(tx_warnings) > 0
+            read.extraction_warnings = tx_warnings  # H-7: populate warnings body, not just flag
             _apply_display_conversion(
                 read=read,
                 session=session,
@@ -1374,18 +1383,15 @@ async def get_transactions_summary(
         parent_code = parent_map.get(data["parent_id"], {}).get("code", data["code"])
         subcategory_name = data["name"]
         subcategory_code = data["code"]
-        percentage = (
-            (amt / subcategory_total_amount * 100)
-            if subcategory_total_amount > 0
-            else Decimal("0")
-        )
+        # H-4 fix: do NOT compute percentage here; denominator is still growing.
+        # The second pass below computes correct percentages once the total is final.
         subcategory_breakdown.append(
             {
                 "subcategory_id": cat_id,
                 "name": subcategory_name,
                 "code": subcategory_code,
                 "amount": float(data["amount"]),
-                "percentage": float(percentage),
+                "percentage": 0.0,  # filled in by second pass below
                 "item_count": data["item_count"],
                 "parent_category_id": parent_id,
                 "parent_category_name": parent_name,
