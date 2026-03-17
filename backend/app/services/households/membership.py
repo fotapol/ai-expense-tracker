@@ -101,7 +101,6 @@ def leave_household(
         )
 
     member.status = HouseholdMemberStatus.LEFT
-    member.joined_at = member.joined_at or dt.datetime.now(dt.UTC)
     session.add(member)
     session.commit()
     session.refresh(member)

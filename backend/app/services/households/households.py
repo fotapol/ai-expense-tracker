@@ -46,12 +46,8 @@ def attach_existing_manual_transactions_to_household(
 
     attached: list[Transaction] = []
     for transaction in transactions:
-        if (
-            transaction.source != TransactionSource.MANUAL
-            or transaction.receipt_id is not None
-            or transaction.household_id is not None
-        ):
-            continue
+        # NOTE: The SQL query above already guarantees these conditions;
+        # no secondary filter needed here.
         transaction.household_id = household_id
         if transaction.created_by_user_id is None:
             transaction.created_by_user_id = transaction.user_id
@@ -166,6 +162,10 @@ def delete_household(
     ).all()
     for transaction in transactions:
         transaction.household_id = None
+        # Reset owner back to the transaction creator so the transaction
+        # remains attributable after the household context no longer exists.
+        if transaction.owner_user_id != transaction.user_id:
+            transaction.owner_user_id = transaction.user_id
         session.add(transaction)
 
     household_entitlements = session.exec(
