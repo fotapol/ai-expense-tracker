@@ -373,7 +373,7 @@ class ApiClient {
           if (payload is Map<String, dynamic>) {
             final detail = payload['detail'];
             if (detail is Map<String, dynamic> &&
-                detail['code'] == 'free_monthly_scan_limit_reached') {
+                detail['code'] == 'free_rolling_scan_limit_reached') {
               limitMessage = detail['message']?.toString();
             }
           }
@@ -600,8 +600,10 @@ class ApiClient {
   }) async {
     final token = await _getToken();
 
-    // Build query params
-    String url = '$apiBaseUrl/v1/transactions?page_size=100';
+    // Build query params — do not cap page_size here; backend determines page size.
+    // M-1 fix: removing the hardcoded page_size=100 prevents silent truncation for users
+    // with more than 100 transactions.
+    String url = '$apiBaseUrl/v1/transactions';
     if (fromDate != null) {
       url += '&from_occurred_at=${fromDate.toUtc().toIso8601String()}';
     }
@@ -624,13 +626,16 @@ class ApiClient {
       url += '&target_currency=${Uri.encodeComponent(targetCurrency)}';
     }
 
-    final response = await http.get(
-      Uri.parse(url),
-      headers: {
-        'Authorization': 'Bearer $token',
-        'Content-Type': 'application/json',
-      },
-    );
+    // M-2 fix: add a 30 s timeout so the app never hangs indefinitely on a slow network.
+    final response = await http
+        .get(
+          Uri.parse(url),
+          headers: {
+            'Authorization': 'Bearer $token',
+            'Content-Type': 'application/json',
+          },
+        )
+        .timeout(const Duration(seconds: 30));
 
     if (response.statusCode == 200) {
       return jsonDecode(response.body) as List<dynamic>;
@@ -1086,8 +1091,10 @@ class ApiClient {
 
   /// POST /v1/billing/revenuecat/sync
   static Future<Map<String, dynamic>> syncRevenueCatSubscription() async {
-    final token = await _getToken();
     for (var attempt = 0; attempt < 2; attempt++) {
+      // Re-fetch token on each attempt so that if a 5xx happens near token
+      // expiry the retry doesn't reuse an already-expired token.
+      final token = await _getToken();
       final response = await http.post(
         Uri.parse('$apiBaseUrl/v1/billing/revenuecat/sync'),
         headers: {
