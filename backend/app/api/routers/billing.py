@@ -54,6 +54,11 @@ def _is_local_or_development_environment() -> bool:
 
 
 def _dev_billing_routes_enabled() -> bool:
+    # Require a non-empty secret before enabling dev endpoints; an empty
+    # secret would let any caller with an empty header bypass the key check.
+    secret = os.environ.get("DEV_BILLING_INTERNAL_SECRET", "").strip()
+    if not secret:
+        return False
     return _is_local_or_development_environment() and _is_truthy(
         os.environ.get("ENABLE_DEV_BILLING_ENDPOINTS")
     )
@@ -108,14 +113,14 @@ def _assert_dev_billing_access(request: Request, current_user: User) -> None:
             detail="Admin access is required for dev billing endpoints.",
         )
 
-    expected_secret = os.environ.get("DEV_BILLING_INTERNAL_SECRET")
+    expected_secret = os.environ.get("DEV_BILLING_INTERNAL_SECRET", "").strip()
     if not expected_secret:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="Development billing secret is not configured.",
         )
-    provided_secret = request.headers.get("X-Internal-Dev-Key")
-    if provided_secret != expected_secret:
+    provided_secret = (request.headers.get("X-Internal-Dev-Key") or "").strip()
+    if not provided_secret or provided_secret != expected_secret:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="Missing or invalid internal dev key.",
