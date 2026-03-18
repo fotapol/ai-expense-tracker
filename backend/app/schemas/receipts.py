@@ -59,6 +59,15 @@ class ReceiptRead(UUIDTimestampSchema):
     transaction_id: UUID | None = None
 
 
+class ReceiptViewUrlResponse(SchemaBase):
+    """Short-lived receipt file URL for previewing the uploaded artifact."""
+
+    receipt_id: UUID
+    view_url: str
+    mime_type: str
+    original_filename: str
+
+
 class ReceiptStatusUpdate(SchemaBase):
     """Payload for changing receipt processing state."""
 

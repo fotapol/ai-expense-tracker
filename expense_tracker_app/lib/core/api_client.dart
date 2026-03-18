@@ -164,6 +164,42 @@ class ApiClient {
     );
   }
 
+  /// POST /v1/households/current/leave
+  static Future<void> leaveCurrentHousehold() async {
+    final token = await _getToken();
+    final response = await http.post(
+      Uri.parse('$apiBaseUrl/v1/households/current/leave'),
+      headers: {
+        'Authorization': 'Bearer $token',
+        'Content-Type': 'application/json',
+      },
+    );
+
+    if (response.statusCode != 204) {
+      throw Exception(
+        'Failed to leave household: ${response.statusCode} ${_extractErrorMessage(response)}',
+      );
+    }
+  }
+
+  /// DELETE /v1/households/current
+  static Future<void> deleteCurrentHousehold() async {
+    final token = await _getToken();
+    final response = await http.delete(
+      Uri.parse('$apiBaseUrl/v1/households/current'),
+      headers: {
+        'Authorization': 'Bearer $token',
+        'Content-Type': 'application/json',
+      },
+    );
+
+    if (response.statusCode != 204) {
+      throw Exception(
+        'Failed to delete household: ${response.statusCode} ${_extractErrorMessage(response)}',
+      );
+    }
+  }
+
   /// GET /v1/households/current/invites
   static Future<List<dynamic>> listCurrentHouseholdInvites() async {
     final token = await _getToken();
@@ -337,7 +373,7 @@ class ApiClient {
           if (payload is Map<String, dynamic>) {
             final detail = payload['detail'];
             if (detail is Map<String, dynamic> &&
-                detail['code'] == 'free_monthly_scan_limit_reached') {
+                detail['code'] == 'free_rolling_scan_limit_reached') {
               limitMessage = detail['message']?.toString();
             }
           }
@@ -368,6 +404,67 @@ class ApiClient {
     } else {
       throw Exception(
         'Failed to get receipt status: ${response.statusCode} ${response.body}',
+      );
+    }
+  }
+
+  /// GET /v1/receipts/{id}/view-url
+  static Future<Map<String, dynamic>> getReceiptViewUrl(String receiptId) async {
+    final token = await _getToken();
+    final response = await http.get(
+      Uri.parse('$apiBaseUrl/v1/receipts/$receiptId/view-url'),
+      headers: {
+        'Authorization': 'Bearer $token',
+        'Content-Type': 'application/json',
+      },
+    );
+
+    if (response.statusCode == 200) {
+      return jsonDecode(response.body) as Map<String, dynamic>;
+    } else {
+      throw Exception(
+        'Failed to get receipt view URL: ${response.statusCode} ${_extractErrorMessage(response)}',
+      );
+    }
+  }
+
+  /// POST /v1/transactions
+  static Future<Map<String, dynamic>> createTransaction(
+    Map<String, dynamic> payload, {
+    String? targetCurrency,
+    String? itemLanguage,
+    String? appLanguage,
+  }) async {
+    final token = await _getToken();
+    String url = '$apiBaseUrl/v1/transactions';
+    final params = <String>[];
+    if (targetCurrency != null && targetCurrency.isNotEmpty) {
+      params.add('target_currency=${Uri.encodeComponent(targetCurrency)}');
+    }
+    if (itemLanguage != null && itemLanguage.isNotEmpty) {
+      params.add('item_language=${Uri.encodeComponent(itemLanguage)}');
+    }
+    if (appLanguage != null && appLanguage.isNotEmpty) {
+      params.add('app_language=${Uri.encodeComponent(appLanguage)}');
+    }
+    if (params.isNotEmpty) {
+      url += '?${params.join('&')}';
+    }
+
+    final response = await http.post(
+      Uri.parse(url),
+      headers: {
+        'Authorization': 'Bearer $token',
+        'Content-Type': 'application/json',
+      },
+      body: jsonEncode(payload),
+    );
+
+    if (response.statusCode == 201) {
+      return jsonDecode(response.body) as Map<String, dynamic>;
+    } else {
+      throw Exception(
+        'Failed to create transaction: ${response.statusCode} ${_extractErrorMessage(response)}',
       );
     }
   }
@@ -407,6 +504,24 @@ class ApiClient {
     } else {
       throw Exception(
         'Failed to get transaction: ${response.statusCode} ${response.body}',
+      );
+    }
+  }
+
+  /// DELETE /v1/transactions/{id}
+  static Future<void> deleteTransaction(String id) async {
+    final token = await _getToken();
+    final response = await http.delete(
+      Uri.parse('$apiBaseUrl/v1/transactions/$id'),
+      headers: {
+        'Authorization': 'Bearer $token',
+        'Content-Type': 'application/json',
+      },
+    );
+
+    if (response.statusCode != 204) {
+      throw Exception(
+        'Failed to delete transaction: ${response.statusCode} ${_extractErrorMessage(response)}',
       );
     }
   }
@@ -485,8 +600,10 @@ class ApiClient {
   }) async {
     final token = await _getToken();
 
-    // Build query params
-    String url = '$apiBaseUrl/v1/transactions?page_size=100';
+    // Build query params — do not cap page_size here; backend determines page size.
+    // M-1 fix: removing the hardcoded page_size=100 prevents silent truncation for users
+    // with more than 100 transactions.
+    String url = '$apiBaseUrl/v1/transactions';
     if (fromDate != null) {
       url += '&from_occurred_at=${fromDate.toUtc().toIso8601String()}';
     }
@@ -509,13 +626,16 @@ class ApiClient {
       url += '&target_currency=${Uri.encodeComponent(targetCurrency)}';
     }
 
-    final response = await http.get(
-      Uri.parse(url),
-      headers: {
-        'Authorization': 'Bearer $token',
-        'Content-Type': 'application/json',
-      },
-    );
+    // M-2 fix: add a 30 s timeout so the app never hangs indefinitely on a slow network.
+    final response = await http
+        .get(
+          Uri.parse(url),
+          headers: {
+            'Authorization': 'Bearer $token',
+            'Content-Type': 'application/json',
+          },
+        )
+        .timeout(const Duration(seconds: 30));
 
     if (response.statusCode == 200) {
       return jsonDecode(response.body) as List<dynamic>;
@@ -533,6 +653,7 @@ class ApiClient {
     List<String>? subcategoryIds,
     List<String>? labelIds,
     String? targetCurrency,
+    String? groupBy,
   }) async {
     final token = await _getToken();
 
@@ -554,6 +675,9 @@ class ApiClient {
     }
     if (targetCurrency != null && targetCurrency.isNotEmpty) {
       params.add('target_currency=${Uri.encodeComponent(targetCurrency)}');
+    }
+    if (groupBy != null && groupBy.isNotEmpty) {
+      params.add('group_by=${Uri.encodeComponent(groupBy)}');
     }
 
     if (params.isNotEmpty) {
@@ -686,10 +810,11 @@ class ApiClient {
   }
 
   /// GET /v1/categories
-  static Future<List<dynamic>> listCategories() async {
+  static Future<List<dynamic>> listCategories({bool includeDisabled = false}) async {
     final token = await _getToken();
+    final suffix = includeDisabled ? '?include_disabled=true' : '';
     final response = await http.get(
-      Uri.parse('$apiBaseUrl/v1/categories'),
+      Uri.parse('$apiBaseUrl/v1/categories$suffix'),
       headers: {
         'Authorization': 'Bearer $token',
         'Content-Type': 'application/json',
@@ -779,6 +904,25 @@ class ApiClient {
     if (response.statusCode != 204) {
       throw Exception(
         'Failed to delete category: ${response.statusCode} ${response.body}',
+      );
+    }
+  }
+
+  /// POST /v1/categories/{id}/restore
+  static Future<Map<String, dynamic>> restoreCategory(String id) async {
+    final token = await _getToken();
+    final response = await http.post(
+      Uri.parse('$apiBaseUrl/v1/categories/$id/restore'),
+      headers: {
+        'Authorization': 'Bearer $token',
+        'Content-Type': 'application/json',
+      },
+    );
+    if (response.statusCode == 200) {
+      return jsonDecode(response.body) as Map<String, dynamic>;
+    } else {
+      throw Exception(
+        'Failed to restore category: ${response.statusCode} ${_extractErrorMessage(response)}',
       );
     }
   }
@@ -947,22 +1091,30 @@ class ApiClient {
 
   /// POST /v1/billing/revenuecat/sync
   static Future<Map<String, dynamic>> syncRevenueCatSubscription() async {
-    final token = await _getToken();
-    final response = await http.post(
-      Uri.parse('$apiBaseUrl/v1/billing/revenuecat/sync'),
-      headers: {
-        'Authorization': 'Bearer $token',
-        'Content-Type': 'application/json',
-      },
-    );
+    for (var attempt = 0; attempt < 2; attempt++) {
+      // Re-fetch token on each attempt so that if a 5xx happens near token
+      // expiry the retry doesn't reuse an already-expired token.
+      final token = await _getToken();
+      final response = await http.post(
+        Uri.parse('$apiBaseUrl/v1/billing/revenuecat/sync'),
+        headers: {
+          'Authorization': 'Bearer $token',
+          'Content-Type': 'application/json',
+        },
+      );
 
-    if (response.statusCode == 200) {
-      return jsonDecode(response.body) as Map<String, dynamic>;
-    } else {
+      if (response.statusCode == 200) {
+        return jsonDecode(response.body) as Map<String, dynamic>;
+      }
+      if (response.statusCode >= 500 && attempt == 0) {
+        await Future<void>.delayed(const Duration(milliseconds: 1200));
+        continue;
+      }
       throw Exception(
         'Failed to sync subscription: ${response.statusCode} ${response.body}',
       );
     }
+    throw Exception('Failed to sync subscription: request retry exhausted.');
   }
 
   /// POST /internal/dev/billing/subscriptions/manual

@@ -5,6 +5,7 @@ import 'dart:math' as math;
 
 import '../core/api_client.dart';
 import '../core/revenuecat_service.dart';
+import '../l10n/app_localizations.dart';
 
 class SubscriptionScreen extends StatefulWidget {
   const SubscriptionScreen({super.key, this.currentUserId});
@@ -16,6 +17,16 @@ class SubscriptionScreen extends StatefulWidget {
 }
 
 enum _PackageAudience { individual, family }
+
+class _HouseholdPurchaseContext {
+  const _HouseholdPurchaseContext({
+    required this.hasHousehold,
+    required this.isOwner,
+  });
+
+  final bool hasHousehold;
+  final bool isOwner;
+}
 
 class _SubscriptionScreenState extends State<SubscriptionScreen> {
   static const bool _showDevTools = bool.fromEnvironment(
@@ -310,6 +321,99 @@ class _SubscriptionScreenState extends State<SubscriptionScreen> {
         error.code == '15';
   }
 
+  int? _extractStatusCode(Object error) {
+    final match = RegExp(r'\b([1-5]\d{2})\b').firstMatch(error.toString());
+    if (match == null) return null;
+    return int.tryParse(match.group(1)!);
+  }
+
+  Future<_HouseholdPurchaseContext> _loadHouseholdPurchaseContext() async {
+    try {
+      final household = await ApiClient.getCurrentHousehold();
+      final members = await ApiClient.listCurrentHouseholdMembers();
+      final targetUserId = (_targetUserId ?? '').trim();
+      final currentMembership = members.whereType<Map<String, dynamic>>().firstWhere(
+        (member) => member['user_id']?.toString() == targetUserId,
+        orElse: () => const <String, dynamic>{},
+      );
+      final isOwner = currentMembership['role']?.toString() == 'owner';
+      return _HouseholdPurchaseContext(
+        hasHousehold: household.isNotEmpty,
+        isOwner: isOwner,
+      );
+    } catch (error) {
+      if (_extractStatusCode(error) == 404) {
+        return const _HouseholdPurchaseContext(
+          hasHousehold: false,
+          isOwner: false,
+        );
+      }
+      rethrow;
+    }
+  }
+
+  Future<bool> _prepareIndividualPurchaseContext() async {
+    final householdContext = await _loadHouseholdPurchaseContext();
+    if (!householdContext.hasHousehold) {
+      return true;
+    }
+
+    if (!mounted) return false;
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: Text(context.tr('billing_household_purchase_block_title')),
+        content: Text(
+          context.tr(
+            householdContext.isOwner
+                ? 'billing_household_purchase_block_owner'
+                : 'billing_household_purchase_block_member',
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, false),
+            child: Text(context.tr('common_cancel')),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.pop(ctx, true),
+            child: Text(
+              context.tr(
+                householdContext.isOwner
+                    ? 'household_delete_action'
+                    : 'household_leave_action',
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+    if (confirmed != true) {
+      return false;
+    }
+
+    if (householdContext.isOwner) {
+      await ApiClient.deleteCurrentHousehold();
+    } else {
+      await ApiClient.leaveCurrentHousehold();
+    }
+    return true;
+  }
+
+  bool _syncConfirmsExpectedPurchase(
+    Map<String, dynamic> syncPayload,
+    Package package,
+  ) {
+    final featureCodes =
+        (syncPayload['feature_codes'] as List<dynamic>? ?? const <dynamic>[])
+            .map((value) => value.toString())
+            .toSet();
+    if (RevenueCatService.isFamilyPackage(package)) {
+      return featureCodes.contains('premium.family_plan');
+    }
+    return syncPayload['has_active_subscription'] == true;
+  }
+
   String _packagePlanLabel(Package package) {
     final isFamily = RevenueCatService.isFamilyPackage(package);
     final audienceLabel = isFamily ? 'Family' : 'Individual';
@@ -438,6 +542,9 @@ class _SubscriptionScreenState extends State<SubscriptionScreen> {
 
   Future<void> _purchasePro() async {
     if (_isPurchaseLoading) return;
+    final purchaseNotConfirmedMessage = context.tr(
+      'billing_purchase_not_confirmed',
+    );
     if (!RevenueCatService.isAvailable) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
@@ -476,24 +583,42 @@ class _SubscriptionScreenState extends State<SubscriptionScreen> {
 
     setState(() => _isPurchaseLoading = true);
     try {
+      if (!RevenueCatService.isFamilyPackage(package)) {
+        final canProceed = await _prepareIndividualPurchaseContext();
+        if (!canProceed) {
+          return;
+        }
+      }
       await RevenueCatService.purchasePackage(package);
-      await ApiClient.syncRevenueCatSubscription();
+      final syncPayload = await ApiClient.syncRevenueCatSubscription();
+      if (!_syncConfirmsExpectedPurchase(syncPayload, package)) {
+        throw Exception(purchaseNotConfirmedMessage);
+      }
       await _loadSubscriptionData();
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('PRO subscription activated.')),
+        SnackBar(content: Text(context.tr('billing_purchase_confirmed'))),
       );
     } catch (e) {
       Object effectiveError = e;
       if (_isOperationInProgressError(e)) {
         await Future<void>.delayed(const Duration(seconds: 1));
         try {
+          if (!RevenueCatService.isFamilyPackage(package)) {
+            final canProceed = await _prepareIndividualPurchaseContext();
+            if (!canProceed) {
+              return;
+            }
+          }
           await RevenueCatService.purchasePackage(package);
-          await ApiClient.syncRevenueCatSubscription();
+          final syncPayload = await ApiClient.syncRevenueCatSubscription();
+          if (!_syncConfirmsExpectedPurchase(syncPayload, package)) {
+            throw Exception(purchaseNotConfirmedMessage);
+          }
           await _loadSubscriptionData();
           if (!mounted) return;
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('PRO subscription activated.')),
+            SnackBar(content: Text(context.tr('billing_purchase_confirmed'))),
           );
           return;
         } catch (retryError) {
@@ -504,7 +629,10 @@ class _SubscriptionScreenState extends State<SubscriptionScreen> {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(
-            'Purchase failed: ${_friendlyBillingError(effectiveError)}',
+            context.tr(
+              'billing_purchase_failed',
+              params: {'message': _friendlyBillingError(effectiveError)},
+            ),
           ),
           backgroundColor: Colors.redAccent,
         ),

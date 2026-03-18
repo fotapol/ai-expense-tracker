@@ -7,8 +7,8 @@ import uuid
 from collections.abc import Mapping, Sequence
 from typing import Any, Literal
 
-from sqlmodel import Session, select
 from sqlalchemy.exc import IntegrityError
+from sqlmodel import Session, select
 
 from app.models.billing.subscription import Subscription
 from app.models.shared.enums import SubscriptionProvider, SubscriptionStatus
@@ -18,7 +18,11 @@ from app.services.billing.contracts import (
     NormalizedSubscriptionEvent,
 )
 from app.services.billing.entitlements import sync_subscription_entitlements
-from app.services.billing.features import PERSONAL_PREMIUM_PRODUCT_ID
+from app.services.billing.features import (
+    FAMILY_PREMIUM_PRODUCT_ID,
+    PERSONAL_PREMIUM_PRODUCT_ID,
+)
+from app.services.households.households import get_active_household_for_user
 
 _MIN_TIMESTAMP = dt.datetime.min.replace(tzinfo=dt.UTC)
 
@@ -182,15 +186,58 @@ class SubscriptionSyncService(BillingEventHandler):
         provider: BillingProvider,
         user_id: uuid.UUID,
         payload: Mapping[str, Any],
-    ) -> Subscription:
+    ) -> Subscription | None:
         """Normalize provider payload and apply it to current subscription state."""
 
-        normalized = provider.normalize_event(user_id=user_id, payload=payload)
-        return self.apply_normalized_event(normalized)
+        normalized_events = provider.normalize_events(user_id=user_id, payload=payload)
+        touched_rows: list[Subscription] = []
+        latest_event_at = max(
+            (
+                event.latest_event_at
+                for event in normalized_events
+                if event.latest_event_at is not None
+            ),
+            default=_utcnow(),
+        )
+
+        for event in normalized_events:
+            row = self._upsert_subscription_row(event)
+            self._sync_row_entitlements(row, now=event.latest_event_at)
+            touched_rows.append(row)
+
+        expected_product_ids = getattr(provider, "expected_product_ids", None)
+        if expected_product_ids:
+            touched_rows.extend(
+                self._expire_missing_provider_rows(
+                    user_id=user_id,
+                    provider=provider.provider,
+                    expected_product_ids=set(expected_product_ids),
+                    emitted_product_ids={event.product_id for event in normalized_events},
+                    latest_event_at=latest_event_at,
+                )
+            )
+
+        if touched_rows:
+            self.session.commit()
+            refreshed_ids: set[uuid.UUID] = set()
+            for row in touched_rows:
+                if row.id in refreshed_ids:
+                    continue
+                self.session.refresh(row)
+                refreshed_ids.add(row.id)
+
+        return resolve_effective_subscription(self.session, user_id)
 
     def apply_normalized_event(self, event: NormalizedSubscriptionEvent) -> Subscription:
         """Upsert current-state subscription row and synchronize its entitlements."""
 
+        existing = self._upsert_subscription_row(event)
+        self._sync_row_entitlements(existing, now=event.latest_event_at)
+        self.session.commit()
+        self.session.refresh(existing)
+        return existing
+
+    def _upsert_subscription_row(self, event: NormalizedSubscriptionEvent) -> Subscription:
         existing = self.session.exec(
             select(Subscription).where(
                 Subscription.user_id == event.user_id,
@@ -233,7 +280,7 @@ class SubscriptionSyncService(BillingEventHandler):
             ).first()
             if existing is None:
                 raise
-            
+
             existing.status = event.status
             existing.started_at = event.started_at
             existing.expires_at = event.expires_at
@@ -249,10 +296,59 @@ class SubscriptionSyncService(BillingEventHandler):
 
             self.session.add(existing)
             self.session.flush()
-        sync_subscription_entitlements(self.session, existing)
-        self.session.commit()
-        self.session.refresh(existing)
         return existing
+
+    def _sync_row_entitlements(
+        self,
+        subscription: Subscription,
+        *,
+        now: dt.datetime | None = None,
+    ) -> None:
+        household = None
+        if subscription.product_id == FAMILY_PREMIUM_PRODUCT_ID:
+            household = get_active_household_for_user(self.session, subscription.user_id)
+        sync_subscription_entitlements(
+            self.session,
+            subscription,
+            household_id=household.id if household is not None else None,
+            now=now,
+        )
+
+    def _expire_missing_provider_rows(
+        self,
+        *,
+        user_id: uuid.UUID,
+        provider: SubscriptionProvider,
+        expected_product_ids: set[str],
+        emitted_product_ids: set[str],
+        latest_event_at: dt.datetime,
+    ) -> list[Subscription]:
+        if not expected_product_ids:
+            return []
+
+        rows = self.session.exec(
+            select(Subscription).where(
+                Subscription.user_id == user_id,
+                Subscription.provider == provider,
+                Subscription.product_id.in_(expected_product_ids),  # type: ignore[attr-defined]
+            )
+        ).all()
+
+        touched: list[Subscription] = []
+        for row in rows:
+            if row.product_id in emitted_product_ids:
+                continue
+            if row.status == SubscriptionStatus.EXPIRED and row.expires_at is not None and row.expires_at <= latest_event_at:
+                continue
+            row.status = SubscriptionStatus.EXPIRED
+            if row.expires_at is None or row.expires_at > latest_event_at:
+                row.expires_at = latest_event_at
+            row.auto_renew = False
+            row.latest_event_at = latest_event_at
+            self.session.add(row)
+            self._sync_row_entitlements(row, now=latest_event_at)
+            touched.append(row)
+        return touched
 
     def apply_terminal_state_to_other_provider_rows(
         self,
@@ -296,7 +392,7 @@ class SubscriptionSyncService(BillingEventHandler):
                 merged_metadata.update(metadata_patch)
                 row.internal_metadata = merged_metadata
             self.session.add(row)
-            sync_subscription_entitlements(self.session, row, now=event_time)
+            self._sync_row_entitlements(row, now=event_time)
             touched.append(row)
 
         if touched:

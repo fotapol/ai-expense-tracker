@@ -3,12 +3,15 @@ import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../core/api_client.dart';
+import '../core/auto_refresh_state_mixin.dart';
 import '../core/category_style.dart';
 import '../core/period_filter.dart';
 import '../core/taxonomy_localization.dart';
 import '../l10n/app_localizations.dart';
 import '../widgets/filter_bottom_sheet.dart';
 import 'analytics_category_detail_screen.dart';
+import 'analytics_subcategory_items_screen.dart';
+import 'subscription_screen.dart';
 
 class AnalyticsTab extends StatefulWidget {
   const AnalyticsTab({super.key});
@@ -17,16 +20,30 @@ class AnalyticsTab extends StatefulWidget {
   State<AnalyticsTab> createState() => _AnalyticsTabState();
 }
 
-class _AnalyticsTabState extends State<AnalyticsTab> {
+class _AnalyticsTabState extends State<AnalyticsTab>
+    with WidgetsBindingObserver, AutoRefreshStateMixin<AnalyticsTab> {
+  static const String _modeCategory = 'category';
+  static const String _modeSubcategory = 'subcategory';
+  static const String _advancedAnalyticsCode = 'premium.analytics.advanced';
+
   bool _isLoading = true;
   String? _error;
   Map<String, dynamic>? _summaryData;
   String _selectedPeriod = PeriodFilter.last3Months;
+  String _breakdownMode = _modeCategory;
   List<String> _selectedCategoryIds = [];
   List<String> _selectedSubcategoryIds = [];
   List<String> _selectedLabelIds = [];
   Map<String, String> _categoryNamesById = {};
   Map<String, String> _labelNamesById = {};
+  Set<String> _featureCodes = <String>{};
+  bool _isRefreshingAnalytics = false;
+
+  @override
+  Duration get autoRefreshInterval => const Duration(seconds: 10);
+
+  @override
+  Future<void> performAutoRefresh() => _refreshAnalytics(showLoader: false);
 
   String _currencySymbol(String code) {
     switch (code.toUpperCase()) {
@@ -62,14 +79,17 @@ class _AnalyticsTabState extends State<AnalyticsTab> {
     final prefsFuture = SharedPreferences.getInstance();
     final categoriesFuture = ApiClient.listCategories();
     final labelsFuture = ApiClient.listLabels();
+    final entitlementsFuture = ApiClient.getMeEntitlements();
 
     final prefs = await prefsFuture;
     final savedPeriod = prefs.getString('analytics_period');
+    final savedMode = prefs.getString('analytics_breakdown_mode');
     final savedCats = prefs.getStringList('analytics_category_ids');
     final savedSubcats = prefs.getStringList('analytics_subcategory_ids');
     final savedLabels = prefs.getStringList('analytics_label_ids');
     Map<String, String> categoryNames = {};
     Map<String, String> labelNames = {};
+    Set<String> featureCodes = <String>{};
     try {
       final categories = await categoriesFuture;
       if (!mounted) return;
@@ -91,15 +111,30 @@ class _AnalyticsTabState extends State<AnalyticsTab> {
             label['id'].toString(): label['name'].toString(),
       };
     } catch (_) {}
+    try {
+      final entitlements = await entitlementsFuture;
+      featureCodes =
+          (entitlements['feature_codes'] as List<dynamic>? ?? const <dynamic>[])
+              .map((code) => code.toString())
+              .toSet();
+    } catch (_) {}
 
     if (!mounted) return;
     setState(() {
       if (savedPeriod != null) _selectedPeriod = savedPeriod;
+      if (savedMode != null &&
+          <String>{_modeCategory, _modeSubcategory}.contains(savedMode)) {
+        _breakdownMode = savedMode;
+      }
       if (savedCats != null) _selectedCategoryIds = savedCats;
       if (savedSubcats != null) _selectedSubcategoryIds = savedSubcats;
       if (savedLabels != null) _selectedLabelIds = savedLabels;
       _categoryNamesById = categoryNames;
       _labelNamesById = labelNames;
+      _featureCodes = featureCodes;
+      if (!_hasAdvancedAnalytics && _breakdownMode == _modeSubcategory) {
+        _breakdownMode = _modeCategory;
+      }
     });
     _fetchSummary();
   }
@@ -107,6 +142,7 @@ class _AnalyticsTabState extends State<AnalyticsTab> {
   Future<void> _saveFilters() async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setString('analytics_period', _selectedPeriod);
+    await prefs.setString('analytics_breakdown_mode', _breakdownMode);
     await prefs.setStringList('analytics_category_ids', _selectedCategoryIds);
     await prefs.setStringList(
       'analytics_subcategory_ids',
@@ -116,12 +152,33 @@ class _AnalyticsTabState extends State<AnalyticsTab> {
   }
 
   Future<void> _fetchSummary() async {
-    setState(() {
-      _isLoading = true;
-      _error = null;
-    });
+    await _refreshAnalytics(showLoader: true);
+  }
+
+  Future<void> _refreshAnalytics({bool showLoader = true}) async {
+    if (_isRefreshingAnalytics) return;
+    _isRefreshingAnalytics = true;
+    if (!mounted) {
+      _isRefreshingAnalytics = false;
+      return;
+    }
+    if (showLoader) {
+      setState(() {
+        _isLoading = true;
+        _error = null;
+      });
+    }
 
     try {
+      final entitlements = await ApiClient.getMeEntitlements();
+      final featureCodes =
+          (entitlements['feature_codes'] as List<dynamic>? ?? const <dynamic>[])
+              .map((code) => code.toString())
+              .toSet();
+      final effectiveBreakdownMode =
+          featureCodes.contains(_advancedAnalyticsCode)
+          ? _breakdownMode
+          : _modeCategory;
       final startDate = PeriodFilter.getStartDate(_selectedPeriod);
       final data = await ApiClient.getTransactionsSummary(
         fromDate: startDate,
@@ -132,20 +189,31 @@ class _AnalyticsTabState extends State<AnalyticsTab> {
             ? _selectedSubcategoryIds
             : null,
         labelIds: _selectedLabelIds.isNotEmpty ? _selectedLabelIds : null,
+        groupBy: effectiveBreakdownMode,
       );
       if (!mounted) return;
       setState(() {
+        _featureCodes = featureCodes;
+        _breakdownMode = effectiveBreakdownMode;
         _summaryData = data;
         _isLoading = false;
+        _error = null;
       });
     } catch (e) {
       if (!mounted) return;
-      setState(() {
-        _error = e.toString();
-        _isLoading = false;
-      });
+      if (showLoader || _summaryData == null) {
+        setState(() {
+          _error = e.toString();
+          _isLoading = false;
+        });
+      }
+    } finally {
+      _isRefreshingAnalytics = false;
     }
   }
+
+  bool get _hasAdvancedAnalytics =>
+      _featureCodes.contains(_advancedAnalyticsCode);
 
   Future<void> _openFilters() async {
     final result = await FilterBottomSheet.show(
@@ -275,7 +343,34 @@ class _AnalyticsTabState extends State<AnalyticsTab> {
   }
 
   Color _categoryColor(Map<String, dynamic> cat) {
-    return CategoryStyle.colorForCode(cat['code']?.toString());
+    final code = cat['code']?.toString() ?? '';
+    final name = cat['name']?.toString() ?? '';
+    final parentCode = cat['parent_category_code']?.toString() ?? '';
+    return CategoryStyle.colorForSeed('$code|$name|$parentCode');
+  }
+
+  String _breakdownName(Map<String, dynamic> breakdown) {
+    return localizeCategoryByCode(
+      context,
+      code: breakdown['code']?.toString(),
+      fallbackName: breakdown['name']?.toString(),
+    );
+  }
+
+  Future<void> _setBreakdownMode(String mode) async {
+    if (mode == _breakdownMode) return;
+    if (mode == _modeSubcategory && !_hasAdvancedAnalytics) {
+      if (!mounted) return;
+      Navigator.push(
+        context,
+        MaterialPageRoute(builder: (_) => const SubscriptionScreen()),
+      );
+      return;
+    }
+
+    setState(() => _breakdownMode = mode);
+    await _saveFilters();
+    _fetchSummary();
   }
 
   void _openCategoryDetails(Map<String, dynamic> category) {
@@ -297,6 +392,27 @@ class _AnalyticsTabState extends State<AnalyticsTab> {
           categoryId: categoryId,
           categoryName: name,
           categoryCode: code,
+          fromDate: fromDate,
+          selectedCategoryIds: _selectedCategoryIds,
+          selectedSubcategoryIds: _selectedSubcategoryIds,
+          selectedLabelIds: _selectedLabelIds,
+        ),
+      ),
+    );
+  }
+
+  void _openSubcategoryDetails(Map<String, dynamic> subcategory) {
+    final subcategoryId = subcategory['subcategory_id']?.toString();
+    if (subcategoryId == null || subcategoryId.isEmpty) return;
+
+    final fromDate = PeriodFilter.getStartDate(_selectedPeriod);
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => AnalyticsSubcategoryItemsScreen(
+          subcategoryId: subcategoryId,
+          subcategoryName: _breakdownName(subcategory),
+          subcategoryCode: subcategory['code']?.toString() ?? '',
           fromDate: fromDate,
           selectedCategoryIds: _selectedCategoryIds,
           selectedSubcategoryIds: _selectedSubcategoryIds,
@@ -371,25 +487,47 @@ class _AnalyticsTabState extends State<AnalyticsTab> {
         (_summaryData?['total_amount'] as num?)?.toDouble() ?? 0.0;
     final totalTransactions =
         (_summaryData?['total_transactions'] as num?)?.toInt() ?? 0;
-    final categories = _summaryData?['categories'] as List<dynamic>? ?? [];
+    final breakdown = _summaryData?['breakdown'] as List<dynamic>? ?? [];
     final currency = (_summaryData?['currency']?.toString() ?? 'EUR')
         .toUpperCase();
+    final isSubcategoryMode = _breakdownMode == _modeSubcategory;
 
+    final bottomPadding = MediaQuery.of(context).padding.bottom + 32;
     return SingleChildScrollView(
-      padding: const EdgeInsets.all(16.0),
+      padding: EdgeInsets.fromLTRB(16, 16, 16, bottomPadding),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           _buildTotalCard(totalAmount, totalTransactions, currency),
           const SizedBox(height: 28),
-          Text(
-            context.tr('analytics_expense_categories'),
-            style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+          Row(
+            children: [
+              Expanded(
+                child: Text(
+                  context.tr(
+                    isSubcategoryMode
+                        ? 'analytics_expense_subcategories'
+                        : 'analytics_expense_categories',
+                  ),
+                  style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                ),
+              ),
+              _buildBreakdownToggle(),
+            ],
           ),
           const SizedBox(height: 24),
-          _buildPieChart(categories, totalAmount, currency),
+          _buildPieChart(
+            breakdown,
+            totalAmount,
+            currency,
+            isSubcategoryMode: isSubcategoryMode,
+          ),
           const SizedBox(height: 20),
-          _buildCategoryBreakdown(categories, currency),
+          _buildBreakdownList(
+            breakdown,
+            currency,
+            isSubcategoryMode: isSubcategoryMode,
+          ),
           const SizedBox(height: 24),
           _buildDiscountSection(currency),
           const SizedBox(height: 32),
@@ -482,10 +620,71 @@ class _AnalyticsTabState extends State<AnalyticsTab> {
     );
   }
 
+  Widget _buildBreakdownToggle() {
+    Widget option({
+      required String mode,
+      required String label,
+      bool locked = false,
+    }) {
+      final isSelected = _breakdownMode == mode;
+      return InkWell(
+        borderRadius: BorderRadius.circular(999),
+        onTap: () => _setBreakdownMode(mode),
+        child: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(999),
+            color: isSelected
+                ? const Color(0xFF5B2E88).withAlpha(210)
+                : Colors.black.withAlpha(25),
+            border: Border.all(
+              color: isSelected
+                  ? const Color(0xFFF7D74B)
+                  : Colors.white.withAlpha(70),
+            ),
+          ),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              if (locked) ...[
+                const Icon(Icons.lock_outline, size: 14, color: Colors.white70),
+                const SizedBox(width: 4),
+              ],
+              Text(
+                label,
+                style: TextStyle(
+                  color: Colors.white,
+                  fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
+                ),
+              ),
+            ],
+          ),
+        ),
+      );
+    }
+
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        option(
+          mode: _modeCategory,
+          label: context.tr('analytics_breakdown_categories'),
+        ),
+        const SizedBox(width: 8),
+        option(
+          mode: _modeSubcategory,
+          label: context.tr('analytics_breakdown_subcategories'),
+          locked: !_hasAdvancedAnalytics,
+        ),
+      ],
+    );
+  }
+
   Widget _buildPieChart(
     List<dynamic> categories,
     double totalAmount,
     String currency,
+    {required bool isSubcategoryMode}
   ) {
     final hasData = categories.isNotEmpty && totalAmount > 0;
 
@@ -588,11 +787,7 @@ class _AnalyticsTabState extends State<AnalyticsTab> {
               alignment: WrapAlignment.center,
               children: categories.map((raw) {
                 final cat = raw as Map<String, dynamic>;
-                final name = localizeCategoryByCode(
-                  context,
-                  code: cat['code']?.toString(),
-                  fallbackName: cat['name']?.toString(),
-                );
+                final name = _breakdownName(cat);
                 final color = _categoryColor(cat);
                 return Row(
                   mainAxisSize: MainAxisSize.min,
@@ -606,7 +801,10 @@ class _AnalyticsTabState extends State<AnalyticsTab> {
                       ),
                     ),
                     const SizedBox(width: 8),
-                    Text(name, style: TextStyle(color: Colors.grey.shade300)),
+                    Text(
+                      name,
+                      style: TextStyle(color: Colors.grey.shade300),
+                    ),
                   ],
                 );
               }).toList(),
@@ -617,12 +815,20 @@ class _AnalyticsTabState extends State<AnalyticsTab> {
     );
   }
 
-  Widget _buildCategoryBreakdown(List<dynamic> categories, String currency) {
+  Widget _buildBreakdownList(
+    List<dynamic> categories,
+    String currency, {
+    required bool isSubcategoryMode,
+  }) {
     if (categories.isEmpty) {
       return Padding(
         padding: const EdgeInsets.only(top: 8),
         child: Text(
-          context.tr('analytics_no_category_data'),
+          context.tr(
+            isSubcategoryMode
+                ? 'analytics_no_subcategory_data'
+                : 'analytics_no_category_data',
+          ),
           style: TextStyle(color: Colors.grey.shade500, fontSize: 14),
         ),
       );
@@ -632,11 +838,7 @@ class _AnalyticsTabState extends State<AnalyticsTab> {
       children: categories.asMap().entries.map((entry) {
         final index = entry.key;
         final cat = entry.value as Map<String, dynamic>;
-        final name = localizeCategoryByCode(
-          context,
-          code: cat['code']?.toString(),
-          fallbackName: cat['name']?.toString(),
-        );
+        final name = _breakdownName(cat);
         final code = cat['code']?.toString() ?? '';
         final amount = (cat['amount'] as num?)?.toDouble() ?? 0.0;
         final itemCount = (cat['item_count'] as num?)?.toInt() ?? 0;
@@ -652,7 +854,9 @@ class _AnalyticsTabState extends State<AnalyticsTab> {
           ),
           child: InkWell(
             borderRadius: BorderRadius.circular(16),
-            onTap: () => _openCategoryDetails(cat),
+            onTap: () => isSubcategoryMode
+                ? _openSubcategoryDetails(cat)
+                : _openCategoryDetails(cat),
             child: Padding(
               padding: const EdgeInsets.all(14),
               child: Row(

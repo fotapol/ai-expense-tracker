@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+
 import '../core/api_client.dart';
 import '../core/category_style.dart';
 import '../core/taxonomy_localization.dart';
@@ -14,7 +16,7 @@ class CategoriesScreen extends StatefulWidget {
 
 class _CategoriesScreenState extends State<CategoriesScreen> {
   bool _isLoading = true;
-  List<dynamic> _categories = [];
+  List<Map<String, dynamic>> _categories = [];
   String? _error;
 
   @override
@@ -29,12 +31,16 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
       _error = null;
     });
     try {
-      final data = await ApiClient.listCategories();
+      final data = await ApiClient.listCategories(includeDisabled: true);
+      final categories = data.whereType<Map<String, dynamic>>().toList();
+      await _pruneSavedFilterSelections(categories);
+      if (!mounted) return;
       setState(() {
-        _categories = data;
+        _categories = categories;
         _isLoading = false;
       });
     } catch (e) {
+      if (!mounted) return;
       setState(() {
         _error = e.toString();
         _isLoading = false;
@@ -42,15 +48,148 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
     }
   }
 
+  Future<void> _pruneSavedFilterSelections(
+    List<Map<String, dynamic>> categories,
+  ) async {
+    final prefs = await SharedPreferences.getInstance();
+    final activeTopLevelIds = categories
+        .where((category) =>
+            category['parent_id'] == null && category['is_disabled'] != true)
+        .map((category) => category['id']?.toString() ?? '')
+        .where((id) => id.isNotEmpty)
+        .toSet();
+    final activeSubcategoryIds = categories
+        .where((category) =>
+            category['parent_id'] != null && category['is_disabled'] != true)
+        .map((category) => category['id']?.toString() ?? '')
+        .where((id) => id.isNotEmpty)
+        .toSet();
+
+    final savedCategoryIds =
+        prefs.getStringList('analytics_category_ids') ?? const <String>[];
+    final savedSubcategoryIds =
+        prefs.getStringList('analytics_subcategory_ids') ?? const <String>[];
+    await prefs.setStringList(
+      'analytics_category_ids',
+      savedCategoryIds.where(activeTopLevelIds.contains).toList(),
+    );
+    await prefs.setStringList(
+      'analytics_subcategory_ids',
+      savedSubcategoryIds.where(activeSubcategoryIds.contains).toList(),
+    );
+  }
+
+  List<Map<String, dynamic>> get _activeTopLevelCategories => _categories
+      .where((category) =>
+          category['parent_id'] == null && category['is_disabled'] != true)
+      .toList()
+    ..sort((a, b) => _localizedName(a).compareTo(_localizedName(b)));
+
+  List<Map<String, dynamic>> get _disabledTopLevelCategories => _categories
+      .where((category) =>
+          category['parent_id'] == null &&
+          category['is_disabled'] == true &&
+          category['is_default'] == true)
+      .toList()
+    ..sort((a, b) => _localizedName(a).compareTo(_localizedName(b)));
+
+  String _localizedName(Map<String, dynamic> category) {
+    return localizeCategoryByCode(
+      context,
+      code: category['code']?.toString(),
+      fallbackName: category['name']?.toString(),
+    );
+  }
+
+  Future<void> _showAddChooser() async {
+    final action = await showModalBottomSheet<String>(
+      context: context,
+      builder: (context) => SafeArea(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            ListTile(
+              leading: const Icon(Icons.category_outlined),
+              title: Text(context.tr('categories_add_category')),
+              onTap: () => Navigator.pop(context, 'category'),
+            ),
+            ListTile(
+              leading: const Icon(Icons.account_tree_outlined),
+              title: Text(context.tr('categories_add_subcategory')),
+              onTap: () => Navigator.pop(context, 'subcategory'),
+            ),
+          ],
+        ),
+      ),
+    );
+
+    if (!mounted || action == null) return;
+    if (action == 'category') {
+      await _showAddCategoryDialog();
+      return;
+    }
+    await _showAddSubcategoryDialog();
+  }
+
   Future<void> _showAddCategoryDialog() async {
     final controller = TextEditingController();
-    final parentOptions = _categories
-        .where((c) => c['parent_id'] == null)
-        .toList();
-    String? selectedParentId = parentOptions.isNotEmpty
-        ? parentOptions.first['id'] as String
-        : null;
+    final name = await showDialog<String>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text(context.tr('categories_new_category')),
+        content: TextField(
+          controller: controller,
+          autofocus: true,
+          textCapitalization: TextCapitalization.words,
+          decoration: InputDecoration(
+            hintText: context.tr('categories_category_hint'),
+            border: const OutlineInputBorder(),
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: Text(context.tr('common_cancel')),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.pop(context, controller.text.trim()),
+            child: Text(context.tr('common_create')),
+          ),
+        ],
+      ),
+    );
 
+    if (name == null || name.isEmpty) return;
+    try {
+      await ApiClient.createCategory(name);
+      await _fetchCategories();
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            context.tr('categories_category_created', params: {'name': name}),
+          ),
+        ),
+      );
+    } catch (e) {
+      if (!mounted) return;
+      _showError(e);
+    }
+  }
+
+  Future<void> _showAddSubcategoryDialog() async {
+    final controller = TextEditingController();
+    final parentOptions = _activeTopLevelCategories;
+    if (parentOptions.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(context.tr('categories_no_parent_categories')),
+        ),
+      );
+      return;
+    }
+
+    String? selectedParentId = parentOptions.first['id']?.toString();
     final result = await showDialog<Map<String, String>>(
       context: context,
       builder: (context) => StatefulBuilder(
@@ -68,14 +207,8 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
                 items: parentOptions
                     .map(
                       (parent) => DropdownMenuItem<String>(
-                        value: parent['id'] as String,
-                        child: Text(
-                          localizeCategoryByCode(
-                            context,
-                            code: parent['code']?.toString(),
-                            fallbackName: parent['name'] as String?,
-                          ),
-                        ),
+                        value: parent['id']?.toString(),
+                        child: Text(_localizedName(parent)),
                       ),
                     )
                     .toList(),
@@ -85,12 +218,12 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
               const SizedBox(height: 12),
               TextField(
                 controller: controller,
+                autofocus: true,
+                textCapitalization: TextCapitalization.words,
                 decoration: InputDecoration(
                   hintText: context.tr('categories_subcategory_hint'),
                   border: const OutlineInputBorder(),
                 ),
-                autofocus: true,
-                textCapitalization: TextCapitalization.words,
               ),
             ],
           ),
@@ -118,53 +251,45 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
       ),
     );
 
-    if (result != null &&
-        result['name'] != null &&
-        result['parent_id'] != null) {
-      try {
-        await ApiClient.createCategory(
-          result['name']!,
-          parentId: result['parent_id'],
-        );
-        _fetchCategories();
-        if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text(
-                context.tr(
-                  'categories_subcategory_created',
-                  params: {'name': result['name']!},
-                ),
-              ),
+    if (result == null) return;
+    try {
+      await ApiClient.createCategory(
+        result['name']!,
+        parentId: result['parent_id'],
+      );
+      await _fetchCategories();
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            context.tr(
+              'categories_subcategory_created',
+              params: {'name': result['name']!},
             ),
-          );
-        }
-      } catch (e) {
-        if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text(
-                context.tr(
-                  'common_error_with_message',
-                  params: {'message': e.toString()},
-                ),
-              ),
-              backgroundColor: Colors.red,
-            ),
-          );
-        }
-      }
+          ),
+        ),
+      );
+    } catch (e) {
+      if (!mounted) return;
+      _showError(e);
     }
   }
 
-  Future<void> _deleteCategory(String id, String name) async {
+  Future<void> _deleteOrDisableCategory(Map<String, dynamic> category) async {
+    final name = _localizedName(category);
+    final isBuiltIn = category['is_default'] == true;
+    final titleKey = isBuiltIn
+        ? 'categories_disable_title'
+        : 'categories_delete_title';
+    final messageKey = isBuiltIn
+        ? 'categories_disable_confirm'
+        : 'categories_delete_confirm';
+
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        title: Text(context.tr('categories_delete_title')),
-        content: Text(
-          context.tr('categories_delete_confirm', params: {'name': name}),
-        ),
+        title: Text(context.tr(titleKey)),
+        content: Text(context.tr(messageKey, params: {'name': name})),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context, false),
@@ -173,120 +298,137 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
           FilledButton(
             onPressed: () => Navigator.pop(context, true),
             style: FilledButton.styleFrom(backgroundColor: Colors.red),
-            child: Text(context.tr('common_delete')),
+            child: Text(
+              context.tr(isBuiltIn ? 'categories_disable_action' : 'common_delete'),
+            ),
           ),
         ],
       ),
     );
 
-    if (confirmed == true) {
-      try {
-        await ApiClient.deleteCategory(id);
-        _fetchCategories();
-        if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text(
-                context.tr('categories_deleted', params: {'name': name}),
-              ),
+    if (confirmed != true) return;
+    try {
+      await ApiClient.deleteCategory(category['id']!.toString());
+      await _fetchCategories();
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            context.tr(
+              isBuiltIn ? 'categories_disabled' : 'categories_deleted',
+              params: {'name': name},
             ),
-          );
-        }
-      } catch (e) {
-        if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text(
-                context.tr(
-                  'common_error_with_message',
-                  params: {'message': e.toString()},
-                ),
-              ),
-              backgroundColor: Colors.red,
-            ),
-          );
-        }
-      }
+          ),
+        ),
+      );
+    } catch (e) {
+      if (!mounted) return;
+      _showError(e);
     }
   }
 
-  Widget _buildCategoryItem(Map<String, dynamic> cat) {
-    final code = cat['code'] as String? ?? '';
-    final name = localizeCategoryByCode(
-      context,
-      code: code,
-      fallbackName: cat['name'] as String?,
-    );
-    final isDefault = cat['is_default'] as bool? ?? false;
-    final id = cat['id'] as String;
+  Future<void> _restoreCategory(Map<String, dynamic> category) async {
+    final name = _localizedName(category);
+    try {
+      await ApiClient.restoreCategory(category['id']!.toString());
+      await _fetchCategories();
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            context.tr('categories_restored', params: {'name': name}),
+          ),
+        ),
+      );
+    } catch (e) {
+      if (!mounted) return;
+      _showError(e);
+    }
+  }
 
+  void _showError(Object error) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(
+          context.tr(
+            'common_error_with_message',
+            params: {'message': error.toString()},
+          ),
+        ),
+        backgroundColor: Colors.red,
+      ),
+    );
+  }
+
+  Widget _buildCategoryTile(
+    Map<String, dynamic> category, {
+    required bool disabled,
+  }) {
+    final name = _localizedName(category);
+    final code = category['code']?.toString() ?? '';
     final color = CategoryStyle.colorForCode(code);
     final icon = CategoryStyle.iconForCode(code);
+    final isBuiltIn = category['is_default'] == true;
 
-    return InkWell(
-      onTap: () {
-        Navigator.push(
-          context,
-          MaterialPageRoute(
-            builder: (context) =>
-                SubcategoriesScreen(parentId: id, parentName: name),
-          ),
-        );
-      },
-      borderRadius: BorderRadius.circular(16),
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-        decoration: BoxDecoration(
-          color: Theme.of(context).colorScheme.surface,
-          borderRadius: BorderRadius.circular(16),
-        ),
-        child: Row(
-          children: [
-            Container(
-              width: 44,
-              height: 44,
-              decoration: BoxDecoration(
-                color: color.withAlpha(30),
-                borderRadius: BorderRadius.circular(12),
-              ),
-              child: Icon(icon, color: color, size: 22),
-            ),
-            const SizedBox(width: 16),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    name,
-                    style: const TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.w500,
+    return Container(
+      margin: const EdgeInsets.only(bottom: 10),
+      decoration: BoxDecoration(
+        color: Theme.of(context).colorScheme.surface,
+        borderRadius: BorderRadius.circular(18),
+      ),
+      child: ListTile(
+        enabled: !disabled,
+        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
+        onTap: disabled
+            ? null
+            : () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (_) => SubcategoriesScreen(
+                      parentId: category['id']!.toString(),
+                      parentName: name,
                     ),
                   ),
-                  const SizedBox(height: 2),
-                  Text(
-                    isDefault
-                        ? context.tr('categories_built_in')
-                        : context.tr('categories_custom'),
-                    style: TextStyle(fontSize: 12, color: Colors.grey.shade500),
+                ).then((_) => _fetchCategories());
+              },
+        leading: Container(
+          width: 44,
+          height: 44,
+          decoration: BoxDecoration(
+            color: color.withAlpha(disabled ? 12 : 28),
+            borderRadius: BorderRadius.circular(14),
+          ),
+          child: Icon(icon, color: disabled ? Colors.grey : color),
+        ),
+        title: Text(name),
+        subtitle: Text(
+          context.tr(
+            disabled
+                ? 'categories_disabled_state'
+                : isBuiltIn
+                ? 'categories_built_in'
+                : 'categories_custom',
+          ),
+        ),
+        trailing: disabled
+            ? TextButton(
+                onPressed: () => _restoreCategory(category),
+                child: Text(context.tr('categories_restore_action')),
+              )
+            : Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  IconButton(
+                    onPressed: () => _deleteOrDisableCategory(category),
+                    icon: Icon(
+                      isBuiltIn ? Icons.block_outlined : Icons.delete_outline,
+                      color: isBuiltIn ? Colors.orangeAccent : Colors.redAccent,
+                    ),
                   ),
+                  const Icon(Icons.chevron_right, color: Colors.grey),
                 ],
               ),
-            ),
-            if (!isDefault)
-              IconButton(
-                icon: const Icon(
-                  Icons.delete_outline,
-                  color: Colors.redAccent,
-                  size: 20,
-                ),
-                onPressed: () {
-                  _deleteCategory(id, name);
-                },
-              ),
-            const Icon(Icons.chevron_right, color: Colors.grey),
-          ],
-        ),
       ),
     );
   }
@@ -296,16 +438,15 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
     return Scaffold(
       appBar: AppBar(
         title: Text(context.tr('categories_title')),
-        backgroundColor: Colors.transparent,
-        elevation: 0,
+        actions: [
+          IconButton(
+            onPressed: _showAddChooser,
+            icon: const Icon(Icons.add),
+            tooltip: context.tr('categories_add_action'),
+          ),
+        ],
       ),
       body: _buildBody(),
-      floatingActionButton: FloatingActionButton.extended(
-        onPressed: _showAddCategoryDialog,
-        icon: const Icon(Icons.add),
-        label: Text(context.tr('categories_add_subcategory')),
-        backgroundColor: Theme.of(context).colorScheme.primary,
-      ),
     );
   }
 
@@ -315,39 +456,43 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
     }
     if (_error != null) {
       return Center(
-        child: Text(
-          _error!,
-          style: const TextStyle(color: Colors.red),
-          textAlign: TextAlign.center,
+        child: Padding(
+          padding: const EdgeInsets.all(24),
+          child: Text(_error!, style: const TextStyle(color: Colors.red)),
         ),
       );
     }
-    if (_categories.isEmpty) {
-      return Center(
-        child: Text(
-          context.tr('categories_not_found'),
-          style: TextStyle(color: Colors.grey.shade400, fontSize: 16),
-        ),
-      );
-    }
-
-    // Only show parent categories (those without a parent_id)
-    final topLevelCats = _categories
-        .where((c) => c['parent_id'] == null)
-        .toList();
-
+    final bottomPadding = MediaQuery.of(context).padding.bottom + 32;
     return RefreshIndicator(
       onRefresh: _fetchCategories,
-      child: ListView.builder(
-        padding: const EdgeInsets.all(16),
-        itemCount: topLevelCats.length,
-        itemBuilder: (context, index) {
-          final cat = topLevelCats[index];
-          return Padding(
-            padding: const EdgeInsets.only(bottom: 8.0),
-            child: _buildCategoryItem(cat),
-          );
-        },
+      child: ListView(
+        padding: EdgeInsets.fromLTRB(16, 16, 16, bottomPadding),
+        children: [
+          Text(
+            context.tr('categories_active_section'),
+            style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w700),
+          ),
+          const SizedBox(height: 12),
+          if (_activeTopLevelCategories.isEmpty)
+            Text(
+              context.tr('categories_not_found'),
+              style: TextStyle(color: Colors.grey.shade500),
+            ),
+          ..._activeTopLevelCategories.map(
+            (category) => _buildCategoryTile(category, disabled: false),
+          ),
+          if (_disabledTopLevelCategories.isNotEmpty) ...[
+            const SizedBox(height: 18),
+            Text(
+              context.tr('categories_disabled_section'),
+              style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w700),
+            ),
+            const SizedBox(height: 12),
+            ..._disabledTopLevelCategories.map(
+              (category) => _buildCategoryTile(category, disabled: true),
+            ),
+          ],
+        ],
       ),
     );
   }

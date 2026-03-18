@@ -47,6 +47,8 @@ class TransactionExportData(SchemaBase):
     currency: str = Field(max_length=3)
     category_id: UUID | None = None
     notes: str | None = None
+    # M-6: preserve owner attribution for export/import round-trips
+    owner_user_id: UUID | None = None
     items: list[TransactionItemExportData] = Field(default_factory=list)
 
 

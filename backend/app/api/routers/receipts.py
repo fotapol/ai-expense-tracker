@@ -16,7 +16,7 @@ from sqlmodel import Session, select
 
 from app.auth.deps import get_current_user
 from app.core.db import get_session
-from app.core.minio import generate_presigned_put, head_object
+from app.core.minio import generate_presigned_get, generate_presigned_put, head_object
 from app.core.rabbitmq import get_rabbitmq_connection
 from app.core.rate_limiter import limiter
 from app.models.receipts.receipt import Receipt
@@ -28,8 +28,10 @@ from app.schemas.receipts import (
     ReceiptCreateRequest,
     ReceiptCreateResponse,
     ReceiptRead,
+    ReceiptViewUrlResponse,
 )
 from app.services.billing import receipt_scan_limit_reached, resolve_receipt_scan_usage
+from app.services.households.access import get_active_shared_household_id
 
 logger = logging.getLogger(__name__)
 
@@ -43,6 +45,40 @@ _ALLOWED_MIME_TYPES = {
     "image/heif",
     "application/pdf",
 }
+
+
+def _get_visible_receipt_and_transaction(
+    session: Session,
+    *,
+    receipt_id: uuid.UUID,
+    current_user: User,
+) -> tuple[Receipt | None, Transaction | None]:
+    receipt = session.exec(
+        select(Receipt).where(Receipt.id == receipt_id)
+    ).first()
+    if receipt is None:
+        return None, None
+
+    transaction = session.exec(
+        select(Transaction).where(Transaction.receipt_id == receipt_id)
+    ).first()
+    shared_household_id = get_active_shared_household_id(session, current_user.id)
+
+    if receipt.user_id == current_user.id:
+        if transaction is None or transaction.household_id is None:
+            return receipt, transaction
+        if shared_household_id is not None and transaction.household_id == shared_household_id:
+            return receipt, transaction
+        return None, None
+
+    if (
+        transaction is not None
+        and shared_household_id is not None
+        and transaction.household_id == shared_household_id
+    ):
+        return receipt, transaction
+
+    return None, None
 
 
 @router.post("/receipts", response_model=ReceiptCreateResponse, status_code=status.HTTP_201_CREATED)
@@ -215,21 +251,48 @@ async def get_receipt(
     current_user: User = Depends(get_current_user),  # noqa: B008
 ):
     """Return receipt status, failure reason, and linked transaction id."""
-    receipt = session.exec(
-        select(Receipt).where(Receipt.id == receipt_id, Receipt.user_id == current_user.id)
-    ).first()
+    receipt, transaction = _get_visible_receipt_and_transaction(
+        session,
+        receipt_id=receipt_id,
+        current_user=current_user,
+    )
 
     if receipt is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Receipt not found.")
 
-    # Look up linked transaction
-    transaction = session.exec(
-        select(Transaction).where(Transaction.receipt_id == receipt_id)
-    ).first()
-
     read = ReceiptRead.model_validate(receipt)
     read.transaction_id = transaction.id if transaction else None
     return read
+
+
+@router.get("/receipts/{receipt_id}/view-url", response_model=ReceiptViewUrlResponse)
+@limiter.limit("30/minute")
+async def get_receipt_view_url(
+    receipt_id: uuid.UUID,
+    request: Request,
+    session: Session = Depends(get_session),  # noqa: B008
+    current_user: User = Depends(get_current_user),  # noqa: B008
+):
+    """Return a short-lived URL for viewing an uploaded receipt file."""
+
+    receipt, _transaction = _get_visible_receipt_and_transaction(
+        session,
+        receipt_id=receipt_id,
+        current_user=current_user,
+    )
+
+    if receipt is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Receipt not found.")
+
+    return ReceiptViewUrlResponse(
+        receipt_id=receipt.id,
+        view_url=generate_presigned_get(
+            key=receipt.storage_key,
+            bucket=receipt.storage_bucket,
+        ),
+        mime_type=receipt.mime_type,
+        original_filename=receipt.original_filename,
+    )
 
 
 @router.delete("/receipts/{receipt_id}", status_code=status.HTTP_204_NO_CONTENT)

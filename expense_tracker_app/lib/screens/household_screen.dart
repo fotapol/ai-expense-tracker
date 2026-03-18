@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:share_plus/share_plus.dart';
 
 import '../core/api_client.dart';
+import '../core/auto_refresh_state_mixin.dart';
 import '../l10n/app_localizations.dart';
 import 'subscription_screen.dart';
 
@@ -13,7 +14,8 @@ class HouseholdScreen extends StatefulWidget {
   State<HouseholdScreen> createState() => _HouseholdScreenState();
 }
 
-class _HouseholdScreenState extends State<HouseholdScreen> {
+class _HouseholdScreenState extends State<HouseholdScreen>
+    with WidgetsBindingObserver, AutoRefreshStateMixin<HouseholdScreen> {
   static const String _familyPlanFeatureCode = 'premium.family_plan';
 
   bool _isLoading = true;
@@ -25,6 +27,13 @@ class _HouseholdScreenState extends State<HouseholdScreen> {
   List<dynamic> _members = const [];
   List<dynamic> _invites = const [];
   Set<String> _featureCodes = const {};
+  bool _isRefreshingHousehold = false;
+
+  @override
+  Duration get autoRefreshInterval => const Duration(seconds: 10);
+
+  @override
+  Future<void> performAutoRefresh() => _loadData(showLoader: false);
 
   @override
   void initState() {
@@ -55,12 +64,22 @@ class _HouseholdScreenState extends State<HouseholdScreen> {
 
   bool get _isOwner => _currentMembership()?['role']?.toString() == 'owner';
   bool get _canManage => _isOwner && _hasFamilyPlan;
+  bool _isCurrentMember(Map<String, dynamic> member) =>
+      member['user_id']?.toString() == _currentUserId();
 
-  Future<void> _loadData() async {
-    setState(() {
-      _isLoading = true;
-      _error = null;
-    });
+  Future<void> _loadData({bool showLoader = true}) async {
+    if (_isRefreshingHousehold) return;
+    _isRefreshingHousehold = true;
+    if (!mounted) {
+      _isRefreshingHousehold = false;
+      return;
+    }
+    if (showLoader) {
+      setState(() {
+        _isLoading = true;
+        _error = null;
+      });
+    }
 
     try {
       final meFuture = ApiClient.getMe();
@@ -109,13 +128,18 @@ class _HouseholdScreenState extends State<HouseholdScreen> {
         _members = members;
         _invites = invites;
         _featureCodes = featureCodes;
+        _error = null;
       });
     } catch (e) {
       if (!mounted) return;
-      setState(() {
-        _isLoading = false;
-        _error = e.toString();
-      });
+      if (showLoader || _household == null) {
+        setState(() {
+          _isLoading = false;
+          _error = e.toString();
+        });
+      }
+    } finally {
+      _isRefreshingHousehold = false;
     }
   }
 
@@ -438,6 +462,101 @@ class _HouseholdScreenState extends State<HouseholdScreen> {
     }
   }
 
+  Future<void> _leaveHousehold() async {
+    final confirm = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: Text(context.tr('household_leave_title')),
+        content: Text(context.tr('household_leave_confirm')),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, false),
+            child: Text(context.tr('common_cancel')),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.pop(ctx, true),
+            child: Text(context.tr('household_leave_action')),
+          ),
+        ],
+      ),
+    );
+    if (confirm != true) return;
+
+    setState(() => _isActionLoading = true);
+    try {
+      await ApiClient.leaveCurrentHousehold();
+      await _loadData();
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(context.tr('household_left_success'))),
+      );
+      Navigator.pop(context, true);
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            context.tr(
+              'common_error_with_message',
+              params: {'message': e.toString()},
+            ),
+          ),
+          backgroundColor: Colors.red,
+        ),
+      );
+    } finally {
+      if (mounted) setState(() => _isActionLoading = false);
+    }
+  }
+
+  Future<void> _deleteHousehold() async {
+    final confirm = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: Text(context.tr('household_delete_title')),
+        content: Text(context.tr('household_delete_confirm')),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, false),
+            child: Text(context.tr('common_cancel')),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.pop(ctx, true),
+            style: FilledButton.styleFrom(backgroundColor: Colors.red),
+            child: Text(context.tr('household_delete_action')),
+          ),
+        ],
+      ),
+    );
+    if (confirm != true) return;
+
+    setState(() => _isActionLoading = true);
+    try {
+      await ApiClient.deleteCurrentHousehold();
+      await _loadData();
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(context.tr('household_deleted_success'))),
+      );
+      Navigator.pop(context, true);
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            context.tr(
+              'common_error_with_message',
+              params: {'message': e.toString()},
+            ),
+          ),
+          backgroundColor: Colors.red,
+        ),
+      );
+    } finally {
+      if (mounted) setState(() => _isActionLoading = false);
+    }
+  }
+
   Color _stateColor(String state) {
     switch (state) {
       case 'accepted':
@@ -613,10 +732,29 @@ class _HouseholdScreenState extends State<HouseholdScreen> {
                     params: {'role': _roleLabel(role)},
                   ),
                 ),
-                if (_isOwner && !_hasFamilyPlan) ...[
+                if (!_hasFamilyPlan) ...[
                   const SizedBox(height: 12),
                   _buildLockedBanner(),
                 ],
+                const SizedBox(height: 12),
+                Wrap(
+                  spacing: 8,
+                  runSpacing: 8,
+                  children: [
+                    if (!_isOwner)
+                      OutlinedButton.icon(
+                        onPressed: _isActionLoading ? null : _leaveHousehold,
+                        icon: const Icon(Icons.logout_outlined),
+                        label: Text(context.tr('household_leave_action')),
+                      ),
+                    if (_isOwner)
+                      OutlinedButton.icon(
+                        onPressed: _isActionLoading ? null : _deleteHousehold,
+                        icon: const Icon(Icons.delete_outline),
+                        label: Text(context.tr('household_delete_action')),
+                      ),
+                  ],
+                ),
               ],
             ),
           ),
@@ -639,6 +777,7 @@ class _HouseholdScreenState extends State<HouseholdScreen> {
                 : (email ?? context.tr('common_unknown'));
             final memberRole = member['role']?.toString() ?? 'member';
             final removable = _canManage && memberRole != 'owner';
+            final isCurrentUser = _isCurrentMember(member);
             return Card(
               child: ListTile(
                 leading: CircleAvatar(
@@ -647,7 +786,11 @@ class _HouseholdScreenState extends State<HouseholdScreen> {
                   ),
                 ),
                 title: Text(display),
-                subtitle: Text(_roleLabel(memberRole)),
+                subtitle: Text(
+                  isCurrentUser
+                      ? '${_roleLabel(memberRole)} • ${context.tr('household_you_badge')}'
+                      : _roleLabel(memberRole),
+                ),
                 trailing: removable
                     ? IconButton(
                         onPressed: _isActionLoading ? null : () => _removeMember(member),

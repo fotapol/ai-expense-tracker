@@ -173,6 +173,54 @@ def test_revenuecat_provider_maps_family_product_alias_without_entitlement() -> 
     assert event.product_id == "family_premium"
 
 
+def test_revenuecat_provider_normalize_events_emits_family_and_personal_rows() -> None:
+    provider = RevenueCatProvider(
+        premium_entitlement_id="personal_premium",
+        family_premium_entitlement_id="family_premium",
+        personal_product_ids={"individual_plan_monthly", "individual_plan_yearly"},
+        family_product_ids={"family_plan_monthly", "family_plan_yearly"},
+    )
+
+    events = provider.normalize_events(
+        user_id=uuid.uuid4(),
+        payload={
+            "request_date": "2026-03-10T10:00:00Z",
+            "subscriber": {
+                "original_app_user_id": "firebase-uid-1",
+                "entitlements": {
+                    "personal_premium": {
+                        "product_identifier": "individual_plan_monthly",
+                        "purchase_date": "2026-03-01T00:00:00Z",
+                        "expires_date": "2099-03-10T10:00:00Z",
+                        "store_transaction_id": "personal-txn-1",
+                    },
+                    "family_premium": {
+                        "product_identifier": "family_plan_yearly",
+                        "purchase_date": "2026-03-02T00:00:00Z",
+                        "expires_date": "2099-03-11T10:00:00Z",
+                        "store_transaction_id": "family-txn-1",
+                    },
+                },
+                "subscriptions": {
+                    "individual_plan_monthly": {
+                        "purchase_date": "2026-03-01T00:00:00Z",
+                        "expires_date": "2099-03-10T10:00:00Z",
+                    },
+                    "family_plan_yearly": {
+                        "purchase_date": "2026-03-02T00:00:00Z",
+                        "expires_date": "2099-03-11T10:00:00Z",
+                    },
+                },
+            },
+        },
+    )
+
+    assert {event.product_id for event in events} == {
+        "personal_premium",
+        "family_premium",
+    }
+
+
 @pytest.mark.anyio
 async def test_sync_revenuecat_requires_secret_key(monkeypatch) -> None:
     monkeypatch.setenv("REVENUECAT_SECRET_API_KEY", "")

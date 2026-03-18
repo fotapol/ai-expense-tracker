@@ -5,6 +5,7 @@ import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
+import '../core/auto_refresh_state_mixin.dart';
 import '../core/api_client.dart';
 import '../l10n/app_localizations.dart';
 import 'transaction_edit_screen.dart';
@@ -16,7 +17,8 @@ class HomeTab extends StatefulWidget {
   State<HomeTab> createState() => _HomeTabState();
 }
 
-class _HomeTabState extends State<HomeTab> {
+class _HomeTabState extends State<HomeTab>
+    with WidgetsBindingObserver, AutoRefreshStateMixin<HomeTab> {
   bool _isLoading = true;
   String? _error;
   String _preferredCurrency = 'RSD';
@@ -27,6 +29,13 @@ class _HomeTabState extends State<HomeTab> {
   List<Map<String, dynamic>> _transactions = [];
   late List<DateTime> _last7Days;
   late DateTime _selectedDay;
+  bool _isRefreshingHome = false;
+
+  @override
+  Duration get autoRefreshInterval => const Duration(seconds: 8);
+
+  @override
+  Future<void> performAutoRefresh() => _loadHomeData(showLoader: false);
 
   @override
   void initState() {
@@ -45,12 +54,19 @@ class _HomeTabState extends State<HomeTab> {
     _selectedDay = _last7Days.last;
   }
 
-  Future<void> _loadHomeData() async {
-    if (!mounted) return;
-    setState(() {
-      _isLoading = true;
-      _error = null;
-    });
+  Future<void> _loadHomeData({bool showLoader = true}) async {
+    if (_isRefreshingHome) return;
+    _isRefreshingHome = true;
+    if (!mounted) {
+      _isRefreshingHome = false;
+      return;
+    }
+    if (showLoader) {
+      setState(() {
+        _isLoading = true;
+        _error = null;
+      });
+    }
 
     try {
       final fromDate = _last7Days.first;
@@ -92,13 +108,18 @@ class _HomeTabState extends State<HomeTab> {
         _hasUsageSnapshot = true;
         _transactions = txs;
         _isLoading = false;
+        _error = null;
       });
     } catch (e) {
       if (!mounted) return;
-      setState(() {
-        _error = e.toString();
-        _isLoading = false;
-      });
+      if (showLoader || _transactions.isEmpty) {
+        setState(() {
+          _error = e.toString();
+          _isLoading = false;
+        });
+      }
+    } finally {
+      _isRefreshingHome = false;
     }
   }
 
@@ -432,7 +453,7 @@ class _HomeTabState extends State<HomeTab> {
               totals.length,
               (index) => FlSpot(index.toDouble(), totals[index]),
             ),
-            isCurved: true,
+            isCurved: false,
             barWidth: 3,
             color: const Color(0xFFE040FB),
             dotData: FlDotData(

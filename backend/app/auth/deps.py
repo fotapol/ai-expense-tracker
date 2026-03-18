@@ -11,6 +11,7 @@ from sqlmodel import Session, select
 
 from app.auth.firebase_admin import verify_token
 from app.cache.user_cache import cache_user, get_cached_user, invalidate_user_cache
+from app.core.config import get_dev_billing_admin_emails
 from app.core.db import get_session
 from app.core.redis import get_redis
 from app.models.users.user import User
@@ -22,15 +23,10 @@ _bearer_scheme = HTTPBearer(
 )
 
 
-def _parse_admin_email_allowlist() -> set[str]:
-    raw = os.environ.get("DEV_BILLING_ADMIN_EMAILS", "")
-    return {item.strip().lower() for item in raw.split(",") if item.strip()}
-
-
 def _email_is_dev_billing_admin(email: str | None) -> bool:
     if not email:
         return False
-    return email.strip().lower() in _parse_admin_email_allowlist()
+    return email.strip().lower() in get_dev_billing_admin_emails()
 
 
 async def get_current_user(

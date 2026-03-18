@@ -40,7 +40,7 @@ class TransactionItemCreate(SchemaBase):
     amount_before_discount: Amount2DP | None = None
     discount_amount: Amount2DP | None = None
     is_adjustment: bool = False
-    category_id: UUID
+    category_id: UUID | None = None
     raw_line: str | None = Field(default=None, max_length=1000)
 
     @field_validator("qty")

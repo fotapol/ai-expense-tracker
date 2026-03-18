@@ -31,12 +31,23 @@ class CategoryStyle {
     Color(0xFF7CFF8A),
     Color(0xFF8C9EFF),
     Color(0xFFFFA726),
+    Color(0xFF00D4FF),
+    Color(0xFFFF8A65),
+    Color(0xFF80CBC4),
+    Color(0xFFFFC857),
+    Color(0xFFF06292),
+    Color(0xFF64B5F6),
+    Color(0xFFA5D6A7),
+    Color(0xFFBA68C8),
+    Color(0xFFFFB74D),
+    Color(0xFF4DD0E1),
+    Color(0xFFE57373),
+    Color(0xFF9575CD),
+    Color(0xFFFFF176),
   ];
 
-  static Color colorForCode(String? code) {
-    final normalized = (code ?? '').trim().toUpperCase();
-    final direct = _colorByCode[normalized];
-    if (direct != null) return direct;
+  static Color colorForSeed(String? seed) {
+    final normalized = (seed ?? '').trim().toUpperCase();
     if (normalized.isEmpty) return _fallbackColors.first;
 
     var hash = 0;
@@ -44,6 +55,13 @@ class CategoryStyle {
       hash = ((hash * 31) + unit) & 0x7fffffff;
     }
     return _fallbackColors[hash % _fallbackColors.length];
+  }
+
+  static Color colorForCode(String? code) {
+    final normalized = (code ?? '').trim().toUpperCase();
+    final direct = _colorByCode[normalized];
+    if (direct != null) return direct;
+    return colorForSeed(normalized);
   }
 
   static IconData iconForCode(String? code) {
