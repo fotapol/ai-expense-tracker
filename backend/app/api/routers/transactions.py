@@ -1,5 +1,6 @@
 """Transaction API endpoints for editing and viewing ledgers."""
 
+import datetime as dt
 import logging
 import uuid
 from collections import defaultdict
@@ -36,6 +37,12 @@ from app.schemas.shared import (
     quantize_unit_price,
 )
 from app.schemas.transactions import (
+    AnalyticsCategorySnippetRead,
+    AnalyticsHouseholdMemberRead,
+    AnalyticsHouseholdSnippetRead,
+    AnalyticsHouseholdSummaryRead,
+    AnalyticsTrendBucketRead,
+    AnalyticsTrendSummaryRead,
     TransactionCreateManual,
     TransactionHouseholdSnippetRead,
     TransactionItemRead,
@@ -647,6 +654,219 @@ def _build_item_scope_query(
             query = query.where(TransactionItem.category_id.in_(selected_subcategory_ids))
 
     return query, has_item_filters
+
+
+def _build_analytics_scope(
+    *,
+    session: Session,
+    current_user: User,
+    filters: TransactionListFilter,
+    transaction_ids_query=None,
+):
+    target_currency = _resolve_target_currency(filters, current_user)
+    category_descendant_item_ids, _ = _resolve_category_filter_sets(
+        session=session,
+        current_user=current_user,
+        category_ids_csv=filters.category_ids,
+    )
+    selected_subcategory_ids = _resolve_subcategory_filter_ids(
+        session=session,
+        current_user=current_user,
+        subcategory_ids_csv=filters.subcategory_ids,
+    )
+    base_transaction_ids_query = transaction_ids_query or _build_filtered_transaction_ids_query(
+        session=session,
+        current_user=current_user,
+        filters=filters,
+    )
+    transaction_ids_subquery = base_transaction_ids_query.subquery()
+    item_scope_query, has_item_filters = _build_item_scope_query(
+        transaction_ids_subquery=transaction_ids_subquery,
+        category_descendant_item_ids=category_descendant_item_ids,
+        selected_subcategory_ids=selected_subcategory_ids,
+    )
+    return (
+        target_currency,
+        transaction_ids_subquery,
+        item_scope_query.subquery(),
+        has_item_filters,
+    )
+
+
+def _load_analytics_spend_rows(
+    session: Session,
+    *,
+    transaction_ids_subquery,
+    item_scope_subquery,
+    has_item_filters: bool,
+):
+    if has_item_filters:
+        return session.exec(
+            select(
+                item_scope_subquery.c.transaction_id,
+                item_scope_subquery.c.amount,
+                Transaction.currency,
+                Transaction.occurred_at,
+                Transaction.created_at,
+                Transaction.owner_user_id,
+                Transaction.user_id,
+            ).join(
+                Transaction,
+                Transaction.id == item_scope_subquery.c.transaction_id,
+            )
+        ).all()
+
+    return session.exec(
+        select(
+            Transaction.id,
+            Transaction.amount_total,
+            Transaction.currency,
+            Transaction.occurred_at,
+            Transaction.created_at,
+            Transaction.owner_user_id,
+            Transaction.user_id,
+        ).where(Transaction.id.in_(select(transaction_ids_subquery.c.id)))
+    ).all()
+
+
+def _load_household_category_item_rows(
+    session: Session,
+    *,
+    item_scope_subquery,
+):
+    return session.exec(
+        select(
+            Transaction.owner_user_id,
+            Transaction.user_id,
+            Category.id,
+            Category.name,
+            Category.code,
+            Category.parent_id,
+            item_scope_subquery.c.amount,
+            item_scope_subquery.c.transaction_id,
+            Transaction.currency,
+            Transaction.occurred_at,
+            Transaction.created_at,
+        )
+        .join(item_scope_subquery, item_scope_subquery.c.transaction_id == Transaction.id)
+        .join(Category, Category.id == item_scope_subquery.c.category_id)
+    ).all()
+
+
+def _coerce_analytics_datetime(
+    value: dt.datetime | None,
+    *,
+    fallback: dt.datetime | None = None,
+) -> dt.datetime | None:
+    resolved = value or fallback
+    if resolved is None:
+        return None
+    if resolved.tzinfo is None:
+        return resolved.replace(tzinfo=dt.UTC)
+    return resolved
+
+
+def _resolve_analytics_period_bounds(
+    filters: TransactionListFilter,
+) -> tuple[dt.datetime | None, dt.datetime]:
+    now = dt.datetime.now(dt.UTC)
+    end_at = _coerce_analytics_datetime(filters.to_occurred_at, fallback=now) or now
+    start_at = _coerce_analytics_datetime(filters.from_occurred_at)
+    return start_at, end_at
+
+
+def _build_previous_period_filters(
+    filters: TransactionListFilter,
+) -> TransactionListFilter | None:
+    current_start, current_end = _resolve_analytics_period_bounds(filters)
+    if current_start is None:
+        return None
+
+    window = current_end - current_start
+    if window.total_seconds() <= 0:
+        window = dt.timedelta(days=1)
+    previous_end = current_start - dt.timedelta(microseconds=1)
+    previous_start = previous_end - window
+    return filters.model_copy(
+        update={
+            "from_occurred_at": previous_start,
+            "to_occurred_at": previous_end,
+        }
+    )
+
+
+def _infer_analytics_bucket_unit(
+    filters: TransactionListFilter,
+) -> str:
+    start_at, end_at = _resolve_analytics_period_bounds(filters)
+    if start_at is None:
+        return "month"
+
+    span_days = max(1, (end_at.date() - start_at.date()).days + 1)
+    if span_days <= 31:
+        return "day"
+    if span_days <= 184:
+        return "week"
+    return "month"
+
+
+def _format_trend_bucket_label(
+    *,
+    start_date: dt.date,
+    end_date: dt.date,
+    bucket_unit: str,
+) -> str:
+    if bucket_unit == "day":
+        return start_date.strftime("%d %b")
+    if bucket_unit == "week":
+        return f"{start_date.strftime('%d %b')} - {end_date.strftime('%d %b')}"
+    return start_date.strftime("%b %Y")
+
+
+def _iter_trend_bucket_ranges(
+    *,
+    start_date: dt.date,
+    end_date: dt.date,
+    bucket_unit: str,
+) -> list[tuple[dt.date, dt.date]]:
+    ranges: list[tuple[dt.date, dt.date]] = []
+    cursor = start_date
+    while cursor <= end_date:
+        if bucket_unit == "day":
+            bucket_end = cursor
+        elif bucket_unit == "week":
+            bucket_end = min(cursor + dt.timedelta(days=6), end_date)
+        else:
+            if cursor.month == 12:
+                next_month = dt.date(cursor.year + 1, 1, 1)
+            else:
+                next_month = dt.date(cursor.year, cursor.month + 1, 1)
+            bucket_end = min(next_month - dt.timedelta(days=1), end_date)
+
+        ranges.append((cursor, bucket_end))
+        cursor = bucket_end + dt.timedelta(days=1)
+    return ranges
+
+
+def _convert_analytics_amount(
+    *,
+    session: Session,
+    amount,
+    currency: str,
+    target_currency: str,
+    occurred_at,
+    created_at,
+) -> Decimal:
+    raw_amount = amount if isinstance(amount, Decimal) else Decimal(str(amount or "0"))
+    converted = convert_amount(
+        amount=raw_amount,
+        base_currency=currency,
+        target_currency=target_currency,
+        target_date=resolve_conversion_date(occurred_at, created_at),
+        session=session,
+        quantizer=quantize_amount,
+    )
+    return converted.value if converted.value is not None else quantize_amount(raw_amount)
 
 
 def _extract_warnings_from_structured_json(structured_json: dict[str, Any] | None) -> list[ExtractionWarning]:
@@ -1524,6 +1744,385 @@ async def get_transactions_summary(
             "biggest_discount": biggest_discount_entry,
         },
     }
+
+
+@router.get("/transactions/summary/trends", response_model=AnalyticsTrendSummaryRead)
+@limiter.limit("30/minute")
+async def get_transaction_trend_summary(
+    request: Request,
+    filters: Annotated[TransactionListFilter, Depends()],
+    session: Session = Depends(get_session),  # noqa: B008
+    current_user: User = Depends(get_current_user),  # noqa: B008
+):
+    """Return bucketed spend trends for the selected analytics range."""
+
+    bucket_unit = _infer_analytics_bucket_unit(filters)
+    current_start_at, current_end_at = _resolve_analytics_period_bounds(filters)
+    (
+        target_currency,
+        transaction_ids_subquery,
+        item_scope_subquery,
+        has_item_filters,
+    ) = _build_analytics_scope(
+        session=session,
+        current_user=current_user,
+        filters=filters,
+    )
+    current_rows = _load_analytics_spend_rows(
+        session,
+        transaction_ids_subquery=transaction_ids_subquery,
+        item_scope_subquery=item_scope_subquery,
+        has_item_filters=has_item_filters,
+    )
+
+    previous_total_amount: Decimal | None = None
+    previous_filters = _build_previous_period_filters(filters)
+    if previous_filters is not None:
+        (
+            _previous_currency,
+            previous_transaction_ids_subquery,
+            previous_item_scope_subquery,
+            previous_has_item_filters,
+        ) = _build_analytics_scope(
+            session=session,
+            current_user=current_user,
+            filters=previous_filters,
+        )
+        previous_rows = _load_analytics_spend_rows(
+            session,
+            transaction_ids_subquery=previous_transaction_ids_subquery,
+            item_scope_subquery=previous_item_scope_subquery,
+            has_item_filters=previous_has_item_filters,
+        )
+        previous_total_amount = Decimal("0.00")
+        for (
+            _tx_id,
+            amount,
+            tx_currency,
+            tx_occurred_at,
+            tx_created_at,
+            _owner_user_id,
+            _user_id,
+        ) in previous_rows:
+            previous_total_amount += _convert_analytics_amount(
+                session=session,
+                amount=amount,
+                currency=tx_currency,
+                target_currency=target_currency,
+                occurred_at=tx_occurred_at,
+                created_at=tx_created_at,
+            )
+
+    row_dates = [
+        resolve_conversion_date(tx_occurred_at, tx_created_at)
+        for (
+            _tx_id,
+            _amount,
+            _tx_currency,
+            tx_occurred_at,
+            tx_created_at,
+            _owner_user_id,
+            _user_id,
+        ) in current_rows
+    ]
+    effective_start_date = (
+        current_start_at.date()
+        if current_start_at is not None
+        else (min(row_dates) if row_dates else current_end_at.date())
+    )
+    effective_end_date = current_end_at.date()
+    bucket_ranges = _iter_trend_bucket_ranges(
+        start_date=effective_start_date,
+        end_date=effective_end_date,
+        bucket_unit=bucket_unit,
+    )
+    bucket_state = [
+        {
+            "start_date": start_date,
+            "end_date": end_date,
+            "label": _format_trend_bucket_label(
+                start_date=start_date,
+                end_date=end_date,
+                bucket_unit=bucket_unit,
+            ),
+            "amount": Decimal("0.00"),
+            "transaction_ids": set(),
+        }
+        for start_date, end_date in bucket_ranges
+    ]
+
+    current_total_amount = Decimal("0.00")
+    for (
+        tx_id,
+        amount,
+        tx_currency,
+        tx_occurred_at,
+        tx_created_at,
+        _owner_user_id,
+        _user_id,
+    ) in current_rows:
+        converted_amount = _convert_analytics_amount(
+            session=session,
+            amount=amount,
+            currency=tx_currency,
+            target_currency=target_currency,
+            occurred_at=tx_occurred_at,
+            created_at=tx_created_at,
+        )
+        current_total_amount += converted_amount
+        spend_date = resolve_conversion_date(tx_occurred_at, tx_created_at)
+        for bucket in bucket_state:
+            if bucket["start_date"] <= spend_date <= bucket["end_date"]:
+                bucket["amount"] += converted_amount
+                bucket["transaction_ids"].add(tx_id)
+                break
+
+    change_percentage = None
+    if previous_total_amount is not None and previous_total_amount > 0:
+        delta_ratio = (
+            (current_total_amount - previous_total_amount) / previous_total_amount
+        ) * Decimal("100")
+        change_percentage = float(quantize_amount(delta_ratio))
+
+    return AnalyticsTrendSummaryRead(
+        currency=target_currency,
+        bucket_unit=bucket_unit,  # type: ignore[arg-type]
+        current_total_amount=quantize_amount(current_total_amount),
+        previous_total_amount=(
+            quantize_amount(previous_total_amount)
+            if previous_total_amount is not None
+            else None
+        ),
+        change_percentage=change_percentage,
+        buckets=[
+            AnalyticsTrendBucketRead(
+                start_date=bucket["start_date"],
+                end_date=bucket["end_date"],
+                label=bucket["label"],
+                amount=quantize_amount(bucket["amount"]),
+                transaction_count=len(bucket["transaction_ids"]),
+            )
+            for bucket in bucket_state
+        ],
+    )
+
+
+@router.get("/transactions/summary/household", response_model=AnalyticsHouseholdSummaryRead)
+@limiter.limit("30/minute")
+async def get_household_analytics_summary(
+    request: Request,
+    filters: Annotated[TransactionListFilter, Depends()],
+    session: Session = Depends(get_session),  # noqa: B008
+    current_user: User = Depends(get_current_user),  # noqa: B008
+):
+    """Return per-member household analytics for the active shared household."""
+
+    target_currency = _resolve_target_currency(filters, current_user)
+    active_household_id = _resolve_active_shared_household_id(session, current_user)
+    if active_household_id is None:
+        return AnalyticsHouseholdSummaryRead(
+            household=None,
+            currency=target_currency,
+            total_amount=Decimal("0.00"),
+            total_transactions=0,
+            members=[],
+        )
+
+    household = session.exec(
+        select(Household).where(Household.id == active_household_id)
+    ).first()
+    if household is None:
+        return AnalyticsHouseholdSummaryRead(
+            household=None,
+            currency=target_currency,
+            total_amount=Decimal("0.00"),
+            total_transactions=0,
+            members=[],
+        )
+
+    household_transaction_ids_query = _build_filtered_transaction_ids_query(
+        session=session,
+        current_user=current_user,
+        filters=filters,
+    ).where(Transaction.household_id == active_household_id)
+    (
+        _target_currency,
+        transaction_ids_subquery,
+        item_scope_subquery,
+        has_item_filters,
+    ) = _build_analytics_scope(
+        session=session,
+        current_user=current_user,
+        filters=filters,
+        transaction_ids_query=household_transaction_ids_query,
+    )
+    spend_rows = _load_analytics_spend_rows(
+        session,
+        transaction_ids_subquery=transaction_ids_subquery,
+        item_scope_subquery=item_scope_subquery,
+        has_item_filters=has_item_filters,
+    )
+
+    member_totals: dict[uuid.UUID, dict[str, Any]] = {}
+    total_amount = Decimal("0.00")
+    total_transaction_ids: set[uuid.UUID] = set()
+    for (
+        tx_id,
+        amount,
+        tx_currency,
+        tx_occurred_at,
+        tx_created_at,
+        owner_user_id,
+        user_id,
+    ) in spend_rows:
+        resolved_owner_user_id = owner_user_id or user_id
+        if resolved_owner_user_id is None:
+            continue
+
+        converted_amount = _convert_analytics_amount(
+            session=session,
+            amount=amount,
+            currency=tx_currency,
+            target_currency=target_currency,
+            occurred_at=tx_occurred_at,
+            created_at=tx_created_at,
+        )
+        total_amount += converted_amount
+        total_transaction_ids.add(tx_id)
+        member_entry = member_totals.setdefault(
+            resolved_owner_user_id,
+            {
+                "total_amount": Decimal("0.00"),
+                "transaction_ids": set(),
+            },
+        )
+        member_entry["total_amount"] += converted_amount
+        member_entry["transaction_ids"].add(tx_id)
+
+    category_item_rows = _load_household_category_item_rows(
+        session,
+        item_scope_subquery=item_scope_subquery,
+    )
+    parent_ids = {
+        parent_id
+        for (
+            _owner_user_id,
+            _user_id,
+            _category_id,
+            _name,
+            _code,
+            parent_id,
+            _amount,
+            _transaction_id,
+            _tx_currency,
+            _tx_occurred_at,
+            _tx_created_at,
+        ) in category_item_rows
+        if parent_id is not None
+    }
+    parent_map: dict[uuid.UUID, dict[str, Any]] = {}
+    if parent_ids:
+        parents = session.exec(select(Category).where(Category.id.in_(parent_ids))).all()
+        parent_map = {
+            parent.id: {"name": parent.name, "code": parent.code}
+            for parent in parents
+        }
+
+    top_categories_by_owner: dict[uuid.UUID, dict[uuid.UUID, dict[str, Any]]] = defaultdict(dict)
+    for (
+        owner_user_id,
+        user_id,
+        category_id,
+        name,
+        code,
+        parent_id,
+        amount,
+        _transaction_id,
+        tx_currency,
+        tx_occurred_at,
+        tx_created_at,
+    ) in category_item_rows:
+        resolved_owner_user_id = owner_user_id or user_id
+        if resolved_owner_user_id is None:
+            continue
+
+        converted_amount = _convert_analytics_amount(
+            session=session,
+            amount=amount,
+            currency=tx_currency,
+            target_currency=target_currency,
+            occurred_at=tx_occurred_at,
+            created_at=tx_created_at,
+        )
+        target_category_id = category_id
+        target_name = name
+        target_code = code
+        if parent_id is not None:
+            target_category_id = parent_id
+            target_name = parent_map.get(parent_id, {}).get("name", name)
+            target_code = parent_map.get(parent_id, {}).get("code", code)
+
+        owner_categories = top_categories_by_owner[resolved_owner_user_id]
+        category_entry = owner_categories.setdefault(
+            target_category_id,
+            {
+                "category_id": target_category_id,
+                "name": target_name,
+                "code": target_code,
+                "amount": Decimal("0.00"),
+            },
+        )
+        category_entry["amount"] += converted_amount
+
+    user_snippets = _load_transaction_user_snippets(
+        session,
+        user_ids=set(member_totals.keys()),
+    )
+    members: list[AnalyticsHouseholdMemberRead] = []
+    for owner_user_id, data in member_totals.items():
+        member_total_amount: Decimal = data["total_amount"]
+        owner_categories = top_categories_by_owner.get(owner_user_id, {})
+        top_category_data = None
+        if owner_categories:
+            top_category_data = max(
+                owner_categories.values(),
+                key=lambda entry: entry["amount"],
+            )
+        members.append(
+            AnalyticsHouseholdMemberRead(
+                owner_user_id=owner_user_id,
+                user=user_snippets.get(owner_user_id),
+                total_amount=quantize_amount(member_total_amount),
+                percentage=float(
+                    quantize_amount((member_total_amount / total_amount) * Decimal("100"))
+                )
+                if total_amount > 0
+                else 0.0,
+                transaction_count=len(data["transaction_ids"]),
+                top_category=(
+                    AnalyticsCategorySnippetRead(
+                        category_id=top_category_data["category_id"],
+                        name=top_category_data["name"],
+                        code=top_category_data["code"],
+                        amount=quantize_amount(top_category_data["amount"]),
+                    )
+                    if top_category_data is not None
+                    else None
+                ),
+            )
+        )
+
+    members.sort(key=lambda member: member.total_amount, reverse=True)
+    return AnalyticsHouseholdSummaryRead(
+        household=AnalyticsHouseholdSnippetRead(
+            household_id=household.id,
+            name=household.name,
+        ),
+        currency=target_currency,
+        total_amount=quantize_amount(total_amount),
+        total_transactions=len(total_transaction_ids),
+        members=members,
+    )
 
 
 @router.get("/transactions/summary/categories/{category_id}/subcategories")
