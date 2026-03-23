@@ -42,6 +42,12 @@ from app.schemas.shared import (
     UUIDTimestampSchema,
 )
 from app.schemas.transactions import (
+    AnalyticsCategorySnippetRead,
+    AnalyticsHouseholdMemberRead,
+    AnalyticsHouseholdSnippetRead,
+    AnalyticsHouseholdSummaryRead,
+    AnalyticsTrendBucketRead,
+    AnalyticsTrendSummaryRead,
     TransactionConfirm,
     TransactionCreateManual,
     TransactionItemCreate,
@@ -61,6 +67,12 @@ from app.schemas.users import (
 
 __all__ = [
     "Amount2DP",
+    "AnalyticsCategorySnippetRead",
+    "AnalyticsHouseholdMemberRead",
+    "AnalyticsHouseholdSnippetRead",
+    "AnalyticsHouseholdSummaryRead",
+    "AnalyticsTrendBucketRead",
+    "AnalyticsTrendSummaryRead",
     "CategoryCreate",
     "CategoryRead",
     "CategoryTreeNode",

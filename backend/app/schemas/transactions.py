@@ -246,6 +246,64 @@ class TransactionHouseholdSnippetRead(SchemaBase):
     name: str | None = None
 
 
+class AnalyticsTrendBucketRead(SchemaBase):
+    """Single analytics trend bucket."""
+
+    start_date: dt.date
+    end_date: dt.date
+    label: str
+    amount: Amount2DP
+    transaction_count: int = Field(ge=0, default=0)
+
+
+class AnalyticsTrendSummaryRead(SchemaBase):
+    """Analytics trend response payload."""
+
+    currency: CurrencyCode
+    bucket_unit: Literal["day", "week", "month"]
+    current_total_amount: Amount2DP
+    previous_total_amount: Amount2DP | None = None
+    change_percentage: float | None = None
+    buckets: list[AnalyticsTrendBucketRead] = Field(default_factory=list)
+
+
+class AnalyticsCategorySnippetRead(SchemaBase):
+    """Compact category block for analytics rollups."""
+
+    category_id: UUID | None = None
+    name: str | None = None
+    code: str | None = None
+    amount: Amount2DP | None = None
+
+
+class AnalyticsHouseholdSnippetRead(SchemaBase):
+    """Compact household block for analytics summaries."""
+
+    household_id: UUID
+    name: str | None = None
+
+
+class AnalyticsHouseholdMemberRead(SchemaBase):
+    """Per-member household analytics row."""
+
+    owner_user_id: UUID
+    user: TransactionUserSnippetRead | None = None
+    total_amount: Amount2DP
+    percentage: float = 0.0
+    transaction_count: int = Field(ge=0, default=0)
+    top_category: AnalyticsCategorySnippetRead | None = None
+
+
+class AnalyticsHouseholdSummaryRead(SchemaBase):
+    """Analytics household overview payload."""
+
+    household: AnalyticsHouseholdSnippetRead | None = None
+    currency: CurrencyCode
+    total_amount: Amount2DP
+    total_transactions: int = Field(ge=0, default=0)
+    members: list[AnalyticsHouseholdMemberRead] = Field(default_factory=list)
+
+
 class TransactionRead(UUIDTimestampSchema):
     """Read model for transaction records."""
 
