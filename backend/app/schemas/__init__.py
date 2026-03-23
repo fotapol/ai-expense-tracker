@@ -19,6 +19,14 @@ from app.schemas.overrides import (
     UserItemCategoryOverrideRead,
     UserItemCategoryOverrideUpsert,
 )
+from app.schemas.planning import (
+    BillReminderCreate,
+    BillReminderMarkPaid,
+    BillReminderRead,
+    BudgetCategoryLimitInput,
+    BudgetPlanRead,
+    BudgetPlanUpsert,
+)
 from app.schemas.receipts import (
     ReceiptConfirmResponse,
     ReceiptCreateRequest,
@@ -67,6 +75,12 @@ __all__ = [
     "CategoryUpdate",
     "Cost6DP",
     "CurrencyCode",
+    "BillReminderCreate",
+    "BillReminderMarkPaid",
+    "BillReminderRead",
+    "BudgetCategoryLimitInput",
+    "BudgetPlanRead",
+    "BudgetPlanUpsert",
     "DevSubscriptionActionRequest",
     "DevSubscriptionActionResponse",
     "ExtractedReceiptData",
