@@ -1,10 +1,11 @@
 import 'package:flutter/material.dart';
+
+import '../core/redesign_system.dart';
 import '../l10n/app_localizations.dart';
 import 'home_tab.dart';
 import 'me_screen.dart';
 import 'receipt_upload_screen.dart';
-import 'receipts_tab.dart';
-import 'analytics_tab.dart';
+import 'tools_screen.dart';
 
 class MainScreen extends StatefulWidget {
   const MainScreen({super.key});
@@ -16,61 +17,117 @@ class MainScreen extends StatefulWidget {
 class _MainScreenState extends State<MainScreen> {
   int _selectedIndex = 0;
 
-  void _onItemTapped(int index) {
-    if (index == 2) {
-      // Intercept the "Scan" button center tap and push to upload screen directly
-      Navigator.push(
-        context,
-        MaterialPageRoute(builder: (context) => const ReceiptUploadScreen()),
-      );
-      return;
-    }
-    setState(() {
-      _selectedIndex = index;
-    });
+  static const List<Widget> _tabs = [HomeTab(), ToolsScreen(), MeScreen()];
+
+  bool get _showsScanAction => _selectedIndex == 0 || _selectedIndex == 1;
+
+  Future<void> _openScan() async {
+    await Navigator.push(
+      context,
+      MaterialPageRoute(builder: (_) => const ReceiptUploadScreen()),
+    );
   }
 
   @override
   Widget build(BuildContext context) {
-    final widgetOptions = <Widget>[
-      const HomeTab(),
-      const ReceiptsTab(),
-      const SizedBox.shrink(),
-      const AnalyticsTab(),
-      const MeScreen(),
-    ];
-
     return Scaffold(
-      body: widgetOptions.elementAt(_selectedIndex),
-      bottomNavigationBar: BottomNavigationBar(
-        type: BottomNavigationBarType.fixed,
-        backgroundColor: Theme.of(context).scaffoldBackgroundColor,
-        selectedItemColor: Theme.of(context).colorScheme.primary,
-        unselectedItemColor: Colors.grey,
-        currentIndex: _selectedIndex,
-        onTap: _onItemTapped,
-        items: <BottomNavigationBarItem>[
-          BottomNavigationBarItem(
-            icon: const Icon(Icons.home),
-            label: context.tr('nav_home'),
+      backgroundColor: ShellStyles.background(context),
+      body: IndexedStack(index: _selectedIndex, children: _tabs),
+      floatingActionButton: _showsScanAction
+          ? FloatingActionButton(
+              onPressed: _openScan,
+              backgroundColor: ShellStyles.textPrimary(context),
+              foregroundColor: ShellStyles.surface(context),
+              shape: const CircleBorder(),
+              child: const Icon(AppIcons.scanFab),
+            )
+          : null,
+      floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
+      bottomNavigationBar: Container(
+        decoration: BoxDecoration(
+          color: ShellStyles.surface(context),
+          border: Border(top: BorderSide(color: ShellStyles.border(context))),
+        ),
+        child: SafeArea(
+          top: false,
+          child: Padding(
+            padding: const EdgeInsets.fromLTRB(8, 10, 8, 12),
+            child: Row(
+              children: [
+                _NavItem(
+                  icon: AppIcons.home,
+                  activeIcon: AppIcons.homeFilled,
+                  label: context.tr('nav_home'),
+                  selected: _selectedIndex == 0,
+                  onTap: () => setState(() => _selectedIndex = 0),
+                ),
+                _NavItem(
+                  icon: AppIcons.tools,
+                  activeIcon: AppIcons.toolsFilled,
+                  label: context.tr('nav_tools'),
+                  selected: _selectedIndex == 1,
+                  onTap: () => setState(() => _selectedIndex = 1),
+                ),
+                _NavItem(
+                  icon: AppIcons.settings,
+                  activeIcon: AppIcons.settingsFilled,
+                  label: context.tr('nav_settings'),
+                  selected: _selectedIndex == 2,
+                  onTap: () => setState(() => _selectedIndex = 2),
+                ),
+              ],
+            ),
           ),
-          BottomNavigationBarItem(
-            icon: const Icon(Icons.receipt_long),
-            label: context.tr('nav_receipts'),
+        ),
+      ),
+    );
+  }
+}
+
+class _NavItem extends StatelessWidget {
+  const _NavItem({
+    required this.icon,
+    required this.activeIcon,
+    required this.label,
+    required this.selected,
+    required this.onTap,
+  });
+
+  final IconData icon;
+  final IconData activeIcon;
+  final String label;
+  final bool selected;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final selectedColor = ShellStyles.textPrimary(context);
+    final unselectedColor = ShellStyles.textMuted(context);
+    return Expanded(
+      child: InkWell(
+        borderRadius: BorderRadius.circular(18),
+        onTap: onTap,
+        child: Padding(
+          padding: const EdgeInsets.symmetric(vertical: 2),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(
+                selected ? activeIcon : icon,
+                color: selected ? selectedColor : unselectedColor,
+              ),
+              const SizedBox(height: 4),
+              Text(
+                label,
+                style: TextStyle(
+                  color: selected ? selectedColor : unselectedColor,
+                  fontSize: 12,
+                  fontWeight: selected ? FontWeight.w700 : FontWeight.w500,
+                ),
+              ),
+            ],
           ),
-          BottomNavigationBarItem(
-            icon: const Icon(Icons.document_scanner_outlined, size: 36),
-            label: context.tr('nav_scan_receipt'),
-          ),
-          BottomNavigationBarItem(
-            icon: const Icon(Icons.bar_chart),
-            label: context.tr('nav_analytics'),
-          ),
-          BottomNavigationBarItem(
-            icon: const Icon(Icons.person),
-            label: context.tr('nav_profile'),
-          ),
-        ],
+        ),
       ),
     );
   }

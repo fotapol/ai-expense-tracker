@@ -1,13 +1,20 @@
-import 'dart:math' as math;
-
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:fl_chart/fl_chart.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
-import '../core/auto_refresh_state_mixin.dart';
 import '../core/api_client.dart';
+import '../core/auto_refresh_state_mixin.dart';
+import '../core/redesign_system.dart';
+import '../core/taxonomy_localization.dart';
 import '../l10n/app_localizations.dart';
+import 'analytics_screen.dart';
+import 'categories_screen.dart';
+import 'household_screen.dart';
+import 'receipt_manager_screen.dart';
+import 'receipt_upload_screen.dart';
+import 'subscription_screen.dart';
 import 'transaction_edit_screen.dart';
 
 class HomeTab extends StatefulWidget {
@@ -21,18 +28,14 @@ class _HomeTabState extends State<HomeTab>
     with WidgetsBindingObserver, AutoRefreshStateMixin<HomeTab> {
   bool _isLoading = true;
   String? _error;
-  String _preferredCurrency = 'RSD';
-  int _receiptScanUsed = 0;
-  int _receiptScanLimit = 10;
-  bool _receiptScanUnlimited = false;
-  bool _hasUsageSnapshot = false;
-  List<Map<String, dynamic>> _transactions = [];
-  late List<DateTime> _last7Days;
-  late DateTime _selectedDay;
+  String _preferredCurrency = 'EUR';
+  Map<String, dynamic>? _monthlySummary;
+  List<Map<String, dynamic>> _currentMonthTransactions = [];
+  List<Map<String, dynamic>> _previousMonthTransactions = [];
   bool _isRefreshingHome = false;
 
   @override
-  Duration get autoRefreshInterval => const Duration(seconds: 8);
+  Duration get autoRefreshInterval => const Duration(seconds: 10);
 
   @override
   Future<void> performAutoRefresh() => _loadHomeData(showLoader: false);
@@ -40,18 +43,17 @@ class _HomeTabState extends State<HomeTab>
   @override
   void initState() {
     super.initState();
-    _initializeDateRange();
     _loadHomeData();
   }
 
-  void _initializeDateRange() {
+  DateTime get _currentMonthStart {
     final now = DateTime.now();
-    final today = DateTime(now.year, now.month, now.day);
-    _last7Days = List.generate(
-      7,
-      (index) => today.subtract(Duration(days: 6 - index)),
-    );
-    _selectedDay = _last7Days.last;
+    return DateTime(now.year, now.month, 1);
+  }
+
+  DateTime get _previousMonthStart {
+    final monthStart = _currentMonthStart;
+    return DateTime(monthStart.year, monthStart.month - 1, 1);
   }
 
   Future<void> _loadHomeData({bool showLoader = true}) async {
@@ -61,6 +63,7 @@ class _HomeTabState extends State<HomeTab>
       _isRefreshingHome = false;
       return;
     }
+
     if (showLoader) {
       setState(() {
         _isLoading = true;
@@ -69,184 +72,334 @@ class _HomeTabState extends State<HomeTab>
     }
 
     try {
-      final fromDate = _last7Days.first;
       final results = await Future.wait([
         ApiClient.getMe(),
-        ApiClient.listTransactions(fromDate: fromDate),
-        ApiClient.getMeSubscription(),
+        ApiClient.getTransactionsSummary(fromDate: _currentMonthStart),
+        ApiClient.listTransactions(fromDate: _previousMonthStart),
       ]);
 
       final me = results[0] as Map<String, dynamic>;
-      final rawTransactions = results[1] as List<dynamic>;
-      final subscriptionPayload = results[2] as Map<String, dynamic>;
+      final summary = results[1] as Map<String, dynamic>;
+      final rawTransactions = results[2] as List<dynamic>;
+      final allTransactions = rawTransactions.whereType<Map<String, dynamic>>();
+
+      final currentTransactions = <Map<String, dynamic>>[];
+      final previousTransactions = <Map<String, dynamic>>[];
+      for (final transaction in allTransactions) {
+        final occurredAt = _parseOccurredAt(transaction);
+        if (occurredAt == null) continue;
+        if (_isSameMonth(occurredAt, _currentMonthStart)) {
+          currentTransactions.add(transaction);
+        } else if (_isSameMonth(occurredAt, _previousMonthStart)) {
+          previousTransactions.add(transaction);
+        }
+      }
+
       final defaultCurrency = me['default_currency']?.toString().trim();
-      final txs = rawTransactions.whereType<Map<String, dynamic>>().toList();
-      final usageRaw = subscriptionPayload['receipt_scan_usage'];
-      final usage = usageRaw is Map<String, dynamic>
-          ? usageRaw
-          : const <String, dynamic>{};
-      final isUnlimited = usage['is_unlimited'] == true;
-      final used = int.tryParse((usage['used'] ?? 0).toString()) ?? 0;
-      final limit = int.tryParse((usage['limit'] ?? 10).toString()) ?? 10;
-
-      txs.sort((a, b) {
-        final aDate =
-            _parseOccurredAt(a) ?? DateTime.fromMillisecondsSinceEpoch(0);
-        final bDate =
-            _parseOccurredAt(b) ?? DateTime.fromMillisecondsSinceEpoch(0);
-        return bDate.compareTo(aDate);
-      });
-
       if (!mounted) return;
       setState(() {
-        if (defaultCurrency != null && defaultCurrency.isNotEmpty) {
-          _preferredCurrency = defaultCurrency.toUpperCase();
-        }
-        _receiptScanUsed = used;
-        _receiptScanLimit = limit > 0 ? limit : 10;
-        _receiptScanUnlimited = isUnlimited;
-        _hasUsageSnapshot = true;
-        _transactions = txs;
+        _preferredCurrency =
+            (defaultCurrency == null || defaultCurrency.isEmpty)
+            ? _preferredCurrency
+            : defaultCurrency.toUpperCase();
+        _monthlySummary = summary;
+        _currentMonthTransactions = currentTransactions;
+        _previousMonthTransactions = previousTransactions;
         _isLoading = false;
         _error = null;
       });
-    } catch (e) {
+    } catch (error) {
       if (!mounted) return;
-      if (showLoader || _transactions.isEmpty) {
-        setState(() {
-          _error = e.toString();
-          _isLoading = false;
-        });
-      }
+      setState(() {
+        _error = error.toString();
+        _isLoading = false;
+      });
     } finally {
       _isRefreshingHome = false;
     }
   }
 
+  bool _isSameMonth(DateTime value, DateTime reference) {
+    return value.year == reference.year && value.month == reference.month;
+  }
+
+  DateTime? _parseOccurredAt(Map<String, dynamic> transaction) {
+    final raw =
+        transaction['occurred_at']?.toString() ??
+        transaction['created_at']?.toString() ??
+        '';
+    if (raw.isEmpty) return null;
+    return DateTime.tryParse(raw)?.toLocal();
+  }
+
   String _resolveDisplayName(BuildContext context) {
     final user = FirebaseAuth.instance.currentUser;
     final displayName = user?.displayName?.trim();
-    if (displayName != null && displayName.isNotEmpty) return displayName;
+    if (displayName != null && displayName.isNotEmpty) {
+      return displayName;
+    }
 
     final email = user?.email?.trim();
     if (email != null && email.contains('@')) {
       final localPart = email.split('@').first.trim();
-      if (localPart.isNotEmpty) return localPart;
+      if (localPart.isNotEmpty) {
+        return localPart;
+      }
     }
 
     return context.tr('home_default_user');
   }
 
-  DateTime? _parseOccurredAt(Map<String, dynamic> tx) {
-    final raw =
-        tx['occurred_at']?.toString() ?? tx['created_at']?.toString() ?? '';
-    if (raw.isEmpty) return null;
-    final parsed = DateTime.tryParse(raw);
-    return parsed?.toLocal();
+  String _greetingLabel(BuildContext context) {
+    final hour = DateTime.now().hour;
+    if (hour < 12) return context.tr('home_greeting_morning');
+    if (hour < 18) return context.tr('home_greeting_afternoon');
+    return context.tr('home_greeting_evening');
   }
 
-  DateTime _dayOnly(DateTime date) => DateTime(date.year, date.month, date.day);
-
-  bool _isSameDay(DateTime a, DateTime b) =>
-      a.year == b.year && a.month == b.month && a.day == b.day;
-
-  List<Map<String, dynamic>> _transactionsForDay(DateTime day) {
-    return _transactions.where((tx) {
-      final occurred = _parseOccurredAt(tx);
-      if (occurred == null) return false;
-      return _isSameDay(_dayOnly(occurred), day);
-    }).toList();
+  bool _needsReview(Map<String, dynamic> transaction) {
+    final status = transaction['status']?.toString().toUpperCase();
+    return status == 'DRAFT' || transaction['has_extraction_warnings'] == true;
   }
 
-  String _receiptUsageLabel() {
-    if (_receiptScanUnlimited) {
-      return '$_receiptScanUsed';
+  int get _reviewCount => _currentMonthTransactions.where(_needsReview).length;
+
+  String _reviewSubtitle(BuildContext context) {
+    if (_reviewCount == 0) {
+      return context.tr('home_all_reviewed');
     }
-    final shownUsed = math.min(_receiptScanUsed, _receiptScanLimit);
-    return '$shownUsed/$_receiptScanLimit';
+    if (_reviewCount == 1) {
+      return context.tr('home_review_count_single');
+    }
+    return context.tr(
+      'home_review_count_plural',
+      params: {'count': _reviewCount.toString()},
+    );
   }
+
+  double _displayAmountOf(Map<String, dynamic> transaction) {
+    final raw =
+        transaction['display_amount_total'] ?? transaction['amount_total'];
+    return double.tryParse(raw?.toString() ?? '0') ?? 0;
+  }
+
+  double get _currentMonthTotal =>
+      (_monthlySummary?['total_amount'] as num?)?.toDouble() ??
+      _currentMonthTransactions.fold<double>(
+        0,
+        (sum, transaction) => sum + _displayAmountOf(transaction),
+      );
+
+  double get _previousMonthTotal => _previousMonthTransactions.fold<double>(
+    0,
+    (sum, transaction) => sum + _displayAmountOf(transaction),
+  );
+
+  String get _currency =>
+      (_monthlySummary?['currency']?.toString() ?? _preferredCurrency)
+          .toUpperCase();
 
   String _currencySymbol(String code) {
-    switch (code.toUpperCase()) {
-      case 'EUR':
-        return '€';
-      case 'USD':
-        return '\$';
-      case 'GBP':
-        return '£';
-      case 'RSD':
-        return 'RSD ';
-      default:
-        return '${code.toUpperCase()} ';
-    }
+    final symbol = CurrencyDisplay.symbolForCode(code);
+    return symbol == 'RSD' ? 'RSD ' : '$symbol ';
   }
 
-  String _formatMoney(String currency, double amount) {
+  String _formatMoney(String currency, double amount, {int decimals = 0}) {
     final symbol = _currencySymbol(currency);
-    if (symbol.trim().length == 1 || symbol == 'RSD ') {
-      final sign = amount < 0 ? '-' : '';
-      return '$sign$symbol${amount.abs().toStringAsFixed(2)}';
+    final absolute = amount.abs().toStringAsFixed(decimals);
+    final sign = amount < 0 ? '-' : '';
+    if (symbol != '${currency.toUpperCase()} ') {
+      return '$sign$symbol$absolute';
     }
-    return '${currency.toUpperCase()} ${amount.toStringAsFixed(2)}';
+    return '$sign${currency.toUpperCase()} $absolute';
   }
 
-  double _displayAmountOf(Map<String, dynamic> tx) {
-    final raw = tx['display_amount_total'] ?? tx['amount_total'] ?? 0;
-    return double.tryParse(raw.toString()) ?? 0;
+  double? get _changeRatio {
+    if (_previousMonthTotal <= 0) return null;
+    return (_currentMonthTotal - _previousMonthTotal) / _previousMonthTotal;
   }
 
-  String _displayCurrencyOf(Map<String, dynamic> tx) {
-    final hasConvertedValue = tx['display_amount_total'] != null;
-    final raw = hasConvertedValue
-        ? (tx['display_currency'] ?? tx['currency'] ?? _preferredCurrency)
-        : (tx['currency'] ?? _preferredCurrency);
-    return raw.toString().toUpperCase();
+  String _changeLabel(BuildContext context) {
+    final ratio = _changeRatio;
+    if (ratio == null) return '';
+    final percent = (ratio.abs() * 100).round();
+    if (percent == 0) return context.tr('home_change_flat');
+    if (ratio < 0) {
+      return context.tr(
+        'home_change_less',
+        params: {'percent': percent.toString()},
+      );
+    }
+    return context.tr(
+      'home_change_more',
+      params: {'percent': percent.toString()},
+    );
   }
 
-  double _dailyTotal(DateTime day) {
-    final txs = _transactionsForDay(day);
-    return txs.fold<double>(0, (sum, tx) => sum + _displayAmountOf(tx));
+  List<_OverviewSlice> _overviewSlices(BuildContext context) {
+    final rawBreakdown = _monthlySummary?['breakdown'] as List<dynamic>? ?? [];
+    final slices = <_OverviewSlice>[];
+    for (final raw in rawBreakdown.whereType<Map<String, dynamic>>()) {
+      final amount = (raw['amount'] as num?)?.toDouble() ?? 0;
+      if (amount <= 0) continue;
+      final code = raw['code']?.toString() ?? '';
+      final name = localizeCategoryByCode(
+        context,
+        code: code,
+        fallbackName: raw['name']?.toString(),
+      );
+      slices.add(
+        _OverviewSlice(
+          name: name,
+          amount: amount,
+          percentage: (raw['percentage'] as num?)?.toDouble() ?? 0,
+          color: Colors.transparent, // Assigned after sorting
+        ),
+      );
+    }
+
+    slices.sort((left, right) => right.amount.compareTo(left.amount));
+
+    final palette = [
+      ShellStyles.textPrimary(context),
+      ShellStyles.textPrimary(context).withAlpha(150),
+      ShellStyles.textPrimary(context).withAlpha(80),
+      ShellStyles.border(context), // Used for 'Other'
+    ];
+
+    if (slices.length <= 3) {
+      for (int i = 0; i < slices.length; i++) {
+        slices[i] = _OverviewSlice(
+          name: slices[i].name,
+          amount: slices[i].amount,
+          percentage: slices[i].percentage,
+          color: palette[i % palette.length],
+        );
+      }
+      return slices;
+    }
+
+    final visible = slices.take(3).toList();
+    final hidden = slices.skip(3);
+    final otherAmount = hidden.fold<double>(
+      0,
+      (sum, slice) => sum + slice.amount,
+    );
+    final otherPercentage = hidden.fold<double>(
+      0,
+      (sum, slice) => sum + slice.percentage,
+    );
+
+    for (int i = 0; i < visible.length; i++) {
+      visible[i] = _OverviewSlice(
+        name: visible[i].name,
+        amount: visible[i].amount,
+        percentage: visible[i].percentage,
+        color: palette[i],
+      );
+    }
+
+    if (otherAmount > 0) {
+      visible.add(
+        _OverviewSlice(
+          name: context.tr('taxonomy_other'),
+          amount: otherAmount,
+          percentage: otherPercentage,
+          color: palette[3],
+        ),
+      );
+    }
+    return visible;
   }
 
-  String _dailyCurrency(DateTime day) {
-    final txs = _transactionsForDay(day);
-    if (txs.isEmpty) return _preferredCurrency;
-    return _displayCurrencyOf(txs.first);
+  List<String> _buildInsights(BuildContext context) {
+    final insights = <String>[];
+    final ratio = _changeRatio;
+    if (ratio != null) {
+      final previousMonthLabel = DateFormat('MMMM').format(_previousMonthStart);
+      final percent = (ratio.abs() * 100).round();
+      if (percent > 0) {
+        insights.add(
+          context.tr(
+            ratio < 0
+                ? 'home_insight_less_than_last_month'
+                : 'home_insight_more_than_last_month',
+            params: {
+              'percent': percent.toString(),
+              'month': previousMonthLabel,
+            },
+          ),
+        );
+      }
+    }
+
+    final slices = _overviewSlices(context);
+    if (insights.isEmpty && slices.isNotEmpty) {
+      final topSlice = slices.first;
+      insights.add(
+        context.tr(
+          'home_insight_top_category',
+          params: {
+            'category': topSlice.name,
+            'percent': topSlice.percentage.round().toString(),
+          },
+        ),
+      );
+    }
+
+    if (_reviewCount > 0) {
+      insights.add(
+        context.tr(
+          'home_insight_review_count',
+          params: {'count': _reviewCount.toString()},
+        ),
+      );
+    } else {
+      insights.add(context.tr('home_insight_all_caught_up'));
+    }
+
+    return insights.take(2).toList();
+  }
+
+  void _open(BuildContext context, Widget screen) {
+    Navigator.push(context, MaterialPageRoute(builder: (_) => screen));
   }
 
   @override
   Widget build(BuildContext context) {
-    final selectedTransactions = _transactionsForDay(_selectedDay);
-    return Scaffold(
-      body: SafeArea(
-        child: RefreshIndicator(
-          onRefresh: _loadHomeData,
-          child: ListView(
-            physics: const AlwaysScrollableScrollPhysics(),
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 24),
-            children: [
-              _buildHeader(context),
-              const SizedBox(height: 24),
-              _buildDailySpendingCard(context),
-              const SizedBox(height: 20),
-              _buildDateScroller(context),
-              const SizedBox(height: 24),
-              if (_isLoading)
-                const Padding(
-                  padding: EdgeInsets.only(top: 48),
-                  child: Center(child: CircularProgressIndicator()),
-                )
-              else if (_error != null)
-                _buildErrorState(context)
-              else if (selectedTransactions.isEmpty)
-                _buildEmptyState(context)
-              else
-                ...selectedTransactions.map(
-                  (tx) => _buildReceiptCard(context, tx),
-                ),
-              const SizedBox(height: 12),
+    final hasData =
+        _monthlySummary != null || _currentMonthTransactions.isNotEmpty;
+    final bottomPadding = MediaQuery.of(context).padding.bottom + 140;
+
+    return SafeArea(
+      child: RefreshIndicator(
+        onRefresh: _loadHomeData,
+        child: ListView(
+          physics: const AlwaysScrollableScrollPhysics(),
+          padding: EdgeInsets.fromLTRB(16, 18, 16, bottomPadding),
+          children: [
+            _buildHeader(context),
+            const SizedBox(height: 18),
+            if (_isLoading && !hasData)
+              _buildLoadingState(context)
+            else if (_error != null && !hasData)
+              _buildErrorState(context)
+            else ...[
+              _buildMonthlySummaryCard(context),
+              const SizedBox(height: 14),
+              _buildScanCard(context),
+              const SizedBox(height: 14),
+              _buildOverviewCard(context),
+              const SizedBox(height: 14),
+              _buildInsightsCard(context),
+              const SizedBox(height: 14),
+              _buildQuickActions(context),
+              if (_error != null) ...[
+                const SizedBox(height: 14),
+                _buildInlineWarning(context),
+              ],
             ],
-          ),
+          ],
         ),
       ),
     );
@@ -254,404 +407,214 @@ class _HomeTabState extends State<HomeTab>
 
   Widget _buildHeader(BuildContext context) {
     return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-      crossAxisAlignment: CrossAxisAlignment.start,
+      crossAxisAlignment: CrossAxisAlignment.center,
       children: [
-        Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              context.tr('home_welcome'),
-              style: TextStyle(fontSize: 14, color: Colors.grey.shade400),
-            ),
-            const SizedBox(height: 4),
-            Text(
-              _resolveDisplayName(context),
-              style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
-            ),
-          ],
-        ),
-        Container(
-          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 7),
-          decoration: BoxDecoration(
-            color: const Color(0xFF261238),
-            borderRadius: BorderRadius.circular(14),
-            border: Border.all(color: const Color(0xFF7C4DFF).withAlpha(170)),
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                '${_greetingLabel(context)}, ${_resolveDisplayName(context)}',
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: TextStyle(
+                  color: ShellStyles.textPrimary(context),
+                  fontSize: 22,
+                  height: 1.2,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+              const SizedBox(height: 4),
+              Text(
+                _reviewSubtitle(context),
+                style: TextStyle(
+                  color: ShellStyles.textMuted(context),
+                  fontSize: 13,
+                ),
+              ),
+            ],
           ),
-          child: _buildUsageCounter(context),
+        ),
+        const SizedBox(width: 12),
+        _buildHeaderAction(
+          context,
+          child: CrownIcon(color: ShellColors.gold, size: 18, strokeWidth: 1.7),
+          onTap: () => _open(context, const SubscriptionScreen()),
+        ),
+        const SizedBox(width: 8),
+        _buildHeaderAction(
+          context,
+          icon: AppIcons.group,
+          iconColor: const Color(0xFFB173D1),
+          onTap: () => _open(context, const HouseholdScreen()),
         ),
       ],
     );
   }
 
-  Widget _buildUsageCounter(BuildContext context) {
-    if (!_hasUsageSnapshot && _isLoading) {
-      return const SizedBox(
-        height: 36,
-        width: 120,
-        child: Center(
-          child: SizedBox(
-            width: 16,
-            height: 16,
-            child: CircularProgressIndicator(strokeWidth: 2),
-          ),
+  Widget _buildHeaderAction(
+    BuildContext context, {
+    Widget? child,
+    IconData? icon,
+    Color? iconColor,
+    required VoidCallback onTap,
+  }) {
+    return InkWell(
+      borderRadius: BorderRadius.circular(20),
+      onTap: onTap,
+      child: Container(
+        width: 40,
+        height: 40,
+        alignment: Alignment.center,
+        decoration: ShellStyles.iconBadgeDecoration(
+          context,
+          color: ShellStyles.surface(context),
+          radius: 20,
         ),
-      );
-    }
-    if (!_hasUsageSnapshot) {
-      return const SizedBox(
-        width: 140,
-        child: Text(
-          '--',
-          textAlign: TextAlign.right,
-          style: TextStyle(
-            fontSize: 14,
-            fontWeight: FontWeight.w700,
-            color: Color(0xFFE7D3FF),
-          ),
-        ),
-      );
-    }
-
-    final valueColor = _receiptScanUnlimited
-        ? const Color(0xFFF7D74B)
-        : (_receiptScanUsed >= _receiptScanLimit
-              ? const Color(0xFF8C1D40)
-              : const Color(0xFFE7D3FF));
-
-    return ConstrainedBox(
-      constraints: const BoxConstraints(maxWidth: 220),
-      child: RichText(
-        textAlign: TextAlign.right,
-        text: TextSpan(
-          children: [
-            TextSpan(
-              text: 'Scans this month ',
-              style: TextStyle(
-                fontSize: 12,
-                color: Colors.grey.shade300,
-                fontWeight: FontWeight.w500,
-              ),
-            ),
-            TextSpan(
-              text: _receiptUsageLabel(),
-              style: TextStyle(
-                fontSize: 15,
-                color: valueColor,
-                fontWeight: FontWeight.w700,
-              ),
-            ),
-          ],
-        ),
+        child: child ?? Icon(icon, color: iconColor, size: 18),
       ),
     );
   }
 
-  Widget _buildDailySpendingCard(BuildContext context) {
-    final total = _dailyTotal(_selectedDay);
-    final currency = _dailyCurrency(_selectedDay);
+  Widget _buildMonthlySummaryCard(BuildContext context) {
+    final monthLabel = DateFormat('MMMM yyyy').format(_currentMonthStart);
+    final ratio = _changeRatio;
+    final positiveDelta = ratio != null && ratio < 0;
     return Container(
-      width: double.infinity,
       padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(24),
-        gradient: const LinearGradient(
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-          colors: [Color(0xFF4A148C), Color(0xFF311B92)],
-        ),
-      ),
+      decoration: ShellStyles.cardDecoration(context, radius: 24),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
-            context.tr('home_daily_spending'),
-            style: const TextStyle(color: Colors.white70, fontSize: 14),
-          ),
-          const SizedBox(height: 10),
-          Text(
-            _formatMoney(currency, total),
-            style: const TextStyle(
-              color: Colors.white,
-              fontSize: 32,
-              fontWeight: FontWeight.w500,
-            ),
-          ),
-          const SizedBox(height: 14),
-          SizedBox(height: 94, child: _buildSpendingChart()),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildSpendingChart() {
-    final totals = _last7Days.map(_dailyTotal).toList();
-    final maxTotal = totals.fold<double>(0, math.max);
-    final maxY = maxTotal <= 0 ? 1.0 : maxTotal * 1.15;
-
-    return LineChart(
-      LineChartData(
-        minX: 0,
-        maxX: (_last7Days.length - 1).toDouble(),
-        minY: 0,
-        maxY: maxY,
-        gridData: const FlGridData(show: false),
-        titlesData: FlTitlesData(
-          show: true,
-          leftTitles: const AxisTitles(
-            sideTitles: SideTitles(showTitles: false),
-          ),
-          topTitles: const AxisTitles(
-            sideTitles: SideTitles(showTitles: false),
-          ),
-          rightTitles: const AxisTitles(
-            sideTitles: SideTitles(showTitles: false),
-          ),
-          bottomTitles: AxisTitles(
-            sideTitles: SideTitles(
-              showTitles: true,
-              interval: 1,
-              reservedSize: 24,
-              getTitlesWidget: (value, meta) {
-                final index = value.round();
-                if (index < 0 || index >= _last7Days.length) {
-                  return const SizedBox.shrink();
-                }
-                if ((value - index).abs() > 0.001) {
-                  return const SizedBox.shrink();
-                }
-                return SideTitleWidget(
-                  meta: meta,
-                  space: 8,
-                  child: Text(
-                    '${_last7Days[index].day}',
-                    style: TextStyle(
-                      color: Colors.white.withAlpha(190),
-                      fontSize: 11,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                );
-              },
-            ),
-          ),
-        ),
-        borderData: FlBorderData(show: false),
-        lineTouchData: const LineTouchData(enabled: false),
-        extraLinesData: ExtraLinesData(
-          horizontalLines: [
-            HorizontalLine(
-              y: 0,
-              color: Colors.white.withAlpha(70),
-              strokeWidth: 2,
-            ),
-          ],
-        ),
-        lineBarsData: [
-          LineChartBarData(
-            spots: List.generate(
-              totals.length,
-              (index) => FlSpot(index.toDouble(), totals[index]),
-            ),
-            isCurved: false,
-            barWidth: 3,
-            color: const Color(0xFFE040FB),
-            dotData: FlDotData(
-              show: true,
-              getDotPainter: (spot, percent, barData, index) =>
-                  FlDotCirclePainter(
-                radius: 3.5,
-                color: const Color(0xFFE040FB),
-                strokeWidth: 1.5,
-                strokeColor: Colors.white.withAlpha(185),
+          Row(
+            children: [
+              Text(
+                monthLabel.toUpperCase(),
+                style: TextStyle(
+                  color: ShellStyles.textMuted(context),
+                  fontSize: 11,
+                  fontWeight: FontWeight.w700,
+                  letterSpacing: 0.8,
+                ),
               ),
-            ),
-            belowBarData: BarAreaData(
-              show: true,
-              color: Colors.white.withAlpha(20),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildDateScroller(BuildContext context) {
-    final locale = Localizations.localeOf(context).toLanguageTag();
-
-    return SingleChildScrollView(
-      scrollDirection: Axis.horizontal,
-      child: Row(
-        children: _last7Days.map((date) {
-          final isSelected = _isSameDay(date, _selectedDay);
-          final hasData = _transactionsForDay(date).isNotEmpty;
-          final label = DateFormat('d MMM', locale).format(date);
-
-          return GestureDetector(
-            onTap: () => setState(() => _selectedDay = date),
-            child: Container(
-              margin: const EdgeInsets.only(right: 12),
-              padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 10),
-              decoration: BoxDecoration(
-                color: isSelected
-                    ? const Color(0xFF2D124D)
-                    : Colors.transparent,
-                borderRadius: BorderRadius.circular(20),
-              ),
-              child: Row(
-                children: [
-                  Text(
-                    label,
-                    style: TextStyle(
-                      color: isSelected ? Colors.white : Colors.grey.shade400,
-                      fontWeight: isSelected
-                          ? FontWeight.w600
-                          : FontWeight.normal,
-                    ),
+              const Spacer(),
+              if (ratio != null)
+                Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 8,
+                    vertical: 4,
                   ),
-                  if (hasData) ...[
-                    const SizedBox(width: 6),
-                    Container(
-                      width: 6,
-                      height: 6,
-                      decoration: BoxDecoration(
-                        color: Theme.of(context).colorScheme.primary,
-                        shape: BoxShape.circle,
+                  decoration: BoxDecoration(
+                    color:
+                        (positiveDelta
+                                ? ShellColors.softGreen
+                                : ShellColors.softRed)
+                            .withAlpha(25),
+                    borderRadius: BorderRadius.circular(999),
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(
+                        positiveDelta
+                            ? CupertinoIcons.arrow_down_right
+                            : CupertinoIcons.arrow_up_right,
+                        size: 12,
+                        color: positiveDelta
+                            ? ShellColors.softGreen
+                            : ShellColors.softRed,
                       ),
-                    ),
-                  ],
-                ],
-              ),
-            ),
-          );
-        }).toList(),
-      ),
-    );
-  }
-
-  Widget _buildErrorState(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.only(top: 24),
-      child: Center(
-        child: Column(
-          children: [
-            const Icon(Icons.error_outline, color: Colors.red, size: 48),
-            const SizedBox(height: 12),
-            Text(
-              context.tr(
-                'common_error_with_message',
-                params: {'message': _error ?? context.tr('common_error')},
-              ),
-              textAlign: TextAlign.center,
-            ),
-            const SizedBox(height: 12),
-            ElevatedButton(
-              onPressed: _loadHomeData,
-              child: Text(context.tr('common_retry')),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildReceiptCard(BuildContext context, Map<String, dynamic> tx) {
-    final storeName = tx['merchant_name']?.toString().trim().isNotEmpty == true
-        ? tx['merchant_name'].toString()
-        : context.tr('receipts_unknown_store');
-    final occurredAt = _parseOccurredAt(tx);
-    final locale = Localizations.localeOf(context).toLanguageTag();
-    final displayAmount = _displayAmountOf(tx);
-    final displayCurrency = _displayCurrencyOf(tx);
-    final sourceAmount =
-        double.tryParse((tx['amount_total'] ?? '0').toString()) ?? 0;
-    final sourceCurrency = (tx['currency'] ?? displayCurrency)
-        .toString()
-        .toUpperCase();
-    final showOriginal =
-        tx['display_amount_total'] != null &&
-        (displayCurrency != sourceCurrency ||
-            (displayAmount - sourceAmount).abs() > 0.00001);
-    final dateText = occurredAt == null
-        ? ''
-        : DateFormat('d MMM, HH:mm', locale).format(occurredAt);
-
-    return GestureDetector(
-      onTap: () {
-        final id = tx['id']?.toString();
-        if (id == null || id.isEmpty) return;
-        Navigator.push(
-          context,
-          MaterialPageRoute(
-            builder: (context) => TransactionEditScreen(transactionId: id),
+                      const SizedBox(width: 4),
+                      Text(
+                        _changeLabel(context),
+                        style: TextStyle(
+                          color: positiveDelta
+                              ? ShellColors.softGreen
+                              : ShellColors.softRed,
+                          fontSize: 12,
+                          fontWeight: FontWeight.w700,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+            ],
           ),
-        ).then((_) => _loadHomeData());
-      },
+          const SizedBox(height: 24),
+          Text(
+            _formatMoney(_currency, _currentMonthTotal),
+            style: TextStyle(
+              color: ShellStyles.textPrimary(context),
+              fontSize: 42,
+              fontWeight: FontWeight.w300,
+              letterSpacing: -1,
+            ),
+          ),
+          const SizedBox(height: 4),
+          Text(
+            context.tr('home_total_spending_month'),
+            style: TextStyle(
+              color: ShellStyles.textMuted(context),
+              fontSize: 14,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildScanCard(BuildContext context) {
+    return InkWell(
+      borderRadius: BorderRadius.circular(24),
+      onTap: () => _open(context, const ReceiptUploadScreen()),
       child: Container(
-        margin: const EdgeInsets.only(bottom: 12),
-        padding: const EdgeInsets.all(16),
+        width: double.infinity,
+        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 18),
         decoration: BoxDecoration(
-          color: Theme.of(context).colorScheme.surface,
-          borderRadius: BorderRadius.circular(16),
+          color: ShellStyles.textPrimary(context),
+          borderRadius: BorderRadius.circular(24),
         ),
         child: Row(
           children: [
             Container(
-              width: 44,
-              height: 44,
+              width: 48,
+              height: 48,
+              alignment: Alignment.center,
               decoration: BoxDecoration(
-                color: Theme.of(context).colorScheme.primary.withAlpha(20),
-                borderRadius: BorderRadius.circular(12),
+                color: Colors.white.withAlpha(25),
+                borderRadius: BorderRadius.circular(16),
               ),
-              child: Icon(
-                Icons.receipt_long,
-                color: Theme.of(context).colorScheme.primary,
-              ),
+              child: Icon(AppIcons.scan, color: ShellStyles.surface(context), size: 22),
             ),
-            const SizedBox(width: 12),
+            const SizedBox(width: 16),
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    storeName,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: const TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.w600,
+                    context.tr('tools_scan_receipt'),
+                    style: TextStyle(
+                      color: ShellStyles.surface(context),
+                      fontSize: 18,
+                      fontWeight: FontWeight.w700,
                     ),
                   ),
-                  if (dateText.isNotEmpty) ...[
-                    const SizedBox(height: 4),
-                    Text(
-                      dateText,
-                      style: TextStyle(
-                        color: Colors.grey.shade500,
-                        fontSize: 12,
-                      ),
+                  const SizedBox(height: 2),
+                  Text(
+                    context.tr('home_scan_receipt_subtitle'),
+                    style: TextStyle(
+                      color: ShellStyles.surface(context).withAlpha(160),
+                      fontSize: 13,
+                      fontWeight: FontWeight.w500,
                     ),
-                  ],
+                  ),
                 ],
               ),
             ),
-            const SizedBox(width: 8),
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.end,
-              children: [
-                Text(
-                  _formatMoney(displayCurrency, displayAmount),
-                  style: const TextStyle(
-                    fontWeight: FontWeight.bold,
-                    fontSize: 16,
-                  ),
-                ),
-                if (showOriginal)
-                  Text(
-                    _formatMoney(sourceCurrency, sourceAmount),
-                    style: TextStyle(color: Colors.grey.shade500, fontSize: 12),
-                  ),
-              ],
+            Icon(
+              AppIcons.chevronRight,
+              color: ShellStyles.surface(context).withAlpha(160),
+              size: 16,
             ),
           ],
         ),
@@ -659,53 +622,449 @@ class _HomeTabState extends State<HomeTab>
     );
   }
 
-  Widget _buildEmptyState(BuildContext context) {
-    return Center(
-      child: Padding(
-        padding: const EdgeInsets.only(top: 48),
-        child: Column(
-          children: [
-            Stack(
+  Widget _buildOverviewCard(BuildContext context) {
+    final slices = _overviewSlices(context);
+    final hasChartData = slices.isNotEmpty && _currentMonthTotal > 0;
+    
+    final pieSections = hasChartData
+        ? slices
+              .map(
+                (slice) => PieChartSectionData(
+                  value: slice.amount,
+                  color: slice.color,
+                  title: '',
+                  radius: 20,
+                ),
+              )
+              .toList()
+        : [
+            PieChartSectionData(
+              value: 1,
+              color: ShellStyles.border(context),
+              title: '',
+              radius: 20,
+            ),
+          ];
+
+    return Container(
+      padding: const EdgeInsets.all(24),
+      decoration: ShellStyles.cardDecoration(context, radius: 24),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Text(
+                context.tr('home_spending_overview'),
+                style: TextStyle(
+                  color: ShellStyles.textPrimary(context),
+                  fontSize: 16,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+              const Spacer(),
+              Text(
+                context.tr('period_this_month'),
+                style: TextStyle(
+                  color: ShellStyles.textMuted(context),
+                  fontSize: 13,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 32),
+          SizedBox(
+            height: 180,
+            child: Stack(
               alignment: Alignment.center,
               children: [
-                Icon(Icons.receipt_long, size: 80, color: Colors.grey.shade800),
-                Positioned(
-                  top: 10,
-                  child: Container(
-                    width: 40,
-                    height: 2,
-                    color: Theme.of(context).colorScheme.primary,
+                PieChart(
+                  PieChartData(
+                    sectionsSpace: 4,
+                    centerSpaceRadius: 65,
+                    startDegreeOffset: -90,
+                    sections: pieSections,
                   ),
                 ),
-                Positioned(
-                  bottom: 25,
-                  right: 15,
-                  child: Container(
-                    width: 20,
-                    height: 4,
-                    color: Theme.of(context).colorScheme.primary,
-                  ),
+                Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(
+                      context.tr('analytics_total_spent').toUpperCase(),
+                      style: TextStyle(
+                        color: ShellStyles.textMuted(context),
+                        fontSize: 11,
+                        fontWeight: FontWeight.w700,
+                        letterSpacing: 0.7,
+                      ),
+                    ),
+                    const SizedBox(height: 2),
+                    Text(
+                      _formatMoney(_currency, _currentMonthTotal),
+                      style: TextStyle(
+                        color: ShellStyles.textPrimary(context),
+                        fontSize: 22,
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
+                  ],
                 ),
               ],
             ),
-            const SizedBox(height: 24),
-            Text(
-              context.tr('home_no_receipts'),
-              style: TextStyle(
-                fontSize: 18,
-                color: Colors.grey.shade300,
-                fontWeight: FontWeight.w500,
+          ),
+          const SizedBox(height: 32),
+          if (hasChartData) ...[
+            for (final slice in slices.where((s) => s.name != context.tr('taxonomy_other')))
+              Padding(
+                padding: const EdgeInsets.only(bottom: 16),
+                child: Row(
+                  children: [
+                    Container(
+                      width: 10,
+                      height: 10,
+                      decoration: BoxDecoration(
+                        color: slice.color,
+                        shape: BoxShape.circle,
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      flex: 5,
+                      child: Text(
+                        slice.name,
+                        style: TextStyle(
+                          color: ShellStyles.textPrimary(context),
+                          fontSize: 14,
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                    ),
+                    Expanded(
+                      flex: 2,
+                      child: Text(
+                        '${slice.percentage.round()}%',
+                        textAlign: TextAlign.right,
+                        style: TextStyle(
+                          color: ShellStyles.textMuted(context),
+                          fontSize: 13,
+                        ),
+                      ),
+                    ),
+                    Expanded(
+                      flex: 3,
+                      child: Text(
+                        _formatMoney(_currency, slice.amount),
+                        textAlign: TextAlign.right,
+                        style: TextStyle(
+                          color: ShellStyles.textPrimary(context),
+                          fontSize: 14,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+          ] else
+            Padding(
+              padding: const EdgeInsets.symmetric(vertical: 16),
+              child: Center(
+                child: Text(
+                  context.tr('home_no_spending_data'),
+                  style: TextStyle(
+                    color: ShellStyles.textMuted(context),
+                    fontSize: 14,
+                  ),
+                ),
               ),
             ),
-            const SizedBox(height: 8),
+          const SizedBox(height: 8),
+          Center(
+            child: InkWell(
+              onTap: () => _open(context, const AnalyticsScreen()),
+              child: Padding(
+                padding: const EdgeInsets.all(8.0),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(
+                      context.tr('home_view_all'),
+                      style: TextStyle(
+                        color: ShellStyles.textMuted(context),
+                        fontSize: 13,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                    const SizedBox(width: 4),
+                    Icon(
+                      AppIcons.chevronRight,
+                      size: 12,
+                      color: ShellStyles.textMuted(context),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildInsightsCard(BuildContext context) {
+    final insights = _buildInsights(context);
+    return Container(
+      padding: const EdgeInsets.all(20),
+      decoration: ShellStyles.cardDecoration(
+        context,
+        radius: 20,
+        color: ShellStyles.surfaceAlt(context),
+        withShadow: false,
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Icon(
+                AppIcons.insight,
+                size: 18,
+                color: ShellStyles.textMuted(context),
+              ),
+              const SizedBox(width: 10),
+              Text(
+                context.tr('home_smart_insights'),
+                style: TextStyle(
+                  color: ShellStyles.textPrimary(context),
+                  fontSize: 14,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 16),
+          for (final insight in insights)
+            Padding(
+              padding: const EdgeInsets.only(bottom: 10),
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.only(top: 6, right: 10),
+                    child: Container(
+                      width: 4,
+                      height: 4,
+                      decoration: BoxDecoration(
+                        color: ShellStyles.textMuted(context),
+                        shape: BoxShape.circle,
+                      ),
+                    ),
+                  ),
+                  Expanded(
+                    child: Text(
+                      insight,
+                      style: TextStyle(
+                        color: ShellStyles.textMuted(context),
+                        fontSize: 13,
+                        height: 1.4,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildQuickActions(BuildContext context) {
+    final actions = <_QuickAction>[
+      _QuickAction(
+        icon: AppIcons.add,
+        label: context.tr('home_add_expense'),
+        onTap: () => _open(context, const TransactionEditScreen.create()),
+      ),
+      _QuickAction(
+        icon: AppIcons.receipt,
+        label: context.tr('nav_receipts'),
+        onTap: () => _open(context, const ReceiptManagerScreen()),
+      ),
+      _QuickAction(
+        icon: AppIcons.analytics,
+        label: context.tr('nav_analytics'),
+        onTap: () => _open(context, const AnalyticsScreen()),
+      ),
+      _QuickAction(
+        icon: AppIcons.category,
+        label: context.tr('home_categories'),
+        onTap: () => _open(context, const CategoriesScreen()),
+      ),
+    ];
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        ShellStyles.sectionLabel(context, context.tr('home_quick_actions')),
+        const SizedBox(height: 12),
+        Row(
+          children: [
+            for (var index = 0; index < actions.length; index++) ...[
+              Expanded(child: _buildQuickActionCard(context, actions[index])),
+              if (index != actions.length - 1) const SizedBox(width: 10),
+            ],
+          ],
+        ),
+      ],
+    );
+  }
+
+  Widget _buildQuickActionCard(BuildContext context, _QuickAction action) {
+    return InkWell(
+      borderRadius: BorderRadius.circular(16),
+      onTap: action.onTap,
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 2, vertical: 12),
+        decoration: ShellStyles.cardDecoration(context, radius: 16),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Container(
+              width: 38,
+              height: 38,
+              alignment: Alignment.center,
+              decoration: BoxDecoration(
+                color: ShellStyles.surfaceAlt(context),
+                shape: BoxShape.circle,
+              ),
+              child: Icon(
+                action.icon,
+                color: ShellStyles.textMuted(context),
+                size: 18,
+              ),
+            ),
+            const SizedBox(height: 12),
             Text(
-              context.tr('home_no_receipts_for_day'),
+              action.label,
               textAlign: TextAlign.center,
-              style: TextStyle(fontSize: 14, color: Colors.grey.shade500),
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
+              style: TextStyle(
+                color: ShellStyles.textPrimary(context),
+                fontSize: 11,
+                height: 1.15,
+                fontWeight: FontWeight.w500,
+              ),
             ),
           ],
         ),
       ),
     );
   }
+
+  Widget _buildLoadingState(BuildContext context) {
+    return Column(
+      children: [
+        _buildSkeletonCard(context, height: 128),
+        const SizedBox(height: 14),
+        _buildSkeletonCard(context, height: 84),
+        const SizedBox(height: 14),
+        _buildSkeletonCard(context, height: 360),
+      ],
+    );
+  }
+
+  Widget _buildSkeletonCard(BuildContext context, {required double height}) {
+    return Container(
+      height: height,
+      decoration: ShellStyles.cardDecoration(
+        context,
+        color: ShellStyles.surface(context),
+      ),
+      child: const Center(child: CircularProgressIndicator()),
+    );
+  }
+
+  Widget _buildErrorState(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.all(20),
+      decoration: ShellStyles.cardDecoration(context),
+      child: Column(
+        children: [
+          Icon(
+            CupertinoIcons.exclamationmark_circle,
+            color: ShellColors.softRed,
+            size: 42,
+          ),
+          const SizedBox(height: 10),
+          Text(
+            context.tr(
+              'common_error_with_message',
+              params: {'message': _error ?? context.tr('common_error')},
+            ),
+            textAlign: TextAlign.center,
+            style: TextStyle(color: ShellStyles.textPrimary(context)),
+          ),
+          const SizedBox(height: 12),
+          FilledButton(
+            onPressed: _loadHomeData,
+            child: Text(context.tr('common_retry')),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildInlineWarning(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: ShellColors.softRed.withAlpha(22),
+        borderRadius: BorderRadius.circular(18),
+        border: Border.all(color: ShellColors.softRed.withAlpha(60)),
+      ),
+      child: Row(
+        children: [
+          const Icon(AppIcons.info, color: ShellColors.softRed),
+          const SizedBox(width: 10),
+          Expanded(
+            child: Text(
+              _error ?? context.tr('common_error'),
+              style: TextStyle(
+                color: ShellStyles.textPrimary(context),
+                fontSize: 13,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _OverviewSlice {
+  const _OverviewSlice({
+    required this.name,
+    required this.amount,
+    required this.percentage,
+    required this.color,
+  });
+
+  final String name;
+  final double amount;
+  final double percentage;
+  final Color color;
+}
+
+class _QuickAction {
+  const _QuickAction({
+    required this.icon,
+    required this.label,
+    required this.onTap,
+  });
+
+  final IconData icon;
+  final String label;
+  final VoidCallback onTap;
 }

@@ -103,7 +103,17 @@ class _MyAppState extends State<MyApp> {
     return MaterialApp(
       navigatorKey: appNavigatorKey,
       onGenerateTitle: (context) => context.tr('app_title'),
-      theme: themeProvider.themeData,
+      theme: themeProvider.lightTheme,
+      darkTheme: themeProvider.darkTheme,
+      themeMode: themeProvider.themeMode,
+      builder: (context, child) {
+        return MediaQuery(
+          data: MediaQuery.of(context).copyWith(
+            textScaler: TextScaler.linear(themeProvider.fontSizeFactor),
+          ),
+          child: child ?? const SizedBox.shrink(),
+        );
+      },
       locale: localeProvider.locale,
       supportedLocales: AppLocalizations.supportedLocales,
       localizationsDelegates: const [

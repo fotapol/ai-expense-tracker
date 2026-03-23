@@ -14,7 +14,9 @@ import 'analytics_subcategory_items_screen.dart';
 import 'subscription_screen.dart';
 
 class AnalyticsTab extends StatefulWidget {
-  const AnalyticsTab({super.key});
+  final bool showTopBar;
+
+  const AnalyticsTab({super.key, this.showTopBar = true});
 
   @override
   State<AnalyticsTab> createState() => _AnalyticsTabState();
@@ -46,6 +48,13 @@ class _AnalyticsTabState extends State<AnalyticsTab>
   Future<void> performAutoRefresh() => _refreshAnalytics(showLoader: false);
 
   String _currencySymbol(String code) {
+    final normalized = code.toUpperCase();
+    if (normalized == 'EUR') return '\u20AC';
+    if (normalized == 'USD') return '\$';
+    if (normalized == 'GBP') return '\u00A3';
+    if (normalized == 'AUD') return 'A\$';
+    if (normalized == 'CAD') return 'C\$';
+    if (normalized == 'RSD') return 'RSD ';
     switch (code.toUpperCase()) {
       case 'EUR':
         return '€';
@@ -62,7 +71,7 @@ class _AnalyticsTabState extends State<AnalyticsTab>
 
   String _formatMoney(String currency, double amount) {
     final symbol = _currencySymbol(currency);
-    if (symbol.trim().length == 1 || symbol == 'RSD ') {
+    if (symbol != '${currency.toUpperCase()} ') {
       final sign = amount < 0 ? '-' : '';
       return '$sign$symbol${amount.abs().toStringAsFixed(2)}';
     }
@@ -428,7 +437,7 @@ class _AnalyticsTabState extends State<AnalyticsTab>
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          _buildTopBar(),
+          if (widget.showTopBar) _buildTopBar(),
           _buildActiveFiltersBar(),
           const SizedBox(height: 8),
           Expanded(child: _buildContent()),
@@ -683,9 +692,9 @@ class _AnalyticsTabState extends State<AnalyticsTab>
   Widget _buildPieChart(
     List<dynamic> categories,
     double totalAmount,
-    String currency,
-    {required bool isSubcategoryMode}
-  ) {
+    String currency, {
+    required bool isSubcategoryMode,
+  }) {
     final hasData = categories.isNotEmpty && totalAmount > 0;
 
     final sections = <PieChartSectionData>[];
@@ -801,10 +810,7 @@ class _AnalyticsTabState extends State<AnalyticsTab>
                       ),
                     ),
                     const SizedBox(width: 8),
-                    Text(
-                      name,
-                      style: TextStyle(color: Colors.grey.shade300),
-                    ),
+                    Text(name, style: TextStyle(color: Colors.grey.shade300)),
                   ],
                 );
               }).toList(),

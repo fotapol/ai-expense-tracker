@@ -250,7 +250,9 @@ class ApiClient {
   }
 
   /// POST /v1/households/current/invites/{inviteId}/revoke
-  static Future<Map<String, dynamic>> revokeHouseholdInvite(String inviteId) async {
+  static Future<Map<String, dynamic>> revokeHouseholdInvite(
+    String inviteId,
+  ) async {
     final token = await _getToken();
     final response = await http.post(
       Uri.parse('$apiBaseUrl/v1/households/current/invites/$inviteId/revoke'),
@@ -269,7 +271,9 @@ class ApiClient {
   }
 
   /// POST /v1/households/current/members/{id}/remove
-  static Future<Map<String, dynamic>> removeHouseholdMember(String memberId) async {
+  static Future<Map<String, dynamic>> removeHouseholdMember(
+    String memberId,
+  ) async {
     final token = await _getToken();
     final response = await http.post(
       Uri.parse('$apiBaseUrl/v1/households/current/members/$memberId/remove'),
@@ -288,7 +292,9 @@ class ApiClient {
   }
 
   /// POST /v1/household-invites/{token}/accept
-  static Future<Map<String, dynamic>> acceptHouseholdInvite(String inviteToken) async {
+  static Future<Map<String, dynamic>> acceptHouseholdInvite(
+    String inviteToken,
+  ) async {
     final token = await _getToken();
     final response = await http.post(
       Uri.parse('$apiBaseUrl/v1/household-invites/$inviteToken/accept'),
@@ -409,7 +415,9 @@ class ApiClient {
   }
 
   /// GET /v1/receipts/{id}/view-url
-  static Future<Map<String, dynamic>> getReceiptViewUrl(String receiptId) async {
+  static Future<Map<String, dynamic>> getReceiptViewUrl(
+    String receiptId,
+  ) async {
     final token = await _getToken();
     final response = await http.get(
       Uri.parse('$apiBaseUrl/v1/receipts/$receiptId/view-url'),
@@ -603,27 +611,33 @@ class ApiClient {
     // Build query params — do not cap page_size here; backend determines page size.
     // M-1 fix: removing the hardcoded page_size=100 prevents silent truncation for users
     // with more than 100 transactions.
-    String url = '$apiBaseUrl/v1/transactions';
+    final params = <String>[];
     if (fromDate != null) {
-      url += '&from_occurred_at=${fromDate.toUtc().toIso8601String()}';
+      params.add('from_occurred_at=${fromDate.toUtc().toIso8601String()}');
     }
     if (merchantNameSearch != null && merchantNameSearch.isNotEmpty) {
-      url += '&merchant_name_search=${Uri.encodeComponent(merchantNameSearch)}';
+      params.add(
+        'merchant_name_search=${Uri.encodeComponent(merchantNameSearch)}',
+      );
     }
     if (categoryIds != null && categoryIds.isNotEmpty) {
-      url += '&category_ids=${categoryIds.join(',')}';
+      params.add('category_ids=${categoryIds.join(',')}');
     }
     if (subcategoryIds != null && subcategoryIds.isNotEmpty) {
-      url += '&subcategory_ids=${subcategoryIds.join(',')}';
+      params.add('subcategory_ids=${subcategoryIds.join(',')}');
     }
     if (labelId != null) {
-      url += '&label_id=$labelId';
+      params.add('label_id=$labelId');
     }
     if (labelIds != null && labelIds.isNotEmpty) {
-      url += '&label_ids=${labelIds.join(',')}';
+      params.add('label_ids=${labelIds.join(',')}');
     }
     if (targetCurrency != null && targetCurrency.isNotEmpty) {
-      url += '&target_currency=${Uri.encodeComponent(targetCurrency)}';
+      params.add('target_currency=${Uri.encodeComponent(targetCurrency)}');
+    }
+    var url = '$apiBaseUrl/v1/transactions';
+    if (params.isNotEmpty) {
+      url += '?${params.join('&')}';
     }
 
     // M-2 fix: add a 30 s timeout so the app never hangs indefinitely on a slow network.
@@ -810,7 +824,9 @@ class ApiClient {
   }
 
   /// GET /v1/categories
-  static Future<List<dynamic>> listCategories({bool includeDisabled = false}) async {
+  static Future<List<dynamic>> listCategories({
+    bool includeDisabled = false,
+  }) async {
     final token = await _getToken();
     final suffix = includeDisabled ? '?include_disabled=true' : '';
     final response = await http.get(
@@ -1189,7 +1205,9 @@ class ApiClient {
   }
 
   /// POST /v1/data/import
-  static Future<Map<String, dynamic>> importData(Map<String, dynamic> payload) async {
+  static Future<Map<String, dynamic>> importData(
+    Map<String, dynamic> payload,
+  ) async {
     final token = await _getToken();
     final response = await http.post(
       Uri.parse('$apiBaseUrl/v1/data/import'),
