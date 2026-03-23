@@ -823,6 +823,131 @@ class ApiClient {
     }
   }
 
+  static String _dateOnlyIso(DateTime value) {
+    final normalized = DateTime(value.year, value.month, value.day);
+    final month = normalized.month.toString().padLeft(2, '0');
+    final day = normalized.day.toString().padLeft(2, '0');
+    return '${normalized.year}-$month-$day';
+  }
+
+  /// GET /v1/planning/budget
+  static Future<Map<String, dynamic>> getBudgetPlan() async {
+    final token = await _getToken();
+    final response = await http.get(
+      Uri.parse('$apiBaseUrl/v1/planning/budget'),
+      headers: {
+        'Authorization': 'Bearer $token',
+        'Content-Type': 'application/json',
+      },
+    );
+    if (response.statusCode == 200) {
+      return jsonDecode(response.body) as Map<String, dynamic>;
+    }
+    throw Exception(
+      'Failed to load budget plan: ${response.statusCode} ${_extractErrorMessage(response)}',
+    );
+  }
+
+  /// PUT /v1/planning/budget
+  static Future<Map<String, dynamic>> updateBudgetPlan({
+    required String currency,
+    double? monthlyIncome,
+    required List<Map<String, dynamic>> categoryLimits,
+  }) async {
+    final token = await _getToken();
+    final response = await http.put(
+      Uri.parse('$apiBaseUrl/v1/planning/budget'),
+      headers: {
+        'Authorization': 'Bearer $token',
+        'Content-Type': 'application/json',
+      },
+      body: jsonEncode({
+        'monthly_income': monthlyIncome,
+        'currency': currency.toUpperCase(),
+        'category_limits': categoryLimits,
+      }),
+    );
+    if (response.statusCode == 200) {
+      return jsonDecode(response.body) as Map<String, dynamic>;
+    }
+    throw Exception(
+      'Failed to update budget plan: ${response.statusCode} ${_extractErrorMessage(response)}',
+    );
+  }
+
+  /// GET /v1/planning/bills
+  static Future<List<dynamic>> listBillReminders() async {
+    final token = await _getToken();
+    final response = await http.get(
+      Uri.parse('$apiBaseUrl/v1/planning/bills'),
+      headers: {
+        'Authorization': 'Bearer $token',
+        'Content-Type': 'application/json',
+      },
+    );
+    if (response.statusCode == 200) {
+      return jsonDecode(response.body) as List<dynamic>;
+    }
+    throw Exception(
+      'Failed to list bill reminders: ${response.statusCode} ${_extractErrorMessage(response)}',
+    );
+  }
+
+  /// POST /v1/planning/bills
+  static Future<Map<String, dynamic>> createBillReminder({
+    required String name,
+    required double amount,
+    required String currency,
+    required DateTime firstDueDate,
+    int remindDaysBefore = 3,
+    bool isActive = true,
+  }) async {
+    final token = await _getToken();
+    final response = await http.post(
+      Uri.parse('$apiBaseUrl/v1/planning/bills'),
+      headers: {
+        'Authorization': 'Bearer $token',
+        'Content-Type': 'application/json',
+      },
+      body: jsonEncode({
+        'name': name.trim(),
+        'amount': amount,
+        'currency': currency.toUpperCase(),
+        'first_due_date': _dateOnlyIso(firstDueDate),
+        'remind_days_before': remindDaysBefore,
+        'is_active': isActive,
+      }),
+    );
+    if (response.statusCode == 201) {
+      return jsonDecode(response.body) as Map<String, dynamic>;
+    }
+    throw Exception(
+      'Failed to create bill reminder: ${response.statusCode} ${_extractErrorMessage(response)}',
+    );
+  }
+
+  /// PATCH /v1/planning/bills/{id}/mark-paid
+  static Future<Map<String, dynamic>> markBillReminderPaid({
+    required String billId,
+    required DateTime dueDate,
+  }) async {
+    final token = await _getToken();
+    final response = await http.patch(
+      Uri.parse('$apiBaseUrl/v1/planning/bills/$billId/mark-paid'),
+      headers: {
+        'Authorization': 'Bearer $token',
+        'Content-Type': 'application/json',
+      },
+      body: jsonEncode({'due_date': _dateOnlyIso(dueDate)}),
+    );
+    if (response.statusCode == 200) {
+      return jsonDecode(response.body) as Map<String, dynamic>;
+    }
+    throw Exception(
+      'Failed to mark bill reminder as paid: ${response.statusCode} ${_extractErrorMessage(response)}',
+    );
+  }
+
   /// GET /v1/categories
   static Future<List<dynamic>> listCategories({
     bool includeDisabled = false,

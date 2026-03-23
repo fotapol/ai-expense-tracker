@@ -5,6 +5,8 @@ import '../core/data_transfer_actions.dart';
 import '../core/redesign_system.dart';
 import '../l10n/app_localizations.dart';
 import 'analytics_screen.dart';
+import 'bill_reminders_screen.dart';
+import 'budget_calculator_screen.dart';
 import 'categories_screen.dart';
 import 'labels_screen.dart';
 import 'receipt_manager_screen.dart';
@@ -45,9 +47,16 @@ class ToolsScreen extends StatelessWidget {
             const SizedBox(height: 18),
             Row(
               children: [
-                Icon(CupertinoIcons.pin, size: 14, color: ShellStyles.textMuted(context)),
+                Icon(
+                  CupertinoIcons.pin,
+                  size: 14,
+                  color: ShellStyles.textMuted(context),
+                ),
                 const SizedBox(width: 6),
-                ShellStyles.sectionLabel(context, context.tr('tools_most_used')),
+                ShellStyles.sectionLabel(
+                  context,
+                  context.tr('tools_most_used'),
+                ),
               ],
             ),
             const SizedBox(height: 12),
@@ -126,15 +135,13 @@ class ToolsScreen extends StatelessWidget {
                   icon: AppIcons.budget,
                   title: context.tr('tools_budget_calculator'),
                   subtitle: context.tr('tools_budget_calculator_subtitle'),
-                  onTap: () => ShellStyles.showComingSoon(context),
-                  isPlaceholder: true,
+                  onTap: () => _open(context, const BudgetCalculatorScreen()),
                 ),
                 _ToolTileData(
                   icon: AppIcons.notifications,
                   title: context.tr('tools_bill_reminders'),
                   subtitle: context.tr('tools_bill_reminders_subtitle'),
-                  onTap: () => ShellStyles.showComingSoon(context),
-                  isPlaceholder: true,
+                  onTap: () => _open(context, const BillRemindersScreen()),
                 ),
               ],
             ),
@@ -182,8 +189,7 @@ class ToolsScreen extends StatelessWidget {
         const SizedBox(height: 10),
         for (var index = 0; index < tiles.length; index++) ...[
           _buildListTile(context, tiles[index]),
-          if (index != tiles.length - 1)
-            const SizedBox(height: 10),
+          if (index != tiles.length - 1) const SizedBox(height: 10),
         ],
       ],
     );
@@ -214,11 +220,7 @@ class ToolsScreen extends StatelessWidget {
                 color: ShellStyles.textPrimary(context),
                 borderRadius: BorderRadius.circular(14),
               ),
-              child: Icon(
-                icon,
-                color: ShellStyles.surface(context),
-                size: 24,
-              ),
+              child: Icon(icon, color: ShellStyles.surface(context), size: 24),
             ),
             const SizedBox(height: 14),
             Text(
@@ -252,12 +254,14 @@ class ToolsScreen extends StatelessWidget {
   }
 
   Widget _buildListTile(BuildContext context, _ToolTileData tile) {
-    final iconBackground = ShellStyles.textPrimary(
-      context,
-    ).withAlpha(tile.isPlaceholder ? 188 : 215);
+    final iconBackground = ShellStyles.textPrimary(context).withAlpha(215);
 
     return Container(
-      decoration: ShellStyles.cardDecoration(context, radius: 18, withShadow: false),
+      decoration: ShellStyles.cardDecoration(
+        context,
+        radius: 18,
+        withShadow: false,
+      ),
       child: InkWell(
         onTap: tile.onTap,
         borderRadius: BorderRadius.circular(18),
@@ -326,12 +330,10 @@ class _ToolTileData {
     required this.title,
     required this.subtitle,
     required this.onTap,
-    this.isPlaceholder = false,
   });
 
   final IconData icon;
   final String title;
   final String subtitle;
   final VoidCallback onTap;
-  final bool isPlaceholder;
 }

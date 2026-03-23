@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import '../core/bill_reminder_notification_service.dart';
+import '../core/notification_preferences.dart';
 import '../core/redesign_system.dart';
 import '../l10n/app_localizations.dart';
 import 'settings_detail_scaffold.dart';
@@ -14,16 +16,60 @@ class NotificationsSettingsScreen extends StatefulWidget {
 
 class _NotificationsSettingsScreenState
     extends State<NotificationsSettingsScreen> {
-  final Map<String, bool> _values = <String, bool>{
-    'push': true,
-    'email': true,
-    'spending': true,
-    'budget': true,
-    'receipts': true,
-    'weekly': true,
-    'insights': false,
-    'marketing': false,
+  Map<String, bool> _values = <String, bool>{
+    NotificationPreferencesStore.idPush: NotificationPreferences.defaults.push,
+    NotificationPreferencesStore.idEmail:
+        NotificationPreferences.defaults.email,
+    NotificationPreferencesStore.idSpending:
+        NotificationPreferences.defaults.spending,
+    NotificationPreferencesStore.idBudget:
+        NotificationPreferences.defaults.budget,
+    NotificationPreferencesStore.idReceipts:
+        NotificationPreferences.defaults.receipts,
+    NotificationPreferencesStore.idBillReminders:
+        NotificationPreferences.defaults.billReminders,
+    NotificationPreferencesStore.idWeekly:
+        NotificationPreferences.defaults.weekly,
+    NotificationPreferencesStore.idInsights:
+        NotificationPreferences.defaults.insights,
+    NotificationPreferencesStore.idMarketing:
+        NotificationPreferences.defaults.marketing,
   };
+
+  @override
+  void initState() {
+    super.initState();
+    _loadValues();
+  }
+
+  Future<void> _loadValues() async {
+    final prefs = await notificationPreferencesStore.load();
+    if (!mounted) return;
+    setState(() {
+      _values = <String, bool>{
+        NotificationPreferencesStore.idPush: prefs.push,
+        NotificationPreferencesStore.idEmail: prefs.email,
+        NotificationPreferencesStore.idSpending: prefs.spending,
+        NotificationPreferencesStore.idBudget: prefs.budget,
+        NotificationPreferencesStore.idReceipts: prefs.receipts,
+        NotificationPreferencesStore.idBillReminders: prefs.billReminders,
+        NotificationPreferencesStore.idWeekly: prefs.weekly,
+        NotificationPreferencesStore.idInsights: prefs.insights,
+        NotificationPreferencesStore.idMarketing: prefs.marketing,
+      };
+    });
+  }
+
+  Future<void> _setValue(String id, bool value) async {
+    setState(() => _values[id] = value);
+    await notificationPreferencesStore.updateValue(id, value);
+    if ((id == NotificationPreferencesStore.idPush ||
+            id == NotificationPreferencesStore.idBillReminders) &&
+        value) {
+      await BillReminderNotificationService.instance.requestPermissions();
+    }
+    await BillReminderNotificationService.instance.syncScheduledNotifications();
+  }
 
   Widget _buildGroup(String label, List<_NotificationToggle> items) {
     return Column(
@@ -41,14 +87,11 @@ class _NotificationsSettingsScreenState
                   subtitle: items[index].subtitle,
                   value: _values[items[index].id] ?? false,
                   onChanged: (value) {
-                    setState(() => _values[items[index].id] = value);
+                    _setValue(items[index].id, value);
                   },
                 ),
                 if (index != items.length - 1)
-                  Divider(
-                    height: 1,
-                    color: ShellStyles.border(context),
-                  ),
+                  Divider(height: 1, color: ShellStyles.border(context)),
               ],
             ],
           ),
@@ -70,12 +113,12 @@ class _NotificationsSettingsScreenState
             children: [
               _buildGroup(context.tr('settings_notification_channels'), [
                 _NotificationToggle(
-                  id: 'push',
+                  id: NotificationPreferencesStore.idPush,
                   title: context.tr('settings_push_notifications'),
                   subtitle: context.tr('settings_push_notifications_subtitle'),
                 ),
                 _NotificationToggle(
-                  id: 'email',
+                  id: NotificationPreferencesStore.idEmail,
                   title: context.tr('settings_email_notifications'),
                   subtitle: context.tr('settings_email_notifications_subtitle'),
                 ),
@@ -83,17 +126,22 @@ class _NotificationsSettingsScreenState
               const SizedBox(height: 16),
               _buildGroup(context.tr('settings_notification_activity'), [
                 _NotificationToggle(
-                  id: 'spending',
+                  id: NotificationPreferencesStore.idSpending,
                   title: context.tr('settings_spending_alerts'),
                   subtitle: context.tr('settings_spending_alerts_subtitle'),
                 ),
                 _NotificationToggle(
-                  id: 'budget',
+                  id: NotificationPreferencesStore.idBudget,
                   title: context.tr('settings_budget_alerts'),
                   subtitle: context.tr('settings_budget_alerts_subtitle'),
                 ),
                 _NotificationToggle(
-                  id: 'receipts',
+                  id: NotificationPreferencesStore.idBillReminders,
+                  title: context.tr('settings_bill_reminders'),
+                  subtitle: context.tr('settings_bill_reminders_subtitle'),
+                ),
+                _NotificationToggle(
+                  id: NotificationPreferencesStore.idReceipts,
                   title: context.tr('settings_receipt_reminders'),
                   subtitle: context.tr('settings_receipt_reminders_subtitle'),
                 ),
@@ -101,12 +149,12 @@ class _NotificationsSettingsScreenState
               const SizedBox(height: 16),
               _buildGroup(context.tr('settings_notification_summaries'), [
                 _NotificationToggle(
-                  id: 'weekly',
+                  id: NotificationPreferencesStore.idWeekly,
                   title: context.tr('settings_weekly_summary'),
                   subtitle: context.tr('settings_weekly_summary_subtitle'),
                 ),
                 _NotificationToggle(
-                  id: 'insights',
+                  id: NotificationPreferencesStore.idInsights,
                   title: context.tr('settings_ai_insights'),
                   subtitle: context.tr('settings_ai_insights_subtitle'),
                 ),
@@ -114,7 +162,7 @@ class _NotificationsSettingsScreenState
               const SizedBox(height: 16),
               _buildGroup(context.tr('settings_notification_marketing'), [
                 _NotificationToggle(
-                  id: 'marketing',
+                  id: NotificationPreferencesStore.idMarketing,
                   title: context.tr('settings_promotions_updates'),
                   subtitle: context.tr('settings_promotions_updates_subtitle'),
                 ),
