@@ -663,6 +663,7 @@ class ApiClient {
   /// GET /v1/transactions/summary
   static Future<Map<String, dynamic>> getTransactionsSummary({
     DateTime? fromDate,
+    DateTime? toDate,
     List<String>? categoryIds,
     List<String>? subcategoryIds,
     List<String>? labelIds,
@@ -677,6 +678,9 @@ class ApiClient {
 
     if (fromDate != null) {
       params.add('from_occurred_at=${fromDate.toUtc().toIso8601String()}');
+    }
+    if (toDate != null) {
+      params.add('to_occurred_at=${toDate.toUtc().toIso8601String()}');
     }
     if (categoryIds != null && categoryIds.isNotEmpty) {
       params.add('category_ids=${categoryIds.join(',')}');
@@ -713,6 +717,108 @@ class ApiClient {
         'Failed to fetch summary: ${response.statusCode} ${response.body}',
       );
     }
+  }
+
+  /// GET /v1/transactions/summary/trends
+  static Future<Map<String, dynamic>> getTransactionTrendSummary({
+    DateTime? fromDate,
+    DateTime? toDate,
+    List<String>? categoryIds,
+    List<String>? subcategoryIds,
+    List<String>? labelIds,
+    String? targetCurrency,
+  }) async {
+    final token = await _getToken();
+
+    String url = '$apiBaseUrl/v1/transactions/summary/trends';
+    final params = <String>[];
+    if (fromDate != null) {
+      params.add('from_occurred_at=${fromDate.toUtc().toIso8601String()}');
+    }
+    if (toDate != null) {
+      params.add('to_occurred_at=${toDate.toUtc().toIso8601String()}');
+    }
+    if (categoryIds != null && categoryIds.isNotEmpty) {
+      params.add('category_ids=${categoryIds.join(',')}');
+    }
+    if (subcategoryIds != null && subcategoryIds.isNotEmpty) {
+      params.add('subcategory_ids=${subcategoryIds.join(',')}');
+    }
+    if (labelIds != null && labelIds.isNotEmpty) {
+      params.add('label_ids=${labelIds.join(',')}');
+    }
+    if (targetCurrency != null && targetCurrency.isNotEmpty) {
+      params.add('target_currency=${Uri.encodeComponent(targetCurrency)}');
+    }
+    if (params.isNotEmpty) {
+      url += '?${params.join('&')}';
+    }
+
+    final response = await http.get(
+      Uri.parse(url),
+      headers: {
+        'Authorization': 'Bearer $token',
+        'Content-Type': 'application/json',
+      },
+    );
+
+    if (response.statusCode == 200) {
+      return jsonDecode(response.body) as Map<String, dynamic>;
+    }
+    throw Exception(
+      'Failed to fetch trend summary: ${response.statusCode} ${response.body}',
+    );
+  }
+
+  /// GET /v1/transactions/summary/household
+  static Future<Map<String, dynamic>> getHouseholdAnalyticsSummary({
+    DateTime? fromDate,
+    DateTime? toDate,
+    List<String>? categoryIds,
+    List<String>? subcategoryIds,
+    List<String>? labelIds,
+    String? targetCurrency,
+  }) async {
+    final token = await _getToken();
+
+    String url = '$apiBaseUrl/v1/transactions/summary/household';
+    final params = <String>[];
+    if (fromDate != null) {
+      params.add('from_occurred_at=${fromDate.toUtc().toIso8601String()}');
+    }
+    if (toDate != null) {
+      params.add('to_occurred_at=${toDate.toUtc().toIso8601String()}');
+    }
+    if (categoryIds != null && categoryIds.isNotEmpty) {
+      params.add('category_ids=${categoryIds.join(',')}');
+    }
+    if (subcategoryIds != null && subcategoryIds.isNotEmpty) {
+      params.add('subcategory_ids=${subcategoryIds.join(',')}');
+    }
+    if (labelIds != null && labelIds.isNotEmpty) {
+      params.add('label_ids=${labelIds.join(',')}');
+    }
+    if (targetCurrency != null && targetCurrency.isNotEmpty) {
+      params.add('target_currency=${Uri.encodeComponent(targetCurrency)}');
+    }
+    if (params.isNotEmpty) {
+      url += '?${params.join('&')}';
+    }
+
+    final response = await http.get(
+      Uri.parse(url),
+      headers: {
+        'Authorization': 'Bearer $token',
+        'Content-Type': 'application/json',
+      },
+    );
+
+    if (response.statusCode == 200) {
+      return jsonDecode(response.body) as Map<String, dynamic>;
+    }
+    throw Exception(
+      'Failed to fetch household analytics: ${response.statusCode} ${response.body}',
+    );
   }
 
   /// GET /v1/transactions/summary/categories/{categoryId}/subcategories
