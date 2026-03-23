@@ -1942,7 +1942,7 @@ async def update_transaction(
     update_data = payload.model_dump(exclude_unset=True, exclude={"items"})
     for key, value in update_data.items():
         setattr(transaction, key, value)
-        
+
     session.add(transaction)
 
     # 2. Update Items if provided
@@ -1954,6 +1954,7 @@ async def update_transaction(
     if payload.items is not None:
         # Simple reconciliation: match by ID.
         existing_items_map = {item.id: item for item in items}
+        seen_existing_ids: set[uuid.UUID] = set()
         
         # New list to return
         updated_items_list = []
@@ -1963,6 +1964,7 @@ async def update_transaction(
             if item_data.id and item_data.id in existing_items_map:
                 # Update existing
                 existing_item = existing_items_map[item_data.id]
+                seen_existing_ids.add(item_data.id)
                 item_changes = item_data.model_dump(exclude_unset=True, exclude={"id"})
                 if (
                     "description" in item_changes
@@ -1993,9 +1995,10 @@ async def update_transaction(
                 )
                 session.add(new_item)
                 updated_items_list.append(new_item)
-                
-        # Optional: You could delete items that were in `existing_items_map` but not in `payload.items`
-        # if the UI sends full lists. Leaving them alone for safety right now unless fully built out.
+
+        omitted_ids = set(existing_items_map) - seen_existing_ids
+        for omitted_id in omitted_ids:
+            session.delete(existing_items_map[omitted_id])
         
         # Re-fetch for response
         items = updated_items_list
@@ -2089,7 +2092,7 @@ async def delete_transaction_item(
     remaining_total = session.exec(
         select(func.sum(TransactionItem.amount)).where(TransactionItem.transaction_id == transaction_id)
     ).first()
-    transaction.amount_total = remaining_total or Decimal("0.00")
+    transaction.amount_total = quantize_amount(remaining_total or Decimal("0.00"))
     session.add(transaction)
     session.commit()
     return None

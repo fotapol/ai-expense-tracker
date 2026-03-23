@@ -27,6 +27,23 @@ from app.schemas.shared import (
 TransactionStatus = Literal["DRAFT", "CONFIRMED"]
 
 
+def _normalize_transaction_unit(value: str | None) -> str | None:
+    """Collapse legacy unit spellings into the supported canonical values."""
+
+    if value is None:
+        return None
+    normalized = value.strip().lower()
+    if not normalized:
+        return None
+    if normalized in {"pc", "pcs", "piece", "pieces", "kom", "unit", "units", "un"}:
+        return "pc"
+    if normalized in {"kg", "kgs", "kilogram", "kilograms", "g", "gram", "grams"}:
+        return "kg"
+    if normalized in {"l", "lt", "ltr", "liter", "liters", "litar", "ml", "milliliter", "milliliters"}:
+        return "l"
+    return normalized
+
+
 class TransactionItemCreate(SchemaBase):
     """Payload for adding an item line to a transaction."""
 
@@ -60,6 +77,13 @@ class TransactionItemCreate(SchemaBase):
         if value is None:
             return None
         return quantize_unit_price(value)
+
+    @field_validator("unit")
+    @classmethod
+    def normalize_unit(cls, value: str | None) -> str | None:
+        """Normalize edited/manual units into canonical transaction values."""
+
+        return _normalize_transaction_unit(value)
 
     @field_validator("amount", "amount_before_discount", "discount_amount")
     @classmethod
@@ -128,6 +152,44 @@ class TransactionItemUpdate(SchemaBase):
         normalized = normalize_language_code(value)
         return normalized or None
 
+    @field_validator("unit")
+    @classmethod
+    def normalize_unit(cls, value: str | None) -> str | None:
+        """Normalize edited/manual units into canonical transaction values."""
+
+        return _normalize_transaction_unit(value)
+
+    @field_validator("unit_price")
+    @classmethod
+    def normalize_unit_price(cls, value: Decimal | None) -> Decimal | None:
+        """Quantize unit price when provided."""
+
+        if value is None:
+            return None
+        return quantize_unit_price(value)
+
+    @field_validator("qty")
+    @classmethod
+    def normalize_qty(cls, value: Decimal | None) -> Decimal | None:
+        """Quantize quantity when provided."""
+
+        if value is None:
+            return None
+        return quantize_quantity(value)
+
+    @field_validator(
+        "amount",
+        "amount_before_discount",
+        "discount_amount",
+    )
+    @classmethod
+    def normalize_amounts(cls, value: Decimal | None) -> Decimal | None:
+        """Quantize amount fields when provided."""
+
+        if value is None:
+            return None
+        return quantize_amount(value)
+
 
 class TransactionCreateManual(SchemaBase):
     """Payload for creating a manual transaction entry."""
@@ -159,7 +221,6 @@ class TransactionCreateManual(SchemaBase):
         """Quantize transaction total."""
 
         return quantize_amount(value)
-
 
 class TransactionLabelRead(SchemaBase):
     """Read model for labels assigned to a transaction."""

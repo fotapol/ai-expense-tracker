@@ -20,6 +20,7 @@ from app.schemas.transactions import (
     TransactionCreateManual,
     TransactionListFilter,
     TransactionRead,
+    TransactionUpdateRequest,
     TransactionUserSnippetRead,
 )
 from app.services.taxonomy import collect_disable_target_ids
@@ -249,6 +250,163 @@ def test_create_transaction_without_active_household_stays_solo(monkeypatch) -> 
     created_transaction = next(obj for obj in session.added if isinstance(obj, Transaction))
     assert created_transaction.household_id is None
     assert created_transaction.owner_user_id == current_user.id
+
+
+def test_create_transaction_normalizes_item_units(monkeypatch) -> None:
+    """Manual transaction creation should normalize item units into canonical values."""
+
+    from app.api.routers import transactions as router
+
+    session = _Session()
+    current_user = SimpleNamespace(
+        id=uuid.uuid4(),
+        default_currency="EUR",
+        items_language=None,
+    )
+    item_category_id = uuid.uuid4()
+    tx_category_id = uuid.uuid4()
+
+    monkeypatch.setattr(router, "validate_transaction_attribution", lambda *args, **kwargs: None)
+    monkeypatch.setattr(
+        router,
+        "_resolve_active_shared_household_id",
+        lambda *_args, **_kwargs: None,
+    )
+    monkeypatch.setattr(
+        router,
+        "_get_user_visible_category_by_id",
+        lambda *_args, **_kwargs: SimpleNamespace(id=item_category_id),
+    )
+    monkeypatch.setattr(router, "_get_uncategorized_item_category_id", lambda _session: uuid.uuid4())
+    monkeypatch.setattr(
+        router,
+        "_resolve_transaction_category_from_item_category",
+        lambda _session, *, item_category_id: tx_category_id if item_category_id else None,
+    )
+    monkeypatch.setattr(
+        router,
+        "_build_transaction_read",
+        lambda **kwargs: kwargs["transaction"],
+    )
+
+    payload = TransactionCreateManual(
+        amount_total=Decimal("18.36"),
+        currency="eur",
+        merchant_name="Corner Market",
+        category_id=item_category_id,
+        items=[
+            {
+                "line_no": 1,
+                "description": "Organic Apples",
+                "qty": Decimal("2.000"),
+                "unit": "pcs",
+                "unit_price": Decimal("8.5000"),
+                "amount": Decimal("17.00"),
+                "category_id": item_category_id,
+            }
+        ],
+    )
+
+    result = asyncio.run(
+        _unwrap(router.create_transaction)(
+            request=_request(),
+            payload=payload,
+            session=session,
+            current_user=current_user,
+        )
+    )
+
+    created_transaction = next(obj for obj in session.added if isinstance(obj, Transaction))
+    created_item = next(obj for obj in session.added if isinstance(obj, TransactionItem))
+
+    assert created_transaction.amount_total == Decimal("18.36")
+    assert created_item.unit == "pc"
+    assert result.amount_total == Decimal("18.36")
+
+
+def test_update_transaction_deletes_omitted_existing_items(monkeypatch) -> None:
+    """Receipt editor saves should delete existing items omitted from the submitted list."""
+
+    from app.api.routers import transactions as router
+
+    current_user = SimpleNamespace(
+        id=uuid.uuid4(),
+        default_currency="EUR",
+        items_language=None,
+    )
+    transaction_id = uuid.uuid4()
+    kept_item_id = uuid.uuid4()
+    removed_item_id = uuid.uuid4()
+
+    transaction = Transaction(
+        id=transaction_id,
+        user_id=current_user.id,
+        amount_total=Decimal("9.99"),
+        currency="EUR",
+        merchant_name="Corner Market",
+        source=TransactionSource.MANUAL,
+        status="DRAFT",
+    )
+    kept_item = TransactionItem(
+        id=kept_item_id,
+        transaction_id=transaction_id,
+        line_no=1,
+        description="Kept item",
+        amount=Decimal("4.00"),
+    )
+    removed_item = TransactionItem(
+        id=removed_item_id,
+        transaction_id=transaction_id,
+        line_no=2,
+        description="Removed item",
+        amount=Decimal("5.99"),
+    )
+    session = _Session(exec_results=[[transaction], [kept_item, removed_item]])
+
+    monkeypatch.setattr(
+        router,
+        "_assert_household_transaction_access",
+        lambda *args, **kwargs: None,
+    )
+    monkeypatch.setattr(
+        router,
+        "validate_transaction_attribution",
+        lambda *args, **kwargs: None,
+    )
+    monkeypatch.setattr(
+        router,
+        "_build_transaction_read",
+        lambda **kwargs: kwargs["items"],
+    )
+
+    payload = TransactionUpdateRequest(
+        amount_total=Decimal("5.00"),
+        items=[
+            {
+                "id": kept_item_id,
+                "description": "Kept item updated",
+                "amount": Decimal("4.00"),
+            }
+        ],
+    )
+
+    result = asyncio.run(
+        _unwrap(router.update_transaction)(
+            request=_request(),
+            transaction_id=transaction_id,
+            payload=payload,
+            target_currency=None,
+            item_language=None,
+            app_language=None,
+            session=session,
+            current_user=current_user,
+        )
+    )
+
+    assert session.deleted == [removed_item]
+    assert kept_item.description == "Kept item updated"
+    assert session.committed is True
+    assert result == [kept_item]
 
 
 def test_collect_disable_target_ids_includes_descendants_and_transaction_match() -> None:
@@ -567,3 +725,31 @@ def test_delete_transaction_rejects_receipt_backed_transaction() -> None:
     assert exc_info.value.status_code == 409
     assert session.committed is False
     assert session.deleted == []
+
+
+def test_delete_transaction_item_recalculates_total_from_remaining_items(monkeypatch) -> None:
+    """Deleting a line item should recalculate the total from the remaining items."""
+
+    from app.api.routers import transactions as router
+
+    current_user = SimpleNamespace(id=uuid.uuid4())
+    transaction = SimpleNamespace(
+        id=uuid.uuid4(),
+        user_id=current_user.id,
+        amount_total=Decimal("24.36"),
+    )
+    item = SimpleNamespace(id=uuid.uuid4(), transaction_id=transaction.id)
+    session = _Session(exec_results=[[transaction], [item], [Decimal("17.00")]])
+
+    asyncio.run(
+        _unwrap(router.delete_transaction_item)(
+            request=_request(),
+            transaction_id=transaction.id,
+            item_id=item.id,
+            session=session,
+            current_user=current_user,
+        )
+    )
+
+    assert session.committed is True
+    assert transaction.amount_total == Decimal("17.00")
