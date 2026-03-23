@@ -12,6 +12,16 @@ from app.schemas.billing import (
 )
 from app.schemas.categories import CategoryCreate, CategoryRead, CategoryTreeNode, CategoryUpdate
 from app.schemas.extraction import ExtractedReceiptData, ExtractedTransactionItem
+from app.schemas.feature_requests import (
+    FeatureRequestCreateRequest,
+    FeatureRequestMineRead,
+    FeatureRequestPublicRead,
+    FeatureRequestVoteSummary,
+    FeatureRequestVoteUpdateRequest,
+    InternalFeatureRequestCreateRequest,
+    InternalFeatureRequestRead,
+    InternalFeatureRequestUpdateRequest,
+)
 from app.schemas.merchants import MerchantAliasCreate, MerchantAliasRead, MerchantRead
 from app.schemas.overrides import (
     UserCategoryOverrideRead,
@@ -71,8 +81,16 @@ __all__ = [
     "DevSubscriptionActionResponse",
     "ExtractedReceiptData",
     "ExtractedTransactionItem",
+    "FeatureRequestCreateRequest",
+    "FeatureRequestMineRead",
+    "FeatureRequestPublicRead",
+    "FeatureRequestVoteSummary",
+    "FeatureRequestVoteUpdateRequest",
     "FirebaseIdentityIn",
     "FirebaseIdentityOut",
+    "InternalFeatureRequestCreateRequest",
+    "InternalFeatureRequestRead",
+    "InternalFeatureRequestUpdateRequest",
     "MeEntitlementsResponse",
     "MeSubscriptionResponse",
     "MerchantAliasCreate",
