@@ -20,6 +20,7 @@ from app.schemas.transactions import (
     TransactionCreateManual,
     TransactionListFilter,
     TransactionRead,
+    TransactionUpdateRequest,
     TransactionUserSnippetRead,
 )
 from app.services.taxonomy import collect_disable_target_ids
@@ -202,6 +203,325 @@ def test_get_transactions_summary_blocks_subcategory_mode_without_feature(monkey
     assert exc_info.value.status_code == 403
 
 
+def test_infer_analytics_bucket_unit_matches_expected_ranges() -> None:
+    """Trend bucket selection should follow the selected range width."""
+
+    from app.api.routers import transactions as router
+
+    assert (
+        router._infer_analytics_bucket_unit(
+            TransactionListFilter(
+                from_occurred_at=dt.datetime(2026, 3, 1, tzinfo=dt.UTC),
+                to_occurred_at=dt.datetime(2026, 3, 7, tzinfo=dt.UTC),
+            )
+        )
+        == "day"
+    )
+    assert (
+        router._infer_analytics_bucket_unit(
+            TransactionListFilter(
+                from_occurred_at=dt.datetime(2026, 1, 1, tzinfo=dt.UTC),
+                to_occurred_at=dt.datetime(2026, 4, 1, tzinfo=dt.UTC),
+            )
+        )
+        == "week"
+    )
+    assert (
+        router._infer_analytics_bucket_unit(
+            TransactionListFilter(
+                from_occurred_at=dt.datetime(2025, 1, 1, tzinfo=dt.UTC),
+                to_occurred_at=dt.datetime(2026, 3, 1, tzinfo=dt.UTC),
+            )
+        )
+        == "month"
+    )
+
+
+def test_build_previous_period_filters_matches_current_window() -> None:
+    """Previous trend range should mirror the current selected window."""
+
+    from app.api.routers import transactions as router
+
+    filters = TransactionListFilter(
+        from_occurred_at=dt.datetime(2026, 3, 10, tzinfo=dt.UTC),
+        to_occurred_at=dt.datetime(2026, 3, 20, tzinfo=dt.UTC),
+    )
+
+    previous = router._build_previous_period_filters(filters)
+
+    assert previous is not None
+    assert previous.to_occurred_at < filters.from_occurred_at
+    assert (
+        previous.to_occurred_at - previous.from_occurred_at
+        == filters.to_occurred_at - filters.from_occurred_at
+    )
+
+
+def test_get_transaction_trend_summary_aggregates_rows(monkeypatch) -> None:
+    """Trend summary should bucket current rows and compare with the previous range."""
+
+    from app.api.routers import transactions as router
+
+    current_user = SimpleNamespace(
+        id=uuid.uuid4(),
+        default_currency="EUR",
+        items_language=None,
+    )
+    filters = TransactionListFilter(
+        from_occurred_at=dt.datetime(2026, 3, 1, tzinfo=dt.UTC),
+        to_occurred_at=dt.datetime(2026, 3, 7, tzinfo=dt.UTC),
+    )
+    current_rows = [
+        (
+            uuid.uuid4(),
+            Decimal("10.00"),
+            "EUR",
+            dt.datetime(2026, 3, 1, tzinfo=dt.UTC),
+            dt.datetime(2026, 3, 1, tzinfo=dt.UTC),
+            current_user.id,
+            current_user.id,
+        ),
+        (
+            uuid.uuid4(),
+            Decimal("20.00"),
+            "EUR",
+            dt.datetime(2026, 3, 2, tzinfo=dt.UTC),
+            dt.datetime(2026, 3, 2, tzinfo=dt.UTC),
+            current_user.id,
+            current_user.id,
+        ),
+    ]
+    previous_rows = [
+        (
+            uuid.uuid4(),
+            Decimal("15.00"),
+            "EUR",
+            dt.datetime(2026, 2, 25, tzinfo=dt.UTC),
+            dt.datetime(2026, 2, 25, tzinfo=dt.UTC),
+            current_user.id,
+            current_user.id,
+        ),
+    ]
+    load_calls = {"count": 0}
+
+    monkeypatch.setattr(
+        router,
+        "_build_analytics_scope",
+        lambda **_kwargs: ("EUR", object(), object(), False),
+    )
+
+    def fake_load_rows(*_args, **_kwargs):
+        load_calls["count"] += 1
+        return current_rows if load_calls["count"] == 1 else previous_rows
+
+    monkeypatch.setattr(router, "_load_analytics_spend_rows", fake_load_rows)
+    monkeypatch.setattr(
+        router,
+        "convert_amount",
+        lambda **kwargs: SimpleNamespace(
+            value=kwargs["amount"],
+            currency=kwargs["target_currency"],
+            rate_date=None,
+            rate_fallback=False,
+        ),
+    )
+
+    result = asyncio.run(
+        _unwrap(router.get_transaction_trend_summary)(
+            request=_request(),
+            filters=filters,
+            session=_Session(),
+            current_user=current_user,
+        )
+    )
+
+    assert result.bucket_unit == "day"
+    assert result.current_total_amount == Decimal("30.00")
+    assert result.previous_total_amount == Decimal("15.00")
+    assert result.change_percentage == 100.0
+    assert result.buckets[0].amount == Decimal("10.00")
+    assert result.buckets[1].amount == Decimal("20.00")
+
+
+def test_get_household_analytics_summary_returns_empty_without_active_household(
+    monkeypatch,
+) -> None:
+    """Household analytics should return an empty summary when no household exists."""
+
+    from app.api.routers import transactions as router
+
+    current_user = SimpleNamespace(
+        id=uuid.uuid4(),
+        default_currency="EUR",
+        items_language=None,
+    )
+
+    monkeypatch.setattr(
+        router,
+        "_resolve_active_shared_household_id",
+        lambda *_args, **_kwargs: None,
+    )
+
+    result = asyncio.run(
+        _unwrap(router.get_household_analytics_summary)(
+            request=_request(),
+            filters=TransactionListFilter(),
+            session=_Session(),
+            current_user=current_user,
+        )
+    )
+
+    assert result.household is None
+    assert result.total_amount == Decimal("0.00")
+    assert result.total_transactions == 0
+    assert result.members == []
+
+
+def test_get_household_analytics_summary_ranks_members(monkeypatch) -> None:
+    """Household analytics should rank members and surface each member's top category."""
+
+    from app.api.routers import transactions as router
+
+    household_id = uuid.uuid4()
+    owner_one = uuid.uuid4()
+    owner_two = uuid.uuid4()
+    groceries_id = uuid.uuid4()
+    transport_id = uuid.uuid4()
+    current_user = SimpleNamespace(
+        id=uuid.uuid4(),
+        default_currency="EUR",
+        items_language=None,
+    )
+    spend_rows = [
+        (
+            uuid.uuid4(),
+            Decimal("20.00"),
+            "EUR",
+            dt.datetime(2026, 3, 1, tzinfo=dt.UTC),
+            dt.datetime(2026, 3, 1, tzinfo=dt.UTC),
+            owner_one,
+            owner_one,
+        ),
+        (
+            uuid.uuid4(),
+            Decimal("5.00"),
+            "EUR",
+            dt.datetime(2026, 3, 2, tzinfo=dt.UTC),
+            dt.datetime(2026, 3, 2, tzinfo=dt.UTC),
+            owner_one,
+            owner_one,
+        ),
+        (
+            uuid.uuid4(),
+            Decimal("10.00"),
+            "EUR",
+            dt.datetime(2026, 3, 3, tzinfo=dt.UTC),
+            dt.datetime(2026, 3, 3, tzinfo=dt.UTC),
+            owner_two,
+            owner_two,
+        ),
+    ]
+    category_rows = [
+        (
+            owner_one,
+            owner_one,
+            groceries_id,
+            "Groceries",
+            "GROCERIES",
+            None,
+            Decimal("25.00"),
+            uuid.uuid4(),
+            "EUR",
+            dt.datetime(2026, 3, 1, tzinfo=dt.UTC),
+            dt.datetime(2026, 3, 1, tzinfo=dt.UTC),
+        ),
+        (
+            owner_two,
+            owner_two,
+            transport_id,
+            "Transport",
+            "TRANSPORT",
+            None,
+            Decimal("10.00"),
+            uuid.uuid4(),
+            "EUR",
+            dt.datetime(2026, 3, 3, tzinfo=dt.UTC),
+            dt.datetime(2026, 3, 3, tzinfo=dt.UTC),
+        ),
+    ]
+    session = _Session(
+        exec_results=[
+            [SimpleNamespace(id=household_id, name="Family")],
+        ]
+    )
+
+    monkeypatch.setattr(
+        router,
+        "_resolve_active_shared_household_id",
+        lambda *_args, **_kwargs: household_id,
+    )
+    monkeypatch.setattr(
+        router,
+        "_build_analytics_scope",
+        lambda **_kwargs: ("EUR", object(), object(), False),
+    )
+    monkeypatch.setattr(router, "_load_analytics_spend_rows", lambda *_args, **_kwargs: spend_rows)
+    monkeypatch.setattr(
+        router,
+        "_load_household_category_item_rows",
+        lambda *_args, **_kwargs: category_rows,
+    )
+    monkeypatch.setattr(
+        router,
+        "_load_transaction_user_snippets",
+        lambda *_args, **_kwargs: {
+            owner_one: TransactionUserSnippetRead(
+                user_id=owner_one,
+                display_name="Alex",
+                email="alex@example.com",
+                avatar_url=None,
+            ),
+            owner_two: TransactionUserSnippetRead(
+                user_id=owner_two,
+                display_name="Jamie",
+                email="jamie@example.com",
+                avatar_url=None,
+            ),
+        },
+    )
+    monkeypatch.setattr(
+        router,
+        "convert_amount",
+        lambda **kwargs: SimpleNamespace(
+            value=kwargs["amount"],
+            currency=kwargs["target_currency"],
+            rate_date=None,
+            rate_fallback=False,
+        ),
+    )
+
+    result = asyncio.run(
+        _unwrap(router.get_household_analytics_summary)(
+            request=_request(),
+            filters=TransactionListFilter(),
+            session=session,
+            current_user=current_user,
+        )
+    )
+
+    assert result.household is not None
+    assert result.household.household_id == household_id
+    assert result.total_amount == Decimal("35.00")
+    assert result.total_transactions == 3
+    assert [member.owner_user_id for member in result.members] == [owner_one, owner_two]
+    assert result.members[0].total_amount == Decimal("25.00")
+    assert result.members[0].transaction_count == 2
+    assert result.members[0].top_category is not None
+    assert result.members[0].top_category.code == "GROCERIES"
+    assert result.members[1].top_category is not None
+    assert result.members[1].top_category.code == "TRANSPORT"
+
+
 def test_create_transaction_without_active_household_stays_solo(monkeypatch) -> None:
     """Manual creation without shared household access should remain a solo transaction."""
 
@@ -249,6 +569,168 @@ def test_create_transaction_without_active_household_stays_solo(monkeypatch) -> 
     created_transaction = next(obj for obj in session.added if isinstance(obj, Transaction))
     assert created_transaction.household_id is None
     assert created_transaction.owner_user_id == current_user.id
+
+
+def test_create_transaction_normalizes_item_units(monkeypatch) -> None:
+    """Manual transaction creation should normalize item units into canonical values."""
+
+    from app.api.routers import transactions as router
+
+    session = _Session()
+    current_user = SimpleNamespace(
+        id=uuid.uuid4(),
+        default_currency="EUR",
+        items_language=None,
+    )
+    item_category_id = uuid.uuid4()
+    tx_category_id = uuid.uuid4()
+
+    monkeypatch.setattr(router, "validate_transaction_attribution", lambda *args, **kwargs: None)
+    monkeypatch.setattr(
+        router,
+        "_resolve_active_shared_household_id",
+        lambda *_args, **_kwargs: None,
+    )
+    monkeypatch.setattr(
+        router,
+        "_get_user_visible_category_by_id",
+        lambda *_args, **_kwargs: SimpleNamespace(id=item_category_id),
+    )
+    monkeypatch.setattr(router, "_get_uncategorized_item_category_id", lambda _session: uuid.uuid4())
+    monkeypatch.setattr(
+        router,
+        "_resolve_transaction_category_from_item_category",
+        lambda _session, *, item_category_id: tx_category_id if item_category_id else None,
+    )
+    monkeypatch.setattr(
+        router,
+        "_build_transaction_read",
+        lambda **kwargs: kwargs["transaction"],
+    )
+
+    payload = TransactionCreateManual(
+        amount_total=Decimal("18.36"),
+        currency="eur",
+        merchant_name="Corner Market",
+        category_id=item_category_id,
+        items=[
+            {
+                "line_no": 1,
+                "description": "Organic Apples",
+                "qty": Decimal("2.000"),
+                "unit": "pcs",
+                "unit_price": Decimal("8.5000"),
+                "amount": Decimal("17.00"),
+                "category_id": item_category_id,
+            }
+        ],
+    )
+
+    result = asyncio.run(
+        _unwrap(router.create_transaction)(
+            request=_request(),
+            payload=payload,
+            session=session,
+            current_user=current_user,
+        )
+    )
+
+    created_transaction = next(obj for obj in session.added if isinstance(obj, Transaction))
+    created_item = next(obj for obj in session.added if isinstance(obj, TransactionItem))
+
+    assert created_transaction.amount_total == Decimal("18.36")
+    assert created_item.unit == "pc"
+    assert result.amount_total == Decimal("18.36")
+
+
+def test_update_transaction_deletes_omitted_existing_items(monkeypatch) -> None:
+    """Receipt editor saves should delete existing items omitted from the submitted list."""
+
+    from app.api.routers import transactions as router
+
+    current_user = SimpleNamespace(
+        id=uuid.uuid4(),
+        default_currency="EUR",
+        items_language=None,
+    )
+    transaction_id = uuid.uuid4()
+    kept_item_id = uuid.uuid4()
+    removed_item_id = uuid.uuid4()
+
+    transaction = Transaction(
+        id=transaction_id,
+        user_id=current_user.id,
+        amount_total=Decimal("9.99"),
+        currency="EUR",
+        merchant_name="Corner Market",
+        source=TransactionSource.MANUAL,
+        status="DRAFT",
+    )
+    kept_item = TransactionItem(
+        id=kept_item_id,
+        transaction_id=transaction_id,
+        line_no=1,
+        description="Kept item",
+        amount=Decimal("4.00"),
+    )
+    removed_item = TransactionItem(
+        id=removed_item_id,
+        transaction_id=transaction_id,
+        line_no=2,
+        description="Removed item",
+        amount=Decimal("5.99"),
+    )
+    session = _Session(exec_results=[[transaction], [kept_item, removed_item]])
+
+    monkeypatch.setattr(
+        router,
+        "_assert_household_transaction_access",
+        lambda *args, **kwargs: None,
+    )
+    monkeypatch.setattr(
+        router,
+        "_resolve_active_shared_household_id",
+        lambda *_args, **_kwargs: None,
+    )
+    monkeypatch.setattr(
+        router,
+        "validate_transaction_attribution",
+        lambda *args, **kwargs: None,
+    )
+    monkeypatch.setattr(
+        router,
+        "_build_transaction_read",
+        lambda **kwargs: kwargs["items"],
+    )
+
+    payload = TransactionUpdateRequest(
+        amount_total=Decimal("5.00"),
+        items=[
+            {
+                "id": kept_item_id,
+                "description": "Kept item updated",
+                "amount": Decimal("4.00"),
+            }
+        ],
+    )
+
+    result = asyncio.run(
+        _unwrap(router.update_transaction)(
+            request=_request(),
+            transaction_id=transaction_id,
+            payload=payload,
+            target_currency=None,
+            item_language=None,
+            app_language=None,
+            session=session,
+            current_user=current_user,
+        )
+    )
+
+    assert session.deleted == [removed_item]
+    assert kept_item.description == "Kept item updated"
+    assert session.committed is True
+    assert result == [kept_item]
 
 
 def test_collect_disable_target_ids_includes_descendants_and_transaction_match() -> None:
@@ -567,3 +1049,37 @@ def test_delete_transaction_rejects_receipt_backed_transaction() -> None:
     assert exc_info.value.status_code == 409
     assert session.committed is False
     assert session.deleted == []
+
+
+def test_delete_transaction_item_recalculates_total_from_remaining_items(monkeypatch) -> None:
+    """Deleting a line item should recalculate the total from the remaining items."""
+
+    from app.api.routers import transactions as router
+
+    current_user = SimpleNamespace(id=uuid.uuid4())
+    transaction = SimpleNamespace(
+        id=uuid.uuid4(),
+        user_id=current_user.id,
+        amount_total=Decimal("24.36"),
+    )
+    item = SimpleNamespace(id=uuid.uuid4(), transaction_id=transaction.id)
+    session = _Session(exec_results=[[transaction], [item], [Decimal("17.00")]])
+
+    monkeypatch.setattr(
+        router,
+        "_resolve_active_shared_household_id",
+        lambda *_args, **_kwargs: None,
+    )
+
+    asyncio.run(
+        _unwrap(router.delete_transaction_item)(
+            request=_request(),
+            transaction_id=transaction.id,
+            item_id=item.id,
+            session=session,
+            current_user=current_user,
+        )
+    )
+
+    assert session.committed is True
+    assert transaction.amount_total == Decimal("17.00")

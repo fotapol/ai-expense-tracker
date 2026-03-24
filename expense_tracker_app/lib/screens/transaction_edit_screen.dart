@@ -5,9 +5,11 @@ import 'package:currency_picker/currency_picker.dart';
 import 'package:intl/intl.dart';
 import '../core/api_client.dart';
 import '../core/item_translation_service.dart';
+import '../core/redesign_system.dart';
 import '../core/taxonomy_localization.dart';
 import '../l10n/app_localizations.dart';
 import '../main.dart';
+import 'receipt_item_edit_screen.dart';
 import 'receipt_photo_view_screen.dart';
 
 class TransactionEditScreen extends StatefulWidget {
@@ -22,6 +24,16 @@ class TransactionEditScreen extends StatefulWidget {
 }
 
 class _TransactionEditScreenState extends State<TransactionEditScreen> {
+  static const Color _bgColor = Color(0xFFF6F6F7);
+  static const Color _surfaceColor = Colors.white;
+  static const Color _surfaceAltColor = Color(0xFFF1F1F3);
+  static const Color _strokeColor = Color(0xFFE3E3E7);
+  static const Color _textColor = Color(0xFF17171A);
+  static const Color _mutedColor = Color(0xFF7F7F86);
+  static const Color _accentColor = Color(0xFF17171A);
+  static const Color _dangerColor = Color(0xFF17171A);
+  static const Color _warningColor = Color(0xFF5D5D64);
+
   bool _isLoading = true;
   bool _isSaving = false;
   String? _error;
@@ -36,6 +48,12 @@ class _TransactionEditScreenState extends State<TransactionEditScreen> {
   Map<String, dynamic>? _transactionData;
   String? _transactionId;
   String? _viewerUserId;
+  String? _transactionCategoryId;
+  bool _hasFamilyEntitlement = false;
+  bool _hasManualTotalOverride = false;
+  bool _isLoadingReceiptPreview = false;
+  String? _receiptPreviewUrl;
+  String? _receiptPreviewFilename;
 
   final _merchantController = TextEditingController();
   final _amountController = TextEditingController();
@@ -51,6 +69,7 @@ class _TransactionEditScreenState extends State<TransactionEditScreen> {
   final Map<String, TextEditingController> _itemQtyControllers = {};
   final Map<String, TextEditingController> _itemUnitPriceControllers = {};
   final Map<String, String?> _itemCategoryIds = {};
+  final Map<String, String> _itemUnits = {}; // item id -> selected unit
 
   String? get _receiptId {
     final value = _transactionData?['receipt_id']?.toString();
@@ -101,6 +120,7 @@ class _TransactionEditScreenState extends State<TransactionEditScreen> {
     _itemQtyControllers.clear();
     _itemUnitPriceControllers.clear();
     _itemCategoryIds.clear();
+    _itemUnits.clear();
   }
 
   void _applyTransactionState({
@@ -128,6 +148,7 @@ class _TransactionEditScreenState extends State<TransactionEditScreen> {
     );
 
     _merchantController.text = txData['merchant_name']?.toString() ?? '';
+    _transactionCategoryId = txData['category_id']?.toString();
     _amountController.text = _formatNumberForInput(
       txData['amount_total'],
       decimals: 2,
@@ -144,7 +165,9 @@ class _TransactionEditScreenState extends State<TransactionEditScreen> {
         : _currency;
     if (_displayCurrency.toUpperCase() == _currency.toUpperCase()) {
       _displayRate = 1.0;
-    } else if (sourceTotal != null && sourceTotal != 0 && displayTotal != null) {
+    } else if (sourceTotal != null &&
+        sourceTotal != 0 &&
+        displayTotal != null) {
       _displayRate = displayTotal / sourceTotal;
     } else {
       _displayRate = 1.0;
@@ -173,7 +196,18 @@ class _TransactionEditScreenState extends State<TransactionEditScreen> {
         text: _formatNumberForInput(item['unit_price'], decimals: 3),
       );
       _itemCategoryIds[id] = item['category_id']?.toString();
+      // Resolve initial unit
+      final rawUnit = item['unit']?.toString().trim() ?? '';
+      final qty = _toDouble(item['qty']);
+      _itemUnits[id] = _displayUnit(
+        rawUnit.isNotEmpty ? rawUnit : null,
+        qty: qty,
+      );
     }
+
+    final subtotal = _subtotalFromItemsList(_items);
+    _hasManualTotalOverride =
+        sourceTotal != null && _round2(sourceTotal) != subtotal;
   }
 
   Map<String, dynamic> _blankDraftTransaction({
@@ -188,6 +222,7 @@ class _TransactionEditScreenState extends State<TransactionEditScreen> {
       'amount_total': null,
       'currency': currency,
       'merchant_name': '',
+      'category_id': null,
       'items': const <dynamic>[],
       'labels': const <dynamic>[],
       'extraction_warnings': const <dynamic>[],
@@ -222,8 +257,21 @@ class _TransactionEditScreenState extends State<TransactionEditScreen> {
 
       final catsFuture = ApiClient.listCategories();
       final labelsFuture = ApiClient.listLabels();
+      final entitlementsFuture = ApiClient.getMeEntitlements();
       final catsData = await catsFuture;
       final labelsData = await labelsFuture;
+      var hasFamilyEntitlement = false;
+      try {
+        final entitlements = await entitlementsFuture;
+        final featureCodes =
+            (entitlements['feature_codes'] as List<dynamic>? ??
+                    const <dynamic>[])
+                .map((value) => value.toString())
+                .toSet();
+        hasFamilyEntitlement = featureCodes.contains('premium.family_plan');
+      } catch (_) {
+        hasFamilyEntitlement = false;
+      }
       final effectiveItemsLanguage = preferredItemsLanguage.isNotEmpty
           ? preferredItemsLanguage
           : appLanguage;
@@ -236,6 +284,7 @@ class _TransactionEditScreenState extends State<TransactionEditScreen> {
         if (!mounted) return;
         setState(() {
           _viewerUserId = viewerUserId;
+          _hasFamilyEntitlement = hasFamilyEntitlement;
           _applyTransactionState(
             txData: draft,
             categories: catsData,
@@ -247,6 +296,11 @@ class _TransactionEditScreenState extends State<TransactionEditScreen> {
           _displayCurrency = defaultCurrency;
           _displayRate = 1.0;
           _occurredAt = DateTime.now();
+          _amountController.text = '0.00';
+          _hasManualTotalOverride = false;
+          _receiptPreviewUrl = null;
+          _receiptPreviewFilename = null;
+          _isLoadingReceiptPreview = false;
           _isLoading = false;
         });
         return;
@@ -264,6 +318,7 @@ class _TransactionEditScreenState extends State<TransactionEditScreen> {
 
       setState(() {
         _viewerUserId = viewerUserId;
+        _hasFamilyEntitlement = hasFamilyEntitlement;
         _applyTransactionState(
           txData: txData,
           categories: catsData,
@@ -273,6 +328,8 @@ class _TransactionEditScreenState extends State<TransactionEditScreen> {
         );
         _isLoading = false;
       });
+
+      unawaited(_loadReceiptPreview());
 
       if (effectiveItemsLanguage.isNotEmpty) {
         unawaited(
@@ -307,6 +364,7 @@ class _TransactionEditScreenState extends State<TransactionEditScreen> {
         'merchant_name': _merchantController.text,
         'amount_total': parsedAmount,
         'currency': _currency,
+        'category_id': _transactionCategoryId,
       };
 
       if (_occurredAt != null) {
@@ -323,7 +381,7 @@ class _TransactionEditScreenState extends State<TransactionEditScreen> {
         final qty = _toDouble(_itemQtyControllers[id]?.text);
         final unitPrice = _toDouble(_itemUnitPriceControllers[id]?.text);
         final categoryId = _itemCategoryIds[id];
-        final unit = item['unit'];
+        final unit = _itemUnits[id] ?? item['unit'];
         final isBlankDraftItem =
             description.isEmpty &&
             amount == 0.0 &&
@@ -381,7 +439,9 @@ class _TransactionEditScreenState extends State<TransactionEditScreen> {
           );
         });
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(context.tr('transaction_created_successfully'))),
+          SnackBar(
+            content: Text(context.tr('transaction_created_successfully')),
+          ),
         );
         return;
       }
@@ -434,7 +494,8 @@ class _TransactionEditScreenState extends State<TransactionEditScreen> {
       await Navigator.of(context).push(
         MaterialPageRoute(
           builder: (_) => ReceiptPhotoViewScreen(
-            title: payload['original_filename']?.toString() ??
+            title:
+                payload['original_filename']?.toString() ??
                 context.tr('transaction_photo'),
             viewUrl: viewUrl,
             mimeType: payload['mime_type']?.toString() ?? '',
@@ -454,6 +515,38 @@ class _TransactionEditScreenState extends State<TransactionEditScreen> {
           backgroundColor: Colors.red,
         ),
       );
+    }
+  }
+
+  Future<void> _loadReceiptPreview() async {
+    final receiptId = _receiptId;
+    if (receiptId == null) {
+      if (!mounted) return;
+      setState(() {
+        _receiptPreviewUrl = null;
+        _receiptPreviewFilename = null;
+        _isLoadingReceiptPreview = false;
+      });
+      return;
+    }
+
+    setState(() => _isLoadingReceiptPreview = true);
+    try {
+      final payload = await ApiClient.getReceiptViewUrl(receiptId);
+      if (!mounted || _receiptId != receiptId) return;
+      final viewUrl = payload['view_url']?.toString();
+      setState(() {
+        _receiptPreviewUrl = (viewUrl == null || viewUrl.isEmpty) ? null : viewUrl;
+        _receiptPreviewFilename = payload['original_filename']?.toString();
+        _isLoadingReceiptPreview = false;
+      });
+    } catch (_) {
+      if (!mounted || _receiptId != receiptId) return;
+      setState(() {
+        _receiptPreviewUrl = null;
+        _receiptPreviewFilename = null;
+        _isLoadingReceiptPreview = false;
+      });
     }
   }
 
@@ -484,6 +577,13 @@ class _TransactionEditScreenState extends State<TransactionEditScreen> {
   }
 
   String _currencySymbol(String code) {
+    final normalized = code.toUpperCase();
+    if (normalized == 'EUR') return '\u20AC';
+    if (normalized == 'USD') return '\$';
+    if (normalized == 'GBP') return '\u00A3';
+    if (normalized == 'AUD') return 'A\$';
+    if (normalized == 'CAD') return 'C\$';
+    if (normalized == 'RSD') return 'RSD ';
     switch (code.toUpperCase()) {
       case 'EUR':
         return '€';
@@ -500,7 +600,7 @@ class _TransactionEditScreenState extends State<TransactionEditScreen> {
 
   String _formatMoney(String currency, double amount) {
     final symbol = _currencySymbol(currency);
-    if (symbol.trim().length == 1 || symbol == 'RSD ') {
+    if (symbol != '${currency.toUpperCase()} ') {
       final sign = amount < 0 ? '-' : '';
       return '$sign$symbol${amount.abs().toStringAsFixed(2)}';
     }
@@ -631,53 +731,6 @@ class _TransactionEditScreenState extends State<TransactionEditScreen> {
     return null;
   }
 
-  bool _isItemScopeCategory(Map<String, dynamic> category) {
-    final scope = (category['scope']?.toString() ?? '').trim().toLowerCase();
-    if (scope.isEmpty) return true;
-    return scope == 'item';
-  }
-
-  String _localizedCategoryName(Map<String, dynamic> category) {
-    return localizeCategoryByCode(
-      context,
-      code: category['code']?.toString(),
-      fallbackName: category['name']?.toString(),
-    );
-  }
-
-  List<Map<String, dynamic>> _topLevelItemCategories() {
-    final topLevel = _categories
-        .whereType<Map<String, dynamic>>()
-        .where((category) {
-          final parentId = category['parent_id']?.toString();
-          return _isItemScopeCategory(category) &&
-              (parentId == null || parentId.isEmpty);
-        })
-        .toList();
-    topLevel.sort(
-      (a, b) => _localizedCategoryName(
-        a,
-      ).toLowerCase().compareTo(_localizedCategoryName(b).toLowerCase()),
-    );
-    return topLevel;
-  }
-
-  List<Map<String, dynamic>> _itemSubcategoriesForParent(String parentId) {
-    final subcategories = _categories
-        .whereType<Map<String, dynamic>>()
-        .where((category) {
-          final categoryParentId = category['parent_id']?.toString();
-          return _isItemScopeCategory(category) && categoryParentId == parentId;
-        })
-        .toList();
-    subcategories.sort(
-      (a, b) => _localizedCategoryName(
-        a,
-      ).toLowerCase().compareTo(_localizedCategoryName(b).toLowerCase()),
-    );
-    return subcategories;
-  }
-
   List<String> _itemCategoryTags(String? categoryId) {
     final category = _findCategoryById(categoryId);
     if (category == null) return [context.tr('transaction_select_category')];
@@ -711,6 +764,19 @@ class _TransactionEditScreenState extends State<TransactionEditScreen> {
 
   double _round2(double value) => double.parse(value.toStringAsFixed(2));
 
+  double _subtotalFromItemsList(List<dynamic> items) {
+    double subtotal = 0;
+    for (final raw in items) {
+      final item = raw as Map<String, dynamic>;
+      subtotal += _itemAmountValue(item);
+    }
+    return _round2(subtotal);
+  }
+
+  double get _subtotalValue {
+    return _subtotalFromItemsList(_items);
+  }
+
   double _toDisplayAmount(double sourceAmount) {
     return _round2(sourceAmount * _displayRate);
   }
@@ -741,11 +807,7 @@ class _TransactionEditScreenState extends State<TransactionEditScreen> {
     final txTotal = _toDouble(_amountController.text);
     if (txTotal == null) return null;
 
-    double sumItems = 0;
-    for (final controller in _itemAmountControllers.values) {
-      sumItems += _toDouble(controller.text) ?? 0;
-    }
-    final expected = _round2(sumItems);
+    final expected = _round2(_subtotalValue);
     final actual = _round2(txTotal);
     if (expected == actual) return null;
     return {
@@ -807,27 +869,61 @@ class _TransactionEditScreenState extends State<TransactionEditScreen> {
     final controller = TextEditingController();
     final name = await showDialog<String>(
       context: context,
-      builder: (context) => AlertDialog(
-        title: Text(context.tr('labels_new_label')),
-        content: TextField(
-          controller: controller,
-          autofocus: true,
-          decoration: InputDecoration(
-            hintText: context.tr('labels_name_hint'),
-            border: const OutlineInputBorder(),
+      builder:
+          (context) => AlertDialog(
+            backgroundColor: _surfaceColor,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(22),
+              side: const BorderSide(color: _strokeColor),
+            ),
+            title: Text(
+              context.tr('labels_new_label'),
+              style: const TextStyle(
+                color: _textColor,
+                fontWeight: FontWeight.w700,
+              ),
+            ),
+            content: TextField(
+              controller: controller,
+              autofocus: true,
+              style: const TextStyle(color: _textColor),
+              decoration: InputDecoration(
+                hintText: context.tr('labels_name_hint'),
+                hintStyle: const TextStyle(color: _mutedColor),
+                filled: true,
+                fillColor: _surfaceAltColor,
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(16),
+                  borderSide: const BorderSide(color: _strokeColor),
+                ),
+                enabledBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(16),
+                  borderSide: const BorderSide(color: _strokeColor),
+                ),
+                focusedBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(16),
+                  borderSide: const BorderSide(color: _accentColor),
+                ),
+              ),
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(context),
+                child: const Text(
+                  'Cancel',
+                  style: TextStyle(color: _mutedColor),
+                ),
+              ),
+              FilledButton(
+                onPressed: () => Navigator.pop(context, controller.text.trim()),
+                style: FilledButton.styleFrom(
+                  backgroundColor: _accentColor,
+                  foregroundColor: _bgColor,
+                ),
+                child: Text(context.tr('common_create')),
+              ),
+            ],
           ),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: Text(context.tr('common_cancel')),
-          ),
-          FilledButton(
-            onPressed: () => Navigator.pop(context, controller.text.trim()),
-            child: Text(context.tr('common_create')),
-          ),
-        ],
-      ),
     );
 
     if (!mounted || name == null || name.isEmpty) return;
@@ -865,6 +961,10 @@ class _TransactionEditScreenState extends State<TransactionEditScreen> {
     await showModalBottomSheet<void>(
       context: context,
       isScrollControlled: true,
+      backgroundColor: _surfaceColor,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+      ),
       builder: (context) {
         final sortedLabels = [..._labels]
           ..sort((a, b) {
@@ -883,12 +983,16 @@ class _TransactionEditScreenState extends State<TransactionEditScreen> {
                     Text(
                       context.tr('transaction_select_labels'),
                       style: TextStyle(
+                        color: _textColor,
                         fontSize: 18,
                         fontWeight: FontWeight.bold,
                       ),
                     ),
                     const Spacer(),
                     TextButton.icon(
+                      style: TextButton.styleFrom(
+                        foregroundColor: _accentColor,
+                      ),
                       onPressed: () async {
                         Navigator.pop(context);
                         await _createAndAssignLabel();
@@ -904,7 +1008,7 @@ class _TransactionEditScreenState extends State<TransactionEditScreen> {
                     padding: const EdgeInsets.symmetric(vertical: 20),
                     child: Text(
                       context.tr('labels_empty_subtitle'),
-                      style: TextStyle(color: Colors.grey.shade500),
+                      style: const TextStyle(color: _mutedColor),
                     ),
                   )
                 else
@@ -920,13 +1024,30 @@ class _TransactionEditScreenState extends State<TransactionEditScreen> {
                             label['name']?.toString() ??
                             context.tr('labels_title');
                         final selected = _selectedLabelIds.contains(id);
-                        return CheckboxListTile(
-                          value: selected,
-                          title: Text(name),
-                          onChanged: (value) {
-                            Navigator.pop(context);
-                            _toggleLabel(labelId: id, selected: value == true);
-                          },
+                        return Container(
+                          margin: const EdgeInsets.only(bottom: 10),
+                          decoration: _panelDecoration(color: _surfaceAltColor),
+                          child: CheckboxListTile(
+                            value: selected,
+                            activeColor: _accentColor,
+                            checkColor: _bgColor,
+                            side: const BorderSide(color: _strokeColor),
+                            title: Text(
+                              name,
+                              style: const TextStyle(
+                                color: _textColor,
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                            controlAffinity: ListTileControlAffinity.leading,
+                            onChanged: (value) {
+                              Navigator.pop(context);
+                              _toggleLabel(
+                                labelId: id,
+                                selected: value == true,
+                              );
+                            },
+                          ),
                         );
                       },
                     ),
@@ -937,6 +1058,251 @@ class _TransactionEditScreenState extends State<TransactionEditScreen> {
         );
       },
     );
+  }
+
+  String _itemDescription(Map<String, dynamic> item) {
+    final id = item['id']?.toString() ?? '';
+    return (_itemDescControllers[id]?.text ??
+            item['description']?.toString() ??
+            '')
+        .trim();
+  }
+
+  double _itemAmountValue(Map<String, dynamic> item) {
+    final id = item['id']?.toString() ?? '';
+    return _toDouble(_itemAmountControllers[id]?.text) ??
+        _toDouble(item['amount']) ??
+        0.0;
+  }
+
+  double? _itemQtyValue(Map<String, dynamic> item) {
+    final id = item['id']?.toString() ?? '';
+    return _toDouble(_itemQtyControllers[id]?.text) ?? _toDouble(item['qty']);
+  }
+
+  double? _itemUnitPriceValue(Map<String, dynamic> item) {
+    final id = item['id']?.toString() ?? '';
+    return _toDouble(_itemUnitPriceControllers[id]?.text) ??
+        _toDouble(item['unit_price']);
+  }
+
+  String? _itemCategoryId(Map<String, dynamic> item) {
+    final id = item['id']?.toString() ?? '';
+    return _itemCategoryIds[id] ?? item['category_id']?.toString();
+  }
+
+  String _itemUnitValue(Map<String, dynamic> item) {
+    final id = item['id']?.toString() ?? '';
+    final qty = _itemQtyValue(item);
+    return _itemUnits[id] ??
+        _displayUnit(
+          item['unit']?.toString(),
+          description: _itemDescription(item),
+          qty: qty,
+        );
+  }
+
+  void _syncItemControllersFromData(Map<String, dynamic> item) {
+    final id = item['id']?.toString() ?? '';
+    if (id.isEmpty) return;
+    final descController = _itemDescControllers[id];
+    if (descController == null) {
+      _itemDescControllers[id] = TextEditingController(
+        text: item['description']?.toString() ?? '',
+      );
+    } else {
+      descController.text = item['description']?.toString() ?? '';
+    }
+
+    final amountController = _itemAmountControllers[id];
+    final amountText = _formatNumberForInput(
+      item['amount'],
+      decimals: 2,
+      keepTrailingZeros: true,
+    );
+    if (amountController == null) {
+      _itemAmountControllers[id] = TextEditingController(text: amountText);
+    } else {
+      amountController.text = amountText;
+    }
+
+    final qtyController = _itemQtyControllers[id];
+    final qtyText = _formatNumberForInput(item['qty'], decimals: 3);
+    if (qtyController == null) {
+      _itemQtyControllers[id] = TextEditingController(text: qtyText);
+    } else {
+      qtyController.text = qtyText;
+    }
+
+    final unitPriceController = _itemUnitPriceControllers[id];
+    final unitPriceText = _formatNumberForInput(
+      item['unit_price'],
+      decimals: 3,
+    );
+    if (unitPriceController == null) {
+      _itemUnitPriceControllers[id] = TextEditingController(
+        text: unitPriceText,
+      );
+    } else {
+      unitPriceController.text = unitPriceText;
+    }
+
+    _itemCategoryIds[id] = item['category_id']?.toString();
+    _itemUnits[id] = _displayUnit(
+      item['unit']?.toString(),
+      description: item['description']?.toString(),
+      qty: _toDouble(item['qty']),
+    );
+  }
+
+  void _removeItemLocally(String itemId) {
+    _items.removeWhere((element) => element['id']?.toString() == itemId);
+    _itemDescControllers.remove(itemId)?.dispose();
+    _itemAmountControllers.remove(itemId)?.dispose();
+    _itemQtyControllers.remove(itemId)?.dispose();
+    _itemUnitPriceControllers.remove(itemId)?.dispose();
+    _itemCategoryIds.remove(itemId);
+    _itemUnits.remove(itemId);
+  }
+
+  void _syncTotalToItems({bool force = false}) {
+    if (_hasManualTotalOverride && !force) return;
+    final subtotal = _subtotalValue;
+    _amountController.text = subtotal.toStringAsFixed(2);
+    _amountController.selection = TextSelection.fromPosition(
+      TextPosition(offset: _amountController.text.length),
+    );
+    _hasManualTotalOverride = false;
+  }
+
+  Future<bool> _confirmDeleteItemFromList(Map<String, dynamic> item) async {
+    final itemName =
+        _itemDescription(item).isEmpty
+            ? context.tr('transaction_item')
+            : _itemDescription(item);
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder:
+          (context) => AlertDialog(
+            backgroundColor: _surfaceColor,
+            title: Text(
+              context.tr('transaction_delete_item_title'),
+              style: const TextStyle(color: _textColor),
+            ),
+            content: Text(
+              context.tr(
+                'transaction_delete_item_confirm',
+                params: {'name': itemName},
+              ),
+              style: const TextStyle(color: _mutedColor),
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(context, false),
+                child: const Text(
+                  'Cancel',
+                  style: TextStyle(color: _mutedColor),
+                ),
+              ),
+              TextButton(
+                onPressed: () => Navigator.pop(context, true),
+                child: const Text(
+                  'Delete',
+                  style: TextStyle(color: _dangerColor),
+                ),
+              ),
+            ],
+          ),
+    );
+
+    if (confirmed == true && mounted) {
+      setState(() {
+        _hasLocalEdits = true;
+        _removeItemLocally(item['id']?.toString() ?? '');
+        _syncTotalToItems();
+      });
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(context.tr('transaction_item_deleted'))),
+      );
+      return true;
+    }
+    return false;
+  }
+
+  Future<void> _openItemEditor(
+    Map<String, dynamic> item, {
+    bool isNew = false,
+  }) async {
+    final editableItem = Map<String, dynamic>.from(item);
+    editableItem['description'] = _itemDescription(item);
+    editableItem['amount'] = _itemAmountValue(item);
+    editableItem['qty'] = _itemQtyValue(item);
+    editableItem['unit_price'] = _itemUnitPriceValue(item);
+    editableItem['unit'] = _itemUnitValue(item);
+    editableItem['category_id'] = _itemCategoryId(item);
+
+    final result = await Navigator.of(context).push<ReceiptItemEditResult>(
+      MaterialPageRoute(
+        builder: (_) => ReceiptItemEditScreen(
+          initialItem: editableItem,
+          categories: _categories,
+          sourceCurrency: _currency,
+          displayCurrency: _displayCurrency,
+          displayRate: _displayRate,
+          canEdit: _canEditTransaction,
+          isNew: isNew,
+        ),
+      ),
+    );
+
+    if (!mounted || result == null) return;
+
+    final itemId = editableItem['id']?.toString() ?? '';
+    if (result.deleted) {
+      if (itemId.isEmpty) return;
+      setState(() {
+        _hasLocalEdits = true;
+        _removeItemLocally(itemId);
+        _syncTotalToItems();
+      });
+      return;
+    }
+
+    final nextItem = result.item;
+    if (nextItem == null) return;
+    final nextId = nextItem['id']?.toString() ?? '';
+    if (nextId.isEmpty) return;
+
+    setState(() {
+      _hasLocalEdits = true;
+      final existingIndex = _items.indexWhere(
+        (candidate) => candidate['id']?.toString() == nextId,
+      );
+      if (existingIndex >= 0) {
+        _items[existingIndex] = Map<String, dynamic>.from(nextItem);
+      } else {
+        _items.add(Map<String, dynamic>.from(nextItem));
+      }
+      _syncItemControllersFromData(nextItem);
+      _syncTotalToItems();
+    });
+  }
+
+  Future<void> _addItemAndOpenEditor() async {
+    final id = DateTime.now().millisecondsSinceEpoch.toString();
+    final draft = <String, dynamic>{
+      'id': id,
+      'description': '',
+      'amount': 0.0,
+      'qty': 1.0,
+      'unit': 'pc',
+      'unit_price': 0.0,
+      'category_id': null,
+      'translated_description': null,
+      'translation_language': null,
+      'translation_source_language': null,
+    };
+    await _openItemEditor(draft, isNew: true);
   }
 
   String _inferUnitFromDescription(String description) {
@@ -990,152 +1356,6 @@ class _TransactionEditScreenState extends State<TransactionEditScreen> {
     }
   }
 
-  void _recalculateItemAmount(String itemId) {
-    final qty = _toDouble(_itemQtyControllers[itemId]?.text);
-    final unitPrice = _toDouble(_itemUnitPriceControllers[itemId]?.text);
-    if (qty != null && unitPrice != null) {
-      final amount = qty * unitPrice;
-      final amountController = _itemAmountControllers[itemId];
-      if (amountController != null) {
-        amountController.text = amount.toStringAsFixed(2);
-        amountController.selection = TextSelection.fromPosition(
-          TextPosition(offset: amountController.text.length),
-        );
-      }
-    }
-    _recalculateTotal();
-  }
-
-  Widget _buildFormulaNumberInput({
-    required TextEditingController? controller,
-    required String hint,
-    required double width,
-    required ValueChanged<String> onChanged,
-    int decimals = 2,
-    bool keepTrailingZeros = false,
-  }) {
-    return SizedBox(
-      width: width,
-      height: 28,
-      child: TextField(
-        controller: controller,
-        keyboardType: const TextInputType.numberWithOptions(decimal: true),
-        textAlign: TextAlign.right,
-        style: const TextStyle(
-          color: Colors.white,
-          fontSize: 12,
-          fontWeight: FontWeight.w500,
-        ),
-        decoration: InputDecoration(
-          hintText: hint,
-          hintStyle: TextStyle(color: Colors.grey.shade600, fontSize: 12),
-          isDense: true,
-          contentPadding: const EdgeInsets.symmetric(
-            horizontal: 6,
-            vertical: 5,
-          ),
-          border: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(6),
-            borderSide: BorderSide(color: Colors.grey.shade800),
-          ),
-          enabledBorder: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(6),
-            borderSide: BorderSide(color: Colors.grey.shade800),
-          ),
-          focusedBorder: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(6),
-            borderSide: const BorderSide(color: Color(0xFFAB47BC)),
-          ),
-        ),
-        onChanged: onChanged,
-        onSubmitted: (_) {
-          if (controller == null) return;
-          controller.text = _formatNumberForInput(
-            controller.text,
-            decimals: decimals,
-            keepTrailingZeros: keepTrailingZeros,
-          );
-          controller.selection = TextSelection.fromPosition(
-            TextPosition(offset: controller.text.length),
-          );
-          onChanged(controller.text);
-        },
-      ),
-    );
-  }
-
-  Future<void> _deleteItem(Map<String, dynamic> item) async {
-    final itemId = item['id']?.toString() ?? '';
-    final itemName =
-        item['description']?.toString() ?? context.tr('transaction_item');
-
-    final confirmed = await showDialog<bool>(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: Text(context.tr('transaction_delete_item_title')),
-        content: Text(
-          context.tr(
-            'transaction_delete_item_confirm',
-            params: {'name': itemName},
-          ),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context, false),
-            child: Text(context.tr('common_cancel')),
-          ),
-          FilledButton(
-            onPressed: () => Navigator.pop(context, true),
-            style: FilledButton.styleFrom(backgroundColor: Colors.red),
-            child: Text(context.tr('common_delete')),
-          ),
-        ],
-      ),
-    );
-
-    if (confirmed != true) return;
-
-    try {
-      if (_isUuid(itemId)) {
-        final transactionId = _transactionId;
-        if (transactionId != null) {
-          await ApiClient.deleteTransactionItem(transactionId, itemId);
-        }
-      }
-
-      setState(() {
-        _hasLocalEdits = true;
-        _items.removeWhere((element) => element['id'].toString() == itemId);
-        _itemDescControllers.remove(itemId)?.dispose();
-        _itemAmountControllers.remove(itemId)?.dispose();
-        _itemQtyControllers.remove(itemId)?.dispose();
-        _itemUnitPriceControllers.remove(itemId)?.dispose();
-        _itemCategoryIds.remove(itemId);
-      });
-      _recalculateTotal();
-
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(context.tr('transaction_item_deleted'))),
-        );
-      }
-    } catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(
-              context.tr(
-                'common_error_with_message',
-                params: {'message': e.toString()},
-              ),
-            ),
-            backgroundColor: Colors.red,
-          ),
-        );
-      }
-    }
-  }
-
   @override
   Widget build(BuildContext context) {
     if (_isLoading) {
@@ -1155,55 +1375,82 @@ class _TransactionEditScreenState extends State<TransactionEditScreen> {
         lineMismatches.isNotEmpty ||
         totalMismatch != null ||
         showServerWarnings;
+    final attributionSection = _buildAttributionSection();
 
     return Scaffold(
-      backgroundColor: Colors.black,
+      backgroundColor: _bgColor,
       appBar: AppBar(
-        backgroundColor: Colors.transparent,
+        backgroundColor: _bgColor,
         elevation: 0,
+        scrolledUnderElevation: 0,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back_ios_new, color: Colors.white),
+          icon: Icon(
+            Icons.arrow_back_ios_new_rounded,
+            color: _textColor,
+          ),
           onPressed: () => Navigator.pop(context),
         ),
         title: TextField(
           controller: _merchantController,
           readOnly: !_canEditTransaction,
-          style: const TextStyle(
-            color: Colors.white,
-            fontSize: 18,
-            fontWeight: FontWeight.bold,
-          ),
-          decoration: InputDecoration(
-            border: InputBorder.none,
-            hintText: context.tr('transaction_merchant_name'),
-            hintStyle: const TextStyle(color: Colors.white54),
-          ),
           textAlign: TextAlign.center,
+          decoration: const InputDecoration(
+            border: InputBorder.none,
+            isDense: true,
+            contentPadding: EdgeInsets.zero,
+          ),
+          style: const TextStyle(
+            color: _textColor,
+            fontSize: 19,
+            fontWeight: FontWeight.w700,
+          ),
+          onChanged: (_) => setState(() => _hasLocalEdits = true),
         ),
-        centerTitle: true,
+        titleSpacing: 0,
         actions: [
-          if (_isSaving)
-            const Center(
-              child: Padding(
-                padding: EdgeInsets.only(right: 16),
-                child: SizedBox(
-                  width: 20,
-                  height: 20,
-                  child: CircularProgressIndicator(strokeWidth: 2),
-                ),
+          Padding(
+            padding: const EdgeInsets.only(right: 14),
+            child: IconButton(
+              onPressed: _isSaving || !_canEditTransaction
+                  ? null
+                  : _saveTransaction,
+              style: IconButton.styleFrom(
+                backgroundColor: _accentColor,
+                disabledBackgroundColor: _surfaceAltColor,
+                foregroundColor: Colors.white,
+                fixedSize: const Size(42, 42),
+                shape: const CircleBorder(),
               ),
-            )
-          else
-            IconButton(
-              icon: const Icon(Icons.done, color: Colors.purpleAccent),
-              onPressed: _canEditTransaction ? _saveTransaction : null,
+              icon:
+                  _isSaving
+                      ? const SizedBox(
+                        width: 18,
+                        height: 18,
+                        child: CircularProgressIndicator(
+                          strokeWidth: 2,
+                          valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                        ),
+                      )
+                      : const Icon(Icons.check_rounded, size: 22),
             ),
+          ),
         ],
       ),
-      body: Column(
+      body: ListView(
+        padding: EdgeInsets.fromLTRB(
+          16,
+          6,
+          16,
+          MediaQuery.of(context).padding.bottom + 132,
+        ),
         children: [
-          _buildActionBadges(),
-          if (hasWarnings)
+          if (_receiptId != null) ...[
+            _buildReceiptPhotoSection(),
+            const SizedBox(height: 14),
+          ],
+          _buildTopControlRow(),
+          if (hasWarnings) ...[
+            const SizedBox(height: 14),
             _buildWarningsBanner(
               lineMismatchCount: lineMismatches.length,
               hasTotalMismatch: totalMismatch != null,
@@ -1211,26 +1458,323 @@ class _TransactionEditScreenState extends State<TransactionEditScreen> {
                   ? _serverWarnings.length
                   : 0,
             ),
-          Expanded(
-            child: ListView(
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+          ],
+          const SizedBox(height: 14),
+          _buildLabelsSection(),
+          if (attributionSection != null) ...[
+            const SizedBox(height: 14),
+            attributionSection,
+          ],
+          const SizedBox(height: 14),
+          if (_items.isEmpty)
+            Container(
+              padding: const EdgeInsets.all(18),
+              decoration: _panelDecoration(),
+              child: Text(
+                'Add your first item to start building the receipt.',
+                style: const TextStyle(color: _mutedColor, fontSize: 14),
+              ),
+            )
+          else
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 16),
+              decoration: _panelDecoration(),
+              child: Column(
+                children: [
+                  for (var index = 0; index < _items.length; index++)
+                    _buildSwipeableItemRow(
+                      item: _items[index] as Map<String, dynamic>,
+                      mismatch:
+                          lineMismatches[_items[index]['id']?.toString() ?? ''],
+                      showDivider: index != _items.length - 1,
+                    ),
+                ],
+              ),
+            ),
+          _buildAddItemButton(),
+          if (!_canEditTransaction) ...[
+            const SizedBox(height: 16),
+            const Text(
+              'You can review this receipt, but only the owner can edit it.',
+              style: TextStyle(color: _mutedColor, fontSize: 13),
+            ),
+          ],
+        ],
+      ),
+      bottomNavigationBar: _buildStickyTotalBar(totalMismatch: totalMismatch),
+    );
+  }
+
+  BoxDecoration _panelDecoration({
+    Color? color,
+    Color? borderColor,
+    bool withShadow = false,
+    double radius = 20,
+  }) {
+    return BoxDecoration(
+      color: color ?? _surfaceColor,
+      borderRadius: BorderRadius.circular(radius),
+      border: Border.all(color: borderColor ?? _strokeColor),
+      boxShadow:
+          withShadow
+              ? const [
+                BoxShadow(
+                  color: Colors.black26,
+                  blurRadius: 16,
+                  offset: Offset(0, 6),
+                ),
+              ]
+              : const [],
+    );
+  }
+
+  Widget _buildTopControlRow() {
+    final occurred = _occurredAt;
+    final dateLabel =
+        occurred != null
+            ? DateFormat('MMM d, h:mm a').format(occurred)
+            : 'Set date & time';
+
+    return Wrap(
+      spacing: 10,
+      runSpacing: 10,
+      crossAxisAlignment: WrapCrossAlignment.center,
+      children: [
+        InkWell(
+          onTap: !_canEditTransaction
+              ? null
+              : () async {
+                  await _pickOccurredDate();
+                  if (!mounted) return;
+                  await _pickOccurredTime();
+                },
+          borderRadius: BorderRadius.circular(16),
+          child: Container(
+            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+            decoration: _panelDecoration(
+              color: _surfaceColor,
+              borderColor: _strokeColor,
+            ),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
               children: [
-                _buildAttributionSection(),
-                const SizedBox(height: 12),
-                _buildLabelsSection(),
-                const SizedBox(height: 12),
-                ..._items.map((item) {
-                  final itemId = item['id'].toString();
-                  return _buildItemCard(item, lineMismatches[itemId]);
-                }),
-                _buildAddItemButton(),
+                const Icon(
+                  Icons.calendar_today_outlined,
+                  size: 18,
+                  color: _textColor,
+                ),
+                const SizedBox(width: 10),
+                Text(
+                  dateLabel,
+                  style: const TextStyle(
+                    color: _textColor,
+                    fontSize: 16,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
               ],
             ),
           ),
-          _buildFixedFooter(totalMismatch: totalMismatch),
+        ),
+        _buildSquareControl(
+          icon:
+              _isTranslatingItems
+                  ? null
+                  : AppIcons.translate,
+          onTap:
+              _effectiveItemsLanguage.isNotEmpty && !_isTranslatingItems
+                  ? _forceRetranslateItems
+                  : null,
+          bordered: true,
+          child:
+              _isTranslatingItems
+                  ? const SizedBox(
+                    width: 18,
+                    height: 18,
+                    child: CircularProgressIndicator(
+                      strokeWidth: 2,
+                      valueColor: AlwaysStoppedAnimation<Color>(_textColor),
+                    ),
+                  )
+                  : null,
+        ),
+        InkWell(
+          onTap: _canEditTransaction ? _openReceiptCurrencyPicker : null,
+          borderRadius: BorderRadius.circular(16),
+          child: Container(
+            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+            decoration: _panelDecoration(
+              color: _surfaceColor,
+              borderColor: _strokeColor,
+            ),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                const Icon(
+                  AppIcons.currency,
+                  size: 18,
+                  color: _textColor,
+                ),
+                const SizedBox(width: 8),
+                Text(
+                  _currency.toUpperCase(),
+                  style: const TextStyle(
+                    color: _textColor,
+                    fontSize: 16,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildSquareControl({
+    required VoidCallback? onTap,
+    IconData? icon,
+    Widget? child,
+    bool bordered = false,
+  }) {
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(16),
+      child: Container(
+        width: 50,
+        height: 50,
+        decoration: _panelDecoration(
+          color: _surfaceColor,
+          borderColor: bordered ? _textColor : _strokeColor,
+        ),
+        alignment: Alignment.center,
+        child:
+            child ??
+            Icon(
+              icon,
+              size: 20,
+              color: onTap == null ? _mutedColor : _textColor,
+            ),
+      ),
+    );
+  }
+
+  Widget _buildReceiptPhotoSection() {
+    final hasPreview = (_receiptPreviewUrl ?? '').isNotEmpty;
+    return InkWell(
+      onTap: _openReceiptPhoto,
+      borderRadius: BorderRadius.circular(24),
+      child: Container(
+        decoration: _panelDecoration(withShadow: true),
+        clipBehavior: Clip.antiAlias,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            AspectRatio(
+              aspectRatio: 16 / 10,
+              child: ColoredBox(
+                color: _surfaceAltColor,
+                child: _isLoadingReceiptPreview
+                    ? const Center(
+                        child: CircularProgressIndicator(
+                          strokeWidth: 2.2,
+                          valueColor: AlwaysStoppedAnimation<Color>(_textColor),
+                        ),
+                      )
+                    : hasPreview
+                    ? Image.network(
+                        _receiptPreviewUrl!,
+                        fit: BoxFit.cover,
+                        errorBuilder: (_, _, _) => _buildPhotoFallback(),
+                        loadingBuilder: (context, child, loadingProgress) {
+                          if (loadingProgress == null) return child;
+                          return const Center(
+                            child: CircularProgressIndicator(
+                              strokeWidth: 2.2,
+                              valueColor: AlwaysStoppedAnimation<Color>(_textColor),
+                            ),
+                          );
+                        },
+                      )
+                    : _buildPhotoFallback(),
+              ),
+            ),
+            Padding(
+              padding: const EdgeInsets.fromLTRB(16, 14, 16, 14),
+              child: Row(
+                children: [
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          _receiptPreviewFilename?.trim().isNotEmpty == true
+                              ? _receiptPreviewFilename!
+                              : context.tr('transaction_photo'),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: const TextStyle(
+                            color: _textColor,
+                            fontSize: 15,
+                            fontWeight: FontWeight.w700,
+                          ),
+                        ),
+                        const SizedBox(height: 4),
+                        const Text(
+                          'Open receipt photo',
+                          style: TextStyle(
+                            color: _mutedColor,
+                            fontSize: 13,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  const Icon(
+                    AppIcons.chevronRight,
+                    size: 18,
+                    color: _mutedColor,
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildPhotoFallback() {
+    return const Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Icon(AppIcons.photo, size: 30, color: _mutedColor),
+          SizedBox(height: 10),
+          Text(
+            'Receipt photo',
+            style: TextStyle(
+              color: _mutedColor,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
         ],
       ),
     );
+  }
+
+  String _labelsSummaryText(List<dynamic> selectedLabels) {
+    if (selectedLabels.isEmpty) return 'Add labels';
+    final names =
+        selectedLabels
+            .map((raw) => (raw as Map<String, dynamic>)['name']?.toString() ?? '')
+            .where((name) => name.trim().isNotEmpty)
+            .toList();
+    if (names.isEmpty) return 'Add labels';
+    if (names.length <= 2) return names.join(', ');
+    return '${names.take(2).join(', ')} +${names.length - 2}';
   }
 
   Widget _buildWarningsBanner({
@@ -1238,7 +1782,9 @@ class _TransactionEditScreenState extends State<TransactionEditScreen> {
     required bool hasTotalMismatch,
     required int serverWarningCount,
   }) {
-    if (lineMismatchCount == 0 && !hasTotalMismatch) {
+    if (lineMismatchCount == 0 &&
+        !hasTotalMismatch &&
+        serverWarningCount == 0) {
       return const SizedBox.shrink();
     }
 
@@ -1268,19 +1814,17 @@ class _TransactionEditScreenState extends State<TransactionEditScreen> {
 
     return Container(
       width: double.infinity,
-      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
       padding: const EdgeInsets.all(12),
-      decoration: BoxDecoration(
-        color: Colors.orange.withAlpha(25),
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: Colors.orange.withAlpha(120)),
+      decoration: _panelDecoration(
+        color: _surfaceAltColor,
+        borderColor: _strokeColor,
       ),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           const Icon(
             Icons.warning_amber_rounded,
-            color: Colors.orange,
+            color: _textColor,
             size: 20,
           ),
           const SizedBox(width: 8),
@@ -1291,7 +1835,7 @@ class _TransactionEditScreenState extends State<TransactionEditScreen> {
                 params: {'details': parts.join(' | ')},
               ),
               style: const TextStyle(
-                color: Colors.orangeAccent,
+                color: _textColor,
                 fontSize: 13,
                 fontWeight: FontWeight.w600,
               ),
@@ -1308,60 +1852,66 @@ class _TransactionEditScreenState extends State<TransactionEditScreen> {
       return _selectedLabelIds.contains(id);
     }).toList();
 
-    return GestureDetector(
+    return InkWell(
       onTap: _openLabelsPicker,
+      borderRadius: BorderRadius.circular(18),
       child: Container(
-        padding: const EdgeInsets.all(12),
-        decoration: BoxDecoration(
-          color: const Color(0xFF121212),
-          borderRadius: BorderRadius.circular(14),
-        ),
+        width: double.infinity,
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+        decoration: _panelDecoration(),
         child: Row(
+          crossAxisAlignment: CrossAxisAlignment.center,
           children: [
-            const Icon(Icons.label_outline, color: Colors.white70, size: 18),
-            const SizedBox(width: 10),
+            const Icon(AppIcons.labels, size: 20, color: _mutedColor),
+            const SizedBox(width: 12),
             Expanded(
-              child: selectedLabels.isEmpty
-                  ? Text(
-                      context.tr('transaction_add_labels'),
-                      style: TextStyle(
-                        color: Colors.grey.shade400,
-                        fontSize: 16,
-                      ),
-                    )
-                  : Wrap(
-                      spacing: 6,
-                      runSpacing: 6,
-                      children: selectedLabels.map((raw) {
-                        final label = raw as Map<String, dynamic>;
-                        final name =
-                            label['name']?.toString() ??
-                            context.tr('labels_title');
-                        return Chip(
-                          label: Text(name),
-                          visualDensity: VisualDensity.compact,
-                          padding: EdgeInsets.zero,
-                        );
-                      }).toList(),
-                    ),
+              child: Text(
+                _labelsSummaryText(selectedLabels),
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: const TextStyle(
+                  color: _textColor,
+                  fontSize: 16,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
             ),
-            const Icon(Icons.chevron_right, color: Colors.white54),
+            const SizedBox(width: 12),
+            const Icon(AppIcons.chevronRight, size: 18, color: _mutedColor),
           ],
         ),
       ),
     );
   }
 
-  String _displayUserSnippet(dynamic rawUser) {
-    if (rawUser is! Map<String, dynamic>) return context.tr('common_unknown');
-    final displayName = rawUser['display_name']?.toString().trim() ?? '';
-    if (displayName.isNotEmpty) return displayName;
-    final email = rawUser['email']?.toString().trim() ?? '';
-    if (email.isNotEmpty) return email;
-    return context.tr('common_unknown');
+  Widget _buildDarkInfoCard(List<Widget> children) {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(14),
+      decoration: _panelDecoration(),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: children,
+      ),
+    );
   }
 
-  Widget _buildAttributionSection() {
+  Widget _buildDarkLabel(String text) {
+    return Text(
+      text.toUpperCase(),
+      style: const TextStyle(
+        color: _mutedColor,
+        fontSize: 11,
+        fontWeight: FontWeight.w700,
+        letterSpacing: 0.9,
+      ),
+    );
+  }
+
+  Widget? _buildAttributionSection() {
+    if (!_hasFamilyEntitlement) {
+      return null;
+    }
     final tx = _transactionData;
     final household = tx?['household'];
     final createdBy = tx?['created_by_user'];
@@ -1375,837 +1925,502 @@ class _TransactionEditScreenState extends State<TransactionEditScreen> {
     final hasOwner = owner is Map<String, dynamic>;
 
     if (!hasHousehold && !hasCreatedBy && !hasOwner) {
-      return const SizedBox.shrink();
+      return null;
     }
 
-    final rowStyle = TextStyle(color: Colors.grey.shade300, fontSize: 13);
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.all(12),
-      decoration: BoxDecoration(
-        color: const Color(0xFF121212),
-        borderRadius: BorderRadius.circular(14),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            context.tr('transaction_attribution_title'),
-            style: const TextStyle(
-              color: Colors.white,
-              fontSize: 14,
-              fontWeight: FontWeight.w700,
-            ),
-          ),
-          const SizedBox(height: 8),
-          if (hasHousehold)
-            Text(
-              '${context.tr('transaction_attribution_household')}: $householdName',
-              style: rowStyle,
-            ),
-          if (hasCreatedBy) ...[
-            if (hasHousehold) const SizedBox(height: 4),
-            Text(
-              '${context.tr('transaction_attribution_created_by')}: ${_displayUserSnippet(createdBy)}',
-              style: rowStyle,
-            ),
-          ],
-          if (hasOwner) ...[
-            if (hasHousehold || hasCreatedBy) const SizedBox(height: 4),
-            Text(
-              '${context.tr('transaction_attribution_owner')}: ${_displayUserSnippet(owner)}',
-              style: rowStyle,
-            ),
-          ],
-        ],
-      ),
-    );
-  }
-
-  Widget _buildActionBadges() {
-    final occurred = _occurredAt;
-    final receiptId = _receiptId;
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 8.0, horizontal: 16),
-      child: SingleChildScrollView(
-        scrollDirection: Axis.horizontal,
-        child: Row(
-          children: [
-            _buildBadge(
-              icon: Icons.calendar_today,
-              label: occurred != null
-                  ? DateFormat('dd.MM.yyyy').format(occurred)
-                  : context.tr('transaction_set_date'),
-              onTap: () async {
-                final date = await showDatePicker(
-                  context: context,
-                  initialDate: _occurredAt ?? DateTime.now(),
-                  firstDate: DateTime(2000),
-                  lastDate: DateTime(2100),
-                );
-                if (date != null) {
-                  final base = _occurredAt ?? DateTime.now();
-                  setState(() {
-                    _occurredAt = DateTime(
-                      date.year,
-                      date.month,
-                      date.day,
-                      base.hour,
-                      base.minute,
-                      base.second,
-                      base.millisecond,
-                      base.microsecond,
-                    );
-                  });
-                }
-              },
-            ),
-            _buildBadge(
-              icon: Icons.access_time,
-              label: occurred != null
-                  ? DateFormat('HH:mm').format(occurred)
-                  : context.tr('transaction_set_time'),
-              onTap: () async {
-                final base = _occurredAt ?? DateTime.now();
-                final selected = await showTimePicker(
-                  context: context,
-                  initialTime: TimeOfDay(hour: base.hour, minute: base.minute),
-                );
-                if (selected != null) {
-                  setState(() {
-                    _occurredAt = DateTime(
-                      base.year,
-                      base.month,
-                      base.day,
-                      selected.hour,
-                      selected.minute,
-                      base.second,
-                      base.millisecond,
-                      base.microsecond,
-                    );
-                  });
-                }
-              },
-            ),
-            _buildBadge(
-              icon: Icons.translate,
-              label: _isTranslatingItems
-                  ? '${context.tr('transaction_translate')}...'
-                  : context.tr('transaction_translate'),
-              onTap: _effectiveItemsLanguage.isNotEmpty
-                  ? _forceRetranslateItems
-                  : null,
-            ),
-            if (receiptId != null)
-              _buildBadge(
-                icon: Icons.image_outlined,
-                label: context.tr('transaction_photo'),
-                onTap: _openReceiptPhoto,
-              ),
-            _buildBadge(
-              icon: Icons.currency_exchange,
-              label: _currency,
-              onTap: _openReceiptCurrencyPicker,
-            ),
-          ],
+    return _buildDarkInfoCard([
+      _buildDarkLabel(context.tr('transaction_attribution_title')),
+      const SizedBox(height: 10),
+      if (hasHousehold)
+        Text(
+          '${context.tr('transaction_attribution_household')}: $householdName',
+          style: const TextStyle(color: _mutedColor, fontSize: 13),
         ),
-      ),
-    );
+      if (hasCreatedBy) ...[
+        if (hasHousehold) const SizedBox(height: 4),
+        Text(
+          '${context.tr('transaction_attribution_created_by')}: ${_displayUserSnippet(createdBy)}',
+          style: const TextStyle(color: _mutedColor, fontSize: 13),
+        ),
+      ],
+      if (hasOwner) ...[
+        if (hasHousehold || hasCreatedBy) const SizedBox(height: 4),
+        Text(
+          '${context.tr('transaction_attribution_owner')}: ${_displayUserSnippet(owner)}',
+          style: const TextStyle(color: _mutedColor, fontSize: 13),
+        ),
+      ],
+    ]);
   }
 
-  Widget _buildBadge({
-    required IconData icon,
-    required String label,
-    VoidCallback? onTap,
+  String _displayUserSnippet(dynamic rawUser) {
+    if (rawUser is! Map<String, dynamic>) return context.tr('common_unknown');
+    final displayName = rawUser['display_name']?.toString().trim() ?? '';
+    if (displayName.isNotEmpty) return displayName;
+    final email = rawUser['email']?.toString().trim() ?? '';
+    if (email.isNotEmpty) return email;
+    return context.tr('common_unknown');
+  }
+
+  Future<void> _pickOccurredDate() async {
+    final date = await showDatePicker(
+      context: context,
+      initialDate: _occurredAt ?? DateTime.now(),
+      firstDate: DateTime(2000),
+      lastDate: DateTime(2100),
+    );
+    if (date == null || !mounted) return;
+    final base = _occurredAt ?? DateTime.now();
+    setState(() {
+      _hasLocalEdits = true;
+      _occurredAt = DateTime(
+        date.year,
+        date.month,
+        date.day,
+        base.hour,
+        base.minute,
+        base.second,
+        base.millisecond,
+        base.microsecond,
+      );
+    });
+  }
+
+  Future<void> _pickOccurredTime() async {
+    final base = _occurredAt ?? DateTime.now();
+    final selected = await showTimePicker(
+      context: context,
+      initialTime: TimeOfDay(hour: base.hour, minute: base.minute),
+    );
+    if (selected == null || !mounted) return;
+    setState(() {
+      _hasLocalEdits = true;
+      _occurredAt = DateTime(
+        base.year,
+        base.month,
+        base.day,
+        selected.hour,
+        selected.minute,
+        base.second,
+        base.millisecond,
+        base.microsecond,
+      );
+    });
+  }
+
+  Widget _buildSwipeableItemRow({
+    required Map<String, dynamic> item,
+    required Map<String, double>? mismatch,
+    required bool showDivider,
   }) {
-    return GestureDetector(
-      onTap: onTap,
-      child: Container(
-        margin: const EdgeInsets.only(right: 8),
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+    return Dismissible(
+      key: Key(item['id']?.toString() ?? DateTime.now().toIso8601String()),
+      direction: _canEditTransaction
+          ? DismissDirection.endToStart
+          : DismissDirection.none,
+      confirmDismiss: (_) => _confirmDeleteItemFromList(item),
+      background: Container(
+        margin: EdgeInsets.only(bottom: showDivider ? 1 : 0),
+        padding: const EdgeInsets.only(right: 20),
+        alignment: Alignment.centerRight,
         decoration: BoxDecoration(
-          color: Colors.grey.withAlpha(20),
-          borderRadius: BorderRadius.circular(20),
-          border: Border.all(color: Colors.grey.withAlpha(40)),
+          color: _dangerColor,
+          borderRadius: BorderRadius.circular(18),
         ),
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Icon(icon, color: Colors.white70, size: 16),
-            const SizedBox(width: 6),
-            Text(
-              label,
-              style: const TextStyle(color: Colors.white70, fontSize: 13),
-            ),
-          ],
-        ),
+        child: const Icon(Icons.delete_outline_rounded, color: Colors.white),
       ),
+      child: _buildItemCard(item, mismatch, showDivider: showDivider),
     );
   }
 
   Widget _buildItemCard(
     Map<String, dynamic> item,
-    Map<String, double>? mismatch,
-  ) {
-    final id = item['id'].toString();
-    final nameController = _itemDescControllers[id];
-    final amountController = _itemAmountControllers[id];
-    final qtyController = _itemQtyControllers[id];
-    final unitPriceController = _itemUnitPriceControllers[id];
-    final selectedCatId = _itemCategoryIds[id];
-
-    final category = _findCategoryById(selectedCatId);
+    Map<String, double>? mismatch, {
+    bool showDivider = true,
+  }) {
+    final selectedCatId = _itemCategoryId(item);
     final catTags = _itemCategoryTags(selectedCatId);
-    final catColor = category != null
-        ? const Color(0xFFAB47BC)
-        : Colors.grey; // Hardcoded purple like first screens, or from cat data
-    final unit = item['unit']?.toString().trim();
-    final sourceQty = _toDouble(qtyController?.text) ?? _toDouble(item['qty']);
-    final resolvedUnit = _displayUnit(
-      unit,
-      description:
-          nameController?.text ?? item['description']?.toString() ?? '',
-      qty: sourceQty,
-    );
-    final sourceAmount = _toDouble(amountController?.text) ?? 0;
+    final sourceQty = _itemQtyValue(item);
+    final resolvedUnit = _itemUnitValue(item);
+    final unitLabel = resolvedUnit == 'pc' ? 'pcs' : resolvedUnit;
+    final unitPrice = _itemUnitPriceValue(item);
+    final sourceAmount = _itemAmountValue(item);
     final displayAmount = _toDisplayAmount(sourceAmount);
-    final currentName = _normalizeText(
-      nameController?.text ?? item['description']?.toString(),
-    );
+    final currentName = _normalizeText(_itemDescription(item));
     final translatedName = _normalizeText(
       item['translated_description']?.toString(),
     );
     final hasTranslatedName =
         translatedName.isNotEmpty &&
         translatedName.toLowerCase() != currentName.toLowerCase();
-
-    return Container(
-      margin: const EdgeInsets.only(bottom: 12),
-      padding: const EdgeInsets.all(12),
-      decoration: BoxDecoration(
-        color: const Color(0xFF121212),
-        borderRadius: BorderRadius.circular(16),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    TextField(
-                      controller: nameController,
-                      style: const TextStyle(color: Colors.white, fontSize: 16),
-                      decoration: InputDecoration(
-                        border: InputBorder.none,
-                        hintText: context.tr('transaction_item_name'),
-                        hintStyle: const TextStyle(color: Colors.white24),
-                      ),
-                      onChanged: (value) {
-                        setState(() {
-                          _hasLocalEdits = true;
-                          item['description'] = value;
-                          item['translated_description'] = null;
-                          item['translation_language'] = null;
-                          item['translation_source_language'] = null;
-                        });
-                      },
-                    ),
-                    if (hasTranslatedName)
-                      Padding(
-                        padding: const EdgeInsets.only(top: 2),
-                        child: Text(
-                          translatedName,
-                          maxLines: 2,
-                          overflow: TextOverflow.ellipsis,
-                          style: TextStyle(
-                            color: Colors.grey.shade400,
-                            fontSize: 13,
-                          ),
-                        ),
-                      ),
-                  ],
-                ),
-              ),
-              IconButton(
-                icon: const Icon(
-                  Icons.delete_outline,
-                  color: Colors.redAccent,
-                  size: 18,
-                ),
-                splashRadius: 18,
-                onPressed: () => _deleteItem(item),
-              ),
-            ],
-          ),
-          const SizedBox(height: 8),
-          Row(
-            children: [
-              _buildFormulaNumberInput(
-                controller: unitPriceController,
-                hint: '0.000',
-                width: 76,
-                decimals: 3,
-                onChanged: (_) => _recalculateItemAmount(id),
-              ),
-              const SizedBox(width: 4),
-              Text(
-                '$_currency x',
-                style: TextStyle(
-                  color: Colors.grey.shade400,
-                  fontSize: 12,
-                  fontWeight: FontWeight.w500,
-                ),
-              ),
-              const SizedBox(width: 4),
-              _buildFormulaNumberInput(
-                controller: qtyController,
-                hint: '1',
-                width: 60,
-                decimals: 3,
-                onChanged: (_) => _recalculateItemAmount(id),
-              ),
-              const SizedBox(width: 4),
-              Text(
-                '$resolvedUnit =',
-                style: TextStyle(
-                  color: Colors.grey.shade400,
-                  fontSize: 12,
-                  fontWeight: FontWeight.w500,
-                ),
-              ),
-              const SizedBox(width: 6),
-              const SizedBox(width: 6),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.end,
-                  children: [
-                    if (item['amount_before_discount'] != null &&
-                        _toDouble(item['amount_before_discount']) != null &&
-                        _toDouble(item['amount_before_discount'])! >
-                            sourceAmount)
-                      Text(
-                        _formatMoney(
-                            _displayCurrency,
-                            _toDisplayAmount(
-                                _toDouble(item['amount_before_discount'])!)),
-                        textAlign: TextAlign.right,
-                        style: TextStyle(
-                          color: Colors.grey.shade500,
-                          fontSize: 13,
-                          decoration: TextDecoration.lineThrough,
-                        ),
-                      ),
-                    if (item['discount_amount'] != null &&
-                        _toDouble(item['discount_amount']) != null &&
-                        _toDouble(item['discount_amount'])! > 0)
-                      Text(
-                        '- ${_formatMoney(_displayCurrency, _toDisplayAmount(_toDouble(item['discount_amount'])!))}',
-                        textAlign: TextAlign.right,
-                        style: TextStyle(
-                          color: Colors.orange.shade300,
-                          fontSize: 13,
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
-                    Text(
-                      _formatMoney(_displayCurrency, displayAmount),
-                      textAlign: TextAlign.right,
-                      style: const TextStyle(
-                        color: Colors.white,
-                        fontSize: 15,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                    if (_displayCurrency.toUpperCase() !=
-                        _currency.toUpperCase())
-                      Text(
-                        _formatMoney(_currency, sourceAmount),
-                        style: TextStyle(
-                          color: Colors.grey.shade400,
-                          fontSize: 12,
-                        ),
-                      ),
-                  ],
-                ),
-              ),
-            ],
-          ),
-          if (mismatch != null) ...[
-            const SizedBox(height: 8),
-            Text(
-              context.tr(
-                'transaction_line_mismatch',
-                params: {
-                  'expected': _formatMoney(
-                    _currency,
-                    mismatch['expected'] ?? 0,
-                  ),
-                  'actual': _formatMoney(_currency, mismatch['actual'] ?? 0),
-                },
-              ),
-              style: const TextStyle(
-                color: Colors.orangeAccent,
-                fontSize: 12,
-                fontWeight: FontWeight.w600,
-              ),
-            ),
-          ],
-          const SizedBox(height: 10),
-          Row(
-            children: [
-              GestureDetector(
-                onTap: () => _showCategoryPicker(id),
-                child: Wrap(
-                  spacing: 8,
-                  runSpacing: 6,
-                  children: catTags
-                      .map(
-                        (tag) => Container(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 10,
-                            vertical: 4,
-                          ),
-                          decoration: BoxDecoration(
-                            color: catColor.withAlpha(30),
-                            borderRadius: BorderRadius.circular(8),
-                            border: Border.all(color: catColor.withAlpha(100)),
-                          ),
-                          child: Text(
-                            tag,
-                            style: TextStyle(
-                              color: catColor,
-                              fontSize: 12,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                        ),
-                      )
-                      .toList(),
-                ),
-              ),
-            ],
-          ),
-        ],
-      ),
-    );
-  }
-
-  void _recalculateTotal() {
-    double total = 0;
-    for (var c in _itemAmountControllers.values) {
-      total += double.tryParse(c.text) ?? 0;
+    final itemCurrencyLabel = CurrencyDisplay.labelForCode(_currency);
+    final displayCurrencyLabel = CurrencyDisplay.labelForCode(_displayCurrency);
+    final quantityLineParts = <String>[];
+    if (sourceQty != null) {
+      final qtyLabel = sourceQty % 1 == 0
+          ? sourceQty.toStringAsFixed(0)
+          : sourceQty
+                .toStringAsFixed(3)
+                .replaceFirst(RegExp(r'0+$'), '')
+                .replaceFirst(RegExp(r'\.$'), '');
+      quantityLineParts.add('$qtyLabel $unitLabel');
     }
-    setState(() {
-      _hasLocalEdits = true;
-      _amountController.text = total.toStringAsFixed(2);
-    });
-  }
-
-  double _computeTotalSavingsSource() {
-    double totalSavings = 0;
-    for (final raw in _items) {
-      final item = raw as Map<String, dynamic>;
-      var discount = _toDouble(item['discount_amount']);
-      if (discount == null || discount == 0) {
-        final before = _toDouble(item['amount_before_discount']);
-        final currentAmount = _toDouble(item['amount']);
-        if (before != null && currentAmount != null) {
-          final derived = before - currentAmount;
-          if (derived > 0) {
-            discount = derived;
-          }
-        }
-      }
-      if (discount == null || discount == 0) {
-        final itemId = item['id']?.toString();
-        final before = _toDouble(item['amount_before_discount']);
-        final currentAmount = _toDouble(
-          itemId == null ? null : _itemAmountControllers[itemId]?.text,
-        );
-        if (before != null && currentAmount != null) {
-          final derived = before - currentAmount;
-          if (derived > 0) {
-            discount = derived;
-          }
-        }
-      }
-      if (discount == null || discount == 0) {
-        final itemId = item['id']?.toString();
-        final qty = _toDouble(itemId == null ? null : _itemQtyControllers[itemId]?.text) ??
-            _toDouble(item['qty']);
-        final unitPrice = _toDouble(
-              itemId == null ? null : _itemUnitPriceControllers[itemId]?.text,
-            ) ??
-            _toDouble(item['unit_price']);
-        final amount = _toDouble(itemId == null ? null : _itemAmountControllers[itemId]?.text) ??
-            _toDouble(item['amount']);
-        if (qty != null && unitPrice != null && amount != null) {
-          final derived = _round2((qty * unitPrice) - amount);
-          if (derived > 0) {
-            discount = derived;
-          }
-        }
-      }
-      if (discount == null || discount == 0) {
-        continue;
-      }
-      totalSavings += discount.abs();
+    if (unitPrice != null) {
+      quantityLineParts.add(
+        '${_formatMoney(_currency, unitPrice)} / $unitLabel',
+      );
     }
-    return _round2(totalSavings);
-  }
 
-  Widget _buildAddItemButton() {
-    return GestureDetector(
-      onTap: () {
-        final id = DateTime.now().millisecondsSinceEpoch.toString();
-        setState(() {
-          _hasLocalEdits = true;
-          _items.add({'id': id, 'description': '', 'amount': 0.0, 'qty': 1.0});
-          _itemDescControllers[id] = TextEditingController();
-          _itemAmountControllers[id] = TextEditingController(text: '0.00');
-          _itemQtyControllers[id] = TextEditingController(text: '1');
-          _itemUnitPriceControllers[id] = TextEditingController(text: '0.00');
-          _itemCategoryIds[id] = null;
-        });
-      },
+    final categoryLine = catTags.join(' | ');
+
+    return InkWell(
+      onTap: _canEditTransaction ? () => _openItemEditor(item) : null,
+      borderRadius: BorderRadius.circular(18),
       child: Container(
-        margin: const EdgeInsets.only(top: 8, bottom: 32),
-        padding: const EdgeInsets.symmetric(vertical: 16),
+        padding: const EdgeInsets.fromLTRB(0, 14, 0, 14),
         decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(16),
-          border: Border.all(
-            color: Colors.white24,
-            style: BorderStyle.solid,
-          ), // Dashed borders need a CustomPainter, use solid for now
+          border: showDivider
+              ? Border(
+                  bottom: BorderSide(color: _strokeColor.withAlpha(180)),
+                )
+              : null,
         ),
-        child: Center(
-          child: Text(
-            context.tr('transaction_add_item'),
-            style: const TextStyle(color: Colors.white38, fontSize: 16),
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildFixedFooter({Map<String, double>? totalMismatch}) {
-    final sourceTotal = _toDouble(_amountController.text) ?? 0;
-    final displayTotal = _toDisplayAmount(sourceTotal);
-    final sourceSavings = _computeTotalSavingsSource();
-    final displaySavings = _toDisplayAmount(sourceSavings);
-    return Container(
-      padding: const EdgeInsets.all(20),
-      color: Colors.black,
-      child: SafeArea(
-        top: false,
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(
-                  context.tr('transaction_total_amount'),
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontSize: 18,
-                    fontWeight: FontWeight.bold,
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        currentName.isEmpty
+                            ? context.tr('transaction_item_name')
+                            : currentName,
+                        maxLines: 3,
+                        overflow: TextOverflow.ellipsis,
+                        style: const TextStyle(
+                          color: _textColor,
+                          fontSize: 16,
+                          fontWeight: FontWeight.w600,
+                          height: 1.2,
+                        ),
+                      ),
+                      const SizedBox(height: 6),
+                      SizedBox(
+                        height: 34,
+                        child: Align(
+                          alignment: Alignment.centerLeft,
+                          child: hasTranslatedName
+                              ? Text(
+                                  translatedName,
+                                  maxLines: 2,
+                                  overflow: TextOverflow.ellipsis,
+                                  style: const TextStyle(
+                                    color: _mutedColor,
+                                    fontSize: 13,
+                                  ),
+                                )
+                              : Text(
+                                  ' ',
+                                  style: const TextStyle(
+                                    color: Colors.transparent,
+                                  ),
+                                ),
+                        ),
+                      ),
+                    ],
                   ),
                 ),
-                const Spacer(),
+                const SizedBox(width: 12),
                 Column(
                   crossAxisAlignment: CrossAxisAlignment.end,
                   children: [
                     Text(
-                      _formatMoney(_displayCurrency, displayTotal),
+                      _formatMoney(_currency, sourceAmount),
                       style: const TextStyle(
-                        color: Colors.white,
+                        color: _textColor,
                         fontSize: 18,
-                        fontWeight: FontWeight.bold,
+                        fontWeight: FontWeight.w700,
                       ),
                     ),
-                    if (_displayCurrency.toUpperCase() !=
-                        _currency.toUpperCase())
-                      Text(
-                        _formatMoney(_currency, sourceTotal),
-                        style: TextStyle(
-                          color: Colors.grey.shade400,
-                          fontSize: 13,
-                        ),
-                      ),
+                    const SizedBox(height: 4),
+                    SizedBox(
+                      height: 18,
+                      child:
+                          _displayCurrency.toUpperCase() !=
+                              _currency.toUpperCase()
+                          ? Text(
+                              '$displayCurrencyLabel ${displayAmount.toStringAsFixed(2)}',
+                              style: const TextStyle(
+                                color: _mutedColor,
+                                fontSize: 12,
+                              ),
+                            )
+                          : Text(
+                              ' ',
+                              style: const TextStyle(
+                                color: Colors.transparent,
+                                fontSize: 12,
+                              ),
+                            ),
+                    ),
                   ],
+                ),
+                const SizedBox(width: 8),
+                Padding(
+                  padding: const EdgeInsets.only(top: 2),
+                  child: const Icon(
+                    AppIcons.chevronRight,
+                    size: 18,
+                    color: _mutedColor,
+                  ),
                 ),
               ],
             ),
-            if (sourceSavings > 0) ...[
-              const SizedBox(height: 10),
-              Row(
-                children: [
-                  Text(
-                    context.tr('transaction_total_savings'),
-                    style: TextStyle(
-                      color: Colors.orange.shade300,
-                      fontSize: 16,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                  const Spacer(),
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.end,
-                    children: [
-                      Text(
-                        _formatMoney(_displayCurrency, displaySavings),
-                        style: TextStyle(
-                          color: Colors.orange.shade300,
-                          fontSize: 16,
-                          fontWeight: FontWeight.w700,
-                        ),
+            const SizedBox(height: 8),
+            Text(
+              categoryLine,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: const TextStyle(
+                color: _mutedColor,
+                fontSize: 13,
+                fontWeight: FontWeight.w500,
+              ),
+            ),
+            const SizedBox(height: 8),
+            Text(
+              quantityLineParts.isEmpty
+                  ? 'Tap to add quantity, unit, and unit price'
+                  : quantityLineParts.join(' | '),
+              style: const TextStyle(
+                color: _mutedColor,
+                fontSize: 13,
+                fontWeight: FontWeight.w500,
+              ),
+            ),
+            const SizedBox(height: 8),
+            SizedBox(
+              height: 18,
+              child: _displayCurrency.toUpperCase() != _currency.toUpperCase()
+                  ? Text(
+                      '$itemCurrencyLabel ${sourceAmount.toStringAsFixed(2)} | $displayCurrencyLabel ${displayAmount.toStringAsFixed(2)}',
+                      style: const TextStyle(
+                        color: _mutedColor,
+                        fontSize: 12,
                       ),
-                      if (_displayCurrency.toUpperCase() !=
-                          _currency.toUpperCase())
-                        Text(
-                          _formatMoney(_currency, sourceSavings),
-                          style: TextStyle(
-                            color: Colors.grey.shade400,
-                            fontSize: 12,
+                    )
+                  : Text(
+                      ' ',
+                      style: const TextStyle(
+                        color: Colors.transparent,
+                        fontSize: 12,
+                      ),
+                    ),
+            ),
+            const SizedBox(height: 8),
+            SizedBox(
+              height: 18,
+              child: mismatch == null
+                  ? Text(
+                      ' ',
+                      style: const TextStyle(color: Colors.transparent),
+                    )
+                  : Text(
+                      context.tr(
+                        'transaction_line_mismatch',
+                        params: {
+                          'expected': _formatMoney(
+                            _currency,
+                            mismatch['expected'] ?? 0,
                           ),
-                        ),
-                    ],
-                  ),
-                ],
-              ),
-            ] else ...[
-              const SizedBox(height: 10),
-              Row(
-                children: [
-                  Text(
-                    context.tr('transaction_no_discounts'),
-                    style: TextStyle(
-                      color: Colors.grey.shade500,
-                      fontSize: 16,
-                      fontWeight: FontWeight.w500,
+                          'actual': _formatMoney(
+                            _currency,
+                            mismatch['actual'] ?? 0,
+                          ),
+                        },
+                      ),
+                      style: const TextStyle(
+                        color: _mutedColor,
+                        fontSize: 12,
+                        fontWeight: FontWeight.w600,
+                      ),
                     ),
-                  ),
-                ],
-              ),
-            ],
-            if (totalMismatch != null) ...[
-              const SizedBox(height: 8),
-              Text(
-                context.tr(
-                  'transaction_total_mismatch',
-                  params: {
-                    'expected': _formatMoney(
-                      _currency,
-                      totalMismatch['expected'] ?? 0,
-                    ),
-                    'actual': _formatMoney(
-                      _currency,
-                      totalMismatch['actual'] ?? 0,
-                    ),
-                  },
-                ),
-                style: const TextStyle(
-                  color: Colors.orangeAccent,
-                  fontSize: 12,
-                  fontWeight: FontWeight.w600,
-                ),
-              ),
-            ],
+            ),
           ],
         ),
       ),
     );
   }
 
-  Future<String?> _pickParentCategory(String? selectedParentId) {
-    final topLevel = _topLevelItemCategories();
-    if (topLevel.isEmpty) {
-      return Future.value(null);
-    }
-
-    return showModalBottomSheet<String>(
-      context: context,
-      backgroundColor: const Color(0xFF1E1E1E),
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+  Widget _buildAddItemButton() {
+    return InkWell(
+      onTap: !_canEditTransaction ? null : _addItemAndOpenEditor,
+      borderRadius: BorderRadius.circular(18),
+      child: Container(
+        margin: const EdgeInsets.only(top: 8),
+        padding: const EdgeInsets.symmetric(vertical: 16),
+        decoration: _panelDecoration(
+          color: Colors.transparent,
+          borderColor: _strokeColor,
+        ),
+        child: Center(
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const Icon(AppIcons.add, size: 18, color: _textColor),
+              const SizedBox(width: 8),
+              Text(
+                context.tr('transaction_add_item'),
+                style: const TextStyle(
+                  color: _textColor,
+                  fontSize: 16,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            ],
+          ),
+        ),
       ),
-      builder: (context) {
-        String? currentSelectedParentId = selectedParentId;
-        return StatefulBuilder(
-          builder: (context, setModalState) {
-            return SafeArea(
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Padding(
-                    padding: const EdgeInsets.fromLTRB(16, 12, 16, 8),
-                    child: Row(
-                      children: [
-                        Text(
-                          context.tr('filters_category'),
-                          style: const TextStyle(
-                            color: Colors.white,
-                            fontSize: 18,
-                            fontWeight: FontWeight.w700,
-                          ),
+    );
+  }
+
+  Widget _buildStickyTotalBar({Map<String, double>? totalMismatch}) {
+    final sourceTotal = _toDouble(_amountController.text) ?? 0;
+    final displayTotal = _toDisplayAmount(sourceTotal);
+    final subtotalSource = _subtotalValue;
+
+    return SafeArea(
+      top: false,
+      child: Container(
+        padding: const EdgeInsets.fromLTRB(16, 12, 16, 16),
+        decoration: BoxDecoration(
+          color: _surfaceColor,
+          border: Border(top: BorderSide(color: _strokeColor)),
+          borderRadius: const BorderRadius.vertical(top: Radius.circular(26)),
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            if (totalMismatch != null)
+              Padding(
+                padding: const EdgeInsets.only(bottom: 10),
+                child: Align(
+                  alignment: Alignment.centerLeft,
+                  child: Text(
+                    context.tr(
+                      'transaction_total_mismatch',
+                      params: {
+                        'expected': _formatMoney(
+                          _currency,
+                          totalMismatch['expected'] ?? 0,
                         ),
-                        const Spacer(),
-                        TextButton(
-                          onPressed: () => Navigator.pop(context),
-                          child: Text(context.tr('common_cancel')),
+                        'actual': _formatMoney(
+                          _currency,
+                          totalMismatch['actual'] ?? 0,
                         ),
-                      ],
-                    ),
-                  ),
-                  Flexible(
-                    child: ListView.builder(
-                      padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
-                      shrinkWrap: true,
-                      itemCount: topLevel.length,
-                      itemBuilder: (context, index) {
-                        final category = topLevel[index];
-                        final categoryId = category['id']?.toString() ?? '';
-                        final selected = categoryId == currentSelectedParentId;
-                        return ListTile(
-                          contentPadding: EdgeInsets.zero,
-                          title: Text(
-                            _localizedCategoryName(category),
-                            style: TextStyle(
-                              color: selected
-                                  ? Theme.of(context).colorScheme.primary
-                                  : Colors.white,
-                              fontWeight: selected
-                                  ? FontWeight.w700
-                                  : FontWeight.w400,
-                            ),
-                          ),
-                          trailing: Icon(
-                            selected
-                                ? Icons.radio_button_checked
-                                : Icons.radio_button_off,
-                            color: selected
-                                ? Theme.of(context).colorScheme.primary
-                                : Colors.white38,
-                          ),
-                          onTap: () {
-                            setModalState(
-                              () => currentSelectedParentId = categoryId,
-                            );
-                            Navigator.pop(context, categoryId);
-                          },
-                        );
                       },
                     ),
+                    style: const TextStyle(
+                      color: _warningColor,
+                      fontSize: 12,
+                      fontWeight: FontWeight.w600,
+                    ),
                   ),
-                ],
+                ),
               ),
-            );
-          },
-        );
-      },
-    );
-  }
-
-  Future<String?> _pickSubcategory({
-    required String parentCategoryId,
-    String? selectedSubcategoryId,
-  }) {
-    final subcategories = _itemSubcategoriesForParent(parentCategoryId);
-    if (subcategories.isEmpty) {
-      return Future.value(null);
-    }
-
-    return showModalBottomSheet<String>(
-      context: context,
-      backgroundColor: const Color(0xFF1E1E1E),
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-      ),
-      builder: (context) {
-        return ListView.builder(
-          padding: const EdgeInsets.fromLTRB(16, 12, 16, 16),
-          itemCount: subcategories.length + 1,
-          itemBuilder: (context, index) {
-            if (index == 0) {
-              return Padding(
-                padding: const EdgeInsets.only(bottom: 8),
-                child: Row(
-                  children: [
-                    Text(
-                      context.tr('filters_subcategory'),
-                      style: const TextStyle(
-                        color: Colors.white,
-                        fontSize: 18,
-                        fontWeight: FontWeight.w700,
+            Row(
+              children: [
+                const Expanded(
+                  child: Text(
+                    'Total Amount:',
+                    style: TextStyle(
+                      color: _mutedColor,
+                      fontSize: 17,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                ),
+                const Icon(Icons.edit_outlined, size: 16, color: _mutedColor),
+                const SizedBox(width: 8),
+                SizedBox(
+                  width: 126,
+                  child: TextField(
+                    controller: _amountController,
+                    readOnly: !_canEditTransaction,
+                    textAlign: TextAlign.right,
+                    keyboardType: const TextInputType.numberWithOptions(
+                      decimal: true,
+                    ),
+                    decoration: const InputDecoration(
+                      border: InputBorder.none,
+                      isDense: true,
+                      contentPadding: EdgeInsets.zero,
+                    ),
+                    style: const TextStyle(
+                      color: _textColor,
+                      fontSize: 18,
+                      fontWeight: FontWeight.w700,
+                    ),
+                    onChanged: (value) {
+                      final parsed = double.tryParse(
+                        value.replaceAll(',', '.').trim(),
+                      );
+                      if (parsed == null) return;
+                      setState(() {
+                        _hasLocalEdits = true;
+                        _hasManualTotalOverride =
+                            _round2(parsed) != _round2(subtotalSource);
+                      });
+                    },
+                    onSubmitted: (_) {
+                      final parsed = _toDouble(_amountController.text);
+                      if (parsed == null) return;
+                      final formatted = parsed.toStringAsFixed(2);
+                      setState(() {
+                        _amountController.text = formatted;
+                        _amountController.selection =
+                            TextSelection.fromPosition(
+                              TextPosition(
+                                offset: _amountController.text.length,
+                              ),
+                            );
+                        _hasLocalEdits = true;
+                        _hasManualTotalOverride =
+                            _round2(parsed) != _round2(subtotalSource);
+                      });
+                    },
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 4),
+            Align(
+              alignment: Alignment.centerRight,
+              child:
+                  _displayCurrency.toUpperCase() != _currency.toUpperCase()
+                      ? Text(
+                        _formatMoney(_displayCurrency, displayTotal),
+                        style: const TextStyle(
+                          color: _mutedColor,
+                          fontSize: 12,
+                        ),
+                      )
+                      : Text(
+                        _formatMoney(_currency, sourceTotal),
+                        style: const TextStyle(
+                          color: _mutedColor,
+                          fontSize: 12,
+                        ),
                       ),
-                    ),
-                    const Spacer(),
-                    TextButton(
-                      onPressed: () => Navigator.pop(context),
-                      child: Text(context.tr('common_cancel')),
-                    ),
-                  ],
-                ),
-              );
-            }
-
-            final category = subcategories[index - 1];
-            final categoryId = category['id']?.toString() ?? '';
-            final selected = categoryId == selectedSubcategoryId;
-            return ListTile(
-              contentPadding: EdgeInsets.zero,
-              title: Text(
-                _localizedCategoryName(category),
-                style: TextStyle(
-                  color: selected
-                      ? Theme.of(context).colorScheme.primary
-                      : Colors.white,
-                  fontWeight: selected ? FontWeight.w700 : FontWeight.w400,
-                ),
-              ),
-              trailing: Icon(
-                selected ? Icons.radio_button_checked : Icons.radio_button_off,
-                color: selected
-                    ? Theme.of(context).colorScheme.primary
-                    : Colors.white38,
-              ),
-              onTap: () => Navigator.pop(context, categoryId),
-            );
-          },
-        );
-      },
+            ),
+          ],
+        ),
+      ),
     );
   }
 
-  Future<void> _showCategoryPicker(String itemId) async {
-    final selectedCategory = _findCategoryById(_itemCategoryIds[itemId]);
-    var selectedParentId = selectedCategory?['parent_id']?.toString();
-    if (selectedParentId == null || selectedParentId.isEmpty) {
-      selectedParentId = selectedCategory == null
-          ? null
-          : selectedCategory['id']?.toString();
-    }
-
-    final parentCategoryId = await _pickParentCategory(selectedParentId);
-    if (!mounted || parentCategoryId == null || parentCategoryId.isEmpty) {
-      return;
-    }
-
-    final selectedSubcategoryId = await _pickSubcategory(
-      parentCategoryId: parentCategoryId,
-      selectedSubcategoryId: _itemCategoryIds[itemId],
-    );
-    if (!mounted) return;
-
-    setState(() {
-      _hasLocalEdits = true;
-      _itemCategoryIds[itemId] =
-          (selectedSubcategoryId == null || selectedSubcategoryId.isEmpty)
-          ? parentCategoryId
-          : selectedSubcategoryId;
-    });
-  }
 }

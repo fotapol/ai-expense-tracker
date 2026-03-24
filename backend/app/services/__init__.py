@@ -1,5 +1,6 @@
 """Application services."""
 
+from app.services import feature_requests
 from app.services.billing import (
     BillingEventHandler,
     BillingProvider,
@@ -17,6 +18,7 @@ __all__ = [
     "BillingProvider",
     "SubscriptionSyncService",
     "build_manual_subscription_event",
+    "feature_requests",
     "resolve_effective_subscription",
     "resolve_receipt_scan_usage",
     "resolve_user_entitlements",

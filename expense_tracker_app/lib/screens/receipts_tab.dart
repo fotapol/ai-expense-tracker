@@ -10,7 +10,9 @@ import '../widgets/filter_bottom_sheet.dart';
 import 'transaction_edit_screen.dart';
 
 class ReceiptsTab extends StatefulWidget {
-  const ReceiptsTab({super.key});
+  final bool showTopBar;
+
+  const ReceiptsTab({super.key, this.showTopBar = true});
 
   @override
   State<ReceiptsTab> createState() => _ReceiptsTabState();
@@ -114,6 +116,13 @@ class _ReceiptsTabState extends State<ReceiptsTab>
   }
 
   String _currencySymbol(String code) {
+    final normalized = code.toUpperCase();
+    if (normalized == 'EUR') return '\u20AC';
+    if (normalized == 'USD') return '\$';
+    if (normalized == 'GBP') return '\u00A3';
+    if (normalized == 'AUD') return 'A\$';
+    if (normalized == 'CAD') return 'C\$';
+    if (normalized == 'RSD') return 'RSD ';
     switch (code.toUpperCase()) {
       case 'EUR':
         return '€';
@@ -130,7 +139,7 @@ class _ReceiptsTabState extends State<ReceiptsTab>
 
   String _formatMoney(String currency, double amount) {
     final symbol = _currencySymbol(currency);
-    if (symbol.trim().length == 1 || symbol == 'RSD ') {
+    if (symbol != '${currency.toUpperCase()} ') {
       final sign = amount < 0 ? '-' : '';
       return '$sign$symbol${amount.abs().toStringAsFixed(2)}';
     }
@@ -297,7 +306,7 @@ class _ReceiptsTabState extends State<ReceiptsTab>
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          _buildTopBar(),
+          if (widget.showTopBar) _buildTopBar(),
           if (_selectedPeriod != PeriodFilter.last3Months ||
               _merchantSearch.isNotEmpty ||
               _selectedCategoryIds.isNotEmpty ||
@@ -841,12 +850,12 @@ class _ReceiptsTabState extends State<ReceiptsTab>
     double totalPeriodExpense = 0;
     double totalPeriodSavings = 0;
     String totalCurrency = _preferredCurrency;
-    
+
     for (var tx in _transactions) {
       final txMap = tx as Map<String, dynamic>;
       totalPeriodExpense += _displayAmountOf(txMap);
       totalCurrency = _displayCurrencyOf(txMap);
-      
+
       final itemsRaw = txMap['items'];
       if (itemsRaw is List) {
         final amountTotal =
@@ -884,7 +893,7 @@ class _ReceiptsTabState extends State<ReceiptsTab>
             }
           }
         }
-        
+
         if (receiptSourceSavings > 0) {
           totalPeriodSavings += receiptSourceSavings * rate;
         }

@@ -43,3 +43,17 @@ def get_dev_billing_admin_emails() -> frozenset[str]:
     """
     raw = os.environ.get("DEV_BILLING_ADMIN_EMAILS", "")
     return frozenset(item.strip().lower() for item in raw.split(",") if item.strip())
+
+
+@lru_cache(maxsize=1)
+def get_app_admin_emails() -> frozenset[str]:
+    """Return the set of emails that should resolve to ``users.is_admin``.
+
+    ``APP_ADMIN_EMAILS`` is the preferred general-purpose allowlist. The
+    legacy ``DEV_BILLING_ADMIN_EMAILS`` env var remains supported so existing
+    local setups do not lose admin access.
+    """
+    admin_emails = set(get_dev_billing_admin_emails())
+    raw = os.environ.get("APP_ADMIN_EMAILS", "")
+    admin_emails.update(item.strip().lower() for item in raw.split(",") if item.strip())
+    return frozenset(admin_emails)

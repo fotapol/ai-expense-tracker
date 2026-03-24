@@ -1,11 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:purchases_flutter/purchases_flutter.dart';
-import 'dart:math' as math;
 
 import '../core/api_client.dart';
+import '../core/redesign_system.dart';
 import '../core/revenuecat_service.dart';
 import '../l10n/app_localizations.dart';
+import 'settings_detail_scaffold.dart';
 
 class SubscriptionScreen extends StatefulWidget {
   const SubscriptionScreen({super.key, this.currentUserId});
@@ -16,7 +17,7 @@ class SubscriptionScreen extends StatefulWidget {
   State<SubscriptionScreen> createState() => _SubscriptionScreenState();
 }
 
-enum _PackageAudience { individual, family }
+enum _BillingPeriod { monthly, yearly }
 
 class _HouseholdPurchaseContext {
   const _HouseholdPurchaseContext({
@@ -33,51 +34,21 @@ class _SubscriptionScreenState extends State<SubscriptionScreen> {
     'ENABLE_DEV_BILLING_TOOLS',
     defaultValue: false,
   );
-  static const List<_FeatureCardData> _featureCards = [
-    _FeatureCardData(
-      code: 'premium.receipt_scans.unlimited',
-      title: 'Receipt scans',
-      description: 'Scan as many receipts as you want',
-      freeValue: '3/10',
-      proValue: 'INF',
-      icon: Icons.receipt_long_rounded,
-    ),
-    _FeatureCardData(
-      code: 'premium.analytics.advanced',
-      title: 'Advanced analytics',
-      description: 'Get deeper trends and category insights',
-      freeValue: 'Basic',
-      proValue: 'Advanced',
-      icon: Icons.analytics_outlined,
-    ),
-    _FeatureCardData(
-      code: 'premium.exports',
-      title: 'Exports',
-      description: 'Export your financial data on demand',
-      freeValue: 'Limited',
-      proValue: 'Full',
-      icon: Icons.file_download_outlined,
-    ),
-  ];
 
   bool _isLoading = true;
-  bool _isDevActionLoading = false;
   bool _isPurchaseLoading = false;
+  bool _isDevActionLoading = false;
   String? _error;
-  int _activePageIndex = 0;
-  int _receiptScanUsed = 0;
+  String? _targetUserId;
+  Map<String, dynamic>? _subscriptionPayload;
+  Set<String> _activeFeatures = <String>{};
+  List<Package> _availablePackages = const <Package>[];
+  Package? _selectedPackage;
+  _BillingPeriod _selectedPeriod = _BillingPeriod.monthly;
   int _receiptScanLimit = 10;
   int? _receiptScanRemaining;
   bool _receiptScanUnlimited = false;
   DateTime? _receiptScanResetAtUtc;
-  Package? _monthlyPackage;
-  Package? _yearlyPackage;
-  Package? _selectedPackage;
-  List<Package> _availablePackages = const <Package>[];
-  _PackageAudience _selectedPackageAudience = _PackageAudience.individual;
-  String? _targetUserId;
-  Map<String, dynamic>? _subscriptionPayload;
-  Set<String> _activeFeatures = <String>{};
 
   @override
   void initState() {
@@ -88,12 +59,21 @@ class _SubscriptionScreenState extends State<SubscriptionScreen> {
     _loadSubscriptionData();
   }
 
+  bool get _hasActiveSubscription =>
+      (_subscriptionPayload?['has_active_subscription'] as bool?) ?? false;
+
+  Map<String, dynamic>? get _subscription =>
+      _subscriptionPayload?['subscription'] as Map<String, dynamic>?;
+
+  bool get _selectedIsFamily =>
+      _selectedPackage != null &&
+      RevenueCatService.isFamilyPackage(_selectedPackage!);
+
   Future<void> _loadSubscriptionData() async {
     setState(() {
       _isLoading = true;
       _error = null;
     });
-
     try {
       if (_targetUserId == null || _targetUserId!.isEmpty) {
         final me = await ApiClient.getMe();
@@ -102,9 +82,7 @@ class _SubscriptionScreenState extends State<SubscriptionScreen> {
 
       Map<String, dynamic> subscriptionPayload;
       Map<String, dynamic> entitlementsPayload;
-      final shouldSyncRevenueCat =
-          RevenueCatService.isAvailable && !_showDevTools;
-      if (shouldSyncRevenueCat) {
+      if (RevenueCatService.isAvailable && !_showDevTools) {
         try {
           final syncPayload = await ApiClient.syncRevenueCatSubscription();
           subscriptionPayload = <String, dynamic>{
@@ -131,200 +109,102 @@ class _SubscriptionScreenState extends State<SubscriptionScreen> {
         subscriptionPayload = fallback[0] as Map<String, dynamic>;
         entitlementsPayload = fallback[1] as Map<String, dynamic>;
       }
+
       Offerings? offerings;
       try {
         offerings = await RevenueCatService.getOfferings();
       } catch (_) {}
+
       final featureCodes =
-          (entitlementsPayload['feature_codes'] as List<dynamic>? ?? [])
+          (entitlementsPayload['feature_codes'] as List<dynamic>? ??
+                  const <dynamic>[])
               .map((value) => value.toString())
               .toSet();
       final usageRaw = subscriptionPayload['receipt_scan_usage'];
       final usage = usageRaw is Map<String, dynamic>
           ? usageRaw
           : const <String, dynamic>{};
-      final isUnlimited = usage['is_unlimited'] == true;
-      final used = int.tryParse((usage['used'] ?? 0).toString()) ?? 0;
-      final limit = int.tryParse((usage['limit'] ?? 10).toString()) ?? 10;
-      final remaining = int.tryParse((usage['remaining'] ?? 0).toString());
-      final periodEndRaw = usage['period_end_at']?.toString();
-      final periodEndAt = periodEndRaw == null
-          ? null
-          : DateTime.tryParse(periodEndRaw)?.toUtc();
+      final packages = RevenueCatService.flattenAvailablePackages(offerings);
 
       if (!mounted) return;
       setState(() {
         _subscriptionPayload = subscriptionPayload;
         _activeFeatures = featureCodes;
-        _receiptScanUsed = used;
-        _receiptScanLimit = limit > 0 ? limit : 10;
-        _receiptScanRemaining = remaining;
-        _receiptScanUnlimited = isUnlimited;
-        _receiptScanResetAtUtc = periodEndAt;
-        final packages = RevenueCatService.flattenAvailablePackages(offerings);
-        for (final package in packages) {
-          debugPrint(
-            '[RC][Subscription] package=${package.storeProduct.identifier} '
-            'pkgId=${package.identifier} '
-            'family=${RevenueCatService.isFamilyPackage(package)}',
-          );
-        }
-        _applyPackageOptions(packages);
+        final parsedLimit =
+            int.tryParse((usage['limit'] ?? 10).toString()) ?? 10;
+        _receiptScanLimit = parsedLimit > 0 ? parsedLimit : 10;
+        _receiptScanRemaining = int.tryParse(
+          (usage['remaining'] ?? 0).toString(),
+        );
+        _receiptScanUnlimited = usage['is_unlimited'] == true;
+        final periodEndRaw = usage['period_end_at']?.toString();
+        _receiptScanResetAtUtc = periodEndRaw == null
+            ? null
+            : DateTime.tryParse(periodEndRaw)?.toUtc();
+        _syncSelectedPackage(packages);
         _isLoading = false;
       });
-    } catch (e) {
+    } catch (error) {
       if (!mounted) return;
       setState(() {
-        _error = e.toString();
+        _error = error.toString();
         _isLoading = false;
       });
     }
   }
 
-  Future<void> _applyDevAction(String action) async {
-    if (_isDevActionLoading) return;
-    final userId = _targetUserId;
-    if (userId == null || userId.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Missing local user ID for dev action.')),
-      );
-      return;
+  void _syncSelectedPackage(List<Package> packages) {
+    _availablePackages = List<Package>.from(packages);
+    final previousIdentifier = _selectedPackage?.identifier;
+    Package? selected;
+    if (previousIdentifier != null) {
+      for (final package in packages) {
+        if (package.identifier == previousIdentifier) {
+          selected = package;
+          break;
+        }
+      }
     }
-
-    setState(() => _isDevActionLoading = true);
-    try {
-      await ApiClient.applyDevManualSubscriptionAction(
-        targetUserId: userId,
-        action: action,
-      );
-      if (!mounted) return;
-      await _loadSubscriptionData();
-      if (!mounted) return;
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text('Dev action "$action" applied.')));
-    } catch (e) {
-      if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Dev action failed: $e'),
-          backgroundColor: Colors.red,
-        ),
-      );
-    } finally {
-      if (mounted) setState(() => _isDevActionLoading = false);
+    selected ??=
+        _packageFor(false, _selectedPeriod, packages: packages) ??
+        _packageFor(true, _selectedPeriod, packages: packages) ??
+        _packageFor(false, _BillingPeriod.monthly, packages: packages) ??
+        _packageFor(true, _BillingPeriod.monthly, packages: packages) ??
+        _packageFor(false, _BillingPeriod.yearly, packages: packages) ??
+        _packageFor(true, _BillingPeriod.yearly, packages: packages);
+    _selectedPackage = selected;
+    if (selected != null) {
+      _selectedPeriod = RevenueCatService.isYearlyPackage(selected)
+          ? _BillingPeriod.yearly
+          : _BillingPeriod.monthly;
     }
   }
 
-  bool get _hasActiveSubscription =>
-      (_subscriptionPayload?['has_active_subscription'] as bool?) ?? false;
-
-  Map<String, dynamic>? get _subscription =>
-      _subscriptionPayload?['subscription'] as Map<String, dynamic>?;
-
-  String _statusLabel() {
-    final status = (_subscription?['status'] ?? 'inactive').toString();
-    return status.replaceAll('_', ' ').toUpperCase();
-  }
-
-  String _dateLabel(String fieldName) {
-    final raw = _subscription?[fieldName];
-    if (raw == null) return '--';
-    final parsed = DateTime.tryParse(raw.toString());
-    if (parsed == null) return raw.toString();
-    final local = parsed.toLocal();
-    final mm = local.month.toString().padLeft(2, '0');
-    final dd = local.day.toString().padLeft(2, '0');
-    final hh = local.hour.toString().padLeft(2, '0');
-    final min = local.minute.toString().padLeft(2, '0');
-    return '${local.year}-$mm-$dd $hh:$min';
-  }
-
-  String _receiptScansFreeValue() {
-    final shownUsed = math.min(_receiptScanUsed, _receiptScanLimit);
-    return '$shownUsed/$_receiptScanLimit';
-  }
-
-  String _receiptScansMonthValue() {
-    if (_receiptScanUnlimited) {
-      return '$_receiptScanUsed';
+  Package? _packageFor(
+    bool family,
+    _BillingPeriod period, {
+    List<Package>? packages,
+  }) {
+    final source = packages ?? _availablePackages;
+    for (final package in source) {
+      final matchesFamily =
+          RevenueCatService.isFamilyPackage(package) == family;
+      final matchesPeriod = period == _BillingPeriod.yearly
+          ? RevenueCatService.isYearlyPackage(package)
+          : RevenueCatService.isMonthlyPackage(package);
+      if (matchesFamily && matchesPeriod) return package;
     }
-    return _receiptScansFreeValue();
+    return null;
   }
 
-  String _monthlyUsageLabel() {
-    if (_receiptScanUnlimited) return 'Monthly usage: unlimited';
-    final remaining = (_receiptScanRemaining ?? 0).clamp(0, 9999);
-    final resetAt = _receiptScanResetAtUtc;
-    if (resetAt == null) return 'Remaining this month: $remaining';
-    final mm = resetAt.month.toString().padLeft(2, '0');
-    final dd = resetAt.day.toString().padLeft(2, '0');
-    return 'Remaining: $remaining | resets $mm/$dd UTC';
-  }
-
-  String _purchaseCtaLabel() {
-    final package = _selectedPackage;
-    if (package == null) return 'Upgrade to PRO';
-    final priceLabel = package.storeProduct.priceString;
-    if (priceLabel.trim().isEmpty) return 'Upgrade to PRO';
-    return 'Buy ${_packagePlanLabel(package)} - $priceLabel';
-  }
-
-  String _friendlyBillingError(Object error) {
-    if (error is PlatformException) {
-      final details = error.details;
-      String? readableCode;
-      String? detailMessage;
-      if (details is Map) {
-        readableCode =
-            details['readable_error_code']?.toString() ??
-            details['readableErrorCode']?.toString();
-        detailMessage =
-            details['message']?.toString() ??
-            details['underlyingErrorMessage']?.toString();
-      }
-
-      final normalizedCode = (readableCode ?? error.code).toLowerCase();
-      if (normalizedCode.contains('operationalreadyinprogresserror') ||
-          error.code == '15') {
-        return 'Another billing operation is still in progress. Please wait a few seconds and try again.';
-      }
-      if (normalizedCode.contains('purchasecancellederror')) {
-        return 'Purchase canceled.';
-      }
-      if (normalizedCode.contains('networkerror')) {
-        return 'Network error while contacting the store. Please try again.';
-      }
-      if (normalizedCode.contains('storeproblemerror')) {
-        return 'Store is temporarily unavailable. Please try again later.';
-      }
-
-      final rawMessage = detailMessage ?? error.message;
-      if (rawMessage != null && rawMessage.trim().isNotEmpty) {
-        return rawMessage;
-      }
-    }
-    return error.toString();
-  }
-
-  bool _isOperationInProgressError(Object error) {
-    if (error is! PlatformException) return false;
-    final details = error.details;
-    String? readableCode;
-    if (details is Map) {
-      readableCode =
-          details['readable_error_code']?.toString() ??
-          details['readableErrorCode']?.toString();
-    }
-    final normalizedCode = (readableCode ?? error.code).toLowerCase();
-    return normalizedCode.contains('operationalreadyinprogresserror') ||
-        error.code == '15';
-  }
-
-  int? _extractStatusCode(Object error) {
-    final match = RegExp(r'\b([1-5]\d{2})\b').firstMatch(error.toString());
-    if (match == null) return null;
-    return int.tryParse(match.group(1)!);
+  void _selectPeriod(_BillingPeriod period) {
+    final preferFamily = _selectedIsFamily;
+    setState(() {
+      _selectedPeriod = period;
+      _selectedPackage =
+          _packageFor(preferFamily, period) ??
+          _packageFor(!preferFamily, period);
+    });
   }
 
   Future<_HouseholdPurchaseContext> _loadHouseholdPurchaseContext() async {
@@ -332,17 +212,18 @@ class _SubscriptionScreenState extends State<SubscriptionScreen> {
       final household = await ApiClient.getCurrentHousehold();
       final members = await ApiClient.listCurrentHouseholdMembers();
       final targetUserId = (_targetUserId ?? '').trim();
-      final currentMembership = members.whereType<Map<String, dynamic>>().firstWhere(
-        (member) => member['user_id']?.toString() == targetUserId,
-        orElse: () => const <String, dynamic>{},
-      );
-      final isOwner = currentMembership['role']?.toString() == 'owner';
+      final currentMembership = members
+          .whereType<Map<String, dynamic>>()
+          .firstWhere(
+            (member) => member['user_id']?.toString() == targetUserId,
+            orElse: () => const <String, dynamic>{},
+          );
       return _HouseholdPurchaseContext(
         hasHousehold: household.isNotEmpty,
-        isOwner: isOwner,
+        isOwner: currentMembership['role']?.toString() == 'owner',
       );
     } catch (error) {
-      if (_extractStatusCode(error) == 404) {
+      if (RegExp(r'\b404\b').hasMatch(error.toString())) {
         return const _HouseholdPurchaseContext(
           hasHousehold: false,
           isOwner: false,
@@ -354,14 +235,11 @@ class _SubscriptionScreenState extends State<SubscriptionScreen> {
 
   Future<bool> _prepareIndividualPurchaseContext() async {
     final householdContext = await _loadHouseholdPurchaseContext();
-    if (!householdContext.hasHousehold) {
-      return true;
-    }
-
+    if (!householdContext.hasHousehold) return true;
     if (!mounted) return false;
     final confirmed = await showDialog<bool>(
       context: context,
-      builder: (ctx) => AlertDialog(
+      builder: (dialogContext) => AlertDialog(
         title: Text(context.tr('billing_household_purchase_block_title')),
         content: Text(
           context.tr(
@@ -372,11 +250,11 @@ class _SubscriptionScreenState extends State<SubscriptionScreen> {
         ),
         actions: [
           TextButton(
-            onPressed: () => Navigator.pop(ctx, false),
+            onPressed: () => Navigator.pop(dialogContext, false),
             child: Text(context.tr('common_cancel')),
           ),
           FilledButton(
-            onPressed: () => Navigator.pop(ctx, true),
+            onPressed: () => Navigator.pop(dialogContext, true),
             child: Text(
               context.tr(
                 householdContext.isOwner
@@ -388,10 +266,7 @@ class _SubscriptionScreenState extends State<SubscriptionScreen> {
         ],
       ),
     );
-    if (confirmed != true) {
-      return false;
-    }
-
+    if (confirmed != true) return false;
     if (householdContext.isOwner) {
       await ApiClient.deleteCurrentHousehold();
     } else {
@@ -414,134 +289,55 @@ class _SubscriptionScreenState extends State<SubscriptionScreen> {
     return syncPayload['has_active_subscription'] == true;
   }
 
-  String _packagePlanLabel(Package package) {
-    final isFamily = RevenueCatService.isFamilyPackage(package);
-    final audienceLabel = isFamily ? 'Family' : 'Individual';
-    if (RevenueCatService.isYearlyPackage(package)) {
-      return 'Yearly $audienceLabel';
+  String _friendlyBillingError(Object error) {
+    if (error is PlatformException) {
+      final details = error.details;
+      String? readableCode;
+      String? detailMessage;
+      if (details is Map) {
+        readableCode =
+            details['readable_error_code']?.toString() ??
+            details['readableErrorCode']?.toString();
+        detailMessage =
+            details['message']?.toString() ??
+            details['underlyingErrorMessage']?.toString();
+      }
+      final normalizedCode = (readableCode ?? error.code).toLowerCase();
+      if (normalizedCode.contains('operationalreadyinprogresserror') ||
+          error.code == '15') {
+        return 'Another billing operation is still in progress. Please wait a few seconds and try again.';
+      }
+      if (normalizedCode.contains('purchasecancellederror')) {
+        return 'Purchase canceled.';
+      }
+      if (normalizedCode.contains('networkerror')) {
+        return 'Network error while contacting the store. Please try again.';
+      }
+      final rawMessage = detailMessage ?? error.message;
+      if (rawMessage != null && rawMessage.trim().isNotEmpty) {
+        return rawMessage;
+      }
     }
-    if (RevenueCatService.isMonthlyPackage(package)) {
-      return 'Monthly $audienceLabel';
-    }
-    return '$audienceLabel Plan';
+    return error.toString();
   }
 
-  void _applyPackageOptions(List<Package> packages) {
-    _availablePackages = List<Package>.from(packages);
-    Package? monthly;
-    Package? yearly;
-    Package? fallback;
-    final selectedIdentifier = _selectedPackage?.identifier;
-    Package? selectedMatch;
-    final hasFamily = packages.any(RevenueCatService.isFamilyPackage);
-    final hasIndividual = packages.any(
-      (package) => !RevenueCatService.isFamilyPackage(package),
-    );
-
-    if (!hasFamily) {
-      _selectedPackageAudience = _PackageAudience.individual;
-    } else if (!hasIndividual) {
-      _selectedPackageAudience = _PackageAudience.family;
+  bool _isOperationInProgressError(Object error) {
+    if (error is! PlatformException) return false;
+    final details = error.details;
+    String? readableCode;
+    if (details is Map) {
+      readableCode =
+          details['readable_error_code']?.toString() ??
+          details['readableErrorCode']?.toString();
     }
-
-    final scopedPackages = packages.where((package) {
-      if (_selectedPackageAudience == _PackageAudience.family) {
-        return RevenueCatService.isFamilyPackage(package);
-      }
-      return !RevenueCatService.isFamilyPackage(package);
-    }).toList();
-    final sourcePackages = scopedPackages.isNotEmpty
-        ? scopedPackages
-        : packages;
-
-    for (final package in sourcePackages) {
-      fallback ??= package;
-      if (selectedIdentifier != null &&
-          package.identifier == selectedIdentifier) {
-        selectedMatch = package;
-      }
-      if (RevenueCatService.isMonthlyPackage(package)) {
-        monthly ??= package;
-        continue;
-      }
-      if (RevenueCatService.isYearlyPackage(package)) {
-        yearly ??= package;
-        continue;
-      }
-    }
-
-    _monthlyPackage = monthly;
-    _yearlyPackage = yearly;
-    _selectedPackage = selectedMatch ?? yearly ?? monthly ?? fallback;
-  }
-
-  bool _hasFamilyPackages() =>
-      _availablePackages.any(RevenueCatService.isFamilyPackage);
-
-  bool _hasIndividualPackages() => _availablePackages.any(
-    (package) => !RevenueCatService.isFamilyPackage(package),
-  );
-
-  Widget _buildPackageAudienceSelector() {
-    final canChooseAudience = _hasFamilyPackages() && _hasIndividualPackages();
-    if (!canChooseAudience) return const SizedBox.shrink();
-
-    Widget audienceChip({
-      required String label,
-      required _PackageAudience audience,
-    }) {
-      final isSelected = _selectedPackageAudience == audience;
-      return Expanded(
-        child: InkWell(
-          borderRadius: BorderRadius.circular(999),
-          onTap: () {
-            if (_selectedPackageAudience == audience) return;
-            setState(() {
-              _selectedPackageAudience = audience;
-              _applyPackageOptions(_availablePackages);
-            });
-          },
-          child: Container(
-            padding: const EdgeInsets.symmetric(vertical: 8),
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(999),
-              color: isSelected
-                  ? const Color(0xFF5B2E88).withAlpha(210)
-                  : Colors.black.withAlpha(25),
-              border: Border.all(
-                color: isSelected
-                    ? const Color(0xFFF7D74B)
-                    : Colors.white.withAlpha(90),
-              ),
-            ),
-            alignment: Alignment.center,
-            child: Text(
-              label,
-              style: TextStyle(
-                color: Colors.white,
-                fontSize: 12,
-                fontWeight: isSelected ? FontWeight.w800 : FontWeight.w600,
-              ),
-            ),
-          ),
-        ),
-      );
-    }
-
-    return Row(
-      children: [
-        audienceChip(
-          label: 'Individual',
-          audience: _PackageAudience.individual,
-        ),
-        const SizedBox(width: 8),
-        audienceChip(label: 'Family', audience: _PackageAudience.family),
-      ],
-    );
+    final normalizedCode = (readableCode ?? error.code).toLowerCase();
+    return normalizedCode.contains('operationalreadyinprogresserror') ||
+        error.code == '15';
   }
 
   Future<void> _purchasePro() async {
-    if (_isPurchaseLoading) return;
+    if (_isPurchaseLoading || _selectedPackage == null) return;
+    final package = _selectedPackage!;
     final purchaseNotConfirmedMessage = context.tr(
       'billing_purchase_not_confirmed',
     );
@@ -554,40 +350,11 @@ class _SubscriptionScreenState extends State<SubscriptionScreen> {
       );
       return;
     }
-    Package? package = _selectedPackage;
-    if (package == null) {
-      try {
-        final offerings = await RevenueCatService.getOfferings();
-        final packages = RevenueCatService.flattenAvailablePackages(offerings);
-        if (packages.isNotEmpty) {
-          _applyPackageOptions(packages);
-          package = _selectedPackage;
-          if (mounted) {
-            setState(() {
-              _selectedPackage = package;
-            });
-          }
-        }
-      } catch (_) {}
-    }
-    if (package == null) {
-      if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('No purchasable package available right now.'),
-          backgroundColor: Colors.redAccent,
-        ),
-      );
-      return;
-    }
-
     setState(() => _isPurchaseLoading = true);
     try {
       if (!RevenueCatService.isFamilyPackage(package)) {
         final canProceed = await _prepareIndividualPurchaseContext();
-        if (!canProceed) {
-          return;
-        }
+        if (!canProceed) return;
       }
       await RevenueCatService.purchasePackage(package);
       final syncPayload = await ApiClient.syncRevenueCatSubscription();
@@ -599,17 +366,11 @@ class _SubscriptionScreenState extends State<SubscriptionScreen> {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text(context.tr('billing_purchase_confirmed'))),
       );
-    } catch (e) {
-      Object effectiveError = e;
-      if (_isOperationInProgressError(e)) {
+    } catch (error) {
+      Object effectiveError = error;
+      if (_isOperationInProgressError(error)) {
         await Future<void>.delayed(const Duration(seconds: 1));
         try {
-          if (!RevenueCatService.isFamilyPackage(package)) {
-            final canProceed = await _prepareIndividualPurchaseContext();
-            if (!canProceed) {
-              return;
-            }
-          }
           await RevenueCatService.purchasePackage(package);
           final syncPayload = await ApiClient.syncRevenueCatSubscription();
           if (!_syncConfirmsExpectedPurchase(syncPayload, package)) {
@@ -643,29 +404,28 @@ class _SubscriptionScreenState extends State<SubscriptionScreen> {
   }
 
   Future<void> _restorePurchases() async {
-    if (_isPurchaseLoading) return;
-    if (!RevenueCatService.isAvailable) return;
+    if (_isPurchaseLoading || !RevenueCatService.isAvailable) return;
     setState(() => _isPurchaseLoading = true);
     try {
       await RevenueCatService.restorePurchases();
       await ApiClient.syncRevenueCatSubscription();
       await _loadSubscriptionData();
       if (!mounted) return;
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(const SnackBar(content: Text('Purchases restored.')));
-    } catch (e) {
-      Object effectiveError = e;
-      if (_isOperationInProgressError(e)) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(context.tr('billing_restore_success'))),
+      );
+    } catch (error) {
+      Object effectiveError = error;
+      if (_isOperationInProgressError(error)) {
         await Future<void>.delayed(const Duration(seconds: 1));
         try {
           await RevenueCatService.restorePurchases();
           await ApiClient.syncRevenueCatSubscription();
           await _loadSubscriptionData();
           if (!mounted) return;
-          ScaffoldMessenger.of(
-            context,
-          ).showSnackBar(const SnackBar(content: Text('Purchases restored.')));
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text(context.tr('billing_restore_success'))),
+          );
           return;
         } catch (retryError) {
           effectiveError = retryError;
@@ -675,7 +435,10 @@ class _SubscriptionScreenState extends State<SubscriptionScreen> {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(
-            'Restore failed: ${_friendlyBillingError(effectiveError)}',
+            context.tr(
+              'billing_restore_failed',
+              params: {'message': _friendlyBillingError(effectiveError)},
+            ),
           ),
           backgroundColor: Colors.redAccent,
         ),
@@ -685,35 +448,336 @@ class _SubscriptionScreenState extends State<SubscriptionScreen> {
     }
   }
 
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: const Color(0xFF120A1F),
-      appBar: AppBar(
-        title: const Text(
-          'Subscription',
-          style: TextStyle(fontSize: 36, fontWeight: FontWeight.w800),
+  Future<void> _applyDevAction(String action) async {
+    if (_isDevActionLoading) return;
+    final userId = _targetUserId;
+    if (userId == null || userId.isEmpty) return;
+    setState(() => _isDevActionLoading = true);
+    try {
+      await ApiClient.applyDevManualSubscriptionAction(
+        targetUserId: userId,
+        action: action,
+      );
+      await _loadSubscriptionData();
+    } finally {
+      if (mounted) setState(() => _isDevActionLoading = false);
+    }
+  }
+
+  String _formatDate(String? raw) {
+    if (raw == null || raw.isEmpty) return '--';
+    final parsed = DateTime.tryParse(raw)?.toLocal();
+    if (parsed == null) return raw;
+    final mm = parsed.month.toString().padLeft(2, '0');
+    final dd = parsed.day.toString().padLeft(2, '0');
+    return '$mm/$dd/${parsed.year}';
+  }
+
+  String _currentPlanTitle(BuildContext context) {
+    if (_activeFeatures.contains('premium.family_plan')) return 'Family Plan';
+    if (_hasActiveSubscription) return 'Pro Plan';
+    return context.tr('billing_plan_free');
+  }
+
+  String _currentPlanSubtitle(BuildContext context) {
+    if (!_hasActiveSubscription) {
+      return context.tr(
+        'billing_free_plan_subtitle',
+        params: {'limit': '$_receiptScanLimit'},
+      );
+    }
+    return context.tr(
+      'billing_active_until_compact',
+      params: {'date': _formatDate(_subscription?['expires_at']?.toString())},
+    );
+  }
+
+  String _purchaseCtaLabel() {
+    final package = _selectedPackage;
+    if (package == null) return context.tr('billing_subscribe_unavailable');
+    return context.tr(
+      'billing_subscribe_to_plan',
+      params: {
+        'plan': RevenueCatService.isFamilyPackage(package)
+            ? 'Family'
+            : 'Individual',
+        'price': package.storeProduct.priceString,
+        'unit': RevenueCatService.isYearlyPackage(package) ? '/yr' : '/mo',
+      },
+    );
+  }
+
+  List<String> _featuresForPackage(Package package) {
+    if (RevenueCatService.isFamilyPackage(package)) {
+      return const [
+        'Everything in Individual',
+        'Up to 5 family members',
+        'Shared household budgets',
+        'Family spending insights',
+        'Household management',
+        'Individual privacy controls',
+      ];
+    }
+    return const [
+      'Unlimited receipt scans',
+      'AI-powered insights',
+      'Advanced analytics',
+      'Export reports',
+      'Priority support',
+    ];
+  }
+
+  Widget _buildPeriodSelector() {
+    Widget chip(_BillingPeriod period) {
+      final selected = _selectedPeriod == period;
+      return Expanded(
+        child: InkWell(
+          borderRadius: BorderRadius.circular(12),
+          onTap: () => _selectPeriod(period),
+          child: Container(
+            height: 40,
+            alignment: Alignment.center,
+            decoration: BoxDecoration(
+              color: selected
+                  ? ShellStyles.surface(context)
+                  : Colors.transparent,
+              borderRadius: BorderRadius.circular(12),
+              boxShadow: selected
+                  ? [
+                      BoxShadow(
+                        color: Colors.black.withAlpha(10),
+                        blurRadius: 10,
+                        offset: const Offset(0, 3),
+                      ),
+                    ]
+                  : const [],
+            ),
+            child: Text(
+              period == _BillingPeriod.monthly
+                  ? context.tr('billing_period_monthly')
+                  : context.tr('billing_period_yearly'),
+              style: TextStyle(
+                color: ShellStyles.textPrimary(context),
+                fontSize: 13,
+                fontWeight: selected ? FontWeight.w700 : FontWeight.w500,
+              ),
+            ),
+          ),
         ),
-        backgroundColor: Colors.transparent,
-        foregroundColor: Colors.white,
-        elevation: 0,
-        actions: [
-          IconButton(
-            onPressed: _isLoading || _isPurchaseLoading
-                ? null
-                : _loadSubscriptionData,
-            icon: const Icon(Icons.refresh_rounded),
+      );
+    }
+
+    return SettingsDetailCard(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            context.tr('billing_period_title'),
+            style: TextStyle(
+              color: ShellStyles.textPrimary(context),
+              fontSize: 13,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+          const SizedBox(height: 10),
+          Container(
+            padding: const EdgeInsets.all(4),
+            decoration: BoxDecoration(
+              color: ShellStyles.surfaceAlt(context),
+              borderRadius: BorderRadius.circular(14),
+              border: Border.all(color: ShellStyles.border(context)),
+            ),
+            child: Row(
+              children: [
+                chip(_BillingPeriod.monthly),
+                const SizedBox(width: 6),
+                chip(_BillingPeriod.yearly),
+              ],
+            ),
           ),
         ],
       ),
-      body: _buildBody(),
+    );
+  }
+
+  Widget _buildPlanCard(Package package) {
+    final selected = _selectedPackage?.identifier == package.identifier;
+    final isFamily = RevenueCatService.isFamilyPackage(package);
+    return InkWell(
+      borderRadius: BorderRadius.circular(20),
+      onTap: () {
+        setState(() {
+          _selectedPackage = package;
+          _selectedPeriod = RevenueCatService.isYearlyPackage(package)
+              ? _BillingPeriod.yearly
+              : _BillingPeriod.monthly;
+        });
+      },
+      child: Container(
+        padding: const EdgeInsets.all(18),
+        decoration: BoxDecoration(
+          color: ShellStyles.surface(context),
+          borderRadius: BorderRadius.circular(20),
+          border: Border.all(
+            color: selected
+                ? ShellStyles.textPrimary(context)
+                : ShellStyles.border(context),
+            width: selected ? 1.5 : 1,
+          ),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withAlpha(10),
+              blurRadius: 16,
+              offset: const Offset(0, 6),
+            ),
+          ],
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                Container(
+                  width: 38,
+                  height: 38,
+                  alignment: Alignment.center,
+                  decoration: ShellStyles.iconBadgeDecoration(
+                    context,
+                    radius: 12,
+                  ),
+                  child: CrownIcon(
+                    color: isFamily
+                        ? ShellColors.gold
+                        : ShellStyles.textPrimary(context),
+                    size: 18,
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Text(
+                    isFamily ? 'Family' : 'Individual',
+                    style: TextStyle(
+                      color: ShellStyles.textPrimary(context),
+                      fontSize: 16,
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
+                ),
+                if (isFamily)
+                  Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 10,
+                      vertical: 4,
+                    ),
+                    decoration: BoxDecoration(
+                      color: ShellColors.gold.withAlpha(20),
+                      borderRadius: BorderRadius.circular(999),
+                    ),
+                    child: Text(
+                      context.tr('billing_best_value'),
+                      style: const TextStyle(
+                        color: ShellColors.gold,
+                        fontSize: 10.5,
+                        fontWeight: FontWeight.w800,
+                      ),
+                    ),
+                  ),
+              ],
+            ),
+            const SizedBox(height: 12),
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.end,
+              children: [
+                Text(
+                  package.storeProduct.priceString,
+                  style: TextStyle(
+                    color: ShellStyles.textPrimary(context),
+                    fontSize: 22,
+                    fontWeight: FontWeight.w800,
+                  ),
+                ),
+                const SizedBox(width: 4),
+                Padding(
+                  padding: const EdgeInsets.only(bottom: 2),
+                  child: Text(
+                    RevenueCatService.isYearlyPackage(package)
+                        ? '/year'
+                        : '/month',
+                    style: TextStyle(
+                      color: ShellStyles.textMuted(context),
+                      fontSize: 13,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 12),
+            ..._featuresForPackage(package).map((feature) {
+              return Padding(
+                padding: const EdgeInsets.only(bottom: 8),
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Padding(
+                      padding: EdgeInsets.only(top: 2),
+                      child: Icon(
+                        AppIcons.checkCircle,
+                        color: Color(0xFF79D9A1),
+                        size: 16,
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: Text(
+                        feature,
+                        style: TextStyle(
+                          color: ShellStyles.textPrimary(context),
+                          fontSize: 13,
+                          height: 1.3,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              );
+            }),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildDevToolsCard() {
+    return SettingsDetailCard(
+      child: Wrap(
+        spacing: 8,
+        runSpacing: 8,
+        children: [
+          FilledButton(
+            onPressed: _isDevActionLoading
+                ? null
+                : () => _applyDevAction('activate'),
+            child: const Text('Activate PRO'),
+          ),
+          FilledButton(
+            onPressed: _isDevActionLoading
+                ? null
+                : () => _applyDevAction('expire'),
+            child: const Text('Expire'),
+          ),
+          FilledButton(
+            onPressed: _isDevActionLoading
+                ? null
+                : () => _applyDevAction('revoke'),
+            child: const Text('Revoke'),
+          ),
+        ],
+      ),
     );
   }
 
   Widget _buildBody() {
-    if (_isLoading) {
-      return const Center(child: CircularProgressIndicator());
-    }
+    if (_isLoading) return const Center(child: CircularProgressIndicator());
     if (_error != null) {
       return Center(
         child: Padding(
@@ -721,15 +785,11 @@ class _SubscriptionScreenState extends State<SubscriptionScreen> {
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              Text(
-                _error!,
-                textAlign: TextAlign.center,
-                style: const TextStyle(color: Colors.redAccent),
-              ),
+              Text(_error!, textAlign: TextAlign.center),
               const SizedBox(height: 12),
-              ElevatedButton(
+              FilledButton(
                 onPressed: _loadSubscriptionData,
-                child: const Text('Retry'),
+                child: Text(context.tr('common_retry')),
               ),
             ],
           ),
@@ -737,590 +797,148 @@ class _SubscriptionScreenState extends State<SubscriptionScreen> {
       );
     }
 
-    return SingleChildScrollView(
-      padding: const EdgeInsets.fromLTRB(16, 8, 16, 24),
-      child: Column(
+    final individualPackage = _packageFor(false, _selectedPeriod);
+    final familyPackage = _packageFor(true, _selectedPeriod);
+
+    return SafeArea(
+      top: false,
+      child: Stack(
         children: [
-          Container(
-            width: double.infinity,
-            padding: const EdgeInsets.all(18),
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(28),
-              gradient: const LinearGradient(
-                colors: [Color(0xFF5A1AA6), Color(0xFF2A0F5C)],
-                begin: Alignment.topCenter,
-                end: Alignment.bottomCenter,
-              ),
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withAlpha(80),
-                  blurRadius: 22,
-                  offset: const Offset(0, 10),
-                ),
-              ],
-            ),
+          SingleChildScrollView(
+            padding: const EdgeInsets.fromLTRB(16, 16, 16, 120),
             child: Column(
-              crossAxisAlignment: CrossAxisAlignment.center,
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const Icon(
-                  Icons.workspace_premium_rounded,
-                  color: Color(0xFFF6D54A),
-                  size: 42,
-                ),
-                const SizedBox(height: 8),
-                const Text(
-                  'Unlock PRO Features',
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontSize: 34,
-                    fontWeight: FontWeight.w900,
-                  ),
-                  textAlign: TextAlign.center,
-                ),
-                const SizedBox(height: 6),
-                Text(
-                  _hasActiveSubscription
-                      ? 'Your premium access is active.'
-                      : 'Get unlimited access to all premium tools.',
-                  style: TextStyle(
-                    color: Colors.white.withAlpha(220),
-                    fontSize: 18,
-                    fontWeight: FontWeight.w600,
-                  ),
-                  textAlign: TextAlign.center,
-                ),
-                const SizedBox(height: 20),
-                _buildStatusChip(),
+                _buildPeriodSelector(),
                 const SizedBox(height: 16),
-                _buildFeaturePager(),
-                const SizedBox(height: 12),
-                _buildPagerDots(),
+                if (individualPackage != null)
+                  _buildPlanCard(individualPackage),
+                if (individualPackage != null && familyPackage != null)
+                  const SizedBox(height: 14),
+                if (familyPackage != null) _buildPlanCard(familyPackage),
+                if (individualPackage == null && familyPackage == null)
+                  SettingsDetailCard(
+                    child: Text(context.tr('billing_subscribe_unavailable')),
+                  ),
                 const SizedBox(height: 18),
-                _buildBenefitsRow(),
-                const SizedBox(height: 20),
-                _buildPurchaseSection(),
-                const SizedBox(height: 16),
-                _buildSubscriptionMeta(),
-              ],
-            ),
-          ),
-          if (_showDevTools) ...[
-            const SizedBox(height: 14),
-            _buildDevToolsCard(),
-          ],
-        ],
-      ),
-    );
-  }
-
-  Widget _buildStatusChip() {
-    final statusColor = _hasActiveSubscription
-        ? const Color(0xFFC084FC)
-        : const Color(0xFFFFB74D);
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
-      decoration: BoxDecoration(
-        color: Colors.black.withAlpha(30),
-        borderRadius: BorderRadius.circular(999),
-        border: Border.all(color: statusColor.withAlpha(190)),
-      ),
-      child: Text(
-        'STATUS: ${_statusLabel()}',
-        style: TextStyle(
-          color: statusColor,
-          fontSize: 13,
-          fontWeight: FontWeight.w800,
-          letterSpacing: 0.6,
-        ),
-      ),
-    );
-  }
-
-  Widget _buildFeaturePager() {
-    return SizedBox(
-      height: 292,
-      child: PageView.builder(
-        itemCount: _featureCards.length,
-        onPageChanged: (index) => setState(() => _activePageIndex = index),
-        itemBuilder: (context, index) {
-          final card = _featureCards[index];
-          final enabled = _activeFeatures.contains(card.code);
-          final isReceiptScansCard =
-              card.code == 'premium.receipt_scans.unlimited';
-          final freeValue = isReceiptScansCard
-              ? _receiptScansFreeValue()
-              : card.freeValue;
-          final freeColor =
-              isReceiptScansCard && _receiptScanUsed >= _receiptScanLimit
-              ? const Color(0xFF8C1D40)
-              : Colors.white.withAlpha(220);
-          return AnimatedContainer(
-            duration: const Duration(milliseconds: 200),
-            margin: const EdgeInsets.symmetric(horizontal: 4),
-            padding: const EdgeInsets.all(16),
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(24),
-              color: Colors.white.withAlpha(20),
-              border: Border.all(
-                color: enabled
-                    ? const Color(0xFFCC9EFF).withAlpha(185)
-                    : Colors.white.withAlpha(45),
-                width: 1.2,
-              ),
-            ),
-            child: Column(
-              children: [
-                Icon(
-                  card.icon,
-                  color: enabled
-                      ? const Color(0xFFCC9EFF)
-                      : Colors.white.withAlpha(220),
-                  size: 32,
+                SizedBox(
+                  width: double.infinity,
+                  child: FilledButton(
+                    onPressed: _selectedPackage == null || _isPurchaseLoading
+                        ? null
+                        : _purchasePro,
+                    style: FilledButton.styleFrom(
+                      backgroundColor: ShellStyles.textPrimary(context),
+                      foregroundColor: ShellStyles.surface(context),
+                      minimumSize: const Size.fromHeight(52),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(16),
+                      ),
+                    ),
+                    child: _isPurchaseLoading
+                        ? const SizedBox(
+                            width: 18,
+                            height: 18,
+                            child: CircularProgressIndicator(strokeWidth: 2),
+                          )
+                        : Text(_purchaseCtaLabel()),
+                  ),
                 ),
                 const SizedBox(height: 8),
-                Text(
-                  card.title,
-                  style: TextStyle(
-                    color: enabled ? const Color(0xFFCC9EFF) : Colors.white,
-                    fontSize: 26,
-                    fontWeight: FontWeight.w800,
+                Center(
+                  child: TextButton(
+                    onPressed: _isPurchaseLoading ? null : _restorePurchases,
+                    child: Text(context.tr('billing_restore_purchases')),
                   ),
                 ),
-                const SizedBox(height: 12),
-                Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 10,
-                    vertical: 10,
-                  ),
-                  decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(16),
-                    color: Colors.black.withAlpha(35),
-                  ),
-                  child: Row(
+                const SizedBox(height: 8),
+                SettingsDetailCard(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Expanded(
-                        child: _buildPriceCol(
-                          label: 'FREE',
-                          value: freeValue,
-                          color: freeColor,
+                      ShellStyles.sectionLabel(
+                        context,
+                        context.tr('billing_current_plan'),
+                      ),
+                      const SizedBox(height: 8),
+                      Text(
+                        _currentPlanTitle(context),
+                        style: TextStyle(
+                          color: ShellStyles.textPrimary(context),
+                          fontSize: 16,
+                          fontWeight: FontWeight.w700,
                         ),
                       ),
-                      Container(width: 1, height: 42, color: Colors.white24),
-                      Expanded(
-                        child: _buildPriceCol(
-                          label: 'PRO',
-                          value: card.proValue,
-                          color: const Color(0xFFF7D74B),
+                      const SizedBox(height: 4),
+                      Text(
+                        _currentPlanSubtitle(context),
+                        style: TextStyle(
+                          color: ShellStyles.textMuted(context),
+                          fontSize: 12.5,
                         ),
                       ),
+                      const SizedBox(height: 8),
+                      Text(
+                        _receiptScanUnlimited
+                            ? 'Unlimited receipt scans'
+                            : '${_receiptScanRemaining ?? 0} scans remaining this month',
+                        style: TextStyle(
+                          color: ShellStyles.textMuted(context),
+                          fontSize: 11.5,
+                        ),
+                      ),
+                      if (_receiptScanResetAtUtc != null) ...[
+                        const SizedBox(height: 4),
+                        Text(
+                          context.tr(
+                            'billing_resets_on',
+                            params: {
+                              'date': _formatDate(
+                                _receiptScanResetAtUtc!.toIso8601String(),
+                              ),
+                            },
+                          ),
+                          style: TextStyle(
+                            color: ShellStyles.textMuted(context),
+                            fontSize: 11.5,
+                          ),
+                        ),
+                      ],
                     ],
                   ),
                 ),
-                const SizedBox(height: 14),
-                Expanded(
-                  child: Center(
-                    child: Text(
-                      card.description,
-                      style: TextStyle(
-                        color: Colors.white.withAlpha(220),
-                        fontSize: 15,
-                        fontWeight: FontWeight.w600,
-                      ),
-                      textAlign: TextAlign.center,
-                      maxLines: 2,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                  ),
-                ),
+                if (_showDevTools) ...[
+                  const SizedBox(height: 16),
+                  _buildDevToolsCard(),
+                ],
               ],
             ),
-          );
-        },
-      ),
-    );
-  }
-
-  Widget _buildPriceCol({
-    required String label,
-    required String value,
-    required Color color,
-  }) {
-    return Column(
-      children: [
-        Text(
-          label,
-          style: TextStyle(
-            color: color.withAlpha(230),
-            fontSize: 14,
-            fontWeight: FontWeight.w700,
-            letterSpacing: 0.6,
           ),
-        ),
-        const SizedBox(height: 4),
-        SizedBox(
-          height: 44,
-          child: FittedBox(
-            fit: BoxFit.scaleDown,
-            child: Text(
-              value,
-              maxLines: 1,
-              style: TextStyle(
-                color: color,
-                fontSize: 34,
-                fontWeight: FontWeight.w900,
-              ),
+          if (_isPurchaseLoading)
+            const Positioned(
+              left: 0,
+              right: 0,
+              bottom: 0,
+              child: LinearProgressIndicator(minHeight: 2),
             ),
-          ),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildPagerDots() {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.center,
-      children: List.generate(_featureCards.length, (index) {
-        final active = index == _activePageIndex;
-        return AnimatedContainer(
-          duration: const Duration(milliseconds: 200),
-          margin: const EdgeInsets.symmetric(horizontal: 4),
-          width: active ? 20 : 8,
-          height: 8,
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(999),
-            color: active
-                ? const Color(0xFFF7D74B)
-                : Colors.white.withAlpha(100),
-          ),
-        );
-      }),
-    );
-  }
-
-  Widget _buildBenefitsRow() {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-      children: const [
-        _BenefitPill(
-          icon: Icons.verified_user_outlined,
-          text: 'Secure & private',
-        ),
-        _BenefitPill(icon: Icons.update_rounded, text: 'Regular updates'),
-        _BenefitPill(
-          icon: Icons.support_agent_rounded,
-          text: 'Priority support',
-        ),
-      ],
-    );
-  }
-
-  Widget _buildSubscriptionMeta() {
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.all(12),
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(18),
-        color: Colors.black.withAlpha(25),
-      ),
-      child: Column(
-        children: [
-          _metaRow('Provider', (_subscription?['provider'] ?? '--').toString()),
-          const SizedBox(height: 4),
-          _metaRow(
-            'Product',
-            (_subscription?['product_id'] ?? '--').toString(),
-          ),
-          const SizedBox(height: 4),
-          _metaRow('Scans This Month', _receiptScansMonthValue()),
-          const SizedBox(height: 4),
-          _metaRow('Quota', _monthlyUsageLabel()),
-          const SizedBox(height: 4),
-          _metaRow('Valid Until', _dateLabel('expires_at')),
         ],
       ),
     );
   }
-
-  Widget _buildPurchaseSection() {
-    if (_hasActiveSubscription) {
-      return Container(
-        width: double.infinity,
-        padding: const EdgeInsets.all(12),
-        decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(18),
-          color: const Color(0xFF1A1230),
-          border: Border.all(color: const Color(0xFFB388FF).withAlpha(90)),
-        ),
-        child: Column(
-          children: [
-            const Text(
-              'PRO is active on your account.',
-              style: TextStyle(
-                color: Color(0xFFE7D3FF),
-                fontSize: 15,
-                fontWeight: FontWeight.w700,
-              ),
-              textAlign: TextAlign.center,
-            ),
-            const SizedBox(height: 8),
-            OutlinedButton(
-              onPressed: _isPurchaseLoading ? null : _restorePurchases,
-              child: const Text('Restore Purchases'),
-            ),
-          ],
-        ),
-      );
-    }
-
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.all(12),
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(18),
-        color: const Color(0xFF1A1230),
-        border: Border.all(color: const Color(0xFFB388FF).withAlpha(90)),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          if (_monthlyPackage != null || _yearlyPackage != null) ...[
-            _buildPackageAudienceSelector(),
-            if (_hasFamilyPackages() && _hasIndividualPackages())
-              const SizedBox(height: 8),
-            _buildPlanSelector(),
-            const SizedBox(height: 10),
-          ],
-          ElevatedButton(
-            onPressed: _isPurchaseLoading ? null : _purchasePro,
-            style: ElevatedButton.styleFrom(
-              backgroundColor: const Color(0xFF7E57C2),
-              foregroundColor: Colors.white,
-              padding: const EdgeInsets.symmetric(vertical: 12),
-            ),
-            child: Text(_purchaseCtaLabel()),
-          ),
-          const SizedBox(height: 8),
-          OutlinedButton(
-            onPressed: _isPurchaseLoading ? null : _restorePurchases,
-            child: const Text('Restore Purchases'),
-          ),
-          if (_isPurchaseLoading) ...[
-            const SizedBox(height: 8),
-            const LinearProgressIndicator(minHeight: 2),
-          ],
-        ],
-      ),
-    );
-  }
-
-  Widget _buildPlanSelector() {
-    final options = <Package>[];
-    if (_monthlyPackage != null) {
-      options.add(_monthlyPackage!);
-    }
-    if (_yearlyPackage != null &&
-        _yearlyPackage!.identifier != _monthlyPackage?.identifier) {
-      options.add(_yearlyPackage!);
-    }
-    if (options.isEmpty && _selectedPackage != null) {
-      options.add(_selectedPackage!);
-    }
-    if (options.length <= 1) {
-      return const SizedBox.shrink();
-    }
-
-    return Row(
-      children: options.map((package) {
-        final isYearly = _yearlyPackage?.identifier == package.identifier;
-        return Expanded(
-          child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 4),
-            child: _buildPlanTile(package: package, isYearly: isYearly),
-          ),
-        );
-      }).toList(),
-    );
-  }
-
-  Widget _buildPlanTile({required Package package, required bool isYearly}) {
-    final selected = _selectedPackage?.identifier == package.identifier;
-    final borderColor = selected
-        ? const Color(0xFFF7D74B)
-        : Colors.white.withAlpha(75);
-    final backgroundColor = selected
-        ? const Color(0xFF5B2E88).withAlpha(210)
-        : Colors.black.withAlpha(25);
-
-    return InkWell(
-      borderRadius: BorderRadius.circular(12),
-      onTap: () => setState(() => _selectedPackage = package),
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 10),
-        decoration: BoxDecoration(
-          color: backgroundColor,
-          borderRadius: BorderRadius.circular(12),
-          border: Border.all(color: borderColor),
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            if (isYearly)
-              const Text(
-                'BEST VALUE',
-                style: TextStyle(
-                  color: Color(0xFFF7D74B),
-                  fontSize: 10,
-                  fontWeight: FontWeight.w800,
-                  letterSpacing: 0.5,
-                ),
-              ),
-            if (isYearly) const SizedBox(height: 2),
-            Text(
-              _packagePlanLabel(package),
-              style: const TextStyle(
-                color: Colors.white,
-                fontSize: 14,
-                fontWeight: FontWeight.w700,
-              ),
-            ),
-            const SizedBox(height: 2),
-            Text(
-              package.storeProduct.priceString,
-              style: TextStyle(
-                color: selected
-                    ? const Color(0xFFF7D74B)
-                    : Colors.white.withAlpha(220),
-                fontSize: 16,
-                fontWeight: FontWeight.w800,
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _metaRow(String label, String value) {
-    return Row(
-      children: [
-        Expanded(
-          child: Text(
-            label,
-            style: TextStyle(
-              color: Colors.white.withAlpha(190),
-              fontSize: 13,
-              fontWeight: FontWeight.w700,
-            ),
-          ),
-        ),
-        Text(
-          value,
-          style: const TextStyle(
-            color: Colors.white,
-            fontSize: 13,
-            fontWeight: FontWeight.w700,
-          ),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildDevToolsCard() {
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.all(14),
-      decoration: BoxDecoration(
-        color: const Color(0xFF1A1230),
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: const Color(0xFFB388FF).withAlpha(90)),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          const Text(
-            'Developer simulation',
-            style: TextStyle(
-              color: Colors.white,
-              fontSize: 16,
-              fontWeight: FontWeight.w700,
-            ),
-          ),
-          const SizedBox(height: 6),
-          Text(
-            'User ID: ${_targetUserId ?? "--"}',
-            style: TextStyle(color: Colors.white.withAlpha(180), fontSize: 12),
-          ),
-          const SizedBox(height: 10),
-          Wrap(
-            spacing: 8,
-            runSpacing: 8,
-            children: [
-              _devActionButton('Activate PRO', 'activate', Colors.green),
-              _devActionButton('Expire', 'expire', Colors.orange),
-              _devActionButton('Revoke', 'revoke', Colors.redAccent),
-            ],
-          ),
-          if (_isDevActionLoading) ...[
-            const SizedBox(height: 10),
-            const LinearProgressIndicator(minHeight: 2),
-          ],
-        ],
-      ),
-    );
-  }
-
-  Widget _devActionButton(String label, String action, Color color) {
-    return ElevatedButton(
-      onPressed: _isDevActionLoading ? null : () => _applyDevAction(action),
-      style: ElevatedButton.styleFrom(
-        backgroundColor: color.withAlpha(220),
-        foregroundColor: Colors.white,
-        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
-      ),
-      child: Text(label),
-    );
-  }
-}
-
-class _FeatureCardData {
-  const _FeatureCardData({
-    required this.code,
-    required this.title,
-    required this.description,
-    required this.freeValue,
-    required this.proValue,
-    required this.icon,
-  });
-
-  final String code;
-  final String title;
-  final String description;
-  final String freeValue;
-  final String proValue;
-  final IconData icon;
-}
-
-class _BenefitPill extends StatelessWidget {
-  const _BenefitPill({required this.icon, required this.text});
-
-  final IconData icon;
-  final String text;
 
   @override
   Widget build(BuildContext context) {
-    return Column(
-      children: [
-        Icon(icon, color: Colors.white.withAlpha(225), size: 20),
-        const SizedBox(height: 4),
-        Text(
-          text,
-          style: TextStyle(
-            color: Colors.white.withAlpha(225),
-            fontSize: 12,
-            fontWeight: FontWeight.w600,
-          ),
+    return SettingsDetailScaffold(
+      title: context.tr('settings_subscription'),
+      actions: [
+        IconButton(
+          onPressed: _isLoading || _isPurchaseLoading
+              ? null
+              : _loadSubscriptionData,
+          icon: const Icon(AppIcons.refresh),
         ),
       ],
+      body: _buildBody(),
     );
   }
 }

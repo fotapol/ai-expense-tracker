@@ -91,3 +91,31 @@ class HouseholdInviteStatus(str, Enum):  # noqa: UP042
     ACCEPTED = "accepted"
     EXPIRED = "expired"
     REVOKED = "revoked"
+
+
+class FeatureRequestCategory(str, Enum):  # noqa: UP042
+    """User-selectable category for a feature request."""
+
+    ANALYTICS_REPORTS = "analytics_reports"
+    RECEIPTS_SCANNING = "receipts_scanning"
+    BUDGETS_PLANNING = "budgets_planning"
+    HOUSEHOLD_SHARING = "household_sharing"
+    DESIGN_ACCESSIBILITY = "design_accessibility"
+    OTHER = "other"
+
+
+class FeatureRequestModerationState(str, Enum):  # noqa: UP042
+    """Moderation state that controls public visibility."""
+
+    PENDING = "pending"
+    APPROVED = "approved"
+    REJECTED = "rejected"
+
+
+class FeatureRequestPublicStatus(str, Enum):  # noqa: UP042
+    """Public lifecycle badge shown on curated feature requests."""
+
+    UNDER_REVIEW = "under_review"
+    PLANNED = "planned"
+    IN_PROGRESS = "in_progress"
+    COMPLETED = "completed"

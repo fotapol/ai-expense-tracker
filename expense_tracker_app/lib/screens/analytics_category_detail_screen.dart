@@ -38,6 +38,13 @@ class _AnalyticsCategoryDetailScreenState
   Map<String, dynamic>? _data;
 
   String _currencySymbol(String code) {
+    final normalized = code.toUpperCase();
+    if (normalized == 'EUR') return '\u20AC';
+    if (normalized == 'USD') return '\$';
+    if (normalized == 'GBP') return '\u00A3';
+    if (normalized == 'AUD') return 'A\$';
+    if (normalized == 'CAD') return 'C\$';
+    if (normalized == 'RSD') return 'RSD ';
     switch (code.toUpperCase()) {
       case 'EUR':
         return '€';
@@ -54,7 +61,7 @@ class _AnalyticsCategoryDetailScreenState
 
   String _formatMoney(String currency, double amount) {
     final symbol = _currencySymbol(currency);
-    if (symbol.trim().length == 1 || symbol == 'RSD ') {
+    if (symbol != '${currency.toUpperCase()} ') {
       final sign = amount < 0 ? '-' : '';
       return '$sign$symbol${amount.abs().toStringAsFixed(2)}';
     }
