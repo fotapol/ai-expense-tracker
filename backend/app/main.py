@@ -15,6 +15,7 @@ from app.api.routers import (
     households,
     item_translations,
     labels,
+    planning,
     receipts,
     transactions,
     users,
@@ -84,6 +85,7 @@ app.include_router(data.router)
 app.include_router(households.router)
 app.include_router(feature_requests.router)
 app.include_router(feature_requests.internal_router)
+app.include_router(planning.router)
 if billing.should_include_dev_billing_router():
     app.include_router(billing.dev_router)
 

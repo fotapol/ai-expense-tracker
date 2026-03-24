@@ -12,6 +12,8 @@ from app.models.labels.label import Label, LabelBase
 from app.models.labels.transaction_label import TransactionLabel
 from app.models.merchants.merchant import Merchant, MerchantAlias, MerchantAliasBase, MerchantBase
 from app.models.overrides.user_category import UserCategoryOverride, UserItemCategoryOverride
+from app.models.planning.bill_reminder import BillReminder
+from app.models.planning.budget import BudgetCategoryLimit, BudgetSettings
 from app.models.receipts.receipt import Receipt, ReceiptBase
 from app.models.receipts.receipt_extraction import ReceiptExtraction
 from app.models.shared.enums import (
@@ -51,6 +53,9 @@ __all__ = [
     "FeatureRequestModerationState",
     "FeatureRequestPublicStatus",
     "FeatureRequestVote",
+    "BillReminder",
+    "BudgetCategoryLimit",
+    "BudgetSettings",
     "Household",
     "HouseholdBase",
     "HouseholdInvite",

@@ -6,6 +6,7 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'firebase_options.dart';
+import 'core/bill_reminder_notification_service.dart';
 import 'core/invite_link_service.dart';
 import 'core/locale_provider.dart';
 import 'core/revenuecat_service.dart';
@@ -25,6 +26,7 @@ void main() async {
   await GoogleSignIn.instance.initialize();
   await RevenueCatService.logInCurrentUser();
   await InviteLinkService.instance.initialize();
+  await BillReminderNotificationService.instance.initialize();
   await localeProvider.load();
   runApp(const MyApp());
 }
@@ -36,7 +38,7 @@ class MyApp extends StatefulWidget {
   State<MyApp> createState() => _MyAppState();
 }
 
-class _MyAppState extends State<MyApp> {
+class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
   bool _inviteRouteOpen = false;
   StreamSubscription<User?>? _authSubscription;
 
@@ -78,19 +80,34 @@ class _MyAppState extends State<MyApp> {
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addObserver(this);
     themeProvider.addListener(_refreshApp);
     localeProvider.addListener(_refreshApp);
     InviteLinkService.instance.addListener(_onInviteUpdated);
     _authSubscription = FirebaseAuth.instance.authStateChanges().listen((_) {
+      BillReminderNotificationService.instance.handleAuthStateChanged(
+        FirebaseAuth.instance.currentUser,
+      );
       _maybeOpenInviteAcceptance();
     });
     WidgetsBinding.instance.addPostFrameCallback((_) {
+      BillReminderNotificationService.instance.handleAuthStateChanged(
+        FirebaseAuth.instance.currentUser,
+      );
       _maybeOpenInviteAcceptance();
     });
   }
 
   @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state != AppLifecycleState.resumed) return;
+    BillReminderNotificationService.instance.syncScheduledNotifications();
+    _maybeOpenInviteAcceptance();
+  }
+
+  @override
   void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
     themeProvider.removeListener(_refreshApp);
     localeProvider.removeListener(_refreshApp);
     InviteLinkService.instance.removeListener(_onInviteUpdated);
