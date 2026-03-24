@@ -2,6 +2,8 @@
 
 from app.models.billing.entitlement import Entitlement
 from app.models.billing.subscription import Subscription
+from app.models.feature_requests.feature_request import FeatureRequest, FeatureRequestBase
+from app.models.feature_requests.feature_request_vote import FeatureRequestVote
 from app.models.fx.exchange_rate import ExchangeRate
 from app.models.households.household import Household, HouseholdBase
 from app.models.households.household_invite import HouseholdInvite
@@ -18,6 +20,9 @@ from app.models.shared.enums import (
     CategoryScope,
     EntitlementScopeType,
     EntitlementStatus,
+    FeatureRequestCategory,
+    FeatureRequestModerationState,
+    FeatureRequestPublicStatus,
     HouseholdInviteStatus,
     HouseholdMemberRole,
     HouseholdMemberStatus,
@@ -42,6 +47,12 @@ __all__ = [
     "EntitlementScopeType",
     "EntitlementStatus",
     "ExchangeRate",
+    "FeatureRequest",
+    "FeatureRequestBase",
+    "FeatureRequestCategory",
+    "FeatureRequestModerationState",
+    "FeatureRequestPublicStatus",
+    "FeatureRequestVote",
     "BillReminder",
     "BudgetCategoryLimit",
     "BudgetSettings",
