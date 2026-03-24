@@ -125,6 +125,12 @@ class _AnalyticsOverviewTabState extends State<AnalyticsOverviewTab> {
     }
   }
 
+  double _parseDouble(Object? value) {
+    if (value == null) return 0.0;
+    if (value is num) return value.toDouble();
+    return double.tryParse(value.toString()) ?? 0.0;
+  }
+
   @override
   Widget build(BuildContext context) {
     final hasData = _summaryData != null || _trendsData != null;
@@ -162,19 +168,16 @@ class _AnalyticsOverviewTabState extends State<AnalyticsOverviewTab> {
 
     final summary = _summaryData ?? const <String, dynamic>{};
     final trends = _trendsData ?? const <String, dynamic>{};
-    final totalAmount = (summary['total_amount'] as num?)?.toDouble() ?? 0;
+    final totalAmount = _parseDouble(summary['total_amount']);
     final totalTransactions =
         (summary['total_transactions'] as num?)?.toInt() ?? 0;
     final discounts = summary['discounts'] as Map<String, dynamic>? ??
         const <String, dynamic>{};
-    final totalSavings =
-        (discounts['total_savings'] as num?)?.toDouble() ?? 0;
+    final totalSavings = _parseDouble(discounts['total_savings']);
     final currency = (summary['currency']?.toString() ?? 'EUR').toUpperCase();
     final breakdown = summary['breakdown'] as List<dynamic>? ?? const [];
-    final previousTotal =
-        (trends['previous_total_amount'] as num?)?.toDouble();
-    final changePercentage =
-        (trends['change_percentage'] as num?)?.toDouble();
+    final previousTotal = trends['previous_total_amount'] != null ? _parseDouble(trends['previous_total_amount']) : null;
+    final changePercentage = trends['change_percentage'] != null ? _parseDouble(trends['change_percentage']) : null;
 
     return RefreshIndicator(
       onRefresh: _fetchData,
@@ -462,10 +465,8 @@ class _AnalyticsOverviewTabState extends State<AnalyticsOverviewTab> {
                     code: category['code']?.toString(),
                     fallbackName: category['name']?.toString(),
                   );
-                  final amount =
-                      (category['amount'] as num?)?.toDouble() ?? 0;
-                  final percentage =
-                      (category['percentage'] as num?)?.toDouble() ?? 0;
+                  final amount = _parseDouble(category['amount']);
+                  final percentage = _parseDouble(category['percentage']);
                   final normalizedProgress = totalAmount > 0
                       ? (amount / totalAmount).clamp(0.0, 1.0)
                       : 0.0;
@@ -536,8 +537,7 @@ class _AnalyticsOverviewTabState extends State<AnalyticsOverviewTab> {
         householdData?['household']?['name']?.toString() ??
         widget.currentHousehold?['name']?.toString() ??
         context.tr('analytics_tab_households');
-    final totalAmount =
-        (householdData?['total_amount'] as num?)?.toDouble() ?? 0;
+    final totalAmount = _parseDouble(householdData?['total_amount']);
     final members =
         householdData?['members'] as List<dynamic>? ?? const <dynamic>[];
 
@@ -612,10 +612,8 @@ class _AnalyticsOverviewTabState extends State<AnalyticsOverviewTab> {
                         : (email != null && email.isNotEmpty)
                               ? email
                               : context.tr('home_default_user');
-                    final amount =
-                        (member['total_amount'] as num?)?.toDouble() ?? 0;
-                    final percentage =
-                        (member['percentage'] as num?)?.toDouble() ?? 0;
+                    final amount = _parseDouble(member['total_amount']);
+                    final percentage = _parseDouble(member['percentage']);
                     return Padding(
                       padding: const EdgeInsets.only(bottom: 10),
                       child: Row(

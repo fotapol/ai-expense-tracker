@@ -136,9 +136,8 @@ class _AnalyticsHouseholdTabState extends State<AnalyticsHouseholdTab> {
 
     final data = _data ?? const <String, dynamic>{};
     final currency = (data['currency']?.toString() ?? 'EUR').toUpperCase();
-    final totalAmount = (data['total_amount'] as num?)?.toDouble() ?? 0;
-    final totalTransactions =
-        (data['total_transactions'] as num?)?.toInt() ?? 0;
+    final totalAmount = _parseDouble(data['total_amount']);
+    final totalTransactions = (data['total_transactions'] as num?)?.toInt() ?? 0;
     final members = data['members'] as List<dynamic>? ?? const <dynamic>[];
 
     return RefreshIndicator(
@@ -265,6 +264,12 @@ class _AnalyticsHouseholdTabState extends State<AnalyticsHouseholdTab> {
     );
   }
 
+  double _parseDouble(Object? value) {
+    if (value == null) return 0.0;
+    if (value is num) return value.toDouble();
+    return double.tryParse(value.toString()) ?? 0.0;
+  }
+
   Widget _buildHeaderCard(
     BuildContext context, {
     required String currency,
@@ -350,8 +355,8 @@ class _AnalyticsHouseholdTabState extends State<AnalyticsHouseholdTab> {
         : (email != null && email.isNotEmpty)
               ? email
               : context.tr('home_default_user');
-    final totalAmount = (member['total_amount'] as num?)?.toDouble() ?? 0;
-    final percentage = (member['percentage'] as num?)?.toDouble() ?? 0;
+    final totalAmount = _parseDouble(member['total_amount']);
+    final percentage = _parseDouble(member['percentage']);
     final transactionCount =
         (member['transaction_count'] as num?)?.toInt() ?? 0;
     final topCategory = member['top_category'] as Map<String, dynamic>?;
