@@ -731,14 +731,6 @@ class _TransactionEditScreenState extends State<TransactionEditScreen> {
     return null;
   }
 
-  String _localizedCategoryName(Map<String, dynamic> category) {
-    return localizeCategoryByCode(
-      context,
-      code: category['code']?.toString(),
-      fallbackName: category['name']?.toString(),
-    );
-  }
-
   List<String> _itemCategoryTags(String? categoryId) {
     final category = _findCategoryById(categoryId);
     if (category == null) return [context.tr('transaction_select_category')];

@@ -45,7 +45,6 @@ class _SubscriptionScreenState extends State<SubscriptionScreen> {
   List<Package> _availablePackages = const <Package>[];
   Package? _selectedPackage;
   _BillingPeriod _selectedPeriod = _BillingPeriod.monthly;
-  int _receiptScanUsed = 0;
   int _receiptScanLimit = 10;
   int? _receiptScanRemaining;
   bool _receiptScanUnlimited = false;
@@ -131,7 +130,6 @@ class _SubscriptionScreenState extends State<SubscriptionScreen> {
       setState(() {
         _subscriptionPayload = subscriptionPayload;
         _activeFeatures = featureCodes;
-        _receiptScanUsed = int.tryParse((usage['used'] ?? 0).toString()) ?? 0;
         final parsedLimit =
             int.tryParse((usage['limit'] ?? 10).toString()) ?? 10;
         _receiptScanLimit = parsedLimit > 0 ? parsedLimit : 10;
