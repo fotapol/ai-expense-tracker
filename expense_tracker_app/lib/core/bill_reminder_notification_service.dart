@@ -45,7 +45,7 @@ class BillReminderNotificationService {
       tz.setLocalLocation(tz.UTC);
     }
 
-    const android = AndroidInitializationSettings('ic_launcher');
+    const android = AndroidInitializationSettings('@mipmap/ic_launcher');
     const darwin = DarwinInitializationSettings(
       requestAlertPermission: false,
       requestBadgePermission: false,
