@@ -206,7 +206,7 @@ class ToolsScreen extends StatelessWidget {
       borderRadius: BorderRadius.circular(18),
       onTap: onTap,
       child: Container(
-        height: 145,
+        height: 154,
         padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 16),
         decoration: ShellStyles.cardDecoration(context, radius: 18),
         child: Column(

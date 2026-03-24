@@ -112,17 +112,13 @@ class _AnalyticsTrendsTabState extends State<AnalyticsTrendsTab> {
 
     final data = _data ?? const <String, dynamic>{};
     final currency = (data['currency']?.toString() ?? 'EUR').toUpperCase();
-    final currentTotal =
-        (data['current_total_amount'] as num?)?.toDouble() ?? 0;
-    final previousTotal =
-        (data['previous_total_amount'] as num?)?.toDouble();
-    final changePercentage =
-        (data['change_percentage'] as num?)?.toDouble();
-    final buckets =
-        data['buckets'] as List<dynamic>? ?? const <dynamic>[];
+    final currentTotal = _parseDouble(data['current_total_amount']);
+    final previousTotal = data['previous_total_amount'] != null ? _parseDouble(data['previous_total_amount']) : null;
+    final changePercentage = data['change_percentage'] != null ? _parseDouble(data['change_percentage']) : null;
+    final buckets = data['buckets'] as List<dynamic>? ?? const <dynamic>[];
     final numericBuckets = buckets
         .whereType<Map<String, dynamic>>()
-        .map((bucket) => (bucket['amount'] as num?)?.toDouble() ?? 0)
+        .map((bucket) => _parseDouble(bucket['amount']))
         .toList();
     final hasChartData = numericBuckets.any((value) => value > 0);
     final highestBucketIndex = numericBuckets.isEmpty
@@ -216,7 +212,7 @@ class _AnalyticsTrendsTabState extends State<AnalyticsTrendsTab> {
                     ? context.tr('analytics_no_data')
                     : formatMoney(
                         currency,
-                        (highestBucket['amount'] as num?)?.toDouble() ?? 0,
+                        _parseDouble(highestBucket['amount']),
                       ),
                 subtitle:
                     highestBucket?['label']?.toString() ??
@@ -234,6 +230,12 @@ class _AnalyticsTrendsTabState extends State<AnalyticsTrendsTab> {
         ],
       ),
     );
+  }
+
+  double _parseDouble(Object? value) {
+    if (value == null) return 0.0;
+    if (value is num) return value.toDouble();
+    return double.tryParse(value.toString()) ?? 0.0;
   }
 
   Widget _buildSummaryCard(
@@ -377,7 +379,7 @@ class _AnalyticsTrendsTabState extends State<AnalyticsTrendsTab> {
     required List<Map<String, dynamic>> buckets,
   }) {
     final values = buckets
-        .map((bucket) => (bucket['amount'] as num?)?.toDouble() ?? 0)
+        .map((bucket) => _parseDouble(bucket['amount']))
         .toList();
     final hasSinglePoint = values.length == 1;
     final chartValues = hasSinglePoint ? <double>[values.first, values.first] : values;
@@ -421,8 +423,8 @@ class _AnalyticsTrendsTabState extends State<AnalyticsTrendsTab> {
           sideTitles: SideTitles(
             showTitles: true,
             reservedSize: 34,
-            interval: chartValues.length > 5
-                ? math.max((chartValues.length / 4).floorToDouble(), 1)
+            interval: chartValues.length > 3
+                ? math.max((chartValues.length / 3).ceilToDouble(), 1)
                 : 1,
             getTitlesWidget: (value, meta) {
               final index = value.round();
@@ -452,6 +454,7 @@ class _AnalyticsTrendsTabState extends State<AnalyticsTrendsTab> {
       lineBarsData: [
         LineChartBarData(
           isCurved: true,
+          preventCurveOverShooting: true,
           color: ShellColors.softBlue,
           barWidth: 3,
           dotData: FlDotData(
