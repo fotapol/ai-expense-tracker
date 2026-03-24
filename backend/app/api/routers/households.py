@@ -29,10 +29,12 @@ from app.services.households import (
     build_invite_link,
     create_household,
     create_invite,
+    delete_household,
     derive_invite_effective_state,
     get_active_household_for_user,
     get_invite_by_id,
     get_member_for_user,
+    leave_household,
     list_household_invites,
     list_household_members,
     remove_member,
@@ -155,6 +157,38 @@ async def update_current_household(
     _assert_household_management_entitlement(session, current_user)
     household = update_household(session, household, name=payload.name)
     return HouseholdRead.model_validate(household)
+
+
+@router.post("/households/current/leave", status_code=status.HTTP_204_NO_CONTENT)
+@limiter.limit("20/minute")
+async def leave_current_household(
+    request: Request,
+    session: Session = Depends(get_session),  # noqa: B008
+    current_user: User = Depends(get_current_user),  # noqa: B008
+):
+    """Leave the active household as a non-owner member."""
+
+    household = _require_active_household(session, current_user)
+    member = get_member_for_user(session, household.id, current_user.id)
+    assert_household_member(member)
+    leave_household(session, member)
+    return None
+
+
+@router.delete("/households/current", status_code=status.HTTP_204_NO_CONTENT)
+@limiter.limit("10/minute")
+async def delete_current_household(
+    request: Request,
+    session: Session = Depends(get_session),  # noqa: B008
+    current_user: User = Depends(get_current_user),  # noqa: B008
+):
+    """Remove the caller's household entirely. Owner only."""
+
+    household = _require_active_household(session, current_user)
+    member = get_member_for_user(session, household.id, current_user.id)
+    assert_household_owner(member)
+    delete_household(session, household)
+    return None
 
 
 @router.get("/households/current/members", response_model=list[HouseholdMemberRead])

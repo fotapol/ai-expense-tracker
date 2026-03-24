@@ -1,3 +1,13 @@
+class PeriodDateRange {
+  const PeriodDateRange({
+    required this.start,
+    required this.end,
+  });
+
+  final DateTime? start;
+  final DateTime? end;
+}
+
 class PeriodFilter {
   static const String last7Days = 'Last 7 Days';
   static const String thisMonth = 'This Month';
@@ -42,39 +52,121 @@ class PeriodFilter {
     }
   }
 
-  /// Returns the start date for the given filter, or null for All Time.
-  static DateTime? getStartDate(String filter) {
+  static DateTime _startOfDay(DateTime value) {
+    return DateTime(value.year, value.month, value.day);
+  }
+
+  static DateTime _endOfDay(DateTime value) {
+    return DateTime(value.year, value.month, value.day, 23, 59, 59, 999, 999);
+  }
+
+  static PeriodDateRange getRange(String filter) {
     final now = DateTime.now();
+    final todayStart = _startOfDay(now);
+    final todayEnd = _endOfDay(now);
+
     switch (filter) {
       case last7Days:
-        return now.subtract(const Duration(days: 7));
+        return PeriodDateRange(
+          start: todayStart.subtract(const Duration(days: 6)),
+          end: todayEnd,
+        );
       case thisMonth:
-        return DateTime(now.year, now.month, 1);
+        return PeriodDateRange(
+          start: DateTime(now.year, now.month, 1),
+          end: todayEnd,
+        );
       case last30Days:
-        return now.subtract(const Duration(days: 30));
+        return PeriodDateRange(
+          start: todayStart.subtract(const Duration(days: 29)),
+          end: todayEnd,
+        );
       case last3Months:
-        return now.subtract(const Duration(days: 90));
+        return PeriodDateRange(
+          start: todayStart.subtract(const Duration(days: 89)),
+          end: todayEnd,
+        );
       case last6Months:
-        return now.subtract(const Duration(days: 180));
+        return PeriodDateRange(
+          start: todayStart.subtract(const Duration(days: 179)),
+          end: todayEnd,
+        );
       case last12Months:
-        return now.subtract(const Duration(days: 365));
+        return PeriodDateRange(
+          start: todayStart.subtract(const Duration(days: 364)),
+          end: todayEnd,
+        );
       case thisYear:
-        return DateTime(now.year, 1, 1);
+        return PeriodDateRange(
+          start: DateTime(now.year, 1, 1),
+          end: todayEnd,
+        );
       case allTime:
-        return null;
+        return PeriodDateRange(start: null, end: todayEnd);
       default:
-        return now.subtract(const Duration(days: 90));
+        return PeriodDateRange(
+          start: todayStart.subtract(const Duration(days: 89)),
+          end: todayEnd,
+        );
+    }
+  }
+
+  /// Returns the start date for the given filter, or null for All Time.
+  static DateTime? getStartDate(String filter) {
+    return getRange(filter).start;
+  }
+
+  /// Returns the end date for the given filter.
+  static DateTime? getEndDate(String filter) {
+    return getRange(filter).end;
+  }
+
+  static PeriodDateRange? getPreviousMatchedRange(String filter) {
+    final currentRange = getRange(filter);
+    if (currentRange.start == null || currentRange.end == null) {
+      return null;
+    }
+
+    final window = currentRange.end!.difference(currentRange.start!);
+    final previousEnd = currentRange.start!.subtract(
+      const Duration(microseconds: 1),
+    );
+    return PeriodDateRange(
+      start: previousEnd.subtract(window),
+      end: previousEnd,
+    );
+  }
+
+  static String autoBucketUnit(String filter) {
+    switch (filter) {
+      case last7Days:
+      case thisMonth:
+      case last30Days:
+        return 'day';
+      case last3Months:
+      case last6Months:
+        return 'week';
+      case last12Months:
+      case thisYear:
+      case allTime:
+        return 'month';
+      default:
+        return 'week';
     }
   }
 
   /// Returns the number of days in the selected period for average calculations.
   static int getPeriodDays(String filter) {
-    final now = DateTime.now();
+    final range = getRange(filter);
+    if (range.start == null || range.end == null) {
+      return 365;
+    }
+    final inclusiveDays = range.end!.difference(range.start!).inDays + 1;
     switch (filter) {
       case last7Days:
         return 7;
       case thisMonth:
-        return now.day;
+        return inclusiveDays;
       case last30Days:
         return 30;
       case last3Months:
@@ -84,11 +176,11 @@ class PeriodFilter {
       case last12Months:
         return 365;
       case thisYear:
-        return now.difference(DateTime(now.year, 1, 1)).inDays.clamp(1, 366);
+        return inclusiveDays.clamp(1, 366);
       case allTime:
         return 365; // Reasonable default for average
       default:
-        return 90;
+        return inclusiveDays.clamp(1, 3650);
     }
   }
 }

@@ -20,6 +20,7 @@ from app.models.shared.enums import (
 )
 from app.models.users.user import User
 
+
 # NOTE: imported here rather than from households.households to avoid a circular
 # dependency at module load time; the households service is loaded lazily via
 # the services.households package.
@@ -27,6 +28,7 @@ def _get_active_household_for_user(session, user_id):
     """Thin wrapper imported lazily to allow monkeypatching in tests."""
     from app.services.households.households import get_active_household_for_user
     return get_active_household_for_user(session, user_id)
+
 
 _DEFAULT_INVITE_TTL_HOURS = 72
 InviteEffectiveState = Literal["pending", "accepted", "revoked", "expired"]
@@ -124,11 +126,14 @@ def create_invite(
 def get_invite_by_token(
     session: Session,
     token: str,
+    *,
+    for_update: bool = False,
 ) -> HouseholdInvite | None:
     """Look up an invite by its token string."""
-    return session.exec(
-        select(HouseholdInvite).where(HouseholdInvite.token == token)
-    ).first()
+    query = select(HouseholdInvite).where(HouseholdInvite.token == token)
+    if for_update:
+        query = query.with_for_update()
+    return session.exec(query).first()
 
 
 def get_invite_by_id(
@@ -150,7 +155,9 @@ def accept_invite(
     Raises ``HTTPException(410)`` if invite is expired or already used.
     Raises ``HTTPException(409)`` if user already belongs to another active household.
     """
-    invite = get_invite_by_token(session, token)
+    # Use SELECT FOR UPDATE to serialize concurrent accept attempts on the
+    # same invite token and prevent the TOCTOU race condition.
+    invite = get_invite_by_token(session, token, for_update=True)
     if invite is None:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
@@ -164,6 +171,12 @@ def accept_invite(
             status_code=status.HTTP_410_GONE,
             detail="This invite has already been used, revoked, or has expired.",
         )
+
+    # Also lock the accepting user row so concurrent accepts on different
+    # tokens cannot both sneak past the active-household check.
+    session.exec(
+        select(User).where(User.id == accepting_user.id).with_for_update()
+    ).first()
 
     # Ensure the accepting user doesn't already have an active household.
     existing_household = _get_active_household_for_user(session, accepting_user.id)
@@ -198,6 +211,18 @@ def accept_invite(
         )
 
     session.add(member)
+    # Flush member row first so the membership exists in the DB session
+    # before transaction attribution references it.
+    session.flush()
+    from app.services.households.households import (
+        attach_existing_manual_transactions_to_household,
+    )
+
+    attach_existing_manual_transactions_to_household(
+        session,
+        user_id=accepting_user.id,
+        household_id=invite.household_id,
+    )
 
     # Mark invite accepted.
     invite.status = HouseholdInviteStatus.ACCEPTED

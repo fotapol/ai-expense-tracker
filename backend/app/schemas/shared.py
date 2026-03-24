@@ -14,7 +14,6 @@ Amount2DP = Annotated[Decimal, Field(max_digits=12, decimal_places=2)]
 UnitPrice4DP = Annotated[Decimal, Field(max_digits=12, decimal_places=4)]
 Quantity3DP = Annotated[Decimal, Field(max_digits=12, decimal_places=3)]
 Cost6DP = Annotated[Decimal, Field(max_digits=12, decimal_places=6)]
-
 _T = TypeVar("_T")
 _QTY_QUANTUM = Decimal("0.001")
 _PRICE_QUANTUM = Decimal("0.0001")

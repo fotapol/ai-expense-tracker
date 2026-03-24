@@ -164,6 +164,42 @@ class ApiClient {
     );
   }
 
+  /// POST /v1/households/current/leave
+  static Future<void> leaveCurrentHousehold() async {
+    final token = await _getToken();
+    final response = await http.post(
+      Uri.parse('$apiBaseUrl/v1/households/current/leave'),
+      headers: {
+        'Authorization': 'Bearer $token',
+        'Content-Type': 'application/json',
+      },
+    );
+
+    if (response.statusCode != 204) {
+      throw Exception(
+        'Failed to leave household: ${response.statusCode} ${_extractErrorMessage(response)}',
+      );
+    }
+  }
+
+  /// DELETE /v1/households/current
+  static Future<void> deleteCurrentHousehold() async {
+    final token = await _getToken();
+    final response = await http.delete(
+      Uri.parse('$apiBaseUrl/v1/households/current'),
+      headers: {
+        'Authorization': 'Bearer $token',
+        'Content-Type': 'application/json',
+      },
+    );
+
+    if (response.statusCode != 204) {
+      throw Exception(
+        'Failed to delete household: ${response.statusCode} ${_extractErrorMessage(response)}',
+      );
+    }
+  }
+
   /// GET /v1/households/current/invites
   static Future<List<dynamic>> listCurrentHouseholdInvites() async {
     final token = await _getToken();
@@ -214,7 +250,9 @@ class ApiClient {
   }
 
   /// POST /v1/households/current/invites/{inviteId}/revoke
-  static Future<Map<String, dynamic>> revokeHouseholdInvite(String inviteId) async {
+  static Future<Map<String, dynamic>> revokeHouseholdInvite(
+    String inviteId,
+  ) async {
     final token = await _getToken();
     final response = await http.post(
       Uri.parse('$apiBaseUrl/v1/households/current/invites/$inviteId/revoke'),
@@ -233,7 +271,9 @@ class ApiClient {
   }
 
   /// POST /v1/households/current/members/{id}/remove
-  static Future<Map<String, dynamic>> removeHouseholdMember(String memberId) async {
+  static Future<Map<String, dynamic>> removeHouseholdMember(
+    String memberId,
+  ) async {
     final token = await _getToken();
     final response = await http.post(
       Uri.parse('$apiBaseUrl/v1/households/current/members/$memberId/remove'),
@@ -252,7 +292,9 @@ class ApiClient {
   }
 
   /// POST /v1/household-invites/{token}/accept
-  static Future<Map<String, dynamic>> acceptHouseholdInvite(String inviteToken) async {
+  static Future<Map<String, dynamic>> acceptHouseholdInvite(
+    String inviteToken,
+  ) async {
     final token = await _getToken();
     final response = await http.post(
       Uri.parse('$apiBaseUrl/v1/household-invites/$inviteToken/accept'),
@@ -337,7 +379,7 @@ class ApiClient {
           if (payload is Map<String, dynamic>) {
             final detail = payload['detail'];
             if (detail is Map<String, dynamic> &&
-                detail['code'] == 'free_monthly_scan_limit_reached') {
+                detail['code'] == 'free_rolling_scan_limit_reached') {
               limitMessage = detail['message']?.toString();
             }
           }
@@ -368,6 +410,69 @@ class ApiClient {
     } else {
       throw Exception(
         'Failed to get receipt status: ${response.statusCode} ${response.body}',
+      );
+    }
+  }
+
+  /// GET /v1/receipts/{id}/view-url
+  static Future<Map<String, dynamic>> getReceiptViewUrl(
+    String receiptId,
+  ) async {
+    final token = await _getToken();
+    final response = await http.get(
+      Uri.parse('$apiBaseUrl/v1/receipts/$receiptId/view-url'),
+      headers: {
+        'Authorization': 'Bearer $token',
+        'Content-Type': 'application/json',
+      },
+    );
+
+    if (response.statusCode == 200) {
+      return jsonDecode(response.body) as Map<String, dynamic>;
+    } else {
+      throw Exception(
+        'Failed to get receipt view URL: ${response.statusCode} ${_extractErrorMessage(response)}',
+      );
+    }
+  }
+
+  /// POST /v1/transactions
+  static Future<Map<String, dynamic>> createTransaction(
+    Map<String, dynamic> payload, {
+    String? targetCurrency,
+    String? itemLanguage,
+    String? appLanguage,
+  }) async {
+    final token = await _getToken();
+    String url = '$apiBaseUrl/v1/transactions';
+    final params = <String>[];
+    if (targetCurrency != null && targetCurrency.isNotEmpty) {
+      params.add('target_currency=${Uri.encodeComponent(targetCurrency)}');
+    }
+    if (itemLanguage != null && itemLanguage.isNotEmpty) {
+      params.add('item_language=${Uri.encodeComponent(itemLanguage)}');
+    }
+    if (appLanguage != null && appLanguage.isNotEmpty) {
+      params.add('app_language=${Uri.encodeComponent(appLanguage)}');
+    }
+    if (params.isNotEmpty) {
+      url += '?${params.join('&')}';
+    }
+
+    final response = await http.post(
+      Uri.parse(url),
+      headers: {
+        'Authorization': 'Bearer $token',
+        'Content-Type': 'application/json',
+      },
+      body: jsonEncode(payload),
+    );
+
+    if (response.statusCode == 201) {
+      return jsonDecode(response.body) as Map<String, dynamic>;
+    } else {
+      throw Exception(
+        'Failed to create transaction: ${response.statusCode} ${_extractErrorMessage(response)}',
       );
     }
   }
@@ -407,6 +512,24 @@ class ApiClient {
     } else {
       throw Exception(
         'Failed to get transaction: ${response.statusCode} ${response.body}',
+      );
+    }
+  }
+
+  /// DELETE /v1/transactions/{id}
+  static Future<void> deleteTransaction(String id) async {
+    final token = await _getToken();
+    final response = await http.delete(
+      Uri.parse('$apiBaseUrl/v1/transactions/$id'),
+      headers: {
+        'Authorization': 'Bearer $token',
+        'Content-Type': 'application/json',
+      },
+    );
+
+    if (response.statusCode != 204) {
+      throw Exception(
+        'Failed to delete transaction: ${response.statusCode} ${_extractErrorMessage(response)}',
       );
     }
   }
@@ -485,37 +608,48 @@ class ApiClient {
   }) async {
     final token = await _getToken();
 
-    // Build query params
-    String url = '$apiBaseUrl/v1/transactions?page_size=100';
+    // Build query params — do not cap page_size here; backend determines page size.
+    // M-1 fix: removing the hardcoded page_size=100 prevents silent truncation for users
+    // with more than 100 transactions.
+    final params = <String>[];
     if (fromDate != null) {
-      url += '&from_occurred_at=${fromDate.toUtc().toIso8601String()}';
+      params.add('from_occurred_at=${fromDate.toUtc().toIso8601String()}');
     }
     if (merchantNameSearch != null && merchantNameSearch.isNotEmpty) {
-      url += '&merchant_name_search=${Uri.encodeComponent(merchantNameSearch)}';
+      params.add(
+        'merchant_name_search=${Uri.encodeComponent(merchantNameSearch)}',
+      );
     }
     if (categoryIds != null && categoryIds.isNotEmpty) {
-      url += '&category_ids=${categoryIds.join(',')}';
+      params.add('category_ids=${categoryIds.join(',')}');
     }
     if (subcategoryIds != null && subcategoryIds.isNotEmpty) {
-      url += '&subcategory_ids=${subcategoryIds.join(',')}';
+      params.add('subcategory_ids=${subcategoryIds.join(',')}');
     }
     if (labelId != null) {
-      url += '&label_id=$labelId';
+      params.add('label_id=$labelId');
     }
     if (labelIds != null && labelIds.isNotEmpty) {
-      url += '&label_ids=${labelIds.join(',')}';
+      params.add('label_ids=${labelIds.join(',')}');
     }
     if (targetCurrency != null && targetCurrency.isNotEmpty) {
-      url += '&target_currency=${Uri.encodeComponent(targetCurrency)}';
+      params.add('target_currency=${Uri.encodeComponent(targetCurrency)}');
+    }
+    var url = '$apiBaseUrl/v1/transactions';
+    if (params.isNotEmpty) {
+      url += '?${params.join('&')}';
     }
 
-    final response = await http.get(
-      Uri.parse(url),
-      headers: {
-        'Authorization': 'Bearer $token',
-        'Content-Type': 'application/json',
-      },
-    );
+    // M-2 fix: add a 30 s timeout so the app never hangs indefinitely on a slow network.
+    final response = await http
+        .get(
+          Uri.parse(url),
+          headers: {
+            'Authorization': 'Bearer $token',
+            'Content-Type': 'application/json',
+          },
+        )
+        .timeout(const Duration(seconds: 30));
 
     if (response.statusCode == 200) {
       return jsonDecode(response.body) as List<dynamic>;
@@ -529,10 +663,12 @@ class ApiClient {
   /// GET /v1/transactions/summary
   static Future<Map<String, dynamic>> getTransactionsSummary({
     DateTime? fromDate,
+    DateTime? toDate,
     List<String>? categoryIds,
     List<String>? subcategoryIds,
     List<String>? labelIds,
     String? targetCurrency,
+    String? groupBy,
   }) async {
     final token = await _getToken();
 
@@ -542,6 +678,9 @@ class ApiClient {
 
     if (fromDate != null) {
       params.add('from_occurred_at=${fromDate.toUtc().toIso8601String()}');
+    }
+    if (toDate != null) {
+      params.add('to_occurred_at=${toDate.toUtc().toIso8601String()}');
     }
     if (categoryIds != null && categoryIds.isNotEmpty) {
       params.add('category_ids=${categoryIds.join(',')}');
@@ -554,6 +693,9 @@ class ApiClient {
     }
     if (targetCurrency != null && targetCurrency.isNotEmpty) {
       params.add('target_currency=${Uri.encodeComponent(targetCurrency)}');
+    }
+    if (groupBy != null && groupBy.isNotEmpty) {
+      params.add('group_by=${Uri.encodeComponent(groupBy)}');
     }
 
     if (params.isNotEmpty) {
@@ -575,6 +717,108 @@ class ApiClient {
         'Failed to fetch summary: ${response.statusCode} ${response.body}',
       );
     }
+  }
+
+  /// GET /v1/transactions/summary/trends
+  static Future<Map<String, dynamic>> getTransactionTrendSummary({
+    DateTime? fromDate,
+    DateTime? toDate,
+    List<String>? categoryIds,
+    List<String>? subcategoryIds,
+    List<String>? labelIds,
+    String? targetCurrency,
+  }) async {
+    final token = await _getToken();
+
+    String url = '$apiBaseUrl/v1/transactions/summary/trends';
+    final params = <String>[];
+    if (fromDate != null) {
+      params.add('from_occurred_at=${fromDate.toUtc().toIso8601String()}');
+    }
+    if (toDate != null) {
+      params.add('to_occurred_at=${toDate.toUtc().toIso8601String()}');
+    }
+    if (categoryIds != null && categoryIds.isNotEmpty) {
+      params.add('category_ids=${categoryIds.join(',')}');
+    }
+    if (subcategoryIds != null && subcategoryIds.isNotEmpty) {
+      params.add('subcategory_ids=${subcategoryIds.join(',')}');
+    }
+    if (labelIds != null && labelIds.isNotEmpty) {
+      params.add('label_ids=${labelIds.join(',')}');
+    }
+    if (targetCurrency != null && targetCurrency.isNotEmpty) {
+      params.add('target_currency=${Uri.encodeComponent(targetCurrency)}');
+    }
+    if (params.isNotEmpty) {
+      url += '?${params.join('&')}';
+    }
+
+    final response = await http.get(
+      Uri.parse(url),
+      headers: {
+        'Authorization': 'Bearer $token',
+        'Content-Type': 'application/json',
+      },
+    );
+
+    if (response.statusCode == 200) {
+      return jsonDecode(response.body) as Map<String, dynamic>;
+    }
+    throw Exception(
+      'Failed to fetch trend summary: ${response.statusCode} ${response.body}',
+    );
+  }
+
+  /// GET /v1/transactions/summary/household
+  static Future<Map<String, dynamic>> getHouseholdAnalyticsSummary({
+    DateTime? fromDate,
+    DateTime? toDate,
+    List<String>? categoryIds,
+    List<String>? subcategoryIds,
+    List<String>? labelIds,
+    String? targetCurrency,
+  }) async {
+    final token = await _getToken();
+
+    String url = '$apiBaseUrl/v1/transactions/summary/household';
+    final params = <String>[];
+    if (fromDate != null) {
+      params.add('from_occurred_at=${fromDate.toUtc().toIso8601String()}');
+    }
+    if (toDate != null) {
+      params.add('to_occurred_at=${toDate.toUtc().toIso8601String()}');
+    }
+    if (categoryIds != null && categoryIds.isNotEmpty) {
+      params.add('category_ids=${categoryIds.join(',')}');
+    }
+    if (subcategoryIds != null && subcategoryIds.isNotEmpty) {
+      params.add('subcategory_ids=${subcategoryIds.join(',')}');
+    }
+    if (labelIds != null && labelIds.isNotEmpty) {
+      params.add('label_ids=${labelIds.join(',')}');
+    }
+    if (targetCurrency != null && targetCurrency.isNotEmpty) {
+      params.add('target_currency=${Uri.encodeComponent(targetCurrency)}');
+    }
+    if (params.isNotEmpty) {
+      url += '?${params.join('&')}';
+    }
+
+    final response = await http.get(
+      Uri.parse(url),
+      headers: {
+        'Authorization': 'Bearer $token',
+        'Content-Type': 'application/json',
+      },
+    );
+
+    if (response.statusCode == 200) {
+      return jsonDecode(response.body) as Map<String, dynamic>;
+    }
+    throw Exception(
+      'Failed to fetch household analytics: ${response.statusCode} ${response.body}',
+    );
   }
 
   /// GET /v1/transactions/summary/categories/{categoryId}/subcategories
@@ -685,11 +929,139 @@ class ApiClient {
     }
   }
 
-  /// GET /v1/categories
-  static Future<List<dynamic>> listCategories() async {
+  static String _dateOnlyIso(DateTime value) {
+    final normalized = DateTime(value.year, value.month, value.day);
+    final month = normalized.month.toString().padLeft(2, '0');
+    final day = normalized.day.toString().padLeft(2, '0');
+    return '${normalized.year}-$month-$day';
+  }
+
+  /// GET /v1/planning/budget
+  static Future<Map<String, dynamic>> getBudgetPlan() async {
     final token = await _getToken();
     final response = await http.get(
-      Uri.parse('$apiBaseUrl/v1/categories'),
+      Uri.parse('$apiBaseUrl/v1/planning/budget'),
+      headers: {
+        'Authorization': 'Bearer $token',
+        'Content-Type': 'application/json',
+      },
+    );
+    if (response.statusCode == 200) {
+      return jsonDecode(response.body) as Map<String, dynamic>;
+    }
+    throw Exception(
+      'Failed to load budget plan: ${response.statusCode} ${_extractErrorMessage(response)}',
+    );
+  }
+
+  /// PUT /v1/planning/budget
+  static Future<Map<String, dynamic>> updateBudgetPlan({
+    required String currency,
+    double? monthlyIncome,
+    required List<Map<String, dynamic>> categoryLimits,
+  }) async {
+    final token = await _getToken();
+    final response = await http.put(
+      Uri.parse('$apiBaseUrl/v1/planning/budget'),
+      headers: {
+        'Authorization': 'Bearer $token',
+        'Content-Type': 'application/json',
+      },
+      body: jsonEncode({
+        'monthly_income': monthlyIncome,
+        'currency': currency.toUpperCase(),
+        'category_limits': categoryLimits,
+      }),
+    );
+    if (response.statusCode == 200) {
+      return jsonDecode(response.body) as Map<String, dynamic>;
+    }
+    throw Exception(
+      'Failed to update budget plan: ${response.statusCode} ${_extractErrorMessage(response)}',
+    );
+  }
+
+  /// GET /v1/planning/bills
+  static Future<List<dynamic>> listBillReminders() async {
+    final token = await _getToken();
+    final response = await http.get(
+      Uri.parse('$apiBaseUrl/v1/planning/bills'),
+      headers: {
+        'Authorization': 'Bearer $token',
+        'Content-Type': 'application/json',
+      },
+    );
+    if (response.statusCode == 200) {
+      return jsonDecode(response.body) as List<dynamic>;
+    }
+    throw Exception(
+      'Failed to list bill reminders: ${response.statusCode} ${_extractErrorMessage(response)}',
+    );
+  }
+
+  /// POST /v1/planning/bills
+  static Future<Map<String, dynamic>> createBillReminder({
+    required String name,
+    required double amount,
+    required String currency,
+    required DateTime firstDueDate,
+    int remindDaysBefore = 3,
+    bool isActive = true,
+  }) async {
+    final token = await _getToken();
+    final response = await http.post(
+      Uri.parse('$apiBaseUrl/v1/planning/bills'),
+      headers: {
+        'Authorization': 'Bearer $token',
+        'Content-Type': 'application/json',
+      },
+      body: jsonEncode({
+        'name': name.trim(),
+        'amount': amount,
+        'currency': currency.toUpperCase(),
+        'first_due_date': _dateOnlyIso(firstDueDate),
+        'remind_days_before': remindDaysBefore,
+        'is_active': isActive,
+      }),
+    );
+    if (response.statusCode == 201) {
+      return jsonDecode(response.body) as Map<String, dynamic>;
+    }
+    throw Exception(
+      'Failed to create bill reminder: ${response.statusCode} ${_extractErrorMessage(response)}',
+    );
+  }
+
+  /// PATCH /v1/planning/bills/{id}/mark-paid
+  static Future<Map<String, dynamic>> markBillReminderPaid({
+    required String billId,
+    required DateTime dueDate,
+  }) async {
+    final token = await _getToken();
+    final response = await http.patch(
+      Uri.parse('$apiBaseUrl/v1/planning/bills/$billId/mark-paid'),
+      headers: {
+        'Authorization': 'Bearer $token',
+        'Content-Type': 'application/json',
+      },
+      body: jsonEncode({'due_date': _dateOnlyIso(dueDate)}),
+    );
+    if (response.statusCode == 200) {
+      return jsonDecode(response.body) as Map<String, dynamic>;
+    }
+    throw Exception(
+      'Failed to mark bill reminder as paid: ${response.statusCode} ${_extractErrorMessage(response)}',
+    );
+  }
+
+  /// GET /v1/categories
+  static Future<List<dynamic>> listCategories({
+    bool includeDisabled = false,
+  }) async {
+    final token = await _getToken();
+    final suffix = includeDisabled ? '?include_disabled=true' : '';
+    final response = await http.get(
+      Uri.parse('$apiBaseUrl/v1/categories$suffix'),
       headers: {
         'Authorization': 'Bearer $token',
         'Content-Type': 'application/json',
@@ -779,6 +1151,25 @@ class ApiClient {
     if (response.statusCode != 204) {
       throw Exception(
         'Failed to delete category: ${response.statusCode} ${response.body}',
+      );
+    }
+  }
+
+  /// POST /v1/categories/{id}/restore
+  static Future<Map<String, dynamic>> restoreCategory(String id) async {
+    final token = await _getToken();
+    final response = await http.post(
+      Uri.parse('$apiBaseUrl/v1/categories/$id/restore'),
+      headers: {
+        'Authorization': 'Bearer $token',
+        'Content-Type': 'application/json',
+      },
+    );
+    if (response.statusCode == 200) {
+      return jsonDecode(response.body) as Map<String, dynamic>;
+    } else {
+      throw Exception(
+        'Failed to restore category: ${response.statusCode} ${_extractErrorMessage(response)}',
       );
     }
   }
@@ -905,6 +1296,91 @@ class ApiClient {
     }
   }
 
+  /// GET /v1/feature-requests
+  static Future<List<dynamic>> listFeatureRequests() async {
+    final token = await _getToken();
+    final response = await http.get(
+      Uri.parse('$apiBaseUrl/v1/feature-requests'),
+      headers: {
+        'Authorization': 'Bearer $token',
+        'Content-Type': 'application/json',
+      },
+    );
+    if (response.statusCode == 200) {
+      return jsonDecode(response.body) as List<dynamic>;
+    }
+    throw Exception(
+      'Failed to load feature requests: ${response.statusCode} ${_extractErrorMessage(response)}',
+    );
+  }
+
+  /// GET /v1/feature-requests/mine
+  static Future<List<dynamic>> listMyFeatureRequests() async {
+    final token = await _getToken();
+    final response = await http.get(
+      Uri.parse('$apiBaseUrl/v1/feature-requests/mine'),
+      headers: {
+        'Authorization': 'Bearer $token',
+        'Content-Type': 'application/json',
+      },
+    );
+    if (response.statusCode == 200) {
+      return jsonDecode(response.body) as List<dynamic>;
+    }
+    throw Exception(
+      'Failed to load your feature requests: ${response.statusCode} ${_extractErrorMessage(response)}',
+    );
+  }
+
+  /// POST /v1/feature-requests
+  static Future<Map<String, dynamic>> createFeatureRequest({
+    required String title,
+    required String category,
+    required String description,
+  }) async {
+    final token = await _getToken();
+    final response = await http.post(
+      Uri.parse('$apiBaseUrl/v1/feature-requests'),
+      headers: {
+        'Authorization': 'Bearer $token',
+        'Content-Type': 'application/json',
+      },
+      body: jsonEncode({
+        'title': title,
+        'category': category,
+        'description': description,
+      }),
+    );
+    if (response.statusCode == 201) {
+      return jsonDecode(response.body) as Map<String, dynamic>;
+    }
+    throw Exception(
+      'Failed to create feature request: ${response.statusCode} ${_extractErrorMessage(response)}',
+    );
+  }
+
+  /// PUT /v1/feature-requests/{id}/vote
+  static Future<Map<String, dynamic>> updateFeatureRequestVote({
+    required String featureRequestId,
+    required bool voted,
+  }) async {
+    final token = await _getToken();
+    final response = await http.put(
+      Uri.parse('$apiBaseUrl/v1/feature-requests/$featureRequestId/vote'),
+      headers: {
+        'Authorization': 'Bearer $token',
+        'Content-Type': 'application/json',
+      },
+      body: jsonEncode({'voted': voted}),
+    );
+    if (response.statusCode == 200) {
+      return jsonDecode(response.body) as Map<String, dynamic>;
+    }
+    throw Exception(
+      'Failed to update vote: ${response.statusCode} ${_extractErrorMessage(response)}',
+    );
+  }
+
   /// GET /v1/me/subscription
   static Future<Map<String, dynamic>> getMeSubscription() async {
     final token = await _getToken();
@@ -947,22 +1423,30 @@ class ApiClient {
 
   /// POST /v1/billing/revenuecat/sync
   static Future<Map<String, dynamic>> syncRevenueCatSubscription() async {
-    final token = await _getToken();
-    final response = await http.post(
-      Uri.parse('$apiBaseUrl/v1/billing/revenuecat/sync'),
-      headers: {
-        'Authorization': 'Bearer $token',
-        'Content-Type': 'application/json',
-      },
-    );
+    for (var attempt = 0; attempt < 2; attempt++) {
+      // Re-fetch token on each attempt so that if a 5xx happens near token
+      // expiry the retry doesn't reuse an already-expired token.
+      final token = await _getToken();
+      final response = await http.post(
+        Uri.parse('$apiBaseUrl/v1/billing/revenuecat/sync'),
+        headers: {
+          'Authorization': 'Bearer $token',
+          'Content-Type': 'application/json',
+        },
+      );
 
-    if (response.statusCode == 200) {
-      return jsonDecode(response.body) as Map<String, dynamic>;
-    } else {
+      if (response.statusCode == 200) {
+        return jsonDecode(response.body) as Map<String, dynamic>;
+      }
+      if (response.statusCode >= 500 && attempt == 0) {
+        await Future<void>.delayed(const Duration(milliseconds: 1200));
+        continue;
+      }
       throw Exception(
         'Failed to sync subscription: ${response.statusCode} ${response.body}',
       );
     }
+    throw Exception('Failed to sync subscription: request retry exhausted.');
   }
 
   /// POST /internal/dev/billing/subscriptions/manual
@@ -1037,7 +1521,9 @@ class ApiClient {
   }
 
   /// POST /v1/data/import
-  static Future<Map<String, dynamic>> importData(Map<String, dynamic> payload) async {
+  static Future<Map<String, dynamic>> importData(
+    Map<String, dynamic> payload,
+  ) async {
     final token = await _getToken();
     final response = await http.post(
       Uri.parse('$apiBaseUrl/v1/data/import'),

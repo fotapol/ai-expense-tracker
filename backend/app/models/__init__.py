@@ -2,6 +2,8 @@
 
 from app.models.billing.entitlement import Entitlement
 from app.models.billing.subscription import Subscription
+from app.models.feature_requests.feature_request import FeatureRequest, FeatureRequestBase
+from app.models.feature_requests.feature_request_vote import FeatureRequestVote
 from app.models.fx.exchange_rate import ExchangeRate
 from app.models.households.household import Household, HouseholdBase
 from app.models.households.household_invite import HouseholdInvite
@@ -10,12 +12,17 @@ from app.models.labels.label import Label, LabelBase
 from app.models.labels.transaction_label import TransactionLabel
 from app.models.merchants.merchant import Merchant, MerchantAlias, MerchantAliasBase, MerchantBase
 from app.models.overrides.user_category import UserCategoryOverride, UserItemCategoryOverride
+from app.models.planning.bill_reminder import BillReminder
+from app.models.planning.budget import BudgetCategoryLimit, BudgetSettings
 from app.models.receipts.receipt import Receipt, ReceiptBase
 from app.models.receipts.receipt_extraction import ReceiptExtraction
 from app.models.shared.enums import (
     CategoryScope,
     EntitlementScopeType,
     EntitlementStatus,
+    FeatureRequestCategory,
+    FeatureRequestModerationState,
+    FeatureRequestPublicStatus,
     HouseholdInviteStatus,
     HouseholdMemberRole,
     HouseholdMemberStatus,
@@ -40,6 +47,15 @@ __all__ = [
     "EntitlementScopeType",
     "EntitlementStatus",
     "ExchangeRate",
+    "FeatureRequest",
+    "FeatureRequestBase",
+    "FeatureRequestCategory",
+    "FeatureRequestModerationState",
+    "FeatureRequestPublicStatus",
+    "FeatureRequestVote",
+    "BillReminder",
+    "BudgetCategoryLimit",
+    "BudgetSettings",
     "Household",
     "HouseholdBase",
     "HouseholdInvite",

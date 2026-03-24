@@ -12,12 +12,30 @@ from app.schemas.billing import (
 )
 from app.schemas.categories import CategoryCreate, CategoryRead, CategoryTreeNode, CategoryUpdate
 from app.schemas.extraction import ExtractedReceiptData, ExtractedTransactionItem
+from app.schemas.feature_requests import (
+    FeatureRequestCreateRequest,
+    FeatureRequestMineRead,
+    FeatureRequestPublicRead,
+    FeatureRequestVoteSummary,
+    FeatureRequestVoteUpdateRequest,
+    InternalFeatureRequestCreateRequest,
+    InternalFeatureRequestRead,
+    InternalFeatureRequestUpdateRequest,
+)
 from app.schemas.merchants import MerchantAliasCreate, MerchantAliasRead, MerchantRead
 from app.schemas.overrides import (
     UserCategoryOverrideRead,
     UserCategoryOverrideUpsert,
     UserItemCategoryOverrideRead,
     UserItemCategoryOverrideUpsert,
+)
+from app.schemas.planning import (
+    BillReminderCreate,
+    BillReminderMarkPaid,
+    BillReminderRead,
+    BudgetCategoryLimitInput,
+    BudgetPlanRead,
+    BudgetPlanUpsert,
 )
 from app.schemas.receipts import (
     ReceiptConfirmResponse,
@@ -26,6 +44,7 @@ from app.schemas.receipts import (
     ReceiptExtractionRead,
     ReceiptRead,
     ReceiptStatusUpdate,
+    ReceiptViewUrlResponse,
 )
 from app.schemas.shared import (
     Amount2DP,
@@ -41,6 +60,12 @@ from app.schemas.shared import (
     UUIDTimestampSchema,
 )
 from app.schemas.transactions import (
+    AnalyticsCategorySnippetRead,
+    AnalyticsHouseholdMemberRead,
+    AnalyticsHouseholdSnippetRead,
+    AnalyticsHouseholdSummaryRead,
+    AnalyticsTrendBucketRead,
+    AnalyticsTrendSummaryRead,
     TransactionConfirm,
     TransactionCreateManual,
     TransactionItemCreate,
@@ -60,18 +85,38 @@ from app.schemas.users import (
 
 __all__ = [
     "Amount2DP",
+    "AnalyticsCategorySnippetRead",
+    "AnalyticsHouseholdMemberRead",
+    "AnalyticsHouseholdSnippetRead",
+    "AnalyticsHouseholdSummaryRead",
+    "AnalyticsTrendBucketRead",
+    "AnalyticsTrendSummaryRead",
     "CategoryCreate",
     "CategoryRead",
     "CategoryTreeNode",
     "CategoryUpdate",
     "Cost6DP",
     "CurrencyCode",
+    "BillReminderCreate",
+    "BillReminderMarkPaid",
+    "BillReminderRead",
+    "BudgetCategoryLimitInput",
+    "BudgetPlanRead",
+    "BudgetPlanUpsert",
     "DevSubscriptionActionRequest",
     "DevSubscriptionActionResponse",
     "ExtractedReceiptData",
     "ExtractedTransactionItem",
+    "FeatureRequestCreateRequest",
+    "FeatureRequestMineRead",
+    "FeatureRequestPublicRead",
+    "FeatureRequestVoteSummary",
+    "FeatureRequestVoteUpdateRequest",
     "FirebaseIdentityIn",
     "FirebaseIdentityOut",
+    "InternalFeatureRequestCreateRequest",
+    "InternalFeatureRequestRead",
+    "InternalFeatureRequestUpdateRequest",
     "MeEntitlementsResponse",
     "MeSubscriptionResponse",
     "MerchantAliasCreate",
@@ -90,6 +135,7 @@ __all__ = [
     "ReceiptRead",
     "ReceiptScanUsageRead",
     "ReceiptStatusUpdate",
+    "ReceiptViewUrlResponse",
     "RevenueCatSyncResponse",
     "SchemaBase",
     "SubscriptionRead",

@@ -27,6 +27,23 @@ from app.schemas.shared import (
 TransactionStatus = Literal["DRAFT", "CONFIRMED"]
 
 
+def _normalize_transaction_unit(value: str | None) -> str | None:
+    """Collapse legacy unit spellings into the supported canonical values."""
+
+    if value is None:
+        return None
+    normalized = value.strip().lower()
+    if not normalized:
+        return None
+    if normalized in {"pc", "pcs", "piece", "pieces", "kom", "unit", "units", "un"}:
+        return "pc"
+    if normalized in {"kg", "kgs", "kilogram", "kilograms", "g", "gram", "grams"}:
+        return "kg"
+    if normalized in {"l", "lt", "ltr", "liter", "liters", "litar", "ml", "milliliter", "milliliters"}:
+        return "l"
+    return normalized
+
+
 class TransactionItemCreate(SchemaBase):
     """Payload for adding an item line to a transaction."""
 
@@ -40,7 +57,7 @@ class TransactionItemCreate(SchemaBase):
     amount_before_discount: Amount2DP | None = None
     discount_amount: Amount2DP | None = None
     is_adjustment: bool = False
-    category_id: UUID
+    category_id: UUID | None = None
     raw_line: str | None = Field(default=None, max_length=1000)
 
     @field_validator("qty")
@@ -60,6 +77,13 @@ class TransactionItemCreate(SchemaBase):
         if value is None:
             return None
         return quantize_unit_price(value)
+
+    @field_validator("unit")
+    @classmethod
+    def normalize_unit(cls, value: str | None) -> str | None:
+        """Normalize edited/manual units into canonical transaction values."""
+
+        return _normalize_transaction_unit(value)
 
     @field_validator("amount", "amount_before_discount", "discount_amount")
     @classmethod
@@ -128,6 +152,44 @@ class TransactionItemUpdate(SchemaBase):
         normalized = normalize_language_code(value)
         return normalized or None
 
+    @field_validator("unit")
+    @classmethod
+    def normalize_unit(cls, value: str | None) -> str | None:
+        """Normalize edited/manual units into canonical transaction values."""
+
+        return _normalize_transaction_unit(value)
+
+    @field_validator("unit_price")
+    @classmethod
+    def normalize_unit_price(cls, value: Decimal | None) -> Decimal | None:
+        """Quantize unit price when provided."""
+
+        if value is None:
+            return None
+        return quantize_unit_price(value)
+
+    @field_validator("qty")
+    @classmethod
+    def normalize_qty(cls, value: Decimal | None) -> Decimal | None:
+        """Quantize quantity when provided."""
+
+        if value is None:
+            return None
+        return quantize_quantity(value)
+
+    @field_validator(
+        "amount",
+        "amount_before_discount",
+        "discount_amount",
+    )
+    @classmethod
+    def normalize_amounts(cls, value: Decimal | None) -> Decimal | None:
+        """Quantize amount fields when provided."""
+
+        if value is None:
+            return None
+        return quantize_amount(value)
+
 
 class TransactionCreateManual(SchemaBase):
     """Payload for creating a manual transaction entry."""
@@ -160,7 +222,6 @@ class TransactionCreateManual(SchemaBase):
 
         return quantize_amount(value)
 
-
 class TransactionLabelRead(SchemaBase):
     """Read model for labels assigned to a transaction."""
 
@@ -183,6 +244,64 @@ class TransactionHouseholdSnippetRead(SchemaBase):
 
     household_id: UUID
     name: str | None = None
+
+
+class AnalyticsTrendBucketRead(SchemaBase):
+    """Single analytics trend bucket."""
+
+    start_date: dt.date
+    end_date: dt.date
+    label: str
+    amount: Amount2DP
+    transaction_count: int = Field(ge=0, default=0)
+
+
+class AnalyticsTrendSummaryRead(SchemaBase):
+    """Analytics trend response payload."""
+
+    currency: CurrencyCode
+    bucket_unit: Literal["day", "week", "month"]
+    current_total_amount: Amount2DP
+    previous_total_amount: Amount2DP | None = None
+    change_percentage: float | None = None
+    buckets: list[AnalyticsTrendBucketRead] = Field(default_factory=list)
+
+
+class AnalyticsCategorySnippetRead(SchemaBase):
+    """Compact category block for analytics rollups."""
+
+    category_id: UUID | None = None
+    name: str | None = None
+    code: str | None = None
+    amount: Amount2DP | None = None
+
+
+class AnalyticsHouseholdSnippetRead(SchemaBase):
+    """Compact household block for analytics summaries."""
+
+    household_id: UUID
+    name: str | None = None
+
+
+class AnalyticsHouseholdMemberRead(SchemaBase):
+    """Per-member household analytics row."""
+
+    owner_user_id: UUID
+    user: TransactionUserSnippetRead | None = None
+    total_amount: Amount2DP
+    percentage: float = 0.0
+    transaction_count: int = Field(ge=0, default=0)
+    top_category: AnalyticsCategorySnippetRead | None = None
+
+
+class AnalyticsHouseholdSummaryRead(SchemaBase):
+    """Analytics household overview payload."""
+
+    household: AnalyticsHouseholdSnippetRead | None = None
+    currency: CurrencyCode
+    total_amount: Amount2DP
+    total_transactions: int = Field(ge=0, default=0)
+    members: list[AnalyticsHouseholdMemberRead] = Field(default_factory=list)
 
 
 class TransactionRead(UUIDTimestampSchema):

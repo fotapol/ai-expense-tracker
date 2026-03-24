@@ -10,16 +10,20 @@ import datetime as dt
 import uuid
 from types import SimpleNamespace
 
+from app.models.billing.subscription import Subscription
 from app.models.shared.enums import (
     EntitlementScopeType,
     EntitlementStatus,
     HouseholdInviteStatus,
     HouseholdMemberRole,
     HouseholdMemberStatus,
+    SubscriptionProvider,
+    SubscriptionStatus,
+    TransactionSource,
 )
 from app.services.billing.entitlements import (
     resolve_effective_entitlements,
-    resolve_user_entitlements,
+    sync_subscription_entitlements,
 )
 from app.services.households.membership import validate_transaction_attribution
 
@@ -53,6 +57,7 @@ class _Session:
         self._exec_results = exec_results or []
         self._exec_call_count = 0
         self.added: list = []
+        self.deleted: list = []
         self.committed = False
         self._flushed = False
 
@@ -72,6 +77,9 @@ class _Session:
 
     def add(self, obj) -> None:
         self.added.append(obj)
+
+    def delete(self, obj) -> None:
+        self.deleted.append(obj)
 
     def flush(self) -> None:
         self._flushed = True
@@ -122,7 +130,7 @@ def test_household_creation_inserts_owner_member(monkeypatch) -> None:
 
     session.add = _capture_add
 
-    result = create_household(session, name="  Smith Family  ", owner=owner)
+    create_household(session, name="  Smith Family  ", owner=owner)
 
     assert session.committed is True
     assert household is not None
@@ -156,6 +164,123 @@ def test_household_creation_rejects_duplicate_active_membership(monkeypatch) -> 
         create_household(session, name="New Family", owner=owner)
 
     assert exc_info.value.status_code == 409
+
+
+def test_delete_household_detaches_transactions_and_deletes_children() -> None:
+    """Deleting a household should detach shared transactions before deleting the household."""
+
+    from app.services.households.households import delete_household
+
+    household = SimpleNamespace(id=uuid.uuid4())
+    transaction = SimpleNamespace(household_id=household.id)
+    entitlement = SimpleNamespace(
+        status=EntitlementStatus.ACTIVE,
+        expires_at=None,
+    )
+    invite = SimpleNamespace(id=uuid.uuid4())
+    member = SimpleNamespace(id=uuid.uuid4())
+    session = _Session(
+        exec_results=[
+            [transaction],
+            [entitlement],
+            [invite],
+            [member],
+        ]
+    )
+
+    delete_household(session, household)
+
+    assert transaction.household_id is None
+    assert entitlement.status == EntitlementStatus.REVOKED
+    assert entitlement.expires_at is not None
+    assert session.deleted == [invite, member, household]
+    assert session._flushed is True
+    assert session.committed is True
+
+
+def test_attach_existing_manual_transactions_to_household_updates_only_solo_manual_rows() -> None:
+    """Legacy solo manual transactions should become shared when household access starts."""
+
+    from app.services.households.households import (
+        attach_existing_manual_transactions_to_household,
+    )
+
+    user_id = uuid.uuid4()
+    household_id = uuid.uuid4()
+    solo_manual = SimpleNamespace(
+        user_id=user_id,
+        source=TransactionSource.MANUAL,
+        receipt_id=None,
+        household_id=None,
+        created_by_user_id=None,
+        owner_user_id=None,
+    )
+    receipt_backed = SimpleNamespace(
+        user_id=user_id,
+        source=TransactionSource.RECEIPT,
+        receipt_id=uuid.uuid4(),
+        household_id=None,
+        created_by_user_id=None,
+        owner_user_id=None,
+    )
+    already_shared = SimpleNamespace(
+        user_id=user_id,
+        source=TransactionSource.MANUAL,
+        receipt_id=None,
+        household_id=uuid.uuid4(),
+        created_by_user_id=user_id,
+        owner_user_id=user_id,
+    )
+    session = _Session(exec_results=[[solo_manual, receipt_backed, already_shared]])
+
+    touched = attach_existing_manual_transactions_to_household(
+        session,
+        user_id=user_id,
+        household_id=household_id,
+    )
+
+    assert touched == [solo_manual]
+    assert solo_manual.household_id == household_id
+    assert solo_manual.created_by_user_id == user_id
+    assert solo_manual.owner_user_id == user_id
+    assert receipt_backed.household_id is None
+    assert already_shared.household_id != household_id
+
+
+def test_get_active_shared_household_id_backfills_legacy_manual_transactions(monkeypatch) -> None:
+    """Active household access should backfill orphaned manual transactions for current members."""
+
+    from app.services.households.access import get_active_shared_household_id
+
+    user_id = uuid.uuid4()
+    household_id = uuid.uuid4()
+    session = _Session()
+    orphan_manual = SimpleNamespace(
+        user_id=user_id,
+        source=TransactionSource.MANUAL,
+        receipt_id=None,
+        household_id=None,
+        created_by_user_id=None,
+        owner_user_id=None,
+    )
+
+    monkeypatch.setattr(
+        "app.services.households.access.user_has_feature",
+        lambda *_args, **_kwargs: True,
+    )
+    monkeypatch.setattr(
+        "app.services.households.access.get_active_household_for_user",
+        lambda *_args, **_kwargs: SimpleNamespace(id=household_id),
+    )
+    monkeypatch.setattr(
+        "app.services.households.households.attach_existing_manual_transactions_to_household",
+        lambda _session, *, user_id, household_id: [orphan_manual],
+    )
+
+    result = get_active_shared_household_id(session, user_id)
+
+    assert result == household_id
+    assert session.committed is True
 
 
 # ============================================================
@@ -381,6 +506,41 @@ def test_resolve_effective_entitlements_no_household_returns_user_only(monkeypat
     result = resolve_effective_entitlements(_EmptySession(), user_id)  # type: ignore[arg-type]
 
     assert result == {"premium.receipt_scans.unlimited"}
+
+
+def test_family_subscription_sync_creates_household_scope_entitlements() -> None:
+    """Family subscriptions should create household-scoped entitlement rows."""
+
+    subscription = Subscription(
+        user_id=uuid.uuid4(),
+        provider=SubscriptionProvider.REVENUECAT,
+        product_id="family_premium",
+        status=SubscriptionStatus.ACTIVE,
+        started_at=_utc(0),
+        expires_at=_utc(48),
+    )
+    household_id = uuid.uuid4()
+    session = _Session(exec_results=[[], []])
+
+    touched = sync_subscription_entitlements(
+        session,
+        subscription,
+        household_id=household_id,
+        now=_utc(1),
+    )
+
+    household_rows = [
+        row for row in touched if row.scope_type == EntitlementScopeType.HOUSEHOLD
+    ]
+
+    assert household_rows
+    assert {row.scope_id for row in household_rows} == {household_id}
+    assert {row.feature_code for row in household_rows} == {
+        "premium.receipt_scans.unlimited",
+        "premium.analytics.advanced",
+        "premium.exports",
+        "premium.family_plan",
+    }
 
 
 # ============================================================

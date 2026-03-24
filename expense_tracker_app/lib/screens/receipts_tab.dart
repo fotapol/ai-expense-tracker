@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import '../core/auto_refresh_state_mixin.dart';
 import '../core/api_client.dart';
 import '../core/category_style.dart';
 import '../core/taxonomy_localization.dart';
@@ -9,13 +10,16 @@ import '../widgets/filter_bottom_sheet.dart';
 import 'transaction_edit_screen.dart';
 
 class ReceiptsTab extends StatefulWidget {
-  const ReceiptsTab({super.key});
+  final bool showTopBar;
+
+  const ReceiptsTab({super.key, this.showTopBar = true});
 
   @override
   State<ReceiptsTab> createState() => _ReceiptsTabState();
 }
 
-class _ReceiptsTabState extends State<ReceiptsTab> {
+class _ReceiptsTabState extends State<ReceiptsTab>
+    with WidgetsBindingObserver, AutoRefreshStateMixin<ReceiptsTab> {
   bool _isLoading = true;
   String? _error;
   List<dynamic> _transactions = [];
@@ -27,6 +31,13 @@ class _ReceiptsTabState extends State<ReceiptsTab> {
   List<String> _selectedLabelIds = [];
   final TextEditingController _searchController = TextEditingController();
   Map<String, Map<String, dynamic>> _categoriesById = {};
+  bool _isFetchingTransactions = false;
+
+  @override
+  Duration get autoRefreshInterval => const Duration(seconds: 8);
+
+  @override
+  Future<void> performAutoRefresh() => _fetchTransactions(showLoader: false);
 
   @override
   void initState() {
@@ -105,6 +116,13 @@ class _ReceiptsTabState extends State<ReceiptsTab> {
   }
 
   String _currencySymbol(String code) {
+    final normalized = code.toUpperCase();
+    if (normalized == 'EUR') return '\u20AC';
+    if (normalized == 'USD') return '\$';
+    if (normalized == 'GBP') return '\u00A3';
+    if (normalized == 'AUD') return 'A\$';
+    if (normalized == 'CAD') return 'C\$';
+    if (normalized == 'RSD') return 'RSD ';
     switch (code.toUpperCase()) {
       case 'EUR':
         return '€';
@@ -121,7 +139,7 @@ class _ReceiptsTabState extends State<ReceiptsTab> {
 
   String _formatMoney(String currency, double amount) {
     final symbol = _currencySymbol(currency);
-    if (symbol.trim().length == 1 || symbol == 'RSD ') {
+    if (symbol != '${currency.toUpperCase()} ') {
       final sign = amount < 0 ? '-' : '';
       return '$sign$symbol${amount.abs().toStringAsFixed(2)}';
     }
@@ -141,12 +159,19 @@ class _ReceiptsTabState extends State<ReceiptsTab> {
     return raw.toString().toUpperCase();
   }
 
-  Future<void> _fetchTransactions() async {
-    if (!mounted) return;
-    setState(() {
-      _isLoading = true;
-      _error = null;
-    });
+  Future<void> _fetchTransactions({bool showLoader = true}) async {
+    if (_isFetchingTransactions) return;
+    _isFetchingTransactions = true;
+    if (!mounted) {
+      _isFetchingTransactions = false;
+      return;
+    }
+    if (showLoader) {
+      setState(() {
+        _isLoading = true;
+        _error = null;
+      });
+    }
 
     try {
       final startDate = PeriodFilter.getStartDate(_selectedPeriod);
@@ -170,13 +195,18 @@ class _ReceiptsTabState extends State<ReceiptsTab> {
       setState(() {
         _transactions = data;
         _isLoading = false;
+        _error = null;
       });
     } catch (e) {
       if (!mounted) return;
-      setState(() {
-        _error = e.toString();
-        _isLoading = false;
-      });
+      if (showLoader || _transactions.isEmpty) {
+        setState(() {
+          _error = e.toString();
+          _isLoading = false;
+        });
+      }
+    } finally {
+      _isFetchingTransactions = false;
     }
   }
 
@@ -204,7 +234,12 @@ class _ReceiptsTabState extends State<ReceiptsTab> {
 
   Future<void> _deleteTransaction(Map<String, dynamic> tx) async {
     final receiptId = tx['receipt_id'] as String?;
-    if (receiptId == null) return;
+    final transactionId = tx['id']?.toString();
+    final source = tx['source']?.toString().toUpperCase();
+    final isManual = source == 'MANUAL' || receiptId == null;
+    final missingManualIdMessage = context.tr(
+      'manual_transaction_delete_missing_id',
+    );
 
     final confirmed = await showDialog<bool>(
       context: context,
@@ -227,11 +262,24 @@ class _ReceiptsTabState extends State<ReceiptsTab> {
 
     if (confirmed == true) {
       try {
-        await ApiClient.deleteReceipt(receiptId);
+        if (isManual) {
+          if (transactionId == null || transactionId.isEmpty) {
+            throw Exception(missingManualIdMessage);
+          }
+          await ApiClient.deleteTransaction(transactionId);
+        } else {
+          await ApiClient.deleteReceipt(receiptId);
+        }
         _fetchTransactions();
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text(context.tr('receipts_deleted'))),
+            SnackBar(
+              content: Text(
+                isManual
+                    ? context.tr('manual_transaction_deleted')
+                    : context.tr('receipts_deleted'),
+              ),
+            ),
           );
         }
       } catch (e) {
@@ -258,7 +306,7 @@ class _ReceiptsTabState extends State<ReceiptsTab> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          _buildTopBar(),
+          if (widget.showTopBar) _buildTopBar(),
           if (_selectedPeriod != PeriodFilter.last3Months ||
               _merchantSearch.isNotEmpty ||
               _selectedCategoryIds.isNotEmpty ||
@@ -297,6 +345,18 @@ class _ReceiptsTabState extends State<ReceiptsTab> {
             ),
           ),
           const SizedBox(width: 12),
+          IconButton(
+            icon: const Icon(Icons.add_circle_outline),
+            color: Theme.of(context).colorScheme.primary,
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => const TransactionEditScreen.create(),
+                ),
+              ).then((_) => _fetchTransactions());
+            },
+          ),
           IconButton(
             icon: const Icon(Icons.tune),
             color: Theme.of(context).colorScheme.primary,
@@ -790,12 +850,12 @@ class _ReceiptsTabState extends State<ReceiptsTab> {
     double totalPeriodExpense = 0;
     double totalPeriodSavings = 0;
     String totalCurrency = _preferredCurrency;
-    
+
     for (var tx in _transactions) {
       final txMap = tx as Map<String, dynamic>;
       totalPeriodExpense += _displayAmountOf(txMap);
       totalCurrency = _displayCurrencyOf(txMap);
-      
+
       final itemsRaw = txMap['items'];
       if (itemsRaw is List) {
         final amountTotal =
@@ -833,7 +893,7 @@ class _ReceiptsTabState extends State<ReceiptsTab> {
             }
           }
         }
-        
+
         if (receiptSourceSavings > 0) {
           totalPeriodSavings += receiptSourceSavings * rate;
         }

@@ -8,14 +8,55 @@ import uuid
 from fastapi import HTTPException, status
 from sqlmodel import Session, select
 
+from app.models.billing.entitlement import Entitlement
 from app.models.households.household import Household
+from app.models.households.household_invite import HouseholdInvite
 from app.models.households.household_member import HouseholdMember
-from app.models.shared.enums import HouseholdMemberRole, HouseholdMemberStatus
+from app.models.shared.enums import (
+    EntitlementScopeType,
+    EntitlementStatus,
+    HouseholdMemberRole,
+    HouseholdMemberStatus,
+    TransactionSource,
+)
+from app.models.transactions.transaction import Transaction
 from app.models.users.user import User
 
 
 def _utcnow() -> dt.datetime:
     return dt.datetime.now(dt.UTC)
+
+
+def attach_existing_manual_transactions_to_household(
+    session: Session,
+    *,
+    user_id: uuid.UUID,
+    household_id: uuid.UUID,
+) -> list[Transaction]:
+    """Attach legacy solo manual transactions to a newly active household."""
+
+    transactions = session.exec(
+        select(Transaction).where(
+            Transaction.user_id == user_id,
+            Transaction.source == TransactionSource.MANUAL,
+            Transaction.receipt_id.is_(None),
+            Transaction.household_id.is_(None),
+        )
+    ).all()
+
+    attached: list[Transaction] = []
+    for transaction in transactions:
+        # NOTE: The SQL query above already guarantees these conditions;
+        # no secondary filter needed here.
+        transaction.household_id = household_id
+        if transaction.created_by_user_id is None:
+            transaction.created_by_user_id = transaction.user_id
+        if transaction.owner_user_id is None:
+            transaction.owner_user_id = transaction.user_id
+        session.add(transaction)
+        attached.append(transaction)
+
+    return attached
 
 
 def create_household(
@@ -52,6 +93,11 @@ def create_household(
         joined_at=now,
     )
     session.add(member)
+    attach_existing_manual_transactions_to_household(
+        session,
+        user_id=owner.id,
+        household_id=household.id,
+    )
     session.commit()
     session.refresh(household)
     return household
@@ -101,3 +147,50 @@ def list_household_members(
             ]),
         )
     ).all()
+
+
+def delete_household(
+    session: Session,
+    household: Household,
+) -> None:
+    """Remove a household and detach its shared transactions."""
+
+    current_time = _utcnow()
+
+    transactions = session.exec(
+        select(Transaction).where(Transaction.household_id == household.id)
+    ).all()
+    for transaction in transactions:
+        transaction.household_id = None
+        # Reset owner back to the transaction creator so the transaction
+        # remains attributable after the household context no longer exists.
+        if transaction.owner_user_id != transaction.user_id:
+            transaction.owner_user_id = transaction.user_id
+        session.add(transaction)
+
+    household_entitlements = session.exec(
+        select(Entitlement).where(
+            Entitlement.scope_type == EntitlementScopeType.HOUSEHOLD,
+            Entitlement.scope_id == household.id,
+        )
+    ).all()
+    for entitlement in household_entitlements:
+        entitlement.status = EntitlementStatus.REVOKED
+        entitlement.expires_at = current_time
+        session.add(entitlement)
+
+    invites = session.exec(
+        select(HouseholdInvite).where(HouseholdInvite.household_id == household.id)
+    ).all()
+    for invite in invites:
+        session.delete(invite)
+
+    members = session.exec(
+        select(HouseholdMember).where(HouseholdMember.household_id == household.id)
+    ).all()
+    for member in members:
+        session.delete(member)
+
+    session.flush()
+    session.delete(household)
+    session.commit()
