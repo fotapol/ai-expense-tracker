@@ -7,19 +7,16 @@ import '../core/period_filter.dart';
 import '../core/redesign_system.dart';
 import '../core/taxonomy_localization.dart';
 import '../l10n/app_localizations.dart';
-import 'household_screen.dart';
+// TODO(household): re-import household_screen when household feature ships
 
 class AnalyticsOverviewTab extends StatefulWidget {
   const AnalyticsOverviewTab({
     super.key,
     required this.filters,
-    required this.currentHousehold,
-    required this.onHouseholdUpdated,
+    // TODO(household): restore currentHousehold & onHouseholdUpdated when household feature ships
   });
 
   final AnalyticsFilters filters;
-  final Map<String, dynamic>? currentHousehold;
-  final Future<void> Function() onHouseholdUpdated;
 
   @override
   State<AnalyticsOverviewTab> createState() => _AnalyticsOverviewTabState();
@@ -30,7 +27,7 @@ class _AnalyticsOverviewTabState extends State<AnalyticsOverviewTab> {
   String? _error;
   Map<String, dynamic>? _summaryData;
   Map<String, dynamic>? _trendsData;
-  Map<String, dynamic>? _householdData;
+  // TODO(household): restore _householdData when household feature ships
 
   @override
   void initState() {
@@ -41,9 +38,7 @@ class _AnalyticsOverviewTabState extends State<AnalyticsOverviewTab> {
   @override
   void didUpdateWidget(covariant AnalyticsOverviewTab oldWidget) {
     super.didUpdateWidget(oldWidget);
-    if (oldWidget.filters != widget.filters ||
-        oldWidget.currentHousehold?['id']?.toString() !=
-            widget.currentHousehold?['id']?.toString()) {
+    if (oldWidget.filters != widget.filters) {
       _fetchData();
     }
   }
@@ -87,33 +82,14 @@ class _AnalyticsOverviewTabState extends State<AnalyticsOverviewTab> {
               : null,
         ),
       ];
-      final shouldLoadHousehold = widget.currentHousehold != null;
-      if (shouldLoadHousehold) {
-        requests.add(
-          ApiClient.getHouseholdAnalyticsSummary(
-            fromDate: fromDate,
-            toDate: toDate,
-            categoryIds: widget.filters.categoryIds.isNotEmpty
-                ? widget.filters.categoryIds
-                : null,
-            subcategoryIds: widget.filters.subcategoryIds.isNotEmpty
-                ? widget.filters.subcategoryIds
-                : null,
-            labelIds: widget.filters.labelIds.isNotEmpty
-                ? widget.filters.labelIds
-                : null,
-          ),
-        );
-      }
+      // TODO(household): restore household analytics request when household feature ships
 
       final results = await Future.wait(requests);
       if (!mounted) return;
       setState(() {
         _summaryData = results[0];
         _trendsData = results[1];
-        _householdData = shouldLoadHousehold && results.length > 2
-            ? results[2]
-            : null;
+        // TODO(household): restore _householdData = results[2] when household feature ships
         _isLoading = false;
       });
     } catch (error) {
@@ -226,14 +202,7 @@ class _AnalyticsOverviewTabState extends State<AnalyticsOverviewTab> {
             breakdown: breakdown,
             totalAmount: totalAmount,
           ),
-          if (widget.currentHousehold != null) ...[
-            const SizedBox(height: 16),
-            _buildHouseholdPreviewCard(
-              context,
-              currency: currency,
-              householdData: _householdData,
-            ),
-          ],
+          // TODO(household): restore _buildHouseholdPreviewCard when household feature ships
         ],
       ),
     );
@@ -528,129 +497,6 @@ class _AnalyticsOverviewTabState extends State<AnalyticsOverviewTab> {
     );
   }
 
-  Widget _buildHouseholdPreviewCard(
-    BuildContext context, {
-    required String currency,
-    required Map<String, dynamic>? householdData,
-  }) {
-    final householdName =
-        householdData?['household']?['name']?.toString() ??
-        widget.currentHousehold?['name']?.toString() ??
-        context.tr('analytics_tab_households');
-    final totalAmount = _parseDouble(householdData?['total_amount']);
-    final members =
-        householdData?['members'] as List<dynamic>? ?? const <dynamic>[];
-
-    return InkWell(
-      borderRadius: BorderRadius.circular(24),
-      onTap: () async {
-        await Navigator.push(
-          context,
-          MaterialPageRoute(builder: (_) => const HouseholdScreen()),
-        );
-        await widget.onHouseholdUpdated();
-      },
-      child: Container(
-        padding: const EdgeInsets.all(20),
-        decoration: ShellStyles.cardDecoration(context, radius: 24),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              children: [
-                Icon(Icons.group_outlined, color: ShellColors.softGreen),
-                const SizedBox(width: 10),
-                Expanded(
-                  child: Text(
-                    householdName,
-                    style: TextStyle(
-                      color: ShellStyles.textPrimary(context),
-                      fontSize: 18,
-                      fontWeight: FontWeight.w700,
-                    ),
-                  ),
-                ),
-                Icon(
-                  Icons.chevron_right,
-                  color: ShellStyles.textMuted(context),
-                ),
-              ],
-            ),
-            const SizedBox(height: 12),
-            Text(
-              formatMoney(currency, totalAmount),
-              style: TextStyle(
-                color: ShellStyles.textPrimary(context),
-                fontSize: 28,
-                fontWeight: FontWeight.w800,
-              ),
-            ),
-            const SizedBox(height: 4),
-            Text(
-              context.tr('analytics_household_preview_subtitle'),
-              style: TextStyle(
-                color: ShellStyles.textMuted(context),
-                fontSize: 12,
-              ),
-            ),
-            const SizedBox(height: 16),
-            if (members.isEmpty)
-              Text(
-                context.tr('analytics_household_no_data'),
-                style: TextStyle(color: ShellStyles.textMuted(context)),
-              )
-            else
-              for (final rawMember in members.take(3)) ...[
-                Builder(
-                  builder: (context) {
-                    final member = rawMember as Map<String, dynamic>;
-                    final name =
-                        member['user']?['display_name']?.toString().trim();
-                    final email = member['user']?['email']?.toString().trim();
-                    final label = (name != null && name.isNotEmpty)
-                        ? name
-                        : (email != null && email.isNotEmpty)
-                              ? email
-                              : context.tr('home_default_user');
-                    final amount = _parseDouble(member['total_amount']);
-                    final percentage = _parseDouble(member['percentage']);
-                    return Padding(
-                      padding: const EdgeInsets.only(bottom: 10),
-                      child: Row(
-                        children: [
-                          Expanded(
-                            child: Text(
-                              label,
-                              style: TextStyle(
-                                color: ShellStyles.textPrimary(context),
-                                fontWeight: FontWeight.w600,
-                              ),
-                            ),
-                          ),
-                          Text(
-                            '${percentage.toStringAsFixed(1)}%',
-                            style: TextStyle(
-                              color: ShellStyles.textMuted(context),
-                              fontSize: 12,
-                            ),
-                          ),
-                          const SizedBox(width: 12),
-                          Text(
-                            formatMoney(currency, amount),
-                            style: TextStyle(
-                              color: ShellStyles.textPrimary(context),
-                              fontWeight: FontWeight.w700,
-                            ),
-                          ),
-                        ],
-                      ),
-                    );
-                  },
-                ),
-              ],
-          ],
-        ),
-      ),
-    );
-  }
+  // TODO(household): restore _buildHouseholdPreviewCard when household feature ships
+  // (referenced HouseholdScreen and showed per-member spending breakdown)
 }

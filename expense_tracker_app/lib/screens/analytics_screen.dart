@@ -7,7 +7,7 @@ import '../core/redesign_system.dart';
 import '../core/taxonomy_localization.dart';
 import '../l10n/app_localizations.dart';
 import '../widgets/filter_bottom_sheet.dart';
-import 'analytics_household_tab.dart';
+// TODO(household): re-import analytics_household_tab when household feature ships
 import 'analytics_overview_tab.dart';
 import 'analytics_tab.dart';
 import 'analytics_trends_tab.dart';
@@ -16,7 +16,7 @@ enum AnalyticsSection {
   overview,
   trends,
   categories,
-  households,
+  // TODO(household): add households back when household feature ships
 }
 
 class AnalyticsScreen extends StatefulWidget {
@@ -27,8 +27,6 @@ class AnalyticsScreen extends StatefulWidget {
 }
 
 class _AnalyticsScreenState extends State<AnalyticsScreen> {
-  static const String _familyPlanFeatureCode = 'premium.family_plan';
-
   bool _isLoading = true;
   String? _error;
   AnalyticsSection _selectedSection = AnalyticsSection.overview;
@@ -36,21 +34,11 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
   Map<String, String> _categoryNamesById = {};
   Map<String, String> _labelNamesById = {};
   Set<String> _featureCodes = <String>{};
-  Map<String, dynamic>? _currentHousehold;
-
-  bool get _hasFamilyPlan => _featureCodes.contains(_familyPlanFeatureCode);
 
   @override
   void initState() {
     super.initState();
     _loadShellState();
-  }
-
-  int? _extractStatusCode(Object error) {
-    final text = error.toString();
-    final match = RegExp(r'\b([1-5]\d{2})\b').firstMatch(text);
-    if (match == null) return null;
-    return int.tryParse(match.group(1)!);
   }
 
   Future<void> _loadShellState() async {
@@ -73,7 +61,6 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
       Map<String, String> categoryNamesById = {};
       Map<String, String> labelNamesById = {};
       Set<String> featureCodes = <String>{};
-      Map<String, dynamic>? currentHousehold;
 
       try {
         final categories = await ApiClient.listCategories();
@@ -107,11 +94,7 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
                 .toSet();
       } catch (_) {}
 
-      try {
-        currentHousehold = await ApiClient.getCurrentHousehold();
-      } catch (error) {
-        if (_extractStatusCode(error) != 404) rethrow;
-      }
+      // TODO(household): restore getCurrentHousehold() call when household feature ships
 
       if (!mounted) return;
       setState(() {
@@ -128,7 +111,6 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
         _categoryNamesById = categoryNamesById;
         _labelNamesById = labelNamesById;
         _featureCodes = featureCodes;
-        _currentHousehold = currentHousehold;
         _isLoading = false;
       });
     } catch (error) {
@@ -244,8 +226,7 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
         return 'analytics_tab_trends';
       case AnalyticsSection.categories:
         return 'analytics_tab_categories';
-      case AnalyticsSection.households:
-        return 'analytics_tab_households';
+      // TODO(household): add households case back when household feature ships
     }
   }
 
@@ -428,22 +409,15 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
                       child: IndexedStack(
                         index: _selectedSection.index,
                         children: [
-                          AnalyticsOverviewTab(
-                            filters: _filters,
-                            currentHousehold: _currentHousehold,
-                            onHouseholdUpdated: _loadShellState,
-                          ),
+                          // TODO(household): restore currentHousehold/onHouseholdUpdated
+                          // params to AnalyticsOverviewTab when household feature ships
+                          AnalyticsOverviewTab(filters: _filters),
                           AnalyticsTrendsTab(filters: _filters),
                           AnalyticsTab(
                             filters: _filters,
                             featureCodes: _featureCodes,
                           ),
-                          AnalyticsHouseholdTab(
-                            filters: _filters,
-                            currentHousehold: _currentHousehold,
-                            hasFamilyPlan: _hasFamilyPlan,
-                            onHouseholdUpdated: _loadShellState,
-                          ),
+                          // TODO(household): restore AnalyticsHouseholdTab when household feature ships
                         ],
                       ),
                     ),

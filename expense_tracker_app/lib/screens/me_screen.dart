@@ -14,7 +14,7 @@ import 'appearance_settings_screen.dart';
 import 'currency_settings_screen.dart';
 import 'feature_request_screen.dart';
 import 'help_center_screen.dart';
-import 'household_screen.dart';
+// TODO(household): re-import household_screen when household feature ships
 import 'items_translation_settings_screen.dart';
 import 'language_settings_screen.dart';
 import 'login_screen.dart';
@@ -368,17 +368,7 @@ class _MeScreenState extends State<MeScreen> {
                       : null,
                   onTap: _openSubscriptionDetails,
                 ),
-                _buildSettingsTile(
-                  icon: AppIcons.group,
-                  title: context.tr('settings_household'),
-                  subtitle: context.tr('household_settings_subtitle'),
-                  badge: _buildFeatureTag('PREMIUM', ShellColors.gold),
-                  onTap: () => _openSettingsRoute(
-                    const HouseholdScreen(),
-                    refreshProfile: true,
-                    refreshBilling: true,
-                  ),
-                ),
+                // TODO(household): restore Household settings tile when household feature ships
                 _buildSettingsTile(
                   icon: AppIcons.person,
                   title: context.tr('settings_profile'),
