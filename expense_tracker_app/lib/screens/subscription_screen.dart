@@ -798,7 +798,9 @@ class _SubscriptionScreenState extends State<SubscriptionScreen> {
     }
 
     final individualPackage = _packageFor(false, _selectedPeriod);
-    final familyPackage = _packageFor(true, _selectedPeriod);
+    // TODO(household): restore familyPackage lookup when household feature ships
+    // final familyPackage = _packageFor(true, _selectedPeriod);
+    Package? familyPackage = null;
 
     return SafeArea(
       top: false,

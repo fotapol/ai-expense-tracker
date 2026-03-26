@@ -393,6 +393,7 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
                         child: SingleChildScrollView(
                           scrollDirection: Axis.horizontal,
                           child: Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
                             children: AnalyticsSection.values
                                 .map(_buildSectionChip)
                                 .toList(),
