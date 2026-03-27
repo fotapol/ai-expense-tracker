@@ -5,6 +5,8 @@ import 'package:purchases_flutter/purchases_flutter.dart';
 import '../core/api_client.dart';
 import '../core/redesign_system.dart';
 import '../core/revenuecat_service.dart';
+import '../core/single_user_launch.dart';
+import '../core/subscription_confirmation.dart';
 import '../l10n/app_localizations.dart';
 import 'settings_detail_scaffold.dart';
 
@@ -19,16 +21,6 @@ class SubscriptionScreen extends StatefulWidget {
 
 enum _BillingPeriod { monthly, yearly }
 
-class _HouseholdPurchaseContext {
-  const _HouseholdPurchaseContext({
-    required this.hasHousehold,
-    required this.isOwner,
-  });
-
-  final bool hasHousehold;
-  final bool isOwner;
-}
-
 class _SubscriptionScreenState extends State<SubscriptionScreen> {
   static const bool _showDevTools = bool.fromEnvironment(
     'ENABLE_DEV_BILLING_TOOLS',
@@ -41,7 +33,6 @@ class _SubscriptionScreenState extends State<SubscriptionScreen> {
   String? _error;
   String? _targetUserId;
   Map<String, dynamic>? _subscriptionPayload;
-  Set<String> _activeFeatures = <String>{};
   List<Package> _availablePackages = const <Package>[];
   Package? _selectedPackage;
   _BillingPeriod _selectedPeriod = _BillingPeriod.monthly;
@@ -62,14 +53,8 @@ class _SubscriptionScreenState extends State<SubscriptionScreen> {
   bool get _hasActiveSubscription =>
       (_subscriptionPayload?['has_active_subscription'] as bool?) ?? false;
 
-  bool get _hasFamilyPlan => _activeFeatures.contains('premium.family_plan');
-
   Map<String, dynamic>? get _subscription =>
       _subscriptionPayload?['subscription'] as Map<String, dynamic>?;
-
-  bool get _selectedIsFamily =>
-      _selectedPackage != null &&
-      RevenueCatService.isFamilyPackage(_selectedPackage!);
 
   Future<void> _loadSubscriptionData() async {
     setState(() {
@@ -83,7 +68,6 @@ class _SubscriptionScreenState extends State<SubscriptionScreen> {
       }
 
       Map<String, dynamic> subscriptionPayload;
-      Map<String, dynamic> entitlementsPayload;
       if (RevenueCatService.isAvailable && !_showDevTools) {
         try {
           final syncPayload = await ApiClient.syncRevenueCatSubscription();
@@ -92,24 +76,11 @@ class _SubscriptionScreenState extends State<SubscriptionScreen> {
             'subscription': syncPayload['subscription'],
             'receipt_scan_usage': syncPayload['receipt_scan_usage'],
           };
-          entitlementsPayload = <String, dynamic>{
-            'feature_codes': syncPayload['feature_codes'] ?? const <dynamic>[],
-          };
         } catch (_) {
-          final fallback = await Future.wait<dynamic>([
-            ApiClient.getMeSubscription(),
-            ApiClient.getMeEntitlements(),
-          ]);
-          subscriptionPayload = fallback[0] as Map<String, dynamic>;
-          entitlementsPayload = fallback[1] as Map<String, dynamic>;
+          subscriptionPayload = await ApiClient.getMeSubscription();
         }
       } else {
-        final fallback = await Future.wait<dynamic>([
-          ApiClient.getMeSubscription(),
-          ApiClient.getMeEntitlements(),
-        ]);
-        subscriptionPayload = fallback[0] as Map<String, dynamic>;
-        entitlementsPayload = fallback[1] as Map<String, dynamic>;
+        subscriptionPayload = await ApiClient.getMeSubscription();
       }
 
       Offerings? offerings;
@@ -117,11 +88,6 @@ class _SubscriptionScreenState extends State<SubscriptionScreen> {
         offerings = await RevenueCatService.getOfferings();
       } catch (_) {}
 
-      final featureCodes =
-          (entitlementsPayload['feature_codes'] as List<dynamic>? ??
-                  const <dynamic>[])
-              .map((value) => value.toString())
-              .toSet();
       final usageRaw = subscriptionPayload['receipt_scan_usage'];
       final usage = usageRaw is Map<String, dynamic>
           ? usageRaw
@@ -131,7 +97,6 @@ class _SubscriptionScreenState extends State<SubscriptionScreen> {
       if (!mounted) return;
       setState(() {
         _subscriptionPayload = subscriptionPayload;
-        _activeFeatures = featureCodes;
         final parsedLimit =
             int.tryParse((usage['limit'] ?? 10).toString()) ?? 10;
         _receiptScanLimit = parsedLimit > 0 ? parsedLimit : 10;
@@ -156,11 +121,15 @@ class _SubscriptionScreenState extends State<SubscriptionScreen> {
   }
 
   void _syncSelectedPackage(List<Package> packages) {
-    _availablePackages = List<Package>.from(packages);
+    final launchPackages = filterSingleUserLaunchPackages(
+      packages,
+      isFamilyPackage: RevenueCatService.isFamilyPackage,
+    );
+    _availablePackages = List<Package>.from(launchPackages);
     final previousIdentifier = _selectedPackage?.identifier;
     Package? selected;
     if (previousIdentifier != null) {
-      for (final package in packages) {
+      for (final package in _availablePackages) {
         if (package.identifier == previousIdentifier) {
           selected = package;
           break;
@@ -168,12 +137,17 @@ class _SubscriptionScreenState extends State<SubscriptionScreen> {
       }
     }
     selected ??=
-        _packageFor(false, _selectedPeriod, packages: packages) ??
-        _packageFor(true, _selectedPeriod, packages: packages) ??
-        _packageFor(false, _BillingPeriod.monthly, packages: packages) ??
-        _packageFor(true, _BillingPeriod.monthly, packages: packages) ??
-        _packageFor(false, _BillingPeriod.yearly, packages: packages) ??
-        _packageFor(true, _BillingPeriod.yearly, packages: packages);
+        _packageFor(false, _selectedPeriod, packages: _availablePackages) ??
+        _packageFor(
+          false,
+          _BillingPeriod.monthly,
+          packages: _availablePackages,
+        ) ??
+        _packageFor(
+          false,
+          _BillingPeriod.yearly,
+          packages: _availablePackages,
+        );
     _selectedPackage = selected;
     if (selected != null) {
       _selectedPeriod = RevenueCatService.isYearlyPackage(selected)
@@ -200,95 +174,102 @@ class _SubscriptionScreenState extends State<SubscriptionScreen> {
   }
 
   void _selectPeriod(_BillingPeriod period) {
-    final preferFamily = _selectedIsFamily;
     setState(() {
       _selectedPeriod = period;
-      _selectedPackage =
-          _packageFor(preferFamily, period) ??
-          _packageFor(!preferFamily, period);
+      _selectedPackage = _packageFor(false, period);
     });
   }
 
-  Future<_HouseholdPurchaseContext> _loadHouseholdPurchaseContext() async {
-    try {
-      final household = await ApiClient.getCurrentHousehold();
-      final members = await ApiClient.listCurrentHouseholdMembers();
-      final targetUserId = (_targetUserId ?? '').trim();
-      final currentMembership = members
-          .whereType<Map<String, dynamic>>()
-          .firstWhere(
-            (member) => member['user_id']?.toString() == targetUserId,
-            orElse: () => const <String, dynamic>{},
-          );
-      return _HouseholdPurchaseContext(
-        hasHousehold: household.isNotEmpty,
-        isOwner: currentMembership['role']?.toString() == 'owner',
-      );
-    } catch (error) {
-      if (RegExp(r'\b404\b').hasMatch(error.toString())) {
-        return const _HouseholdPurchaseContext(
-          hasHousehold: false,
-          isOwner: false,
-        );
-      }
-      rethrow;
-    }
-  }
-
-  Future<bool> _prepareIndividualPurchaseContext() async {
-    final householdContext = await _loadHouseholdPurchaseContext();
-    if (!householdContext.hasHousehold) return true;
-    if (!mounted) return false;
-    final confirmed = await showDialog<bool>(
-      context: context,
-      builder: (dialogContext) => AlertDialog(
-        title: Text(context.tr('billing_household_purchase_block_title')),
-        content: Text(
-          context.tr(
-            householdContext.isOwner
-                ? 'billing_household_purchase_block_owner'
-                : 'billing_household_purchase_block_member',
-          ),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(dialogContext, false),
-            child: Text(context.tr('common_cancel')),
-          ),
-          FilledButton(
-            onPressed: () => Navigator.pop(dialogContext, true),
-            child: Text(
-              context.tr(
-                householdContext.isOwner
-                    ? 'household_delete_action'
-                    : 'household_leave_action',
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-    if (confirmed != true) return false;
-    if (householdContext.isOwner) {
-      await ApiClient.deleteCurrentHousehold();
-    } else {
-      await ApiClient.leaveCurrentHousehold();
-    }
-    return true;
-  }
-
-  bool _syncConfirmsExpectedPurchase(
-    Map<String, dynamic> syncPayload,
+  bool _customerInfoConfirmsExpectedPurchase(
+    CustomerInfo customerInfo,
     Package package,
   ) {
-    final featureCodes =
-        (syncPayload['feature_codes'] as List<dynamic>? ?? const <dynamic>[])
-            .map((value) => value.toString())
-            .toSet();
-    if (RevenueCatService.isFamilyPackage(package)) {
-      return featureCodes.contains('premium.family_plan');
+    return customerInfoConfirmsPremiumAccess(
+      hasPremiumEntitlement: RevenueCatService.hasPremiumEntitlement(
+        customerInfo,
+      ),
+      activeSubscriptions: customerInfo.activeSubscriptions,
+      acceptedProductIds: <String>[
+        package.storeProduct.identifier,
+        package.identifier,
+      ],
+    );
+  }
+
+  bool _customerInfoConfirmsKnownPremiumAccess(CustomerInfo customerInfo) {
+    final acceptedProductIds = <String>{
+      for (final package in _availablePackages) package.storeProduct.identifier,
+      for (final package in _availablePackages) package.identifier,
+    };
+    return customerInfoConfirmsPremiumAccess(
+      hasPremiumEntitlement: RevenueCatService.hasPremiumEntitlement(
+        customerInfo,
+      ),
+      activeSubscriptions: customerInfo.activeSubscriptions,
+      acceptedProductIds: acceptedProductIds,
+    );
+  }
+
+  void _applyOptimisticPremiumState(CustomerInfo customerInfo) {
+    final expiration = resolvePremiumAccessExpiration(
+      latestExpirationDate: customerInfo.latestExpirationDate,
+      activeEntitlementExpirationDates: customerInfo.entitlements.active.values
+          .map((entitlement) => entitlement.expirationDate),
+    );
+    final currentPayload = _subscriptionPayload;
+    final currentSubscription = currentPayload?['subscription'];
+    final currentUsage = currentPayload?['receipt_scan_usage'];
+
+    _subscriptionPayload = <String, dynamic>{
+      ...?currentPayload,
+      'has_active_subscription': true,
+      'subscription': <String, dynamic>{
+        ...?(currentSubscription is Map<String, dynamic>
+            ? currentSubscription
+            : null),
+        ...?(expiration == null
+            ? null
+            : <String, dynamic>{'expires_at': expiration}),
+      },
+      'receipt_scan_usage': <String, dynamic>{
+        ...?(currentUsage is Map<String, dynamic> ? currentUsage : null),
+        'limit': null,
+        'remaining': null,
+        'is_unlimited': true,
+        ...?(expiration == null
+            ? null
+            : <String, dynamic>{'period_end_at': expiration}),
+      },
+    };
+    _receiptScanUnlimited = true;
+    _receiptScanRemaining = null;
+    if (expiration != null) {
+      _receiptScanResetAtUtc = DateTime.tryParse(expiration)?.toUtc();
     }
-    return syncPayload['has_active_subscription'] == true;
+  }
+
+  Future<bool> _confirmPurchaseWithBackend({
+    required bool expectsFamilyPlan,
+  }) async {
+    Map<String, dynamic>? lastPayload;
+    for (var attempt = 0; attempt < 4; attempt++) {
+      try {
+        lastPayload = await ApiClient.syncRevenueCatSubscription();
+      } catch (_) {
+        lastPayload = null;
+      }
+      if (lastPayload != null &&
+          syncPayloadConfirmsPremiumAccess(
+            lastPayload,
+            expectsFamilyPlan: expectsFamilyPlan,
+          )) {
+        return true;
+      }
+      if (attempt < 3) {
+        await Future<void>.delayed(const Duration(seconds: 2));
+      }
+    }
+    return false;
   }
 
   String _friendlyBillingError(Object error) {
@@ -354,23 +335,27 @@ class _SubscriptionScreenState extends State<SubscriptionScreen> {
     }
     setState(() => _isPurchaseLoading = true);
     try {
-      if (!RevenueCatService.isFamilyPackage(package)) {
-        final canProceed = await _prepareIndividualPurchaseContext();
-        if (!canProceed) return;
+      if (RevenueCatService.isFamilyPackage(package)) {
+        throw Exception('Family subscriptions are unavailable in this launch.');
       }
-      await RevenueCatService.purchasePackage(package);
-      var syncPayload = await ApiClient.syncRevenueCatSubscription();
-      int retries = 0;
-      while (!_syncConfirmsExpectedPurchase(syncPayload, package) &&
-          retries < 3) {
-        await Future<void>.delayed(const Duration(seconds: 2));
-        syncPayload = await ApiClient.syncRevenueCatSubscription();
-        retries++;
-      }
-      if (!_syncConfirmsExpectedPurchase(syncPayload, package)) {
+      final purchaseResult = await RevenueCatService.purchasePackage(package);
+      final sdkConfirmed = _customerInfoConfirmsExpectedPurchase(
+        purchaseResult.customerInfo,
+        package,
+      );
+      final backendConfirmed = await _confirmPurchaseWithBackend(
+        expectsFamilyPlan: RevenueCatService.isFamilyPackage(package),
+      );
+      if (!sdkConfirmed && !backendConfirmed) {
         throw Exception(purchaseNotConfirmedMessage);
       }
-      await _loadSubscriptionData();
+      if (backendConfirmed) {
+        await _loadSubscriptionData();
+      } else if (mounted) {
+        setState(() {
+          _applyOptimisticPremiumState(purchaseResult.customerInfo);
+        });
+      }
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text(context.tr('billing_purchase_confirmed'))),
@@ -380,19 +365,24 @@ class _SubscriptionScreenState extends State<SubscriptionScreen> {
       if (_isOperationInProgressError(error)) {
         await Future<void>.delayed(const Duration(seconds: 1));
         try {
-          await RevenueCatService.purchasePackage(package);
-          var syncPayload = await ApiClient.syncRevenueCatSubscription();
-          int retries = 0;
-          while (!_syncConfirmsExpectedPurchase(syncPayload, package) &&
-              retries < 3) {
-            await Future<void>.delayed(const Duration(seconds: 2));
-            syncPayload = await ApiClient.syncRevenueCatSubscription();
-            retries++;
-          }
-          if (!_syncConfirmsExpectedPurchase(syncPayload, package)) {
+          final purchaseResult = await RevenueCatService.purchasePackage(package);
+          final sdkConfirmed = _customerInfoConfirmsExpectedPurchase(
+            purchaseResult.customerInfo,
+            package,
+          );
+          final backendConfirmed = await _confirmPurchaseWithBackend(
+            expectsFamilyPlan: RevenueCatService.isFamilyPackage(package),
+          );
+          if (!sdkConfirmed && !backendConfirmed) {
             throw Exception(purchaseNotConfirmedMessage);
           }
-          await _loadSubscriptionData();
+          if (backendConfirmed) {
+            await _loadSubscriptionData();
+          } else if (mounted) {
+            setState(() {
+              _applyOptimisticPremiumState(purchaseResult.customerInfo);
+            });
+          }
           if (!mounted) return;
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(content: Text(context.tr('billing_purchase_confirmed'))),
@@ -421,11 +411,26 @@ class _SubscriptionScreenState extends State<SubscriptionScreen> {
 
   Future<void> _restorePurchases() async {
     if (_isPurchaseLoading || !RevenueCatService.isAvailable) return;
+    final purchaseNotConfirmedMessage = context.tr(
+      'billing_purchase_not_confirmed',
+    );
     setState(() => _isPurchaseLoading = true);
     try {
-      await RevenueCatService.restorePurchases();
-      await ApiClient.syncRevenueCatSubscription();
-      await _loadSubscriptionData();
+      final customerInfo = await RevenueCatService.restorePurchases();
+      final sdkConfirmed = _customerInfoConfirmsKnownPremiumAccess(customerInfo);
+      final backendConfirmed = await _confirmPurchaseWithBackend(
+        expectsFamilyPlan: false,
+      );
+      if (!sdkConfirmed && !backendConfirmed) {
+        throw Exception(purchaseNotConfirmedMessage);
+      }
+      if (backendConfirmed) {
+        await _loadSubscriptionData();
+      } else if (mounted) {
+        setState(() {
+          _applyOptimisticPremiumState(customerInfo);
+        });
+      }
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text(context.tr('billing_restore_success'))),
@@ -435,9 +440,23 @@ class _SubscriptionScreenState extends State<SubscriptionScreen> {
       if (_isOperationInProgressError(error)) {
         await Future<void>.delayed(const Duration(seconds: 1));
         try {
-          await RevenueCatService.restorePurchases();
-          await ApiClient.syncRevenueCatSubscription();
-          await _loadSubscriptionData();
+          final customerInfo = await RevenueCatService.restorePurchases();
+          final sdkConfirmed = _customerInfoConfirmsKnownPremiumAccess(
+            customerInfo,
+          );
+          final backendConfirmed = await _confirmPurchaseWithBackend(
+            expectsFamilyPlan: false,
+          );
+          if (!sdkConfirmed && !backendConfirmed) {
+            throw Exception(purchaseNotConfirmedMessage);
+          }
+          if (backendConfirmed) {
+            await _loadSubscriptionData();
+          } else if (mounted) {
+            setState(() {
+              _applyOptimisticPremiumState(customerInfo);
+            });
+          }
           if (!mounted) return;
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(content: Text(context.tr('billing_restore_success'))),
@@ -490,7 +509,6 @@ class _SubscriptionScreenState extends State<SubscriptionScreen> {
   }
 
   String _currentPlanTitle(BuildContext context) {
-    if (_activeFeatures.contains('premium.family_plan')) return 'Family Plan';
     if (_hasActiveSubscription) return 'Pro Plan';
     return context.tr('billing_plan_free');
   }
@@ -738,11 +756,7 @@ class _SubscriptionScreenState extends State<SubscriptionScreen> {
   }
 
   bool _canPurchasePackage(Package? package) {
-    if (package == null) return false;
-    if (RevenueCatService.isFamilyPackage(package)) {
-      return !_hasFamilyPlan;
-    }
-    return !_hasActiveSubscription;
+    return package != null && !_hasActiveSubscription;
   }
 
   List<String> _featuresForPackage(Package package) {

@@ -101,36 +101,19 @@ def _build_transaction_read_visibility_predicate(
     session: Session,
     current_user: User,
 ):
-    own_solo_predicate = and_(
-        Transaction.user_id == current_user.id,
-        Transaction.household_id.is_(None),
-    )
-    shared_household_id = _resolve_active_shared_household_id(session, current_user)
-    if shared_household_id is None:
-        return own_solo_predicate
-    return or_(
-        own_solo_predicate,
-        Transaction.household_id == shared_household_id,
-    )
+    del session
+    # Household sharing is disabled for the single-user launch. Keep all
+    # transactions owned by the current user visible, including legacy rows
+    # that still carry a historical household_id.
+    return Transaction.user_id == current_user.id
 
 
 def _build_transaction_write_visibility_predicate(
     session: Session,
     current_user: User,
 ):
-    shared_household_id = _resolve_active_shared_household_id(session, current_user)
-    if shared_household_id is None:
-        return and_(
-            Transaction.user_id == current_user.id,
-            Transaction.household_id.is_(None),
-        )
-    return and_(
-        Transaction.user_id == current_user.id,
-        or_(
-            Transaction.household_id.is_(None),
-            Transaction.household_id == shared_household_id,
-        ),
-    )
+    del session
+    return Transaction.user_id == current_user.id
 
 
 def _assert_household_transaction_access(
@@ -139,15 +122,13 @@ def _assert_household_transaction_access(
     current_user: User,
     household_id: uuid.UUID | None,
 ) -> None:
-    if household_id is None:
-        return
-    active_shared_household_id = _resolve_active_shared_household_id(session, current_user)
-    if active_shared_household_id == household_id:
-        return
-    raise HTTPException(
-        status_code=status.HTTP_403_FORBIDDEN,
-        detail="Shared household transactions require an active family household.",
-    )
+    del session
+    del current_user
+    del household_id
+    # Household flows are disabled for launch. Legacy household-tagged rows stay
+    # editable by their owner, but new single-user writes should not depend on
+    # household access checks.
+    return None
 
 
 def _get_deleteable_manual_transaction(
@@ -299,6 +280,34 @@ def _get_user_visible_category_by_id(
             or_(Category.user_id.is_(None), Category.user_id == current_user.id),
         )
     ).first()
+
+
+def _get_user_visible_category_ids(
+    session: Session,
+    *,
+    current_user: User,
+    category_ids: set[uuid.UUID],
+    scope: CategoryScope,
+) -> set[uuid.UUID]:
+    """Return the subset of category ids visible to the user for a given scope."""
+
+    if not category_ids:
+        return set()
+
+    disabled_subquery = select(UserHiddenCategory.category_id).where(
+        UserHiddenCategory.user_id == current_user.id,
+    )
+    return set(
+        session.exec(
+            select(Category.id).where(
+                Category.id.in_(category_ids),
+                Category.scope == scope,
+                Category.is_active,
+                Category.id.notin_(disabled_subquery),
+                or_(Category.user_id.is_(None), Category.user_id == current_user.id),
+            )
+        ).all()
+    )
 
 
 def _get_or_create_global_category(
@@ -1144,10 +1153,8 @@ async def create_transaction(
 ):
     """Create a manual transaction entry."""
 
-    household_id = payload.household_id or _resolve_active_shared_household_id(
-        session,
-        current_user,
-    )
+    # Household attribution is disabled for the single-user launch.
+    household_id = None
     _assert_household_transaction_access(
         session,
         current_user=current_user,
@@ -2491,11 +2498,9 @@ async def update_transaction(
             detail="Transaction not found."
         )
 
-    next_household_id = (
-        payload.household_id
-        if payload.household_id is not None
-        else transaction.household_id
-    )
+    # Saving an edited transaction in single-user launch mode should keep it
+    # solo even if the stored row still carries a legacy household_id.
+    next_household_id = None
     _assert_household_transaction_access(
         session,
         current_user=current_user,
@@ -2508,39 +2513,48 @@ async def update_transaction(
     )
 
     # Enforce category visibility
-    requested_category_ids = set()
+    requested_transaction_category_ids: set[uuid.UUID] = set()
+    requested_item_category_ids: set[uuid.UUID] = set()
     update_data = payload.model_dump(exclude_unset=True, exclude={"items"})
     if "category_id" in update_data and update_data["category_id"] is not None:
-        requested_category_ids.add(update_data["category_id"])
+        requested_transaction_category_ids.add(update_data["category_id"])
     if payload.items is not None:
         for item_data in payload.items:
             if item_data.category_id is not None:
-                requested_category_ids.add(item_data.category_id)
-    if requested_category_ids:
-        disabled_subquery = select(UserHiddenCategory.category_id).where(
-            UserHiddenCategory.user_id == current_user.id,
+                requested_item_category_ids.add(item_data.category_id)
+    if requested_transaction_category_ids:
+        valid_transaction_category_ids = _get_user_visible_category_ids(
+            session,
+            current_user=current_user,
+            category_ids=requested_transaction_category_ids,
+            scope=CategoryScope.TRANSACTION,
         )
-        valid_category_ids = set(
-            session.exec(
-                select(Category.id).where(
-                    Category.id.in_(requested_category_ids),
-                    Category.scope == CategoryScope.ITEM,
-                    Category.is_active,
-                    Category.id.notin_(disabled_subquery),
-                    or_(Category.user_id.is_(None), Category.user_id == current_user.id),
-                )
-            ).all()
+        if len(valid_transaction_category_ids) != len(requested_transaction_category_ids):
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="One or more categories are invalid or not active.",
+            )
+    if requested_item_category_ids:
+        valid_item_category_ids = _get_user_visible_category_ids(
+            session,
+            current_user=current_user,
+            category_ids=requested_item_category_ids,
+            scope=CategoryScope.ITEM,
         )
-        if len(valid_category_ids) != len(requested_category_ids):
+        if len(valid_item_category_ids) != len(requested_item_category_ids):
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
                 detail="One or more categories are invalid or not active.",
             )
 
     # 1. Update Core Transaction fields
-    update_data = payload.model_dump(exclude_unset=True, exclude={"items"})
+    update_data = payload.model_dump(
+        exclude_unset=True,
+        exclude={"items", "household_id"},
+    )
     for key, value in update_data.items():
         setattr(transaction, key, value)
+    transaction.household_id = None
 
     session.add(transaction)
 

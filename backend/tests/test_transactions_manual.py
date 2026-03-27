@@ -12,7 +12,7 @@ import pytest
 from fastapi import HTTPException
 from starlette.requests import Request
 
-from app.models.shared.enums import CategoryScope, HouseholdMemberRole, TransactionSource
+from app.models.shared.enums import CategoryScope, TransactionSource
 from app.models.taxonomy.category import Category
 from app.models.transactions.transaction import Transaction
 from app.models.transactions.transaction_item import TransactionItem
@@ -48,6 +48,7 @@ class _Session:
         self.added: list = []
         self.deleted: list = []
         self.committed = False
+        self.commit_calls = 0
         self.flushed = False
         self.flush_calls = 0
         self.refreshed: list = []
@@ -71,6 +72,7 @@ class _Session:
 
     def commit(self) -> None:
         self.committed = True
+        self.commit_calls += 1
 
     def refresh(self, obj) -> None:
         self.refreshed.append(obj)
@@ -100,10 +102,10 @@ def _unwrap(func):
     return func
 
 
-def test_create_transaction_defaults_to_shared_household_without_synthesized_item(
+def test_create_transaction_stays_single_user_even_with_active_shared_household(
     monkeypatch,
 ) -> None:
-    """Blank manual creation should stay item-less and inherit active household sharing."""
+    """Blank manual creation should stay item-less and ignore shared household defaults."""
 
     from app.api.routers import transactions as router
 
@@ -115,13 +117,13 @@ def test_create_transaction_defaults_to_shared_household_without_synthesized_ite
     )
     item_category_id = uuid.uuid4()
     tx_category_id = uuid.uuid4()
-    household_id = uuid.uuid4()
-
     monkeypatch.setattr(router, "validate_transaction_attribution", lambda *args, **kwargs: None)
     monkeypatch.setattr(
         router,
         "_resolve_active_shared_household_id",
-        lambda *_args, **_kwargs: household_id,
+        lambda *_args, **_kwargs: (_ for _ in ()).throw(
+            AssertionError("launch create flow should not resolve shared households")
+        ),
     )
     monkeypatch.setattr(
         router,
@@ -168,7 +170,7 @@ def test_create_transaction_defaults_to_shared_household_without_synthesized_ite
     assert session.committed is True
     assert created_transaction.source == TransactionSource.MANUAL
     assert created_transaction.receipt_id is None
-    assert created_transaction.household_id == household_id
+    assert created_transaction.household_id is None
     assert created_transaction.category_id == tx_category_id
     assert created_transaction.created_by_user_id == current_user.id
     assert created_transaction.owner_user_id == current_user.id
@@ -733,6 +735,397 @@ def test_update_transaction_deletes_omitted_existing_items(monkeypatch) -> None:
     assert result == [kept_item]
 
 
+def test_update_transaction_accepts_transaction_and_item_category_scopes(monkeypatch) -> None:
+    """Receipt edit saves should validate transaction and item categories by their own scopes."""
+
+    from app.api.routers import transactions as router
+
+    current_user = SimpleNamespace(
+        id=uuid.uuid4(),
+        default_currency="EUR",
+        items_language=None,
+    )
+    transaction_id = uuid.uuid4()
+    transaction_category_id = uuid.uuid4()
+    item_category_id = uuid.uuid4()
+    existing_item_id = uuid.uuid4()
+
+    transaction = Transaction(
+        id=transaction_id,
+        user_id=current_user.id,
+        amount_total=Decimal("9.99"),
+        currency="EUR",
+        merchant_name="LIDL SRBIJA",
+        source=TransactionSource.RECEIPT,
+        status="DRAFT",
+    )
+    existing_item = TransactionItem(
+        id=existing_item_id,
+        transaction_id=transaction_id,
+        line_no=1,
+        description="Lovorov list",
+        amount=Decimal("1.00"),
+        category_id=item_category_id,
+    )
+    session = _Session(
+        exec_results=[
+            [transaction],
+            [transaction_category_id],
+            [item_category_id],
+            [existing_item],
+        ]
+    )
+
+    monkeypatch.setattr(router, "validate_transaction_attribution", lambda *args, **kwargs: None)
+    monkeypatch.setattr(
+        router,
+        "_build_transaction_read",
+        lambda **kwargs: {
+            "category_id": kwargs["transaction"].category_id,
+            "item_category_ids": [item.category_id for item in kwargs["items"]],
+        },
+    )
+
+    result = asyncio.run(
+        _unwrap(router.update_transaction)(
+            request=_request(),
+            transaction_id=transaction_id,
+            payload=TransactionUpdateRequest(
+                amount_total=Decimal("10.00"),
+                category_id=transaction_category_id,
+                items=[
+                    {
+                        "id": existing_item_id,
+                        "description": "Lovorov list",
+                        "amount": Decimal("1.00"),
+                        "category_id": item_category_id,
+                    }
+                ],
+            ),
+            target_currency=None,
+            item_language=None,
+            app_language=None,
+            session=session,
+            current_user=current_user,
+        )
+    )
+
+    assert session.committed is True
+    assert transaction.category_id == transaction_category_id
+    assert existing_item.category_id == item_category_id
+    assert result["category_id"] == transaction_category_id
+    assert result["item_category_ids"] == [item_category_id]
+
+
+def test_update_transaction_rejects_invalid_transaction_category_scope(monkeypatch) -> None:
+    """Receipt edit saves should fail fast when the transaction category is not visible."""
+
+    from app.api.routers import transactions as router
+
+    current_user = SimpleNamespace(
+        id=uuid.uuid4(),
+        default_currency="EUR",
+        items_language=None,
+    )
+    transaction = Transaction(
+        id=uuid.uuid4(),
+        user_id=current_user.id,
+        amount_total=Decimal("9.99"),
+        currency="EUR",
+        merchant_name="Corner Market",
+        source=TransactionSource.RECEIPT,
+        status="DRAFT",
+    )
+    session = _Session(exec_results=[[transaction], []])
+
+    monkeypatch.setattr(router, "validate_transaction_attribution", lambda *args, **kwargs: None)
+
+    with pytest.raises(HTTPException) as exc_info:
+        asyncio.run(
+            _unwrap(router.update_transaction)(
+                request=_request(),
+                transaction_id=transaction.id,
+                payload=TransactionUpdateRequest(
+                    amount_total=Decimal("10.00"),
+                    category_id=uuid.uuid4(),
+                ),
+                target_currency=None,
+                item_language=None,
+                app_language=None,
+                session=session,
+                current_user=current_user,
+            )
+        )
+
+    assert exc_info.value.status_code == 400
+    assert "invalid or not active" in str(exc_info.value.detail)
+
+
+def test_update_transaction_rejects_invalid_item_category_scope(monkeypatch) -> None:
+    """Receipt edit saves should fail fast when an item category is not visible."""
+
+    from app.api.routers import transactions as router
+
+    current_user = SimpleNamespace(
+        id=uuid.uuid4(),
+        default_currency="EUR",
+        items_language=None,
+    )
+    transaction = Transaction(
+        id=uuid.uuid4(),
+        user_id=current_user.id,
+        amount_total=Decimal("9.99"),
+        currency="EUR",
+        merchant_name="Corner Market",
+        source=TransactionSource.RECEIPT,
+        status="DRAFT",
+    )
+    existing_item_id = uuid.uuid4()
+    session = _Session(exec_results=[[transaction], []])
+
+    monkeypatch.setattr(router, "validate_transaction_attribution", lambda *args, **kwargs: None)
+
+    with pytest.raises(HTTPException) as exc_info:
+        asyncio.run(
+            _unwrap(router.update_transaction)(
+                request=_request(),
+                transaction_id=transaction.id,
+                payload=TransactionUpdateRequest(
+                    amount_total=Decimal("10.00"),
+                    items=[
+                        {
+                            "id": existing_item_id,
+                            "description": "Line item",
+                            "amount": Decimal("1.00"),
+                            "category_id": uuid.uuid4(),
+                        }
+                    ],
+                ),
+                target_currency=None,
+                item_language=None,
+                app_language=None,
+                session=session,
+                current_user=current_user,
+            )
+        )
+
+    assert exc_info.value.status_code == 400
+    assert "invalid or not active" in str(exc_info.value.detail)
+
+
+def test_update_transaction_clears_legacy_household_attribution(monkeypatch) -> None:
+    """Saving a legacy shared row should clear household attribution in launch mode."""
+
+    from app.api.routers import transactions as router
+
+    current_user = SimpleNamespace(
+        id=uuid.uuid4(),
+        default_currency="EUR",
+        items_language=None,
+    )
+    transaction = Transaction(
+        id=uuid.uuid4(),
+        user_id=current_user.id,
+        household_id=uuid.uuid4(),
+        amount_total=Decimal("10.00"),
+        currency="EUR",
+        merchant_name="Legacy shared receipt",
+        source=TransactionSource.MANUAL,
+        status="DRAFT",
+    )
+    session = _Session(exec_results=[[transaction], []])
+
+    monkeypatch.setattr(router, "validate_transaction_attribution", lambda *args, **kwargs: None)
+    monkeypatch.setattr(
+        router,
+        "_build_transaction_read",
+        lambda **kwargs: kwargs["transaction"],
+    )
+
+    result = asyncio.run(
+        _unwrap(router.update_transaction)(
+            request=_request(),
+            transaction_id=transaction.id,
+            payload=TransactionUpdateRequest(
+                amount_total=Decimal("12.00"),
+                household_id=uuid.uuid4(),
+            ),
+            target_currency=None,
+            item_language=None,
+            app_language=None,
+            session=session,
+            current_user=current_user,
+        )
+    )
+
+    assert session.committed is True
+    assert transaction.amount_total == Decimal("12.00")
+    assert transaction.household_id is None
+    assert result is transaction
+
+
+def test_update_transaction_duplicate_submissions_stay_stable_and_keep_labels(monkeypatch) -> None:
+    """Repeated save submissions should update the same item without dropping labels."""
+
+    from app.api.routers import transactions as router
+
+    current_user = SimpleNamespace(
+        id=uuid.uuid4(),
+        default_currency="EUR",
+        items_language=None,
+    )
+    transaction_id = uuid.uuid4()
+    item_id = uuid.uuid4()
+    label_id = uuid.uuid4()
+    transaction = Transaction(
+        id=transaction_id,
+        user_id=current_user.id,
+        amount_total=Decimal("9.99"),
+        currency="EUR",
+        merchant_name="Corner Market",
+        source=TransactionSource.RECEIPT,
+        status="DRAFT",
+    )
+    item = TransactionItem(
+        id=item_id,
+        transaction_id=transaction_id,
+        line_no=1,
+        description="Line item",
+        amount=Decimal("9.99"),
+    )
+
+    monkeypatch.setattr(router, "validate_transaction_attribution", lambda *args, **kwargs: None)
+    monkeypatch.setattr(
+        router,
+        "_build_transaction_read",
+        lambda **kwargs: {
+            "labels": [{"id": label_id}],
+            "item_ids": [entry.id for entry in kwargs["items"]],
+            "merchant_name": kwargs["transaction"].merchant_name,
+        },
+    )
+
+    payload = TransactionUpdateRequest(
+        amount_total=Decimal("9.99"),
+        merchant_name="Corner Market Updated",
+        items=[
+            {
+                "id": item_id,
+                "description": "Line item updated",
+                "amount": Decimal("9.99"),
+            }
+        ],
+    )
+
+    session_one = _Session(exec_results=[[transaction], [item]])
+    result_one = asyncio.run(
+        _unwrap(router.update_transaction)(
+            request=_request(),
+            transaction_id=transaction_id,
+            payload=payload,
+            target_currency=None,
+            item_language=None,
+            app_language=None,
+            session=session_one,
+            current_user=current_user,
+        )
+    )
+
+    session_two = _Session(exec_results=[[transaction], [item]])
+    result_two = asyncio.run(
+        _unwrap(router.update_transaction)(
+            request=_request(),
+            transaction_id=transaction_id,
+            payload=payload,
+            target_currency=None,
+            item_language=None,
+            app_language=None,
+            session=session_two,
+            current_user=current_user,
+        )
+    )
+
+    assert session_one.committed is True
+    assert session_two.committed is True
+    assert [obj for obj in session_one.added if isinstance(obj, TransactionItem)] == [item]
+    assert [obj for obj in session_two.added if isinstance(obj, TransactionItem)] == [item]
+    assert session_one.deleted == []
+    assert session_two.deleted == []
+    assert result_one["labels"] == [{"id": label_id}]
+    assert result_two["labels"] == [{"id": label_id}]
+    assert result_two["item_ids"] == [item_id]
+    assert item.description == "Line item updated"
+
+
+def test_update_transaction_last_write_wins_without_revision_guard(monkeypatch) -> None:
+    """Sequential saves currently overwrite each other because launch mode has no revision token."""
+
+    from app.api.routers import transactions as router
+
+    current_user = SimpleNamespace(
+        id=uuid.uuid4(),
+        default_currency="EUR",
+        items_language=None,
+    )
+    transaction = Transaction(
+        id=uuid.uuid4(),
+        user_id=current_user.id,
+        amount_total=Decimal("9.99"),
+        currency="EUR",
+        merchant_name="Original",
+        source=TransactionSource.RECEIPT,
+        status="DRAFT",
+    )
+
+    monkeypatch.setattr(router, "validate_transaction_attribution", lambda *args, **kwargs: None)
+    monkeypatch.setattr(
+        router,
+        "_build_transaction_read",
+        lambda **kwargs: kwargs["transaction"],
+    )
+
+    first_session = _Session(exec_results=[[transaction], []])
+    first_result = asyncio.run(
+        _unwrap(router.update_transaction)(
+            request=_request(),
+            transaction_id=transaction.id,
+            payload=TransactionUpdateRequest(
+                amount_total=Decimal("10.00"),
+                merchant_name="First Save",
+            ),
+            target_currency=None,
+            item_language=None,
+            app_language=None,
+            session=first_session,
+            current_user=current_user,
+        )
+    )
+    assert first_result.merchant_name == "First Save"
+    assert transaction.merchant_name == "First Save"
+    assert transaction.amount_total == Decimal("10.00")
+
+    second_session = _Session(exec_results=[[transaction], []])
+    second_result = asyncio.run(
+        _unwrap(router.update_transaction)(
+            request=_request(),
+            transaction_id=transaction.id,
+            payload=TransactionUpdateRequest(
+                amount_total=Decimal("11.00"),
+                merchant_name="Second Save",
+            ),
+            target_currency=None,
+            item_language=None,
+            app_language=None,
+            session=second_session,
+            current_user=current_user,
+        )
+    )
+
+    assert second_result.merchant_name == "Second Save"
+    assert transaction.merchant_name == "Second Save"
+    assert transaction.amount_total == Decimal("11.00")
+
+
 def test_collect_disable_target_ids_includes_descendants_and_transaction_match() -> None:
     """Disabling a top-level built-in item category should also disable descendants and matching tx code."""
 
@@ -923,94 +1316,56 @@ def test_delete_transaction_removes_manual_transaction_children() -> None:
     assert session.deleted == [label_link, item_one, item_two, transaction]
 
 
-def test_delete_transaction_allows_household_owner_for_shared_manual_transaction() -> None:
-    """Household owners should be able to delete member-created shared manual transactions."""
+def test_transaction_visibility_predicates_ignore_household_state_in_launch_mode() -> None:
+    """Launch visibility should key off owner id only, not household membership."""
 
     from app.api.routers import transactions as router
 
-    owner_user = SimpleNamespace(id=uuid.uuid4())
-    member_user_id = uuid.uuid4()
-    household_id = uuid.uuid4()
-    transaction = SimpleNamespace(
-        id=uuid.uuid4(),
-        user_id=member_user_id,
-        household_id=household_id,
-        receipt_id=None,
-    )
-    owner_member = SimpleNamespace(role=HouseholdMemberRole.OWNER)
-    label_link = SimpleNamespace(transaction_id=transaction.id)
-    item = SimpleNamespace(transaction_id=transaction.id)
-    session = _Session(
-        exec_results=[
-            [transaction],
-            [owner_member],
-            [label_link],
-            [item],
-        ]
-    )
-    monkeypatch = pytest.MonkeyPatch()
-    monkeypatch.setattr(
-        router,
-        "_resolve_active_shared_household_id",
-        lambda *_args, **_kwargs: household_id,
-    )
+    current_user = SimpleNamespace(id=uuid.uuid4())
 
-    try:
-        result = asyncio.run(
-            _unwrap(router.delete_transaction)(
-                request=_request(),
-                transaction_id=transaction.id,
-                session=session,
-                current_user=owner_user,
-            )
-        )
-    finally:
-        monkeypatch.undo()
+    read_predicate = router._build_transaction_read_visibility_predicate(_Session(), current_user)
+    write_predicate = router._build_transaction_write_visibility_predicate(_Session(), current_user)
 
-    assert session.committed is True
-    assert session.flush_calls == 2
-    assert result is None
-    assert session.deleted == [label_link, item, transaction]
+    assert "user_id" in str(read_predicate)
+    assert "household_id" not in str(read_predicate)
+    assert "user_id" in str(write_predicate)
+    assert "household_id" not in str(write_predicate)
 
 
-def test_delete_transaction_denies_non_owner_member_for_shared_manual_transaction() -> None:
-    """Shared manual delete should be denied for members who are not the creator."""
+def test_delete_transaction_allows_owner_for_legacy_household_tagged_transaction() -> None:
+    """Owners should still be able to delete their own legacy household-tagged rows."""
 
     from app.api.routers import transactions as router
 
     current_user = SimpleNamespace(id=uuid.uuid4())
     transaction = SimpleNamespace(
         id=uuid.uuid4(),
-        user_id=uuid.uuid4(),
+        user_id=current_user.id,
         household_id=uuid.uuid4(),
         receipt_id=None,
     )
-    member = SimpleNamespace(role=HouseholdMemberRole.MEMBER)
-    session = _Session(exec_results=[[transaction], [member]])
-    monkeypatch = pytest.MonkeyPatch()
-    monkeypatch.setattr(
-        router,
-        "_resolve_active_shared_household_id",
-        lambda *_args, **_kwargs: transaction.household_id,
+    label_link = SimpleNamespace(transaction_id=transaction.id)
+    item = SimpleNamespace(transaction_id=transaction.id)
+    session = _Session(
+        exec_results=[
+            [transaction],
+            [label_link],
+            [item],
+        ]
+    )
+    result = asyncio.run(
+        _unwrap(router.delete_transaction)(
+            request=_request(),
+            transaction_id=transaction.id,
+            session=session,
+            current_user=current_user,
+        )
     )
 
-    try:
-        with pytest.raises(HTTPException) as exc_info:
-            asyncio.run(
-                _unwrap(router.delete_transaction)(
-                    request=_request(),
-                    transaction_id=transaction.id,
-                    session=session,
-                    current_user=current_user,
-                )
-            )
-    finally:
-        monkeypatch.undo()
-
-    assert exc_info.value.status_code == 403
-    assert exc_info.value.detail == "Only the creator or household owner can delete this transaction."
-    assert session.committed is False
-    assert session.deleted == []
+    assert session.committed is True
+    assert session.flush_calls == 2
+    assert result is None
+    assert session.deleted == [label_link, item, transaction]
 
 
 def test_delete_transaction_rejects_receipt_backed_transaction() -> None:
