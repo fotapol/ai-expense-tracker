@@ -13,10 +13,12 @@ class AnalyticsOverviewTab extends StatefulWidget {
   const AnalyticsOverviewTab({
     super.key,
     required this.filters,
+    this.activeFiltersBuilder,
     // TODO(household): restore currentHousehold & onHouseholdUpdated when household feature ships
   });
 
   final AnalyticsFilters filters;
+  final Widget Function()? activeFiltersBuilder;
 
   @override
   State<AnalyticsOverviewTab> createState() => _AnalyticsOverviewTabState();
@@ -120,11 +122,7 @@ class _AnalyticsOverviewTabState extends State<AnalyticsOverviewTab> {
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              Icon(
-                Icons.error_outline,
-                color: ShellColors.softRed,
-                size: 42,
-              ),
+              Icon(Icons.error_outline, color: ShellColors.softRed, size: 42),
               const SizedBox(height: 12),
               Text(
                 _error ?? context.tr('common_error'),
@@ -147,19 +145,28 @@ class _AnalyticsOverviewTabState extends State<AnalyticsOverviewTab> {
     final totalAmount = _parseDouble(summary['total_amount']);
     final totalTransactions =
         (summary['total_transactions'] as num?)?.toInt() ?? 0;
-    final discounts = summary['discounts'] as Map<String, dynamic>? ??
+    final discounts =
+        summary['discounts'] as Map<String, dynamic>? ??
         const <String, dynamic>{};
     final totalSavings = _parseDouble(discounts['total_savings']);
     final currency = (summary['currency']?.toString() ?? 'EUR').toUpperCase();
     final breakdown = summary['breakdown'] as List<dynamic>? ?? const [];
-    final previousTotal = trends['previous_total_amount'] != null ? _parseDouble(trends['previous_total_amount']) : null;
-    final changePercentage = trends['change_percentage'] != null ? _parseDouble(trends['change_percentage']) : null;
+    final previousTotal = trends['previous_total_amount'] != null
+        ? _parseDouble(trends['previous_total_amount'])
+        : null;
+    final changePercentage = trends['change_percentage'] != null
+        ? _parseDouble(trends['change_percentage'])
+        : null;
 
     return RefreshIndicator(
       onRefresh: _fetchData,
       child: ListView(
         padding: const EdgeInsets.fromLTRB(20, 12, 20, 32),
         children: [
+          if (widget.activeFiltersBuilder != null) ...[
+            widget.activeFiltersBuilder!(),
+            const SizedBox(height: 16),
+          ],
           _buildHeroCard(
             context,
             currency: currency,
@@ -178,7 +185,8 @@ class _AnalyticsOverviewTabState extends State<AnalyticsOverviewTab> {
                 title: context.tr('analytics_average_per_day'),
                 value: formatMoney(
                   currency,
-                  totalAmount / PeriodFilter.getPeriodDays(widget.filters.period),
+                  totalAmount /
+                      PeriodFilter.getPeriodDays(widget.filters.period),
                 ),
               ),
               _buildMetricCard(
@@ -218,15 +226,13 @@ class _AnalyticsOverviewTabState extends State<AnalyticsOverviewTab> {
     final changeLabel = changePercentage == null
         ? context.tr('analytics_change_unavailable')
         : changePercentage == 0
-            ? context.tr('analytics_change_flat')
-            : context.tr(
-                changePercentage > 0
-                    ? 'analytics_change_more'
-                    : 'analytics_change_less',
-                params: {
-                  'percent': changePercentage.abs().toStringAsFixed(1),
-                },
-              );
+        ? context.tr('analytics_change_flat')
+        : context.tr(
+            changePercentage > 0
+                ? 'analytics_change_more'
+                : 'analytics_change_less',
+            params: {'percent': changePercentage.abs().toStringAsFixed(1)},
+          );
 
     return Container(
       padding: const EdgeInsets.all(22),
@@ -247,7 +253,10 @@ class _AnalyticsOverviewTabState extends State<AnalyticsOverviewTab> {
           Row(
             children: [
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 12,
+                  vertical: 8,
+                ),
                 decoration: BoxDecoration(
                   color: Colors.white.withAlpha(22),
                   borderRadius: BorderRadius.circular(999),
@@ -271,10 +280,7 @@ class _AnalyticsOverviewTabState extends State<AnalyticsOverviewTab> {
           const SizedBox(height: 28),
           Text(
             context.tr('analytics_total_spent'),
-            style: TextStyle(
-              color: Colors.white.withAlpha(180),
-              fontSize: 13,
-            ),
+            style: TextStyle(color: Colors.white.withAlpha(180), fontSize: 13),
           ),
           const SizedBox(height: 6),
           Text(
@@ -299,8 +305,8 @@ class _AnalyticsOverviewTabState extends State<AnalyticsOverviewTab> {
                   changePercentage == null
                       ? Icons.timeline_outlined
                       : changePercentage >= 0
-                          ? Icons.trending_up
-                          : Icons.trending_down,
+                      ? Icons.trending_up
+                      : Icons.trending_down,
                   color: Colors.white,
                 ),
                 const SizedBox(width: 10),
@@ -474,7 +480,7 @@ class _AnalyticsOverviewTabState extends State<AnalyticsOverviewTab> {
                             value: normalizedProgress,
                             backgroundColor: ShellStyles.surfaceAlt(context),
                             valueColor: AlwaysStoppedAnimation<Color>(
-                              ShellColors.softBlue,
+                              ShellStyles.textPrimary(context),
                             ),
                           ),
                         ),

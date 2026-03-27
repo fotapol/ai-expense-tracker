@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 
 import '../core/api_client.dart';
-import '../core/category_style.dart';
+import '../core/money_formatter.dart';
+import '../core/redesign_system.dart';
 import '../core/taxonomy_localization.dart';
 import '../l10n/app_localizations.dart';
 import 'analytics_subcategory_items_screen.dart';
@@ -37,37 +38,6 @@ class _AnalyticsCategoryDetailScreenState
   String? _error;
   Map<String, dynamic>? _data;
 
-  String _currencySymbol(String code) {
-    final normalized = code.toUpperCase();
-    if (normalized == 'EUR') return '\u20AC';
-    if (normalized == 'USD') return '\$';
-    if (normalized == 'GBP') return '\u00A3';
-    if (normalized == 'AUD') return 'A\$';
-    if (normalized == 'CAD') return 'C\$';
-    if (normalized == 'RSD') return 'RSD ';
-    switch (code.toUpperCase()) {
-      case 'EUR':
-        return '€';
-      case 'USD':
-        return '\$';
-      case 'GBP':
-        return '£';
-      case 'RSD':
-        return 'RSD ';
-      default:
-        return '${code.toUpperCase()} ';
-    }
-  }
-
-  String _formatMoney(String currency, double amount) {
-    final symbol = _currencySymbol(currency);
-    if (symbol != '${currency.toUpperCase()} ') {
-      final sign = amount < 0 ? '-' : '';
-      return '$sign$symbol${amount.abs().toStringAsFixed(2)}';
-    }
-    return '${currency.toUpperCase()} ${amount.toStringAsFixed(2)}';
-  }
-
   @override
   void initState() {
     super.initState();
@@ -99,10 +69,10 @@ class _AnalyticsCategoryDetailScreenState
         _data = data;
         _isLoading = false;
       });
-    } catch (e) {
+    } catch (error) {
       if (!mounted) return;
       setState(() {
-        _error = e.toString();
+        _error = error.toString();
         _isLoading = false;
       });
     }
@@ -134,8 +104,8 @@ class _AnalyticsCategoryDetailScreenState
 
   @override
   Widget build(BuildContext context) {
-    final categoryColor = CategoryStyle.colorForCode(widget.categoryCode);
     return Scaffold(
+      backgroundColor: ShellStyles.background(context),
       appBar: AppBar(title: Text(widget.categoryName)),
       body: _isLoading
           ? const Center(child: CircularProgressIndicator())
@@ -145,15 +115,16 @@ class _AnalyticsCategoryDetailScreenState
                 padding: const EdgeInsets.all(16),
                 child: Text(
                   _error ?? context.tr('common_error'),
-                  style: const TextStyle(color: Colors.red),
+                  textAlign: TextAlign.center,
+                  style: const TextStyle(color: ShellColors.softRed),
                 ),
               ),
             )
-          : _buildContent(categoryColor),
+          : _buildContent(context),
     );
   }
 
-  Widget _buildContent(Color categoryColor) {
+  Widget _buildContent(BuildContext context) {
     final subcategories = _data?['subcategories'] as List<dynamic>? ?? [];
     final totalAmount = (_data?['total_amount'] as num?)?.toDouble() ?? 0.0;
     final currency = (_data?['currency']?.toString() ?? 'EUR').toUpperCase();
@@ -161,32 +132,34 @@ class _AnalyticsCategoryDetailScreenState
     return RefreshIndicator(
       onRefresh: _fetchData,
       child: ListView(
-        padding: const EdgeInsets.all(16),
+        padding: const EdgeInsets.fromLTRB(16, 16, 16, 32),
         children: [
           Container(
             padding: const EdgeInsets.all(20),
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(18),
-              color: categoryColor.withAlpha(35),
-              border: Border.all(color: categoryColor.withAlpha(80)),
-            ),
+            decoration: ShellStyles.cardDecoration(context, radius: 22),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
+                ShellStyles.sectionLabel(
+                  context,
+                  context.tr('analytics_tab_categories'),
+                ),
+                const SizedBox(height: 10),
                 Text(
                   widget.categoryName,
                   style: TextStyle(
-                    color: categoryColor,
-                    fontWeight: FontWeight.w700,
+                    color: ShellStyles.textPrimary(context),
                     fontSize: 16,
+                    fontWeight: FontWeight.w700,
                   ),
                 ),
                 const SizedBox(height: 8),
                 Text(
-                  _formatMoney(currency, totalAmount),
-                  style: const TextStyle(
+                  formatMoney(currency, totalAmount),
+                  style: TextStyle(
+                    color: ShellStyles.textPrimary(context),
                     fontSize: 28,
-                    fontWeight: FontWeight.bold,
+                    fontWeight: FontWeight.w800,
                   ),
                 ),
                 const SizedBox(height: 4),
@@ -195,7 +168,10 @@ class _AnalyticsCategoryDetailScreenState
                     'analytics_subcategories_count',
                     params: {'count': subcategories.length.toString()},
                   ),
-                  style: TextStyle(color: Colors.grey.shade400),
+                  style: TextStyle(
+                    color: ShellStyles.textMuted(context),
+                    fontSize: 12,
+                  ),
                 ),
               ],
             ),
@@ -203,7 +179,11 @@ class _AnalyticsCategoryDetailScreenState
           const SizedBox(height: 20),
           Text(
             context.tr('filters_subcategory'),
-            style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+            style: TextStyle(
+              color: ShellStyles.textPrimary(context),
+              fontSize: 20,
+              fontWeight: FontWeight.w700,
+            ),
           ),
           const SizedBox(height: 12),
           if (subcategories.isEmpty)
@@ -211,86 +191,89 @@ class _AnalyticsCategoryDetailScreenState
               padding: const EdgeInsets.only(top: 24),
               child: Text(
                 context.tr('analytics_no_subcategory_data'),
-                style: TextStyle(color: Colors.grey.shade500),
+                style: TextStyle(color: ShellStyles.textMuted(context)),
               ),
             ),
           ...subcategories.map((raw) {
             final sub = raw as Map<String, dynamic>;
-            final subCode = sub['code']?.toString() ?? '';
             final subName = localizeCategoryByCode(
               context,
-              code: subCode,
+              code: sub['code']?.toString(),
               fallbackName: sub['name']?.toString(),
             );
             final amount = (sub['amount'] as num?)?.toDouble() ?? 0.0;
             final percentage = (sub['percentage'] as num?)?.toDouble() ?? 0.0;
             final itemCount = (sub['item_count'] as num?)?.toInt() ?? 0;
-            final subColor = CategoryStyle.colorForCode(subCode);
 
             return Container(
               margin: const EdgeInsets.only(bottom: 10),
-              decoration: BoxDecoration(
-                color: Theme.of(context).colorScheme.surface.withAlpha(180),
-                borderRadius: BorderRadius.circular(14),
+              decoration: ShellStyles.cardDecoration(
+                context,
+                radius: 18,
+                withShadow: false,
               ),
               child: InkWell(
-                borderRadius: BorderRadius.circular(14),
+                borderRadius: BorderRadius.circular(18),
                 onTap: () => _openSubcategory(sub),
                 child: Padding(
-                  padding: const EdgeInsets.all(12),
+                  padding: const EdgeInsets.all(14),
                   child: Row(
                     children: [
                       Container(
-                        width: 36,
-                        height: 36,
-                        decoration: BoxDecoration(
-                          color: subColor.withAlpha(35),
-                          borderRadius: BorderRadius.circular(10),
-                        ),
+                        width: 40,
+                        height: 40,
+                        decoration: ShellStyles.iconBadgeDecoration(context),
                         child: Icon(
-                          Icons.account_tree,
+                          Icons.account_tree_outlined,
                           size: 18,
-                          color: subColor,
+                          color: ShellStyles.textPrimary(context),
                         ),
                       ),
-                      const SizedBox(width: 10),
+                      const SizedBox(width: 12),
                       Expanded(
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Text(
                               subName,
-                              style: const TextStyle(
+                              style: TextStyle(
+                                color: ShellStyles.textPrimary(context),
                                 fontWeight: FontWeight.w600,
                                 fontSize: 16,
                               ),
                             ),
-                            const SizedBox(height: 3),
+                            const SizedBox(height: 4),
                             Text(
                               context.tr(
                                 'analytics_money_and_purchases',
                                 params: {
-                                  'amount': _formatMoney(currency, amount),
+                                  'amount': formatMoney(currency, amount),
                                   'count': itemCount.toString(),
                                 },
                               ),
-                              style: TextStyle(color: Colors.grey.shade400),
+                              style: TextStyle(
+                                color: ShellStyles.textMuted(context),
+                                fontSize: 12,
+                              ),
                             ),
                           ],
                         ),
                       ),
+                      const SizedBox(width: 12),
                       Column(
+                        crossAxisAlignment: CrossAxisAlignment.end,
                         children: [
                           Text(
                             '${percentage.toStringAsFixed(1)}%',
                             style: TextStyle(
-                              color: Colors.grey.shade300,
-                              fontWeight: FontWeight.w600,
+                              color: ShellStyles.textPrimary(context),
+                              fontWeight: FontWeight.w700,
                             ),
                           ),
+                          const SizedBox(height: 2),
                           Icon(
                             Icons.chevron_right,
-                            color: Colors.grey.shade500,
+                            color: ShellStyles.textMuted(context),
                           ),
                         ],
                       ),
