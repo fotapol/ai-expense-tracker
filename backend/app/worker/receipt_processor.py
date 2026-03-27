@@ -17,6 +17,7 @@ Flow per message:
 
 import asyncio
 import base64
+import datetime as dt
 import json
 import logging
 import os
@@ -59,10 +60,10 @@ from app.schemas.extraction import (  # noqa: E402
     ReceiptTotalMismatchWarning,
 )
 from app.schemas.shared import quantize_amount  # noqa: E402
-from app.services.households.access import get_active_shared_household_id  # noqa: E402
 
 RABBITMQ_URL: str = os.environ.get("RABBITMQ_URL", "amqp://guest:guest@rabbitmq:5672/")
 QUEUE_NAME = "receipt_extraction"
+PROCESSING_STALE_AFTER = dt.timedelta(minutes=15)
 
 
 # ---------------------------------------------------------------------------
@@ -198,7 +199,7 @@ def _get_or_create_global_category(
         cat.parent_id = parent_id
         cat.is_active = True
         session.add(cat)
-        session.commit()
+        session.flush()
         session.refresh(cat)
         return cat
 
@@ -211,7 +212,7 @@ def _get_or_create_global_category(
         is_custom=False,
     )
     session.add(cat)
-    session.commit()
+    session.flush()
     session.refresh(cat)
     logger.info("Created fallback category scope=%s code=%s id=%s.", scope.value, code, cat.id)
     return cat
@@ -355,6 +356,81 @@ def _resolve_category_id(session: Session, code: str | None, fallback_id: uuid.U
     return _resolve_item_category_id(session, uuid.UUID(int=0), code, fallback_id)
 
 
+def _receipt_processing_is_stale(
+    receipt: Receipt,
+    *,
+    now: dt.datetime | None = None,
+) -> bool:
+    comparison_now = now or dt.datetime.now(dt.UTC)
+    updated_at = getattr(receipt, "updated_at", None) or getattr(receipt, "created_at", None)
+    if updated_at is None:
+        return True
+    if updated_at.tzinfo is None:
+        updated_at = updated_at.replace(tzinfo=dt.UTC)
+    return comparison_now - updated_at >= PROCESSING_STALE_AFTER
+
+
+def _reconcile_existing_processing_state(
+    session: Session,
+    *,
+    receipt: Receipt,
+    receipt_id: str,
+    existing_extraction: ReceiptExtraction | None,
+    existing_tx: Transaction | None,
+) -> bool:
+    if existing_tx is not None:
+        if receipt.status != ReceiptStatus.COMPLETED or receipt.failure_reason:
+            receipt.status = ReceiptStatus.COMPLETED
+            receipt.failure_reason = None
+            session.add(receipt)
+            session.commit()
+        logger.info(
+            "Receipt %s already has transaction %s - treating duplicate job as completed.",
+            receipt_id,
+            existing_tx.id,
+        )
+        return True
+
+    if existing_extraction is not None:
+        failure_reason = (
+            "Receipt extraction exists without a completed transaction. "
+            "Please re-upload the receipt."
+        )
+        if receipt.status != ReceiptStatus.FAILED or receipt.failure_reason != failure_reason:
+            receipt.status = ReceiptStatus.FAILED
+            receipt.failure_reason = failure_reason
+            session.add(receipt)
+            session.commit()
+        logger.warning(
+            "Receipt %s already has an extraction but no transaction - marked FAILED for visibility.",
+            receipt_id,
+        )
+        return True
+
+    if receipt.status == ReceiptStatus.PROCESSING:
+        if _receipt_processing_is_stale(receipt):
+            logger.warning(
+                "Receipt %s was left in PROCESSING since %s - retrying extraction.",
+                receipt_id,
+                getattr(receipt, "updated_at", None),
+            )
+            return False
+        logger.info(
+            "Receipt %s is already PROCESSING - skipping duplicate redelivery.",
+            receipt_id,
+        )
+        return True
+
+    if receipt.status == ReceiptStatus.COMPLETED:
+        logger.info(
+            "Receipt %s is already COMPLETED with no additional work required.",
+            receipt_id,
+        )
+        return True
+
+    return False
+
+
 # ---------------------------------------------------------------------------
 # Core processing logic
 # ---------------------------------------------------------------------------
@@ -363,7 +439,7 @@ def process_receipt(receipt_id: str) -> None:
     """Process a single receipt — called per RabbitMQ message."""
     with Session(engine) as session:
         receipt = session.exec(
-            select(Receipt).where(Receipt.id == uuid.UUID(receipt_id))
+            select(Receipt).where(Receipt.id == uuid.UUID(receipt_id)).with_for_update()
         ).first()
 
         if receipt is None:
@@ -374,17 +450,17 @@ def process_receipt(receipt_id: str) -> None:
         existing_extraction = session.exec(
             select(ReceiptExtraction).where(ReceiptExtraction.receipt_id == receipt.id)
         ).first()
-        if existing_extraction is not None:
-            logger.info("Receipt %s already has an extraction — skipping.", receipt_id)
+        existing_tx = session.exec(
+            select(Transaction).where(Transaction.receipt_id == receipt.id)
+        ).first()
+        if _reconcile_existing_processing_state(
+            session,
+            receipt=receipt,
+            receipt_id=receipt_id,
+            existing_extraction=existing_extraction,
+            existing_tx=existing_tx,
+        ):
             return
-
-        if receipt.status in (ReceiptStatus.COMPLETED, ReceiptStatus.PROCESSING):
-            existing_tx = session.exec(
-                select(Transaction).where(Transaction.receipt_id == receipt.id)
-            ).first()
-            if existing_tx is not None:
-                logger.info("Receipt %s already processed (status=%s) — skipping.", receipt_id, receipt.status.value)
-                return
 
         # --- Mark PROCESSING -------------------------------------------------
         receipt.status = ReceiptStatus.PROCESSING
@@ -488,8 +564,6 @@ def process_receipt(receipt_id: str) -> None:
             if transaction_category_id is None:
                 transaction_category_id = _get_other_transaction_category_id(session)
 
-            shared_household_id = get_active_shared_household_id(session, receipt.user_id)
-
             # --- Create Transaction ------------------------------------------
             transaction = Transaction(
                 user_id=receipt.user_id,
@@ -501,7 +575,8 @@ def process_receipt(receipt_id: str) -> None:
                 category_id=transaction_category_id,
                 source=TransactionSource.RECEIPT,
                 status="DRAFT",
-                household_id=shared_household_id,
+                # Household sharing is disabled for the single-user launch.
+                household_id=None,
                 created_by_user_id=receipt.user_id,
                 owner_user_id=receipt.user_id,
             )
