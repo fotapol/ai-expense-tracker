@@ -23,7 +23,6 @@ class AnalyticsFilters {
 
   int get activeFilterCount {
     var count = 0;
-    if (period != PeriodFilter.last3Months) count++;
     if (categoryIds.isNotEmpty) count++;
     if (subcategoryIds.isNotEmpty) count++;
     if (labelIds.isNotEmpty) count++;

@@ -3,8 +3,9 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 
 import '../core/api_client.dart';
-import '../core/category_style.dart';
 import '../core/item_translation_service.dart';
+import '../core/money_formatter.dart';
+import '../core/redesign_system.dart';
 import '../l10n/app_localizations.dart';
 import '../main.dart';
 
@@ -38,37 +39,6 @@ class _AnalyticsSubcategoryItemsScreenState
   bool _isLoading = true;
   String? _error;
   Map<String, dynamic>? _data;
-
-  String _currencySymbol(String code) {
-    final normalized = code.toUpperCase();
-    if (normalized == 'EUR') return '\u20AC';
-    if (normalized == 'USD') return '\$';
-    if (normalized == 'GBP') return '\u00A3';
-    if (normalized == 'AUD') return 'A\$';
-    if (normalized == 'CAD') return 'C\$';
-    if (normalized == 'RSD') return 'RSD ';
-    switch (code.toUpperCase()) {
-      case 'EUR':
-        return '€';
-      case 'USD':
-        return '\$';
-      case 'GBP':
-        return '£';
-      case 'RSD':
-        return 'RSD ';
-      default:
-        return '${code.toUpperCase()} ';
-    }
-  }
-
-  String _formatMoney(String currency, double amount) {
-    final symbol = _currencySymbol(currency);
-    if (symbol != '${currency.toUpperCase()} ') {
-      final sign = amount < 0 ? '-' : '';
-      return '$sign$symbol${amount.abs().toStringAsFixed(2)}';
-    }
-    return '${currency.toUpperCase()} ${amount.toStringAsFixed(2)}';
-  }
 
   String _normalizeLanguageCode(String? raw) {
     return ItemTranslationService.instance.normalizeLanguageCode(raw);
@@ -193,10 +163,10 @@ class _AnalyticsSubcategoryItemsScreenState
           _translateMissingItems(targetLanguage: effectiveItemsLanguage),
         );
       }
-    } catch (e) {
+    } catch (error) {
       if (!mounted) return;
       setState(() {
-        _error = e.toString();
+        _error = error.toString();
         _isLoading = false;
       });
     }
@@ -279,8 +249,8 @@ class _AnalyticsSubcategoryItemsScreenState
 
   @override
   Widget build(BuildContext context) {
-    final accent = CategoryStyle.colorForCode(widget.subcategoryCode);
     return Scaffold(
+      backgroundColor: ShellStyles.background(context),
       appBar: AppBar(title: Text(widget.subcategoryName)),
       body: _isLoading
           ? const Center(child: CircularProgressIndicator())
@@ -290,15 +260,16 @@ class _AnalyticsSubcategoryItemsScreenState
                 padding: const EdgeInsets.all(16),
                 child: Text(
                   _error ?? context.tr('common_error'),
-                  style: const TextStyle(color: Colors.red),
+                  textAlign: TextAlign.center,
+                  style: const TextStyle(color: ShellColors.softRed),
                 ),
               ),
             )
-          : _buildContent(accent),
+          : _buildContent(context),
     );
   }
 
-  Widget _buildContent(Color accent) {
+  Widget _buildContent(BuildContext context) {
     final totalAmount = (_data?['total_amount'] as num?)?.toDouble() ?? 0.0;
     final totalItems = (_data?['total_items'] as num?)?.toInt() ?? 0;
     final items = _data?['items'] as List<dynamic>? ?? [];
@@ -311,28 +282,30 @@ class _AnalyticsSubcategoryItemsScreenState
         children: [
           Container(
             padding: const EdgeInsets.all(20),
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(18),
-              color: accent.withAlpha(35),
-              border: Border.all(color: accent.withAlpha(90)),
-            ),
+            decoration: ShellStyles.cardDecoration(context, radius: 22),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
+                ShellStyles.sectionLabel(
+                  context,
+                  context.tr('filters_subcategory'),
+                ),
+                const SizedBox(height: 10),
                 Text(
                   widget.subcategoryName,
                   style: TextStyle(
-                    color: accent,
+                    color: ShellStyles.textPrimary(context),
                     fontWeight: FontWeight.w700,
                     fontSize: 16,
                   ),
                 ),
                 const SizedBox(height: 8),
                 Text(
-                  _formatMoney(currency, totalAmount),
-                  style: const TextStyle(
+                  formatMoney(currency, totalAmount),
+                  style: TextStyle(
+                    color: ShellStyles.textPrimary(context),
                     fontSize: 28,
-                    fontWeight: FontWeight.bold,
+                    fontWeight: FontWeight.w800,
                   ),
                 ),
                 const SizedBox(height: 4),
@@ -341,7 +314,10 @@ class _AnalyticsSubcategoryItemsScreenState
                     'analytics_purchases_count',
                     params: {'count': totalItems.toString()},
                   ),
-                  style: TextStyle(color: Colors.grey.shade400),
+                  style: TextStyle(
+                    color: ShellStyles.textMuted(context),
+                    fontSize: 12,
+                  ),
                 ),
               ],
             ),
@@ -349,7 +325,11 @@ class _AnalyticsSubcategoryItemsScreenState
           const SizedBox(height: 20),
           Text(
             context.tr('analytics_purchased_items'),
-            style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+            style: TextStyle(
+              color: ShellStyles.textPrimary(context),
+              fontSize: 20,
+              fontWeight: FontWeight.w700,
+            ),
           ),
           const SizedBox(height: 12),
           if (items.isEmpty)
@@ -357,7 +337,7 @@ class _AnalyticsSubcategoryItemsScreenState
               padding: const EdgeInsets.only(top: 24),
               child: Text(
                 context.tr('analytics_no_items_for_subcategory'),
-                style: TextStyle(color: Colors.grey.shade500),
+                style: TextStyle(color: ShellStyles.textMuted(context)),
               ),
             ),
           ...items.map((raw) {
@@ -385,29 +365,32 @@ class _AnalyticsSubcategoryItemsScreenState
             return Container(
               margin: const EdgeInsets.only(bottom: 10),
               padding: const EdgeInsets.all(12),
-              decoration: BoxDecoration(
-                color: Theme.of(context).colorScheme.surface.withAlpha(180),
-                borderRadius: BorderRadius.circular(14),
+              decoration: ShellStyles.cardDecoration(
+                context,
+                radius: 18,
+                withShadow: false,
               ),
               child: Row(
                 children: [
                   Container(
-                    width: 36,
-                    height: 36,
-                    decoration: BoxDecoration(
-                      color: accent.withAlpha(30),
-                      borderRadius: BorderRadius.circular(10),
+                    width: 40,
+                    height: 40,
+                    decoration: ShellStyles.iconBadgeDecoration(context),
+                    child: Icon(
+                      Icons.shopping_bag_outlined,
+                      size: 18,
+                      color: ShellStyles.textPrimary(context),
                     ),
-                    child: Icon(Icons.shopping_bag, size: 18, color: accent),
                   ),
-                  const SizedBox(width: 10),
+                  const SizedBox(width: 12),
                   Expanded(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
                           name,
-                          style: const TextStyle(
+                          style: TextStyle(
+                            color: ShellStyles.textPrimary(context),
                             fontSize: 15,
                             fontWeight: FontWeight.w600,
                           ),
@@ -415,12 +398,12 @@ class _AnalyticsSubcategoryItemsScreenState
                           overflow: TextOverflow.ellipsis,
                         ),
                         if (hasTranslatedName) ...[
-                          const SizedBox(height: 2),
+                          const SizedBox(height: 3),
                           Text(
                             translatedName,
                             style: TextStyle(
                               fontSize: 12,
-                              color: Colors.grey.shade300,
+                              color: ShellStyles.textMuted(context),
                             ),
                             maxLines: 2,
                             overflow: TextOverflow.ellipsis,
@@ -431,20 +414,22 @@ class _AnalyticsSubcategoryItemsScreenState
                           details,
                           style: TextStyle(
                             fontSize: 12,
-                            color: Colors.grey.shade400,
+                            color: ShellStyles.textMuted(context),
                           ),
                         ),
                       ],
                     ),
                   ),
+                  const SizedBox(width: 12),
                   SizedBox(
                     width: 128,
                     child: Text(
-                      _formatMoney(currency, amount),
+                      formatMoney(currency, amount),
                       textAlign: TextAlign.right,
-                      style: const TextStyle(
+                      style: TextStyle(
+                        color: ShellStyles.textPrimary(context),
                         fontSize: 14,
-                        fontWeight: FontWeight.bold,
+                        fontWeight: FontWeight.w700,
                       ),
                     ),
                   ),

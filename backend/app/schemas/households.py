@@ -1,4 +1,6 @@
-"""Schemas for household, membership, and invite API endpoints."""
+"""Schemas for household, membership, and invite API endpoints.
+# TODO(household): disabled for single-user launch
+"""
 
 from __future__ import annotations
 

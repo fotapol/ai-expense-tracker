@@ -7,12 +7,14 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'firebase_options.dart';
 import 'core/bill_reminder_notification_service.dart';
-import 'core/invite_link_service.dart';
+// TODO(household): re-import invite_link_service when household feature ships
+// import 'core/invite_link_service.dart';
 import 'core/locale_provider.dart';
 import 'core/revenuecat_service.dart';
 import 'core/theme_provider.dart';
 import 'l10n/app_localizations.dart';
-import 'screens/household_invite_accept_screen.dart';
+// TODO(household): re-import household_invite_accept_screen when household feature ships
+// import 'screens/household_invite_accept_screen.dart';
 import 'screens/login_screen.dart';
 import 'screens/main_screen.dart';
 
@@ -25,7 +27,8 @@ void main() async {
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
   await GoogleSignIn.instance.initialize();
   await RevenueCatService.logInCurrentUser();
-  await InviteLinkService.instance.initialize();
+  // TODO(household): restore invite link initialization when household feature ships
+  // await InviteLinkService.instance.initialize();
   await BillReminderNotificationService.instance.initialize();
   await localeProvider.load();
   runApp(const MyApp());
@@ -39,13 +42,17 @@ class MyApp extends StatefulWidget {
 }
 
 class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
-  bool _inviteRouteOpen = false;
+  // TODO(household): restore _inviteRouteOpen when household feature ships
+  // bool _inviteRouteOpen = false;
   StreamSubscription<User?>? _authSubscription;
 
   void _refreshApp() {
     if (mounted) setState(() {});
   }
 
+  // TODO(household): restore _onInviteUpdated and _maybeOpenInviteAcceptance 
+  // when household feature ships
+  /*
   void _onInviteUpdated() {
     if (mounted) setState(() {});
     _maybeOpenInviteAcceptance();
@@ -76,6 +83,7 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
           Future<void>.microtask(() async => _maybeOpenInviteAcceptance());
         });
   }
+  */
 
   @override
   void initState() {
@@ -83,18 +91,23 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
     WidgetsBinding.instance.addObserver(this);
     themeProvider.addListener(_refreshApp);
     localeProvider.addListener(_refreshApp);
-    InviteLinkService.instance.addListener(_onInviteUpdated);
+    
+    // TODO(household): restore invite listener when household feature ships
+    // InviteLinkService.instance.addListener(_onInviteUpdated);
+    
     _authSubscription = FirebaseAuth.instance.authStateChanges().listen((_) {
       BillReminderNotificationService.instance.handleAuthStateChanged(
         FirebaseAuth.instance.currentUser,
       );
-      _maybeOpenInviteAcceptance();
+      // TODO(household): restore _maybeOpenInviteAcceptance() when household feature ships
+      // _maybeOpenInviteAcceptance();
     });
     WidgetsBinding.instance.addPostFrameCallback((_) {
       BillReminderNotificationService.instance.handleAuthStateChanged(
         FirebaseAuth.instance.currentUser,
       );
-      _maybeOpenInviteAcceptance();
+      // TODO(household): restore _maybeOpenInviteAcceptance() when household feature ships
+      // _maybeOpenInviteAcceptance();
     });
   }
 
@@ -102,7 +115,9 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
   void didChangeAppLifecycleState(AppLifecycleState state) {
     if (state != AppLifecycleState.resumed) return;
     BillReminderNotificationService.instance.syncScheduledNotifications();
-    _maybeOpenInviteAcceptance();
+    
+    // TODO(household): restore _maybeOpenInviteAcceptance() when household feature ships
+    // _maybeOpenInviteAcceptance();
   }
 
   @override
@@ -110,7 +125,10 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
     WidgetsBinding.instance.removeObserver(this);
     themeProvider.removeListener(_refreshApp);
     localeProvider.removeListener(_refreshApp);
-    InviteLinkService.instance.removeListener(_onInviteUpdated);
+    
+    // TODO(household): restore invite listener when household feature ships
+    // InviteLinkService.instance.removeListener(_onInviteUpdated);
+    
     _authSubscription?.cancel();
     super.dispose();
   }

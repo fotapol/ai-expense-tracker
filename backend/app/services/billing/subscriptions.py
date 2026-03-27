@@ -22,7 +22,8 @@ from app.services.billing.features import (
     FAMILY_PREMIUM_PRODUCT_ID,
     PERSONAL_PREMIUM_PRODUCT_ID,
 )
-from app.services.households.households import get_active_household_for_user
+# TODO(household): uncomment when household feature ships
+# from app.services.households.households import get_active_household_for_user
 
 _MIN_TIMESTAMP = dt.datetime.min.replace(tzinfo=dt.UTC)
 
@@ -304,13 +305,17 @@ class SubscriptionSyncService(BillingEventHandler):
         *,
         now: dt.datetime | None = None,
     ) -> None:
+        # TODO(household): restore household_id lookup when household feature ships
+        '''
         household = None
         if subscription.product_id == FAMILY_PREMIUM_PRODUCT_ID:
             household = get_active_household_for_user(self.session, subscription.user_id)
+        '''
+
         sync_subscription_entitlements(
             self.session,
             subscription,
-            household_id=household.id if household is not None else None,
+            household_id=None,
             now=now,
         )
 

@@ -1,3 +1,5 @@
+// TODO(household): disabled for single-user launch
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:share_plus/share_plus.dart';

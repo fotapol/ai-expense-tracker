@@ -21,10 +21,12 @@ class AnalyticsTab extends StatefulWidget {
     super.key,
     required this.filters,
     required this.featureCodes,
+    this.activeFiltersBuilder,
   });
 
   final AnalyticsFilters filters;
   final Set<String> featureCodes;
+  final Widget Function()? activeFiltersBuilder;
 
   @override
   State<AnalyticsTab> createState() => _AnalyticsTabState();
@@ -108,8 +110,9 @@ class _AnalyticsTabState extends State<AnalyticsTab>
       });
     }
 
-    final effectiveBreakdownMode =
-        _hasAdvancedAnalytics ? _breakdownMode : _modeCategory;
+    final effectiveBreakdownMode = _hasAdvancedAnalytics
+        ? _breakdownMode
+        : _modeCategory;
     try {
       final data = await ApiClient.getTransactionsSummary(
         fromDate: PeriodFilter.getStartDate(widget.filters.period),
@@ -165,7 +168,31 @@ class _AnalyticsTabState extends State<AnalyticsTab>
     final code = category['code']?.toString() ?? '';
     final name = category['name']?.toString() ?? '';
     final parentCode = category['parent_category_code']?.toString() ?? '';
-    return CategoryStyle.colorForSeed('$code|$name|$parentCode');
+    final palette = ShellStyles.isDark(context)
+        ? const <Color>[
+            Color(0xFFF5F1EA),
+            Color(0xFFDAD3C8),
+            Color(0xFFC1BAAF),
+            Color(0xFFA79F96),
+            Color(0xFF8C857D),
+            Color(0xFF716A64),
+          ]
+        : const <Color>[
+            Color(0xFF1A1817),
+            Color(0xFF34312F),
+            Color(0xFF4C4946),
+            Color(0xFF64615D),
+            Color(0xFF7C7873),
+            Color(0xFF95918B),
+          ];
+    final seed = '$code|$name|$parentCode'.trim().toUpperCase();
+    if (seed.isEmpty) return palette.first;
+
+    var hash = 0;
+    for (final unit in seed.codeUnits) {
+      hash = ((hash * 31) + unit) & 0x7fffffff;
+    }
+    return palette[hash % palette.length];
   }
 
   String _breakdownName(Map<String, dynamic> breakdown) {
@@ -252,7 +279,8 @@ class _AnalyticsTabState extends State<AnalyticsTab>
     final totalTransactions =
         (summaryData['total_transactions'] as num?)?.toInt() ?? 0;
     final breakdown = summaryData['breakdown'] as List<dynamic>? ?? const [];
-    final currency = (summaryData['currency']?.toString() ?? 'EUR').toUpperCase();
+    final currency = (summaryData['currency']?.toString() ?? 'EUR')
+        .toUpperCase();
     final isSubcategoryMode = _breakdownMode == _modeSubcategory;
 
     return RefreshIndicator(
@@ -260,6 +288,10 @@ class _AnalyticsTabState extends State<AnalyticsTab>
       child: ListView(
         padding: const EdgeInsets.fromLTRB(20, 12, 20, 32),
         children: [
+          if (widget.activeFiltersBuilder != null) ...[
+            widget.activeFiltersBuilder!(),
+            const SizedBox(height: 16),
+          ],
           _buildTotalCard(
             totalAmount: totalAmount,
             totalTransactions: totalTransactions,
@@ -349,19 +381,13 @@ class _AnalyticsTabState extends State<AnalyticsTab>
     );
   }
 
-  Widget _buildSnapshotMetric({
-    required String label,
-    required String value,
-  }) {
+  Widget _buildSnapshotMetric({required String label, required String value}) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
           label,
-          style: TextStyle(
-            color: ShellStyles.textMuted(context),
-            fontSize: 12,
-          ),
+          style: TextStyle(color: ShellStyles.textMuted(context), fontSize: 12),
         ),
         const SizedBox(height: 6),
         Text(
@@ -481,21 +507,28 @@ class _AnalyticsTabState extends State<AnalyticsTab>
     String currency, {
     required bool isSubcategoryMode,
   }) {
-    final categories =
-        breakdown.whereType<Map<String, dynamic>>().toList(growable: false);
+    final categories = breakdown.whereType<Map<String, dynamic>>().toList(
+      growable: false,
+    );
     final hasData = categories.isNotEmpty && totalAmount > 0;
     final sections = hasData
         ? categories.map((category) {
             final amount = (category['amount'] as num?)?.toDouble() ?? 0;
             final percentage =
                 (category['percentage'] as num?)?.toDouble() ?? 0;
+            final sectionColor = _categoryColor(category);
+            final titleColor =
+                ThemeData.estimateBrightnessForColor(sectionColor) ==
+                    Brightness.dark
+                ? Colors.white
+                : ShellColors.lightText;
             return PieChartSectionData(
-              color: _categoryColor(category),
+              color: sectionColor,
               value: amount,
               title: percentage >= 7 ? '${percentage.toStringAsFixed(0)}%' : '',
               radius: 56,
-              titleStyle: const TextStyle(
-                color: Colors.white,
+              titleStyle: TextStyle(
+                color: titleColor,
                 fontSize: 11,
                 fontWeight: FontWeight.w700,
               ),
@@ -546,8 +579,8 @@ class _AnalyticsTabState extends State<AnalyticsTab>
                         hasData
                             ? 'analytics_total_spent'
                             : isSubcategoryMode
-                                ? 'analytics_no_subcategory_data'
-                                : 'analytics_no_category_data',
+                            ? 'analytics_no_subcategory_data'
+                            : 'analytics_no_category_data',
                       ),
                       textAlign: TextAlign.center,
                       style: TextStyle(
@@ -602,8 +635,9 @@ class _AnalyticsTabState extends State<AnalyticsTab>
     String currency, {
     required bool isSubcategoryMode,
   }) {
-    final categories =
-        breakdown.whereType<Map<String, dynamic>>().toList(growable: false);
+    final categories = breakdown.whereType<Map<String, dynamic>>().toList(
+      growable: false,
+    );
     if (categories.isEmpty) {
       return Container(
         padding: const EdgeInsets.all(22),
@@ -712,8 +746,7 @@ class _AnalyticsTabState extends State<AnalyticsTab>
       return const SizedBox.shrink();
     }
 
-    final totalSavings =
-        (discounts['total_savings'] as num?)?.toDouble() ?? 0;
+    final totalSavings = (discounts['total_savings'] as num?)?.toDouble() ?? 0;
     final itemsWithDiscount =
         (discounts['items_with_discount'] as num?)?.toInt() ?? 0;
     final biggestDiscount =
@@ -811,10 +844,7 @@ class _AnalyticsTabState extends State<AnalyticsTab>
     );
   }
 
-  Widget _buildDiscountMetric({
-    required String label,
-    required String value,
-  }) {
+  Widget _buildDiscountMetric({required String label, required String value}) {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(

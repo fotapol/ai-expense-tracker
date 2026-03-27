@@ -14,7 +14,7 @@ import 'appearance_settings_screen.dart';
 import 'currency_settings_screen.dart';
 import 'feature_request_screen.dart';
 import 'help_center_screen.dart';
-import 'household_screen.dart';
+// TODO(household): re-import household_screen when household feature ships
 import 'items_translation_settings_screen.dart';
 import 'language_settings_screen.dart';
 import 'login_screen.dart';
@@ -368,17 +368,7 @@ class _MeScreenState extends State<MeScreen> {
                       : null,
                   onTap: _openSubscriptionDetails,
                 ),
-                _buildSettingsTile(
-                  icon: AppIcons.group,
-                  title: context.tr('settings_household'),
-                  subtitle: context.tr('household_settings_subtitle'),
-                  badge: _buildFeatureTag('PREMIUM', ShellColors.gold),
-                  onTap: () => _openSettingsRoute(
-                    const HouseholdScreen(),
-                    refreshProfile: true,
-                    refreshBilling: true,
-                  ),
-                ),
+                // TODO(household): restore Household settings tile when household feature ships
                 _buildSettingsTile(
                   icon: AppIcons.person,
                   title: context.tr('settings_profile'),
@@ -532,7 +522,11 @@ class _MeScreenState extends State<MeScreen> {
                         color: ShellColors.softRed.withAlpha(20),
                         borderRadius: BorderRadius.circular(10),
                       ),
-                      child: const Icon(AppIcons.logout, color: ShellColors.softRed, size: 18),
+                      child: const Icon(
+                        AppIcons.logout,
+                        color: ShellColors.softRed,
+                        size: 18,
+                      ),
                     ),
                     title: context.tr('settings_sign_out'),
                     showChevron: false,
@@ -575,6 +569,9 @@ class _MeScreenState extends State<MeScreen> {
     final subtitle = _hasActiveSubscription
         ? context.tr('settings_banner_active_subtitle')
         : context.tr('settings_banner_upgrade_subtitle');
+    final actionLabel = _hasActiveSubscription
+        ? context.tr('settings_manage_subscription')
+        : context.tr('settings_see_plan');
 
     return Container(
       padding: const EdgeInsets.fromLTRB(14, 14, 14, 14),
@@ -638,13 +635,16 @@ class _MeScreenState extends State<MeScreen> {
                   style: FilledButton.styleFrom(
                     backgroundColor: Colors.white,
                     foregroundColor: const Color(0xFF1E1C1B),
-                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 16,
+                      vertical: 10,
+                    ),
                     minimumSize: const Size(0, 38),
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(10),
                     ),
                   ),
-                  child: Text(context.tr('settings_see_plan')),
+                  child: Text(actionLabel),
                 ),
               ],
             ),
@@ -750,7 +750,10 @@ class _MeScreenState extends State<MeScreen> {
         padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
         child: Row(
           children: [
-            if (icon != null || leading != null) ...[leadingWidget, const SizedBox(width: 14)],
+            if (icon != null || leading != null) ...[
+              leadingWidget,
+              const SizedBox(width: 14),
+            ],
             Expanded(
               child: Text(
                 title,

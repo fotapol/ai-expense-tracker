@@ -442,12 +442,15 @@ class _HomeTabState extends State<HomeTab>
           onTap: () => _open(context, const SubscriptionScreen()),
         ),
         const SizedBox(width: 8),
+        // TODO(household): restore household button on home screen when feature ships
+        /*
         _buildHeaderAction(
           context,
           icon: AppIcons.group,
           iconColor: const Color(0xFFB173D1),
           onTap: () => _open(context, const HouseholdScreen()),
         ),
+        */
       ],
     );
   }

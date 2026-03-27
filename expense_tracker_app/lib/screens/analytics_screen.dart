@@ -7,7 +7,7 @@ import '../core/redesign_system.dart';
 import '../core/taxonomy_localization.dart';
 import '../l10n/app_localizations.dart';
 import '../widgets/filter_bottom_sheet.dart';
-import 'analytics_household_tab.dart';
+// TODO(household): re-import analytics_household_tab when household feature ships
 import 'analytics_overview_tab.dart';
 import 'analytics_tab.dart';
 import 'analytics_trends_tab.dart';
@@ -16,7 +16,7 @@ enum AnalyticsSection {
   overview,
   trends,
   categories,
-  households,
+  // TODO(household): add households back when household feature ships
 }
 
 class AnalyticsScreen extends StatefulWidget {
@@ -27,30 +27,21 @@ class AnalyticsScreen extends StatefulWidget {
 }
 
 class _AnalyticsScreenState extends State<AnalyticsScreen> {
-  static const String _familyPlanFeatureCode = 'premium.family_plan';
+  static const int _collapsedActiveFilterLimit = 4;
 
   bool _isLoading = true;
   String? _error;
   AnalyticsSection _selectedSection = AnalyticsSection.overview;
+  bool _showAllActiveFilters = false;
   AnalyticsFilters _filters = const AnalyticsFilters();
   Map<String, String> _categoryNamesById = {};
   Map<String, String> _labelNamesById = {};
   Set<String> _featureCodes = <String>{};
-  Map<String, dynamic>? _currentHousehold;
-
-  bool get _hasFamilyPlan => _featureCodes.contains(_familyPlanFeatureCode);
 
   @override
   void initState() {
     super.initState();
     _loadShellState();
-  }
-
-  int? _extractStatusCode(Object error) {
-    final text = error.toString();
-    final match = RegExp(r'\b([1-5]\d{2})\b').firstMatch(text);
-    if (match == null) return null;
-    return int.tryParse(match.group(1)!);
   }
 
   Future<void> _loadShellState() async {
@@ -73,7 +64,6 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
       Map<String, String> categoryNamesById = {};
       Map<String, String> labelNamesById = {};
       Set<String> featureCodes = <String>{};
-      Map<String, dynamic>? currentHousehold;
 
       try {
         final categories = await ApiClient.listCategories();
@@ -107,11 +97,7 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
                 .toSet();
       } catch (_) {}
 
-      try {
-        currentHousehold = await ApiClient.getCurrentHousehold();
-      } catch (error) {
-        if (_extractStatusCode(error) != 404) rethrow;
-      }
+      // TODO(household): restore getCurrentHousehold() call when household feature ships
 
       if (!mounted) return;
       setState(() {
@@ -128,7 +114,6 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
         _categoryNamesById = categoryNamesById;
         _labelNamesById = labelNamesById;
         _featureCodes = featureCodes;
-        _currentHousehold = currentHousehold;
         _isLoading = false;
       });
     } catch (error) {
@@ -167,6 +152,7 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
     if (result == null) return;
 
     setState(() {
+      _showAllActiveFilters = false;
       _filters = _filters.copyWith(
         period: result['period'] as String? ?? _filters.period,
         categoryIds: List<String>.from(result['category_ids'] ?? const []),
@@ -174,17 +160,6 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
           result['subcategory_ids'] ?? const [],
         ),
         labelIds: List<String>.from(result['label_ids'] ?? const []),
-      );
-    });
-    await _saveFilters();
-  }
-
-  Future<void> _clearFilters() async {
-    setState(() {
-      _filters = _filters.copyWith(
-        categoryIds: const <String>[],
-        subcategoryIds: const <String>[],
-        labelIds: const <String>[],
       );
     });
     await _saveFilters();
@@ -198,38 +173,37 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
 
   Widget _buildSectionChip(AnalyticsSection section) {
     final isSelected = _selectedSection == section;
-    return Padding(
-      padding: const EdgeInsets.only(right: 10),
-      child: InkWell(
-        borderRadius: BorderRadius.circular(14),
-        onTap: () => _selectSection(section),
-        child: AnimatedContainer(
-          duration: const Duration(milliseconds: 180),
-          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
-          decoration: BoxDecoration(
+    return InkWell(
+      borderRadius: BorderRadius.circular(16),
+      onTap: () => _selectSection(section),
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 180),
+        alignment: Alignment.center,
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+        decoration: BoxDecoration(
+          color: isSelected
+              ? ShellStyles.textPrimary(context)
+              : Colors.transparent,
+          borderRadius: BorderRadius.circular(16),
+          boxShadow: isSelected
+              ? [
+                  BoxShadow(
+                    color: Colors.black.withAlpha(12),
+                    blurRadius: 12,
+                    offset: const Offset(0, 6),
+                  ),
+                ]
+              : const [],
+        ),
+        child: Text(
+          context.tr(_sectionLabelKey(section)),
+          textAlign: TextAlign.center,
+          style: TextStyle(
             color: isSelected
                 ? ShellStyles.surface(context)
-                : Colors.transparent,
-            borderRadius: BorderRadius.circular(14),
-            boxShadow: isSelected
-                ? [
-                    BoxShadow(
-                      color: Colors.black.withAlpha(10),
-                      blurRadius: 14,
-                      offset: const Offset(0, 6),
-                    ),
-                  ]
-                : const [],
-          ),
-          child: Text(
-            context.tr(_sectionLabelKey(section)),
-            style: TextStyle(
-              color: isSelected
-                  ? ShellStyles.textPrimary(context)
-                  : ShellStyles.textMuted(context),
-              fontSize: 13,
-              fontWeight: isSelected ? FontWeight.w700 : FontWeight.w600,
-            ),
+                : ShellStyles.textMuted(context),
+            fontSize: 14,
+            fontWeight: isSelected ? FontWeight.w700 : FontWeight.w600,
           ),
         ),
       ),
@@ -244,105 +218,194 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
         return 'analytics_tab_trends';
       case AnalyticsSection.categories:
         return 'analytics_tab_categories';
-      case AnalyticsSection.households:
-        return 'analytics_tab_households';
+      // TODO(household): add households case back when household feature ships
     }
   }
 
   Widget _buildFilterChip(
     String label, {
     required IconData icon,
-    required Color color,
+    VoidCallback? onDeleted,
   }) {
-    return Container(
-      margin: const EdgeInsets.only(right: 8, bottom: 8),
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-      decoration: BoxDecoration(
-        color: color.withAlpha(24),
-        borderRadius: BorderRadius.circular(999),
-        border: Border.all(color: color.withAlpha(60)),
+    return InputChip(
+      avatar: Icon(icon, size: 16, color: ShellStyles.textPrimary(context)),
+      label: Text(
+        label,
+        style: TextStyle(
+          color: ShellStyles.textPrimary(context),
+          fontSize: 12,
+          fontWeight: FontWeight.w700,
+        ),
       ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Icon(icon, size: 14, color: color),
-          const SizedBox(width: 6),
-          Text(
-            label,
-            style: TextStyle(
-              color: color,
-              fontSize: 12,
-              fontWeight: FontWeight.w700,
-            ),
-          ),
-        ],
-      ),
+      materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+      visualDensity: VisualDensity.compact,
+      backgroundColor: ShellStyles.surface(context),
+      side: BorderSide(color: ShellStyles.border(context)),
+      deleteIconColor: ShellStyles.textMuted(context),
+      onDeleted: onDeleted,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
     );
+  }
+
+  Future<void> _clearAllFilters() async {
+    setState(() {
+      _showAllActiveFilters = false;
+      _filters = _filters.copyWith(
+        categoryIds: const <String>[],
+        subcategoryIds: const <String>[],
+        labelIds: const <String>[],
+      );
+    });
+    await _saveFilters();
   }
 
   Widget _buildActiveFiltersBar() {
     if (!_filters.hasScopedFilters) return const SizedBox.shrink();
 
-    final categoryLabels = _filters.categoryIds
-        .map((id) => _categoryNamesById[id] ?? context.tr('filters_category'))
-        .toList();
-    final subcategoryLabels = _filters.subcategoryIds
-        .map((id) => _categoryNamesById[id] ?? context.tr('filters_subcategory'))
-        .toList();
-    final labelLabels = _filters.labelIds
-        .map((id) => _labelNamesById[id] ?? context.tr('filters_labels'))
-        .toList();
+    final chips = <Widget>[
+      ..._filters.categoryIds.map(
+        (id) => _buildFilterChip(
+          _categoryNamesById[id] ?? context.tr('filters_category'),
+          icon: Icons.category_outlined,
+          onDeleted: () {
+            setState(() {
+              final newIds = List<String>.from(_filters.categoryIds)
+                ..remove(id);
+              _filters = _filters.copyWith(categoryIds: newIds);
+            });
+            _saveFilters();
+          },
+        ),
+      ),
+      ..._filters.subcategoryIds.map(
+        (id) => _buildFilterChip(
+          _categoryNamesById[id] ?? context.tr('filters_subcategory'),
+          icon: Icons.account_tree_outlined,
+          onDeleted: () {
+            setState(() {
+              final newIds = List<String>.from(_filters.subcategoryIds)
+                ..remove(id);
+              _filters = _filters.copyWith(subcategoryIds: newIds);
+            });
+            _saveFilters();
+          },
+        ),
+      ),
+      ..._filters.labelIds.map(
+        (id) => _buildFilterChip(
+          _labelNamesById[id] ?? context.tr('filters_labels'),
+          icon: Icons.label_outline,
+          onDeleted: () {
+            setState(() {
+              final newIds = List<String>.from(_filters.labelIds)..remove(id);
+              _filters = _filters.copyWith(labelIds: newIds);
+            });
+            _saveFilters();
+          },
+        ),
+      ),
+    ];
+
+    final hasOverflow = chips.length > _collapsedActiveFilterLimit;
+    final visibleChips = _showAllActiveFilters || !hasOverflow
+        ? chips
+        : chips.take(_collapsedActiveFilterLimit).toList(growable: false);
+    final hiddenCount = chips.length - visibleChips.length;
 
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.all(16),
-      decoration: ShellStyles.cardDecoration(context, radius: 22),
+      decoration: ShellStyles.cardDecoration(
+        context,
+        radius: 22,
+        color: ShellStyles.surfaceAlt(context),
+        withShadow: false,
+      ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
             children: [
-              Text(
-                context.tr('analytics_active_filters'),
-                style: TextStyle(
-                  color: ShellStyles.textPrimary(context),
-                  fontSize: 14,
-                  fontWeight: FontWeight.w700,
+              Expanded(
+                child: Text(
+                  context.tr('analytics_active_filters'),
+                  style: TextStyle(
+                    color: ShellStyles.textMuted(context),
+                    fontSize: 11,
+                    fontWeight: FontWeight.w700,
+                    letterSpacing: 0.8,
+                  ),
                 ),
               ),
-              const Spacer(),
               TextButton(
-                onPressed: _clearFilters,
-                child: Text(context.tr('filters_clear_all')),
+                onPressed: _clearAllFilters,
+                style: TextButton.styleFrom(
+                  foregroundColor: ShellStyles.textPrimary(context),
+                  visualDensity: VisualDensity.compact,
+                  tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 10,
+                    vertical: 6,
+                  ),
+                ),
+                child: Text(context.tr('analytics_clear_all_filters')),
               ),
             ],
           ),
           const SizedBox(height: 8),
-          Wrap(
-            children: [
-              ...categoryLabels.map(
-                (label) => _buildFilterChip(
-                  label,
-                  icon: Icons.category_outlined,
-                  color: ShellColors.softBlue,
+          Wrap(spacing: 8, runSpacing: 8, children: visibleChips),
+          if (hasOverflow) ...[
+            const SizedBox(height: 12),
+            Align(
+              alignment: Alignment.centerLeft,
+              child: OutlinedButton(
+                onPressed: () {
+                  setState(() {
+                    _showAllActiveFilters = !_showAllActiveFilters;
+                  });
+                },
+                style: OutlinedButton.styleFrom(
+                  foregroundColor: ShellStyles.textPrimary(context),
+                  side: BorderSide(color: ShellStyles.border(context)),
+                  backgroundColor: ShellStyles.surface(context),
+                  visualDensity: VisualDensity.compact,
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 14,
+                    vertical: 10,
+                  ),
+                ),
+                child: Text(
+                  _showAllActiveFilters
+                      ? context.tr('analytics_show_fewer_filters')
+                      : context.tr(
+                          'analytics_view_all_active_filters',
+                          params: {'count': hiddenCount.toString()},
+                        ),
                 ),
               ),
-              ...subcategoryLabels.map(
-                (label) => _buildFilterChip(
-                  label,
-                  icon: Icons.account_tree_outlined,
-                  color: const Color(0xFF2C8B72),
-                ),
-              ),
-              ...labelLabels.map(
-                (label) => _buildFilterChip(
-                  label,
-                  icon: Icons.label_outline,
-                  color: const Color(0xFFB96A38),
-                ),
-              ),
-            ],
-          ),
+            ),
+          ],
+        ],
+      ),
+    );
+  }
+
+  Widget _buildSectionSelector() {
+    final sections = AnalyticsSection.values;
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(8),
+      decoration: BoxDecoration(
+        color: ShellStyles.surfaceAlt(context),
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: ShellStyles.border(context)),
+      ),
+      child: Row(
+        children: [
+          for (var index = 0; index < sections.length; index++) ...[
+            Expanded(child: _buildSectionChip(sections[index])),
+            if (index != sections.length - 1) const SizedBox(width: 8),
+          ],
         ],
       ),
     );
@@ -372,83 +435,68 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
       body: _isLoading
           ? const Center(child: CircularProgressIndicator())
           : _error != null
-              ? Center(
-                  child: Padding(
-                    padding: const EdgeInsets.all(24),
-                    child: Column(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Icon(
-                          Icons.error_outline,
-                          color: ShellColors.softRed,
-                          size: 42,
-                        ),
-                        const SizedBox(height: 12),
-                        Text(
-                          _error ?? context.tr('common_error'),
-                          textAlign: TextAlign.center,
-                        ),
-                        const SizedBox(height: 16),
-                        FilledButton(
-                          onPressed: _loadShellState,
-                          child: Text(context.tr('common_retry')),
-                        ),
-                      ],
-                    ),
-                  ),
-                )
-              : Column(
+          ? Center(
+              child: Padding(
+                padding: const EdgeInsets.all(24),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
                   children: [
-                    Padding(
-                      padding: const EdgeInsets.fromLTRB(20, 12, 20, 12),
-                      child: Container(
-                        width: double.infinity,
-                        padding: const EdgeInsets.all(8),
-                        decoration: BoxDecoration(
-                          color: ShellStyles.surfaceAlt(context),
-                          borderRadius: BorderRadius.circular(20),
-                          border: Border.all(color: ShellStyles.border(context)),
-                        ),
-                        child: SingleChildScrollView(
-                          scrollDirection: Axis.horizontal,
-                          child: Row(
-                            children: AnalyticsSection.values
-                                .map(_buildSectionChip)
-                                .toList(),
-                          ),
-                        ),
-                      ),
+                    Icon(
+                      Icons.error_outline,
+                      color: ShellColors.softRed,
+                      size: 42,
                     ),
-                    if (_filters.hasScopedFilters)
-                      Padding(
-                        padding: const EdgeInsets.fromLTRB(20, 0, 20, 12),
-                        child: _buildActiveFiltersBar(),
-                      ),
-                    Expanded(
-                      child: IndexedStack(
-                        index: _selectedSection.index,
-                        children: [
-                          AnalyticsOverviewTab(
-                            filters: _filters,
-                            currentHousehold: _currentHousehold,
-                            onHouseholdUpdated: _loadShellState,
-                          ),
-                          AnalyticsTrendsTab(filters: _filters),
-                          AnalyticsTab(
-                            filters: _filters,
-                            featureCodes: _featureCodes,
-                          ),
-                          AnalyticsHouseholdTab(
-                            filters: _filters,
-                            currentHousehold: _currentHousehold,
-                            hasFamilyPlan: _hasFamilyPlan,
-                            onHouseholdUpdated: _loadShellState,
-                          ),
-                        ],
-                      ),
+                    const SizedBox(height: 12),
+                    Text(
+                      _error ?? context.tr('common_error'),
+                      textAlign: TextAlign.center,
+                    ),
+                    const SizedBox(height: 16),
+                    FilledButton(
+                      onPressed: _loadShellState,
+                      child: Text(context.tr('common_retry')),
                     ),
                   ],
                 ),
+              ),
+            )
+          : Column(
+              children: [
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(20, 12, 20, 12),
+                  child: _buildSectionSelector(),
+                ),
+                Expanded(
+                  child: IndexedStack(
+                    index: _selectedSection.index,
+                    children: [
+                      // TODO(household): restore currentHousehold/onHouseholdUpdated
+                      // params to AnalyticsOverviewTab when household feature ships
+                      AnalyticsOverviewTab(
+                        filters: _filters,
+                        activeFiltersBuilder: _filters.hasScopedFilters
+                            ? _buildActiveFiltersBar
+                            : null,
+                      ),
+                      AnalyticsTrendsTab(
+                        filters: _filters,
+                        activeFiltersBuilder: _filters.hasScopedFilters
+                            ? _buildActiveFiltersBar
+                            : null,
+                      ),
+                      AnalyticsTab(
+                        filters: _filters,
+                        featureCodes: _featureCodes,
+                        activeFiltersBuilder: _filters.hasScopedFilters
+                            ? _buildActiveFiltersBar
+                            : null,
+                      ),
+                      // TODO(household): restore AnalyticsHouseholdTab when household feature ships
+                    ],
+                  ),
+                ),
+              ],
+            ),
     );
   }
 }

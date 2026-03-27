@@ -15,6 +15,7 @@ def _request_with_secret(secret: str | None = None) -> Request:
 
 
 def test_dev_routes_enabled_requires_dev_environment_and_flag(monkeypatch) -> None:
+    monkeypatch.setenv("DEV_BILLING_INTERNAL_SECRET", "dummy-secret")
     monkeypatch.setenv("APP_ENV", "development")
     monkeypatch.setenv("ENABLE_DEV_BILLING_ENDPOINTS", "true")
     assert _dev_billing_routes_enabled() is True
@@ -45,6 +46,8 @@ def test_dev_access_requires_secret_when_configured(monkeypatch) -> None:
 
 def test_dev_router_mounts_in_local_even_if_flag_disabled(monkeypatch) -> None:
     from app.api.routers.billing import should_include_dev_billing_router
+
+    monkeypatch.setenv("DEV_BILLING_INTERNAL_SECRET", "dummy-secret")
 
     monkeypatch.setenv("APP_ENV", "development")
     monkeypatch.setenv("ENABLE_DEV_BILLING_ENDPOINTS", "false")

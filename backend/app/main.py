@@ -12,7 +12,8 @@ from app.api.routers import (
     categories,
     data,
     feature_requests,
-    households,
+    # TODO(household): re-import when household feature ships
+    # households,
     item_translations,
     labels,
     planning,
@@ -82,7 +83,8 @@ app.include_router(labels.router)
 app.include_router(item_translations.router)
 app.include_router(billing.router)
 app.include_router(data.router)
-app.include_router(households.router)
+# TODO(household): re-enable when household feature ships
+# app.include_router(households.router)
 app.include_router(feature_requests.router)
 app.include_router(feature_requests.internal_router)
 app.include_router(planning.router)
