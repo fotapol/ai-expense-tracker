@@ -1,9 +1,9 @@
 """Receipt API endpoints.
 
 Provides the presigned-upload flow:
-1. POST /v1/receipts          → create receipt row + presigned PUT URL
-2. POST /v1/receipts/{id}/confirm-upload → verify upload via HEAD, enqueue extraction
-3. GET  /v1/receipts/{id}     → poll receipt status + linked transaction
+1. POST /v1/receipts -> create receipt row + presigned PUT URL
+2. POST /v1/receipts/{id}/confirm-upload -> verify upload via HEAD, enqueue extraction
+3. GET  /v1/receipts/{id} -> poll receipt status + linked transaction
 """
 
 import datetime as dt
@@ -31,7 +31,6 @@ from app.schemas.receipts import (
     ReceiptViewUrlResponse,
 )
 from app.services.billing import receipt_scan_limit_reached, resolve_receipt_scan_usage
-from app.services.households.access import get_active_shared_household_id
 
 logger = logging.getLogger(__name__)
 
@@ -53,32 +52,34 @@ def _get_visible_receipt_and_transaction(
     receipt_id: uuid.UUID,
     current_user: User,
 ) -> tuple[Receipt | None, Transaction | None]:
-    receipt = session.exec(
-        select(Receipt).where(Receipt.id == receipt_id)
-    ).first()
+    receipt = session.exec(select(Receipt).where(Receipt.id == receipt_id)).first()
     if receipt is None:
         return None, None
 
     transaction = session.exec(
         select(Transaction).where(Transaction.receipt_id == receipt_id)
     ).first()
-    shared_household_id = get_active_shared_household_id(session, current_user.id)
 
+    # Household sharing is disabled for launch. Always let the uploader see
+    # their own receipt and any linked legacy transaction.
     if receipt.user_id == current_user.id:
-        if transaction is None or transaction.household_id is None:
-            return receipt, transaction
-        if shared_household_id is not None and transaction.household_id == shared_household_id:
-            return receipt, transaction
-        return None, None
-
-    if (
-        transaction is not None
-        and shared_household_id is not None
-        and transaction.household_id == shared_household_id
-    ):
         return receipt, transaction
 
     return None, None
+
+
+def _revert_receipt_after_failed_enqueue(
+    session: Session,
+    *,
+    receipt: Receipt,
+) -> None:
+    """Restore a retryable CREATED state when queue handoff fails."""
+
+    receipt.status = ReceiptStatus.CREATED
+    receipt.uploaded_at = None
+    session.add(receipt)
+    session.commit()
+    session.refresh(receipt)
 
 
 @router.post("/receipts", response_model=ReceiptCreateResponse, status_code=status.HTTP_201_CREATED)
@@ -89,11 +90,8 @@ async def create_receipt(
     session: Session = Depends(get_session),  # noqa: B008
     current_user: User = Depends(get_current_user),  # noqa: B008
 ):
-    """Create a new receipt row and return a presigned upload URL.
+    """Create a new receipt row and return a presigned upload URL."""
 
-    The client should PUT the file bytes to ``upload_url`` using the
-    headers listed in ``required_headers`` (at minimum ``Content-Type``).
-    """
     if payload.mime_type not in _ALLOWED_MIME_TYPES:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
@@ -105,7 +103,6 @@ async def create_receipt(
     storage_bucket = "receipts"
     storage_key = f"receipts/{current_user.id}/{receipt_id}/{filename}"
 
-    # Persist receipt row
     receipt = Receipt(
         id=receipt_id,
         user_id=current_user.id,
@@ -121,7 +118,6 @@ async def create_receipt(
     session.commit()
     session.refresh(receipt)
 
-    # Generate presigned PUT
     presigned = generate_presigned_put(key=storage_key, content_type=payload.mime_type)
 
     return ReceiptCreateResponse(
@@ -144,14 +140,8 @@ async def confirm_upload(
     session: Session = Depends(get_session),  # noqa: B008
     current_user: User = Depends(get_current_user),  # noqa: B008
 ):
-    """Verify the file was uploaded to MinIO and enqueue extraction.
+    """Verify upload and enqueue extraction without stranding receipt state."""
 
-    The server HEADs the object to confirm it exists and reads its
-    actual size.  Receipt status moves from CREATED → UPLOADED and an
-    extraction job is published to RabbitMQ.
-    """
-    # Lock the target receipt row first to prevent duplicate confirms
-    # from concurrently transitioning the same receipt.
     receipt = session.exec(
         select(Receipt)
         .where(Receipt.id == receipt_id, Receipt.user_id == current_user.id)
@@ -159,7 +149,10 @@ async def confirm_upload(
     ).first()
 
     if receipt is None:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Receipt not found.")
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Receipt not found.",
+        )
 
     if receipt.status != ReceiptStatus.CREATED:
         raise HTTPException(
@@ -167,7 +160,6 @@ async def confirm_upload(
             detail=f"Receipt status is '{receipt.status.value}', expected 'CREATED'.",
         )
 
-    # HEAD the object in MinIO to verify upload
     try:
         obj_info = head_object(key=receipt.storage_key, bucket=receipt.storage_bucket)
     except Exception as exc:
@@ -177,8 +169,6 @@ async def confirm_upload(
             detail="File not found in storage. Please upload the file first.",
         ) from None
 
-    # Serialize quota checks per user to avoid race conditions where
-    # multiple concurrent confirms can exceed the monthly free limit.
     session.exec(
         select(User.id).where(User.id == current_user.id).with_for_update()
     ).first()
@@ -200,7 +190,17 @@ async def confirm_upload(
             },
         )
 
-    # Update receipt
+    connection = get_rabbitmq_connection()
+    if connection is None:
+        logger.error(
+            "RabbitMQ unavailable - cannot enqueue extraction for receipt %s.",
+            receipt_id,
+        )
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail="Message queue unavailable. Please try again later.",
+        )
+
     receipt.status = ReceiptStatus.UPLOADED
     receipt.uploaded_at = dt.datetime.now(dt.UTC)
     receipt.size_bytes = obj_info["size_bytes"]
@@ -209,15 +209,6 @@ async def confirm_upload(
     session.add(receipt)
     session.commit()
     session.refresh(receipt)
-
-    # Enqueue extraction job
-    connection = get_rabbitmq_connection()
-    if connection is None:
-        logger.error("RabbitMQ unavailable — cannot enqueue extraction for receipt %s.", receipt_id)
-        raise HTTPException(
-            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
-            detail="Message queue unavailable. Please try again later.",
-        )
 
     try:
         import aio_pika
@@ -234,6 +225,7 @@ async def confirm_upload(
         logger.info("Enqueued extraction job for receipt %s.", receipt_id)
     except Exception:
         logger.exception("Failed to enqueue extraction for receipt %s.", receipt_id)
+        _revert_receipt_after_failed_enqueue(session, receipt=receipt)
         raise HTTPException(
             status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
             detail="Failed to enqueue extraction job.",
@@ -251,6 +243,7 @@ async def get_receipt(
     current_user: User = Depends(get_current_user),  # noqa: B008
 ):
     """Return receipt status, failure reason, and linked transaction id."""
+
     receipt, transaction = _get_visible_receipt_and_transaction(
         session,
         receipt_id=receipt_id,
@@ -258,7 +251,10 @@ async def get_receipt(
     )
 
     if receipt is None:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Receipt not found.")
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Receipt not found.",
+        )
 
     read = ReceiptRead.model_validate(receipt)
     read.transaction_id = transaction.id if transaction else None
@@ -282,7 +278,10 @@ async def get_receipt_view_url(
     )
 
     if receipt is None:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Receipt not found.")
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Receipt not found.",
+        )
 
     return ReceiptViewUrlResponse(
         receipt_id=receipt.id,
@@ -304,6 +303,7 @@ async def delete_receipt(
     current_user: User = Depends(get_current_user),  # noqa: B008
 ):
     """Delete a receipt and its associated transaction + items."""
+
     from app.models.labels.transaction_label import TransactionLabel
     from app.models.receipts.receipt_extraction import ReceiptExtraction
     from app.models.transactions.transaction_item import TransactionItem
@@ -313,26 +313,31 @@ async def delete_receipt(
     ).first()
 
     if receipt is None:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Receipt not found.")
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Receipt not found.",
+        )
 
-    # Delete linked transaction, items, and label associations
     transaction = session.exec(
         select(Transaction).where(Transaction.receipt_id == receipt_id)
     ).first()
     if transaction:
-        # Delete label links
-        for link in session.exec(select(TransactionLabel).where(TransactionLabel.transaction_id == transaction.id)).all():
+        for link in session.exec(
+            select(TransactionLabel).where(TransactionLabel.transaction_id == transaction.id)
+        ).all():
             session.delete(link)
-        # Delete items
-        for item in session.exec(select(TransactionItem).where(TransactionItem.transaction_id == transaction.id)).all():
+        for item in session.exec(
+            select(TransactionItem).where(TransactionItem.transaction_id == transaction.id)
+        ).all():
             session.delete(item)
-        session.flush() # ensure children are deleted first
+        session.flush()
         session.delete(transaction)
         session.flush()
 
-    # Delete receipt extractions
-    for ext in session.exec(select(ReceiptExtraction).where(ReceiptExtraction.receipt_id == receipt_id)).all():
-        session.delete(ext)
+    for extraction in session.exec(
+        select(ReceiptExtraction).where(ReceiptExtraction.receipt_id == receipt_id)
+    ).all():
+        session.delete(extraction)
     session.flush()
 
     session.delete(receipt)
