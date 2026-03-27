@@ -232,8 +232,7 @@ class AppLocalizations {
       'feature_request_category_receipts_scanning': 'Receipts & Scanning',
       'feature_request_category_budgets_planning': 'Budgets & Planning',
       'feature_request_category_household_sharing': 'Household & Sharing',
-      'feature_request_category_design_accessibility':
-          'Design & Accessibility',
+      'feature_request_category_design_accessibility': 'Design & Accessibility',
       'feature_request_category_other': 'Other',
       'settings_privacy_policy': 'Privacy Policy',
       'settings_terms_of_service': 'Terms of Service',
@@ -245,6 +244,7 @@ class AppLocalizations {
       'settings_banner_upgrade_subtitle':
           'Unlock AI insights, unlimited receipts, and advanced analytics.',
       'settings_see_plan': 'See Plans',
+      'settings_manage_subscription': 'Manage Subscription',
       'household_title': 'Household',
       'household_create_title': 'Create household',
       'household_name_label': 'Household name',
@@ -557,6 +557,10 @@ class AppLocalizations {
       'analytics_tab_categories': 'Categories',
       'analytics_tab_households': 'Households',
       'analytics_active_filters': 'Active filters',
+      'analytics_clear_all_filters': 'Clear all filters',
+      'analytics_view_all_active_filters':
+          'View all active filters ({count} more)',
+      'analytics_show_fewer_filters': 'Show fewer filters',
       'analytics_categories_subtitle': 'Explore where your money goes',
       'analytics_overview_top_categories': 'Top categories',
       'analytics_change_unavailable': 'Previous comparison is unavailable.',
