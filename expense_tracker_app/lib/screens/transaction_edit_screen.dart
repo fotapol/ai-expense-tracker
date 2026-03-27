@@ -349,6 +349,8 @@ class _TransactionEditScreenState extends State<TransactionEditScreen> {
   }
 
   Future<void> _saveTransaction() async {
+    if (_isSaving) return;
+
     final amountText = _amountController.text.trim();
     final parsedAmount = double.tryParse(amountText.replaceAll(',', '.'));
     if (parsedAmount == null) {

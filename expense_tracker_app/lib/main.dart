@@ -6,10 +6,13 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'firebase_options.dart';
+import 'core/api_client.dart';
+import 'core/auth_session.dart';
 import 'core/bill_reminder_notification_service.dart';
 // TODO(household): re-import invite_link_service when household feature ships
 // import 'core/invite_link_service.dart';
 import 'core/locale_provider.dart';
+import 'core/premium_refresh.dart';
 import 'core/revenuecat_service.dart';
 import 'core/theme_provider.dart';
 import 'l10n/app_localizations.dart';
@@ -45,6 +48,8 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
   // TODO(household): restore _inviteRouteOpen when household feature ships
   // bool _inviteRouteOpen = false;
   StreamSubscription<User?>? _authSubscription;
+  final PremiumRefreshController _premiumRefreshController =
+      PremiumRefreshController();
 
   void _refreshApp() {
     if (mounted) setState(() {});
@@ -115,6 +120,16 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
   void didChangeAppLifecycleState(AppLifecycleState state) {
     if (state != AppLifecycleState.resumed) return;
     BillReminderNotificationService.instance.syncScheduledNotifications();
+    unawaited(
+      _premiumRefreshController.refreshOnResume(
+        isSignedIn: FirebaseAuth.instance.currentUser != null,
+        isBillingAvailable: RevenueCatService.isAvailable,
+        refreshAction: () async {
+          await RevenueCatService.logInCurrentUser();
+          await ApiClient.syncRevenueCatSubscription();
+        },
+      ),
+    );
     
     // TODO(household): restore _maybeOpenInviteAcceptance() when household feature ships
     // _maybeOpenInviteAcceptance();
@@ -157,9 +172,13 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
         GlobalWidgetsLocalizations.delegate,
         GlobalCupertinoLocalizations.delegate,
       ],
-      home: FirebaseAuth.instance.currentUser == null
-          ? const LoginScreen()
-          : const MainScreen(),
+      home: SessionRestoreGate<User>(
+        stream: FirebaseAuth.instance.authStateChanges(),
+        initialValue: FirebaseAuth.instance.currentUser,
+        isAuthenticated: (user) => user != null,
+        unauthenticatedBuilder: (_) => const LoginScreen(),
+        authenticatedBuilder: (_) => const MainScreen(),
+      ),
     );
   }
 }

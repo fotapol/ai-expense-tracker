@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 
 import '../core/data_transfer_actions.dart';
 import '../core/redesign_system.dart';
+import '../core/single_user_launch.dart';
 import '../l10n/app_localizations.dart';
 import 'analytics_screen.dart';
 import 'bill_reminders_screen.dart';
@@ -145,25 +146,27 @@ class ToolsScreen extends StatelessWidget {
                 ),
               ],
             ),
-            const SizedBox(height: 18),
-            _buildSection(
-              context,
-              title: context.tr('tools_data'),
-              tiles: [
-                _ToolTileData(
-                  icon: AppIcons.export,
-                  title: context.tr('tools_export_data'),
-                  subtitle: context.tr('tools_export_data_subtitle'),
-                  onTap: () => DataTransferActions.exportData(context),
-                ),
-                _ToolTileData(
-                  icon: AppIcons.importData,
-                  title: context.tr('tools_import_data'),
-                  subtitle: context.tr('tools_import_data_subtitle'),
-                  onTap: () => DataTransferActions.importData(context),
-                ),
-              ],
-            ),
+            if (launchEnableDataTransferTools) ...[
+              const SizedBox(height: 18),
+              _buildSection(
+                context,
+                title: context.tr('tools_data'),
+                tiles: [
+                  _ToolTileData(
+                    icon: AppIcons.export,
+                    title: context.tr('tools_export_data'),
+                    subtitle: context.tr('tools_export_data_subtitle'),
+                    onTap: () => DataTransferActions.exportData(context),
+                  ),
+                  _ToolTileData(
+                    icon: AppIcons.importData,
+                    title: context.tr('tools_import_data'),
+                    subtitle: context.tr('tools_import_data_subtitle'),
+                    onTap: () => DataTransferActions.importData(context),
+                  ),
+                ],
+              ),
+            ],
           ],
         ),
       ),
