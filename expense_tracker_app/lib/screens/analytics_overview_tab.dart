@@ -7,19 +7,18 @@ import '../core/period_filter.dart';
 import '../core/redesign_system.dart';
 import '../core/taxonomy_localization.dart';
 import '../l10n/app_localizations.dart';
-import 'household_screen.dart';
+// TODO(household): re-import household_screen when household feature ships
 
 class AnalyticsOverviewTab extends StatefulWidget {
   const AnalyticsOverviewTab({
     super.key,
     required this.filters,
-    required this.currentHousehold,
-    required this.onHouseholdUpdated,
+    this.activeFiltersBuilder,
+    // TODO(household): restore currentHousehold & onHouseholdUpdated when household feature ships
   });
 
   final AnalyticsFilters filters;
-  final Map<String, dynamic>? currentHousehold;
-  final Future<void> Function() onHouseholdUpdated;
+  final Widget Function()? activeFiltersBuilder;
 
   @override
   State<AnalyticsOverviewTab> createState() => _AnalyticsOverviewTabState();
@@ -30,7 +29,7 @@ class _AnalyticsOverviewTabState extends State<AnalyticsOverviewTab> {
   String? _error;
   Map<String, dynamic>? _summaryData;
   Map<String, dynamic>? _trendsData;
-  Map<String, dynamic>? _householdData;
+  // TODO(household): restore _householdData when household feature ships
 
   @override
   void initState() {
@@ -41,9 +40,7 @@ class _AnalyticsOverviewTabState extends State<AnalyticsOverviewTab> {
   @override
   void didUpdateWidget(covariant AnalyticsOverviewTab oldWidget) {
     super.didUpdateWidget(oldWidget);
-    if (oldWidget.filters != widget.filters ||
-        oldWidget.currentHousehold?['id']?.toString() !=
-            widget.currentHousehold?['id']?.toString()) {
+    if (oldWidget.filters != widget.filters) {
       _fetchData();
     }
   }
@@ -87,33 +84,14 @@ class _AnalyticsOverviewTabState extends State<AnalyticsOverviewTab> {
               : null,
         ),
       ];
-      final shouldLoadHousehold = widget.currentHousehold != null;
-      if (shouldLoadHousehold) {
-        requests.add(
-          ApiClient.getHouseholdAnalyticsSummary(
-            fromDate: fromDate,
-            toDate: toDate,
-            categoryIds: widget.filters.categoryIds.isNotEmpty
-                ? widget.filters.categoryIds
-                : null,
-            subcategoryIds: widget.filters.subcategoryIds.isNotEmpty
-                ? widget.filters.subcategoryIds
-                : null,
-            labelIds: widget.filters.labelIds.isNotEmpty
-                ? widget.filters.labelIds
-                : null,
-          ),
-        );
-      }
+      // TODO(household): restore household analytics request when household feature ships
 
       final results = await Future.wait(requests);
       if (!mounted) return;
       setState(() {
         _summaryData = results[0];
         _trendsData = results[1];
-        _householdData = shouldLoadHousehold && results.length > 2
-            ? results[2]
-            : null;
+        // TODO(household): restore _householdData = results[2] when household feature ships
         _isLoading = false;
       });
     } catch (error) {
@@ -144,11 +122,7 @@ class _AnalyticsOverviewTabState extends State<AnalyticsOverviewTab> {
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              Icon(
-                Icons.error_outline,
-                color: ShellColors.softRed,
-                size: 42,
-              ),
+              Icon(Icons.error_outline, color: ShellColors.softRed, size: 42),
               const SizedBox(height: 12),
               Text(
                 _error ?? context.tr('common_error'),
@@ -171,19 +145,28 @@ class _AnalyticsOverviewTabState extends State<AnalyticsOverviewTab> {
     final totalAmount = _parseDouble(summary['total_amount']);
     final totalTransactions =
         (summary['total_transactions'] as num?)?.toInt() ?? 0;
-    final discounts = summary['discounts'] as Map<String, dynamic>? ??
+    final discounts =
+        summary['discounts'] as Map<String, dynamic>? ??
         const <String, dynamic>{};
     final totalSavings = _parseDouble(discounts['total_savings']);
     final currency = (summary['currency']?.toString() ?? 'EUR').toUpperCase();
     final breakdown = summary['breakdown'] as List<dynamic>? ?? const [];
-    final previousTotal = trends['previous_total_amount'] != null ? _parseDouble(trends['previous_total_amount']) : null;
-    final changePercentage = trends['change_percentage'] != null ? _parseDouble(trends['change_percentage']) : null;
+    final previousTotal = trends['previous_total_amount'] != null
+        ? _parseDouble(trends['previous_total_amount'])
+        : null;
+    final changePercentage = trends['change_percentage'] != null
+        ? _parseDouble(trends['change_percentage'])
+        : null;
 
     return RefreshIndicator(
       onRefresh: _fetchData,
       child: ListView(
         padding: const EdgeInsets.fromLTRB(20, 12, 20, 32),
         children: [
+          if (widget.activeFiltersBuilder != null) ...[
+            widget.activeFiltersBuilder!(),
+            const SizedBox(height: 16),
+          ],
           _buildHeroCard(
             context,
             currency: currency,
@@ -202,7 +185,8 @@ class _AnalyticsOverviewTabState extends State<AnalyticsOverviewTab> {
                 title: context.tr('analytics_average_per_day'),
                 value: formatMoney(
                   currency,
-                  totalAmount / PeriodFilter.getPeriodDays(widget.filters.period),
+                  totalAmount /
+                      PeriodFilter.getPeriodDays(widget.filters.period),
                 ),
               ),
               _buildMetricCard(
@@ -226,14 +210,7 @@ class _AnalyticsOverviewTabState extends State<AnalyticsOverviewTab> {
             breakdown: breakdown,
             totalAmount: totalAmount,
           ),
-          if (widget.currentHousehold != null) ...[
-            const SizedBox(height: 16),
-            _buildHouseholdPreviewCard(
-              context,
-              currency: currency,
-              householdData: _householdData,
-            ),
-          ],
+          // TODO(household): restore _buildHouseholdPreviewCard when household feature ships
         ],
       ),
     );
@@ -249,15 +226,13 @@ class _AnalyticsOverviewTabState extends State<AnalyticsOverviewTab> {
     final changeLabel = changePercentage == null
         ? context.tr('analytics_change_unavailable')
         : changePercentage == 0
-            ? context.tr('analytics_change_flat')
-            : context.tr(
-                changePercentage > 0
-                    ? 'analytics_change_more'
-                    : 'analytics_change_less',
-                params: {
-                  'percent': changePercentage.abs().toStringAsFixed(1),
-                },
-              );
+        ? context.tr('analytics_change_flat')
+        : context.tr(
+            changePercentage > 0
+                ? 'analytics_change_more'
+                : 'analytics_change_less',
+            params: {'percent': changePercentage.abs().toStringAsFixed(1)},
+          );
 
     return Container(
       padding: const EdgeInsets.all(22),
@@ -278,7 +253,10 @@ class _AnalyticsOverviewTabState extends State<AnalyticsOverviewTab> {
           Row(
             children: [
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 12,
+                  vertical: 8,
+                ),
                 decoration: BoxDecoration(
                   color: Colors.white.withAlpha(22),
                   borderRadius: BorderRadius.circular(999),
@@ -302,10 +280,7 @@ class _AnalyticsOverviewTabState extends State<AnalyticsOverviewTab> {
           const SizedBox(height: 28),
           Text(
             context.tr('analytics_total_spent'),
-            style: TextStyle(
-              color: Colors.white.withAlpha(180),
-              fontSize: 13,
-            ),
+            style: TextStyle(color: Colors.white.withAlpha(180), fontSize: 13),
           ),
           const SizedBox(height: 6),
           Text(
@@ -330,8 +305,8 @@ class _AnalyticsOverviewTabState extends State<AnalyticsOverviewTab> {
                   changePercentage == null
                       ? Icons.timeline_outlined
                       : changePercentage >= 0
-                          ? Icons.trending_up
-                          : Icons.trending_down,
+                      ? Icons.trending_up
+                      : Icons.trending_down,
                   color: Colors.white,
                 ),
                 const SizedBox(width: 10),
@@ -505,7 +480,7 @@ class _AnalyticsOverviewTabState extends State<AnalyticsOverviewTab> {
                             value: normalizedProgress,
                             backgroundColor: ShellStyles.surfaceAlt(context),
                             valueColor: AlwaysStoppedAnimation<Color>(
-                              ShellColors.softBlue,
+                              ShellStyles.textPrimary(context),
                             ),
                           ),
                         ),
@@ -528,129 +503,6 @@ class _AnalyticsOverviewTabState extends State<AnalyticsOverviewTab> {
     );
   }
 
-  Widget _buildHouseholdPreviewCard(
-    BuildContext context, {
-    required String currency,
-    required Map<String, dynamic>? householdData,
-  }) {
-    final householdName =
-        householdData?['household']?['name']?.toString() ??
-        widget.currentHousehold?['name']?.toString() ??
-        context.tr('analytics_tab_households');
-    final totalAmount = _parseDouble(householdData?['total_amount']);
-    final members =
-        householdData?['members'] as List<dynamic>? ?? const <dynamic>[];
-
-    return InkWell(
-      borderRadius: BorderRadius.circular(24),
-      onTap: () async {
-        await Navigator.push(
-          context,
-          MaterialPageRoute(builder: (_) => const HouseholdScreen()),
-        );
-        await widget.onHouseholdUpdated();
-      },
-      child: Container(
-        padding: const EdgeInsets.all(20),
-        decoration: ShellStyles.cardDecoration(context, radius: 24),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              children: [
-                Icon(Icons.group_outlined, color: ShellColors.softGreen),
-                const SizedBox(width: 10),
-                Expanded(
-                  child: Text(
-                    householdName,
-                    style: TextStyle(
-                      color: ShellStyles.textPrimary(context),
-                      fontSize: 18,
-                      fontWeight: FontWeight.w700,
-                    ),
-                  ),
-                ),
-                Icon(
-                  Icons.chevron_right,
-                  color: ShellStyles.textMuted(context),
-                ),
-              ],
-            ),
-            const SizedBox(height: 12),
-            Text(
-              formatMoney(currency, totalAmount),
-              style: TextStyle(
-                color: ShellStyles.textPrimary(context),
-                fontSize: 28,
-                fontWeight: FontWeight.w800,
-              ),
-            ),
-            const SizedBox(height: 4),
-            Text(
-              context.tr('analytics_household_preview_subtitle'),
-              style: TextStyle(
-                color: ShellStyles.textMuted(context),
-                fontSize: 12,
-              ),
-            ),
-            const SizedBox(height: 16),
-            if (members.isEmpty)
-              Text(
-                context.tr('analytics_household_no_data'),
-                style: TextStyle(color: ShellStyles.textMuted(context)),
-              )
-            else
-              for (final rawMember in members.take(3)) ...[
-                Builder(
-                  builder: (context) {
-                    final member = rawMember as Map<String, dynamic>;
-                    final name =
-                        member['user']?['display_name']?.toString().trim();
-                    final email = member['user']?['email']?.toString().trim();
-                    final label = (name != null && name.isNotEmpty)
-                        ? name
-                        : (email != null && email.isNotEmpty)
-                              ? email
-                              : context.tr('home_default_user');
-                    final amount = _parseDouble(member['total_amount']);
-                    final percentage = _parseDouble(member['percentage']);
-                    return Padding(
-                      padding: const EdgeInsets.only(bottom: 10),
-                      child: Row(
-                        children: [
-                          Expanded(
-                            child: Text(
-                              label,
-                              style: TextStyle(
-                                color: ShellStyles.textPrimary(context),
-                                fontWeight: FontWeight.w600,
-                              ),
-                            ),
-                          ),
-                          Text(
-                            '${percentage.toStringAsFixed(1)}%',
-                            style: TextStyle(
-                              color: ShellStyles.textMuted(context),
-                              fontSize: 12,
-                            ),
-                          ),
-                          const SizedBox(width: 12),
-                          Text(
-                            formatMoney(currency, amount),
-                            style: TextStyle(
-                              color: ShellStyles.textPrimary(context),
-                              fontWeight: FontWeight.w700,
-                            ),
-                          ),
-                        ],
-                      ),
-                    );
-                  },
-                ),
-              ],
-          ],
-        ),
-      ),
-    );
-  }
+  // TODO(household): restore _buildHouseholdPreviewCard when household feature ships
+  // (referenced HouseholdScreen and showed per-member spending breakdown)
 }

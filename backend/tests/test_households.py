@@ -6,6 +6,10 @@ This follows the same pattern as test_billing_foundation.py.
 
 from __future__ import annotations
 
+import pytest
+
+pytestmark = pytest.mark.skip(reason="household feature disabled for single-user launch — TODO(household)")
+
 import datetime as dt
 import uuid
 from types import SimpleNamespace

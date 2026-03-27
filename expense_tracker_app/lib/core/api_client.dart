@@ -3,6 +3,9 @@ import 'dart:typed_data';
 import 'package:http/http.dart' as http;
 import 'package:firebase_auth/firebase_auth.dart';
 
+import 'auth_session.dart';
+import 'core_request_timeout.dart';
+
 class ApiClient {
   static const String apiBaseUrl = String.fromEnvironment(
     'API_BASE_URL',
@@ -17,9 +20,15 @@ class ApiClient {
   static Future<String> _getToken() async {
     final user = FirebaseAuth.instance.currentUser;
     if (user == null) {
-      throw Exception('No authenticated user found.');
+      throw StateError(expiredSessionMessage);
     }
-    return await user.getIdToken() ?? '';
+    final cachedToken = await user.getIdToken();
+    if ((cachedToken ?? '').trim().isNotEmpty) {
+      return requireAuthenticatedSessionToken(cachedToken);
+    }
+
+    final refreshedToken = await user.getIdToken(true);
+    return requireAuthenticatedSessionToken(refreshedToken);
   }
 
   static String _extractErrorMessage(http.Response response) {
@@ -323,13 +332,16 @@ class ApiClient {
       body['original_filename'] = originalFilename;
     }
 
-    final response = await http.post(
-      Uri.parse('$apiBaseUrl/v1/receipts'),
-      headers: {
-        'Authorization': 'Bearer $token',
-        'Content-Type': 'application/json',
-      },
-      body: jsonEncode(body),
+    final response = await runWithCoreRequestTimeout(
+      http.post(
+        Uri.parse('$apiBaseUrl/v1/receipts'),
+        headers: {
+          'Authorization': 'Bearer $token',
+          'Content-Type': 'application/json',
+        },
+        body: jsonEncode(body),
+      ),
+      operationName: 'Create receipt',
     );
 
     if (response.statusCode == 201) {
@@ -347,10 +359,14 @@ class ApiClient {
     required Uint8List fileBytes,
     required Map<String, String> requiredHeaders,
   }) async {
-    final response = await http.put(
-      Uri.parse(uploadUrl),
-      headers: requiredHeaders,
-      body: fileBytes,
+    final response = await runWithCoreRequestTimeout(
+      http.put(
+        Uri.parse(uploadUrl),
+        headers: requiredHeaders,
+        body: fileBytes,
+      ),
+      operationName: 'Upload receipt',
+      timeout: coreUploadRequestTimeout,
     );
 
     if (response.statusCode < 200 || response.statusCode >= 300) {
@@ -361,12 +377,15 @@ class ApiClient {
   /// POST /v1/receipts/{id}/confirm-upload
   static Future<Map<String, dynamic>> confirmUpload(String receiptId) async {
     final token = await _getToken();
-    final response = await http.post(
-      Uri.parse('$apiBaseUrl/v1/receipts/$receiptId/confirm-upload'),
-      headers: {
-        'Authorization': 'Bearer $token',
-        'Content-Type': 'application/json',
-      },
+    final response = await runWithCoreRequestTimeout(
+      http.post(
+        Uri.parse('$apiBaseUrl/v1/receipts/$receiptId/confirm-upload'),
+        headers: {
+          'Authorization': 'Bearer $token',
+          'Content-Type': 'application/json',
+        },
+      ),
+      operationName: 'Confirm receipt upload',
     );
 
     if (response.statusCode == 200) {
@@ -397,12 +416,15 @@ class ApiClient {
   /// GET /v1/receipts/{id} — poll receipt status.
   static Future<Map<String, dynamic>> getReceiptStatus(String receiptId) async {
     final token = await _getToken();
-    final response = await http.get(
-      Uri.parse('$apiBaseUrl/v1/receipts/$receiptId'),
-      headers: {
-        'Authorization': 'Bearer $token',
-        'Content-Type': 'application/json',
-      },
+    final response = await runWithCoreRequestTimeout(
+      http.get(
+        Uri.parse('$apiBaseUrl/v1/receipts/$receiptId'),
+        headers: {
+          'Authorization': 'Bearer $token',
+          'Content-Type': 'application/json',
+        },
+      ),
+      operationName: 'Poll receipt status',
     );
 
     if (response.statusCode == 200) {
@@ -459,13 +481,16 @@ class ApiClient {
       url += '?${params.join('&')}';
     }
 
-    final response = await http.post(
-      Uri.parse(url),
-      headers: {
-        'Authorization': 'Bearer $token',
-        'Content-Type': 'application/json',
-      },
-      body: jsonEncode(payload),
+    final response = await runWithCoreRequestTimeout(
+      http.post(
+        Uri.parse(url),
+        headers: {
+          'Authorization': 'Bearer $token',
+          'Content-Type': 'application/json',
+        },
+        body: jsonEncode(payload),
+      ),
+      operationName: 'Create transaction',
     );
 
     if (response.statusCode == 201) {
@@ -557,13 +582,16 @@ class ApiClient {
     if (params.isNotEmpty) {
       url += '?${params.join('&')}';
     }
-    final response = await http.put(
-      Uri.parse(url),
-      headers: {
-        'Authorization': 'Bearer $token',
-        'Content-Type': 'application/json',
-      },
-      body: jsonEncode(payload),
+    final response = await runWithCoreRequestTimeout(
+      http.put(
+        Uri.parse(url),
+        headers: {
+          'Authorization': 'Bearer $token',
+          'Content-Type': 'application/json',
+        },
+        body: jsonEncode(payload),
+      ),
+      operationName: 'Update transaction',
     );
 
     if (response.statusCode == 200) {
@@ -1384,12 +1412,16 @@ class ApiClient {
   /// GET /v1/me/subscription
   static Future<Map<String, dynamic>> getMeSubscription() async {
     final token = await _getToken();
-    final response = await http.get(
-      Uri.parse('$apiBaseUrl/v1/me/subscription'),
-      headers: {
-        'Authorization': 'Bearer $token',
-        'Content-Type': 'application/json',
-      },
+    final response = await runWithCoreRequestTimeout(
+      http.get(
+        Uri.parse('$apiBaseUrl/v1/me/subscription'),
+        headers: {
+          'Authorization': 'Bearer $token',
+          'Content-Type': 'application/json',
+        },
+      ),
+      operationName: 'Load subscription',
+      timeout: coreBillingRequestTimeout,
     );
 
     if (response.statusCode == 200) {
@@ -1404,12 +1436,16 @@ class ApiClient {
   /// GET /v1/me/entitlements
   static Future<Map<String, dynamic>> getMeEntitlements() async {
     final token = await _getToken();
-    final response = await http.get(
-      Uri.parse('$apiBaseUrl/v1/me/entitlements'),
-      headers: {
-        'Authorization': 'Bearer $token',
-        'Content-Type': 'application/json',
-      },
+    final response = await runWithCoreRequestTimeout(
+      http.get(
+        Uri.parse('$apiBaseUrl/v1/me/entitlements'),
+        headers: {
+          'Authorization': 'Bearer $token',
+          'Content-Type': 'application/json',
+        },
+      ),
+      operationName: 'Load entitlements',
+      timeout: coreBillingRequestTimeout,
     );
 
     if (response.statusCode == 200) {
@@ -1427,12 +1463,16 @@ class ApiClient {
       // Re-fetch token on each attempt so that if a 5xx happens near token
       // expiry the retry doesn't reuse an already-expired token.
       final token = await _getToken();
-      final response = await http.post(
-        Uri.parse('$apiBaseUrl/v1/billing/revenuecat/sync'),
-        headers: {
-          'Authorization': 'Bearer $token',
-          'Content-Type': 'application/json',
-        },
+      final response = await runWithCoreRequestTimeout(
+        http.post(
+          Uri.parse('$apiBaseUrl/v1/billing/revenuecat/sync'),
+          headers: {
+            'Authorization': 'Bearer $token',
+            'Content-Type': 'application/json',
+          },
+        ),
+        operationName: 'Sync subscription',
+        timeout: coreBillingRequestTimeout,
       );
 
       if (response.statusCode == 200) {

@@ -219,14 +219,17 @@ def resolve_effective_entitlements(
 
     Returns the union of both sets.
     """
-    from app.models.households.household_member import HouseholdMember
-    from app.models.shared.enums import HouseholdMemberStatus
+    # TODO(household): uncomment when household feature ships
+    # from app.models.households.household_member import HouseholdMember
+    # from app.models.shared.enums import HouseholdMemberStatus
 
     current_time = now or _utcnow()
 
     # --- User-scope entitlements ----------------------------------------
     feature_codes = resolve_user_entitlements(session, user_id, now=current_time)
 
+    # TODO(household): re-enable household-scope entitlement resolution when household feature ships
+    '''
     # --- Household-scope entitlements ------------------------------------
     # Find all households where this user is an active member.
     active_household_ids = [
@@ -250,6 +253,7 @@ def resolve_effective_entitlements(
             )
         ).all()
         feature_codes = feature_codes | set(household_rows)
+    '''
 
     return feature_codes
 

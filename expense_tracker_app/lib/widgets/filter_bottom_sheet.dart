@@ -86,7 +86,6 @@ class _FilterBottomSheetState extends State<FilterBottomSheet> {
 
   int get _activeFilterCount {
     int count = 0;
-    if (_selectedPeriod != PeriodFilter.last3Months) count++;
     if (_selectedCategoryIds.isNotEmpty) count++;
     if (_selectedSubcategoryIds.isNotEmpty) count++;
     if (_selectedLabelIds.isNotEmpty) count++;
