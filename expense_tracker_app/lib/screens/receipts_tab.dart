@@ -3,10 +3,13 @@ import 'package:intl/intl.dart';
 import '../core/auto_refresh_state_mixin.dart';
 import '../core/api_client.dart';
 import '../core/category_style.dart';
+import '../core/launch_error_copy.dart';
+import '../core/session_invalidation.dart';
 import '../core/taxonomy_localization.dart';
 import '../l10n/app_localizations.dart';
 import '../core/period_filter.dart';
 import '../widgets/filter_bottom_sheet.dart';
+import 'receipt_upload_screen.dart';
 import 'transaction_edit_screen.dart';
 
 class ReceiptsTab extends StatefulWidget {
@@ -34,7 +37,7 @@ class _ReceiptsTabState extends State<ReceiptsTab>
   bool _isFetchingTransactions = false;
 
   @override
-  Duration get autoRefreshInterval => const Duration(seconds: 8);
+  Duration get autoRefreshInterval => const Duration(minutes: 1);
 
   @override
   Future<void> performAutoRefresh() => _fetchTransactions(showLoader: false);
@@ -97,7 +100,7 @@ class _ReceiptsTabState extends State<ReceiptsTab>
     if (parentName.isEmpty) {
       return childName;
     }
-    return '$parentName * $childName';
+    return '$parentName • $childName';
   }
 
   Color _parseHexColor(String? raw, Color fallback) {
@@ -198,10 +201,15 @@ class _ReceiptsTabState extends State<ReceiptsTab>
         _error = null;
       });
     } catch (e) {
+      if (await maybeHandleExpiredSession(e)) return;
       if (!mounted) return;
       if (showLoader || _transactions.isEmpty) {
         setState(() {
-          _error = e.toString();
+          _error = friendlyLaunchErrorMessage(
+            e,
+            fallback:
+                'Your history could not load right now. Please try again.',
+          );
           _isLoading = false;
         });
       }
@@ -287,9 +295,9 @@ class _ReceiptsTabState extends State<ReceiptsTab>
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
               content: Text(
-                context.tr(
-                  'common_error_with_message',
-                  params: {'message': e.toString()},
+                friendlyLaunchErrorMessage(
+                  e,
+                  fallback: 'We could not remove that entry. Please try again.',
                 ),
               ),
               backgroundColor: Colors.red,
@@ -490,11 +498,11 @@ class _ReceiptsTabState extends State<ReceiptsTab>
             const Icon(Icons.error_outline, color: Colors.red, size: 48),
             const SizedBox(height: 16),
             Text(
-              _error ?? context.tr('common_error'),
+              _error ?? 'Your history could not load right now.',
               textAlign: TextAlign.center,
             ),
             const SizedBox(height: 16),
-            ElevatedButton(
+            FilledButton(
               onPressed: _fetchTransactions,
               child: Text(context.tr('common_retry')),
             ),
@@ -505,16 +513,39 @@ class _ReceiptsTabState extends State<ReceiptsTab>
 
     if (_transactions.isEmpty) {
       return Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(Icons.receipt_long, size: 64, color: Colors.grey.shade600),
-            const SizedBox(height: 16),
-            Text(
-              context.tr('receipts_no_data'),
-              style: TextStyle(color: Colors.grey.shade400, fontSize: 16),
-            ),
-          ],
+        child: Padding(
+          padding: const EdgeInsets.all(24),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(Icons.receipt_long, size: 64, color: Colors.grey.shade600),
+              const SizedBox(height: 16),
+              Text(
+                context.tr('receipts_no_data'),
+                textAlign: TextAlign.center,
+                style: TextStyle(color: Colors.grey.shade400, fontSize: 16),
+              ),
+              const SizedBox(height: 8),
+              Text(
+                'Scan your first receipt to start building a history you can review and filter.',
+                textAlign: TextAlign.center,
+                style: TextStyle(color: Colors.grey.shade500, fontSize: 13),
+              ),
+              const SizedBox(height: 18),
+              FilledButton.icon(
+                onPressed: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (_) => const ReceiptUploadScreen(),
+                    ),
+                  );
+                },
+                icon: const Icon(Icons.document_scanner_outlined),
+                label: const Text('Scan your first receipt'),
+              ),
+            ],
+          ),
         ),
       );
     }

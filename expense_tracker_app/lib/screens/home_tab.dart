@@ -6,12 +6,12 @@ import 'package:intl/intl.dart';
 
 import '../core/api_client.dart';
 import '../core/auto_refresh_state_mixin.dart';
+import '../core/launch_error_copy.dart';
 import '../core/redesign_system.dart';
+import '../core/session_invalidation.dart';
 import '../core/taxonomy_localization.dart';
 import '../l10n/app_localizations.dart';
 import 'analytics_screen.dart';
-import 'categories_screen.dart';
-import 'household_screen.dart';
 import 'receipt_manager_screen.dart';
 import 'receipt_upload_screen.dart';
 import 'subscription_screen.dart';
@@ -35,7 +35,7 @@ class _HomeTabState extends State<HomeTab>
   bool _isRefreshingHome = false;
 
   @override
-  Duration get autoRefreshInterval => const Duration(seconds: 10);
+  Duration get autoRefreshInterval => const Duration(minutes: 1);
 
   @override
   Future<void> performAutoRefresh() => _loadHomeData(showLoader: false);
@@ -109,9 +109,13 @@ class _HomeTabState extends State<HomeTab>
         _error = null;
       });
     } catch (error) {
+      if (await maybeHandleExpiredSession(error)) return;
       if (!mounted) return;
       setState(() {
-        _error = error.toString();
+        _error = friendlyLaunchErrorMessage(
+          error,
+          fallback: 'Home could not refresh just now. Please try again.',
+        );
         _isLoading = false;
       });
     } finally {
@@ -165,6 +169,10 @@ class _HomeTabState extends State<HomeTab>
   int get _reviewCount => _currentMonthTransactions.where(_needsReview).length;
 
   String _reviewSubtitle(BuildContext context) {
+    if (_currentMonthTransactions.isEmpty &&
+        _previousMonthTransactions.isEmpty) {
+      return 'Scan a receipt or add an expense to get started.';
+    }
     if (_reviewCount == 0) {
       return context.tr('home_all_reviewed');
     }
@@ -314,6 +322,11 @@ class _HomeTabState extends State<HomeTab>
 
   List<String> _buildInsights(BuildContext context) {
     final insights = <String>[];
+    if (_currentMonthTransactions.isEmpty &&
+        _previousMonthTransactions.isEmpty &&
+        (_monthlySummary?['breakdown'] as List<dynamic>? ?? const []).isEmpty) {
+      return insights;
+    }
     final ratio = _changeRatio;
     if (ratio != null) {
       final previousMonthLabel = DateFormat('MMMM').format(_previousMonthStart);
@@ -385,15 +398,17 @@ class _HomeTabState extends State<HomeTab>
             else if (_error != null && !hasData)
               _buildErrorState(context)
             else ...[
-              _buildMonthlySummaryCard(context),
-              const SizedBox(height: 14),
               _buildScanCard(context),
               const SizedBox(height: 14),
-              _buildOverviewCard(context),
-              const SizedBox(height: 14),
-              _buildInsightsCard(context),
-              const SizedBox(height: 14),
               _buildQuickActions(context),
+              const SizedBox(height: 14),
+              _buildMonthlySummaryCard(context),
+              const SizedBox(height: 14),
+              _buildOverviewCard(context),
+              if (_buildInsights(context).isNotEmpty) ...[
+                const SizedBox(height: 14),
+                _buildInsightsCard(context),
+              ],
               if (_error != null) ...[
                 const SizedBox(height: 14),
                 _buildInlineWarning(context),
@@ -587,7 +602,11 @@ class _HomeTabState extends State<HomeTab>
                 color: Colors.white.withAlpha(25),
                 borderRadius: BorderRadius.circular(16),
               ),
-              child: Icon(AppIcons.scan, color: ShellStyles.surface(context), size: 22),
+              child: Icon(
+                AppIcons.scan,
+                color: ShellStyles.surface(context),
+                size: 22,
+              ),
             ),
             const SizedBox(width: 16),
             Expanded(
@@ -628,7 +647,7 @@ class _HomeTabState extends State<HomeTab>
   Widget _buildOverviewCard(BuildContext context) {
     final slices = _overviewSlices(context);
     final hasChartData = slices.isNotEmpty && _currentMonthTotal > 0;
-    
+
     final pieSections = hasChartData
         ? slices
               .map(
@@ -717,7 +736,9 @@ class _HomeTabState extends State<HomeTab>
           ),
           const SizedBox(height: 32),
           if (hasChartData) ...[
-            for (final slice in slices.where((s) => s.name != context.tr('taxonomy_other')))
+            for (final slice in slices.where(
+              (s) => s.name != context.tr('taxonomy_other'),
+            ))
               Padding(
                 padding: const EdgeInsets.only(bottom: 16),
                 child: Row(
@@ -816,6 +837,9 @@ class _HomeTabState extends State<HomeTab>
 
   Widget _buildInsightsCard(BuildContext context) {
     final insights = _buildInsights(context);
+    if (insights.isEmpty) {
+      return const SizedBox.shrink();
+    }
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: ShellStyles.cardDecoration(
@@ -892,16 +916,6 @@ class _HomeTabState extends State<HomeTab>
         icon: AppIcons.receipt,
         label: context.tr('nav_receipts'),
         onTap: () => _open(context, const ReceiptManagerScreen()),
-      ),
-      _QuickAction(
-        icon: AppIcons.analytics,
-        label: context.tr('nav_analytics'),
-        onTap: () => _open(context, const AnalyticsScreen()),
-      ),
-      _QuickAction(
-        icon: AppIcons.category,
-        label: context.tr('home_categories'),
-        onTap: () => _open(context, const CategoriesScreen()),
       ),
     ];
 
@@ -1002,10 +1016,7 @@ class _HomeTabState extends State<HomeTab>
           ),
           const SizedBox(height: 10),
           Text(
-            context.tr(
-              'common_error_with_message',
-              params: {'message': _error ?? context.tr('common_error')},
-            ),
+            _error ?? 'Home could not refresh just now.',
             textAlign: TextAlign.center,
             style: TextStyle(color: ShellStyles.textPrimary(context)),
           ),
