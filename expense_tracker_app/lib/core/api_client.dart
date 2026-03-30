@@ -5,6 +5,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 
 import 'auth_session.dart';
 import 'core_request_timeout.dart';
+import 'session_invalidation.dart';
 
 class ApiClient {
   static const String apiBaseUrl = String.fromEnvironment(
@@ -20,15 +21,20 @@ class ApiClient {
   static Future<String> _getToken() async {
     final user = FirebaseAuth.instance.currentUser;
     if (user == null) {
+      await invalidateExpiredSession();
       throw StateError(expiredSessionMessage);
     }
     final cachedToken = await user.getIdToken();
-    if ((cachedToken ?? '').trim().isNotEmpty) {
-      return requireAuthenticatedSessionToken(cachedToken);
+    try {
+      if ((cachedToken ?? '').trim().isNotEmpty) {
+        return requireAuthenticatedSessionToken(cachedToken);
+      }
+      final refreshedToken = await user.getIdToken(true);
+      return requireAuthenticatedSessionToken(refreshedToken);
+    } on StateError {
+      await invalidateExpiredSession();
+      rethrow;
     }
-
-    final refreshedToken = await user.getIdToken(true);
-    return requireAuthenticatedSessionToken(refreshedToken);
   }
 
   static String _extractErrorMessage(http.Response response) {
@@ -50,6 +56,14 @@ class ApiClient {
     return response.body;
   }
 
+  static Future<void> _throwIfUnauthorizedResponse(
+    http.Response response,
+  ) async {
+    if (response.statusCode != 401) return;
+    await invalidateExpiredSession();
+    throw StateError(expiredSessionMessage);
+  }
+
   /// GET /v1/me
   static Future<Map<String, dynamic>> getMe() async {
     final token = await _getToken();
@@ -60,6 +74,7 @@ class ApiClient {
         'Content-Type': 'application/json',
       },
     );
+    await _throwIfUnauthorizedResponse(response);
 
     if (response.statusCode == 200) {
       return jsonDecode(response.body) as Map<String, dynamic>;
@@ -81,6 +96,7 @@ class ApiClient {
       },
       body: jsonEncode(payload),
     );
+    await _throwIfUnauthorizedResponse(response);
 
     if (response.statusCode == 200) {
       return jsonDecode(response.body) as Map<String, dynamic>;
@@ -343,6 +359,7 @@ class ApiClient {
       ),
       operationName: 'Create receipt',
     );
+    await _throwIfUnauthorizedResponse(response);
 
     if (response.statusCode == 201) {
       return jsonDecode(response.body) as Map<String, dynamic>;
@@ -360,11 +377,7 @@ class ApiClient {
     required Map<String, String> requiredHeaders,
   }) async {
     final response = await runWithCoreRequestTimeout(
-      http.put(
-        Uri.parse(uploadUrl),
-        headers: requiredHeaders,
-        body: fileBytes,
-      ),
+      http.put(Uri.parse(uploadUrl), headers: requiredHeaders, body: fileBytes),
       operationName: 'Upload receipt',
       timeout: coreUploadRequestTimeout,
     );
@@ -387,6 +400,7 @@ class ApiClient {
       ),
       operationName: 'Confirm receipt upload',
     );
+    await _throwIfUnauthorizedResponse(response);
 
     if (response.statusCode == 200) {
       return jsonDecode(response.body) as Map<String, dynamic>;
@@ -426,6 +440,7 @@ class ApiClient {
       ),
       operationName: 'Poll receipt status',
     );
+    await _throwIfUnauthorizedResponse(response);
 
     if (response.statusCode == 200) {
       return jsonDecode(response.body) as Map<String, dynamic>;
@@ -448,6 +463,7 @@ class ApiClient {
         'Content-Type': 'application/json',
       },
     );
+    await _throwIfUnauthorizedResponse(response);
 
     if (response.statusCode == 200) {
       return jsonDecode(response.body) as Map<String, dynamic>;
@@ -492,6 +508,7 @@ class ApiClient {
       ),
       operationName: 'Create transaction',
     );
+    await _throwIfUnauthorizedResponse(response);
 
     if (response.statusCode == 201) {
       return jsonDecode(response.body) as Map<String, dynamic>;
@@ -531,6 +548,7 @@ class ApiClient {
         'Content-Type': 'application/json',
       },
     );
+    await _throwIfUnauthorizedResponse(response);
 
     if (response.statusCode == 200) {
       return jsonDecode(response.body) as Map<String, dynamic>;
@@ -593,6 +611,7 @@ class ApiClient {
       ),
       operationName: 'Update transaction',
     );
+    await _throwIfUnauthorizedResponse(response);
 
     if (response.statusCode == 200) {
       return jsonDecode(response.body) as Map<String, dynamic>;
@@ -678,6 +697,7 @@ class ApiClient {
           },
         )
         .timeout(const Duration(seconds: 30));
+    await _throwIfUnauthorizedResponse(response);
 
     if (response.statusCode == 200) {
       return jsonDecode(response.body) as List<dynamic>;
@@ -737,6 +757,7 @@ class ApiClient {
         'Content-Type': 'application/json',
       },
     );
+    await _throwIfUnauthorizedResponse(response);
 
     if (response.statusCode == 200) {
       return jsonDecode(response.body) as Map<String, dynamic>;
@@ -789,6 +810,7 @@ class ApiClient {
         'Content-Type': 'application/json',
       },
     );
+    await _throwIfUnauthorizedResponse(response);
 
     if (response.statusCode == 200) {
       return jsonDecode(response.body) as Map<String, dynamic>;
@@ -1095,6 +1117,7 @@ class ApiClient {
         'Content-Type': 'application/json',
       },
     );
+    await _throwIfUnauthorizedResponse(response);
     if (response.statusCode == 200) {
       return jsonDecode(response.body) as List<dynamic>;
     } else {
@@ -1229,6 +1252,7 @@ class ApiClient {
         'Content-Type': 'application/json',
       },
     );
+    await _throwIfUnauthorizedResponse(response);
     if (response.statusCode == 200) {
       return jsonDecode(response.body) as List<dynamic>;
     } else {
@@ -1292,6 +1316,7 @@ class ApiClient {
       },
       body: jsonEncode({'transaction_id': transactionId, 'label_id': labelId}),
     );
+    await _throwIfUnauthorizedResponse(response);
     if (response.statusCode == 201 || response.statusCode == 200) {
       return jsonDecode(response.body) as Map<String, dynamic>;
     } else {
@@ -1315,6 +1340,7 @@ class ApiClient {
       },
       body: jsonEncode({'transaction_id': transactionId, 'label_id': labelId}),
     );
+    await _throwIfUnauthorizedResponse(response);
     if (response.statusCode == 200) {
       return jsonDecode(response.body) as Map<String, dynamic>;
     } else {
@@ -1423,6 +1449,7 @@ class ApiClient {
       operationName: 'Load subscription',
       timeout: coreBillingRequestTimeout,
     );
+    await _throwIfUnauthorizedResponse(response);
 
     if (response.statusCode == 200) {
       return jsonDecode(response.body) as Map<String, dynamic>;
@@ -1447,6 +1474,7 @@ class ApiClient {
       operationName: 'Load entitlements',
       timeout: coreBillingRequestTimeout,
     );
+    await _throwIfUnauthorizedResponse(response);
 
     if (response.statusCode == 200) {
       return jsonDecode(response.body) as Map<String, dynamic>;
@@ -1474,6 +1502,7 @@ class ApiClient {
         operationName: 'Sync subscription',
         timeout: coreBillingRequestTimeout,
       );
+      await _throwIfUnauthorizedResponse(response);
 
       if (response.statusCode == 200) {
         return jsonDecode(response.body) as Map<String, dynamic>;

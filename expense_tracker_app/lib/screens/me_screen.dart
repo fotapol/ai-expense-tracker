@@ -4,8 +4,10 @@ import 'package:flutter/material.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 
 import '../core/api_client.dart';
+import '../core/launch_error_copy.dart';
 import '../core/redesign_system.dart';
 import '../core/revenuecat_service.dart';
+import '../core/session_invalidation.dart';
 import '../l10n/app_localizations.dart';
 import '../l10n/app_languages.dart';
 import '../main.dart';
@@ -157,12 +159,17 @@ class _MeScreenState extends State<MeScreen> {
         _billingError = null;
       });
     } catch (e) {
+      if (await maybeHandleExpiredSession(e)) return;
       await waitForInitialLoadingWindow();
       if (!mounted) return;
       setState(() {
         _isBillingLoading = false;
         _billingCardReady = true;
-        _billingError = e.toString();
+        _billingError = friendlyLaunchErrorMessage(
+          e,
+          fallback:
+              'Subscription details are unavailable right now. Please try again.',
+        );
       });
     }
   }
@@ -210,11 +217,12 @@ class _MeScreenState extends State<MeScreen> {
         _isLoading = false;
       });
     } catch (e) {
+      if (await maybeHandleExpiredSession(e)) return;
       if (!mounted) return;
       setState(() {
-        _error = context.tr(
-          'settings_failed_load_profile',
-          params: {'error': e.toString()},
+        _error = friendlyLaunchErrorMessage(
+          e,
+          fallback: 'Your settings could not load right now. Please try again.',
         );
         _isLoading = false;
       });
@@ -378,12 +386,6 @@ class _MeScreenState extends State<MeScreen> {
                     refreshProfile: true,
                     refreshBilling: true,
                   ),
-                ),
-                _buildSettingsTile(
-                  icon: AppIcons.lock,
-                  title: context.tr('settings_security'),
-                  subtitle: context.tr('settings_security_subtitle'),
-                  onTap: () => ShellStyles.showComingSoon(context),
                 ),
               ],
             ),

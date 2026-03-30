@@ -6,6 +6,7 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'firebase_options.dart';
+import 'core/app_navigation.dart';
 import 'core/api_client.dart';
 import 'core/auth_session.dart';
 import 'core/bill_reminder_notification_service.dart';
@@ -23,7 +24,6 @@ import 'screens/main_screen.dart';
 
 final themeProvider = ThemeProvider();
 final localeProvider = LocaleProvider();
-final appNavigatorKey = GlobalKey<NavigatorState>();
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -55,7 +55,7 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
     if (mounted) setState(() {});
   }
 
-  // TODO(household): restore _onInviteUpdated and _maybeOpenInviteAcceptance 
+  // TODO(household): restore _onInviteUpdated and _maybeOpenInviteAcceptance
   // when household feature ships
   /*
   void _onInviteUpdated() {
@@ -96,10 +96,10 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
     WidgetsBinding.instance.addObserver(this);
     themeProvider.addListener(_refreshApp);
     localeProvider.addListener(_refreshApp);
-    
+
     // TODO(household): restore invite listener when household feature ships
     // InviteLinkService.instance.addListener(_onInviteUpdated);
-    
+
     _authSubscription = FirebaseAuth.instance.authStateChanges().listen((_) {
       BillReminderNotificationService.instance.handleAuthStateChanged(
         FirebaseAuth.instance.currentUser,
@@ -130,7 +130,7 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
         },
       ),
     );
-    
+
     // TODO(household): restore _maybeOpenInviteAcceptance() when household feature ships
     // _maybeOpenInviteAcceptance();
   }
@@ -140,10 +140,10 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
     WidgetsBinding.instance.removeObserver(this);
     themeProvider.removeListener(_refreshApp);
     localeProvider.removeListener(_refreshApp);
-    
+
     // TODO(household): restore invite listener when household feature ships
     // InviteLinkService.instance.removeListener(_onInviteUpdated);
-    
+
     _authSubscription?.cancel();
     super.dispose();
   }
@@ -176,6 +176,7 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
         stream: FirebaseAuth.instance.authStateChanges(),
         initialValue: FirebaseAuth.instance.currentUser,
         isAuthenticated: (user) => user != null,
+        loadingBuilder: (_) => const SessionRestoreLoadingScreen(),
         unauthenticatedBuilder: (_) => const LoginScreen(),
         authenticatedBuilder: (_) => const MainScreen(),
       ),

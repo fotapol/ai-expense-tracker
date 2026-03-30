@@ -3,8 +3,10 @@ import 'package:flutter/services.dart';
 import 'package:purchases_flutter/purchases_flutter.dart';
 
 import '../core/api_client.dart';
+import '../core/launch_error_copy.dart';
 import '../core/redesign_system.dart';
 import '../core/revenuecat_service.dart';
+import '../core/session_invalidation.dart';
 import '../core/single_user_launch.dart';
 import '../core/subscription_confirmation.dart';
 import '../l10n/app_localizations.dart';
@@ -112,9 +114,14 @@ class _SubscriptionScreenState extends State<SubscriptionScreen> {
         _isLoading = false;
       });
     } catch (error) {
+      if (await maybeHandleExpiredSession(error)) return;
       if (!mounted) return;
       setState(() {
-        _error = error.toString();
+        _error = friendlyLaunchErrorMessage(
+          error,
+          fallback:
+              'We could not load your subscription details right now. Please try again.',
+        );
         _isLoading = false;
       });
     }
@@ -143,11 +150,7 @@ class _SubscriptionScreenState extends State<SubscriptionScreen> {
           _BillingPeriod.monthly,
           packages: _availablePackages,
         ) ??
-        _packageFor(
-          false,
-          _BillingPeriod.yearly,
-          packages: _availablePackages,
-        );
+        _packageFor(false, _BillingPeriod.yearly, packages: _availablePackages);
     _selectedPackage = selected;
     if (selected != null) {
       _selectedPeriod = RevenueCatService.isYearlyPackage(selected)
@@ -298,10 +301,18 @@ class _SubscriptionScreenState extends State<SubscriptionScreen> {
       }
       final rawMessage = detailMessage ?? error.message;
       if (rawMessage != null && rawMessage.trim().isNotEmpty) {
-        return rawMessage;
+        return friendlyLaunchErrorMessage(
+          rawMessage,
+          fallback:
+              'We could not update premium access right now. Please try again.',
+        );
       }
     }
-    return error.toString();
+    return friendlyLaunchErrorMessage(
+      error,
+      fallback:
+          'We could not update premium access right now. Please try again.',
+    );
   }
 
   bool _isOperationInProgressError(Object error) {
@@ -336,7 +347,9 @@ class _SubscriptionScreenState extends State<SubscriptionScreen> {
     setState(() => _isPurchaseLoading = true);
     try {
       if (RevenueCatService.isFamilyPackage(package)) {
-        throw Exception('Family subscriptions are unavailable in this launch.');
+        throw Exception(
+          'This subscription option is unavailable in this launch.',
+        );
       }
       final purchaseResult = await RevenueCatService.purchasePackage(package);
       final sdkConfirmed = _customerInfoConfirmsExpectedPurchase(
@@ -361,11 +374,14 @@ class _SubscriptionScreenState extends State<SubscriptionScreen> {
         SnackBar(content: Text(context.tr('billing_purchase_confirmed'))),
       );
     } catch (error) {
+      if (await maybeHandleExpiredSession(error)) return;
       Object effectiveError = error;
       if (_isOperationInProgressError(error)) {
         await Future<void>.delayed(const Duration(seconds: 1));
         try {
-          final purchaseResult = await RevenueCatService.purchasePackage(package);
+          final purchaseResult = await RevenueCatService.purchasePackage(
+            package,
+          );
           final sdkConfirmed = _customerInfoConfirmsExpectedPurchase(
             purchaseResult.customerInfo,
             package,
@@ -417,7 +433,9 @@ class _SubscriptionScreenState extends State<SubscriptionScreen> {
     setState(() => _isPurchaseLoading = true);
     try {
       final customerInfo = await RevenueCatService.restorePurchases();
-      final sdkConfirmed = _customerInfoConfirmsKnownPremiumAccess(customerInfo);
+      final sdkConfirmed = _customerInfoConfirmsKnownPremiumAccess(
+        customerInfo,
+      );
       final backendConfirmed = await _confirmPurchaseWithBackend(
         expectsFamilyPlan: false,
       );
@@ -436,6 +454,7 @@ class _SubscriptionScreenState extends State<SubscriptionScreen> {
         SnackBar(content: Text(context.tr('billing_restore_success'))),
       );
     } catch (error) {
+      if (await maybeHandleExpiredSession(error)) return;
       Object effectiveError = error;
       if (_isOperationInProgressError(error)) {
         await Future<void>.delayed(const Duration(seconds: 1));
@@ -509,7 +528,7 @@ class _SubscriptionScreenState extends State<SubscriptionScreen> {
   }
 
   String _currentPlanTitle(BuildContext context) {
-    if (_hasActiveSubscription) return 'Pro Plan';
+    if (_hasActiveSubscription) return 'Premium';
     return context.tr('billing_plan_free');
   }
 
@@ -746,9 +765,7 @@ class _SubscriptionScreenState extends State<SubscriptionScreen> {
     return context.tr(
       'billing_subscribe_to_plan',
       params: {
-        'plan': RevenueCatService.isFamilyPackage(package)
-            ? 'Family'
-            : 'Individual',
+        'plan': 'Premium',
         'price': package.storeProduct.priceString,
         'unit': RevenueCatService.isYearlyPackage(package) ? '/yr' : '/mo',
       },
@@ -759,24 +776,36 @@ class _SubscriptionScreenState extends State<SubscriptionScreen> {
     return package != null && !_hasActiveSubscription;
   }
 
-  List<String> _featuresForPackage(Package package) {
-    if (RevenueCatService.isFamilyPackage(package)) {
-      return const [
-        'Everything in Individual',
-        'Up to 5 family members',
-        'Shared household budgets',
-        'Family spending insights',
-        'Household management',
-        'Individual privacy controls',
-      ];
-    }
+  List<String> _featuresForPackage(Package _) {
     return const [
       'Unlimited receipt scans',
-      'AI-powered insights',
       'Advanced analytics',
-      'Export reports',
-      'Priority support',
+      'Labels and category tools',
+      'Bill reminders',
+      'Budget planning tools',
     ];
+  }
+
+  Widget _buildBillingTrustNote() {
+    return SettingsDetailCard(
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Icon(AppIcons.info, color: ShellStyles.textMuted(context), size: 18),
+          const SizedBox(width: 10),
+          Expanded(
+            child: Text(
+              'Your subscription is managed by your app store. If Premium does not appear right away, use Restore Purchases to sync this device.',
+              style: TextStyle(
+                color: ShellStyles.textMuted(context),
+                fontSize: 12.5,
+                height: 1.4,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
   }
 
   Widget _buildPeriodSelector() {
@@ -854,7 +883,6 @@ class _SubscriptionScreenState extends State<SubscriptionScreen> {
 
   Widget _buildPlanCard(Package package) {
     final selected = _selectedPackage?.identifier == package.identifier;
-    final isFamily = RevenueCatService.isFamilyPackage(package);
     return InkWell(
       borderRadius: BorderRadius.circular(20),
       onTap: () {
@@ -898,16 +926,14 @@ class _SubscriptionScreenState extends State<SubscriptionScreen> {
                     radius: 12,
                   ),
                   child: CrownIcon(
-                    color: isFamily
-                        ? ShellColors.gold
-                        : ShellStyles.textPrimary(context),
+                    color: ShellStyles.textPrimary(context),
                     size: 18,
                   ),
                 ),
                 const SizedBox(width: 12),
                 Expanded(
                   child: Text(
-                    isFamily ? 'Family' : 'Individual',
+                    'Premium',
                     style: TextStyle(
                       color: ShellStyles.textPrimary(context),
                       fontSize: 16,
@@ -915,25 +941,6 @@ class _SubscriptionScreenState extends State<SubscriptionScreen> {
                     ),
                   ),
                 ),
-                if (isFamily)
-                  Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 10,
-                      vertical: 4,
-                    ),
-                    decoration: BoxDecoration(
-                      color: ShellColors.gold.withAlpha(20),
-                      borderRadius: BorderRadius.circular(999),
-                    ),
-                    child: Text(
-                      context.tr('billing_best_value'),
-                      style: const TextStyle(
-                        color: ShellColors.gold,
-                        fontSize: 10.5,
-                        fontWeight: FontWeight.w800,
-                      ),
-                    ),
-                  ),
               ],
             ),
             const SizedBox(height: 12),
@@ -1118,6 +1125,8 @@ class _SubscriptionScreenState extends State<SubscriptionScreen> {
                     child: Text(context.tr('billing_restore_purchases')),
                   ),
                 ),
+                const SizedBox(height: 8),
+                _buildBillingTrustNote(),
                 if (!_hasActiveSubscription) ...[
                   const SizedBox(height: 8),
                   _buildCurrentPlanCard(context),

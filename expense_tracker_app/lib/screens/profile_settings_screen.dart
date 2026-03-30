@@ -2,7 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
 import '../core/api_client.dart';
+import '../core/launch_error_copy.dart';
 import '../core/redesign_system.dart';
+import '../core/session_invalidation.dart';
 import '../l10n/app_localizations.dart';
 import 'settings_detail_scaffold.dart';
 
@@ -22,7 +24,6 @@ class _ProfileSettingsScreenState extends State<ProfileSettingsScreen> {
   String? _error;
   Map<String, dynamic>? _profileData;
   Map<String, dynamic>? _subscriptionPayload;
-  Set<String> _featureCodes = const <String>{};
 
   @override
   void initState() {
@@ -46,11 +47,9 @@ class _ProfileSettingsScreenState extends State<ProfileSettingsScreen> {
       final results = await Future.wait<dynamic>([
         ApiClient.getMe(),
         ApiClient.getMeSubscription(),
-        ApiClient.getMeEntitlements(),
       ]);
       final profile = results[0] as Map<String, dynamic>;
       final subscription = results[1] as Map<String, dynamic>;
-      final entitlements = results[2] as Map<String, dynamic>;
       final rawProfile = profile['profile'];
       final displayName = rawProfile is Map<String, dynamic>
           ? rawProfile['display_name']?.toString().trim() ?? ''
@@ -59,19 +58,18 @@ class _ProfileSettingsScreenState extends State<ProfileSettingsScreen> {
       setState(() {
         _profileData = profile;
         _subscriptionPayload = subscription;
-        _featureCodes =
-            (entitlements['feature_codes'] as List<dynamic>? ??
-                    const <dynamic>[])
-                .map((value) => value.toString())
-                .toSet();
         _nameController.text = displayName;
         _emailController.text = profile['email']?.toString() ?? '';
         _isLoading = false;
       });
     } catch (error) {
+      if (await maybeHandleExpiredSession(error)) return;
       if (!mounted) return;
       setState(() {
-        _error = error.toString();
+        _error = friendlyLaunchErrorMessage(
+          error,
+          fallback: 'Your profile could not load right now. Please try again.',
+        );
         _isLoading = false;
       });
     }
@@ -111,9 +109,6 @@ class _ProfileSettingsScreenState extends State<ProfileSettingsScreen> {
   }
 
   String _accountTypeLabel(BuildContext context) {
-    if (_featureCodes.contains('premium.family_plan')) {
-      return context.tr('settings_account_type_family');
-    }
     if ((_subscriptionPayload?['has_active_subscription'] as bool?) == true) {
       return context.tr('settings_account_type_pro');
     }
@@ -153,13 +148,15 @@ class _ProfileSettingsScreenState extends State<ProfileSettingsScreen> {
       );
       Navigator.pop(context, true);
     } catch (error) {
+      if (await maybeHandleExpiredSession(error)) return;
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(
-            context.tr(
-              'common_error_with_message',
-              params: {'message': error.toString()},
+            friendlyLaunchErrorMessage(
+              error,
+              fallback:
+                  'We could not save your profile right now. Please try again.',
             ),
           ),
           backgroundColor: Colors.red,
@@ -244,11 +241,7 @@ class _ProfileSettingsScreenState extends State<ProfileSettingsScreen> {
             ],
           ),
         ),
-        if (hasDivider)
-          Divider(
-            height: 1,
-            color: ShellStyles.border(context),
-          ),
+        if (hasDivider) Divider(height: 1, color: ShellStyles.border(context)),
       ],
     );
   }
@@ -269,40 +262,34 @@ class _ProfileSettingsScreenState extends State<ProfileSettingsScreen> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     SettingsDetailCard(
-                      child: InkWell(
-                        borderRadius: BorderRadius.circular(14),
-                        onTap: () => ShellStyles.showComingSoon(context),
-                        child: Row(
-                          children: [
-                            _buildPhotoAvatar(),
-                            const SizedBox(width: 14),
-                            Expanded(
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Text(
-                                    context.tr('settings_profile_photo'),
-                                    style: TextStyle(
-                                      color: ShellStyles.textPrimary(context),
-                                      fontSize: 15,
-                                      fontWeight: FontWeight.w600,
-                                    ),
+                      child: Row(
+                        children: [
+                          _buildPhotoAvatar(),
+                          const SizedBox(width: 14),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  context.tr('settings_profile_photo'),
+                                  style: TextStyle(
+                                    color: ShellStyles.textPrimary(context),
+                                    fontSize: 15,
+                                    fontWeight: FontWeight.w600,
                                   ),
-                                  const SizedBox(height: 2),
-                                  Text(
-                                    context.tr(
-                                      'settings_profile_photo_subtitle',
-                                    ),
-                                    style: TextStyle(
-                                      color: ShellStyles.textMuted(context),
-                                      fontSize: 11.5,
-                                    ),
+                                ),
+                                const SizedBox(height: 2),
+                                Text(
+                                  'Your profile photo comes from the account you signed in with.',
+                                  style: TextStyle(
+                                    color: ShellStyles.textMuted(context),
+                                    fontSize: 11.5,
                                   ),
-                                ],
-                              ),
+                                ),
+                              ],
                             ),
-                          ],
-                        ),
+                          ),
+                        ],
                       ),
                     ),
                     const SizedBox(height: 16),
