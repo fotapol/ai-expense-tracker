@@ -3,7 +3,9 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 import '../core/analytics_filters.dart';
 import '../core/api_client.dart';
+import '../core/launch_error_copy.dart';
 import '../core/redesign_system.dart';
+import '../core/session_invalidation.dart';
 import '../core/taxonomy_localization.dart';
 import '../l10n/app_localizations.dart';
 import '../widgets/filter_bottom_sheet.dart';
@@ -117,9 +119,13 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
         _isLoading = false;
       });
     } catch (error) {
+      if (await maybeHandleExpiredSession(error)) return;
       if (!mounted) return;
       setState(() {
-        _error = error.toString();
+        _error = friendlyLaunchErrorMessage(
+          error,
+          fallback: 'Analytics could not load right now. Please try again.',
+        );
         _isLoading = false;
       });
     }

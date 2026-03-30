@@ -7,9 +7,11 @@ import '../core/analytics_filters.dart';
 import '../core/api_client.dart';
 import '../core/auto_refresh_state_mixin.dart';
 import '../core/category_style.dart';
+import '../core/launch_error_copy.dart';
 import '../core/money_formatter.dart';
 import '../core/period_filter.dart';
 import '../core/redesign_system.dart';
+import '../core/session_invalidation.dart';
 import '../core/taxonomy_localization.dart';
 import '../l10n/app_localizations.dart';
 import 'analytics_category_detail_screen.dart';
@@ -45,7 +47,7 @@ class _AnalyticsTabState extends State<AnalyticsTab>
   bool _isRefreshingAnalytics = false;
 
   @override
-  Duration get autoRefreshInterval => const Duration(seconds: 10);
+  Duration get autoRefreshInterval => const Duration(minutes: 1);
 
   @override
   Future<void> performAutoRefresh() => _fetchSummary(showLoader: false);
@@ -136,10 +138,15 @@ class _AnalyticsTabState extends State<AnalyticsTab>
         _error = null;
       });
     } catch (error) {
+      if (await maybeHandleExpiredSession(error)) return;
       if (!mounted) return;
       if (showLoader || _summaryData == null) {
         setState(() {
-          _error = error.toString();
+          _error = friendlyLaunchErrorMessage(
+            error,
+            fallback:
+                'Analytics could not refresh right now. Please try again.',
+          );
           _isLoading = false;
         });
       }
@@ -282,6 +289,8 @@ class _AnalyticsTabState extends State<AnalyticsTab>
     final currency = (summaryData['currency']?.toString() ?? 'EUR')
         .toUpperCase();
     final isSubcategoryMode = _breakdownMode == _modeSubcategory;
+    final isEmptyAnalytics =
+        totalTransactions == 0 && breakdown.isEmpty && totalAmount <= 0;
 
     return RefreshIndicator(
       onRefresh: _fetchSummary,
@@ -292,28 +301,61 @@ class _AnalyticsTabState extends State<AnalyticsTab>
             widget.activeFiltersBuilder!(),
             const SizedBox(height: 16),
           ],
-          _buildTotalCard(
-            totalAmount: totalAmount,
-            totalTransactions: totalTransactions,
-            currency: currency,
+          if (isEmptyAnalytics)
+            _buildEmptyStateCard()
+          else ...[
+            _buildTotalCard(
+              totalAmount: totalAmount,
+              totalTransactions: totalTransactions,
+              currency: currency,
+            ),
+            const SizedBox(height: 16),
+            _buildBreakdownHeader(isSubcategoryMode: isSubcategoryMode),
+            const SizedBox(height: 16),
+            _buildPieChart(
+              breakdown,
+              totalAmount,
+              currency,
+              isSubcategoryMode: isSubcategoryMode,
+            ),
+            const SizedBox(height: 16),
+            _buildBreakdownList(
+              breakdown,
+              currency,
+              isSubcategoryMode: isSubcategoryMode,
+            ),
+            const SizedBox(height: 16),
+            _buildDiscountSection(currency),
+          ],
+        ],
+      ),
+    );
+  }
+
+  Widget _buildEmptyStateCard() {
+    return Container(
+      padding: const EdgeInsets.all(24),
+      decoration: ShellStyles.cardDecoration(context, radius: 24),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            'No insights yet',
+            style: TextStyle(
+              color: ShellStyles.textPrimary(context),
+              fontSize: 20,
+              fontWeight: FontWeight.w800,
+            ),
           ),
-          const SizedBox(height: 16),
-          _buildBreakdownHeader(isSubcategoryMode: isSubcategoryMode),
-          const SizedBox(height: 16),
-          _buildPieChart(
-            breakdown,
-            totalAmount,
-            currency,
-            isSubcategoryMode: isSubcategoryMode,
+          const SizedBox(height: 8),
+          Text(
+            'Scan receipts to see spending by category, totals, and savings here.',
+            style: TextStyle(
+              color: ShellStyles.textMuted(context),
+              fontSize: 13,
+              height: 1.45,
+            ),
           ),
-          const SizedBox(height: 16),
-          _buildBreakdownList(
-            breakdown,
-            currency,
-            isSubcategoryMode: isSubcategoryMode,
-          ),
-          const SizedBox(height: 16),
-          _buildDiscountSection(currency),
         ],
       ),
     );
