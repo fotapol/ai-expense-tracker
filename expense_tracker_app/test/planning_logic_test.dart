@@ -101,6 +101,7 @@ void main() {
     BillReminderRecord buildReminder({
       DateTime? firstDueDate,
       DateTime? lastPaidDueDate,
+      String recurrence = billReminderRecurrenceMonthly,
       bool isActive = true,
     }) {
       return BillReminderRecord(
@@ -108,6 +109,7 @@ void main() {
         name: 'Rent',
         amount: 1500,
         currency: 'USD',
+        recurrence: recurrence,
         firstDueDate: firstDueDate ?? DateTime(2026, 1, 5),
         lastPaidDueDate: lastPaidDueDate,
         remindDaysBefore: 3,
@@ -182,6 +184,7 @@ void main() {
             name: 'Internet',
             amount: 79.99,
             currency: 'USD',
+            recurrence: billReminderRecurrenceMonthly,
             firstDueDate: DateTime(2026, 1, 25),
             remindDaysBefore: 3,
             isActive: true,
@@ -192,6 +195,52 @@ void main() {
       ];
 
       expect(upcomingBillsTotal(occurrences), closeTo(1579.99, 0.0001));
+    });
+
+    test('daily reminders roll forward one day after being marked paid', () {
+      final reminder = buildReminder(
+        recurrence: billReminderRecurrenceDaily,
+        lastPaidDueDate: DateTime(2026, 3, 23),
+      );
+
+      expect(billReminderOccurrenceForList(reminder, now: now), isNull);
+      expect(
+        nextSchedulableBillReminderDueDate(reminder, now: now),
+        DateTime(2026, 3, 24),
+      );
+    });
+
+    test('yearly reminders clamp leap-day anchors for non-leap years', () {
+      final reminder = buildReminder(
+        recurrence: billReminderRecurrenceYearly,
+        firstDueDate: DateTime(2024, 2, 29),
+        lastPaidDueDate: DateTime(2025, 2, 28),
+      );
+
+      expect(
+        billReminderOccurrenceForList(
+          reminder,
+          now: DateTime(2026, 2, 10),
+        )?.dueDate,
+        DateTime(2026, 2, 28),
+      );
+      expect(
+        nextSchedulableBillReminderDueDate(reminder, now: DateTime(2026, 3, 1)),
+        DateTime(2026, 2, 28),
+      );
+
+      final paidCurrentYear = buildReminder(
+        recurrence: billReminderRecurrenceYearly,
+        firstDueDate: DateTime(2024, 2, 29),
+        lastPaidDueDate: DateTime(2026, 2, 28),
+      );
+      expect(
+        nextSchedulableBillReminderDueDate(
+          paidCurrentYear,
+          now: DateTime(2026, 3, 1),
+        ),
+        DateTime(2027, 2, 28),
+      );
     });
   });
 }
