@@ -23,11 +23,13 @@ class AnalyticsTab extends StatefulWidget {
     super.key,
     required this.filters,
     required this.featureCodes,
+    this.onPremiumStatusChanged,
     this.activeFiltersBuilder,
   });
 
   final AnalyticsFilters filters;
   final Set<String> featureCodes;
+  final Future<void> Function()? onPremiumStatusChanged;
   final Widget Function()? activeFiltersBuilder;
 
   @override
@@ -98,7 +100,10 @@ class _AnalyticsTabState extends State<AnalyticsTab>
     await prefs.setString('analytics_breakdown_mode', _breakdownMode);
   }
 
-  Future<void> _fetchSummary({bool showLoader = true}) async {
+  Future<void> _fetchSummary({
+    bool showLoader = true,
+    String? breakdownModeOverride,
+  }) async {
     if (_isRefreshingAnalytics) return;
     _isRefreshingAnalytics = true;
     if (!mounted) {
@@ -112,9 +117,9 @@ class _AnalyticsTabState extends State<AnalyticsTab>
       });
     }
 
-    final effectiveBreakdownMode = _hasAdvancedAnalytics
-        ? _breakdownMode
-        : _modeCategory;
+    final effectiveBreakdownMode =
+        breakdownModeOverride ??
+        (_hasAdvancedAnalytics ? _breakdownMode : _modeCategory);
     try {
       final data = await ApiClient.getTransactionsSummary(
         fromDate: PeriodFilter.getStartDate(widget.filters.period),
@@ -159,10 +164,17 @@ class _AnalyticsTabState extends State<AnalyticsTab>
     if (mode == _breakdownMode) return;
     if (mode == _modeSubcategory && !_hasAdvancedAnalytics) {
       if (!mounted) return;
-      Navigator.push(
+      final upgraded = await Navigator.push<bool>(
         context,
         MaterialPageRoute(builder: (_) => const SubscriptionScreen()),
       );
+      if (widget.onPremiumStatusChanged != null) {
+        await widget.onPremiumStatusChanged!();
+      }
+      if (!mounted || upgraded != true) return;
+      setState(() => _breakdownMode = mode);
+      await _saveBreakdownMode();
+      await _fetchSummary(breakdownModeOverride: mode);
       return;
     }
 

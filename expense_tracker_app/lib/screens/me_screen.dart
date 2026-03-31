@@ -8,6 +8,7 @@ import '../core/launch_error_copy.dart';
 import '../core/redesign_system.dart';
 import '../core/revenuecat_service.dart';
 import '../core/session_invalidation.dart';
+import '../core/subscription_confirmation.dart';
 import '../l10n/app_localizations.dart';
 import '../l10n/app_languages.dart';
 import '../main.dart';
@@ -230,6 +231,7 @@ class _MeScreenState extends State<MeScreen> {
   }
 
   Future<void> _signOut() async {
+    await clearOptimisticPremiumAccess();
     await RevenueCatService.logOut();
     await GoogleSignIn.instance.signOut();
     await FirebaseAuth.instance.signOut();

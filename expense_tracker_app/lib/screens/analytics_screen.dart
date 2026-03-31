@@ -6,6 +6,7 @@ import '../core/api_client.dart';
 import '../core/launch_error_copy.dart';
 import '../core/redesign_system.dart';
 import '../core/session_invalidation.dart';
+import '../core/subscription_confirmation.dart';
 import '../core/taxonomy_localization.dart';
 import '../l10n/app_localizations.dart';
 import '../widgets/filter_bottom_sheet.dart';
@@ -44,6 +45,29 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
   void initState() {
     super.initState();
     _loadShellState();
+  }
+
+  Future<void> _refreshFeatureCodes() async {
+    try {
+      final entitlements = await ApiClient.getMeEntitlements();
+      final mergedFeatureCodes = await featureCodesWithOptimisticPremiumAccess(
+        (entitlements['feature_codes'] as List<dynamic>? ?? const <dynamic>[])
+            .map((code) => code.toString()),
+      );
+      if (!mounted) return;
+      setState(() {
+        _featureCodes = mergedFeatureCodes;
+      });
+    } catch (error) {
+      if (await maybeHandleExpiredSession(error)) return;
+      final mergedFeatureCodes = await featureCodesWithOptimisticPremiumAccess(
+        const <String>{},
+      );
+      if (!mounted) return;
+      setState(() {
+        _featureCodes = mergedFeatureCodes;
+      });
+    }
   }
 
   Future<void> _loadShellState() async {
@@ -92,12 +116,14 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
 
       try {
         final entitlements = await ApiClient.getMeEntitlements();
-        featureCodes =
-            (entitlements['feature_codes'] as List<dynamic>? ??
-                    const <dynamic>[])
-                .map((code) => code.toString())
-                .toSet();
+        featureCodes = await featureCodesWithOptimisticPremiumAccess(
+          (entitlements['feature_codes'] as List<dynamic>? ?? const <dynamic>[])
+              .map((code) => code.toString()),
+        );
       } catch (_) {}
+      featureCodes = await featureCodesWithOptimisticPremiumAccess(
+        featureCodes,
+      );
 
       // TODO(household): restore getCurrentHousehold() call when household feature ships
 
@@ -493,6 +519,7 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
                       AnalyticsTab(
                         filters: _filters,
                         featureCodes: _featureCodes,
+                        onPremiumStatusChanged: _refreshFeatureCodes,
                         activeFiltersBuilder: _filters.hasScopedFilters
                             ? _buildActiveFiltersBar
                             : null,

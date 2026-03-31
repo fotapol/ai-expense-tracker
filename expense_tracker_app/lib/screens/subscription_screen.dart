@@ -42,6 +42,7 @@ class _SubscriptionScreenState extends State<SubscriptionScreen> {
   int? _receiptScanRemaining;
   bool _receiptScanUnlimited = false;
   DateTime? _receiptScanResetAtUtc;
+  bool _didChangeBillingState = false;
 
   @override
   void initState() {
@@ -57,6 +58,61 @@ class _SubscriptionScreenState extends State<SubscriptionScreen> {
 
   Map<String, dynamic>? get _subscription =>
       _subscriptionPayload?['subscription'] as Map<String, dynamic>?;
+
+  void _markBillingStateChanged() {
+    _didChangeBillingState = true;
+  }
+
+  String? _premiumExpirationFromCustomerInfo(CustomerInfo customerInfo) {
+    return resolvePremiumAccessExpiration(
+      latestExpirationDate: customerInfo.latestExpirationDate,
+      activeEntitlementExpirationDates: customerInfo.entitlements.active.values
+          .map((entitlement) => entitlement.expirationDate),
+    );
+  }
+
+  Map<String, dynamic> _buildOptimisticPremiumPayload({
+    required Map<String, dynamic>? currentPayload,
+    String? expiration,
+  }) {
+    final currentSubscription = currentPayload?['subscription'];
+    final currentUsage = currentPayload?['receipt_scan_usage'];
+    return <String, dynamic>{
+      ...?currentPayload,
+      'has_active_subscription': true,
+      'subscription': <String, dynamic>{
+        ...?(currentSubscription is Map<String, dynamic>
+            ? currentSubscription
+            : null),
+        ...?(expiration == null
+            ? null
+            : <String, dynamic>{'expires_at': expiration}),
+      },
+      'receipt_scan_usage': <String, dynamic>{
+        ...?(currentUsage is Map<String, dynamic> ? currentUsage : null),
+        'limit': null,
+        'remaining': null,
+        'is_unlimited': true,
+        ...?(expiration == null
+            ? null
+            : <String, dynamic>{'period_end_at': expiration}),
+      },
+    };
+  }
+
+  void _applyOptimisticUsageState(String? expiration) {
+    _receiptScanUnlimited = true;
+    _receiptScanRemaining = null;
+    if (expiration != null) {
+      _receiptScanResetAtUtc = DateTime.tryParse(expiration)?.toUtc();
+    }
+  }
+
+  Future<void> _persistOptimisticPremiumAccess(CustomerInfo customerInfo) {
+    return persistOptimisticPremiumAccess(
+      expirationDate: _premiumExpirationFromCustomerInfo(customerInfo),
+    );
+  }
 
   Future<void> _loadSubscriptionData() async {
     setState(() {
@@ -89,6 +145,17 @@ class _SubscriptionScreenState extends State<SubscriptionScreen> {
       try {
         offerings = await RevenueCatService.getOfferings();
       } catch (_) {}
+
+      final optimisticPremium = await hasOptimisticPremiumAccess();
+      final optimisticExpiration =
+          await readOptimisticPremiumAccessExpiration();
+      if (optimisticPremium &&
+          subscriptionPayload['has_active_subscription'] != true) {
+        subscriptionPayload = _buildOptimisticPremiumPayload(
+          currentPayload: subscriptionPayload,
+          expiration: optimisticExpiration,
+        );
+      }
 
       final usageRaw = subscriptionPayload['receipt_scan_usage'];
       final usage = usageRaw is Map<String, dynamic>
@@ -214,41 +281,12 @@ class _SubscriptionScreenState extends State<SubscriptionScreen> {
   }
 
   void _applyOptimisticPremiumState(CustomerInfo customerInfo) {
-    final expiration = resolvePremiumAccessExpiration(
-      latestExpirationDate: customerInfo.latestExpirationDate,
-      activeEntitlementExpirationDates: customerInfo.entitlements.active.values
-          .map((entitlement) => entitlement.expirationDate),
+    final expiration = _premiumExpirationFromCustomerInfo(customerInfo);
+    _subscriptionPayload = _buildOptimisticPremiumPayload(
+      currentPayload: _subscriptionPayload,
+      expiration: expiration,
     );
-    final currentPayload = _subscriptionPayload;
-    final currentSubscription = currentPayload?['subscription'];
-    final currentUsage = currentPayload?['receipt_scan_usage'];
-
-    _subscriptionPayload = <String, dynamic>{
-      ...?currentPayload,
-      'has_active_subscription': true,
-      'subscription': <String, dynamic>{
-        ...?(currentSubscription is Map<String, dynamic>
-            ? currentSubscription
-            : null),
-        ...?(expiration == null
-            ? null
-            : <String, dynamic>{'expires_at': expiration}),
-      },
-      'receipt_scan_usage': <String, dynamic>{
-        ...?(currentUsage is Map<String, dynamic> ? currentUsage : null),
-        'limit': null,
-        'remaining': null,
-        'is_unlimited': true,
-        ...?(expiration == null
-            ? null
-            : <String, dynamic>{'period_end_at': expiration}),
-      },
-    };
-    _receiptScanUnlimited = true;
-    _receiptScanRemaining = null;
-    if (expiration != null) {
-      _receiptScanResetAtUtc = DateTime.tryParse(expiration)?.toUtc();
-    }
+    _applyOptimisticUsageState(expiration);
   }
 
   Future<bool> _confirmPurchaseWithBackend({
@@ -369,6 +407,8 @@ class _SubscriptionScreenState extends State<SubscriptionScreen> {
           _applyOptimisticPremiumState(purchaseResult.customerInfo);
         });
       }
+      await _persistOptimisticPremiumAccess(purchaseResult.customerInfo);
+      _markBillingStateChanged();
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text(context.tr('billing_purchase_confirmed'))),
@@ -399,6 +439,8 @@ class _SubscriptionScreenState extends State<SubscriptionScreen> {
               _applyOptimisticPremiumState(purchaseResult.customerInfo);
             });
           }
+          await _persistOptimisticPremiumAccess(purchaseResult.customerInfo);
+          _markBillingStateChanged();
           if (!mounted) return;
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(content: Text(context.tr('billing_purchase_confirmed'))),
@@ -449,6 +491,8 @@ class _SubscriptionScreenState extends State<SubscriptionScreen> {
           _applyOptimisticPremiumState(customerInfo);
         });
       }
+      await _persistOptimisticPremiumAccess(customerInfo);
+      _markBillingStateChanged();
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text(context.tr('billing_restore_success'))),
@@ -476,6 +520,8 @@ class _SubscriptionScreenState extends State<SubscriptionScreen> {
               _applyOptimisticPremiumState(customerInfo);
             });
           }
+          await _persistOptimisticPremiumAccess(customerInfo);
+          _markBillingStateChanged();
           if (!mounted) return;
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(content: Text(context.tr('billing_restore_success'))),
@@ -513,6 +559,7 @@ class _SubscriptionScreenState extends State<SubscriptionScreen> {
         action: action,
       );
       await _loadSubscriptionData();
+      _markBillingStateChanged();
     } finally {
       if (mounted) setState(() => _isDevActionLoading = false);
     }
@@ -1152,17 +1199,24 @@ class _SubscriptionScreenState extends State<SubscriptionScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return SettingsDetailScaffold(
-      title: context.tr('settings_subscription'),
-      actions: [
-        IconButton(
-          onPressed: _isLoading || _isPurchaseLoading
-              ? null
-              : _loadSubscriptionData,
-          icon: const Icon(AppIcons.refresh),
-        ),
-      ],
-      body: _buildBody(),
+    return PopScope<bool>(
+      canPop: false,
+      onPopInvokedWithResult: (didPop, result) {
+        if (didPop) return;
+        Navigator.of(context).pop(_didChangeBillingState);
+      },
+      child: SettingsDetailScaffold(
+        title: context.tr('settings_subscription'),
+        actions: [
+          IconButton(
+            onPressed: _isLoading || _isPurchaseLoading
+                ? null
+                : _loadSubscriptionData,
+            icon: const Icon(AppIcons.refresh),
+          ),
+        ],
+        body: _buildBody(),
+      ),
     );
   }
 }

@@ -4,6 +4,7 @@ import 'package:google_sign_in/google_sign_in.dart';
 import 'app_navigation.dart';
 import 'auth_session.dart';
 import 'revenuecat_service.dart';
+import 'subscription_confirmation.dart';
 
 String? _pendingLoginNotice;
 bool _isInvalidatingSession = false;
@@ -34,6 +35,7 @@ Future<void> invalidateExpiredSession({
 
   _isInvalidatingSession = true;
   try {
+    await clearOptimisticPremiumAccess();
     try {
       await RevenueCatService.logOut();
     } catch (_) {}
