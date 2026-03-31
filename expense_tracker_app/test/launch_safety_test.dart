@@ -109,7 +109,6 @@ void main() {
 
       expect(find.text('main'), findsOneWidget);
     });
-
   });
 
   group('core request timeout', () {
@@ -273,6 +272,26 @@ void main() {
     test('accepts active subscription ids from RevenueCat customer info', () {
       expect(
         customerInfoConfirmsPremiumAccess(
+          hasPremiumEntitlement: false,
+          activeSubscriptions: const ['individual_plan_monthly'],
+          acceptedProductIds: const ['individual_plan_monthly', '\$rc_monthly'],
+        ),
+        isTrue,
+      );
+    });
+
+    test('prefers active entitlement expiration over latest expiration', () {
+      expect(
+        resolvePremiumAccessExpiration(
+          latestExpirationDate: '2099-05-01T00:00:00Z',
+          activeEntitlementExpirationDates: const [
+            null,
+            '2099-04-01T00:00:00Z',
+          ],
+        ),
+        '2099-04-01T00:00:00Z',
+      );
+    });
 
     test('merges optimistic premium access into feature codes', () async {
       SharedPreferences.setMockInitialValues(<String, Object>{
@@ -314,26 +333,6 @@ void main() {
         );
       },
     );
-          hasPremiumEntitlement: false,
-          activeSubscriptions: const ['individual_plan_monthly'],
-          acceptedProductIds: const ['individual_plan_monthly', '\$rc_monthly'],
-        ),
-        isTrue,
-      );
-    });
-
-    test('prefers active entitlement expiration over latest expiration', () {
-      expect(
-        resolvePremiumAccessExpiration(
-          latestExpirationDate: '2099-05-01T00:00:00Z',
-          activeEntitlementExpirationDates: const [
-            null,
-            '2099-04-01T00:00:00Z',
-          ],
-        ),
-        '2099-04-01T00:00:00Z',
-      );
-    });
   });
 
   group('premium freshness on resume', () {
