@@ -48,6 +48,7 @@ class _TransactionEditScreenState extends State<TransactionEditScreen> {
   List<dynamic> _serverWarnings = [];
   bool _hasLocalEdits = false;
   bool _isTranslatingItems = false;
+  bool _showTranslatedItems = true;
   Map<String, dynamic>? _transactionData;
   String? _transactionId;
   String? _viewerUserId;
@@ -683,15 +684,13 @@ class _TransactionEditScreenState extends State<TransactionEditScreen> {
     }
   }
 
-  Future<void> _forceRetranslateItems() async {
+  Future<void> _toggleTranslatedItems() async {
     if (_effectiveItemsLanguage.isEmpty || _isTranslatingItems) return;
+    final nextValue = !_showTranslatedItems;
+    setState(() => _showTranslatedItems = nextValue);
+    if (!nextValue) return;
     await _translateMissingTransactionItems(
       targetLanguage: _effectiveItemsLanguage,
-      forceRefresh: true,
-    );
-    if (!mounted) return;
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(context.tr('transaction_translate'))),
     );
     unawaited(ItemTranslationService.instance.flushPending());
   }
@@ -714,6 +713,148 @@ class _TransactionEditScreenState extends State<TransactionEditScreen> {
         });
       },
     );
+  }
+
+  String _merchantDisplayName() {
+    final merchant = _merchantController.text.trim();
+    if (merchant.isNotEmpty) return merchant;
+    return _isDraftCreateMode ? 'New expense' : 'Review receipt';
+  }
+
+  Future<void> _openMerchantNameEditor() async {
+    if (!_canEditTransaction) return;
+    final controller = TextEditingController(text: _merchantController.text);
+    final value = await showDialog<String>(
+      context: context,
+      builder: (context) => AlertDialog(
+        backgroundColor: _surfaceColor,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(22),
+          side: const BorderSide(color: _strokeColor),
+        ),
+        title: const Text(
+          'Merchant',
+          style: TextStyle(color: _textColor, fontWeight: FontWeight.w700),
+        ),
+        content: TextField(
+          controller: controller,
+          autofocus: true,
+          textCapitalization: TextCapitalization.words,
+          style: const TextStyle(color: _textColor),
+          decoration: InputDecoration(
+            hintText: 'Store or merchant name',
+            hintStyle: const TextStyle(color: _mutedColor),
+            filled: true,
+            fillColor: _surfaceAltColor,
+            border: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(16),
+              borderSide: const BorderSide(color: _strokeColor),
+            ),
+            enabledBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(16),
+              borderSide: const BorderSide(color: _strokeColor),
+            ),
+            focusedBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(16),
+              borderSide: const BorderSide(color: _accentColor),
+            ),
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Cancel', style: TextStyle(color: _mutedColor)),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.pop(context, controller.text.trim()),
+            style: FilledButton.styleFrom(
+              backgroundColor: _accentColor,
+              foregroundColor: _surfaceColor,
+            ),
+            child: const Text('Save'),
+          ),
+        ],
+      ),
+    );
+    controller.dispose();
+
+    if (!mounted || value == null) return;
+    setState(() {
+      _merchantController.text = value;
+      _hasLocalEdits = true;
+    });
+  }
+
+  Future<void> _openTotalEditor() async {
+    if (!_canEditTransaction) return;
+    final controller = TextEditingController(text: _amountController.text);
+    final value = await showDialog<String>(
+      context: context,
+      builder: (context) => AlertDialog(
+        backgroundColor: _surfaceColor,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(22),
+          side: const BorderSide(color: _strokeColor),
+        ),
+        title: const Text(
+          'Receipt total',
+          style: TextStyle(color: _textColor, fontWeight: FontWeight.w700),
+        ),
+        content: TextField(
+          controller: controller,
+          autofocus: true,
+          keyboardType: const TextInputType.numberWithOptions(decimal: true),
+          style: const TextStyle(color: _textColor),
+          decoration: InputDecoration(
+            hintText: '0.00',
+            hintStyle: const TextStyle(color: _mutedColor),
+            filled: true,
+            fillColor: _surfaceAltColor,
+            border: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(16),
+              borderSide: const BorderSide(color: _strokeColor),
+            ),
+            enabledBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(16),
+              borderSide: const BorderSide(color: _strokeColor),
+            ),
+            focusedBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(16),
+              borderSide: const BorderSide(color: _accentColor),
+            ),
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Cancel', style: TextStyle(color: _mutedColor)),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.pop(context, controller.text.trim()),
+            style: FilledButton.styleFrom(
+              backgroundColor: _accentColor,
+              foregroundColor: _surfaceColor,
+            ),
+            child: const Text('Save'),
+          ),
+        ],
+      ),
+    );
+    controller.dispose();
+
+    if (!mounted || value == null) return;
+    final parsed = double.tryParse(value.replaceAll(',', '.'));
+    if (parsed == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Enter a valid total amount.')),
+      );
+      return;
+    }
+    setState(() {
+      _amountController.text = parsed.toStringAsFixed(2);
+      _hasLocalEdits = true;
+      _hasManualTotalOverride = _round2(parsed) != _round2(_subtotalValue);
+    });
   }
 
   Map<String, dynamic>? _findCategoryById(String? categoryId) {
@@ -1391,6 +1532,7 @@ class _TransactionEditScreenState extends State<TransactionEditScreen> {
         totalMismatch != null ||
         showServerWarnings;
     final attributionSection = _buildAttributionSection();
+    final merchantTitle = _merchantDisplayName();
 
     return Scaffold(
       backgroundColor: _bgColor,
@@ -1398,31 +1540,45 @@ class _TransactionEditScreenState extends State<TransactionEditScreen> {
         backgroundColor: _bgColor,
         elevation: 0,
         scrolledUnderElevation: 0,
+        centerTitle: true,
         leading: IconButton(
           icon: Icon(Icons.arrow_back_ios_new_rounded, color: _textColor),
           onPressed: () => Navigator.pop(context),
         ),
-        title: TextField(
-          controller: _merchantController,
-          readOnly: !_canEditTransaction,
-          textAlign: TextAlign.center,
-          decoration: const InputDecoration(
-            border: InputBorder.none,
-            isDense: true,
-            contentPadding: EdgeInsets.zero,
+        title: InkWell(
+          onTap: _canEditTransaction ? _openMerchantNameEditor : null,
+          borderRadius: BorderRadius.circular(999),
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                ConstrainedBox(
+                  constraints: const BoxConstraints(maxWidth: 180),
+                  child: Text(
+                    merchantTitle,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    textAlign: TextAlign.center,
+                    style: const TextStyle(
+                      color: _textColor,
+                      fontSize: 19,
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
+                ),
+                if (_canEditTransaction) ...[
+                  const SizedBox(width: 6),
+                  const Icon(Icons.edit_outlined, size: 16, color: _mutedColor),
+                ],
+              ],
+            ),
           ),
-          style: const TextStyle(
-            color: _textColor,
-            fontSize: 19,
-            fontWeight: FontWeight.w700,
-          ),
-          onChanged: (_) => setState(() => _hasLocalEdits = true),
         ),
-        titleSpacing: 0,
         actions: [
           Padding(
             padding: const EdgeInsets.only(right: 14),
-            child: FilledButton.icon(
+            child: FilledButton(
               onPressed: _isSaving || !_canEditTransaction
                   ? null
                   : _saveTransaction,
@@ -1431,12 +1587,13 @@ class _TransactionEditScreenState extends State<TransactionEditScreen> {
                 disabledBackgroundColor: _surfaceAltColor,
                 foregroundColor: Colors.white,
                 minimumSize: const Size(0, 42),
-                padding: const EdgeInsets.symmetric(horizontal: 14),
+                fixedSize: const Size(42, 42),
+                padding: EdgeInsets.zero,
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(999),
                 ),
               ),
-              icon: _isSaving
+              child: _isSaving
                   ? const SizedBox(
                       width: 18,
                       height: 18,
@@ -1446,7 +1603,6 @@ class _TransactionEditScreenState extends State<TransactionEditScreen> {
                       ),
                     )
                   : const Icon(Icons.check_rounded, size: 20),
-              label: Text(_isSaving ? 'Saving...' : 'Save expense'),
             ),
           ),
         ],
@@ -1454,9 +1610,9 @@ class _TransactionEditScreenState extends State<TransactionEditScreen> {
       body: ListView(
         padding: EdgeInsets.fromLTRB(
           16,
-          6,
+          10,
           16,
-          MediaQuery.of(context).padding.bottom + 132,
+          MediaQuery.of(context).padding.bottom + 120,
         ),
         children: [
           if (_receiptId != null) ...[
@@ -1498,7 +1654,6 @@ class _TransactionEditScreenState extends State<TransactionEditScreen> {
             )
           else
             Container(
-              padding: const EdgeInsets.symmetric(horizontal: 16),
               decoration: _panelDecoration(),
               child: Column(
                 children: [
@@ -1543,10 +1698,16 @@ class _TransactionEditScreenState extends State<TransactionEditScreen> {
   }
 
   Widget _buildReviewSummaryCard({required bool hasWarnings}) {
-    final title = hasWarnings ? 'Review before saving' : 'Ready to save';
+    final title = hasWarnings
+        ? 'Check before saving'
+        : _isDraftCreateMode
+        ? 'Ready to save'
+        : 'Ready to update';
     final subtitle = hasWarnings
         ? 'A few extracted details need a quick check before you save this expense.'
-        : 'Review the receipt once, then save it to add the expense to your history.';
+        : _isDraftCreateMode
+        ? 'Save this expense once everything looks right.'
+        : 'Save when you are ready to update this expense in your history.';
 
     return Container(
       width: double.infinity,
@@ -1607,65 +1768,53 @@ class _TransactionEditScreenState extends State<TransactionEditScreen> {
     final dateLabel = occurred != null
         ? DateFormat('MMM d, h:mm a').format(occurred)
         : 'Set date & time';
+    final translationEnabled =
+        _effectiveItemsLanguage.isNotEmpty && _showTranslatedItems;
 
-    return Wrap(
-      spacing: 10,
-      runSpacing: 10,
-      crossAxisAlignment: WrapCrossAlignment.center,
+    return Row(
       children: [
-        InkWell(
-          onTap: !_canEditTransaction
-              ? null
-              : () async {
-                  await _pickOccurredDate();
-                  if (!mounted) return;
-                  await _pickOccurredTime();
-                },
-          borderRadius: BorderRadius.circular(16),
-          child: Container(
-            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
-            decoration: _panelDecoration(
-              color: _surfaceColor,
-              borderColor: _strokeColor,
-            ),
-            child: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                const Icon(
-                  Icons.calendar_today_outlined,
-                  size: 18,
-                  color: _textColor,
-                ),
-                const SizedBox(width: 10),
-                Text(
-                  dateLabel,
-                  style: const TextStyle(
+        Expanded(
+          child: InkWell(
+            onTap: !_canEditTransaction
+                ? null
+                : () async {
+                    await _pickOccurredDate();
+                    if (!mounted) return;
+                    await _pickOccurredTime();
+                  },
+            borderRadius: BorderRadius.circular(16),
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+              decoration: _panelDecoration(
+                color: _surfaceColor,
+                borderColor: _strokeColor,
+              ),
+              child: Row(
+                children: [
+                  const Icon(
+                    Icons.calendar_today_outlined,
+                    size: 18,
                     color: _textColor,
-                    fontSize: 16,
-                    fontWeight: FontWeight.w600,
                   ),
-                ),
-              ],
+                  const SizedBox(width: 10),
+                  Expanded(
+                    child: Text(
+                      dateLabel,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: const TextStyle(
+                        color: _textColor,
+                        fontSize: 16,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
             ),
           ),
         ),
-        _buildSquareControl(
-          icon: _isTranslatingItems ? null : AppIcons.translate,
-          onTap: _effectiveItemsLanguage.isNotEmpty && !_isTranslatingItems
-              ? _forceRetranslateItems
-              : null,
-          bordered: true,
-          child: _isTranslatingItems
-              ? const SizedBox(
-                  width: 18,
-                  height: 18,
-                  child: CircularProgressIndicator(
-                    strokeWidth: 2,
-                    valueColor: AlwaysStoppedAnimation<Color>(_textColor),
-                  ),
-                )
-              : null,
-        ),
+        const SizedBox(width: 10),
         InkWell(
           onTap: _canEditTransaction ? _openReceiptCurrencyPicker : null,
           borderRadius: BorderRadius.circular(16),
@@ -1692,35 +1841,39 @@ class _TransactionEditScreenState extends State<TransactionEditScreen> {
             ),
           ),
         ),
-      ],
-    );
-  }
-
-  Widget _buildSquareControl({
-    required VoidCallback? onTap,
-    IconData? icon,
-    Widget? child,
-    bool bordered = false,
-  }) {
-    return InkWell(
-      onTap: onTap,
-      borderRadius: BorderRadius.circular(16),
-      child: Container(
-        width: 50,
-        height: 50,
-        decoration: _panelDecoration(
-          color: _surfaceColor,
-          borderColor: bordered ? _textColor : _strokeColor,
-        ),
-        alignment: Alignment.center,
-        child:
-            child ??
-            Icon(
-              icon,
-              size: 20,
-              color: onTap == null ? _mutedColor : _textColor,
+        const SizedBox(width: 10),
+        InkWell(
+          onTap: _effectiveItemsLanguage.isNotEmpty && !_isTranslatingItems
+              ? _toggleTranslatedItems
+              : null,
+          borderRadius: BorderRadius.circular(16),
+          child: Container(
+            width: 48,
+            height: 48,
+            decoration: _panelDecoration(
+              color: translationEnabled ? _surfaceAltColor : _surfaceColor,
+              borderColor: translationEnabled ? _textColor : _strokeColor,
             ),
-      ),
+            alignment: Alignment.center,
+            child: _isTranslatingItems
+                ? const SizedBox(
+                    width: 18,
+                    height: 18,
+                    child: CircularProgressIndicator(
+                      strokeWidth: 2,
+                      valueColor: AlwaysStoppedAnimation<Color>(_textColor),
+                    ),
+                  )
+                : Icon(
+                    AppIcons.translate,
+                    size: 18,
+                    color: _effectiveItemsLanguage.isEmpty
+                        ? _mutedColor
+                        : _textColor,
+                  ),
+          ),
+        ),
+      ],
     );
   }
 
@@ -2029,6 +2182,7 @@ class _TransactionEditScreenState extends State<TransactionEditScreen> {
     final hasTranslatedName =
         translatedName.isNotEmpty &&
         translatedName.toLowerCase() != currentName.toLowerCase();
+    final showTranslatedName = _showTranslatedItems && hasTranslatedName;
     final itemCurrencyLabel = CurrencyDisplay.labelForCode(_currency);
     final displayCurrencyLabel = CurrencyDisplay.labelForCode(_displayCurrency);
     final quantityLineParts = <String>[];
@@ -2047,13 +2201,11 @@ class _TransactionEditScreenState extends State<TransactionEditScreen> {
       );
     }
 
-    final categoryLine = catTags.join(' / ');
-
     return InkWell(
       onTap: _canEditTransaction ? () => _openItemEditor(item) : null,
       borderRadius: BorderRadius.circular(18),
       child: Container(
-        padding: const EdgeInsets.fromLTRB(0, 14, 0, 14),
+        padding: const EdgeInsets.fromLTRB(16, 14, 16, 14),
         decoration: BoxDecoration(
           border: showDivider
               ? Border(bottom: BorderSide(color: _strokeColor.withAlpha(180)))
@@ -2082,29 +2234,18 @@ class _TransactionEditScreenState extends State<TransactionEditScreen> {
                           height: 1.2,
                         ),
                       ),
-                      const SizedBox(height: 6),
-                      SizedBox(
-                        height: 34,
-                        child: Align(
-                          alignment: Alignment.centerLeft,
-                          child: hasTranslatedName
-                              ? Text(
-                                  translatedName,
-                                  maxLines: 2,
-                                  overflow: TextOverflow.ellipsis,
-                                  style: const TextStyle(
-                                    color: _mutedColor,
-                                    fontSize: 13,
-                                  ),
-                                )
-                              : Text(
-                                  ' ',
-                                  style: const TextStyle(
-                                    color: Colors.transparent,
-                                  ),
-                                ),
+                      if (showTranslatedName) ...[
+                        const SizedBox(height: 6),
+                        Text(
+                          translatedName,
+                          maxLines: 2,
+                          overflow: TextOverflow.ellipsis,
+                          style: const TextStyle(
+                            color: _mutedColor,
+                            fontSize: 13,
+                          ),
                         ),
-                      ),
+                      ],
                     ],
                   ),
                 ),
@@ -2155,15 +2296,12 @@ class _TransactionEditScreenState extends State<TransactionEditScreen> {
               ],
             ),
             const SizedBox(height: 8),
-            Text(
-              categoryLine,
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-              style: const TextStyle(
-                color: _mutedColor,
-                fontSize: 13,
-                fontWeight: FontWeight.w500,
-              ),
+            Wrap(
+              spacing: 6,
+              runSpacing: 6,
+              children: catTags
+                  .map((tag) => _buildCategoryBadge(label: tag))
+                  .toList(growable: false),
             ),
             const SizedBox(height: 8),
             Text(
@@ -2176,37 +2314,44 @@ class _TransactionEditScreenState extends State<TransactionEditScreen> {
                 fontWeight: FontWeight.w500,
               ),
             ),
-            const SizedBox(height: 8),
-            SizedBox(
-              height: 18,
-              child: _displayCurrency.toUpperCase() != _currency.toUpperCase()
-                  ? Text(
-                      '$itemCurrencyLabel ${sourceAmount.toStringAsFixed(2)} / $displayCurrencyLabel ${displayAmount.toStringAsFixed(2)}',
-                      style: const TextStyle(color: _mutedColor, fontSize: 12),
-                    )
-                  : Text(
-                      ' ',
-                      style: const TextStyle(
-                        color: Colors.transparent,
-                        fontSize: 12,
-                      ),
-                    ),
-            ),
-            const SizedBox(height: 8),
-            SizedBox(
-              height: 18,
-              child: mismatch == null
-                  ? Text(' ', style: const TextStyle(color: Colors.transparent))
-                  : Text(
-                      _lineReviewMessage(mismatch),
-                      style: const TextStyle(
-                        color: _mutedColor,
-                        fontSize: 12,
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
-            ),
+            if (_displayCurrency.toUpperCase() != _currency.toUpperCase()) ...[
+              const SizedBox(height: 8),
+              Text(
+                '$itemCurrencyLabel ${sourceAmount.toStringAsFixed(2)} / $displayCurrencyLabel ${displayAmount.toStringAsFixed(2)}',
+                style: const TextStyle(color: _mutedColor, fontSize: 12),
+              ),
+            ],
+            if (mismatch != null) ...[
+              const SizedBox(height: 8),
+              Text(
+                _lineReviewMessage(mismatch),
+                style: const TextStyle(
+                  color: _mutedColor,
+                  fontSize: 12,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            ],
           ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildCategoryBadge({required String label}) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+      decoration: BoxDecoration(
+        color: _surfaceAltColor,
+        borderRadius: BorderRadius.circular(999),
+        border: Border.all(color: _strokeColor),
+      ),
+      child: Text(
+        label.trim(),
+        style: const TextStyle(
+          color: _mutedColor,
+          fontSize: 12,
+          fontWeight: FontWeight.w600,
         ),
       ),
     );
@@ -2247,16 +2392,14 @@ class _TransactionEditScreenState extends State<TransactionEditScreen> {
   Widget _buildStickyTotalBar({Map<String, double>? totalMismatch}) {
     final sourceTotal = _toDouble(_amountController.text) ?? 0;
     final displayTotal = _toDisplayAmount(sourceTotal);
-    final subtotalSource = _subtotalValue;
 
     return SafeArea(
       top: false,
       child: Container(
-        padding: const EdgeInsets.fromLTRB(16, 12, 16, 16),
+        padding: const EdgeInsets.fromLTRB(16, 10, 16, 14),
         decoration: BoxDecoration(
           color: _surfaceColor,
           border: Border(top: BorderSide(color: _strokeColor)),
-          borderRadius: const BorderRadius.vertical(top: Radius.circular(26)),
         ),
         child: Column(
           mainAxisSize: MainAxisSize.min,
@@ -2278,79 +2421,48 @@ class _TransactionEditScreenState extends State<TransactionEditScreen> {
               ),
             Row(
               children: [
-                const Expanded(
-                  child: Text(
-                    'Receipt total',
-                    style: TextStyle(
-                      color: _mutedColor,
-                      fontSize: 17,
-                      fontWeight: FontWeight.w500,
+                Expanded(
+                  child: InkWell(
+                    onTap: _canEditTransaction ? _openTotalEditor : null,
+                    borderRadius: BorderRadius.circular(14),
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(vertical: 4),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          const Text(
+                            'Receipt total',
+                            style: TextStyle(
+                              color: _mutedColor,
+                              fontSize: 12,
+                              fontWeight: FontWeight.w700,
+                              letterSpacing: 0.5,
+                            ),
+                          ),
+                          const SizedBox(height: 3),
+                          Text(
+                            _formatMoney(_currency, sourceTotal),
+                            style: const TextStyle(
+                              color: _textColor,
+                              fontSize: 20,
+                              fontWeight: FontWeight.w700,
+                            ),
+                          ),
+                        ],
+                      ),
                     ),
                   ),
                 ),
-                const Icon(Icons.edit_outlined, size: 16, color: _mutedColor),
-                const SizedBox(width: 8),
-                SizedBox(
-                  width: 126,
-                  child: TextField(
-                    controller: _amountController,
-                    readOnly: !_canEditTransaction,
-                    textAlign: TextAlign.right,
-                    keyboardType: const TextInputType.numberWithOptions(
-                      decimal: true,
-                    ),
-                    decoration: const InputDecoration(
-                      border: InputBorder.none,
-                      isDense: true,
-                      contentPadding: EdgeInsets.zero,
-                    ),
-                    style: const TextStyle(
-                      color: _textColor,
-                      fontSize: 18,
-                      fontWeight: FontWeight.w700,
-                    ),
-                    onChanged: (value) {
-                      final parsed = double.tryParse(
-                        value.replaceAll(',', '.').trim(),
-                      );
-                      if (parsed == null) return;
-                      setState(() {
-                        _hasLocalEdits = true;
-                        _hasManualTotalOverride =
-                            _round2(parsed) != _round2(subtotalSource);
-                      });
-                    },
-                    onSubmitted: (_) {
-                      final parsed = _toDouble(_amountController.text);
-                      if (parsed == null) return;
-                      final formatted = parsed.toStringAsFixed(2);
-                      setState(() {
-                        _amountController.text = formatted;
-                        _amountController
-                            .selection = TextSelection.fromPosition(
-                          TextPosition(offset: _amountController.text.length),
-                        );
-                        _hasLocalEdits = true;
-                        _hasManualTotalOverride =
-                            _round2(parsed) != _round2(subtotalSource);
-                      });
-                    },
+                if (_displayCurrency.toUpperCase() != _currency.toUpperCase())
+                  Text(
+                    _formatMoney(_displayCurrency, displayTotal),
+                    style: const TextStyle(color: _mutedColor, fontSize: 12),
                   ),
-                ),
+                if (_canEditTransaction) ...[
+                  const SizedBox(width: 10),
+                  const Icon(Icons.edit_outlined, size: 16, color: _mutedColor),
+                ],
               ],
-            ),
-            const SizedBox(height: 4),
-            Align(
-              alignment: Alignment.centerRight,
-              child: _displayCurrency.toUpperCase() != _currency.toUpperCase()
-                  ? Text(
-                      _formatMoney(_displayCurrency, displayTotal),
-                      style: const TextStyle(color: _mutedColor, fontSize: 12),
-                    )
-                  : Text(
-                      _formatMoney(_currency, sourceTotal),
-                      style: const TextStyle(color: _mutedColor, fontSize: 12),
-                    ),
             ),
           ],
         ),
