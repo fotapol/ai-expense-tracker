@@ -3,8 +3,10 @@ import 'package:intl/intl.dart';
 
 import '../core/api_client.dart';
 import '../core/bill_reminder_notification_service.dart';
+import '../core/launch_error_copy.dart';
 import '../core/planning_logic.dart';
 import '../core/redesign_system.dart';
+import '../core/session_invalidation.dart';
 import '../l10n/app_localizations.dart';
 import 'settings_detail_scaffold.dart';
 
@@ -68,8 +70,13 @@ class _BillRemindersScreenState extends State<BillRemindersScreen> {
       });
     } catch (error) {
       if (!mounted) return;
+      if (await maybeHandleExpiredSession(error)) return;
       setState(() {
-        _error = error.toString();
+        _error = friendlyLaunchErrorMessage(
+          error,
+          fallback:
+              'Bill reminders could not load right now. Pull to try again.',
+        );
         _isLoading = false;
       });
     }
@@ -190,7 +197,13 @@ class _BillRemindersScreenState extends State<BillRemindersScreen> {
       _showMessage(context.tr('bill_reminders_saved'));
     } catch (error) {
       if (!mounted) return;
-      _showMessage(error.toString(), isError: true);
+      _showMessage(
+        friendlyLaunchErrorMessage(
+          error,
+          fallback: 'That bill could not be updated right now.',
+        ),
+        isError: true,
+      );
     } finally {
       if (mounted) setState(() => _isCreating = false);
     }
@@ -211,12 +224,19 @@ class _BillRemindersScreenState extends State<BillRemindersScreen> {
       _showMessage(context.tr('bill_reminders_paid'));
     } catch (error) {
       if (!mounted) return;
-      _showMessage(error.toString(), isError: true);
+      _showMessage(
+        friendlyLaunchErrorMessage(
+          error,
+          fallback: 'Bill reminder could not be saved right now.',
+        ),
+        isError: true,
+      );
     } finally {
       if (mounted) setState(() => _savingBillId = null);
     }
   }
 
+      if (await maybeHandleExpiredSession(error)) return;
   void _showMessage(String message, {bool isError = false}) {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
@@ -238,6 +258,7 @@ class _BillRemindersScreenState extends State<BillRemindersScreen> {
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(20),
         gradient: const LinearGradient(
+      if (await maybeHandleExpiredSession(error)) return;
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
           colors: [Color(0xFF1B1B1B), Color(0xFF313131)],

@@ -1008,6 +1008,7 @@ class ApiClient {
         'Content-Type': 'application/json',
       },
     );
+    await _throwIfUnauthorizedResponse(response);
     if (response.statusCode == 200) {
       return jsonDecode(response.body) as Map<String, dynamic>;
     }
@@ -1035,6 +1036,7 @@ class ApiClient {
         'category_limits': categoryLimits,
       }),
     );
+    await _throwIfUnauthorizedResponse(response);
     if (response.statusCode == 200) {
       return jsonDecode(response.body) as Map<String, dynamic>;
     }
@@ -1053,6 +1055,7 @@ class ApiClient {
         'Content-Type': 'application/json',
       },
     );
+    await _throwIfUnauthorizedResponse(response);
     if (response.statusCode == 200) {
       return jsonDecode(response.body) as List<dynamic>;
     }
@@ -1088,6 +1091,7 @@ class ApiClient {
     );
     if (response.statusCode == 201) {
       return jsonDecode(response.body) as Map<String, dynamic>;
+    await _throwIfUnauthorizedResponse(response);
     }
     throw Exception(
       'Failed to create bill reminder: ${response.statusCode} ${_extractErrorMessage(response)}',
@@ -1110,6 +1114,7 @@ class ApiClient {
     );
     if (response.statusCode == 200) {
       return jsonDecode(response.body) as Map<String, dynamic>;
+    await _throwIfUnauthorizedResponse(response);
     }
     throw Exception(
       'Failed to mark bill reminder as paid: ${response.statusCode} ${_extractErrorMessage(response)}',

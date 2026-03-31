@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 
 import '../core/api_client.dart';
+import '../core/launch_error_copy.dart';
 import '../core/planning_logic.dart';
 import '../core/redesign_system.dart';
+import '../core/session_invalidation.dart';
 import '../core/taxonomy_localization.dart';
 import '../l10n/app_localizations.dart';
 import 'settings_detail_scaffold.dart';
@@ -112,9 +114,14 @@ class _BudgetCalculatorScreenState extends State<BudgetCalculatorScreen> {
         _error = null;
       });
     } catch (error) {
+      if (await maybeHandleExpiredSession(error)) return;
       if (!mounted) return;
       setState(() {
-        _error = error.toString();
+        _error = friendlyLaunchErrorMessage(
+          error,
+          fallback:
+              'Budget details could not load right now. Pull to try again.',
+        );
         _isLoading = false;
       });
     }
@@ -254,8 +261,16 @@ class _BudgetCalculatorScreenState extends State<BudgetCalculatorScreen> {
       if (!mounted) return;
       _showMessage(context.tr('budget_saved'));
     } catch (error) {
+      if (await maybeHandleExpiredSession(error)) return;
       if (!mounted) return;
-      _showMessage(error.toString(), isError: true);
+      _showMessage(
+        friendlyLaunchErrorMessage(
+          error,
+          fallback:
+              'Budget changes could not be saved right now. Please try again.',
+        ),
+        isError: true,
+      );
     } finally {
       if (mounted) setState(() => _isSaving = false);
     }
@@ -577,6 +592,7 @@ class _BudgetCalculatorScreenState extends State<BudgetCalculatorScreen> {
       categories: categories,
       totalSpent: _totalSpent,
     );
+    final bottomPadding = MediaQuery.of(context).padding.bottom + 32;
 
     return SettingsDetailScaffold(
       title: context.tr('tools_budget_calculator'),
@@ -598,7 +614,6 @@ class _BudgetCalculatorScreenState extends State<BudgetCalculatorScreen> {
                   ),
                 ),
               ),
-    final bottomPadding = MediaQuery.of(context).padding.bottom + 32;
             )
           : SafeArea(
               top: false,
