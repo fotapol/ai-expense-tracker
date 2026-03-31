@@ -9,6 +9,7 @@ import '../core/auto_refresh_state_mixin.dart';
 import '../core/launch_error_copy.dart';
 import '../core/redesign_system.dart';
 import '../core/session_invalidation.dart';
+import '../core/subscription_confirmation.dart';
 import '../core/taxonomy_localization.dart';
 import '../l10n/app_localizations.dart';
 import 'analytics_screen.dart';
@@ -33,6 +34,9 @@ class _HomeTabState extends State<HomeTab>
   List<Map<String, dynamic>> _currentMonthTransactions = [];
   List<Map<String, dynamic>> _previousMonthTransactions = [];
   bool _isRefreshingHome = false;
+  bool _hasPremiumAccess = false;
+  int? _receiptUploadRemaining;
+  int? _receiptUploadLimit;
 
   @override
   Duration get autoRefreshInterval => const Duration(minutes: 1);
@@ -72,15 +76,20 @@ class _HomeTabState extends State<HomeTab>
     }
 
     try {
+      final subscriptionFuture = ApiClient.getMeSubscription().catchError(
+        (_) => <String, dynamic>{},
+      );
       final results = await Future.wait([
         ApiClient.getMe(),
         ApiClient.getTransactionsSummary(fromDate: _currentMonthStart),
         ApiClient.listTransactions(fromDate: _previousMonthStart),
+        subscriptionFuture,
       ]);
 
       final me = results[0] as Map<String, dynamic>;
       final summary = results[1] as Map<String, dynamic>;
       final rawTransactions = results[2] as List<dynamic>;
+      final subscriptionPayload = results[3] as Map<String, dynamic>;
       final allTransactions = rawTransactions.whereType<Map<String, dynamic>>();
 
       final currentTransactions = <Map<String, dynamic>>[];
@@ -95,6 +104,15 @@ class _HomeTabState extends State<HomeTab>
         }
       }
 
+      final usageRaw = subscriptionPayload['receipt_scan_usage'];
+      final usage = usageRaw is Map<String, dynamic>
+          ? usageRaw
+          : const <String, dynamic>{};
+      final optimisticPremium = await hasOptimisticPremiumAccess();
+      final hasPremiumAccess =
+          subscriptionPayload['has_active_subscription'] == true ||
+          usage['is_unlimited'] == true ||
+          optimisticPremium;
       final defaultCurrency = me['default_currency']?.toString().trim();
       if (!mounted) return;
       setState(() {
@@ -105,6 +123,11 @@ class _HomeTabState extends State<HomeTab>
         _monthlySummary = summary;
         _currentMonthTransactions = currentTransactions;
         _previousMonthTransactions = previousTransactions;
+        _hasPremiumAccess = hasPremiumAccess;
+        _receiptUploadLimit = int.tryParse((usage['limit'] ?? '').toString());
+        _receiptUploadRemaining = optimisticPremium
+            ? null
+            : int.tryParse((usage['remaining'] ?? '').toString());
         _isLoading = false;
         _error = null;
       });
@@ -378,11 +401,31 @@ class _HomeTabState extends State<HomeTab>
     Navigator.push(context, MaterialPageRoute(builder: (_) => screen));
   }
 
+  Future<void> _openSubscriptionScreen(BuildContext context) async {
+    final changed = await Navigator.push<bool>(
+      context,
+      MaterialPageRoute(builder: (_) => const SubscriptionScreen()),
+    );
+    if (!mounted) return;
+    if (changed == true) {
+      await _loadHomeData(showLoader: false);
+    }
+  }
+
+  String _uploadCounterLabel() {
+    final remaining = _receiptUploadRemaining;
+    final limit = (_receiptUploadLimit != null && _receiptUploadLimit! > 0)
+        ? _receiptUploadLimit!
+        : 10;
+    final safeRemaining = remaining == null ? limit : remaining.clamp(0, limit);
+    return '$safeRemaining/$limit';
+  }
+
   @override
   Widget build(BuildContext context) {
     final hasData =
         _monthlySummary != null || _currentMonthTransactions.isNotEmpty;
-    final bottomPadding = MediaQuery.of(context).padding.bottom + 140;
+    final bottomPadding = MediaQuery.of(context).padding.bottom + 152;
 
     return SafeArea(
       child: RefreshIndicator(
@@ -398,11 +441,11 @@ class _HomeTabState extends State<HomeTab>
             else if (_error != null && !hasData)
               _buildErrorState(context)
             else ...[
-              _buildScanCard(context),
-              const SizedBox(height: 14),
-              _buildQuickActions(context),
-              const SizedBox(height: 14),
               _buildMonthlySummaryCard(context),
+              const SizedBox(height: 14),
+              _buildScanCard(context),
+              const SizedBox(height: 16),
+              _buildQuickActions(context),
               const SizedBox(height: 14),
               _buildOverviewCard(context),
               if (_buildInsights(context).isNotEmpty) ...[
@@ -451,11 +494,34 @@ class _HomeTabState extends State<HomeTab>
           ),
         ),
         const SizedBox(width: 12),
-        _buildHeaderAction(
-          context,
-          child: CrownIcon(color: ShellColors.gold, size: 18, strokeWidth: 1.7),
-          onTap: () => _open(context, const SubscriptionScreen()),
-        ),
+        _hasPremiumAccess
+            ? _buildHeaderAction(
+                context,
+                child: CrownIcon(
+                  color: ShellColors.gold,
+                  size: 18,
+                  strokeWidth: 1.7,
+                ),
+                onTap: () => _openSubscriptionScreen(context),
+              )
+            : InkWell(
+                borderRadius: BorderRadius.circular(999),
+                onTap: () => _openSubscriptionScreen(context),
+                child: Container(
+                  width: 52,
+                  height: 52,
+                  decoration: ShellStyles.cardDecoration(context, radius: 999),
+                  alignment: Alignment.center,
+                  child: Text(
+                    _uploadCounterLabel(),
+                    style: TextStyle(
+                      color: ShellStyles.textPrimary(context),
+                      fontSize: 11,
+                      fontWeight: FontWeight.w800,
+                    ),
+                  ),
+                ),
+              ),
         const SizedBox(width: 8),
         // TODO(household): restore household button on home screen when feature ships
         /*
@@ -498,8 +564,9 @@ class _HomeTabState extends State<HomeTab>
     final monthLabel = DateFormat('MMMM yyyy').format(_currentMonthStart);
     final ratio = _changeRatio;
     final positiveDelta = ratio != null && ratio < 0;
+    final transactionCount = _currentMonthTransactions.length;
     return Container(
-      padding: const EdgeInsets.all(20),
+      padding: const EdgeInsets.fromLTRB(22, 22, 22, 20),
       decoration: ShellStyles.cardDecoration(context, radius: 24),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -519,8 +586,8 @@ class _HomeTabState extends State<HomeTab>
               if (ratio != null)
                 Container(
                   padding: const EdgeInsets.symmetric(
-                    horizontal: 8,
-                    vertical: 4,
+                    horizontal: 10,
+                    vertical: 5,
                   ),
                   decoration: BoxDecoration(
                     color:
@@ -558,23 +625,38 @@ class _HomeTabState extends State<HomeTab>
                 ),
             ],
           ),
-          const SizedBox(height: 24),
+          const SizedBox(height: 20),
           Text(
             _formatMoney(_currency, _currentMonthTotal),
             style: TextStyle(
               color: ShellStyles.textPrimary(context),
-              fontSize: 42,
-              fontWeight: FontWeight.w300,
-              letterSpacing: -1,
+              fontSize: 46,
+              fontWeight: FontWeight.w700,
+              letterSpacing: -1.2,
             ),
           ),
           const SizedBox(height: 4),
-          Text(
-            context.tr('home_total_spending_month'),
-            style: TextStyle(
-              color: ShellStyles.textMuted(context),
-              fontSize: 14,
-            ),
+          Row(
+            children: [
+              Text(
+                context.tr('home_total_spending_month'),
+                style: TextStyle(
+                  color: ShellStyles.textMuted(context),
+                  fontSize: 14,
+                ),
+              ),
+              const SizedBox(width: 10),
+              Text(
+                context.tr(
+                  'receipts_count',
+                  params: {'count': transactionCount.toString()},
+                ),
+                style: TextStyle(
+                  color: ShellStyles.textMuted(context),
+                  fontSize: 13,
+                ),
+              ),
+            ],
           ),
         ],
       ),
@@ -587,7 +669,7 @@ class _HomeTabState extends State<HomeTab>
       onTap: () => _open(context, const ReceiptUploadScreen()),
       child: Container(
         width: double.infinity,
-        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 18),
+        padding: const EdgeInsets.fromLTRB(22, 22, 22, 22),
         decoration: BoxDecoration(
           color: ShellStyles.textPrimary(context),
           borderRadius: BorderRadius.circular(24),
@@ -595,17 +677,17 @@ class _HomeTabState extends State<HomeTab>
         child: Row(
           children: [
             Container(
-              width: 48,
-              height: 48,
+              width: 58,
+              height: 58,
               alignment: Alignment.center,
               decoration: BoxDecoration(
                 color: Colors.white.withAlpha(25),
-                borderRadius: BorderRadius.circular(16),
+                borderRadius: BorderRadius.circular(18),
               ),
               child: Icon(
                 AppIcons.scan,
                 color: ShellStyles.surface(context),
-                size: 22,
+                size: 26,
               ),
             ),
             const SizedBox(width: 16),
@@ -614,29 +696,48 @@ class _HomeTabState extends State<HomeTab>
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
+                    'Primary action',
+                    style: TextStyle(
+                      color: ShellStyles.surface(context).withAlpha(170),
+                      fontSize: 11,
+                      fontWeight: FontWeight.w700,
+                      letterSpacing: 0.7,
+                    ),
+                  ),
+                  const SizedBox(height: 6),
+                  Text(
                     context.tr('tools_scan_receipt'),
                     style: TextStyle(
                       color: ShellStyles.surface(context),
-                      fontSize: 18,
+                      fontSize: 22,
                       fontWeight: FontWeight.w700,
                     ),
                   ),
-                  const SizedBox(height: 2),
+                  const SizedBox(height: 4),
                   Text(
                     context.tr('home_scan_receipt_subtitle'),
                     style: TextStyle(
                       color: ShellStyles.surface(context).withAlpha(160),
-                      fontSize: 13,
+                      fontSize: 14,
                       fontWeight: FontWeight.w500,
                     ),
                   ),
                 ],
               ),
             ),
-            Icon(
-              AppIcons.chevronRight,
-              color: ShellStyles.surface(context).withAlpha(160),
-              size: 16,
+            Container(
+              width: 40,
+              height: 40,
+              alignment: Alignment.center,
+              decoration: BoxDecoration(
+                color: Colors.white.withAlpha(25),
+                shape: BoxShape.circle,
+              ),
+              child: Icon(
+                AppIcons.chevronRight,
+                color: ShellStyles.surface(context),
+                size: 18,
+              ),
             ),
           ],
         ),
@@ -924,11 +1025,11 @@ class _HomeTabState extends State<HomeTab>
       children: [
         ShellStyles.sectionLabel(context, context.tr('home_quick_actions')),
         const SizedBox(height: 12),
-        Row(
+        Column(
           children: [
             for (var index = 0; index < actions.length; index++) ...[
-              Expanded(child: _buildQuickActionCard(context, actions[index])),
-              if (index != actions.length - 1) const SizedBox(width: 10),
+              _buildQuickActionCard(context, actions[index]),
+              if (index != actions.length - 1) const SizedBox(height: 10),
             ],
           ],
         ),
@@ -941,15 +1042,16 @@ class _HomeTabState extends State<HomeTab>
       borderRadius: BorderRadius.circular(16),
       onTap: action.onTap,
       child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 2, vertical: 12),
+        width: double.infinity,
+        height: 52,
+        padding: const EdgeInsets.symmetric(horizontal: 14),
         decoration: ShellStyles.cardDecoration(context, radius: 16),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
+        child: Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Container(
-              width: 38,
-              height: 38,
+              width: 30,
+              height: 30,
               alignment: Alignment.center,
               decoration: BoxDecoration(
                 color: ShellStyles.surfaceAlt(context),
@@ -958,20 +1060,18 @@ class _HomeTabState extends State<HomeTab>
               child: Icon(
                 action.icon,
                 color: ShellStyles.textMuted(context),
-                size: 18,
+                size: 15,
               ),
             ),
-            const SizedBox(height: 12),
+            const SizedBox(width: 8),
             Text(
               action.label,
               textAlign: TextAlign.center,
-              maxLines: 2,
-              overflow: TextOverflow.ellipsis,
               style: TextStyle(
                 color: ShellStyles.textPrimary(context),
-                fontSize: 11,
-                height: 1.15,
-                fontWeight: FontWeight.w500,
+                fontSize: 14,
+                height: 1.2,
+                fontWeight: FontWeight.w700,
               ),
             ),
           ],
