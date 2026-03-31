@@ -24,13 +24,25 @@ class ApiClient {
       await invalidateExpiredSession();
       throw StateError(expiredSessionMessage);
     }
-    final cachedToken = await user.getIdToken();
     try {
-      if ((cachedToken ?? '').trim().isNotEmpty) {
+      final tokenResult = await user.getIdTokenResult();
+      final cachedToken = tokenResult.token;
+      final shouldRefresh =
+          (cachedToken ?? '').trim().isEmpty ||
+          shouldForceSessionTokenRefresh(tokenResult.expirationTime);
+      if (!shouldRefresh) {
         return requireAuthenticatedSessionToken(cachedToken);
       }
-      final refreshedToken = await user.getIdToken(true);
-      return requireAuthenticatedSessionToken(refreshedToken);
+
+      try {
+        final refreshedToken = await user.getIdToken(true);
+        return requireAuthenticatedSessionToken(refreshedToken);
+      } catch (_) {
+        if ((cachedToken ?? '').trim().isNotEmpty) {
+          return requireAuthenticatedSessionToken(cachedToken);
+        }
+        rethrow;
+      }
     } on StateError {
       await invalidateExpiredSession();
       rethrow;
