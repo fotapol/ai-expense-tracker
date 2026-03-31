@@ -307,7 +307,12 @@ class _AnalyticsTabState extends State<AnalyticsTab>
     return RefreshIndicator(
       onRefresh: _fetchSummary,
       child: ListView(
-        padding: const EdgeInsets.fromLTRB(20, 12, 20, 32),
+        padding: EdgeInsets.fromLTRB(
+          20,
+          12,
+          20,
+          MediaQuery.of(context).padding.bottom + 32,
+        ),
         children: [
           if (widget.activeFiltersBuilder != null) ...[
             widget.activeFiltersBuilder!(),

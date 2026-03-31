@@ -170,7 +170,12 @@ class _AnalyticsOverviewTabState extends State<AnalyticsOverviewTab> {
     return RefreshIndicator(
       onRefresh: _fetchData,
       child: ListView(
-        padding: const EdgeInsets.fromLTRB(20, 12, 20, 32),
+        padding: EdgeInsets.fromLTRB(
+          20,
+          12,
+          20,
+          MediaQuery.of(context).padding.bottom + 32,
+        ),
         children: [
           if (widget.activeFiltersBuilder != null) ...[
             widget.activeFiltersBuilder!(),
@@ -187,31 +192,38 @@ class _AnalyticsOverviewTabState extends State<AnalyticsOverviewTab> {
               changePercentage: changePercentage,
             ),
             const SizedBox(height: 16),
-            Wrap(
-              spacing: 12,
-              runSpacing: 12,
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                _buildMetricCard(
-                  context,
-                  icon: Icons.calendar_today_outlined,
-                  title: context.tr('analytics_average_per_day'),
-                  value: formatMoney(
-                    currency,
-                    totalAmount /
-                        PeriodFilter.getPeriodDays(widget.filters.period),
+                Expanded(
+                  child: _buildMetricCard(
+                    context,
+                    icon: Icons.calendar_today_outlined,
+                    title: context.tr('analytics_average_per_day'),
+                    value: formatMoney(
+                      currency,
+                      totalAmount /
+                          PeriodFilter.getPeriodDays(widget.filters.period),
+                    ),
                   ),
                 ),
-                _buildMetricCard(
-                  context,
-                  icon: Icons.receipt_long_outlined,
-                  title: context.tr('analytics_total_transactions'),
-                  value: '$totalTransactions',
+                const SizedBox(width: 10),
+                Expanded(
+                  child: _buildMetricCard(
+                    context,
+                    icon: Icons.receipt_long_outlined,
+                    title: context.tr('analytics_total_transactions'),
+                    value: '$totalTransactions',
+                  ),
                 ),
-                _buildMetricCard(
-                  context,
-                  icon: Icons.sell_outlined,
-                  title: context.tr('analytics_total_savings'),
-                  value: formatMoney(currency, totalSavings),
+                const SizedBox(width: 10),
+                Expanded(
+                  child: _buildMetricCard(
+                    context,
+                    icon: Icons.sell_outlined,
+                    title: context.tr('analytics_total_savings'),
+                    value: formatMoney(currency, totalSavings),
+                  ),
                 ),
               ],
             ),
@@ -398,30 +410,31 @@ class _AnalyticsOverviewTabState extends State<AnalyticsOverviewTab> {
     required String title,
     required String value,
   }) {
-    final width = (MediaQuery.of(context).size.width - 64) / 2;
     return Container(
-      width: width,
-      padding: const EdgeInsets.all(16),
-      decoration: ShellStyles.cardDecoration(context, radius: 22),
+      padding: const EdgeInsets.fromLTRB(14, 14, 14, 16),
+      decoration: ShellStyles.cardDecoration(context, radius: 20),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Icon(icon, color: ShellStyles.textMuted(context), size: 20),
-          const SizedBox(height: 14),
+          Icon(icon, color: ShellStyles.textMuted(context), size: 18),
+          const SizedBox(height: 10),
           Text(
             value,
             style: TextStyle(
               color: ShellStyles.textPrimary(context),
-              fontSize: 20,
+              fontSize: 16,
               fontWeight: FontWeight.w700,
             ),
           ),
           const SizedBox(height: 4),
           Text(
             title,
+            maxLines: 2,
+            overflow: TextOverflow.ellipsis,
             style: TextStyle(
               color: ShellStyles.textMuted(context),
-              fontSize: 12,
+              fontSize: 11,
+              height: 1.25,
             ),
           ),
         ],
