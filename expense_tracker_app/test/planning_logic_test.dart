@@ -77,6 +77,22 @@ void main() {
         expect(overview.remaining, -120);
       },
     );
+
+    test(
+      'uses monthly income as the total budget when no categories are set',
+      () {
+        final overview = buildBudgetOverview(
+          monthlyIncome: 300,
+          totalSpent: 60.21,
+          categories: const [],
+        );
+
+        expect(overview.totalBudget, 300);
+        expect(overview.totalSpent, 60.21);
+        expect(overview.remaining, closeTo(239.79, 0.0001));
+        expect(overview.savingsGoal, 0);
+      },
+    );
   });
 
   group('bill reminders', () {
