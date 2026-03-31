@@ -27,6 +27,7 @@ class _BillRemindersScreenState extends State<BillRemindersScreen> {
   String? _savingBillId;
   String? _error;
   String _currency = 'EUR';
+  String _selectedRecurrence = billReminderRecurrenceMonthly;
   DateTime? _selectedDueDate;
   List<BillReminderRecord> _reminders = <BillReminderRecord>[];
 
@@ -69,8 +70,8 @@ class _BillRemindersScreenState extends State<BillRemindersScreen> {
         _error = null;
       });
     } catch (error) {
-      if (!mounted) return;
       if (await maybeHandleExpiredSession(error)) return;
+      if (!mounted) return;
       setState(() {
         _error = friendlyLaunchErrorMessage(
           error,
@@ -128,6 +129,30 @@ class _BillRemindersScreenState extends State<BillRemindersScreen> {
     }
   }
 
+  String _recurrenceLabel(String recurrence) {
+    switch (normalizeBillReminderRecurrence(recurrence)) {
+      case billReminderRecurrenceDaily:
+        return context.tr('bill_reminders_recurring_daily');
+      case billReminderRecurrenceYearly:
+        return context.tr('bill_reminders_recurring_yearly');
+      case billReminderRecurrenceMonthly:
+      default:
+        return context.tr('bill_reminders_recurring_monthly');
+    }
+  }
+
+  String _dueDateFieldLabel() {
+    return _selectedRecurrence == billReminderRecurrenceDaily
+        ? context.tr('bill_reminders_start_date')
+        : context.tr('bill_reminders_first_due_date');
+  }
+
+  String _dueDateFieldHint() {
+    return _selectedRecurrence == billReminderRecurrenceDaily
+        ? context.tr('bill_reminders_pick_start_date')
+        : context.tr('bill_reminders_pick_first_due_date');
+  }
+
   Color _statusColor(BillReminderStatus status) {
     switch (status) {
       case BillReminderStatus.upcoming:
@@ -157,6 +182,7 @@ class _BillRemindersScreenState extends State<BillRemindersScreen> {
       if (!_showComposer) {
         _nameController.clear();
         _amountController.clear();
+        _selectedRecurrence = billReminderRecurrenceMonthly;
         _selectedDueDate = null;
       }
     });
@@ -180,6 +206,7 @@ class _BillRemindersScreenState extends State<BillRemindersScreen> {
         name: name,
         amount: amount,
         currency: _currency,
+        recurrence: _selectedRecurrence,
         firstDueDate: _selectedDueDate!,
       );
       await BillReminderNotificationService.instance.requestPermissions();
@@ -190,17 +217,19 @@ class _BillRemindersScreenState extends State<BillRemindersScreen> {
         _showComposer = false;
         _nameController.clear();
         _amountController.clear();
+        _selectedRecurrence = billReminderRecurrenceMonthly;
         _selectedDueDate = null;
       });
       await _loadData(showLoader: false);
       if (!mounted) return;
       _showMessage(context.tr('bill_reminders_saved'));
     } catch (error) {
+      if (await maybeHandleExpiredSession(error)) return;
       if (!mounted) return;
       _showMessage(
         friendlyLaunchErrorMessage(
           error,
-          fallback: 'That bill could not be updated right now.',
+          fallback: 'Bill reminder could not be saved right now.',
         ),
         isError: true,
       );
@@ -223,11 +252,12 @@ class _BillRemindersScreenState extends State<BillRemindersScreen> {
       if (!mounted) return;
       _showMessage(context.tr('bill_reminders_paid'));
     } catch (error) {
+      if (await maybeHandleExpiredSession(error)) return;
       if (!mounted) return;
       _showMessage(
         friendlyLaunchErrorMessage(
           error,
-          fallback: 'Bill reminder could not be saved right now.',
+          fallback: 'That bill could not be updated right now.',
         ),
         isError: true,
       );
@@ -236,7 +266,6 @@ class _BillRemindersScreenState extends State<BillRemindersScreen> {
     }
   }
 
-      if (await maybeHandleExpiredSession(error)) return;
   void _showMessage(String message, {bool isError = false}) {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
@@ -258,7 +287,6 @@ class _BillRemindersScreenState extends State<BillRemindersScreen> {
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(20),
         gradient: const LinearGradient(
-      if (await maybeHandleExpiredSession(error)) return;
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
           colors: [Color(0xFF1B1B1B), Color(0xFF313131)],
@@ -313,7 +341,7 @@ class _BillRemindersScreenState extends State<BillRemindersScreen> {
 
   Widget _buildComposerCard() {
     final dateText = _selectedDueDate == null
-        ? context.tr('bill_reminders_pick_date')
+        ? _dueDateFieldHint()
         : DateFormat.yMMMd().format(_selectedDueDate!);
 
     return SettingsDetailCard(
@@ -332,8 +360,8 @@ class _BillRemindersScreenState extends State<BillRemindersScreen> {
           TextField(
             controller: _nameController,
             decoration: InputDecoration(
-              labelText: context.tr('bill_reminders_name'),
               hintText: context.tr('bill_reminders_name_hint'),
+              hintStyle: TextStyle(color: ShellStyles.textMuted(context)),
             ),
           ),
           const SizedBox(height: 12),
@@ -347,6 +375,7 @@ class _BillRemindersScreenState extends State<BillRemindersScreen> {
                   ),
                   decoration: InputDecoration(
                     labelText: context.tr('bill_reminders_amount'),
+                    floatingLabelBehavior: FloatingLabelBehavior.always,
                     prefixText: '${CurrencyDisplay.symbolForCode(_currency)} ',
                   ),
                 ),
@@ -358,7 +387,8 @@ class _BillRemindersScreenState extends State<BillRemindersScreen> {
                   onTap: _pickDueDate,
                   child: InputDecorator(
                     decoration: InputDecoration(
-                      labelText: context.tr('bill_reminders_due_date'),
+                      labelText: _dueDateFieldLabel(),
+                      floatingLabelBehavior: FloatingLabelBehavior.always,
                     ),
                     child: Text(
                       dateText,
@@ -378,13 +408,39 @@ class _BillRemindersScreenState extends State<BillRemindersScreen> {
           InputDecorator(
             decoration: InputDecoration(
               labelText: context.tr('bill_reminders_recurring'),
+              floatingLabelBehavior: FloatingLabelBehavior.always,
             ),
-            child: Text(
-              context.tr('bill_reminders_recurring_monthly'),
-              style: TextStyle(
-                color: ShellStyles.textPrimary(context),
-                fontSize: 14,
-              ),
+            child: Wrap(
+              spacing: 8,
+              runSpacing: 8,
+              children: [
+                for (final recurrence in <String>[
+                  billReminderRecurrenceDaily,
+                  billReminderRecurrenceMonthly,
+                  billReminderRecurrenceYearly,
+                ])
+                  ChoiceChip(
+                    label: Text(_recurrenceLabel(recurrence)),
+                    selected: _selectedRecurrence == recurrence,
+                    showCheckmark: false,
+                    backgroundColor: ShellStyles.surface(context),
+                    selectedColor: ShellStyles.surfaceAlt(context),
+                    side: BorderSide(color: ShellStyles.border(context)),
+                    labelStyle: TextStyle(
+                      color: _selectedRecurrence == recurrence
+                          ? ShellStyles.textPrimary(context)
+                          : ShellStyles.textMuted(context),
+                      fontWeight: FontWeight.w600,
+                    ),
+                    onSelected: _isCreating
+                        ? null
+                        : (_) {
+                            setState(() {
+                              _selectedRecurrence = recurrence;
+                            });
+                          },
+                  ),
+              ],
             ),
           ),
           const SizedBox(height: 16),
@@ -496,7 +552,7 @@ class _BillRemindersScreenState extends State<BillRemindersScreen> {
               ),
               const SizedBox(width: 8),
               Text(
-                context.tr('bill_reminders_recurring_monthly'),
+                _recurrenceLabel(occurrence.reminder.recurrence),
                 style: TextStyle(
                   color: ShellStyles.textMuted(context),
                   fontSize: 12,

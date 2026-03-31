@@ -1069,6 +1069,7 @@ class ApiClient {
     required String name,
     required double amount,
     required String currency,
+    required String recurrence,
     required DateTime firstDueDate,
     int remindDaysBefore = 3,
     bool isActive = true,
@@ -1084,14 +1085,15 @@ class ApiClient {
         'name': name.trim(),
         'amount': amount,
         'currency': currency.toUpperCase(),
+        'recurrence': recurrence.trim().toLowerCase(),
         'first_due_date': _dateOnlyIso(firstDueDate),
         'remind_days_before': remindDaysBefore,
         'is_active': isActive,
       }),
     );
+    await _throwIfUnauthorizedResponse(response);
     if (response.statusCode == 201) {
       return jsonDecode(response.body) as Map<String, dynamic>;
-    await _throwIfUnauthorizedResponse(response);
     }
     throw Exception(
       'Failed to create bill reminder: ${response.statusCode} ${_extractErrorMessage(response)}',
@@ -1112,9 +1114,9 @@ class ApiClient {
       },
       body: jsonEncode({'due_date': _dateOnlyIso(dueDate)}),
     );
+    await _throwIfUnauthorizedResponse(response);
     if (response.statusCode == 200) {
       return jsonDecode(response.body) as Map<String, dynamic>;
-    await _throwIfUnauthorizedResponse(response);
     }
     throw Exception(
       'Failed to mark bill reminder as paid: ${response.statusCode} ${_extractErrorMessage(response)}',
