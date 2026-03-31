@@ -13,6 +13,7 @@ import 'package:expense_tracker_app/screens/tools_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 void main() {
   group('auth session launch guards', () {
@@ -26,6 +27,25 @@ void main() {
         expect(requireAuthenticatedSessionToken('token-123'), 'token-123');
       },
     );
+
+    test('refreshes tokens before they are effectively expired', () {
+      final now = DateTime.utc(2026, 3, 31, 10, 0);
+
+      expect(
+        shouldForceSessionTokenRefresh(
+          DateTime.utc(2026, 3, 31, 10, 4),
+          nowProvider: () => now,
+        ),
+        isTrue,
+      );
+      expect(
+        shouldForceSessionTokenRefresh(
+          DateTime.utc(2026, 3, 31, 10, 20),
+          nowProvider: () => now,
+        ),
+        isFalse,
+      );
+    });
 
     test('detects expired-session style errors', () {
       expect(isExpiredSessionError(Exception('request failed: 401')), isTrue);
