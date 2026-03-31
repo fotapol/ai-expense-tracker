@@ -90,10 +90,11 @@ BudgetOverview buildBudgetOverview({
   required List<BudgetCategoryProgress> categories,
   required double totalSpent,
 }) {
-  final totalBudget = categories.fold<double>(
+  final allocatedBudget = categories.fold<double>(
     0,
     (sum, category) => sum + category.limitAmount,
   );
+  final totalBudget = allocatedBudget > 0 ? allocatedBudget : monthlyIncome;
   return BudgetOverview(
     totalBudget: totalBudget,
     totalSpent: totalSpent,
