@@ -24,6 +24,16 @@ String requireAuthenticatedSessionToken(String? token) {
   return normalized;
 }
 
+bool shouldForceSessionTokenRefresh(
+  DateTime? expirationTime, {
+  DateTime Function()? nowProvider,
+  Duration refreshWindow = const Duration(minutes: 5),
+}) {
+  if (expirationTime == null) return true;
+  final now = (nowProvider ?? DateTime.now)().toUtc();
+  return expirationTime.toUtc().difference(now) <= refreshWindow;
+}
+
 class SessionRestoreGate<T> extends StatelessWidget {
   const SessionRestoreGate({
     super.key,
