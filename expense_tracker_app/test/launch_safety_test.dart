@@ -388,7 +388,7 @@ void main() {
     });
   });
 
-  testWidgets('tools screen hides import and export tools for launch', (
+  testWidgets('tools screen shows import and export tools for launch', (
     tester,
   ) async {
     final l10n = AppLocalizations(const Locale('en'));
@@ -407,8 +407,8 @@ void main() {
     );
     await tester.pump();
 
-    expect(find.text(l10n.tr('tools_data')), findsNothing);
-    expect(find.text(l10n.tr('tools_export_data')), findsNothing);
-    expect(find.text(l10n.tr('tools_import_data')), findsNothing);
+    expect(find.text(l10n.tr('tools_data')), findsOneWidget);
+    expect(find.text(l10n.tr('tools_export_data')), findsOneWidget);
+    expect(find.text(l10n.tr('tools_import_data')), findsOneWidget);
   });
 }
