@@ -15,7 +15,10 @@ class ReceiptManagerScreen extends StatelessWidget {
         title: Text(context.tr('tools_receipt_manager')),
         centerTitle: false,
       ),
-      body: const ReceiptsTab(showTopBar: false),
+      body: const SafeArea(
+        top: false,
+        child: ReceiptsTab(showTopBar: true, includeTopSafeArea: false),
+      ),
     );
   }
 }

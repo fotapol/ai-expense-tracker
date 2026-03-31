@@ -14,8 +14,13 @@ import 'transaction_edit_screen.dart';
 
 class ReceiptsTab extends StatefulWidget {
   final bool showTopBar;
+  final bool includeTopSafeArea;
 
-  const ReceiptsTab({super.key, this.showTopBar = true});
+  const ReceiptsTab({
+    super.key,
+    this.showTopBar = true,
+    this.includeTopSafeArea = true,
+  });
 
   @override
   State<ReceiptsTab> createState() => _ReceiptsTabState();
@@ -311,6 +316,8 @@ class _ReceiptsTabState extends State<ReceiptsTab>
   @override
   Widget build(BuildContext context) {
     return SafeArea(
+      top: widget.includeTopSafeArea,
+      bottom: false,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -330,15 +337,16 @@ class _ReceiptsTabState extends State<ReceiptsTab>
 
   Widget _buildTopBar() {
     return Padding(
-      padding: const EdgeInsets.all(16.0),
+      padding: const EdgeInsets.fromLTRB(16, 12, 16, 12),
       child: Row(
         children: [
           Expanded(
             child: Container(
-              height: 48,
+              height: 50,
               decoration: BoxDecoration(
                 color: Theme.of(context).colorScheme.surface,
-                borderRadius: BorderRadius.circular(12),
+                borderRadius: BorderRadius.circular(16),
+                border: Border.all(color: Colors.grey.shade300),
               ),
               child: TextField(
                 controller: _searchController,
@@ -348,15 +356,31 @@ class _ReceiptsTabState extends State<ReceiptsTab>
                   border: InputBorder.none,
                   contentPadding: const EdgeInsets.symmetric(vertical: 14),
                 ),
-                onSubmitted: (_) => _fetchTransactions(),
+                onChanged: (value) {
+                  if (value.trim().isEmpty && _merchantSearch.isNotEmpty) {
+                    setState(() => _merchantSearch = '');
+                    _fetchTransactions();
+                  }
+                },
+                onSubmitted: (_) {
+                  setState(
+                    () => _merchantSearch = _searchController.text.trim(),
+                  );
+                  _fetchTransactions();
+                },
               ),
             ),
           ),
-          const SizedBox(width: 12),
-          IconButton(
-            icon: const Icon(Icons.add_circle_outline),
-            color: Theme.of(context).colorScheme.primary,
-            onPressed: () {
+          const SizedBox(width: 10),
+          _buildTopActionButton(
+            icon: Icons.tune,
+            onTap: _openFilters,
+            tooltip: context.tr('common_filter'),
+          ),
+          const SizedBox(width: 8),
+          _buildTopActionButton(
+            icon: Icons.add_circle_outline,
+            onTap: () {
               Navigator.push(
                 context,
                 MaterialPageRoute(
@@ -364,13 +388,37 @@ class _ReceiptsTabState extends State<ReceiptsTab>
                 ),
               ).then((_) => _fetchTransactions());
             },
-          ),
-          IconButton(
-            icon: const Icon(Icons.tune),
-            color: Theme.of(context).colorScheme.primary,
-            onPressed: _openFilters,
+            tooltip: context.tr('home_add_expense'),
           ),
         ],
+      ),
+    );
+  }
+
+  Widget _buildTopActionButton({
+    required IconData icon,
+    required VoidCallback onTap,
+    required String tooltip,
+  }) {
+    return Tooltip(
+      message: tooltip,
+      child: InkWell(
+        borderRadius: BorderRadius.circular(16),
+        onTap: onTap,
+        child: Container(
+          width: 46,
+          height: 46,
+          decoration: BoxDecoration(
+            color: Theme.of(context).colorScheme.surface,
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(color: Colors.grey.shade300),
+          ),
+          child: Icon(
+            icon,
+            size: 20,
+            color: Theme.of(context).colorScheme.primary,
+          ),
+        ),
       ),
     );
   }
@@ -833,7 +881,7 @@ class _ReceiptsTabState extends State<ReceiptsTab>
                     Text(
                       '- ${_formatMoney(displayCurrency, receiptSavings)}',
                       style: TextStyle(
-                        color: Colors.orange.shade300,
+                        color: Theme.of(context).colorScheme.primary,
                         fontSize: 12,
                         fontWeight: FontWeight.w600,
                       ),
@@ -931,78 +979,83 @@ class _ReceiptsTabState extends State<ReceiptsTab>
       }
     }
 
-    return Container(
-      padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        color: Theme.of(context).colorScheme.surface,
-        border: Border(top: BorderSide(color: Colors.grey.shade800)),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    context.tr('receipts_total_for_period'),
-                    style: TextStyle(color: Colors.grey.shade400, fontSize: 12),
-                  ),
-                  const SizedBox(height: 4),
-                  Text(
-                    _formatMoney(totalCurrency, totalPeriodExpense),
-                    style: const TextStyle(
-                      fontWeight: FontWeight.bold,
-                      fontSize: 20,
-                    ),
-                  ),
-                ],
-              ),
-              Text(
-                context.tr(
-                  'receipts_count',
-                  params: {'count': _transactions.length.toString()},
-                ),
-                style: TextStyle(color: Colors.grey.shade400, fontSize: 14),
-              ),
-            ],
-          ),
-          const SizedBox(height: 10),
-          Row(
-            children: [
-              if (totalPeriodSavings > 0) ...[
-                Text(
-                  context.tr('transaction_total_savings'),
-                  style: TextStyle(
-                    color: Colors.orange.shade300,
-                    fontSize: 16,
-                    fontWeight: FontWeight.w600,
+    final primaryColor = Theme.of(context).colorScheme.primary;
+    final mutedColor = Colors.grey.shade500;
+
+    return SafeArea(
+      top: false,
+      child: Container(
+        padding: const EdgeInsets.fromLTRB(16, 12, 16, 14),
+        decoration: BoxDecoration(
+          color: Theme.of(context).colorScheme.surface,
+          border: Border(top: BorderSide(color: Colors.grey.shade300)),
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        context.tr('receipts_total_for_period'),
+                        style: TextStyle(color: mutedColor, fontSize: 11.5),
+                      ),
+                      const SizedBox(height: 3),
+                      Text(
+                        _formatMoney(totalCurrency, totalPeriodExpense),
+                        style: const TextStyle(
+                          fontWeight: FontWeight.w700,
+                          fontSize: 18,
+                        ),
+                      ),
+                    ],
                   ),
                 ),
-                const Spacer(),
+                const SizedBox(width: 12),
                 Text(
-                  _formatMoney(totalCurrency, totalPeriodSavings),
-                  style: TextStyle(
-                    color: Colors.orange.shade300,
-                    fontSize: 16,
-                    fontWeight: FontWeight.w700,
+                  context.tr(
+                    'receipts_count',
+                    params: {'count': _transactions.length.toString()},
                   ),
-                ),
-              ] else ...[
-                Text(
-                  context.tr('receipts_no_discounts'),
                   style: TextStyle(
-                    color: Colors.grey.shade500,
-                    fontSize: 16,
+                    color: mutedColor,
+                    fontSize: 12.5,
                     fontWeight: FontWeight.w500,
                   ),
                 ),
               ],
-            ],
-          ),
-        ],
+            ),
+            const SizedBox(height: 8),
+            Row(
+              children: [
+                Text(
+                  totalPeriodSavings > 0
+                      ? context.tr('transaction_total_savings')
+                      : context.tr('receipts_no_discounts'),
+                  style: TextStyle(
+                    color: totalPeriodSavings > 0 ? primaryColor : mutedColor,
+                    fontSize: 12.5,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+                const Spacer(),
+                if (totalPeriodSavings > 0)
+                  Text(
+                    _formatMoney(totalCurrency, totalPeriodSavings),
+                    style: TextStyle(
+                      color: primaryColor,
+                      fontSize: 13,
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
+              ],
+            ),
+          ],
+        ),
       ),
     );
   }
