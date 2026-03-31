@@ -273,6 +273,47 @@ void main() {
     test('accepts active subscription ids from RevenueCat customer info', () {
       expect(
         customerInfoConfirmsPremiumAccess(
+
+    test('merges optimistic premium access into feature codes', () async {
+      SharedPreferences.setMockInitialValues(<String, Object>{
+        'optimistic_premium_access_stored_at': DateTime.utc(
+          2026,
+          3,
+          31,
+          8,
+        ).toIso8601String(),
+      });
+
+      final featureCodes = await featureCodesWithOptimisticPremiumAccess(
+        const <String>{'basic.analytics'},
+        nowProvider: () => DateTime.utc(2026, 3, 31, 9),
+      );
+
+      expect(featureCodes, contains('basic.analytics'));
+      expect(featureCodes, contains('premium.analytics.advanced'));
+      expect(featureCodes, contains('premium.receipt_scans.unlimited'));
+    });
+
+    test(
+      'expires optimistic premium access after the fallback window',
+      () async {
+        SharedPreferences.setMockInitialValues(<String, Object>{
+          'optimistic_premium_access_stored_at': DateTime.utc(
+            2026,
+            3,
+            31,
+            8,
+          ).toIso8601String(),
+        });
+
+        expect(
+          await hasOptimisticPremiumAccess(
+            nowProvider: () => DateTime.utc(2026, 3, 31, 11),
+          ),
+          isFalse,
+        );
+      },
+    );
           hasPremiumEntitlement: false,
           activeSubscriptions: const ['individual_plan_monthly'],
           acceptedProductIds: const ['individual_plan_monthly', '\$rc_monthly'],
