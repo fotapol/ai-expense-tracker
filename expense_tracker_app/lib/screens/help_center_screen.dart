@@ -2,6 +2,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
 
+import '../core/app_env.dart';
 import '../core/redesign_system.dart';
 import '../l10n/app_localizations.dart';
 import 'settings_detail_scaffold.dart';
@@ -121,22 +122,18 @@ class _HelpCenterScreenState extends State<HelpCenterScreen> {
   }
 
   Future<void> _openSupport() async {
-    const supportEmail = 'support@expense-tracker.app';
+    final supportEmail = AppEnv.supportEmail;
     final uri = Uri(
       scheme: 'mailto',
       path: supportEmail,
-      queryParameters: {'subject': 'Expense Tracker Support'},
+      queryParameters: {'subject': AppEnv.supportSubject},
     );
     final opened = await launchUrl(uri);
     if (!mounted || opened) return;
-    await Clipboard.setData(const ClipboardData(text: supportEmail));
+    await Clipboard.setData(ClipboardData(text: supportEmail));
     if (!mounted) return;
     ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text(
-          'Support email copied: support@expense-tracker.app',
-        ),
-      ),
+      SnackBar(content: Text('Support email copied: $supportEmail')),
     );
   }
 
