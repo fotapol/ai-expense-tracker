@@ -50,6 +50,9 @@ class ShellStyles {
   static Color textMuted(BuildContext context) =>
       isDark(context) ? ShellColors.darkMuted : ShellColors.lightMuted;
 
+  static Color accent(BuildContext context) =>
+      Theme.of(context).colorScheme.primary;
+
   static BoxDecoration cardDecoration(
     BuildContext context, {
     double radius = 22,

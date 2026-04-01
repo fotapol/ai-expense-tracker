@@ -1,150 +1,361 @@
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import 'money_format_preferences.dart';
 import 'redesign_system.dart';
+
+@immutable
+class AppAccentTheme {
+  const AppAccentTheme({
+    required this.id,
+    required this.label,
+    required this.lightPrimary,
+    required this.darkPrimary,
+    required this.previewGradient,
+  });
+
+  final String id;
+  final String label;
+  final Color lightPrimary;
+  final Color darkPrimary;
+  final Gradient previewGradient;
+
+  Color primaryFor(Brightness brightness) =>
+      brightness == Brightness.dark ? darkPrimary : lightPrimary;
+}
+
+@immutable
+class AppDisplayThemeExtension
+    extends ThemeExtension<AppDisplayThemeExtension> {
+  const AppDisplayThemeExtension({
+    required this.symbolPosition,
+    required this.showDecimals,
+  });
+
+  final String symbolPosition;
+  final bool showDecimals;
+
+  @override
+  AppDisplayThemeExtension copyWith({
+    String? symbolPosition,
+    bool? showDecimals,
+  }) {
+    return AppDisplayThemeExtension(
+      symbolPosition: symbolPosition ?? this.symbolPosition,
+      showDecimals: showDecimals ?? this.showDecimals,
+    );
+  }
+
+  @override
+  AppDisplayThemeExtension lerp(
+    ThemeExtension<AppDisplayThemeExtension>? other,
+    double t,
+  ) {
+    if (other is! AppDisplayThemeExtension) {
+      return this;
+    }
+    return t < 0.5 ? this : other;
+  }
+}
+
+const List<AppAccentTheme> appAccentThemes = <AppAccentTheme>[
+  AppAccentTheme(
+    id: 'neutral',
+    label: 'Neutral',
+    lightPrimary: Color(0xFF1C1A19),
+    darkPrimary: Color(0xFFE9E1D2),
+    previewGradient: LinearGradient(
+      begin: Alignment.topLeft,
+      end: Alignment.bottomRight,
+      colors: <Color>[Color(0xFF111111), Color(0xFF4A4A4A)],
+    ),
+  ),
+  AppAccentTheme(
+    id: 'purple',
+    label: 'Purple',
+    lightPrimary: Color(0xFF7A4DCC),
+    darkPrimary: Color(0xFFD2BCFF),
+    previewGradient: LinearGradient(
+      begin: Alignment.topLeft,
+      end: Alignment.bottomRight,
+      colors: <Color>[Color(0xFF6E3FD2), Color(0xFFC08BFF)],
+    ),
+  ),
+  AppAccentTheme(
+    id: 'mix',
+    label: 'Mix',
+    lightPrimary: Color(0xFFE64F8F),
+    darkPrimary: Color(0xFFFFC1E1),
+    previewGradient: LinearGradient(
+      begin: Alignment.topLeft,
+      end: Alignment.bottomRight,
+      colors: <Color>[
+        Color(0xFFFF5F6D),
+        Color(0xFFFFC371),
+        Color(0xFF57CC99),
+        Color(0xFF4D96FF),
+      ],
+    ),
+  ),
+];
 
 class ThemeProvider extends ChangeNotifier {
   static const String _keyTheme = 'theme_mode';
   static const String _keyFontSize = 'font_size';
-  
-  ThemeMode _themeMode = ThemeMode.system;
-  String _fontSizeId = 'medium';
+  static const String _keyAccent = 'accent_color';
+
+  ThemeMode _themeMode = ThemeMode.light;
+  String _fontSizeId = '100';
+  String _accentId = 'neutral';
 
   ThemeMode get themeMode => _themeMode;
   String get fontSizeId => _fontSizeId;
+  String get accentId => _accentId;
+  List<AppAccentTheme> get availableAccents => appAccentThemes;
 
-  ThemeProvider() {
-    _loadFromPrefs();
-  }
+  AppAccentTheme get accentTheme => _accentFor(_accentId);
+  String get accentLabel => accentTheme.label;
 
-  Future<void> _loadFromPrefs() async {
+  Future<void> load() async {
     final prefs = await SharedPreferences.getInstance();
-    final themeIndex = prefs.getInt(_keyTheme);
-    if (themeIndex != null && themeIndex >= 0 && themeIndex < ThemeMode.values.length) {
-      _themeMode = ThemeMode.values[themeIndex];
-    } else {
-      final isDark = prefs.getBool('is_dark_mode');
-      if (isDark == true) {
-        _themeMode = ThemeMode.dark;
-      } else if (isDark == false) {
-        _themeMode = ThemeMode.light;
-      }
-    }
-    _fontSizeId = prefs.getString(_keyFontSize) ?? 'medium';
+    _themeMode = _normalizeThemeMode(prefs.getInt(_keyTheme));
+    _fontSizeId = _normalizeFontSizeId(prefs.getString(_keyFontSize));
+    _accentId = _normalizeAccentId(prefs.getString(_keyAccent));
+    await prefs.setInt(_keyTheme, _themeMode.index);
+    await prefs.setString(_keyFontSize, _fontSizeId);
+    await prefs.setString(_keyAccent, _accentId);
     notifyListeners();
   }
 
   Future<void> setThemeMode(ThemeMode mode) async {
-    if (_themeMode == mode) return;
-    _themeMode = mode;
+    final normalized = _normalizeThemeMode(mode.index);
+    if (_themeMode == normalized) return;
+    _themeMode = normalized;
     final prefs = await SharedPreferences.getInstance();
     await prefs.setInt(_keyTheme, _themeMode.index);
     notifyListeners();
   }
 
   Future<void> setFontSize(String sizeId) async {
-    if (_fontSizeId == sizeId) return;
-    _fontSizeId = sizeId;
+    final normalized = _normalizeFontSizeId(sizeId);
+    if (_fontSizeId == normalized) return;
+    _fontSizeId = normalized;
     final prefs = await SharedPreferences.getInstance();
     await prefs.setString(_keyFontSize, _fontSizeId);
     notifyListeners();
   }
 
-  bool get isDarkMode => _themeMode == ThemeMode.dark;
+  Future<void> setAccent(String accentId) async {
+    final normalized = _normalizeAccentId(accentId);
+    if (_accentId == normalized) return;
+    _accentId = normalized;
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString(_keyAccent, _accentId);
+    notifyListeners();
+  }
 
-  Future<void> setDarkMode(bool value) => setThemeMode(value ? ThemeMode.dark : ThemeMode.light);
+  String get scalePercentLabel => _fontSizeId;
 
-  Future<void> toggle() => setThemeMode(isDarkMode ? ThemeMode.light : ThemeMode.dark);
-
-  double get fontSizeFactor {
-    switch (_fontSizeId) {
-      case 'small': return 0.9;
-      case 'large': return 1.15;
-      case 'medium':
-      default: return 1.0;
+  String get themeModeLabel {
+    switch (_themeMode) {
+      case ThemeMode.system:
+        return 'Auto';
+      case ThemeMode.dark:
+        return 'Dark';
+      case ThemeMode.light:
+        return 'Light';
     }
   }
 
-  ThemeData get lightTheme {
+  bool get isDarkMode => _themeMode == ThemeMode.dark;
+
+  Future<void> setDarkMode(bool value) =>
+      setThemeMode(value ? ThemeMode.dark : ThemeMode.light);
+
+  Future<void> toggle() =>
+      setThemeMode(isDarkMode ? ThemeMode.light : ThemeMode.dark);
+
+  double get fontSizeFactor {
+    switch (_fontSizeId) {
+      case '60':
+        return 0.6;
+      case '80':
+        return 0.8;
+      case '120':
+        return 1.2;
+      case '100':
+      default:
+        return 1.0;
+    }
+  }
+
+  ThemeData get lightTheme => _buildTheme(Brightness.light);
+
+  ThemeData get darkTheme => _buildTheme(Brightness.dark);
+
+  ThemeData get themeData => lightTheme;
+
+  ThemeData _buildTheme(Brightness brightness) {
+    final isDark = brightness == Brightness.dark;
+    final accent = accentTheme.primaryFor(brightness);
+    final background = isDark
+        ? ShellColors.darkBackground
+        : ShellColors.lightBackground;
+    final surface = isDark ? ShellColors.darkSurface : ShellColors.lightSurface;
+    final surfaceAlt = isDark
+        ? ShellColors.darkSurfaceAlt
+        : ShellColors.lightSurfaceAlt;
+    final border = isDark ? ShellColors.darkBorder : ShellColors.lightBorder;
+    final text = isDark ? ShellColors.darkText : ShellColors.lightText;
+    final muted = isDark ? ShellColors.darkMuted : ShellColors.lightMuted;
+    final onPrimary = isDark ? ShellColors.darkBackground : Colors.white;
+
     final base = ThemeData(
-      brightness: Brightness.light,
-      scaffoldBackgroundColor: ShellColors.lightBackground,
-      colorScheme: const ColorScheme.light(
-        primary: ShellColors.lightAccent,
+      brightness: brightness,
+      scaffoldBackgroundColor: background,
+      colorScheme: ColorScheme(
+        brightness: brightness,
+        primary: accent,
+        onPrimary: onPrimary,
         secondary: ShellColors.gold,
-        surface: ShellColors.lightSurface,
-        onSurface: ShellColors.lightText,
+        onSecondary: Colors.black,
+        error: ShellColors.softRed,
+        onError: Colors.white,
+        surface: surface,
+        onSurface: text,
       ),
-      dividerColor: ShellColors.lightBorder,
-      appBarTheme: const AppBarTheme(
+      dividerColor: border,
+      appBarTheme: AppBarTheme(
         backgroundColor: Colors.transparent,
-        foregroundColor: ShellColors.lightText,
+        foregroundColor: text,
         elevation: 0,
       ),
       snackBarTheme: const SnackBarThemeData(
         behavior: SnackBarBehavior.floating,
       ),
-      inputDecorationTheme: InputDecorationTheme(
-        filled: true,
-        fillColor: ShellColors.lightSurface,
-        border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(16),
-          borderSide: const BorderSide(color: ShellColors.lightBorder),
-        ),
-        enabledBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(16),
-          borderSide: const BorderSide(color: ShellColors.lightBorder),
-        ),
-        focusedBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(16),
-          borderSide: const BorderSide(color: ShellColors.lightAccent),
+      filledButtonTheme: FilledButtonThemeData(
+        style: FilledButton.styleFrom(
+          backgroundColor: accent,
+          foregroundColor: onPrimary,
         ),
       ),
-      useMaterial3: true,
-    );
-    return base;
-  }
-
-  ThemeData get darkTheme {
-    final base = ThemeData(
-      brightness: Brightness.dark,
-      scaffoldBackgroundColor: ShellColors.darkBackground,
-      colorScheme: const ColorScheme.dark(
-        primary: ShellColors.gold,
-        secondary: ShellColors.softBlue,
-        surface: ShellColors.darkSurface,
-        onSurface: ShellColors.darkText,
+      textButtonTheme: TextButtonThemeData(
+        style: TextButton.styleFrom(foregroundColor: accent),
       ),
-      dividerColor: ShellColors.darkBorder,
-      appBarTheme: const AppBarTheme(
-        backgroundColor: Colors.transparent,
-        foregroundColor: ShellColors.darkText,
-        elevation: 0,
-      ),
-      snackBarTheme: const SnackBarThemeData(
-        behavior: SnackBarBehavior.floating,
+      chipTheme: ChipThemeData(
+        backgroundColor: surfaceAlt,
+        selectedColor: accent.withAlpha(isDark ? 52 : 34),
+        disabledColor: surfaceAlt,
+        secondarySelectedColor: accent.withAlpha(isDark ? 52 : 34),
+        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+        labelStyle: TextStyle(color: text),
+        secondaryLabelStyle: TextStyle(color: text),
+        brightness: brightness,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(999),
+          side: BorderSide(color: border),
+        ),
       ),
       inputDecorationTheme: InputDecorationTheme(
         filled: true,
-        fillColor: ShellColors.darkSurfaceAlt,
+        fillColor: surface,
+        hintStyle: TextStyle(color: muted),
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(16),
-          borderSide: const BorderSide(color: ShellColors.darkBorder),
+          borderSide: BorderSide(color: border),
         ),
         enabledBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(16),
-          borderSide: const BorderSide(color: ShellColors.darkBorder),
+          borderSide: BorderSide(color: border),
         ),
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(16),
-          borderSide: const BorderSide(color: ShellColors.gold),
+          borderSide: BorderSide(color: accent, width: 1.3),
         ),
       ),
+      dropdownMenuTheme: DropdownMenuThemeData(
+        inputDecorationTheme: InputDecorationTheme(
+          filled: true,
+          fillColor: surface,
+          hintStyle: TextStyle(color: muted),
+          border: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(16),
+            borderSide: BorderSide(color: border),
+          ),
+          enabledBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(16),
+            borderSide: BorderSide(color: border),
+          ),
+          focusedBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(16),
+            borderSide: BorderSide(color: accent, width: 1.3),
+          ),
+        ),
+        menuStyle: MenuStyle(
+          backgroundColor: WidgetStatePropertyAll<Color>(surface),
+          shape: WidgetStatePropertyAll<RoundedRectangleBorder>(
+            RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
+          ),
+        ),
+      ),
+      extensions: <ThemeExtension<dynamic>>[
+        AppDisplayThemeExtension(
+          symbolPosition: moneyFormatSettings.symbolPosition,
+          showDecimals: moneyFormatSettings.showDecimals,
+        ),
+      ],
       useMaterial3: true,
     );
+
     return base;
   }
 
-  // Backwards compatibility
-  ThemeData get themeData => isDarkMode ? darkTheme : lightTheme;
+  ThemeMode _normalizeThemeMode(int? rawIndex) {
+    switch (rawIndex) {
+      case 0:
+        return ThemeMode.system;
+      case 1:
+        return ThemeMode.light;
+      case 2:
+        return ThemeMode.dark;
+      default:
+        return ThemeMode.light;
+    }
+  }
+
+  String _normalizeFontSizeId(String? raw) {
+    switch ((raw ?? '').trim()) {
+      case 'tiny':
+      case '60':
+        return '60';
+      case 'small':
+      case '90':
+      case '80':
+        return '80';
+      case 'large':
+      case '110':
+      case '120':
+        return '120';
+      case 'medium':
+      case '100':
+      default:
+        return '100';
+    }
+  }
+
+  String _normalizeAccentId(String? raw) {
+    final normalized = (raw ?? '').trim().toLowerCase();
+    if (normalized == 'rainbow') return 'mix';
+    for (final accent in appAccentThemes) {
+      if (accent.id == normalized) return accent.id;
+    }
+    return appAccentThemes.first.id;
+  }
+
+  AppAccentTheme _accentFor(String id) {
+    for (final accent in appAccentThemes) {
+      if (accent.id == id) return accent;
+    }
+    return appAccentThemes.first;
+  }
 }

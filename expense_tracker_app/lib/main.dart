@@ -6,10 +6,13 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'firebase_options.dart';
+import 'core/app_env.dart';
 import 'core/app_navigation.dart';
 import 'core/api_client.dart';
 import 'core/auth_session.dart';
 import 'core/bill_reminder_notification_service.dart';
+import 'core/item_translation_preferences.dart';
+import 'core/money_format_preferences.dart';
 // TODO(household): re-import invite_link_service when household feature ships
 // import 'core/invite_link_service.dart';
 import 'core/locale_provider.dart';
@@ -27,12 +30,16 @@ final localeProvider = LocaleProvider();
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  await AppEnv.load();
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
   await GoogleSignIn.instance.initialize();
   await RevenueCatService.logInCurrentUser();
   // TODO(household): restore invite link initialization when household feature ships
   // await InviteLinkService.instance.initialize();
   await BillReminderNotificationService.instance.initialize();
+  await themeProvider.load();
+  await moneyFormatSettings.load();
+  await itemTranslationPreferences.load();
   await localeProvider.load();
   runApp(const MyApp());
 }
@@ -95,6 +102,8 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
     themeProvider.addListener(_refreshApp);
+    moneyFormatSettings.addListener(_refreshApp);
+    itemTranslationPreferences.addListener(_refreshApp);
     localeProvider.addListener(_refreshApp);
 
     // TODO(household): restore invite listener when household feature ships
@@ -139,6 +148,8 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
   void dispose() {
     WidgetsBinding.instance.removeObserver(this);
     themeProvider.removeListener(_refreshApp);
+    moneyFormatSettings.removeListener(_refreshApp);
+    itemTranslationPreferences.removeListener(_refreshApp);
     localeProvider.removeListener(_refreshApp);
 
     // TODO(household): restore invite listener when household feature ships
