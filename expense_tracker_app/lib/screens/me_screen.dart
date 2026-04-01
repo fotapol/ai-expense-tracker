@@ -274,9 +274,7 @@ class _MeScreenState extends State<MeScreen> {
   }
 
   String _appearanceSubtitle(BuildContext context) {
-    return themeProvider.isDarkMode
-        ? context.tr('settings_theme_dark')
-        : context.tr('settings_theme_light');
+    return '${themeProvider.themeModeLabel} - ${themeProvider.accentLabel} - ${themeProvider.scalePercentLabel}%';
   }
 
   @override
@@ -429,7 +427,6 @@ class _MeScreenState extends State<MeScreen> {
                   icon: AppIcons.translate,
                   title: context.tr('settings_items_language'),
                   subtitle: _currentItemsLanguageSubtitle(),
-                  badge: _buildFeatureTag('BETA', ShellColors.softBlue),
                   onTap: () => _openSettingsRoute(
                     ItemsTranslationSettingsScreen(
                       initialCode: _currentItemsLanguageCode(),

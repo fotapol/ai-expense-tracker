@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 
 import '../core/api_client.dart';
+import '../core/item_translation_preferences.dart';
 import '../core/item_translation_service.dart';
 import '../core/money_formatter.dart';
 import '../core/redesign_system.dart';
@@ -83,6 +84,12 @@ class _AnalyticsSubcategoryItemsScreenState
           item['translation_source_language']?.toString(),
         );
       }
+      sourceLanguage =
+          itemTranslationPreferences.resolveSourceLanguage(
+            sourceLanguage,
+            fallbackLanguageCode: _resolveAppLanguage(),
+          ) ??
+          '';
       final result = await ItemTranslationService.instance.translate(
         sourceText: description,
         sourceLanguage: sourceLanguage.isNotEmpty ? sourceLanguage : null,

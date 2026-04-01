@@ -7,6 +7,8 @@ import 'package:intl/intl.dart';
 import '../core/api_client.dart';
 import '../core/auto_refresh_state_mixin.dart';
 import '../core/launch_error_copy.dart';
+import '../core/money_formatter.dart';
+import '../core/money_format_preferences.dart';
 import '../core/redesign_system.dart';
 import '../core/session_invalidation.dart';
 import '../core/subscription_confirmation.dart';
@@ -47,7 +49,19 @@ class _HomeTabState extends State<HomeTab>
   @override
   void initState() {
     super.initState();
+    moneyFormatSettings.addListener(_handleDisplayPreferencesChanged);
     _loadHomeData();
+  }
+
+  @override
+  void dispose() {
+    moneyFormatSettings.removeListener(_handleDisplayPreferencesChanged);
+    super.dispose();
+  }
+
+  void _handleDisplayPreferencesChanged() {
+    if (!mounted) return;
+    setState(() {});
   }
 
   DateTime get _currentMonthStart {
@@ -230,19 +244,8 @@ class _HomeTabState extends State<HomeTab>
       (_monthlySummary?['currency']?.toString() ?? _preferredCurrency)
           .toUpperCase();
 
-  String _currencySymbol(String code) {
-    final symbol = CurrencyDisplay.symbolForCode(code);
-    return symbol == 'RSD' ? 'RSD ' : '$symbol ';
-  }
-
   String _formatMoney(String currency, double amount, {int decimals = 0}) {
-    final symbol = _currencySymbol(currency);
-    final absolute = amount.abs().toStringAsFixed(decimals);
-    final sign = amount < 0 ? '-' : '';
-    if (symbol != '${currency.toUpperCase()} ') {
-      return '$sign$symbol$absolute';
-    }
-    return '$sign${currency.toUpperCase()} $absolute';
+    return formatMoney(currency, amount, decimals: decimals);
   }
 
   double? get _changeRatio {

@@ -5,8 +5,10 @@ import 'package:currency_picker/currency_picker.dart';
 import 'package:intl/intl.dart';
 import '../core/api_client.dart';
 import '../core/auth_session.dart';
+import '../core/item_translation_preferences.dart';
 import '../core/item_translation_service.dart';
 import '../core/launch_error_copy.dart';
+import '../core/money_formatter.dart';
 import '../core/redesign_system.dart';
 import '../core/session_invalidation.dart';
 import '../core/taxonomy_localization.dart';
@@ -573,6 +575,7 @@ class _TransactionEditScreenState extends State<TransactionEditScreen> {
     return fixed.replaceFirst(RegExp(r'\.?0+$'), '');
   }
 
+  // ignore: unused_element
   String _currencySymbol(String code) {
     final normalized = code.toUpperCase();
     if (normalized == 'EUR') return '\u20AC';
@@ -596,12 +599,7 @@ class _TransactionEditScreenState extends State<TransactionEditScreen> {
   }
 
   String _formatMoney(String currency, double amount) {
-    final symbol = _currencySymbol(currency);
-    if (symbol != '${currency.toUpperCase()} ') {
-      final sign = amount < 0 ? '-' : '';
-      return '$sign$symbol${amount.abs().toStringAsFixed(2)}';
-    }
-    return '${currency.toUpperCase()} ${amount.toStringAsFixed(2)}';
+    return formatMoney(currency, amount);
   }
 
   String _normalizeLanguageCode(String? raw) {
@@ -655,6 +653,12 @@ class _TransactionEditScreenState extends State<TransactionEditScreen> {
             item['translation_source_language']?.toString(),
           );
         }
+        sourceLanguage =
+            itemTranslationPreferences.resolveSourceLanguage(
+              sourceLanguage,
+              fallbackLanguageCode: _resolveAppLanguage(),
+            ) ??
+            '';
         final result = await ItemTranslationService.instance.translate(
           sourceText: description,
           sourceLanguage: sourceLanguage.isNotEmpty ? sourceLanguage : null,

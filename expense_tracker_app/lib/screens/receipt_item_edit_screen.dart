@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../core/money_formatter.dart';
 import '../core/redesign_system.dart';
 import '../core/taxonomy_localization.dart';
 import '../l10n/app_localizations.dart';
@@ -198,7 +199,7 @@ class _ReceiptItemEditScreenState extends State<ReceiptItemEditScreen> {
   String _unitLabel(String unit) => unit == 'pc' ? 'pcs' : unit;
 
   String _formatMoney(String currency, double amount) {
-    return '${CurrencyDisplay.labelForCode(currency)} ${amount.toStringAsFixed(2)}';
+    return formatMoney(currency, amount);
   }
 
   double _toDisplayAmount(double sourceAmount) {

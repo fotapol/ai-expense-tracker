@@ -4,6 +4,7 @@ import '../core/auto_refresh_state_mixin.dart';
 import '../core/api_client.dart';
 import '../core/category_style.dart';
 import '../core/launch_error_copy.dart';
+import '../core/money_formatter.dart';
 import '../core/session_invalidation.dart';
 import '../core/taxonomy_localization.dart';
 import '../l10n/app_localizations.dart';
@@ -123,6 +124,7 @@ class _ReceiptsTabState extends State<ReceiptsTab>
     return Color(parsed);
   }
 
+  // ignore: unused_element
   String _currencySymbol(String code) {
     final normalized = code.toUpperCase();
     if (normalized == 'EUR') return '\u20AC';
@@ -146,12 +148,7 @@ class _ReceiptsTabState extends State<ReceiptsTab>
   }
 
   String _formatMoney(String currency, double amount) {
-    final symbol = _currencySymbol(currency);
-    if (symbol != '${currency.toUpperCase()} ') {
-      final sign = amount < 0 ? '-' : '';
-      return '$sign$symbol${amount.abs().toStringAsFixed(2)}';
-    }
-    return '${currency.toUpperCase()} ${amount.toStringAsFixed(2)}';
+    return formatMoney(currency, amount);
   }
 
   double _displayAmountOf(Map<String, dynamic> tx) {
