@@ -10,6 +10,7 @@ import '../core/session_invalidation.dart';
 import '../core/single_user_launch.dart';
 import '../core/subscription_confirmation.dart';
 import '../l10n/app_localizations.dart';
+import '../main.dart';
 import 'settings_detail_scaffold.dart';
 
 class SubscriptionScreen extends StatefulWidget {
@@ -581,18 +582,73 @@ class _SubscriptionScreenState extends State<SubscriptionScreen> {
 
   String _currentPlanSubtitle(BuildContext context) {
     if (!_hasActiveSubscription) {
-      return context.tr(
-        'billing_free_plan_subtitle',
-        params: {'limit': '$_receiptScanLimit'},
-      );
+      return 'You are currently on the Free plan for this account.';
     }
-    return context.tr(
-      'billing_active_until_compact',
-      params: {'date': _formatDate(_subscription?['expires_at']?.toString())},
+    return 'Premium is active for this account.';
+  }
+
+  List<String> _currentAccessLines() {
+    if (_hasActiveSubscription) {
+      return const [
+        'Unlimited receipt scans',
+        'Advanced analytics breakdowns',
+        'Full data export history',
+      ];
+    }
+    return <String>[
+      '$_receiptScanLimit receipt scans in each rolling 30-day window',
+      'Core tools stay available: labels, categories, budgets, and bill reminders',
+      'Data export includes your last 30 days on the Free plan',
+    ];
+  }
+
+  String _currentPlanFootnote() {
+    if (_hasActiveSubscription) {
+      if (_receiptScanResetAtUtc != null) {
+        return context.tr(
+          'billing_resets_on',
+          params: {
+            'date': _formatDate(_receiptScanResetAtUtc!.toIso8601String()),
+          },
+        );
+      }
+      return 'Restore Purchases is available if Premium does not sync after reinstalling or changing devices.';
+    }
+    return 'Upgrade only if you need more scans, deeper analytics, or the full export range.';
+  }
+
+  Widget _buildAccessLine(String text) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 10),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Padding(
+            padding: EdgeInsets.only(top: 2),
+            child: Icon(
+              AppIcons.checkCircle,
+              color: ShellColors.softGreen,
+              size: 16,
+            ),
+          ),
+          const SizedBox(width: 8),
+          Expanded(
+            child: Text(
+              text,
+              style: TextStyle(
+                color: ShellStyles.textPrimary(context),
+                fontSize: 13,
+                height: 1.4,
+              ),
+            ),
+          ),
+        ],
+      ),
     );
   }
 
   Widget _buildActivePlanHero(BuildContext context) {
+    final uiScale = themeProvider.fontSizeFactor.clamp(0.75, 1.15).toDouble();
     final usageValue = _receiptScanUnlimited
         ? 'Unlimited'
         : '${_receiptScanRemaining ?? 0} left';
@@ -603,7 +659,7 @@ class _SubscriptionScreenState extends State<SubscriptionScreen> {
     Widget metric({required String label, required String value}) {
       return Expanded(
         child: Container(
-          padding: const EdgeInsets.all(14),
+          padding: EdgeInsets.all(14 * uiScale),
           decoration: BoxDecoration(
             color: Colors.white.withAlpha(14),
             borderRadius: BorderRadius.circular(16),
@@ -616,17 +672,17 @@ class _SubscriptionScreenState extends State<SubscriptionScreen> {
                 label.toUpperCase(),
                 style: TextStyle(
                   color: Colors.white.withAlpha(170),
-                  fontSize: 10.5,
+                  fontSize: 10.5 * uiScale,
                   fontWeight: FontWeight.w700,
                   letterSpacing: 0.8,
                 ),
               ),
-              const SizedBox(height: 6),
+              SizedBox(height: 6 * uiScale),
               Text(
                 value,
-                style: const TextStyle(
+                style: TextStyle(
                   color: Colors.white,
-                  fontSize: 16,
+                  fontSize: 16 * uiScale,
                   fontWeight: FontWeight.w800,
                 ),
               ),
@@ -637,7 +693,7 @@ class _SubscriptionScreenState extends State<SubscriptionScreen> {
     }
 
     return Container(
-      padding: const EdgeInsets.all(20),
+      padding: EdgeInsets.all(20 * uiScale),
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(24),
         gradient: const LinearGradient(
@@ -661,37 +717,191 @@ class _SubscriptionScreenState extends State<SubscriptionScreen> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Container(
-                width: 46,
-                height: 46,
+                width: 46 * uiScale,
+                height: 46 * uiScale,
                 alignment: Alignment.center,
                 decoration: BoxDecoration(
                   color: Colors.white.withAlpha(12),
                   borderRadius: BorderRadius.circular(14),
                 ),
-                child: const CrownIcon(
+                child: CrownIcon(
                   color: ShellColors.gold,
-                  size: 24,
+                  size: 24 * uiScale,
                   strokeWidth: 1.8,
                 ),
               ),
-              const SizedBox(width: 14),
+              SizedBox(width: 14 * uiScale),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
                       _currentPlanTitle(context),
-                      style: const TextStyle(
+                      style: TextStyle(
                         color: Colors.white,
-                        fontSize: 20,
+                        fontSize: 20 * uiScale,
                         fontWeight: FontWeight.w800,
+                      ),
+                    ),
+                    SizedBox(height: 4 * uiScale),
+                    Text(
+                      _currentPlanSubtitle(context),
+                      style: TextStyle(
+                        color: Colors.white.withAlpha(210),
+                        fontSize: 12.5 * uiScale,
+                        height: 1.35,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              Container(
+                padding: EdgeInsets.symmetric(
+                  horizontal: 10 * uiScale,
+                  vertical: 6 * uiScale,
+                ),
+                decoration: BoxDecoration(
+                  color: ShellColors.gold.withAlpha(20),
+                  borderRadius: BorderRadius.circular(999),
+                  border: Border.all(color: ShellColors.gold.withAlpha(80)),
+                ),
+                child: Text(
+                  'ACTIVE',
+                  style: TextStyle(
+                    color: ShellColors.gold,
+                    fontSize: 10.5 * uiScale,
+                    fontWeight: FontWeight.w800,
+                    letterSpacing: 0.8,
+                  ),
+                ),
+              ),
+            ],
+          ),
+          SizedBox(height: 18 * uiScale),
+          Row(
+            children: [
+              metric(label: 'Receipt scans', value: usageValue),
+              SizedBox(width: 12 * uiScale),
+              metric(label: 'Billing date', value: renewalValue),
+            ],
+          ),
+          SizedBox(height: 16 * uiScale),
+          Container(
+            width: double.infinity,
+            padding: EdgeInsets.all(16 * uiScale),
+            decoration: BoxDecoration(
+              color: Colors.white.withAlpha(12),
+              borderRadius: BorderRadius.circular(18),
+              border: Border.all(color: Colors.white.withAlpha(18)),
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'Included with Premium',
+                  style: TextStyle(
+                    color: Colors.white.withAlpha(185),
+                    fontSize: 11.5 * uiScale,
+                    fontWeight: FontWeight.w700,
+                    letterSpacing: 0.7,
+                  ),
+                ),
+                SizedBox(height: 10 * uiScale),
+                ..._currentAccessLines().map((text) {
+                  return Padding(
+                    padding: EdgeInsets.only(bottom: 8 * uiScale),
+                    child: Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Padding(
+                          padding: EdgeInsets.only(top: 2 * uiScale),
+                          child: Icon(
+                            AppIcons.checkCircle,
+                            color: Color(0xFF79D9A1),
+                            size: 16 * uiScale,
+                          ),
+                        ),
+                        SizedBox(width: 8 * uiScale),
+                        Expanded(
+                          child: Text(
+                            text,
+                            style: TextStyle(
+                              color: Colors.white.withAlpha(225),
+                              fontSize: 13 * uiScale,
+                              height: 1.35,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  );
+                }),
+              ],
+            ),
+          ),
+          if (_receiptScanResetAtUtc != null) ...[
+            SizedBox(height: 12 * uiScale),
+            Text(
+              context.tr(
+                'billing_resets_on',
+                params: {
+                  'date': _formatDate(
+                    _receiptScanResetAtUtc!.toIso8601String(),
+                  ),
+                },
+              ),
+              style: TextStyle(
+                color: Colors.white.withAlpha(170),
+                fontSize: 11.5 * uiScale,
+              ),
+            ),
+          ],
+          SizedBox(height: 8 * uiScale),
+          Text(
+            'Restore Purchases is only needed if Premium does not sync on this device right away.',
+            style: TextStyle(
+              color: Colors.white.withAlpha(170),
+              fontSize: 11.5 * uiScale,
+              height: 1.35,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildCurrentPlanCard(BuildContext context) {
+    return SettingsDetailCard(
+      radius: 22,
+      padding: const EdgeInsets.all(18),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    ShellStyles.sectionLabel(
+                      context,
+                      context.tr('billing_current_plan'),
+                    ),
+                    const SizedBox(height: 8),
+                    Text(
+                      _currentPlanTitle(context),
+                      style: TextStyle(
+                        color: ShellStyles.textPrimary(context),
+                        fontSize: 18,
+                        fontWeight: FontWeight.w700,
                       ),
                     ),
                     const SizedBox(height: 4),
                     Text(
                       _currentPlanSubtitle(context),
                       style: TextStyle(
-                        color: Colors.white.withAlpha(210),
+                        color: ShellStyles.textMuted(context),
                         fontSize: 12.5,
                         height: 1.35,
                       ),
@@ -705,14 +915,22 @@ class _SubscriptionScreenState extends State<SubscriptionScreen> {
                   vertical: 6,
                 ),
                 decoration: BoxDecoration(
-                  color: ShellColors.gold.withAlpha(20),
                   borderRadius: BorderRadius.circular(999),
-                  border: Border.all(color: ShellColors.gold.withAlpha(80)),
+                  color: _hasActiveSubscription
+                      ? ShellColors.gold.withAlpha(18)
+                      : ShellStyles.surfaceAlt(context),
+                  border: Border.all(
+                    color: _hasActiveSubscription
+                        ? ShellColors.gold.withAlpha(80)
+                        : ShellStyles.border(context),
+                  ),
                 ),
-                child: const Text(
-                  'ACTIVE',
+                child: Text(
+                  _hasActiveSubscription ? 'ACTIVE' : 'FREE',
                   style: TextStyle(
-                    color: ShellColors.gold,
+                    color: _hasActiveSubscription
+                        ? ShellColors.gold
+                        : ShellStyles.textPrimary(context),
                     fontSize: 10.5,
                     fontWeight: FontWeight.w800,
                     letterSpacing: 0.8,
@@ -722,85 +940,131 @@ class _SubscriptionScreenState extends State<SubscriptionScreen> {
             ],
           ),
           const SizedBox(height: 18),
-          Row(
-            children: [
-              metric(label: 'Receipt scans', value: usageValue),
-              const SizedBox(width: 12),
-              metric(label: 'Billing date', value: renewalValue),
-            ],
-          ),
-          if (_receiptScanResetAtUtc != null) ...[
-            const SizedBox(height: 12),
-            Text(
-              context.tr(
-                'billing_resets_on',
-                params: {
-                  'date': _formatDate(
-                    _receiptScanResetAtUtc!.toIso8601String(),
-                  ),
-                },
-              ),
-              style: TextStyle(
-                color: Colors.white.withAlpha(170),
-                fontSize: 11.5,
-              ),
+          Container(
+            width: double.infinity,
+            padding: const EdgeInsets.all(14),
+            decoration: BoxDecoration(
+              color: ShellStyles.surfaceAlt(context),
+              borderRadius: BorderRadius.circular(16),
+              border: Border.all(color: ShellStyles.border(context)),
             ),
-          ],
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  _receiptScanUnlimited
+                      ? 'Receipt scans: unlimited'
+                      : 'Receipt scans remaining: ${_receiptScanRemaining ?? 0}',
+                  style: TextStyle(
+                    color: ShellStyles.textPrimary(context),
+                    fontSize: 13,
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  _hasActiveSubscription
+                      ? 'Premium limits are already applied to this account.'
+                      : 'Free plan limits stay active until you upgrade.',
+                  style: TextStyle(
+                    color: ShellStyles.textMuted(context),
+                    fontSize: 12,
+                    height: 1.35,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 16),
+          ..._currentAccessLines().map(_buildAccessLine),
+          const SizedBox(height: 6),
+          Text(
+            _currentPlanFootnote(),
+            style: TextStyle(
+              color: ShellStyles.textMuted(context),
+              fontSize: 12,
+              height: 1.4,
+            ),
+          ),
         ],
       ),
     );
   }
 
-  Widget _buildCurrentPlanCard(BuildContext context) {
+  String _freeVsPremiumNote() {
+    if (_hasActiveSubscription) {
+      return 'Premium stays managed by your app store for this account.';
+    }
+    return 'Everything else in the app stays available on Free. Premium only expands limits where it is already wired.';
+  }
+
+  String _restorePurchasesHint() {
+    if (_hasActiveSubscription) {
+      return 'Already active? Restore Purchases is only needed if this device does not pick Premium up right away.';
+    }
+    return 'Already subscribed on this account? Restore Purchases will sync Premium on this device.';
+  }
+
+  Widget _buildRestorePurchasesCard() {
     return SettingsDetailCard(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          ShellStyles.sectionLabel(context, context.tr('billing_current_plan')),
-          const SizedBox(height: 8),
           Text(
-            _currentPlanTitle(context),
+            'Restore Purchases',
             style: TextStyle(
               color: ShellStyles.textPrimary(context),
-              fontSize: 16,
+              fontSize: 14,
               fontWeight: FontWeight.w700,
             ),
           ),
           const SizedBox(height: 4),
           Text(
-            _currentPlanSubtitle(context),
+            _restorePurchasesHint(),
             style: TextStyle(
               color: ShellStyles.textMuted(context),
               fontSize: 12.5,
+              height: 1.4,
             ),
           ),
-          const SizedBox(height: 8),
-          Text(
-            _receiptScanUnlimited
-                ? 'Unlimited receipt scans'
-                : '${_receiptScanRemaining ?? 0} scans remaining this month',
-            style: TextStyle(
-              color: ShellStyles.textMuted(context),
-              fontSize: 11.5,
+          const SizedBox(height: 12),
+          Align(
+            alignment: Alignment.centerLeft,
+            child: TextButton(
+              onPressed: _isPurchaseLoading ? null : _restorePurchases,
+              child: Text(context.tr('billing_restore_purchases')),
             ),
           ),
-          if (_receiptScanResetAtUtc != null) ...[
-            const SizedBox(height: 4),
-            Text(
-              context.tr(
-                'billing_resets_on',
-                params: {
-                  'date': _formatDate(
-                    _receiptScanResetAtUtc!.toIso8601String(),
-                  ),
-                },
-              ),
+        ],
+      ),
+    );
+  }
+
+  List<String> _featuresForPackage(Package _) {
+    return const [
+      'Unlimited receipt scans',
+      'Advanced analytics breakdowns',
+      'Full data export history',
+    ];
+  }
+
+  Widget _buildBillingTrustNote() {
+    return SettingsDetailCard(
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Icon(AppIcons.info, color: ShellStyles.textMuted(context), size: 18),
+          const SizedBox(width: 10),
+          Expanded(
+            child: Text(
+              _freeVsPremiumNote(),
               style: TextStyle(
                 color: ShellStyles.textMuted(context),
-                fontSize: 11.5,
+                fontSize: 12.5,
+                height: 1.4,
               ),
             ),
-          ],
+          ),
         ],
       ),
     );
@@ -821,38 +1085,6 @@ class _SubscriptionScreenState extends State<SubscriptionScreen> {
 
   bool _canPurchasePackage(Package? package) {
     return package != null && !_hasActiveSubscription;
-  }
-
-  List<String> _featuresForPackage(Package _) {
-    return const [
-      'Unlimited receipt scans',
-      'Advanced analytics',
-      'Labels and category tools',
-      'Bill reminders',
-      'Budget planning tools',
-    ];
-  }
-
-  Widget _buildBillingTrustNote() {
-    return SettingsDetailCard(
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Icon(AppIcons.info, color: ShellStyles.textMuted(context), size: 18),
-          const SizedBox(width: 10),
-          Expanded(
-            child: Text(
-              'Your subscription is managed by your app store. If Premium does not appear right away, use Restore Purchases to sync this device.',
-              style: TextStyle(
-                color: ShellStyles.textMuted(context),
-                fontSize: 12.5,
-                height: 1.4,
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
   }
 
   Widget _buildPeriodSelector() {
@@ -1123,6 +1355,9 @@ class _SubscriptionScreenState extends State<SubscriptionScreen> {
                 if (_hasActiveSubscription) ...[
                   _buildActivePlanHero(context),
                   const SizedBox(height: 16),
+                ] else ...[
+                  _buildCurrentPlanCard(context),
+                  const SizedBox(height: 16),
                 ],
                 if (showPlanOffers) ...[
                   _buildPeriodSelector(),
@@ -1165,19 +1400,10 @@ class _SubscriptionScreenState extends State<SubscriptionScreen> {
                     ),
                   ),
                 ],
-                const SizedBox(height: 8),
-                Center(
-                  child: TextButton(
-                    onPressed: _isPurchaseLoading ? null : _restorePurchases,
-                    child: Text(context.tr('billing_restore_purchases')),
-                  ),
-                ),
-                const SizedBox(height: 8),
+                const SizedBox(height: 10),
                 _buildBillingTrustNote(),
-                if (!_hasActiveSubscription) ...[
-                  const SizedBox(height: 8),
-                  _buildCurrentPlanCard(context),
-                ],
+                const SizedBox(height: 8),
+                _buildRestorePurchasesCard(),
                 if (_showDevTools) ...[
                   const SizedBox(height: 16),
                   _buildDevToolsCard(),
@@ -1199,6 +1425,9 @@ class _SubscriptionScreenState extends State<SubscriptionScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final detailTextScale = themeProvider.fontSizeFactor < 0.9
+        ? 0.9
+        : themeProvider.fontSizeFactor;
     return PopScope<bool>(
       canPop: false,
       onPopInvokedWithResult: (didPop, result) {
@@ -1215,7 +1444,12 @@ class _SubscriptionScreenState extends State<SubscriptionScreen> {
             icon: const Icon(AppIcons.refresh),
           ),
         ],
-        body: _buildBody(),
+        body: MediaQuery(
+          data: MediaQuery.of(
+            context,
+          ).copyWith(textScaler: TextScaler.linear(detailTextScale)),
+          child: _buildBody(),
+        ),
       ),
     );
   }

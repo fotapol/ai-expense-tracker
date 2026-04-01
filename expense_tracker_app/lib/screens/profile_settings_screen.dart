@@ -1,3 +1,4 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
@@ -5,7 +6,6 @@ import '../core/api_client.dart';
 import '../core/launch_error_copy.dart';
 import '../core/redesign_system.dart';
 import '../core/session_invalidation.dart';
-import '../l10n/app_localizations.dart';
 import 'settings_detail_scaffold.dart';
 
 class ProfileSettingsScreen extends StatefulWidget {
@@ -17,25 +17,36 @@ class ProfileSettingsScreen extends StatefulWidget {
 
 class _ProfileSettingsScreenState extends State<ProfileSettingsScreen> {
   final TextEditingController _nameController = TextEditingController();
-  final TextEditingController _emailController = TextEditingController();
 
   bool _isLoading = true;
   bool _isSaving = false;
   String? _error;
+  String _initialDisplayName = '';
   Map<String, dynamic>? _profileData;
   Map<String, dynamic>? _subscriptionPayload;
+  int _allTimeReceiptScans = 0;
+
+  bool get _hasPendingChanges =>
+      _nameController.text.trim() != _initialDisplayName;
 
   @override
   void initState() {
     super.initState();
+    _nameController.addListener(_handleNameChanged);
     _loadData();
   }
 
   @override
   void dispose() {
-    _nameController.dispose();
-    _emailController.dispose();
+    _nameController
+      ..removeListener(_handleNameChanged)
+      ..dispose();
     super.dispose();
+  }
+
+  void _handleNameChanged() {
+    if (!mounted) return;
+    setState(() {});
   }
 
   Future<void> _loadData() async {
@@ -47,19 +58,30 @@ class _ProfileSettingsScreenState extends State<ProfileSettingsScreen> {
       final results = await Future.wait<dynamic>([
         ApiClient.getMe(),
         ApiClient.getMeSubscription(),
+        ApiClient.listTransactions().catchError((_) => <dynamic>[]),
       ]);
       final profile = results[0] as Map<String, dynamic>;
       final subscription = results[1] as Map<String, dynamic>;
+      final transactions = results[2] as List<dynamic>;
       final rawProfile = profile['profile'];
       final displayName = rawProfile is Map<String, dynamic>
           ? rawProfile['display_name']?.toString().trim() ?? ''
           : '';
+      final allTimeReceiptScans = transactions
+          .whereType<Map<String, dynamic>>()
+          .where((transaction) {
+            final receiptId =
+                transaction['receipt_id']?.toString().trim() ?? '';
+            return receiptId.isNotEmpty;
+          })
+          .length;
       if (!mounted) return;
       setState(() {
         _profileData = profile;
         _subscriptionPayload = subscription;
+        _allTimeReceiptScans = allTimeReceiptScans;
+        _initialDisplayName = displayName;
         _nameController.text = displayName;
-        _emailController.text = profile['email']?.toString() ?? '';
         _isLoading = false;
       });
     } catch (error) {
@@ -85,12 +107,14 @@ class _ProfileSettingsScreenState extends State<ProfileSettingsScreen> {
       return '${parts.first.substring(0, 1)}${parts.last.substring(0, 1)}'
           .toUpperCase();
     }
-    final email = _emailController.text.trim();
+    final email = _email.trim();
     if (email.isNotEmpty) {
       return email.substring(0, 1).toUpperCase();
     }
     return '?';
   }
+
+  String get _email => _profileData?['email']?.toString().trim() ?? '';
 
   String _memberSinceLabel() {
     final rawProfile = _profileData?['profile'];
@@ -108,33 +132,29 @@ class _ProfileSettingsScreenState extends State<ProfileSettingsScreen> {
     return DateFormat.yMMMMd().format(parsed);
   }
 
-  String _accountTypeLabel(BuildContext context) {
+  String _accountTypeLabel() {
     if ((_subscriptionPayload?['has_active_subscription'] as bool?) == true) {
-      return context.tr('settings_account_type_pro');
+      return 'Premium';
     }
-    return context.tr('settings_account_type_free');
+    return 'Free';
   }
 
   String _receiptUsageLabel() {
+    return '$_allTimeReceiptScans scans';
+  }
+
+  String _receiptUsageThisMonthLabel() {
     final usageRaw = _subscriptionPayload?['receipt_scan_usage'];
     if (usageRaw is! Map<String, dynamic>) return '--';
     final used = int.tryParse((usageRaw['used'] ?? 0).toString()) ?? 0;
-    if (usageRaw['is_unlimited'] == true) return '$used';
+    if (usageRaw['is_unlimited'] == true) return '$used scans used';
     final limit = int.tryParse((usageRaw['limit'] ?? 10).toString()) ?? 10;
     return '$used / $limit';
   }
 
   Future<void> _save() async {
-    if (_isSaving || _profileData == null) return;
-    final rawProfile = _profileData?['profile'];
-    final currentName = rawProfile is Map<String, dynamic>
-        ? rawProfile['display_name']?.toString().trim() ?? ''
-        : '';
+    if (_isSaving || _profileData == null || !_hasPendingChanges) return;
     final nextName = _nameController.text.trim();
-    if (nextName == currentName) {
-      if (mounted) Navigator.pop(context, false);
-      return;
-    }
 
     setState(() => _isSaving = true);
     try {
@@ -142,10 +162,13 @@ class _ProfileSettingsScreenState extends State<ProfileSettingsScreen> {
         'display_name': nextName.isEmpty ? null : nextName,
       });
       if (!mounted) return;
-      setState(() => _profileData = updated);
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(context.tr('settings_profile_saved'))),
-      );
+      setState(() {
+        _profileData = updated;
+        _initialDisplayName = nextName;
+      });
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('Profile updated.')));
       Navigator.pop(context, true);
     } catch (error) {
       if (await maybeHandleExpiredSession(error)) return;
@@ -169,48 +192,31 @@ class _ProfileSettingsScreenState extends State<ProfileSettingsScreen> {
 
   Widget _buildPhotoAvatar() {
     final rawProfile = _profileData?['profile'];
-    final avatarUrl = rawProfile is Map<String, dynamic>
-        ? rawProfile['avatar_url']?.toString()
+    final backendAvatarUrl = rawProfile is Map<String, dynamic>
+        ? rawProfile['avatar_url']?.toString().trim()
         : null;
-    return Stack(
-      clipBehavior: Clip.none,
-      children: [
-        CircleAvatar(
-          radius: 26,
-          backgroundColor: ShellStyles.textPrimary(context),
-          backgroundImage: avatarUrl != null && avatarUrl.isNotEmpty
-              ? NetworkImage(avatarUrl)
-              : null,
-          child: avatarUrl == null || avatarUrl.isEmpty
-              ? Text(
-                  _initials(),
-                  style: TextStyle(
-                    color: ShellStyles.surface(context),
-                    fontSize: 18,
-                    fontWeight: FontWeight.w700,
-                  ),
-                )
-              : null,
-        ),
-        Positioned(
-          right: -2,
-          bottom: -2,
-          child: Container(
-            width: 22,
-            height: 22,
-            decoration: BoxDecoration(
-              color: ShellStyles.textPrimary(context),
-              shape: BoxShape.circle,
-              border: Border.all(color: ShellStyles.surface(context), width: 2),
-            ),
-            child: Icon(
-              AppIcons.photo,
-              color: ShellStyles.surface(context),
-              size: 12,
-            ),
-          ),
-        ),
-      ],
+    final accountPhotoUrl =
+        FirebaseAuth.instance.currentUser?.photoURL?.trim() ?? '';
+    final avatarUrl = accountPhotoUrl.isNotEmpty
+        ? accountPhotoUrl
+        : (backendAvatarUrl ?? '');
+
+    // TODO(profile): add avatar upload/change flows when account image
+    // management is fully designed and launch-safe.
+    return CircleAvatar(
+      radius: 30,
+      backgroundColor: ShellStyles.textPrimary(context),
+      backgroundImage: avatarUrl.isNotEmpty ? NetworkImage(avatarUrl) : null,
+      child: avatarUrl.isEmpty
+          ? Text(
+              _initials(),
+              style: TextStyle(
+                color: ShellStyles.surface(context),
+                fontSize: 20,
+                fontWeight: FontWeight.w700,
+              ),
+            )
+          : null,
     );
   }
 
@@ -249,7 +255,7 @@ class _ProfileSettingsScreenState extends State<ProfileSettingsScreen> {
   @override
   Widget build(BuildContext context) {
     return SettingsDetailScaffold(
-      title: context.tr('settings_profile'),
+      title: 'Profile',
       body: _isLoading
           ? const Center(child: CircularProgressIndicator())
           : _error != null
@@ -262,6 +268,8 @@ class _ProfileSettingsScreenState extends State<ProfileSettingsScreen> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     SettingsDetailCard(
+                      radius: 22,
+                      padding: const EdgeInsets.all(18),
                       child: Row(
                         children: [
                           _buildPhotoAvatar(),
@@ -271,19 +279,24 @@ class _ProfileSettingsScreenState extends State<ProfileSettingsScreen> {
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
                                 Text(
-                                  context.tr('settings_profile_photo'),
+                                  _nameController.text.trim().isEmpty
+                                      ? (_email.isEmpty
+                                            ? 'Your account'
+                                            : _email)
+                                      : _nameController.text.trim(),
                                   style: TextStyle(
                                     color: ShellStyles.textPrimary(context),
-                                    fontSize: 15,
-                                    fontWeight: FontWeight.w600,
+                                    fontSize: 17,
+                                    fontWeight: FontWeight.w700,
                                   ),
                                 ),
-                                const SizedBox(height: 2),
+                                const SizedBox(height: 4),
                                 Text(
-                                  'Your profile photo comes from the account you signed in with.',
+                                  'Your signed-in account info is shown here. Only the display name can be edited right now.',
                                   style: TextStyle(
                                     color: ShellStyles.textMuted(context),
-                                    fontSize: 11.5,
+                                    fontSize: 12.5,
+                                    height: 1.35,
                                   ),
                                 ),
                               ],
@@ -293,34 +306,38 @@ class _ProfileSettingsScreenState extends State<ProfileSettingsScreen> {
                       ),
                     ),
                     const SizedBox(height: 16),
-                    ShellStyles.sectionLabel(
-                      context,
-                      context.tr('settings_personal_information'),
-                    ),
+                    ShellStyles.sectionLabel(context, 'Editable'),
                     const SizedBox(height: 8),
                     SettingsDetailCard(
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          _FieldLabel(label: context.tr('settings_full_name')),
+                          const _FieldLabel(label: 'Display name'),
                           TextField(
                             controller: _nameController,
                             textCapitalization: TextCapitalization.words,
-                          ),
-                          const SizedBox(height: 12),
-                          _FieldLabel(label: context.tr('settings_email')),
-                          TextField(
-                            controller: _emailController,
-                            readOnly: true,
+                            decoration: const InputDecoration(
+                              hintText:
+                                  'Add the name you want shown in the app',
+                            ),
                           ),
                         ],
                       ),
                     ),
                     const SizedBox(height: 16),
-                    ShellStyles.sectionLabel(
-                      context,
-                      context.tr('settings_account_details'),
+                    ShellStyles.sectionLabel(context, 'Account'),
+                    const SizedBox(height: 8),
+                    SettingsDetailCard(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          const _FieldLabel(label: 'Email'),
+                          _ReadOnlyField(value: _email.isEmpty ? '--' : _email),
+                        ],
+                      ),
                     ),
+                    const SizedBox(height: 16),
+                    ShellStyles.sectionLabel(context, 'Account details'),
                     const SizedBox(height: 8),
                     Container(
                       decoration: ShellStyles.cardDecoration(
@@ -329,46 +346,46 @@ class _ProfileSettingsScreenState extends State<ProfileSettingsScreen> {
                       ),
                       child: Column(
                         children: [
+                          _buildStatRow('Member since', _memberSinceLabel()),
+                          _buildStatRow('Plan', _accountTypeLabel()),
                           _buildStatRow(
-                            context.tr('settings_member_since'),
-                            _memberSinceLabel(),
-                          ),
-                          _buildStatRow(
-                            context.tr('settings_account_type'),
-                            _accountTypeLabel(context),
-                          ),
-                          _buildStatRow(
-                            context.tr('settings_receipt_usage_this_month'),
+                            'Receipt scans all time',
                             _receiptUsageLabel(),
+                          ),
+                          _buildStatRow(
+                            'Receipt scans this month',
+                            _receiptUsageThisMonthLabel(),
                             hasDivider: false,
                           ),
                         ],
                       ),
                     ),
-                    const SizedBox(height: 20),
-                    SizedBox(
-                      width: double.infinity,
-                      child: FilledButton(
-                        onPressed: _isSaving ? null : _save,
-                        style: FilledButton.styleFrom(
-                          backgroundColor: ShellStyles.textPrimary(context),
-                          foregroundColor: ShellStyles.surface(context),
-                          minimumSize: const Size.fromHeight(52),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(16),
+                    if (_hasPendingChanges || _isSaving) ...[
+                      const SizedBox(height: 20),
+                      SizedBox(
+                        width: double.infinity,
+                        child: FilledButton(
+                          onPressed: _isSaving ? null : _save,
+                          style: FilledButton.styleFrom(
+                            backgroundColor: ShellStyles.textPrimary(context),
+                            foregroundColor: ShellStyles.surface(context),
+                            minimumSize: const Size.fromHeight(52),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(16),
+                            ),
                           ),
+                          child: _isSaving
+                              ? const SizedBox(
+                                  width: 18,
+                                  height: 18,
+                                  child: CircularProgressIndicator(
+                                    strokeWidth: 2,
+                                  ),
+                                )
+                              : const Text('Save changes'),
                         ),
-                        child: _isSaving
-                            ? const SizedBox(
-                                width: 18,
-                                height: 18,
-                                child: CircularProgressIndicator(
-                                  strokeWidth: 2,
-                                ),
-                              )
-                            : Text(context.tr('common_save')),
                       ),
-                    ),
+                    ],
                   ],
                 ),
               ),
@@ -398,6 +415,33 @@ class _FieldLabel extends StatelessWidget {
   }
 }
 
+class _ReadOnlyField extends StatelessWidget {
+  const _ReadOnlyField({required this.value});
+
+  final String value;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
+      decoration: BoxDecoration(
+        color: ShellStyles.surfaceAlt(context),
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: ShellStyles.border(context)),
+      ),
+      child: Text(
+        value,
+        style: TextStyle(
+          color: ShellStyles.textPrimary(context),
+          fontSize: 14,
+          fontWeight: FontWeight.w500,
+        ),
+      ),
+    );
+  }
+}
+
 class _DetailErrorView extends StatelessWidget {
   const _DetailErrorView({required this.message, required this.onRetry});
 
@@ -418,10 +462,7 @@ class _DetailErrorView extends StatelessWidget {
               style: TextStyle(color: ShellStyles.textPrimary(context)),
             ),
             const SizedBox(height: 12),
-            FilledButton(
-              onPressed: onRetry,
-              child: Text(context.tr('common_retry')),
-            ),
+            FilledButton(onPressed: onRetry, child: const Text('Retry')),
           ],
         ),
       ),
