@@ -1,9 +1,9 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
 import '../core/bill_reminder_notification_service.dart';
 import '../core/notification_preferences.dart';
 import '../core/redesign_system.dart';
-import '../l10n/app_localizations.dart';
 import 'settings_detail_scaffold.dart';
 
 class NotificationsSettingsScreen extends StatefulWidget {
@@ -15,174 +15,267 @@ class NotificationsSettingsScreen extends StatefulWidget {
 }
 
 class _NotificationsSettingsScreenState
-    extends State<NotificationsSettingsScreen> {
-  Map<String, bool> _values = <String, bool>{
-    NotificationPreferencesStore.idPush: NotificationPreferences.defaults.push,
-    NotificationPreferencesStore.idEmail:
-        NotificationPreferences.defaults.email,
-    NotificationPreferencesStore.idSpending:
-        NotificationPreferences.defaults.spending,
-    NotificationPreferencesStore.idBudget:
-        NotificationPreferences.defaults.budget,
-    NotificationPreferencesStore.idReceipts:
-        NotificationPreferences.defaults.receipts,
-    NotificationPreferencesStore.idBillReminders:
-        NotificationPreferences.defaults.billReminders,
-    NotificationPreferencesStore.idWeekly:
-        NotificationPreferences.defaults.weekly,
-    NotificationPreferencesStore.idInsights:
-        NotificationPreferences.defaults.insights,
-    NotificationPreferencesStore.idMarketing:
-        NotificationPreferences.defaults.marketing,
-  };
+    extends State<NotificationsSettingsScreen>
+    with WidgetsBindingObserver {
+  bool _isLoading = true;
+  bool _pushEnabled = NotificationPreferences.defaults.push;
+  bool _billRemindersEnabled = NotificationPreferences.defaults.billReminders;
+  bool _systemNotificationsEnabled = false;
+
+  bool get _notificationsAvailableOnPlatform => !kIsWeb;
+  bool get _effectiveNotificationsEnabled =>
+      _notificationsAvailableOnPlatform &&
+      _pushEnabled &&
+      _systemNotificationsEnabled;
 
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addObserver(this);
     _loadValues();
+  }
+
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    super.dispose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state != AppLifecycleState.resumed) return;
+    _refreshSystemStatus();
   }
 
   Future<void> _loadValues() async {
     final prefs = await notificationPreferencesStore.load();
+    final systemEnabled = _notificationsAvailableOnPlatform
+        ? await BillReminderNotificationService.instance
+              .areNotificationsEnabled()
+        : false;
     if (!mounted) return;
     setState(() {
-      _values = <String, bool>{
-        NotificationPreferencesStore.idPush: prefs.push,
-        NotificationPreferencesStore.idEmail: prefs.email,
-        NotificationPreferencesStore.idSpending: prefs.spending,
-        NotificationPreferencesStore.idBudget: prefs.budget,
-        NotificationPreferencesStore.idReceipts: prefs.receipts,
-        NotificationPreferencesStore.idBillReminders: prefs.billReminders,
-        NotificationPreferencesStore.idWeekly: prefs.weekly,
-        NotificationPreferencesStore.idInsights: prefs.insights,
-        NotificationPreferencesStore.idMarketing: prefs.marketing,
-      };
+      _pushEnabled = prefs.push;
+      _billRemindersEnabled = prefs.billReminders;
+      _systemNotificationsEnabled = systemEnabled;
+      _isLoading = false;
     });
   }
 
-  Future<void> _setValue(String id, bool value) async {
-    setState(() => _values[id] = value);
-    await notificationPreferencesStore.updateValue(id, value);
-    if ((id == NotificationPreferencesStore.idPush ||
-            id == NotificationPreferencesStore.idBillReminders) &&
-        value) {
-      await BillReminderNotificationService.instance.requestPermissions();
+  Future<void> _refreshSystemStatus() async {
+    if (!_notificationsAvailableOnPlatform) return;
+    final systemEnabled = await BillReminderNotificationService.instance
+        .areNotificationsEnabled();
+    if (!mounted) return;
+    setState(() => _systemNotificationsEnabled = systemEnabled);
+  }
+
+  Future<void> _setPushEnabled(bool value) async {
+    if (!_notificationsAvailableOnPlatform) return;
+
+    if (!value) {
+      await notificationPreferencesStore.updateValue(
+        NotificationPreferencesStore.idPush,
+        false,
+      );
+      if (!mounted) return;
+      setState(() => _pushEnabled = false);
+      await BillReminderNotificationService.instance
+          .syncScheduledNotifications();
+      return;
+    }
+
+    final granted = await BillReminderNotificationService.instance
+        .ensurePermissions();
+    await notificationPreferencesStore.updateValue(
+      NotificationPreferencesStore.idPush,
+      granted,
+    );
+    if (!mounted) return;
+    setState(() {
+      _pushEnabled = granted;
+      _systemNotificationsEnabled = granted;
+    });
+    if (!granted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text(
+            'Notifications are still blocked in your device settings.',
+          ),
+        ),
+      );
     }
     await BillReminderNotificationService.instance.syncScheduledNotifications();
   }
 
-  Widget _buildGroup(String label, List<_NotificationToggle> items) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        ShellStyles.sectionLabel(context, label),
-        const SizedBox(height: 8),
-        Container(
-          decoration: ShellStyles.cardDecoration(context, radius: 18),
-          child: Column(
-            children: [
-              for (var index = 0; index < items.length; index++) ...[
-                SettingsToggleRow(
-                  title: items[index].title,
-                  subtitle: items[index].subtitle,
-                  value: _values[items[index].id] ?? false,
-                  onChanged: (value) {
-                    _setValue(items[index].id, value);
-                  },
-                ),
-                if (index != items.length - 1)
-                  Divider(height: 1, color: ShellStyles.border(context)),
-              ],
-            ],
+  Future<void> _setBillRemindersEnabled(bool value) async {
+    setState(() => _billRemindersEnabled = value);
+    await notificationPreferencesStore.updateValue(
+      NotificationPreferencesStore.idBillReminders,
+      value,
+    );
+    await BillReminderNotificationService.instance.syncScheduledNotifications();
+  }
+
+  String _statusTitle() {
+    if (!_notificationsAvailableOnPlatform) {
+      return 'Notifications are unavailable';
+    }
+    if (_effectiveNotificationsEnabled) {
+      return 'Notifications are on';
+    }
+    return 'Notifications are off';
+  }
+
+  String _statusSubtitle() {
+    if (!_notificationsAvailableOnPlatform) {
+      return 'This web build does not support local reminder notifications yet.';
+    }
+    if (!_systemNotificationsEnabled) {
+      return 'Your device is currently blocking notifications for the app.';
+    }
+    if (!_pushEnabled) {
+      return 'Notifications are allowed by the device, but turned off inside the app.';
+    }
+    return 'Bill reminders can be delivered on this device.';
+  }
+
+  Widget _buildStatusCard() {
+    final active = _effectiveNotificationsEnabled;
+    return SettingsDetailCard(
+      radius: 22,
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: <Widget>[
+          Container(
+            width: 40,
+            height: 40,
+            alignment: Alignment.center,
+            decoration: BoxDecoration(
+              color: active
+                  ? ShellStyles.accent(context).withAlpha(22)
+                  : ShellStyles.surfaceAlt(context),
+              borderRadius: BorderRadius.circular(14),
+              border: Border.all(
+                color: active
+                    ? ShellStyles.accent(context).withAlpha(80)
+                    : ShellStyles.border(context),
+              ),
+            ),
+            child: Icon(
+              AppIcons.notifications,
+              color: active
+                  ? ShellStyles.accent(context)
+                  : ShellStyles.textPrimary(context),
+              size: 18,
+            ),
           ),
-        ),
-      ],
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: <Widget>[
+                Text(
+                  _statusTitle(),
+                  style: TextStyle(
+                    color: ShellStyles.textPrimary(context),
+                    fontSize: 16,
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  _statusSubtitle(),
+                  style: TextStyle(
+                    color: ShellStyles.textMuted(context),
+                    fontSize: 12.5,
+                    height: 1.45,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
     );
   }
 
-  @override
-  Widget build(BuildContext context) {
-    return SettingsDetailScaffold(
-      title: context.tr('settings_notifications'),
-      body: SafeArea(
-        top: false,
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.fromLTRB(16, 16, 16, 120),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              _buildGroup(context.tr('settings_notification_channels'), [
-                _NotificationToggle(
-                  id: NotificationPreferencesStore.idPush,
-                  title: context.tr('settings_push_notifications'),
-                  subtitle: context.tr('settings_push_notifications_subtitle'),
-                ),
-                _NotificationToggle(
-                  id: NotificationPreferencesStore.idEmail,
-                  title: context.tr('settings_email_notifications'),
-                  subtitle: context.tr('settings_email_notifications_subtitle'),
-                ),
-              ]),
-              const SizedBox(height: 16),
-              _buildGroup(context.tr('settings_notification_activity'), [
-                _NotificationToggle(
-                  id: NotificationPreferencesStore.idSpending,
-                  title: context.tr('settings_spending_alerts'),
-                  subtitle: context.tr('settings_spending_alerts_subtitle'),
-                ),
-                _NotificationToggle(
-                  id: NotificationPreferencesStore.idBudget,
-                  title: context.tr('settings_budget_alerts'),
-                  subtitle: context.tr('settings_budget_alerts_subtitle'),
-                ),
-                _NotificationToggle(
-                  id: NotificationPreferencesStore.idBillReminders,
-                  title: context.tr('settings_bill_reminders'),
-                  subtitle: context.tr('settings_bill_reminders_subtitle'),
-                ),
-                _NotificationToggle(
-                  id: NotificationPreferencesStore.idReceipts,
-                  title: context.tr('settings_receipt_reminders'),
-                  subtitle: context.tr('settings_receipt_reminders_subtitle'),
-                ),
-              ]),
-              const SizedBox(height: 16),
-              _buildGroup(context.tr('settings_notification_summaries'), [
-                _NotificationToggle(
-                  id: NotificationPreferencesStore.idWeekly,
-                  title: context.tr('settings_weekly_summary'),
-                  subtitle: context.tr('settings_weekly_summary_subtitle'),
-                ),
-                _NotificationToggle(
-                  id: NotificationPreferencesStore.idInsights,
-                  title: context.tr('settings_ai_insights'),
-                  subtitle: context.tr('settings_ai_insights_subtitle'),
-                ),
-              ]),
-              const SizedBox(height: 16),
-              _buildGroup(context.tr('settings_notification_marketing'), [
-                _NotificationToggle(
-                  id: NotificationPreferencesStore.idMarketing,
-                  title: context.tr('settings_promotions_updates'),
-                  subtitle: context.tr('settings_promotions_updates_subtitle'),
-                ),
-              ]),
-            ],
+  Widget _buildToggleCard({
+    required String title,
+    required String subtitle,
+    required bool value,
+    required ValueChanged<bool> onChanged,
+    required bool enabled,
+  }) {
+    return Opacity(
+      opacity: enabled ? 1 : 0.55,
+      child: IgnorePointer(
+        ignoring: !enabled,
+        child: SettingsDetailCard(
+          radius: 18,
+          padding: EdgeInsets.zero,
+          child: SettingsToggleRow(
+            title: title,
+            subtitle: subtitle,
+            value: value,
+            onChanged: onChanged,
           ),
         ),
       ),
     );
   }
-}
 
-class _NotificationToggle {
-  const _NotificationToggle({
-    required this.id,
-    required this.title,
-    required this.subtitle,
-  });
-
-  final String id;
-  final String title;
-  final String subtitle;
+  @override
+  Widget build(BuildContext context) {
+    // TODO(notifications): restore email notifications when backend delivery
+    // and preference syncing are implemented.
+    // TODO(notifications): restore spending, budget, receipt, weekly summary,
+    // insights, and marketing notification controls when each category has a
+    // real end-to-end notification pipeline.
+    return SettingsDetailScaffold(
+      title: 'Notifications',
+      body: _isLoading
+          ? const Center(child: CircularProgressIndicator())
+          : SafeArea(
+              top: false,
+              child: SingleChildScrollView(
+                padding: const EdgeInsets.fromLTRB(16, 16, 16, 120),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: <Widget>[
+                    _buildStatusCard(),
+                    const SizedBox(height: 16),
+                    ShellStyles.sectionLabel(context, 'Device'),
+                    const SizedBox(height: 8),
+                    _buildToggleCard(
+                      title: 'Enable notifications in the app',
+                      subtitle: !_notificationsAvailableOnPlatform
+                          ? 'Unavailable in this web build.'
+                          : _systemNotificationsEnabled
+                          ? 'Lets the app schedule bill reminder alerts.'
+                          : 'Turn on notifications for this app in your device settings first.',
+                      value: _pushEnabled && _systemNotificationsEnabled,
+                      onChanged: _setPushEnabled,
+                      enabled: _notificationsAvailableOnPlatform,
+                    ),
+                    const SizedBox(height: 16),
+                    ShellStyles.sectionLabel(context, 'Bill reminders'),
+                    const SizedBox(height: 8),
+                    _buildToggleCard(
+                      title: 'Upcoming and due reminders',
+                      subtitle: !_notificationsAvailableOnPlatform
+                          ? 'Unavailable in this web build.'
+                          : _effectiveNotificationsEnabled
+                          ? 'Schedules reminder notifications for your active bills.'
+                          : 'Enable notifications above before bill reminders can run.',
+                      value: _billRemindersEnabled,
+                      onChanged: _setBillRemindersEnabled,
+                      enabled: _effectiveNotificationsEnabled,
+                    ),
+                  ],
+                ),
+              ),
+            ),
+    );
+  }
 }

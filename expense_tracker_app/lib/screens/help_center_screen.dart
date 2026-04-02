@@ -1,6 +1,8 @@
+import 'package:flutter/services.dart';
 import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
 
+import '../core/app_env.dart';
 import '../core/redesign_system.dart';
 import '../l10n/app_localizations.dart';
 import 'settings_detail_scaffold.dart';
@@ -40,13 +42,17 @@ class _HelpCenterScreenState extends State<HelpCenterScreen> {
         _FaqItem(
           question: 'What\'s included in the Free plan?',
           answer:
-              'The Free plan includes basic receipt scanning, manual expense entry, and core reporting with a limited monthly scan allowance.',
+              'The Free plan includes manual expense entry, receipt review, and core history with a limited monthly scan allowance.',
         ),
         _FaqItem(
-          question:
-              'What\'s the difference between Individual and Family plans?',
+          question: 'What does Premium unlock?',
           answer:
-              'Individual unlocks premium scanning and analytics for one account. Family adds shared household management, member invites, and premium household tools.',
+              'Premium unlocks unlimited receipt scans, deeper analytics, labels, and planning tools for your personal account.',
+        ),
+        _FaqItem(
+          question: 'How do I restore Premium access?',
+          answer:
+              'Open Subscription and tap Restore Purchases. Your store keeps the subscription tied to the same account.',
         ),
         _FaqItem(
           question: 'Can I cancel anytime?',
@@ -59,19 +65,19 @@ class _HelpCenterScreenState extends State<HelpCenterScreen> {
       title: 'Features & Tools',
       items: [
         _FaqItem(
-          question: 'How do I export my data?',
+          question: 'How do I review extracted items?',
           answer:
-              'Open Tools and choose Export Data. You can generate a file with your transactions and receipt information for external analysis or backup.',
+              'After scanning, review the merchant, total, date, and line items before saving. You can adjust categories, labels, and receipt details on the review screen.',
         ),
         _FaqItem(
-          question: 'What are Smart Insights?',
+          question: 'What are labels for?',
           answer:
-              'Smart Insights are quick summaries based on your recent spending activity, pending receipt reviews, and category changes this month.',
+              'Labels help you group transactions your own way, like work, travel, or groceries, so you can filter them later in history and analytics.',
         ),
         _FaqItem(
-          question: 'How do I set up budgets?',
+          question: 'Where do I find reminders and budget tools?',
           answer:
-              'Budget planning tools are being expanded. For now, you can monitor category trends in Analytics and use the budgeting placeholders as a preview of the upcoming flow.',
+              'Open Tools to manage bill reminders, categories, labels, and budget planning tools from one place.',
         ),
       ],
     ),
@@ -84,14 +90,14 @@ class _HelpCenterScreenState extends State<HelpCenterScreen> {
               'We protect account and receipt data using authenticated access, secure transport, and restricted internal access. Sensitive actions always require an authenticated session.',
         ),
         _FaqItem(
-          question: 'How do I enable two-factor authentication?',
+          question: 'What if my receipt needs corrections?',
           answer:
-              'Two-factor authentication support is planned. Once available, you will be able to enable it from Security in Settings.',
+              'That is normal. Review the extracted details, adjust anything that looks off, and then save only when the receipt looks right to you.',
         ),
         _FaqItem(
-          question: 'Can I delete my account?',
+          question: 'How do I contact support?',
           answer:
-              'Account deletion support is being finalized. Until then, contact support and we can help with account-related requests.',
+              'Use the Contact Support button or email support@expense-tracker.app and include a short description of the issue.',
         ),
       ],
     ),
@@ -116,16 +122,18 @@ class _HelpCenterScreenState extends State<HelpCenterScreen> {
   }
 
   Future<void> _openSupport() async {
+    final supportEmail = AppEnv.supportEmail;
     final uri = Uri(
       scheme: 'mailto',
-      path: 'support@expense-tracker.app',
-      queryParameters: {'subject': 'Expense Tracker Support'},
+      path: supportEmail,
+      queryParameters: {'subject': AppEnv.supportSubject},
     );
     final opened = await launchUrl(uri);
     if (!mounted || opened) return;
-    ShellStyles.showComingSoon(
-      context,
-      message: 'Support contact is not configured on this device yet.',
+    await Clipboard.setData(ClipboardData(text: supportEmail));
+    if (!mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text('Support email copied: $supportEmail')),
     );
   }
 

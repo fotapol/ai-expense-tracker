@@ -280,3 +280,65 @@ def test_mark_bill_paid_is_idempotent_and_monotonic() -> None:
     assert march_paid.last_paid_due_date == dt.date(2026, 3, 15)
     assert february_paid.last_paid_due_date == dt.date(2026, 3, 15)
     assert repeated_march_paid.last_paid_due_date == dt.date(2026, 3, 15)
+
+
+def test_mark_bill_paid_accepts_daily_recurrence_dates() -> None:
+    session = _build_session()
+    user = _make_user("daily@example.com")
+    reminder = BillReminder(
+        user_id=user.id,
+        name="Medicine",
+        amount=Decimal("10.00"),
+        currency="EUR",
+        recurrence="daily",
+        first_due_date=dt.date(2026, 3, 20),
+        remind_days_before=1,
+        is_active=True,
+    )
+    session.add(user)
+    session.add(reminder)
+    session.commit()
+    session.refresh(reminder)
+
+    paid = _run(
+        _unlimited(planning.mark_bill_reminder_paid)(
+            bill_id=reminder.id,
+            payload=BillReminderMarkPaid(due_date=dt.date(2026, 3, 24)),
+            request=_request(),
+            session=session,
+            current_user=user,
+        )
+    )
+
+    assert paid.last_paid_due_date == dt.date(2026, 3, 24)
+
+
+def test_mark_bill_paid_clamps_yearly_leap_day_schedule() -> None:
+    session = _build_session()
+    user = _make_user("yearly@example.com")
+    reminder = BillReminder(
+        user_id=user.id,
+        name="Insurance",
+        amount=Decimal("100.00"),
+        currency="EUR",
+        recurrence="yearly",
+        first_due_date=dt.date(2024, 2, 29),
+        remind_days_before=14,
+        is_active=True,
+    )
+    session.add(user)
+    session.add(reminder)
+    session.commit()
+    session.refresh(reminder)
+
+    paid = _run(
+        _unlimited(planning.mark_bill_reminder_paid)(
+            bill_id=reminder.id,
+            payload=BillReminderMarkPaid(due_date=dt.date(2026, 2, 28)),
+            request=_request(),
+            session=session,
+            current_user=user,
+        )
+    )
+
+    assert paid.last_paid_due_date == dt.date(2026, 2, 28)

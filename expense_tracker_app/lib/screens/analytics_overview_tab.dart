@@ -2,9 +2,11 @@ import 'package:flutter/material.dart';
 
 import '../core/analytics_filters.dart';
 import '../core/api_client.dart';
+import '../core/launch_error_copy.dart';
 import '../core/money_formatter.dart';
 import '../core/period_filter.dart';
 import '../core/redesign_system.dart';
+import '../core/session_invalidation.dart';
 import '../core/taxonomy_localization.dart';
 import '../l10n/app_localizations.dart';
 // TODO(household): re-import household_screen when household feature ships
@@ -95,9 +97,14 @@ class _AnalyticsOverviewTabState extends State<AnalyticsOverviewTab> {
         _isLoading = false;
       });
     } catch (error) {
+      if (await maybeHandleExpiredSession(error)) return;
       if (!mounted) return;
       setState(() {
-        _error = error.toString();
+        _error = friendlyLaunchErrorMessage(
+          error,
+          fallback:
+              'Overview insights are unavailable right now. Please try again.',
+        );
         _isLoading = false;
       });
     }
@@ -157,60 +164,107 @@ class _AnalyticsOverviewTabState extends State<AnalyticsOverviewTab> {
     final changePercentage = trends['change_percentage'] != null
         ? _parseDouble(trends['change_percentage'])
         : null;
+    final isEmptyOverview =
+        totalTransactions == 0 && breakdown.isEmpty && totalAmount <= 0;
 
     return RefreshIndicator(
       onRefresh: _fetchData,
       child: ListView(
-        padding: const EdgeInsets.fromLTRB(20, 12, 20, 32),
+        padding: EdgeInsets.fromLTRB(
+          20,
+          12,
+          20,
+          MediaQuery.of(context).padding.bottom + 32,
+        ),
         children: [
           if (widget.activeFiltersBuilder != null) ...[
             widget.activeFiltersBuilder!(),
             const SizedBox(height: 16),
           ],
-          _buildHeroCard(
-            context,
-            currency: currency,
-            totalAmount: totalAmount,
-            previousTotal: previousTotal,
-            changePercentage: changePercentage,
-          ),
-          const SizedBox(height: 16),
-          Wrap(
-            spacing: 12,
-            runSpacing: 12,
-            children: [
-              _buildMetricCard(
-                context,
-                icon: Icons.calendar_today_outlined,
-                title: context.tr('analytics_average_per_day'),
-                value: formatMoney(
-                  currency,
-                  totalAmount /
-                      PeriodFilter.getPeriodDays(widget.filters.period),
+          if (isEmptyOverview)
+            _buildEmptyStateCard(context)
+          else ...[
+            _buildHeroCard(
+              context,
+              currency: currency,
+              totalAmount: totalAmount,
+              previousTotal: previousTotal,
+              changePercentage: changePercentage,
+            ),
+            const SizedBox(height: 16),
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Expanded(
+                  child: _buildMetricCard(
+                    context,
+                    icon: Icons.calendar_today_outlined,
+                    title: context.tr('analytics_average_per_day'),
+                    value: formatMoney(
+                      currency,
+                      totalAmount /
+                          PeriodFilter.getPeriodDays(widget.filters.period),
+                    ),
+                  ),
                 ),
-              ),
-              _buildMetricCard(
-                context,
-                icon: Icons.receipt_long_outlined,
-                title: context.tr('analytics_total_transactions'),
-                value: '$totalTransactions',
-              ),
-              _buildMetricCard(
-                context,
-                icon: Icons.sell_outlined,
-                title: context.tr('analytics_total_savings'),
-                value: formatMoney(currency, totalSavings),
-              ),
-            ],
-          ),
-          const SizedBox(height: 16),
-          _buildTopCategoriesCard(
-            context,
-            currency: currency,
-            breakdown: breakdown,
-            totalAmount: totalAmount,
-          ),
+                const SizedBox(width: 10),
+                Expanded(
+                  child: _buildMetricCard(
+                    context,
+                    icon: Icons.receipt_long_outlined,
+                    title: context.tr('analytics_total_transactions'),
+                    value: '$totalTransactions',
+                  ),
+                ),
+                const SizedBox(width: 10),
+                Expanded(
+                  child: _buildMetricCard(
+                    context,
+                    icon: Icons.sell_outlined,
+                    title: context.tr('analytics_total_savings'),
+                    value: formatMoney(currency, totalSavings),
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 16),
+            _buildTopCategoriesCard(
+              context,
+              currency: currency,
+              breakdown: breakdown,
+              totalAmount: totalAmount,
+            ),
+          ],
           // TODO(household): restore _buildHouseholdPreviewCard when household feature ships
+        ],
+      ),
+    );
+  }
+
+  Widget _buildEmptyStateCard(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.all(24),
+      decoration: ShellStyles.cardDecoration(context, radius: 24),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            'No overview yet',
+            style: TextStyle(
+              color: ShellStyles.textPrimary(context),
+              fontSize: 20,
+              fontWeight: FontWeight.w800,
+            ),
+          ),
+          const SizedBox(height: 8),
+          Text(
+            'Scan receipts to track totals, savings, and your top spending categories.',
+            style: TextStyle(
+              color: ShellStyles.textMuted(context),
+              fontSize: 13,
+              height: 1.45,
+            ),
+          ),
         ],
       ),
     );
@@ -356,30 +410,31 @@ class _AnalyticsOverviewTabState extends State<AnalyticsOverviewTab> {
     required String title,
     required String value,
   }) {
-    final width = (MediaQuery.of(context).size.width - 64) / 2;
     return Container(
-      width: width,
-      padding: const EdgeInsets.all(16),
-      decoration: ShellStyles.cardDecoration(context, radius: 22),
+      padding: const EdgeInsets.fromLTRB(14, 14, 14, 16),
+      decoration: ShellStyles.cardDecoration(context, radius: 20),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Icon(icon, color: ShellStyles.textMuted(context), size: 20),
-          const SizedBox(height: 14),
+          Icon(icon, color: ShellStyles.textMuted(context), size: 18),
+          const SizedBox(height: 10),
           Text(
             value,
             style: TextStyle(
               color: ShellStyles.textPrimary(context),
-              fontSize: 20,
+              fontSize: 16,
               fontWeight: FontWeight.w700,
             ),
           ),
           const SizedBox(height: 4),
           Text(
             title,
+            maxLines: 2,
+            overflow: TextOverflow.ellipsis,
             style: TextStyle(
               color: ShellStyles.textMuted(context),
-              fontSize: 12,
+              fontSize: 11,
+              height: 1.25,
             ),
           ),
         ],

@@ -7,9 +7,11 @@ import '../core/analytics_filters.dart';
 import '../core/api_client.dart';
 import '../core/auto_refresh_state_mixin.dart';
 import '../core/category_style.dart';
+import '../core/launch_error_copy.dart';
 import '../core/money_formatter.dart';
 import '../core/period_filter.dart';
 import '../core/redesign_system.dart';
+import '../core/session_invalidation.dart';
 import '../core/taxonomy_localization.dart';
 import '../l10n/app_localizations.dart';
 import 'analytics_category_detail_screen.dart';
@@ -21,11 +23,13 @@ class AnalyticsTab extends StatefulWidget {
     super.key,
     required this.filters,
     required this.featureCodes,
+    this.onPremiumStatusChanged,
     this.activeFiltersBuilder,
   });
 
   final AnalyticsFilters filters;
   final Set<String> featureCodes;
+  final Future<void> Function()? onPremiumStatusChanged;
   final Widget Function()? activeFiltersBuilder;
 
   @override
@@ -45,7 +49,7 @@ class _AnalyticsTabState extends State<AnalyticsTab>
   bool _isRefreshingAnalytics = false;
 
   @override
-  Duration get autoRefreshInterval => const Duration(seconds: 10);
+  Duration get autoRefreshInterval => const Duration(minutes: 1);
 
   @override
   Future<void> performAutoRefresh() => _fetchSummary(showLoader: false);
@@ -96,7 +100,10 @@ class _AnalyticsTabState extends State<AnalyticsTab>
     await prefs.setString('analytics_breakdown_mode', _breakdownMode);
   }
 
-  Future<void> _fetchSummary({bool showLoader = true}) async {
+  Future<void> _fetchSummary({
+    bool showLoader = true,
+    String? breakdownModeOverride,
+  }) async {
     if (_isRefreshingAnalytics) return;
     _isRefreshingAnalytics = true;
     if (!mounted) {
@@ -110,9 +117,9 @@ class _AnalyticsTabState extends State<AnalyticsTab>
       });
     }
 
-    final effectiveBreakdownMode = _hasAdvancedAnalytics
-        ? _breakdownMode
-        : _modeCategory;
+    final effectiveBreakdownMode =
+        breakdownModeOverride ??
+        (_hasAdvancedAnalytics ? _breakdownMode : _modeCategory);
     try {
       final data = await ApiClient.getTransactionsSummary(
         fromDate: PeriodFilter.getStartDate(widget.filters.period),
@@ -136,10 +143,15 @@ class _AnalyticsTabState extends State<AnalyticsTab>
         _error = null;
       });
     } catch (error) {
+      if (await maybeHandleExpiredSession(error)) return;
       if (!mounted) return;
       if (showLoader || _summaryData == null) {
         setState(() {
-          _error = error.toString();
+          _error = friendlyLaunchErrorMessage(
+            error,
+            fallback:
+                'Analytics could not refresh right now. Please try again.',
+          );
           _isLoading = false;
         });
       }
@@ -152,10 +164,17 @@ class _AnalyticsTabState extends State<AnalyticsTab>
     if (mode == _breakdownMode) return;
     if (mode == _modeSubcategory && !_hasAdvancedAnalytics) {
       if (!mounted) return;
-      Navigator.push(
+      final upgraded = await Navigator.push<bool>(
         context,
         MaterialPageRoute(builder: (_) => const SubscriptionScreen()),
       );
+      if (widget.onPremiumStatusChanged != null) {
+        await widget.onPremiumStatusChanged!();
+      }
+      if (!mounted || upgraded != true) return;
+      setState(() => _breakdownMode = mode);
+      await _saveBreakdownMode();
+      await _fetchSummary(breakdownModeOverride: mode);
       return;
     }
 
@@ -282,38 +301,78 @@ class _AnalyticsTabState extends State<AnalyticsTab>
     final currency = (summaryData['currency']?.toString() ?? 'EUR')
         .toUpperCase();
     final isSubcategoryMode = _breakdownMode == _modeSubcategory;
+    final isEmptyAnalytics =
+        totalTransactions == 0 && breakdown.isEmpty && totalAmount <= 0;
 
     return RefreshIndicator(
       onRefresh: _fetchSummary,
       child: ListView(
-        padding: const EdgeInsets.fromLTRB(20, 12, 20, 32),
+        padding: EdgeInsets.fromLTRB(
+          20,
+          12,
+          20,
+          MediaQuery.of(context).padding.bottom + 32,
+        ),
         children: [
           if (widget.activeFiltersBuilder != null) ...[
             widget.activeFiltersBuilder!(),
             const SizedBox(height: 16),
           ],
-          _buildTotalCard(
-            totalAmount: totalAmount,
-            totalTransactions: totalTransactions,
-            currency: currency,
+          if (isEmptyAnalytics)
+            _buildEmptyStateCard()
+          else ...[
+            _buildTotalCard(
+              totalAmount: totalAmount,
+              totalTransactions: totalTransactions,
+              currency: currency,
+            ),
+            const SizedBox(height: 16),
+            _buildBreakdownHeader(isSubcategoryMode: isSubcategoryMode),
+            const SizedBox(height: 16),
+            _buildPieChart(
+              breakdown,
+              totalAmount,
+              currency,
+              isSubcategoryMode: isSubcategoryMode,
+            ),
+            const SizedBox(height: 16),
+            _buildBreakdownList(
+              breakdown,
+              currency,
+              isSubcategoryMode: isSubcategoryMode,
+            ),
+            const SizedBox(height: 16),
+            _buildDiscountSection(currency),
+          ],
+        ],
+      ),
+    );
+  }
+
+  Widget _buildEmptyStateCard() {
+    return Container(
+      padding: const EdgeInsets.all(24),
+      decoration: ShellStyles.cardDecoration(context, radius: 24),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            'No insights yet',
+            style: TextStyle(
+              color: ShellStyles.textPrimary(context),
+              fontSize: 20,
+              fontWeight: FontWeight.w800,
+            ),
           ),
-          const SizedBox(height: 16),
-          _buildBreakdownHeader(isSubcategoryMode: isSubcategoryMode),
-          const SizedBox(height: 16),
-          _buildPieChart(
-            breakdown,
-            totalAmount,
-            currency,
-            isSubcategoryMode: isSubcategoryMode,
+          const SizedBox(height: 8),
+          Text(
+            'Scan receipts to see spending by category, totals, and savings here.',
+            style: TextStyle(
+              color: ShellStyles.textMuted(context),
+              fontSize: 13,
+              height: 1.45,
+            ),
           ),
-          const SizedBox(height: 16),
-          _buildBreakdownList(
-            breakdown,
-            currency,
-            isSubcategoryMode: isSubcategoryMode,
-          ),
-          const SizedBox(height: 16),
-          _buildDiscountSection(currency),
         ],
       ),
     );

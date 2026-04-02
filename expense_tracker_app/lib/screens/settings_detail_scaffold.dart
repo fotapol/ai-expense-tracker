@@ -9,7 +9,7 @@ class SettingsDetailScaffold extends StatelessWidget {
     required this.title,
     required this.body,
     this.actions,
-    this.showScanAction = true,
+    this.showScanAction = false,
   });
 
   final String title;

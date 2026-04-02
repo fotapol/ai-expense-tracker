@@ -5,9 +5,11 @@ import 'package:flutter/material.dart';
 
 import '../core/analytics_filters.dart';
 import '../core/api_client.dart';
+import '../core/launch_error_copy.dart';
 import '../core/money_formatter.dart';
 import '../core/period_filter.dart';
 import '../core/redesign_system.dart';
+import '../core/session_invalidation.dart';
 import '../l10n/app_localizations.dart';
 
 class AnalyticsTrendsTab extends StatefulWidget {
@@ -69,9 +71,14 @@ class _AnalyticsTrendsTabState extends State<AnalyticsTrendsTab> {
         _isLoading = false;
       });
     } catch (error) {
+      if (await maybeHandleExpiredSession(error)) return;
       if (!mounted) return;
       setState(() {
-        _error = error.toString();
+        _error = friendlyLaunchErrorMessage(
+          error,
+          fallback:
+              'Trend insights are unavailable right now. Please try again.',
+        );
         _isLoading = false;
       });
     }
@@ -134,61 +141,100 @@ class _AnalyticsTrendsTabState extends State<AnalyticsTrendsTab> {
     final averageBucketSpend = buckets.isEmpty
         ? 0.0
         : currentTotal / buckets.length;
+    final isEmptyTrends = currentTotal <= 0 && buckets.isEmpty;
 
     return RefreshIndicator(
       onRefresh: _fetchData,
       child: ListView(
-        padding: const EdgeInsets.fromLTRB(20, 12, 20, 32),
+        padding: EdgeInsets.fromLTRB(
+          20,
+          12,
+          20,
+          MediaQuery.of(context).padding.bottom + 32,
+        ),
         children: [
           if (widget.activeFiltersBuilder != null) ...[
             widget.activeFiltersBuilder!(),
             const SizedBox(height: 16),
           ],
-          _buildSummaryCard(
-            context,
-            currency: currency,
-            currentTotal: currentTotal,
-            previousTotal: previousTotal,
-            changePercentage: changePercentage,
-            bucketUnit: bucketUnit,
+          if (isEmptyTrends)
+            _buildEmptyStateCard(context)
+          else ...[
+            _buildSummaryCard(
+              context,
+              currency: currency,
+              currentTotal: currentTotal,
+              previousTotal: previousTotal,
+              changePercentage: changePercentage,
+              bucketUnit: bucketUnit,
+            ),
+            const SizedBox(height: 16),
+            _buildChartCard(
+              context,
+              currency: currency,
+              bucketUnit: bucketUnit,
+              buckets: buckets,
+              hasChartData: hasChartData,
+              averageBucketSpend: averageBucketSpend,
+            ),
+            const SizedBox(height: 16),
+            Wrap(
+              spacing: 12,
+              runSpacing: 12,
+              children: [
+                _buildMetricCard(
+                  context,
+                  title: 'Peak ${_bucketUnitLabel(bucketUnit)} spend',
+                  value: highestBucket == null
+                      ? context.tr('analytics_no_data')
+                      : formatMoney(
+                          currency,
+                          _parseDouble(highestBucket['amount']),
+                        ),
+                  subtitle: highestBucket == null
+                      ? 'No bucket data in this period.'
+                      : highestBucket['label']?.toString() ??
+                            'No bucket data in this period.',
+                ),
+                _buildMetricCard(
+                  context,
+                  title: 'Average per ${_bucketUnitLabel(bucketUnit)}',
+                  value: formatMoney(currency, averageBucketSpend),
+                  subtitle: buckets.isEmpty
+                      ? 'No bucket data in this period.'
+                      : '${buckets.length} ${_bucketUnitPlural(bucketUnit, buckets.length)} in this period',
+                ),
+              ],
+            ),
+          ],
+        ],
+      ),
+    );
+  }
+
+  Widget _buildEmptyStateCard(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.all(24),
+      decoration: ShellStyles.cardDecoration(context, radius: 24),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            'No trend data yet',
+            style: TextStyle(
+              color: ShellStyles.textPrimary(context),
+              fontSize: 20,
+              fontWeight: FontWeight.w800,
+            ),
           ),
-          const SizedBox(height: 16),
-          _buildChartCard(
-            context,
-            currency: currency,
-            bucketUnit: bucketUnit,
-            buckets: buckets,
-            hasChartData: hasChartData,
-            averageBucketSpend: averageBucketSpend,
-          ),
-          const SizedBox(height: 16),
-          Wrap(
-            spacing: 12,
-            runSpacing: 12,
-            children: [
-              _buildMetricCard(
-                context,
-                title: 'Peak ${_bucketUnitLabel(bucketUnit)} spend',
-                value: highestBucket == null
-                    ? context.tr('analytics_no_data')
-                    : formatMoney(
-                        currency,
-                        _parseDouble(highestBucket['amount']),
-                      ),
-                subtitle: highestBucket == null
-                    ? 'No bucket data in this period.'
-                    : highestBucket['label']?.toString() ??
-                          'No bucket data in this period.',
-              ),
-              _buildMetricCard(
-                context,
-                title: 'Average per ${_bucketUnitLabel(bucketUnit)}',
-                value: formatMoney(currency, averageBucketSpend),
-                subtitle: buckets.isEmpty
-                    ? 'No bucket data in this period.'
-                    : '${buckets.length} ${_bucketUnitPlural(bucketUnit, buckets.length)} in this period',
-              ),
-            ],
+          const SizedBox(height: 8),
+          Text(
+            'Scan receipts over time to see spending patterns and compare periods here.',
+            style: TextStyle(
+              color: ShellStyles.textMuted(context),
+              fontSize: 13,
+              height: 1.45,
+            ),
           ),
         ],
       ),

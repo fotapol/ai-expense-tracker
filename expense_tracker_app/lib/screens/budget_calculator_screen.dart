@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 
 import '../core/api_client.dart';
+import '../core/launch_error_copy.dart';
 import '../core/planning_logic.dart';
 import '../core/redesign_system.dart';
+import '../core/session_invalidation.dart';
 import '../core/taxonomy_localization.dart';
 import '../l10n/app_localizations.dart';
 import 'settings_detail_scaffold.dart';
@@ -112,9 +114,14 @@ class _BudgetCalculatorScreenState extends State<BudgetCalculatorScreen> {
         _error = null;
       });
     } catch (error) {
+      if (await maybeHandleExpiredSession(error)) return;
       if (!mounted) return;
       setState(() {
-        _error = error.toString();
+        _error = friendlyLaunchErrorMessage(
+          error,
+          fallback:
+              'Budget details could not load right now. Pull to try again.',
+        );
         _isLoading = false;
       });
     }
@@ -254,8 +261,16 @@ class _BudgetCalculatorScreenState extends State<BudgetCalculatorScreen> {
       if (!mounted) return;
       _showMessage(context.tr('budget_saved'));
     } catch (error) {
+      if (await maybeHandleExpiredSession(error)) return;
       if (!mounted) return;
-      _showMessage(error.toString(), isError: true);
+      _showMessage(
+        friendlyLaunchErrorMessage(
+          error,
+          fallback:
+              'Budget changes could not be saved right now. Please try again.',
+        ),
+        isError: true,
+      );
     } finally {
       if (mounted) setState(() => _isSaving = false);
     }
@@ -577,19 +592,26 @@ class _BudgetCalculatorScreenState extends State<BudgetCalculatorScreen> {
       categories: categories,
       totalSpent: _totalSpent,
     );
+    final bottomPadding = MediaQuery.of(context).padding.bottom + 32;
 
     return SettingsDetailScaffold(
       title: context.tr('tools_budget_calculator'),
       body: _isLoading
-          ? const Center(child: CircularProgressIndicator())
+          ? const SafeArea(
+              top: false,
+              child: Center(child: CircularProgressIndicator()),
+            )
           : _error != null
-          ? Center(
-              child: Padding(
-                padding: const EdgeInsets.all(24),
-                child: Text(
-                  _error!,
-                  textAlign: TextAlign.center,
-                  style: TextStyle(color: ShellStyles.textPrimary(context)),
+          ? SafeArea(
+              top: false,
+              child: Center(
+                child: Padding(
+                  padding: const EdgeInsets.all(24),
+                  child: Text(
+                    _error!,
+                    textAlign: TextAlign.center,
+                    style: TextStyle(color: ShellStyles.textPrimary(context)),
+                  ),
                 ),
               ),
             )
@@ -599,81 +621,68 @@ class _BudgetCalculatorScreenState extends State<BudgetCalculatorScreen> {
                 onRefresh: () => _loadData(showLoader: false),
                 child: ListView(
                   physics: const AlwaysScrollableScrollPhysics(),
-                  padding: const EdgeInsets.fromLTRB(16, 16, 16, 120),
+                  padding: EdgeInsets.fromLTRB(16, 16, 16, bottomPadding),
                   children: [
-                    Text(
-                      context.tr('tools_budget_calculator_subtitle'),
-                      style: TextStyle(
-                        color: ShellStyles.textMuted(context),
-                        fontSize: 13,
-                      ),
+                    ShellStyles.sectionLabel(
+                      context,
+                      context.tr('budget_income_label'),
                     ),
-                    const SizedBox(height: 16),
+                    const SizedBox(height: 8),
                     SettingsDetailCard(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            context.tr('budget_income_label'),
-                            style: TextStyle(
-                              color: ShellStyles.textPrimary(context),
-                              fontSize: 12.5,
-                              fontWeight: FontWeight.w600,
-                            ),
-                          ),
-                          const SizedBox(height: 8),
-                          TextField(
-                            controller: _incomeController,
-                            keyboardType: const TextInputType.numberWithOptions(
-                              decimal: true,
-                            ),
-                            decoration: InputDecoration(
-                              prefixText:
-                                  '${CurrencyDisplay.symbolForCode(_currency)} ',
-                            ),
-                          ),
-                        ],
+                      child: TextField(
+                        controller: _incomeController,
+                        keyboardType: const TextInputType.numberWithOptions(
+                          decimal: true,
+                        ),
+                        decoration: InputDecoration(
+                          prefixText:
+                              '${CurrencyDisplay.symbolForCode(_currency)} ',
+                        ),
                       ),
                     ),
                     const SizedBox(height: 16),
-                    Row(
-                      children: [
-                        Expanded(
-                          child: _buildSummaryCard(
-                            context.tr('budget_total_budget'),
-                            _formatCurrency(overview.totalBudget),
-                          ),
-                        ),
-                        const SizedBox(width: 10),
-                        Expanded(
-                          child: _buildSummaryCard(
-                            context.tr('budget_total_spent'),
-                            _formatCurrency(overview.totalSpent),
-                          ),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 10),
-                    Row(
-                      children: [
-                        Expanded(
-                          child: _buildSummaryCard(
-                            context.tr('budget_remaining'),
-                            _formatCurrency(overview.remaining),
-                            valueColor: overview.remaining < 0
-                                ? ShellColors.softRed
-                                : ShellColors.softGreen,
-                          ),
-                        ),
-                        const SizedBox(width: 10),
-                        Expanded(
-                          child: _buildSummaryCard(
-                            context.tr('budget_savings_goal'),
-                            _formatCurrency(overview.savingsGoal),
-                            valueColor: ShellColors.softGreen,
-                          ),
-                        ),
-                      ],
+                    LayoutBuilder(
+                      builder: (context, constraints) {
+                        final cardWidth = (constraints.maxWidth - 10) / 2;
+                        return Wrap(
+                          spacing: 10,
+                          runSpacing: 10,
+                          children: [
+                            SizedBox(
+                              width: cardWidth,
+                              child: _buildSummaryCard(
+                                context.tr('budget_total_budget'),
+                                _formatCurrency(overview.totalBudget),
+                              ),
+                            ),
+                            SizedBox(
+                              width: cardWidth,
+                              child: _buildSummaryCard(
+                                context.tr('budget_total_spent'),
+                                _formatCurrency(overview.totalSpent),
+                              ),
+                            ),
+                            SizedBox(
+                              width: cardWidth,
+                              child: _buildSummaryCard(
+                                context.tr('budget_remaining'),
+                                _formatCurrency(overview.remaining),
+                                valueColor: overview.remaining < 0
+                                    ? ShellColors.softRed
+                                    : ShellColors.softGreen,
+                              ),
+                            ),
+                            SizedBox(
+                              width: cardWidth,
+                              child: _buildSummaryCard(
+                                context.tr('budget_savings_goal'),
+                                _formatCurrency(overview.savingsGoal),
+                                valueColor: ShellColors.softGreen,
+                              ),
+                            ),
+                          ],
+                        );
+                      },
                     ),
                     const SizedBox(height: 18),
                     Row(
@@ -715,8 +724,10 @@ class _BudgetCalculatorScreenState extends State<BudgetCalculatorScreen> {
                           child: _buildCategoryCard(category),
                         );
                       }),
-                    const SizedBox(height: 12),
-                    _buildStatusBanner(overview, categories),
+                    if (categories.isNotEmpty) ...[
+                      const SizedBox(height: 12),
+                      _buildStatusBanner(overview, categories),
+                    ],
                     const SizedBox(height: 16),
                     SizedBox(
                       width: double.infinity,

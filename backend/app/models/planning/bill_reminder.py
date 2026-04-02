@@ -9,7 +9,7 @@ from app.models.shared.timestamps import TimestampedModel
 
 
 class BillReminder(TimestampedModel, table=True):
-    """Per-user recurring monthly bill reminder."""
+    """Per-user recurring bill reminder."""
 
     __tablename__ = "bill_reminders"
     __table_args__ = (
@@ -24,6 +24,15 @@ class BillReminder(TimestampedModel, table=True):
     currency: str = Field(
         default="EUR",
         sa_column=Column(CHAR(3), nullable=False, default="EUR"),
+    )
+    recurrence: str = Field(
+        default="monthly",
+        sa_column=Column(
+            String(16),
+            nullable=False,
+            default="monthly",
+            server_default="monthly",
+        ),
     )
     first_due_date: dt.date = Field(
         sa_column=Column(Date(), nullable=False),

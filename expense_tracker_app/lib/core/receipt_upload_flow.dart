@@ -1,6 +1,8 @@
 import 'dart:async';
 import 'dart:io';
 
+import 'launch_error_copy.dart';
+
 enum ReceiptPollingAction { pending, completed, failed }
 
 const int maxReceiptUploadBytes = 10 * 1024 * 1024;
@@ -121,7 +123,10 @@ String formatReceiptUploadError(Object error) {
   if (normalized.contains('timed out')) {
     return 'The receipt upload timed out. Please check your connection and try again.';
   }
-  return message;
+  return friendlyLaunchErrorMessage(
+    error,
+    fallback: 'We could not finish the receipt upload. Please try again.',
+  );
 }
 
 class ReceiptPollingDecision {
