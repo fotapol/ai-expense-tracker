@@ -71,11 +71,6 @@ class _AnalyticsSubcategoryItemsScreenState
       final description = _normalizeText(item['description']?.toString());
       if (description.isEmpty) continue;
 
-      final translated = _normalizeText(
-        item['translated_description']?.toString(),
-      );
-      if (translated.isNotEmpty) continue;
-
       var sourceLanguage = _normalizeLanguageCode(
         item['description_lang']?.toString(),
       );
@@ -90,10 +85,25 @@ class _AnalyticsSubcategoryItemsScreenState
             fallbackLanguageCode: _resolveAppLanguage(),
           ) ??
           '';
+      final translated = _normalizeText(
+        item['translated_description']?.toString(),
+      );
+      final shouldRefreshExistingTranslation =
+          ItemTranslationService.shouldRetranslate(
+            translatedText: translated,
+            expectedSourceLanguage: sourceLanguage,
+            expectedTargetLanguage: targetLanguage,
+            translatedSourceLanguage: item['translation_source_language']
+                ?.toString(),
+            translatedTargetLanguage: item['translation_language']?.toString(),
+          );
+      if (!shouldRefreshExistingTranslation) continue;
+
       final result = await ItemTranslationService.instance.translate(
         sourceText: description,
         sourceLanguage: sourceLanguage.isNotEmpty ? sourceLanguage : null,
         targetLanguage: targetLanguage,
+        forceRefresh: shouldRefreshExistingTranslation,
       );
       if (result == null || !mounted) continue;
 

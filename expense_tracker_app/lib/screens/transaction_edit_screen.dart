@@ -640,11 +640,6 @@ class _TransactionEditScreenState extends State<TransactionEditScreen> {
         );
         if (description.isEmpty) continue;
 
-        final existingTranslation = _normalizeText(
-          item['translated_description']?.toString(),
-        );
-        if (!forceRefresh && existingTranslation.isNotEmpty) continue;
-
         var sourceLanguage = _normalizeLanguageCode(
           item['description_lang']?.toString(),
         );
@@ -659,11 +654,26 @@ class _TransactionEditScreenState extends State<TransactionEditScreen> {
               fallbackLanguageCode: _resolveAppLanguage(),
             ) ??
             '';
+        final existingTranslation = _normalizeText(
+          item['translated_description']?.toString(),
+        );
+        final shouldRefreshExistingTranslation =
+            ItemTranslationService.shouldRetranslate(
+              translatedText: existingTranslation,
+              expectedSourceLanguage: sourceLanguage,
+              expectedTargetLanguage: targetLanguage,
+              translatedSourceLanguage: item['translation_source_language']
+                  ?.toString(),
+              translatedTargetLanguage: item['translation_language']
+                  ?.toString(),
+            );
+        if (!forceRefresh && !shouldRefreshExistingTranslation) continue;
+
         final result = await ItemTranslationService.instance.translate(
           sourceText: description,
           sourceLanguage: sourceLanguage.isNotEmpty ? sourceLanguage : null,
           targetLanguage: targetLanguage,
-          forceRefresh: forceRefresh,
+          forceRefresh: forceRefresh || shouldRefreshExistingTranslation,
         );
         if (result == null || !mounted) continue;
 
