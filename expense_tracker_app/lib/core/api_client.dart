@@ -1226,6 +1226,24 @@ class ApiClient {
     );
   }
 
+  /// DELETE /v1/planning/bills/{id}
+  static Future<void> deleteBillReminder(String billId) async {
+    final token = await _getToken();
+    final response = await http.delete(
+      Uri.parse('$apiBaseUrl/v1/planning/bills/$billId'),
+      headers: {
+        'Authorization': 'Bearer $token',
+        'Content-Type': 'application/json',
+      },
+    );
+    await _throwIfUnauthorizedResponse(response);
+    if (response.statusCode != 204) {
+      throw Exception(
+        'Failed to delete bill reminder: ${response.statusCode} ${_extractErrorMessage(response)}',
+      );
+    }
+  }
+
   /// GET /v1/categories
   static Future<List<dynamic>> listCategories({
     bool includeDisabled = false,

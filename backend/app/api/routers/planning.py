@@ -304,3 +304,32 @@ async def mark_bill_reminder_paid(
         session.refresh(reminder)
 
     return reminder
+
+
+@router.delete("/planning/bills/{bill_id}", status_code=status.HTTP_204_NO_CONTENT)
+@limiter.limit("20/minute")
+async def delete_bill_reminder(
+    bill_id: uuid.UUID,
+    request: Request,
+    session: Session = Depends(get_session),  # noqa: B008
+    current_user: User = Depends(get_current_user),  # noqa: B008
+):
+    """Soft-delete a reminder so it no longer shows or schedules notifications."""
+
+    reminder = session.exec(
+        select(BillReminder).where(
+            BillReminder.id == bill_id,
+            BillReminder.user_id == current_user.id,
+        )
+    ).first()
+    if reminder is None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Bill reminder not found.",
+        )
+
+    reminder.is_active = False
+    session.add(reminder)
+    session.commit()
+
+    return None

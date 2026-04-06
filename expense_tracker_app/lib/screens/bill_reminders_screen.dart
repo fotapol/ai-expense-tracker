@@ -25,6 +25,7 @@ class _BillRemindersScreenState extends State<BillRemindersScreen> {
   bool _isCreating = false;
   bool _showComposer = false;
   String? _savingBillId;
+  String? _deletingBillId;
   String? _error;
   String _currency = 'EUR';
   String _selectedRecurrence = billReminderRecurrenceMonthly;
@@ -256,7 +257,7 @@ class _BillRemindersScreenState extends State<BillRemindersScreen> {
   }
 
   Future<void> _markAsPaid(BillReminderOccurrence occurrence) async {
-    if (_savingBillId != null) return;
+    if (_savingBillId != null || _deletingBillId != null) return;
     setState(() => _savingBillId = occurrence.reminder.id);
     try {
       await ApiClient.markBillReminderPaid(
@@ -280,6 +281,63 @@ class _BillRemindersScreenState extends State<BillRemindersScreen> {
       );
     } finally {
       if (mounted) setState(() => _savingBillId = null);
+    }
+  }
+
+  Future<void> _deleteReminder(BillReminderRecord reminder) async {
+    if (_savingBillId != null || _deletingBillId != null) return;
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (dialogContext) => ShellStyles.clampOverlayScale(
+        dialogContext,
+        AlertDialog(
+          title: const Text('Delete reminder'),
+          content: Text(
+            'Remove "${reminder.name}" from your bill reminders? This also removes its paid history from this list.',
+            style: TextStyle(
+              color: ShellStyles.textPrimary(dialogContext),
+              height: 1.35,
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(dialogContext, false),
+              child: Text(context.tr('common_cancel')),
+            ),
+            FilledButton(
+              onPressed: () => Navigator.pop(dialogContext, true),
+              style: FilledButton.styleFrom(
+                backgroundColor: ShellStyles.textPrimary(dialogContext),
+                foregroundColor: ShellStyles.surface(dialogContext),
+              ),
+              child: const Text('Delete'),
+            ),
+          ],
+        ),
+      ),
+    );
+    if (confirmed != true || !mounted) return;
+
+    setState(() => _deletingBillId = reminder.id);
+    try {
+      await ApiClient.deleteBillReminder(reminder.id);
+      await BillReminderNotificationService.instance
+          .syncScheduledNotifications();
+      await _loadData(showLoader: false);
+      if (!mounted) return;
+      _showMessage('Bill reminder deleted.');
+    } catch (error) {
+      if (await maybeHandleExpiredSession(error)) return;
+      if (!mounted) return;
+      _showMessage(
+        friendlyLaunchErrorMessage(
+          error,
+          fallback: 'That bill reminder could not be deleted right now.',
+        ),
+        isError: true,
+      );
+    } finally {
+      if (mounted) setState(() => _deletingBillId = null);
     }
   }
 
@@ -532,6 +590,8 @@ class _BillRemindersScreenState extends State<BillRemindersScreen> {
         ? ShellColors.softGreen
         : _statusColor(occurrence.status);
     final isSaving = _savingBillId == occurrence.reminder.id;
+    final isDeleting = _deletingBillId == occurrence.reminder.id;
+    final isBusy = isSaving || isDeleting;
     final borderColor = isHistory
         ? ShellStyles.border(context)
         : occurrence.isOverdue
@@ -578,6 +638,34 @@ class _BillRemindersScreenState extends State<BillRemindersScreen> {
                   fontSize: 20,
                   fontWeight: FontWeight.w800,
                 ),
+              ),
+              PopupMenuButton<_ReminderAction>(
+                enabled: !isBusy,
+                tooltip: 'Reminder actions',
+                onSelected: (action) {
+                  if (action == _ReminderAction.delete) {
+                    _deleteReminder(occurrence.reminder);
+                  }
+                },
+                itemBuilder: (menuContext) => const [
+                  PopupMenuItem<_ReminderAction>(
+                    value: _ReminderAction.delete,
+                    child: Text('Delete reminder'),
+                  ),
+                ],
+                icon: isDeleting
+                    ? SizedBox(
+                        width: 20,
+                        height: 20,
+                        child: CircularProgressIndicator(
+                          strokeWidth: 2,
+                          color: ShellStyles.textMuted(context),
+                        ),
+                      )
+                    : Icon(
+                        Icons.more_horiz,
+                        color: ShellStyles.textMuted(context),
+                      ),
               ),
             ],
           ),
@@ -631,7 +719,7 @@ class _BillRemindersScreenState extends State<BillRemindersScreen> {
               if (!isHistory) ...[
                 const SizedBox(width: 10),
                 FilledButton.icon(
-                  onPressed: isSaving ? null : () => _markAsPaid(occurrence),
+                  onPressed: isBusy ? null : () => _markAsPaid(occurrence),
                   style: FilledButton.styleFrom(
                     backgroundColor: ShellColors.softGreen.withAlpha(18),
                     foregroundColor: ShellColors.softGreen,
@@ -816,3 +904,5 @@ class _BillRemindersScreenState extends State<BillRemindersScreen> {
     );
   }
 }
+
+enum _ReminderAction { delete }
