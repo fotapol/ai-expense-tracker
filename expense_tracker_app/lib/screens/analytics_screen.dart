@@ -3,12 +3,14 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 import '../core/analytics_filters.dart';
 import '../core/api_client.dart';
+import '../core/app_navigation.dart';
 import '../core/launch_error_copy.dart';
 import '../core/redesign_system.dart';
 import '../core/session_invalidation.dart';
 import '../core/subscription_confirmation.dart';
 import '../core/taxonomy_localization.dart';
 import '../l10n/app_localizations.dart';
+import '../widgets/app_tab_footer.dart';
 import '../widgets/filter_bottom_sheet.dart';
 // TODO(household): re-import analytics_household_tab when household feature ships
 import 'analytics_overview_tab.dart';
@@ -32,6 +34,7 @@ class AnalyticsScreen extends StatefulWidget {
 class _AnalyticsScreenState extends State<AnalyticsScreen> {
   static const int _collapsedActiveFilterLimit = 4;
 
+  late final PageController _pageController;
   bool _isLoading = true;
   String? _error;
   AnalyticsSection _selectedSection = AnalyticsSection.overview;
@@ -44,7 +47,14 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
   @override
   void initState() {
     super.initState();
+    _pageController = PageController(initialPage: _selectedSection.index);
     _loadShellState();
+  }
+
+  @override
+  void dispose() {
+    _pageController.dispose();
+    super.dispose();
   }
 
   Future<void> _refreshFeatureCodes() async {
@@ -144,6 +154,10 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
         _featureCodes = featureCodes;
         _isLoading = false;
       });
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (!mounted || !_pageController.hasClients) return;
+        _pageController.jumpToPage(_selectedSection.index);
+      });
     } catch (error) {
       if (await maybeHandleExpiredSession(error)) return;
       if (!mounted) return;
@@ -200,7 +214,28 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
   void _selectSection(AnalyticsSection section) {
     if (section == _selectedSection) return;
     setState(() => _selectedSection = section);
+    if (_pageController.hasClients) {
+      _pageController.animateToPage(
+        section.index,
+        duration: const Duration(milliseconds: 220),
+        curve: Curves.easeOutCubic,
+      );
+    }
     _saveSection();
+  }
+
+  void _handlePageChanged(int index) {
+    final section = AnalyticsSection.values[index];
+    if (section == _selectedSection) return;
+    setState(() => _selectedSection = section);
+    _saveSection();
+  }
+
+  void _openRootTab(int index) {
+    selectRootTab(index);
+    if (Navigator.of(context).canPop()) {
+      Navigator.of(context).popUntil((route) => route.isFirst);
+    }
   }
 
   Widget _buildSectionChip(AnalyticsSection section) {
@@ -499,8 +534,9 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
                   child: _buildSectionSelector(),
                 ),
                 Expanded(
-                  child: IndexedStack(
-                    index: _selectedSection.index,
+                  child: PageView(
+                    controller: _pageController,
+                    onPageChanged: _handlePageChanged,
                     children: [
                       // TODO(household): restore currentHousehold/onHouseholdUpdated
                       // params to AnalyticsOverviewTab when household feature ships
@@ -530,6 +566,10 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
                 ),
               ],
             ),
+      bottomNavigationBar: AppTabFooter(
+        selectedIndex: 1,
+        onSelected: _openRootTab,
+      ),
     );
   }
 }
