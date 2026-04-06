@@ -26,6 +26,40 @@ void _popToRootRoute() {
   navigator.popUntil((route) => route.isFirst);
 }
 
+/// Clears the local Firebase session and RevenueCat state without touching
+/// the Google Sign-In account association.
+///
+/// Use this for 401s that are likely caused by transient backend issues after
+/// a failed token-refresh retry.  The user will be returned to the login
+/// screen but the Google account remains linked, so the next sign-in attempt
+/// can use [GoogleSignIn.instance.attemptSilentSignIn] instead of showing the
+/// full account picker.
+Future<void> clearFirebaseSession({
+  String message = expiredSessionMessage,
+}) async {
+  primePendingLoginNotice(message);
+  _popToRootRoute();
+  if (_isInvalidatingSession) return;
+
+  _isInvalidatingSession = true;
+  try {
+    await clearOptimisticPremiumAccess();
+    try {
+      await RevenueCatService.logOut();
+    } catch (_) {}
+    try {
+      await FirebaseAuth.instance.signOut();
+    } catch (_) {}
+  } finally {
+    _isInvalidatingSession = false;
+  }
+}
+
+/// Full sign-out: clears Firebase session AND the Google account association.
+///
+/// Use this for user-initiated sign-outs and confirmed truly-revoked sessions.
+/// After this call the user must interact with the Google account picker to
+/// sign back in.
 Future<void> invalidateExpiredSession({
   String message = expiredSessionMessage,
 }) async {

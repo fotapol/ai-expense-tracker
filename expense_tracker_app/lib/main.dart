@@ -129,6 +129,25 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
   void didChangeAppLifecycleState(AppLifecycleState state) {
     if (state != AppLifecycleState.resumed) return;
     BillReminderNotificationService.instance.syncScheduledNotifications();
+
+    // Pre-warm the Firebase ID token when the app comes back to the
+    // foreground.  If the token is within the expiry refresh window (5 min)
+    // this forces a silent refresh so the first API call after resume does
+    // not bear the refresh latency.  Errors are intentionally swallowed
+    // because this is best-effort; the regular _getToken path will retry.
+    final user = FirebaseAuth.instance.currentUser;
+    if (user != null) {
+      // Best-effort token pre-warm. Any error is intentionally swallowed.
+      unawaited(() async {
+        try {
+          final result = await user.getIdTokenResult();
+          if (shouldForceSessionTokenRefresh(result.expirationTime)) {
+            await user.getIdToken(true);
+          }
+        } catch (_) {}
+      }());
+    }
+
     unawaited(
       _premiumRefreshController.refreshOnResume(
         isSignedIn: FirebaseAuth.instance.currentUser != null,
@@ -184,7 +203,11 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
         GlobalCupertinoLocalizations.delegate,
       ],
       home: SessionRestoreGate<User>(
-        stream: FirebaseAuth.instance.authStateChanges(),
+        // idTokenChanges() is a superset of authStateChanges():
+        // it also fires when the token is silently refreshed or revoked,
+        // giving the gate a chance to react to real session changes in
+        // real time without waiting for an explicit sign-out event.
+        stream: FirebaseAuth.instance.idTokenChanges(),
         initialValue: FirebaseAuth.instance.currentUser,
         isAuthenticated: (user) => user != null,
         loadingBuilder: (_) => const SessionRestoreLoadingScreen(),
