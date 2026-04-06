@@ -132,22 +132,28 @@ void main() {
       );
     });
 
-    test('marking current cycle as paid hides it until next month', () {
-      final reminder = buildReminder(lastPaidDueDate: DateTime(2026, 3, 5));
+    test(
+      'marking current cycle as paid moves monthly reminder to next month',
+      () {
+        final reminder = buildReminder(lastPaidDueDate: DateTime(2026, 3, 5));
 
-      expect(billReminderOccurrenceForList(reminder, now: now), isNull);
-      expect(
-        nextSchedulableBillReminderDueDate(reminder, now: now),
-        DateTime(2026, 4, 5),
-      );
-      expect(
-        billReminderOccurrenceForList(
-          reminder,
-          now: DateTime(2026, 4, 1),
-        )?.dueDate,
-        DateTime(2026, 4, 5),
-      );
-    });
+        expect(
+          billReminderOccurrenceForList(reminder, now: now)?.dueDate,
+          DateTime(2026, 4, 5),
+        );
+        expect(
+          nextSchedulableBillReminderDueDate(reminder, now: now),
+          DateTime(2026, 4, 5),
+        );
+        expect(
+          billReminderOccurrenceForList(
+            reminder,
+            now: DateTime(2026, 4, 1),
+          )?.dueDate,
+          DateTime(2026, 4, 5),
+        );
+      },
+    );
 
     test('monthly due dates clamp to shorter months', () {
       final reminder = buildReminder(
@@ -203,11 +209,38 @@ void main() {
         lastPaidDueDate: DateTime(2026, 3, 23),
       );
 
-      expect(billReminderOccurrenceForList(reminder, now: now), isNull);
+      expect(
+        billReminderOccurrenceForList(reminder, now: now)?.dueDate,
+        DateTime(2026, 3, 24),
+      );
       expect(
         nextSchedulableBillReminderDueDate(reminder, now: now),
         DateTime(2026, 3, 24),
       );
+    });
+
+    test('weekly reminders move forward by one week after payment', () {
+      final reminder = buildReminder(
+        recurrence: billReminderRecurrenceWeekly,
+        firstDueDate: DateTime(2026, 3, 2),
+        lastPaidDueDate: DateTime(2026, 3, 23),
+      );
+
+      expect(
+        billReminderOccurrenceForList(reminder, now: now)?.dueDate,
+        DateTime(2026, 3, 30),
+      );
+    });
+
+    test('one-time reminders move to history after payment', () {
+      final reminder = buildReminder(
+        recurrence: billReminderRecurrenceNone,
+        firstDueDate: DateTime(2026, 3, 25),
+        lastPaidDueDate: DateTime(2026, 3, 25),
+      );
+
+      expect(billReminderOccurrenceForList(reminder, now: now), isNull);
+      expect(nextSchedulableBillReminderDueDate(reminder, now: now), isNull);
     });
 
     test('yearly reminders clamp leap-day anchors for non-leap years', () {
