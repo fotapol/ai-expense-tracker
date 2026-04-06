@@ -1,3 +1,5 @@
+import 'dart:math' as math;
+
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 
@@ -29,6 +31,69 @@ class ShellColors {
 class ShellStyles {
   static bool isDark(BuildContext context) =>
       Theme.of(context).brightness == Brightness.dark;
+
+  static double textScale(BuildContext context) =>
+      MediaQuery.textScalerOf(context).scale(1);
+
+  static double densityScale(
+    BuildContext context, {
+    double min = 0.86,
+    double max = 1.12,
+  }) {
+    final rawScale = textScale(context);
+    final adjusted = 1 + ((rawScale - 1) * 0.45);
+    return adjusted.clamp(min, max);
+  }
+
+  static double scaled(
+    BuildContext context,
+    double base, {
+    double minFactor = 0.86,
+    double maxFactor = 1.12,
+    double? min,
+    double? max,
+  }) {
+    var value = base * densityScale(context, min: minFactor, max: maxFactor);
+    if (min != null) {
+      value = math.max(value, min);
+    }
+    if (max != null) {
+      value = math.min(value, max);
+    }
+    return value;
+  }
+
+  static EdgeInsets scaledInsets(
+    BuildContext context, {
+    double horizontal = 16,
+    double vertical = 16,
+    double minHorizontal = 12,
+    double minVertical = 10,
+  }) {
+    return EdgeInsets.symmetric(
+      horizontal: scaled(context, horizontal, min: minHorizontal),
+      vertical: scaled(context, vertical, min: minVertical),
+    );
+  }
+
+  static double minTapTarget(BuildContext context, {double base = 46}) =>
+      scaled(context, base, min: 44, max: 56);
+
+  static Widget clampOverlayScale(
+    BuildContext context,
+    Widget child, {
+    double minTextScale = 0.9,
+  }) {
+    final mediaQuery = MediaQuery.of(context);
+    final currentScale = textScale(context);
+    if (currentScale >= minTextScale) {
+      return child;
+    }
+    return MediaQuery(
+      data: mediaQuery.copyWith(textScaler: TextScaler.linear(minTextScale)),
+      child: child,
+    );
+  }
 
   static Color background(BuildContext context) => isDark(context)
       ? ShellColors.darkBackground

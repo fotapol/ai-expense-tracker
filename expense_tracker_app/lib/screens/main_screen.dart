@@ -19,7 +19,7 @@ class _MainScreenState extends State<MainScreen> {
 
   static const List<Widget> _tabs = [HomeTab(), ToolsScreen(), MeScreen()];
 
-  bool get _showsScanAction => _selectedIndex == 0 || _selectedIndex == 1;
+  bool get _showsScanAction => _selectedIndex == 0;
 
   Future<void> _openScan() async {
     await Navigator.push(
