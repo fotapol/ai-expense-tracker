@@ -22,15 +22,15 @@ class ToolsScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final bottomPadding = MediaQuery.of(context).padding.bottom + 28;
-    final density = ShellStyles.densityScale(context);
+    final horizontalPadding = ShellStyles.scaled(context, 12, min: 12, max: 16);
+    final bottomPadding = MediaQuery.of(context).padding.bottom + 104;
 
     return SafeArea(
       child: SingleChildScrollView(
         padding: EdgeInsets.fromLTRB(
-          ShellStyles.scaled(context, 16, min: 14),
-          ShellStyles.scaled(context, 18, min: 14),
-          ShellStyles.scaled(context, 16, min: 14),
+          horizontalPadding,
+          ShellStyles.scaled(context, 18, min: 16, max: 22),
+          horizontalPadding,
           bottomPadding,
         ),
         child: Column(
@@ -49,91 +49,16 @@ class ToolsScreen extends StatelessWidget {
               context.tr('tools_subtitle'),
               style: TextStyle(
                 color: ShellStyles.textMuted(context),
-                fontSize: ShellStyles.scaled(context, 13, min: 12, max: 14),
-                height: 1.35,
+                fontSize: ShellStyles.scaled(context, 12.5, min: 12, max: 13.5),
+                height: 1.3,
               ),
             ),
-            SizedBox(height: ShellStyles.scaled(context, 18, min: 14, max: 22)),
-            Container(
-              width: double.infinity,
-              padding: EdgeInsets.all(
-                ShellStyles.scaled(context, 18, min: 15, max: 22),
-              ),
-              decoration: ShellStyles.cardDecoration(
-                context,
-                radius: ShellStyles.scaled(context, 24, min: 20, max: 26),
-                color: ShellStyles.surfaceAlt(context),
-                withShadow: false,
-              ),
-              child: Row(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Container(
-                    width: ShellStyles.scaled(context, 48, min: 44, max: 52),
-                    height: ShellStyles.scaled(context, 48, min: 44, max: 52),
-                    alignment: Alignment.center,
-                    decoration: ShellStyles.iconBadgeDecoration(
-                      context,
-                      color: ShellStyles.surface(context),
-                      radius: ShellStyles.scaled(context, 16, min: 14, max: 18),
-                    ),
-                    child: Icon(
-                      AppIcons.toolsFilled,
-                      color: ShellStyles.textPrimary(context),
-                      size: ShellStyles.scaled(context, 22, min: 19, max: 24),
-                    ),
-                  ),
-                  SizedBox(width: ShellStyles.scaled(context, 14, min: 12)),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          context.tr('tools_all_tools'),
-                          style: TextStyle(
-                            color: ShellStyles.textPrimary(context),
-                            fontSize: ShellStyles.scaled(
-                              context,
-                              18,
-                              min: 16,
-                              max: 20,
-                            ),
-                            fontWeight: FontWeight.w800,
-                          ),
-                        ),
-                        SizedBox(
-                          height: ShellStyles.scaled(
-                            context,
-                            6,
-                            min: 4,
-                            max: 8,
-                          ),
-                        ),
-                        Text(
-                          'Keep scanning, reviewing, organizing, and planning from one place.',
-                          style: TextStyle(
-                            color: ShellStyles.textMuted(context),
-                            fontSize: ShellStyles.scaled(
-                              context,
-                              13,
-                              min: 12,
-                              max: 14,
-                            ),
-                            height: 1.4,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            SizedBox(height: ShellStyles.scaled(context, 20, min: 16, max: 24)),
+            SizedBox(height: ShellStyles.scaled(context, 18, min: 14, max: 20)),
             Row(
               children: [
                 Icon(
                   CupertinoIcons.pin_fill,
-                  size: ShellStyles.scaled(context, 13, min: 12, max: 14),
+                  size: ShellStyles.scaled(context, 12, min: 11, max: 13),
                   color: ShellStyles.textMuted(context),
                 ),
                 const SizedBox(width: 6),
@@ -141,18 +66,9 @@ class ToolsScreen extends StatelessWidget {
                   context,
                   context.tr('tools_most_used'),
                 ),
-                const Spacer(),
-                Text(
-                  density < 0.95 ? 'Compact layout active' : 'Pinned shortcuts',
-                  style: TextStyle(
-                    color: ShellStyles.textMuted(context),
-                    fontSize: ShellStyles.scaled(context, 11, min: 10, max: 12),
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
               ],
             ),
-            SizedBox(height: ShellStyles.scaled(context, 12, min: 10, max: 14)),
+            SizedBox(height: ShellStyles.scaled(context, 10, min: 8, max: 12)),
             LayoutBuilder(
               builder: (context, constraints) {
                 final spacing = ShellStyles.scaled(context, 8, min: 6, max: 10);
@@ -165,10 +81,9 @@ class ToolsScreen extends StatelessWidget {
                         context,
                         icon: AppIcons.scan,
                         title: context.tr('tools_scan_receipt'),
-                        subtitle: 'Capture and review',
+                        subtitle: 'Quick scan with AI review',
                         onTap: () =>
                             _open(context, const ReceiptUploadScreen()),
-                        emphasized: true,
                       ),
                     ),
                     SizedBox(width: spacing),
@@ -178,7 +93,7 @@ class ToolsScreen extends StatelessWidget {
                         context,
                         icon: AppIcons.analyticsAlt,
                         title: context.tr('tools_analytics'),
-                        subtitle: 'Track trends',
+                        subtitle: 'View insights and trends',
                         onTap: () => _open(context, const AnalyticsScreen()),
                       ),
                     ),
@@ -189,7 +104,7 @@ class ToolsScreen extends StatelessWidget {
                         context,
                         icon: AppIcons.receipt,
                         title: context.tr('tools_receipt_manager'),
-                        subtitle: 'Search history',
+                        subtitle: 'Organize your receipts',
                         onTap: () =>
                             _open(context, const ReceiptManagerScreen()),
                       ),
@@ -198,12 +113,12 @@ class ToolsScreen extends StatelessWidget {
                 );
               },
             ),
-            SizedBox(height: ShellStyles.scaled(context, 20, min: 16, max: 24)),
+            SizedBox(height: ShellStyles.scaled(context, 22, min: 18, max: 26)),
+            ShellStyles.sectionLabel(context, context.tr('tools_all_tools')),
+            SizedBox(height: ShellStyles.scaled(context, 12, min: 10, max: 14)),
             _buildToolSection(
               context,
               title: context.tr('tools_core'),
-              subtitle: 'Receipt flow and organization tools.',
-              icon: AppIcons.receipt,
               tiles: [
                 _ToolTileData(
                   icon: AppIcons.receipt,
@@ -231,12 +146,10 @@ class ToolsScreen extends StatelessWidget {
                 ),
               ],
             ),
-            SizedBox(height: ShellStyles.scaled(context, 18, min: 14, max: 22)),
+            SizedBox(height: ShellStyles.scaled(context, 16, min: 14, max: 20)),
             _buildToolSection(
               context,
               title: context.tr('tools_planning'),
-              subtitle: 'Keep budgets and upcoming bills in one routine.',
-              icon: AppIcons.notifications,
               tiles: [
                 _ToolTileData(
                   icon: AppIcons.budget,
@@ -254,13 +167,11 @@ class ToolsScreen extends StatelessWidget {
             ),
             if (launchEnableDataTransferTools) ...[
               SizedBox(
-                height: ShellStyles.scaled(context, 18, min: 14, max: 22),
+                height: ShellStyles.scaled(context, 16, min: 14, max: 20),
               ),
               _buildToolSection(
                 context,
                 title: context.tr('tools_data'),
-                subtitle: 'Bring data in or export a copy when needed.',
-                icon: AppIcons.export,
                 tiles: [
                   _ToolTileData(
                     icon: AppIcons.export,
@@ -286,92 +197,31 @@ class ToolsScreen extends StatelessWidget {
   Widget _buildToolSection(
     BuildContext context, {
     required String title,
-    required String subtitle,
-    required IconData icon,
     required List<_ToolTileData> tiles,
   }) {
-    return Container(
-      decoration: ShellStyles.cardDecoration(
-        context,
-        radius: ShellStyles.scaled(context, 24, min: 20, max: 26),
-        color: ShellStyles.surface(context),
-      ),
-      child: Padding(
-        padding: EdgeInsets.all(
-          ShellStyles.scaled(context, 16, min: 14, max: 20),
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Container(
-                  width: ShellStyles.scaled(context, 40, min: 36, max: 44),
-                  height: ShellStyles.scaled(context, 40, min: 36, max: 44),
-                  alignment: Alignment.center,
-                  decoration: ShellStyles.iconBadgeDecoration(
-                    context,
-                    color: ShellStyles.surfaceAlt(context),
-                    radius: ShellStyles.scaled(context, 14, min: 12, max: 16),
-                  ),
-                  child: Icon(
-                    icon,
-                    size: ShellStyles.scaled(context, 19, min: 17, max: 21),
-                    color: ShellStyles.textPrimary(context),
-                  ),
-                ),
-                SizedBox(width: ShellStyles.scaled(context, 12, min: 10)),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        title,
-                        style: TextStyle(
-                          color: ShellStyles.textPrimary(context),
-                          fontSize: ShellStyles.scaled(
-                            context,
-                            17,
-                            min: 15,
-                            max: 19,
-                          ),
-                          fontWeight: FontWeight.w800,
-                        ),
-                      ),
-                      SizedBox(
-                        height: ShellStyles.scaled(context, 4, min: 3, max: 6),
-                      ),
-                      Text(
-                        subtitle,
-                        style: TextStyle(
-                          color: ShellStyles.textMuted(context),
-                          fontSize: ShellStyles.scaled(
-                            context,
-                            12.5,
-                            min: 11.5,
-                            max: 13.5,
-                          ),
-                          height: 1.35,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ],
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Padding(
+          padding: EdgeInsets.only(
+            left: ShellStyles.scaled(context, 2, min: 0, max: 4),
+            bottom: ShellStyles.scaled(context, 8, min: 6, max: 10),
+          ),
+          child: Text(
+            title,
+            style: TextStyle(
+              color: ShellStyles.textPrimary(context),
+              fontSize: ShellStyles.scaled(context, 12, min: 11, max: 13),
+              fontWeight: FontWeight.w700,
             ),
-            SizedBox(height: ShellStyles.scaled(context, 14, min: 12, max: 18)),
-            for (var index = 0; index < tiles.length; index++) ...[
-              _buildListTile(context, tiles[index]),
-              if (index != tiles.length - 1)
-                Divider(
-                  height: ShellStyles.scaled(context, 18, min: 14, max: 20),
-                  color: ShellStyles.border(context),
-                ),
-            ],
-          ],
+          ),
         ),
-      ),
+        for (var index = 0; index < tiles.length; index++) ...[
+          _buildListTile(context, tiles[index]),
+          if (index != tiles.length - 1)
+            SizedBox(height: ShellStyles.scaled(context, 10, min: 8, max: 12)),
+        ],
+      ],
     );
   }
 
@@ -381,73 +231,66 @@ class ToolsScreen extends StatelessWidget {
     required String title,
     required String subtitle,
     required VoidCallback onTap,
-    bool emphasized = false,
   }) {
-    final iconContainerColor = emphasized
-        ? ShellStyles.textPrimary(context)
-        : ShellStyles.surfaceAlt(context);
-    final iconColor = emphasized
-        ? ShellStyles.surface(context)
-        : ShellStyles.textPrimary(context);
-    final cardHeight = ShellStyles.scaled(context, 132, min: 116, max: 148);
-
     return InkWell(
       borderRadius: BorderRadius.circular(
-        ShellStyles.scaled(context, 18, min: 16, max: 20),
+        ShellStyles.scaled(context, 16, min: 14, max: 18),
       ),
       onTap: onTap,
       child: Container(
-        height: cardHeight,
+        height: ShellStyles.scaled(context, 120, min: 110, max: 130),
         padding: EdgeInsets.all(
-          ShellStyles.scaled(context, 12, min: 10, max: 14),
+          ShellStyles.scaled(context, 10, min: 9, max: 12),
         ),
         decoration: ShellStyles.cardDecoration(
           context,
-          radius: ShellStyles.scaled(context, 18, min: 16, max: 20),
-          color: emphasized
-              ? ShellStyles.surface(context)
-              : ShellStyles.surfaceAlt(context),
-          withShadow: !emphasized,
+          radius: ShellStyles.scaled(context, 16, min: 14, max: 18),
+          color: ShellStyles.surface(context),
         ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Container(
-              width: ShellStyles.scaled(context, 40, min: 34, max: 44),
-              height: ShellStyles.scaled(context, 40, min: 34, max: 44),
+              width: ShellStyles.scaled(context, 36, min: 32, max: 40),
+              height: ShellStyles.scaled(context, 36, min: 32, max: 40),
               alignment: Alignment.center,
               decoration: BoxDecoration(
-                color: iconContainerColor,
+                color: ShellStyles.textPrimary(context),
                 borderRadius: BorderRadius.circular(
-                  ShellStyles.scaled(context, 13, min: 11, max: 15),
+                  ShellStyles.scaled(context, 12, min: 10, max: 13),
                 ),
               ),
               child: Icon(
                 icon,
-                size: ShellStyles.scaled(context, 20, min: 17, max: 22),
-                color: iconColor,
+                size: ShellStyles.scaled(context, 18, min: 16, max: 20),
+                color: ShellStyles.surface(context),
               ),
             ),
-            const Spacer(),
+            SizedBox(height: ShellStyles.scaled(context, 12, min: 10, max: 14)),
             Text(
               title,
               maxLines: 2,
               overflow: TextOverflow.ellipsis,
               style: TextStyle(
                 color: ShellStyles.textPrimary(context),
-                fontSize: ShellStyles.scaled(context, 13, min: 11.5, max: 14),
-                height: 1.2,
+                fontSize: ShellStyles.scaled(context, 12.5, min: 11, max: 13.5),
+                height: 1.15,
                 fontWeight: FontWeight.w700,
               ),
             ),
-            SizedBox(height: ShellStyles.scaled(context, 4, min: 3, max: 6)),
+            SizedBox(height: ShellStyles.scaled(context, 3, min: 2, max: 5)),
             Text(
               subtitle,
               maxLines: 2,
               overflow: TextOverflow.ellipsis,
               style: TextStyle(
                 color: ShellStyles.textMuted(context),
-                fontSize: ShellStyles.scaled(context, 11, min: 10, max: 12),
+                fontSize: ShellStyles.scaled(
+                  context,
+                  10.5,
+                  min: 9.5,
+                  max: 11.5,
+                ),
                 height: 1.2,
               ),
             ),
@@ -463,26 +306,33 @@ class ToolsScreen extends StatelessWidget {
       borderRadius: BorderRadius.circular(
         ShellStyles.scaled(context, 18, min: 16, max: 20),
       ),
-      child: Padding(
+      child: Container(
+        decoration: ShellStyles.cardDecoration(
+          context,
+          radius: ShellStyles.scaled(context, 18, min: 16, max: 20),
+          color: ShellStyles.surface(context),
+        ),
         padding: EdgeInsets.symmetric(
-          horizontal: ShellStyles.scaled(context, 2, min: 0, max: 4),
-          vertical: ShellStyles.scaled(context, 8, min: 6, max: 10),
+          horizontal: ShellStyles.scaled(context, 14, min: 12, max: 16),
+          vertical: ShellStyles.scaled(context, 14, min: 12, max: 16),
         ),
         child: Row(
           children: [
             Container(
-              width: ShellStyles.scaled(context, 42, min: 38, max: 46),
-              height: ShellStyles.scaled(context, 42, min: 38, max: 46),
+              width: ShellStyles.scaled(context, 38, min: 34, max: 42),
+              height: ShellStyles.scaled(context, 38, min: 34, max: 42),
               alignment: Alignment.center,
-              decoration: ShellStyles.iconBadgeDecoration(
-                context,
+              decoration: BoxDecoration(
                 color: ShellStyles.surfaceAlt(context),
-                radius: ShellStyles.scaled(context, 14, min: 12, max: 16),
+                borderRadius: BorderRadius.circular(
+                  ShellStyles.scaled(context, 12, min: 10, max: 14),
+                ),
+                border: Border.all(color: ShellStyles.border(context)),
               ),
               child: Icon(
                 tile.icon,
                 color: ShellStyles.textPrimary(context),
-                size: ShellStyles.scaled(context, 19, min: 17, max: 21),
+                size: ShellStyles.scaled(context, 18, min: 16, max: 20),
               ),
             ),
             SizedBox(width: ShellStyles.scaled(context, 12, min: 10, max: 14)),
@@ -498,9 +348,9 @@ class ToolsScreen extends StatelessWidget {
                       color: ShellStyles.textPrimary(context),
                       fontSize: ShellStyles.scaled(
                         context,
-                        15,
-                        min: 13.5,
-                        max: 16,
+                        14,
+                        min: 13,
+                        max: 15,
                       ),
                       fontWeight: FontWeight.w700,
                     ),
@@ -516,9 +366,9 @@ class ToolsScreen extends StatelessWidget {
                       color: ShellStyles.textMuted(context),
                       fontSize: ShellStyles.scaled(
                         context,
-                        12,
-                        min: 11,
-                        max: 13,
+                        11,
+                        min: 10.5,
+                        max: 12,
                       ),
                       height: 1.25,
                     ),
