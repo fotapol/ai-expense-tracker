@@ -35,6 +35,8 @@ class _AppearanceSettingsScreenState extends State<AppearanceSettingsScreen> {
 
   Future<void> _selectScale(String? id) async {
     if (id == null) return;
+    await WidgetsBinding.instance.endOfFrame;
+    if (!mounted) return;
     await themeProvider.setFontSize(id);
     if (!mounted) return;
     setState(() {});

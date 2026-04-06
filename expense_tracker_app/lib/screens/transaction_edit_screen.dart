@@ -740,56 +740,61 @@ class _TransactionEditScreenState extends State<TransactionEditScreen> {
     final controller = TextEditingController(text: _merchantController.text);
     final value = await showDialog<String>(
       context: context,
-      builder: (context) => AlertDialog(
-        backgroundColor: _surfaceColor,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(22),
-          side: const BorderSide(color: _strokeColor),
-        ),
-        title: const Text(
-          'Merchant',
-          style: TextStyle(color: _textColor, fontWeight: FontWeight.w700),
-        ),
-        content: TextField(
-          controller: controller,
-          autofocus: true,
-          textCapitalization: TextCapitalization.words,
-          style: const TextStyle(color: _textColor),
-          decoration: InputDecoration(
-            hintText: 'Store or merchant name',
-            hintStyle: const TextStyle(color: _mutedColor),
-            filled: true,
-            fillColor: _surfaceAltColor,
-            border: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(16),
-              borderSide: const BorderSide(color: _strokeColor),
-            ),
-            enabledBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(16),
-              borderSide: const BorderSide(color: _strokeColor),
-            ),
-            focusedBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(16),
-              borderSide: const BorderSide(color: _accentColor),
+      builder: (dialogContext) => ShellStyles.clampOverlayScale(
+        dialogContext,
+        AlertDialog(
+          backgroundColor: _surfaceColor,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(22),
+            side: const BorderSide(color: _strokeColor),
+          ),
+          title: const Text(
+            'Merchant',
+            style: TextStyle(color: _textColor, fontWeight: FontWeight.w700),
+          ),
+          content: TextField(
+            controller: controller,
+            autofocus: true,
+            textCapitalization: TextCapitalization.words,
+            style: const TextStyle(color: _textColor),
+            decoration: InputDecoration(
+              hintText: 'Store or merchant name',
+              hintStyle: const TextStyle(color: _mutedColor),
+              filled: true,
+              fillColor: _surfaceAltColor,
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(16),
+                borderSide: const BorderSide(color: _strokeColor),
+              ),
+              enabledBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(16),
+                borderSide: const BorderSide(color: _strokeColor),
+              ),
+              focusedBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(16),
+                borderSide: const BorderSide(color: _accentColor),
+              ),
             ),
           ),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('Cancel', style: TextStyle(color: _mutedColor)),
-          ),
-          FilledButton(
-            onPressed: () => Navigator.pop(context, controller.text.trim()),
-            style: FilledButton.styleFrom(
-              backgroundColor: _accentColor,
-              foregroundColor: _surfaceColor,
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(dialogContext),
+              child: const Text('Cancel', style: TextStyle(color: _mutedColor)),
             ),
-            child: const Text('Save'),
-          ),
-        ],
+            FilledButton(
+              onPressed: () =>
+                  Navigator.pop(dialogContext, controller.text.trim()),
+              style: FilledButton.styleFrom(
+                backgroundColor: _accentColor,
+                foregroundColor: _surfaceColor,
+              ),
+              child: const Text('Save'),
+            ),
+          ],
+        ),
       ),
     );
+    await WidgetsBinding.instance.endOfFrame;
     controller.dispose();
 
     if (!mounted || value == null) return;
@@ -804,56 +809,61 @@ class _TransactionEditScreenState extends State<TransactionEditScreen> {
     final controller = TextEditingController(text: _amountController.text);
     final value = await showDialog<String>(
       context: context,
-      builder: (context) => AlertDialog(
-        backgroundColor: _surfaceColor,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(22),
-          side: const BorderSide(color: _strokeColor),
-        ),
-        title: const Text(
-          'Receipt total',
-          style: TextStyle(color: _textColor, fontWeight: FontWeight.w700),
-        ),
-        content: TextField(
-          controller: controller,
-          autofocus: true,
-          keyboardType: const TextInputType.numberWithOptions(decimal: true),
-          style: const TextStyle(color: _textColor),
-          decoration: InputDecoration(
-            hintText: '0.00',
-            hintStyle: const TextStyle(color: _mutedColor),
-            filled: true,
-            fillColor: _surfaceAltColor,
-            border: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(16),
-              borderSide: const BorderSide(color: _strokeColor),
-            ),
-            enabledBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(16),
-              borderSide: const BorderSide(color: _strokeColor),
-            ),
-            focusedBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(16),
-              borderSide: const BorderSide(color: _accentColor),
+      builder: (dialogContext) => ShellStyles.clampOverlayScale(
+        dialogContext,
+        AlertDialog(
+          backgroundColor: _surfaceColor,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(22),
+            side: const BorderSide(color: _strokeColor),
+          ),
+          title: const Text(
+            'Receipt total',
+            style: TextStyle(color: _textColor, fontWeight: FontWeight.w700),
+          ),
+          content: TextField(
+            controller: controller,
+            autofocus: true,
+            keyboardType: const TextInputType.numberWithOptions(decimal: true),
+            style: const TextStyle(color: _textColor),
+            decoration: InputDecoration(
+              hintText: '0.00',
+              hintStyle: const TextStyle(color: _mutedColor),
+              filled: true,
+              fillColor: _surfaceAltColor,
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(16),
+                borderSide: const BorderSide(color: _strokeColor),
+              ),
+              enabledBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(16),
+                borderSide: const BorderSide(color: _strokeColor),
+              ),
+              focusedBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(16),
+                borderSide: const BorderSide(color: _accentColor),
+              ),
             ),
           ),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('Cancel', style: TextStyle(color: _mutedColor)),
-          ),
-          FilledButton(
-            onPressed: () => Navigator.pop(context, controller.text.trim()),
-            style: FilledButton.styleFrom(
-              backgroundColor: _accentColor,
-              foregroundColor: _surfaceColor,
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(dialogContext),
+              child: const Text('Cancel', style: TextStyle(color: _mutedColor)),
             ),
-            child: const Text('Save'),
-          ),
-        ],
+            FilledButton(
+              onPressed: () =>
+                  Navigator.pop(dialogContext, controller.text.trim()),
+              style: FilledButton.styleFrom(
+                backgroundColor: _accentColor,
+                foregroundColor: _surfaceColor,
+              ),
+              child: const Text('Save'),
+            ),
+          ],
+        ),
       ),
     );
+    await WidgetsBinding.instance.endOfFrame;
     controller.dispose();
 
     if (!mounted || value == null) return;
@@ -2111,6 +2121,8 @@ class _TransactionEditScreenState extends State<TransactionEditScreen> {
       initialDate: _occurredAt ?? DateTime.now(),
       firstDate: DateTime(2000),
       lastDate: DateTime(2100),
+      builder: (dialogContext, child) =>
+          ShellStyles.clampOverlayScale(dialogContext, child!),
     );
     if (date == null || !mounted) return;
     final base = _occurredAt ?? DateTime.now();
