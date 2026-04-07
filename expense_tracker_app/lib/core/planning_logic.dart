@@ -115,7 +115,10 @@ class BillReminderRecord {
     required this.firstDueDate,
     required this.remindDaysBefore,
     required this.isActive,
+    this.createdAt,
+    this.updatedAt,
     this.lastPaidDueDate,
+    this.lastPaidAt,
     this.lastSkippedDueDate,
   });
 
@@ -125,7 +128,10 @@ class BillReminderRecord {
   final String currency;
   final String recurrence;
   final DateTime firstDueDate;
+  final DateTime? createdAt;
+  final DateTime? updatedAt;
   final DateTime? lastPaidDueDate;
+  final DateTime? lastPaidAt;
   final DateTime? lastSkippedDueDate;
   final int remindDaysBefore;
   final bool isActive;
@@ -142,9 +148,18 @@ class BillReminderRecord {
       firstDueDate: _dateOnly(
         DateTime.parse(json['first_due_date'].toString()),
       ),
+      createdAt: json['created_at'] == null
+          ? null
+          : DateTime.parse(json['created_at'].toString()).toLocal(),
+      updatedAt: json['updated_at'] == null
+          ? null
+          : DateTime.parse(json['updated_at'].toString()).toLocal(),
       lastPaidDueDate: json['last_paid_due_date'] == null
           ? null
           : _dateOnly(DateTime.parse(json['last_paid_due_date'].toString())),
+      lastPaidAt: json['last_paid_at'] == null
+          ? null
+          : DateTime.parse(json['last_paid_at'].toString()).toLocal(),
       lastSkippedDueDate: json['last_skipped_due_date'] == null
           ? null
           : _dateOnly(DateTime.parse(json['last_skipped_due_date'].toString())),
