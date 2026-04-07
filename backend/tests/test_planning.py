@@ -279,8 +279,11 @@ def test_mark_bill_paid_is_idempotent_and_monotonic() -> None:
     )
 
     assert march_paid.last_paid_due_date == dt.date(2026, 3, 15)
+    assert march_paid.last_paid_at is not None
     assert february_paid.last_paid_due_date == dt.date(2026, 3, 15)
+    assert february_paid.last_paid_at == march_paid.last_paid_at
     assert repeated_march_paid.last_paid_due_date == dt.date(2026, 3, 15)
+    assert repeated_march_paid.last_paid_at == march_paid.last_paid_at
 
 
 def test_mark_bill_paid_accepts_daily_recurrence_dates() -> None:
@@ -312,6 +315,7 @@ def test_mark_bill_paid_accepts_daily_recurrence_dates() -> None:
     )
 
     assert paid.last_paid_due_date == dt.date(2026, 3, 24)
+    assert paid.last_paid_at is not None
 
 
 def test_mark_bill_paid_clamps_yearly_leap_day_schedule() -> None:
@@ -343,6 +347,7 @@ def test_mark_bill_paid_clamps_yearly_leap_day_schedule() -> None:
     )
 
     assert paid.last_paid_due_date == dt.date(2026, 2, 28)
+    assert paid.last_paid_at is not None
 
 
 def test_bill_reminder_create_accepts_weekly_and_one_time_recurrence() -> None:
