@@ -1,17 +1,12 @@
 import 'package:flutter/material.dart';
+
 import '../core/api_client.dart';
 import '../core/period_filter.dart';
+import '../core/redesign_system.dart';
 import '../core/taxonomy_localization.dart';
 import '../l10n/app_localizations.dart';
 
-/// Reusable filter bottom sheet matching the screenshot design.
-/// Returns a Map of selected filters or null if cancelled.
 class FilterBottomSheet extends StatefulWidget {
-  final String selectedPeriod;
-  final List<String>? selectedCategoryIds;
-  final List<String>? selectedSubcategoryIds;
-  final List<String>? selectedLabelIds;
-
   const FilterBottomSheet({
     super.key,
     required this.selectedPeriod,
@@ -19,6 +14,11 @@ class FilterBottomSheet extends StatefulWidget {
     this.selectedSubcategoryIds,
     this.selectedLabelIds,
   });
+
+  final String selectedPeriod;
+  final List<String>? selectedCategoryIds;
+  final List<String>? selectedSubcategoryIds;
+  final List<String>? selectedLabelIds;
 
   static Future<Map<String, dynamic>?> show(
     BuildContext context, {
@@ -60,9 +60,11 @@ class _FilterBottomSheetState extends State<FilterBottomSheet> {
   void initState() {
     super.initState();
     _selectedPeriod = widget.selectedPeriod;
-    _selectedCategoryIds = Set.from(widget.selectedCategoryIds ?? []);
-    _selectedSubcategoryIds = Set.from(widget.selectedSubcategoryIds ?? []);
-    _selectedLabelIds = Set.from(widget.selectedLabelIds ?? []);
+    _selectedCategoryIds = Set<String>.from(widget.selectedCategoryIds ?? []);
+    _selectedSubcategoryIds = Set<String>.from(
+      widget.selectedSubcategoryIds ?? [],
+    );
+    _selectedLabelIds = Set<String>.from(widget.selectedLabelIds ?? []);
     _loadData();
   }
 
@@ -73,22 +75,24 @@ class _FilterBottomSheetState extends State<FilterBottomSheet> {
       try {
         labels = await ApiClient.listLabels();
       } catch (_) {}
+      if (!mounted) return;
       setState(() {
         _categories = cats;
         _labels = labels;
         _pruneUnavailableSubcategories();
         _loadingCats = false;
       });
-    } catch (e) {
+    } catch (_) {
+      if (!mounted) return;
       setState(() => _loadingCats = false);
     }
   }
 
   int get _activeFilterCount {
-    int count = 0;
-    if (_selectedCategoryIds.isNotEmpty) count++;
-    if (_selectedSubcategoryIds.isNotEmpty) count++;
-    if (_selectedLabelIds.isNotEmpty) count++;
+    var count = 0;
+    if (_selectedCategoryIds.isNotEmpty) count += 1;
+    if (_selectedSubcategoryIds.isNotEmpty) count += 1;
+    if (_selectedLabelIds.isNotEmpty) count += 1;
     return count;
   }
 
@@ -133,7 +137,6 @@ class _FilterBottomSheetState extends State<FilterBottomSheet> {
 
   void _clearAll() {
     setState(() {
-      _selectedPeriod = PeriodFilter.last3Months;
       _selectedCategoryIds.clear();
       _selectedSubcategoryIds.clear();
       _selectedLabelIds.clear();
@@ -187,9 +190,10 @@ class _FilterBottomSheetState extends State<FilterBottomSheet> {
                   children: [
                     Text(
                       context.tr('filters_select_subcategories'),
-                      style: const TextStyle(
+                      style: TextStyle(
+                        color: ShellStyles.textPrimary(context),
                         fontSize: 18,
-                        fontWeight: FontWeight.bold,
+                        fontWeight: FontWeight.w800,
                       ),
                     ),
                     const SizedBox(height: 12),
@@ -197,7 +201,6 @@ class _FilterBottomSheetState extends State<FilterBottomSheet> {
                       decoration: InputDecoration(
                         hintText: context.tr('filters_search_subcategory'),
                         prefixIcon: const Icon(Icons.search),
-                        border: const OutlineInputBorder(),
                       ),
                       onChanged: (value) => setModalState(() => search = value),
                     ),
@@ -208,6 +211,9 @@ class _FilterBottomSheetState extends State<FilterBottomSheet> {
                           ? Center(
                               child: Text(
                                 context.tr('filters_no_matching_subcategories'),
+                                style: TextStyle(
+                                  color: ShellStyles.textMuted(context),
+                                ),
                               ),
                             )
                           : ListView.builder(
@@ -258,56 +264,59 @@ class _FilterBottomSheetState extends State<FilterBottomSheet> {
       },
     );
 
-    if (result != null) {
-      setState(() {
-        _selectedSubcategoryIds = result;
-      });
-    }
+    if (result == null || !mounted) return;
+    setState(() {
+      _selectedSubcategoryIds = result;
+    });
   }
 
   @override
   Widget build(BuildContext context) {
     return DraggableScrollableSheet(
-      initialChildSize: 0.75,
-      minChildSize: 0.5,
-      maxChildSize: 0.9,
+      initialChildSize: 0.74,
+      minChildSize: 0.48,
+      maxChildSize: 0.92,
       expand: false,
       builder: (context, scrollController) {
         return Column(
           children: [
-            // Handle
             Container(
               margin: const EdgeInsets.only(top: 12),
               width: 40,
               height: 4,
               decoration: BoxDecoration(
-                color: Colors.grey.shade600,
+                color: ShellStyles.border(context),
                 borderRadius: BorderRadius.circular(2),
               ),
             ),
-            // Header
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
               child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   TextButton(
                     onPressed: () => Navigator.pop(context),
                     child: Text(
                       context.tr('common_cancel'),
-                      style: const TextStyle(fontSize: 16),
+                      style: TextStyle(
+                        color: ShellStyles.textMuted(context),
+                        fontSize: 16,
+                      ),
                     ),
                   ),
-                  Text(
-                    _activeFilterCount > 0
-                        ? context.tr(
-                            'filters_title_with_count',
-                            params: {'count': _activeFilterCount.toString()},
-                          )
-                        : context.tr('filters_title'),
-                    style: const TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.bold,
+                  Expanded(
+                    child: Text(
+                      _activeFilterCount > 0
+                          ? context.tr(
+                              'filters_title_with_count',
+                              params: {'count': _activeFilterCount.toString()},
+                            )
+                          : context.tr('filters_title'),
+                      textAlign: TextAlign.center,
+                      style: TextStyle(
+                        color: ShellStyles.textPrimary(context),
+                        fontSize: 18,
+                        fontWeight: FontWeight.w800,
+                      ),
                     ),
                   ),
                   TextButton(
@@ -315,67 +324,66 @@ class _FilterBottomSheetState extends State<FilterBottomSheet> {
                     child: Text(
                       context.tr('common_apply'),
                       style: TextStyle(
+                        color: ShellStyles.textPrimary(context),
                         fontSize: 16,
-                        color: Theme.of(context).colorScheme.primary,
-                        fontWeight: FontWeight.bold,
+                        fontWeight: FontWeight.w700,
                       ),
                     ),
                   ),
                 ],
               ),
             ),
-            // Content
             Expanded(
               child: ListView(
                 controller: scrollController,
                 padding: const EdgeInsets.symmetric(horizontal: 16),
                 children: [
                   _buildSectionTitle(
-                    Icons.calendar_today,
-                    context.tr('filters_period'),
+                    icon: Icons.calendar_today_outlined,
+                    title: context.tr('filters_period'),
                   ),
-                  const SizedBox(height: 8),
+                  const SizedBox(height: 10),
                   _buildPeriodChips(),
                   const SizedBox(height: 24),
                   _buildSectionTitle(
-                    Icons.category,
-                    context.tr('filters_category'),
+                    icon: Icons.category_outlined,
+                    title: context.tr('filters_category'),
                   ),
-                  const SizedBox(height: 8),
+                  const SizedBox(height: 10),
                   _buildCategoryChips(),
                   const SizedBox(height: 24),
                   _buildSectionTitle(
-                    Icons.account_tree,
-                    context.tr('filters_subcategory'),
+                    icon: Icons.account_tree_outlined,
+                    title: context.tr('filters_subcategory'),
                   ),
-                  const SizedBox(height: 8),
+                  const SizedBox(height: 10),
                   _buildSubcategoryPicker(),
-                  const SizedBox(height: 24),
                   if (_labels.isNotEmpty) ...[
-                    _buildSectionTitle(
-                      Icons.label,
-                      context.tr('filters_labels'),
-                    ),
-                    const SizedBox(height: 8),
-                    _buildLabelChips(),
                     const SizedBox(height: 24),
+                    _buildSectionTitle(
+                      icon: Icons.label_outline,
+                      title: context.tr('filters_labels'),
+                    ),
+                    const SizedBox(height: 10),
+                    _buildLabelChips(),
                   ],
-                  // Clear all button
+                  const SizedBox(height: 16),
                   TextButton.icon(
                     onPressed: _clearAll,
-                    icon: Icon(
+                    icon: const Icon(
                       Icons.filter_alt_off,
-                      color: Colors.red.shade400,
+                      color: ShellColors.softRed,
                     ),
-                    label: Text(
-                      context.tr('filters_clear_all'),
+                    label: const Text(
+                      'Clear scoped filters',
                       style: TextStyle(
-                        color: Colors.red.shade400,
-                        fontSize: 16,
+                        color: ShellColors.softRed,
+                        fontSize: 15,
+                        fontWeight: FontWeight.w600,
                       ),
                     ),
                   ),
-                  const SizedBox(height: 40),
+                  const SizedBox(height: 28),
                 ],
               ),
             ),
@@ -385,14 +393,18 @@ class _FilterBottomSheetState extends State<FilterBottomSheet> {
     );
   }
 
-  Widget _buildSectionTitle(IconData icon, String title) {
+  Widget _buildSectionTitle({required IconData icon, required String title}) {
     return Row(
       children: [
-        Icon(icon, size: 20, color: Theme.of(context).colorScheme.primary),
+        Icon(icon, size: 18, color: ShellStyles.textPrimary(context)),
         const SizedBox(width: 8),
         Text(
           title,
-          style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+          style: TextStyle(
+            color: ShellStyles.textPrimary(context),
+            fontSize: 16,
+            fontWeight: FontWeight.w800,
+          ),
         ),
       ],
     );
@@ -404,21 +416,28 @@ class _FilterBottomSheetState extends State<FilterBottomSheet> {
       runSpacing: 8,
       children: PeriodFilter.values.map((period) {
         final isSelected = _selectedPeriod == period;
-        return ChoiceChip(
+        return FilterChip(
           label: Text(context.tr(PeriodFilter.localizationKey(period))),
           selected: isSelected,
-          onSelected: (selected) {
-            if (selected) setState(() => _selectedPeriod = period);
+          showCheckmark: false,
+          onSelected: (_) {
+            setState(() {
+              _selectedPeriod = period;
+            });
           },
-          selectedColor: Theme.of(context).colorScheme.primary.withAlpha(40),
+          selectedColor: ShellStyles.textPrimary(context).withAlpha(18),
+          backgroundColor: ShellStyles.surface(context),
           side: BorderSide(
             color: isSelected
-                ? Theme.of(context).colorScheme.primary
-                : Colors.grey.shade700,
+                ? ShellStyles.textPrimary(context)
+                : ShellStyles.border(context),
           ),
           labelStyle: TextStyle(
-            color: isSelected ? Theme.of(context).colorScheme.primary : null,
-            fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+            color: ShellStyles.textPrimary(context),
+            fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
+          ),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(999),
           ),
         );
       }).toList(),
@@ -432,7 +451,7 @@ class _FilterBottomSheetState extends State<FilterBottomSheet> {
     if (_categories.isEmpty) {
       return Text(
         context.tr('filters_no_categories'),
-        style: TextStyle(color: Colors.grey.shade500),
+        style: TextStyle(color: ShellStyles.textMuted(context)),
       );
     }
 
@@ -447,6 +466,7 @@ class _FilterBottomSheetState extends State<FilterBottomSheet> {
         return FilterChip(
           label: Text(name),
           selected: isSelected,
+          showCheckmark: false,
           onSelected: (selected) {
             setState(() {
               if (selected) {
@@ -457,12 +477,19 @@ class _FilterBottomSheetState extends State<FilterBottomSheet> {
               _pruneUnavailableSubcategories();
             });
           },
-          selectedColor: Theme.of(context).colorScheme.primary.withAlpha(40),
-          checkmarkColor: Theme.of(context).colorScheme.primary,
+          selectedColor: ShellStyles.textPrimary(context).withAlpha(18),
+          backgroundColor: ShellStyles.surface(context),
           side: BorderSide(
             color: isSelected
-                ? Theme.of(context).colorScheme.primary
-                : Colors.grey.shade700,
+                ? ShellStyles.textPrimary(context)
+                : ShellStyles.border(context),
+          ),
+          labelStyle: TextStyle(
+            color: ShellStyles.textPrimary(context),
+            fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
+          ),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(999),
           ),
         );
       }).toList(),
@@ -476,14 +503,14 @@ class _FilterBottomSheetState extends State<FilterBottomSheet> {
     if (_selectedCategoryIds.isEmpty) {
       return Text(
         context.tr('filters_select_categories_for_subcategories'),
-        style: TextStyle(color: Colors.grey.shade500),
+        style: TextStyle(color: ShellStyles.textMuted(context)),
       );
     }
     final available = _availableSubcategories;
     if (available.isEmpty) {
       return Text(
         context.tr('filters_no_subcategories_for_categories'),
-        style: TextStyle(color: Colors.grey.shade500),
+        style: TextStyle(color: ShellStyles.textMuted(context)),
       );
     }
 
@@ -492,6 +519,15 @@ class _FilterBottomSheetState extends State<FilterBottomSheet> {
       children: [
         OutlinedButton.icon(
           onPressed: _openSubcategoryPicker,
+          style: OutlinedButton.styleFrom(
+            foregroundColor: ShellStyles.textPrimary(context),
+            backgroundColor: ShellStyles.surface(context),
+            side: BorderSide(color: ShellStyles.border(context)),
+            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(16),
+            ),
+          ),
           icon: const Icon(Icons.arrow_drop_down),
           label: Text(
             _selectedSubcategoryIds.isEmpty
@@ -536,7 +572,7 @@ class _FilterBottomSheetState extends State<FilterBottomSheet> {
     if (_labels.isEmpty) {
       return Text(
         context.tr('filters_no_labels'),
-        style: TextStyle(color: Colors.grey.shade500),
+        style: TextStyle(color: ShellStyles.textMuted(context)),
       );
     }
 
@@ -558,6 +594,7 @@ class _FilterBottomSheetState extends State<FilterBottomSheet> {
         return FilterChip(
           label: Text(name),
           selected: isSelected,
+          showCheckmark: false,
           onSelected: (selected) {
             setState(() {
               if (selected) {
@@ -567,12 +604,19 @@ class _FilterBottomSheetState extends State<FilterBottomSheet> {
               }
             });
           },
-          selectedColor: Theme.of(context).colorScheme.primary.withAlpha(40),
-          checkmarkColor: Theme.of(context).colorScheme.primary,
+          selectedColor: ShellStyles.textPrimary(context).withAlpha(18),
+          backgroundColor: ShellStyles.surface(context),
           side: BorderSide(
             color: isSelected
-                ? Theme.of(context).colorScheme.primary
-                : Colors.grey.shade700,
+                ? ShellStyles.textPrimary(context)
+                : ShellStyles.border(context),
+          ),
+          labelStyle: TextStyle(
+            color: ShellStyles.textPrimary(context),
+            fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
+          ),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(999),
           ),
         );
       }).toList(),

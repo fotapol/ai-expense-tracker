@@ -11,6 +11,7 @@ import '../core/subscription_confirmation.dart';
 import '../core/taxonomy_localization.dart';
 import '../l10n/app_localizations.dart';
 import '../widgets/app_tab_footer.dart';
+import '../widgets/analytics_shared.dart';
 import '../widgets/filter_bottom_sheet.dart';
 // TODO(household): re-import analytics_household_tab when household feature ships
 import 'analytics_overview_tab.dart';
@@ -384,7 +385,7 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
       padding: const EdgeInsets.all(16),
       decoration: ShellStyles.cardDecoration(
         context,
-        radius: 22,
+        radius: 20,
         color: ShellStyles.surfaceAlt(context),
         withShadow: false,
       ),
@@ -438,7 +439,7 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
                   visualDensity: VisualDensity.compact,
                   padding: const EdgeInsets.symmetric(
                     horizontal: 14,
-                    vertical: 10,
+                    vertical: 9,
                   ),
                 ),
                 child: Text(
@@ -478,6 +479,36 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
     );
   }
 
+  Widget _buildFilterAction() {
+    return InkWell(
+      borderRadius: BorderRadius.circular(18),
+      onTap: _openFilters,
+      child: Ink(
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+        decoration: BoxDecoration(
+          color: ShellStyles.surfaceAlt(context),
+          borderRadius: BorderRadius.circular(18),
+          border: Border.all(color: ShellStyles.border(context)),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(Icons.tune, size: 16, color: ShellStyles.textPrimary(context)),
+            const SizedBox(width: 8),
+            Text(
+              context.tr('filters_title'),
+              style: TextStyle(
+                color: ShellStyles.textPrimary(context),
+                fontSize: 12,
+                fontWeight: FontWeight.w700,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -487,51 +518,37 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
         centerTitle: false,
         actions: [
           Padding(
-            padding: const EdgeInsets.only(right: 8),
-            child: IconButton(
-              onPressed: _openFilters,
-              icon: Badge(
-                isLabelVisible: _filters.activeFilterCount > 0,
-                label: Text('${_filters.activeFilterCount}'),
-                child: const Icon(Icons.tune),
-              ),
-            ),
+            padding: const EdgeInsets.only(right: 20),
+            child: Center(child: _buildFilterAction()),
           ),
         ],
       ),
       body: _isLoading
-          ? const Center(child: CircularProgressIndicator())
+          ? const AnalyticsLoadingState()
           : _error != null
-          ? Center(
-              child: Padding(
-                padding: const EdgeInsets.all(24),
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Icon(
-                      Icons.error_outline,
-                      color: ShellColors.softRed,
-                      size: 42,
-                    ),
-                    const SizedBox(height: 12),
-                    Text(
-                      _error ?? context.tr('common_error'),
-                      textAlign: TextAlign.center,
-                    ),
-                    const SizedBox(height: 16),
-                    FilledButton(
-                      onPressed: _loadShellState,
-                      child: Text(context.tr('common_retry')),
-                    ),
-                  ],
-                ),
-              ),
+          ? AnalyticsErrorState(
+              message: _error ?? context.tr('common_error'),
+              onRetry: _loadShellState,
             )
           : Column(
               children: [
-                Padding(
-                  padding: const EdgeInsets.fromLTRB(20, 12, 20, 12),
-                  child: _buildSectionSelector(),
+                Container(
+                  width: double.infinity,
+                  padding: const EdgeInsets.fromLTRB(20, 12, 20, 10),
+                  decoration: BoxDecoration(
+                    color: ShellStyles.background(context),
+                    border: Border(
+                      bottom: BorderSide(color: ShellStyles.border(context)),
+                    ),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withAlpha(6),
+                        blurRadius: 10,
+                        offset: const Offset(0, 6),
+                      ),
+                    ],
+                  ),
+                  child: Column(children: [_buildSectionSelector()]),
                 ),
                 Expanded(
                   child: PageView(
