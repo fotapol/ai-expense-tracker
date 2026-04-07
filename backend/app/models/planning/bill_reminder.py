@@ -2,7 +2,7 @@ import datetime as dt
 import uuid
 from decimal import Decimal
 
-from sqlalchemy import CHAR, Column, Date, Index, Numeric, String
+from sqlalchemy import CHAR, Column, Date, DateTime, Index, Numeric, String
 from sqlmodel import Field
 
 from app.models.shared.timestamps import TimestampedModel
@@ -40,6 +40,10 @@ class BillReminder(TimestampedModel, table=True):
     last_paid_due_date: dt.date | None = Field(
         default=None,
         sa_column=Column(Date(), nullable=True),
+    )
+    last_paid_at: dt.datetime | None = Field(
+        default=None,
+        sa_column=Column(DateTime(timezone=True), nullable=True),
     )
     last_skipped_due_date: dt.date | None = Field(
         default=None,

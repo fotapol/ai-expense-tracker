@@ -108,6 +108,7 @@ class BillReminderRead(UUIDTimestampSchema):
     recurrence: BillReminderRecurrence
     first_due_date: dt.date
     last_paid_due_date: dt.date | None = None
+    last_paid_at: dt.datetime | None = None
     last_skipped_due_date: dt.date | None = None
     remind_days_before: int
     is_active: bool
