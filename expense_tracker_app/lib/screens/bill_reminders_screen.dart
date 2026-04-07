@@ -25,7 +25,7 @@ class _BillRemindersScreenState extends State<BillRemindersScreen> {
   bool _isCreating = false;
   bool _showComposer = false;
   bool _showHistoryMode = false;
-  _BillHistorySort _historySort = _BillHistorySort.latestDueDate;
+  _BillHistorySort _historySort = _BillHistorySort.latestPaidAt;
   String? _savingBillId;
   String? _deletingBillId;
   String? _error;
@@ -114,17 +114,25 @@ class _BillRemindersScreenState extends State<BillRemindersScreen> {
         )
         .toList();
     switch (_historySort) {
+      case _BillHistorySort.latestPaidAt:
+        items.sort(
+          (left, right) => _historyPaidMoment(
+            right.reminder,
+          ).compareTo(_historyPaidMoment(left.reminder)),
+        );
+        break;
+      case _BillHistorySort.earliestPaidAt:
+        items.sort(
+          (left, right) => _historyPaidMoment(
+            left.reminder,
+          ).compareTo(_historyPaidMoment(right.reminder)),
+        );
+        break;
       case _BillHistorySort.latestDueDate:
         items.sort((left, right) => right.dueDate.compareTo(left.dueDate));
         break;
       case _BillHistorySort.earliestDueDate:
         items.sort((left, right) => left.dueDate.compareTo(right.dueDate));
-        break;
-      case _BillHistorySort.highestAmount:
-        items.sort(
-          (left, right) =>
-              right.reminder.amount.compareTo(left.reminder.amount),
-        );
         break;
     }
     return items;
@@ -186,24 +194,38 @@ class _BillRemindersScreenState extends State<BillRemindersScreen> {
 
   String _historySortLabel(_BillHistorySort sort) {
     switch (sort) {
+      case _BillHistorySort.latestPaidAt:
+        return 'Latest paid';
+      case _BillHistorySort.earliestPaidAt:
+        return 'Earliest paid';
       case _BillHistorySort.latestDueDate:
-        return 'Latest first';
+        return 'Latest due';
       case _BillHistorySort.earliestDueDate:
-        return 'Oldest first';
-      case _BillHistorySort.highestAmount:
-        return 'Highest amount';
+        return 'Earliest due';
     }
   }
 
   String _historySubtitle() {
     switch (_historySort) {
+      case _BillHistorySort.latestPaidAt:
+        return 'Sorted by when reminders were marked as paid most recently.';
+      case _BillHistorySort.earliestPaidAt:
+        return 'Sorted by the oldest recorded payment time first.';
       case _BillHistorySort.latestDueDate:
-        return 'Sorted by the most recently paid due date.';
+        return 'Sorted by the latest due date that was paid.';
       case _BillHistorySort.earliestDueDate:
-        return 'Sorted by the oldest paid due date first.';
-      case _BillHistorySort.highestAmount:
-        return 'Sorted by the largest paid reminder amount.';
+        return 'Sorted by the earliest due date that was paid.';
     }
+  }
+
+  DateTime _historyPaidMoment(BillReminderRecord reminder) {
+    return reminder.lastPaidAt ??
+        reminder.updatedAt ??
+        DateTime(
+          reminder.lastPaidDueDate!.year,
+          reminder.lastPaidDueDate!.month,
+          reminder.lastPaidDueDate!.day,
+        );
   }
 
   Color _statusColor(BillReminderStatus status) {
@@ -249,8 +271,19 @@ class _BillRemindersScreenState extends State<BillRemindersScreen> {
       _showHistoryMode = !_showHistoryMode;
       if (_showHistoryMode) {
         _showComposer = false;
+        _historySort = _BillHistorySort.latestPaidAt;
       }
     });
+  }
+
+  void _handleBackNavigation() {
+    if (_showHistoryMode) {
+      setState(() => _showHistoryMode = false);
+      return;
+    }
+    if (_showComposer) {
+      _toggleComposer();
+    }
   }
 
   Future<void> _createReminder() async {
@@ -857,12 +890,28 @@ class _BillRemindersScreenState extends State<BillRemindersScreen> {
               ),
               const SizedBox(width: 8),
               Expanded(
-                child: Text(
-                  '${isHistory ? 'Paid for due' : 'Next due'}: ${DateFormat.yMMMd().format(occurrence.dueDate)}',
-                  style: TextStyle(
-                    color: ShellStyles.textPrimary(context),
-                    fontSize: 13,
-                  ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      '${isHistory ? 'Paid for due' : 'Next due'}: ${DateFormat.yMMMd().format(occurrence.dueDate)}',
+                      style: TextStyle(
+                        color: ShellStyles.textPrimary(context),
+                        fontSize: 13,
+                      ),
+                    ),
+                    if (isHistory &&
+                        occurrence.reminder.lastPaidAt != null) ...[
+                      const SizedBox(height: 4),
+                      Text(
+                        'Marked paid ${DateFormat.yMMMd().add_Hm().format(occurrence.reminder.lastPaidAt!)}',
+                        style: TextStyle(
+                          color: ShellStyles.textMuted(context),
+                          fontSize: 11.5,
+                        ),
+                      ),
+                    ],
+                  ],
                 ),
               ),
               if (!isHistory) ...[
@@ -977,175 +1026,187 @@ class _BillRemindersScreenState extends State<BillRemindersScreen> {
     final paidItems = _paidHistoryOccurrences();
     final isShowingHistory = _showHistoryMode;
 
-    return SettingsDetailScaffold(
-      title: context.tr('tools_bill_reminders'),
-      actions: [
-        Padding(
-          padding: const EdgeInsets.only(right: 12),
-          child: Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              OutlinedButton(
-                onPressed: _toggleHistoryMode,
-                style: OutlinedButton.styleFrom(
-                  minimumSize: const Size(40, 38),
-                  padding: const EdgeInsets.symmetric(horizontal: 11),
-                  backgroundColor: isShowingHistory
-                      ? ShellStyles.surfaceAlt(context)
-                      : ShellStyles.surface(context),
-                  side: BorderSide(color: ShellStyles.border(context)),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(14),
-                  ),
-                ),
-                child: Icon(
-                  isShowingHistory
-                      ? Icons.schedule_outlined
-                      : Icons.history_outlined,
-                  size: 18,
-                  color: ShellStyles.textPrimary(context),
-                ),
-              ),
-              const SizedBox(width: 8),
-              FilledButton(
-                onPressed: _toggleComposer,
-                style: FilledButton.styleFrom(
-                  backgroundColor: ShellStyles.textPrimary(context),
-                  foregroundColor: ShellStyles.surface(context),
-                  minimumSize: const Size(0, 38),
-                  padding: const EdgeInsets.symmetric(horizontal: 14),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(14),
-                  ),
-                ),
-                child: Text(
-                  _showComposer
-                      ? context.tr('common_cancel')
-                      : '+ ${context.tr('common_new')}',
-                ),
-              ),
-            ],
-          ),
-        ),
-      ],
-      body: _isLoading
-          ? const Center(child: CircularProgressIndicator())
-          : _error != null
-          ? Center(
-              child: Padding(
-                padding: const EdgeInsets.all(24),
-                child: Text(
-                  _error!,
-                  textAlign: TextAlign.center,
-                  style: TextStyle(color: ShellStyles.textPrimary(context)),
-                ),
-              ),
-            )
-          : SafeArea(
-              top: false,
-              child: RefreshIndicator(
-                onRefresh: () => _loadData(showLoader: false),
-                child: ListView(
-                  physics: const AlwaysScrollableScrollPhysics(),
-                  padding: EdgeInsets.fromLTRB(
-                    16,
-                    16,
-                    16,
-                    MediaQuery.of(context).padding.bottom + 32,
-                  ),
-                  children: [
-                    if (!isShowingHistory) ...[
-                      Text(
-                        _subtitle(upcomingItems.length),
-                        style: TextStyle(
-                          color: ShellStyles.textMuted(context),
-                          fontSize: 13,
-                        ),
-                      ),
-                      const SizedBox(height: 16),
-                      _buildSummaryCard(upcomingItems),
-                    ],
-                    if (_showComposer) ...[
-                      const SizedBox(height: 16),
-                      _buildComposerCard(),
-                    ],
-                    const SizedBox(height: 16),
-                    Row(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Expanded(
-                          child: _buildSectionHeader(
-                            isShowingHistory ? 'Paid history' : 'Upcoming',
-                            subtitle: isShowingHistory
-                                ? _historySubtitle()
-                                : 'Sorted by the nearest due date and counted in the summary above.',
-                          ),
-                        ),
-                        if (isShowingHistory && paidItems.isNotEmpty) ...[
-                          const SizedBox(width: 12),
-                          _buildHistorySortButton(),
-                        ],
-                      ],
+    return PopScope<bool>(
+      canPop: !_showHistoryMode && !_showComposer,
+      onPopInvokedWithResult: (didPop, result) {
+        if (didPop) return;
+        _handleBackNavigation();
+      },
+      child: SettingsDetailScaffold(
+        title: context.tr('tools_bill_reminders'),
+        actions: [
+          Padding(
+            padding: const EdgeInsets.only(right: 12),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                OutlinedButton(
+                  onPressed: _toggleHistoryMode,
+                  style: OutlinedButton.styleFrom(
+                    minimumSize: const Size(40, 38),
+                    padding: const EdgeInsets.symmetric(horizontal: 11),
+                    backgroundColor: isShowingHistory
+                        ? ShellStyles.surfaceAlt(context)
+                        : ShellStyles.surface(context),
+                    side: BorderSide(color: ShellStyles.border(context)),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(14),
                     ),
-                    const SizedBox(height: 12),
-                    if (!isShowingHistory && upcomingItems.isEmpty)
-                      Container(
-                        padding: const EdgeInsets.all(16),
-                        decoration: ShellStyles.cardDecoration(
-                          context,
-                          radius: 18,
-                          withShadow: false,
-                        ),
-                        child: Text(
-                          context.tr('bill_reminders_empty'),
+                  ),
+                  child: Icon(
+                    isShowingHistory
+                        ? Icons.schedule_outlined
+                        : Icons.history_outlined,
+                    size: 18,
+                    color: ShellStyles.textPrimary(context),
+                  ),
+                ),
+                const SizedBox(width: 8),
+                FilledButton(
+                  onPressed: _toggleComposer,
+                  style: FilledButton.styleFrom(
+                    backgroundColor: ShellStyles.textPrimary(context),
+                    foregroundColor: ShellStyles.surface(context),
+                    minimumSize: const Size(0, 38),
+                    padding: const EdgeInsets.symmetric(horizontal: 14),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(14),
+                    ),
+                  ),
+                  child: Text(
+                    _showComposer
+                        ? context.tr('common_cancel')
+                        : '+ ${context.tr('common_new')}',
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+        body: _isLoading
+            ? const Center(child: CircularProgressIndicator())
+            : _error != null
+            ? Center(
+                child: Padding(
+                  padding: const EdgeInsets.all(24),
+                  child: Text(
+                    _error!,
+                    textAlign: TextAlign.center,
+                    style: TextStyle(color: ShellStyles.textPrimary(context)),
+                  ),
+                ),
+              )
+            : SafeArea(
+                top: false,
+                child: RefreshIndicator(
+                  onRefresh: () => _loadData(showLoader: false),
+                  child: ListView(
+                    physics: const AlwaysScrollableScrollPhysics(),
+                    padding: EdgeInsets.fromLTRB(
+                      16,
+                      16,
+                      16,
+                      MediaQuery.of(context).padding.bottom + 32,
+                    ),
+                    children: [
+                      if (!isShowingHistory) ...[
+                        Text(
+                          _subtitle(upcomingItems.length),
                           style: TextStyle(
                             color: ShellStyles.textMuted(context),
-                            fontSize: 12.5,
+                            fontSize: 13,
                           ),
                         ),
-                      )
-                    else if (!isShowingHistory)
-                      ...upcomingItems.map((occurrence) {
-                        return Padding(
-                          padding: const EdgeInsets.only(bottom: 12),
-                          child: _buildReminderCard(occurrence),
-                        );
-                      }),
-                    if (isShowingHistory && paidItems.isEmpty)
-                      Container(
-                        padding: const EdgeInsets.all(16),
-                        decoration: ShellStyles.cardDecoration(
-                          context,
-                          radius: 18,
-                          withShadow: false,
-                        ),
-                        child: Text(
-                          'Paid reminders will appear here after you mark them as paid.',
-                          style: TextStyle(
-                            color: ShellStyles.textMuted(context),
-                            fontSize: 12.5,
+                        const SizedBox(height: 16),
+                        _buildSummaryCard(upcomingItems),
+                      ],
+                      if (_showComposer) ...[
+                        const SizedBox(height: 16),
+                        _buildComposerCard(),
+                      ],
+                      const SizedBox(height: 16),
+                      Row(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Expanded(
+                            child: _buildSectionHeader(
+                              isShowingHistory ? 'Paid history' : 'Upcoming',
+                              subtitle: isShowingHistory
+                                  ? _historySubtitle()
+                                  : 'Sorted by the nearest due date and counted in the summary above.',
+                            ),
                           ),
-                        ),
+                          if (isShowingHistory && paidItems.isNotEmpty) ...[
+                            const SizedBox(width: 12),
+                            _buildHistorySortButton(),
+                          ],
+                        ],
                       ),
-                    if (isShowingHistory && paidItems.isNotEmpty) ...[
-                      ...paidItems.map((occurrence) {
-                        return Padding(
-                          padding: const EdgeInsets.only(bottom: 12),
-                          child: _buildReminderCard(
-                            occurrence,
-                            isHistory: true,
+                      const SizedBox(height: 12),
+                      if (!isShowingHistory && upcomingItems.isEmpty)
+                        Container(
+                          padding: const EdgeInsets.all(16),
+                          decoration: ShellStyles.cardDecoration(
+                            context,
+                            radius: 18,
+                            withShadow: false,
                           ),
-                        );
-                      }),
+                          child: Text(
+                            context.tr('bill_reminders_empty'),
+                            style: TextStyle(
+                              color: ShellStyles.textMuted(context),
+                              fontSize: 12.5,
+                            ),
+                          ),
+                        )
+                      else if (!isShowingHistory)
+                        ...upcomingItems.map((occurrence) {
+                          return Padding(
+                            padding: const EdgeInsets.only(bottom: 12),
+                            child: _buildReminderCard(occurrence),
+                          );
+                        }),
+                      if (isShowingHistory && paidItems.isEmpty)
+                        Container(
+                          padding: const EdgeInsets.all(16),
+                          decoration: ShellStyles.cardDecoration(
+                            context,
+                            radius: 18,
+                            withShadow: false,
+                          ),
+                          child: Text(
+                            'Paid reminders will appear here after you mark them as paid.',
+                            style: TextStyle(
+                              color: ShellStyles.textMuted(context),
+                              fontSize: 12.5,
+                            ),
+                          ),
+                        ),
+                      if (isShowingHistory && paidItems.isNotEmpty) ...[
+                        ...paidItems.map((occurrence) {
+                          return Padding(
+                            padding: const EdgeInsets.only(bottom: 12),
+                            child: _buildReminderCard(
+                              occurrence,
+                              isHistory: true,
+                            ),
+                          );
+                        }),
+                      ],
                     ],
-                  ],
+                  ),
                 ),
               ),
-            ),
+      ),
     );
   }
 }
 
-enum _BillHistorySort { latestDueDate, earliestDueDate, highestAmount }
+enum _BillHistorySort {
+  latestPaidAt,
+  earliestPaidAt,
+  latestDueDate,
+  earliestDueDate,
+}
 
 enum _ReminderDeleteAction { skipOccurrence, deleteSeries }
