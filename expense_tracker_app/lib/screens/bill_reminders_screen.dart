@@ -24,6 +24,7 @@ class _BillRemindersScreenState extends State<BillRemindersScreen> {
   bool _isLoading = true;
   bool _isCreating = false;
   bool _showComposer = false;
+  bool _showHistoryMode = false;
   String? _savingBillId;
   String? _deletingBillId;
   String? _error;
@@ -196,12 +197,22 @@ class _BillRemindersScreenState extends State<BillRemindersScreen> {
 
   void _toggleComposer() {
     setState(() {
+      _showHistoryMode = false;
       _showComposer = !_showComposer;
       if (!_showComposer) {
         _nameController.clear();
         _amountController.clear();
         _selectedRecurrence = billReminderRecurrenceMonthly;
         _selectedDueDate = DateTime.now();
+      }
+    });
+  }
+
+  void _toggleHistoryMode() {
+    setState(() {
+      _showHistoryMode = !_showHistoryMode;
+      if (_showHistoryMode) {
+        _showComposer = false;
       }
     });
   }
@@ -271,6 +282,7 @@ class _BillRemindersScreenState extends State<BillRemindersScreen> {
       _showMessage(context.tr('bill_reminders_paid'));
     } catch (error) {
       if (await maybeHandleExpiredSession(error)) return;
+      if (await _recoverUnavailableReminder(error)) return;
       if (!mounted) return;
       _showMessage(
         friendlyLaunchErrorMessage(
@@ -284,16 +296,72 @@ class _BillRemindersScreenState extends State<BillRemindersScreen> {
     }
   }
 
-  Future<void> _deleteReminder(BillReminderRecord reminder) async {
-    if (_savingBillId != null || _deletingBillId != null) return;
-    final confirmed = await showDialog<bool>(
+  bool _isRecurring(BillReminderRecord reminder) {
+    return normalizeBillReminderRecurrence(reminder.recurrence) !=
+        billReminderRecurrenceNone;
+  }
+
+  bool _isReminderMissingError(Object error) {
+    final raw = error.toString().toLowerCase();
+    return raw.contains('bill reminder not found') ||
+        raw.contains(': 404') ||
+        raw.contains(' 404');
+  }
+
+  Future<bool> _recoverUnavailableReminder(Object error) async {
+    if (!_isReminderMissingError(error)) return false;
+    await _loadData(showLoader: false);
+    if (!mounted) return true;
+    _showMessage('This reminder is no longer available.', isError: true);
+    return true;
+  }
+
+  Future<_ReminderDeleteAction?> _confirmReminderDelete(
+    BillReminderOccurrence occurrence,
+  ) async {
+    final reminder = occurrence.reminder;
+    if (!_isRecurring(reminder)) {
+      final confirmed = await showDialog<bool>(
+        context: context,
+        builder: (dialogContext) => ShellStyles.clampOverlayScale(
+          dialogContext,
+          AlertDialog(
+            title: const Text('Delete reminder'),
+            content: Text(
+              'Delete "${reminder.name}"?',
+              style: TextStyle(
+                color: ShellStyles.textPrimary(dialogContext),
+                height: 1.35,
+              ),
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(dialogContext, false),
+                child: Text(context.tr('common_cancel')),
+              ),
+              FilledButton(
+                onPressed: () => Navigator.pop(dialogContext, true),
+                style: FilledButton.styleFrom(
+                  backgroundColor: ShellColors.softRed,
+                  foregroundColor: Colors.white,
+                ),
+                child: const Text('Delete'),
+              ),
+            ],
+          ),
+        ),
+      );
+      return confirmed == true ? _ReminderDeleteAction.deleteSeries : null;
+    }
+
+    return showDialog<_ReminderDeleteAction>(
       context: context,
       builder: (dialogContext) => ShellStyles.clampOverlayScale(
         dialogContext,
         AlertDialog(
-          title: const Text('Delete reminder'),
+          title: const Text('Remove reminder'),
           content: Text(
-            'Remove "${reminder.name}" from your bill reminders? This also removes its paid history from this list.',
+            'Choose whether to remove only the next due reminder or the whole recurring series.',
             style: TextStyle(
               color: ShellStyles.textPrimary(dialogContext),
               height: 1.35,
@@ -301,23 +369,67 @@ class _BillRemindersScreenState extends State<BillRemindersScreen> {
           ),
           actions: [
             TextButton(
-              onPressed: () => Navigator.pop(dialogContext, false),
+              onPressed: () => Navigator.pop(dialogContext),
               child: Text(context.tr('common_cancel')),
             ),
-            FilledButton(
-              onPressed: () => Navigator.pop(dialogContext, true),
-              style: FilledButton.styleFrom(
-                backgroundColor: ShellStyles.textPrimary(dialogContext),
-                foregroundColor: ShellStyles.surface(dialogContext),
+            TextButton(
+              onPressed: () => Navigator.pop(
+                dialogContext,
+                _ReminderDeleteAction.skipOccurrence,
               ),
-              child: const Text('Delete'),
+              style: TextButton.styleFrom(foregroundColor: ShellColors.softRed),
+              child: const Text('Remove this reminder'),
+            ),
+            FilledButton(
+              onPressed: () => Navigator.pop(
+                dialogContext,
+                _ReminderDeleteAction.deleteSeries,
+              ),
+              style: FilledButton.styleFrom(
+                backgroundColor: ShellColors.softRed,
+                foregroundColor: Colors.white,
+              ),
+              child: const Text('Remove all in series'),
             ),
           ],
         ),
       ),
     );
-    if (confirmed != true || !mounted) return;
+  }
 
+  Future<void> _skipReminderOccurrence(
+    BillReminderOccurrence occurrence,
+  ) async {
+    if (_savingBillId != null || _deletingBillId != null) return;
+    setState(() => _deletingBillId = occurrence.reminder.id);
+    try {
+      await ApiClient.skipBillReminder(
+        billId: occurrence.reminder.id,
+        dueDate: occurrence.dueDate,
+      );
+      await BillReminderNotificationService.instance
+          .syncScheduledNotifications();
+      await _loadData(showLoader: false);
+      if (!mounted) return;
+      _showMessage('The next reminder was removed from this series.');
+    } catch (error) {
+      if (await maybeHandleExpiredSession(error)) return;
+      if (await _recoverUnavailableReminder(error)) return;
+      if (!mounted) return;
+      _showMessage(
+        friendlyLaunchErrorMessage(
+          error,
+          fallback: 'That reminder could not be updated right now.',
+        ),
+        isError: true,
+      );
+    } finally {
+      if (mounted) setState(() => _deletingBillId = null);
+    }
+  }
+
+  Future<void> _deleteReminderSeries(BillReminderRecord reminder) async {
+    if (_savingBillId != null || _deletingBillId != null) return;
     setState(() => _deletingBillId = reminder.id);
     try {
       await ApiClient.deleteBillReminder(reminder.id);
@@ -325,19 +437,31 @@ class _BillRemindersScreenState extends State<BillRemindersScreen> {
           .syncScheduledNotifications();
       await _loadData(showLoader: false);
       if (!mounted) return;
-      _showMessage('Bill reminder deleted.');
+      _showMessage('Reminder series removed.');
     } catch (error) {
       if (await maybeHandleExpiredSession(error)) return;
+      if (await _recoverUnavailableReminder(error)) return;
       if (!mounted) return;
       _showMessage(
         friendlyLaunchErrorMessage(
           error,
-          fallback: 'That bill reminder could not be deleted right now.',
+          fallback: 'That reminder could not be deleted right now.',
         ),
         isError: true,
       );
     } finally {
       if (mounted) setState(() => _deletingBillId = null);
+    }
+  }
+
+  Future<void> _handleDeleteAction(BillReminderOccurrence occurrence) async {
+    final action = await _confirmReminderDelete(occurrence);
+    if (action == null || !mounted) return;
+    switch (action) {
+      case _ReminderDeleteAction.skipOccurrence:
+        await _skipReminderOccurrence(occurrence);
+      case _ReminderDeleteAction.deleteSeries:
+        await _deleteReminderSeries(occurrence.reminder);
     }
   }
 
@@ -639,34 +763,23 @@ class _BillRemindersScreenState extends State<BillRemindersScreen> {
                   fontWeight: FontWeight.w800,
                 ),
               ),
-              PopupMenuButton<_ReminderAction>(
-                enabled: !isBusy,
-                tooltip: 'Reminder actions',
-                onSelected: (action) {
-                  if (action == _ReminderAction.delete) {
-                    _deleteReminder(occurrence.reminder);
-                  }
-                },
-                itemBuilder: (menuContext) => const [
-                  PopupMenuItem<_ReminderAction>(
-                    value: _ReminderAction.delete,
-                    child: Text('Delete reminder'),
-                  ),
-                ],
-                icon: isDeleting
-                    ? SizedBox(
-                        width: 20,
-                        height: 20,
-                        child: CircularProgressIndicator(
-                          strokeWidth: 2,
-                          color: ShellStyles.textMuted(context),
-                        ),
-                      )
-                    : Icon(
-                        Icons.more_horiz,
-                        color: ShellStyles.textMuted(context),
-                      ),
-              ),
+              if (!isHistory)
+                IconButton(
+                  onPressed: isBusy
+                      ? null
+                      : () => _handleDeleteAction(occurrence),
+                  tooltip: 'Remove reminder',
+                  icon: isDeleting
+                      ? SizedBox(
+                          width: 18,
+                          height: 18,
+                          child: CircularProgressIndicator(
+                            strokeWidth: 2,
+                            color: ShellColors.softRed,
+                          ),
+                        )
+                      : Icon(Icons.delete_outline, color: ShellColors.softRed),
+                ),
             ],
           ),
           const SizedBox(height: 10),
@@ -786,27 +899,53 @@ class _BillRemindersScreenState extends State<BillRemindersScreen> {
   Widget build(BuildContext context) {
     final upcomingItems = _upcomingOccurrences();
     final paidItems = _paidHistoryOccurrences();
+    final isShowingHistory = _showHistoryMode;
 
     return SettingsDetailScaffold(
       title: context.tr('tools_bill_reminders'),
       actions: [
         Padding(
           padding: const EdgeInsets.only(right: 12),
-          child: Center(
-            child: FilledButton(
-              onPressed: _toggleComposer,
-              style: FilledButton.styleFrom(
-                backgroundColor: ShellStyles.textPrimary(context),
-                foregroundColor: ShellStyles.surface(context),
-                minimumSize: const Size(0, 34),
-                padding: const EdgeInsets.symmetric(horizontal: 14),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Container(
+                decoration: BoxDecoration(
+                  color: isShowingHistory
+                      ? ShellStyles.textPrimary(context)
+                      : ShellStyles.surfaceAlt(context),
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(color: ShellStyles.border(context)),
+                ),
+                child: IconButton(
+                  onPressed: _toggleHistoryMode,
+                  tooltip: isShowingHistory
+                      ? 'Show upcoming reminders'
+                      : 'Show paid history',
+                  icon: Icon(
+                    Icons.history,
+                    color: isShowingHistory
+                        ? ShellStyles.surface(context)
+                        : ShellStyles.textPrimary(context),
+                  ),
+                ),
               ),
-              child: Text(
-                _showComposer
-                    ? context.tr('common_cancel')
-                    : '+ ${context.tr('common_new')}',
+              const SizedBox(width: 8),
+              FilledButton(
+                onPressed: _toggleComposer,
+                style: FilledButton.styleFrom(
+                  backgroundColor: ShellStyles.textPrimary(context),
+                  foregroundColor: ShellStyles.surface(context),
+                  minimumSize: const Size(0, 34),
+                  padding: const EdgeInsets.symmetric(horizontal: 14),
+                ),
+                child: Text(
+                  _showComposer
+                      ? context.tr('common_cancel')
+                      : '+ ${context.tr('common_new')}',
+                ),
               ),
-            ),
+            ],
           ),
         ),
       ],
@@ -836,27 +975,30 @@ class _BillRemindersScreenState extends State<BillRemindersScreen> {
                     MediaQuery.of(context).padding.bottom + 32,
                   ),
                   children: [
-                    Text(
-                      _subtitle(upcomingItems.length),
-                      style: TextStyle(
-                        color: ShellStyles.textMuted(context),
-                        fontSize: 13,
+                    if (!isShowingHistory) ...[
+                      Text(
+                        _subtitle(upcomingItems.length),
+                        style: TextStyle(
+                          color: ShellStyles.textMuted(context),
+                          fontSize: 13,
+                        ),
                       ),
-                    ),
-                    const SizedBox(height: 16),
-                    _buildSummaryCard(upcomingItems),
+                      const SizedBox(height: 16),
+                      _buildSummaryCard(upcomingItems),
+                    ],
                     if (_showComposer) ...[
                       const SizedBox(height: 16),
                       _buildComposerCard(),
                     ],
                     const SizedBox(height: 16),
                     _buildSectionHeader(
-                      'Upcoming',
-                      subtitle:
-                          'Sorted by the nearest due date and counted in the summary above.',
+                      isShowingHistory ? 'Paid history' : 'Upcoming',
+                      subtitle: isShowingHistory
+                          ? 'Completed reminders stay here even after a recurring series is removed.'
+                          : 'Sorted by the nearest due date and counted in the summary above.',
                     ),
                     const SizedBox(height: 12),
-                    if (upcomingItems.isEmpty)
+                    if (!isShowingHistory && upcomingItems.isEmpty)
                       Container(
                         padding: const EdgeInsets.all(16),
                         decoration: ShellStyles.cardDecoration(
@@ -872,21 +1014,30 @@ class _BillRemindersScreenState extends State<BillRemindersScreen> {
                           ),
                         ),
                       )
-                    else
+                    else if (!isShowingHistory)
                       ...upcomingItems.map((occurrence) {
                         return Padding(
                           padding: const EdgeInsets.only(bottom: 12),
                           child: _buildReminderCard(occurrence),
                         );
                       }),
-                    if (paidItems.isNotEmpty) ...[
-                      const SizedBox(height: 10),
-                      _buildSectionHeader(
-                        'Paid history',
-                        subtitle:
-                            'Recently completed reminder occurrences stay here for reference.',
+                    if (isShowingHistory && paidItems.isEmpty)
+                      Container(
+                        padding: const EdgeInsets.all(16),
+                        decoration: ShellStyles.cardDecoration(
+                          context,
+                          radius: 18,
+                          withShadow: false,
+                        ),
+                        child: Text(
+                          'Paid reminders will appear here after you mark them as paid.',
+                          style: TextStyle(
+                            color: ShellStyles.textMuted(context),
+                            fontSize: 12.5,
+                          ),
+                        ),
                       ),
-                      const SizedBox(height: 12),
+                    if (isShowingHistory && paidItems.isNotEmpty) ...[
                       ...paidItems.map((occurrence) {
                         return Padding(
                           padding: const EdgeInsets.only(bottom: 12),
@@ -905,4 +1056,4 @@ class _BillRemindersScreenState extends State<BillRemindersScreen> {
   }
 }
 
-enum _ReminderAction { delete }
+enum _ReminderDeleteAction { skipOccurrence, deleteSeries }

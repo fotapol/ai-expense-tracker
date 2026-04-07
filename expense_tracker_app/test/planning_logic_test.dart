@@ -101,6 +101,7 @@ void main() {
     BillReminderRecord buildReminder({
       DateTime? firstDueDate,
       DateTime? lastPaidDueDate,
+      DateTime? lastSkippedDueDate,
       String recurrence = billReminderRecurrenceMonthly,
       bool isActive = true,
     }) {
@@ -112,6 +113,7 @@ void main() {
         recurrence: recurrence,
         firstDueDate: firstDueDate ?? DateTime(2026, 1, 5),
         lastPaidDueDate: lastPaidDueDate,
+        lastSkippedDueDate: lastSkippedDueDate,
         remindDaysBefore: 3,
         isActive: isActive,
       );
@@ -192,6 +194,7 @@ void main() {
             currency: 'USD',
             recurrence: billReminderRecurrenceMonthly,
             firstDueDate: DateTime(2026, 1, 25),
+            lastSkippedDueDate: null,
             remindDaysBefore: 3,
             isActive: true,
           ),
@@ -231,6 +234,32 @@ void main() {
         DateTime(2026, 3, 30),
       );
     });
+
+    test(
+      'skipped recurring reminders move to the next scheduled occurrence',
+      () {
+        final reminder = buildReminder(
+          recurrence: billReminderRecurrenceMonthly,
+          lastPaidDueDate: DateTime(2026, 3, 5),
+          lastSkippedDueDate: DateTime(2026, 4, 5),
+        );
+
+        expect(
+          billReminderOccurrenceForList(
+            reminder,
+            now: DateTime(2026, 4, 12),
+          )?.dueDate,
+          DateTime(2026, 5, 5),
+        );
+        expect(
+          nextSchedulableBillReminderDueDate(
+            reminder,
+            now: DateTime(2026, 4, 12),
+          ),
+          DateTime(2026, 5, 5),
+        );
+      },
+    );
 
     test('one-time reminders move to history after payment', () {
       final reminder = buildReminder(
@@ -274,6 +303,17 @@ void main() {
         ),
         DateTime(2027, 2, 28),
       );
+    });
+
+    test('inactive reminders do not appear in upcoming occurrences', () {
+      final reminder = buildReminder(
+        recurrence: billReminderRecurrenceMonthly,
+        lastPaidDueDate: DateTime(2026, 3, 5),
+        isActive: false,
+      );
+
+      expect(billReminderOccurrenceForList(reminder, now: now), isNull);
+      expect(nextSchedulableBillReminderDueDate(reminder, now: now), isNull);
     });
   });
 }

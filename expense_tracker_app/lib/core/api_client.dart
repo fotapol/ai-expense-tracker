@@ -1226,6 +1226,29 @@ class ApiClient {
     );
   }
 
+  /// PATCH /v1/planning/bills/{id}/skip
+  static Future<Map<String, dynamic>> skipBillReminder({
+    required String billId,
+    required DateTime dueDate,
+  }) async {
+    final token = await _getToken();
+    final response = await http.patch(
+      Uri.parse('$apiBaseUrl/v1/planning/bills/$billId/skip'),
+      headers: {
+        'Authorization': 'Bearer $token',
+        'Content-Type': 'application/json',
+      },
+      body: jsonEncode({'due_date': _dateOnlyIso(dueDate)}),
+    );
+    await _throwIfUnauthorizedResponse(response);
+    if (response.statusCode == 200) {
+      return jsonDecode(response.body) as Map<String, dynamic>;
+    }
+    throw Exception(
+      'Failed to skip bill reminder: ${response.statusCode} ${_extractErrorMessage(response)}',
+    );
+  }
+
   /// DELETE /v1/planning/bills/{id}
   static Future<void> deleteBillReminder(String billId) async {
     final token = await _getToken();

@@ -17,8 +17,8 @@ from app.schemas.shared import (
     quantize_amount,
 )
 
-BillReminderRecurrence = Annotated[str, Field(min_length=5, max_length=7)]
-_ALLOWED_BILL_RECURRENCES = {"daily", "monthly", "yearly"}
+BillReminderRecurrence = Annotated[str, Field(min_length=4, max_length=7)]
+_ALLOWED_BILL_RECURRENCES = {"none", "daily", "weekly", "monthly", "yearly"}
 
 
 class BudgetCategoryLimitInput(SchemaBase):
@@ -87,7 +87,9 @@ class BillReminderCreate(SchemaBase):
     def normalize_recurrence(cls, value: str) -> str:
         normalized = value.strip().lower()
         if normalized not in _ALLOWED_BILL_RECURRENCES:
-            raise ValueError("Recurrence must be daily, monthly, or yearly.")
+            raise ValueError(
+                "Recurrence must be none, daily, weekly, monthly, or yearly.",
+            )
         return normalized
 
     @field_validator("amount")
@@ -106,11 +108,18 @@ class BillReminderRead(UUIDTimestampSchema):
     recurrence: BillReminderRecurrence
     first_due_date: dt.date
     last_paid_due_date: dt.date | None = None
+    last_skipped_due_date: dt.date | None = None
     remind_days_before: int
     is_active: bool
 
 
 class BillReminderMarkPaid(SchemaBase):
     """Mark one reminder cycle as paid."""
+
+    due_date: dt.date
+
+
+class BillReminderSkip(SchemaBase):
+    """Skip one reminder cycle without marking it paid."""
 
     due_date: dt.date

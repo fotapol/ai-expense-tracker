@@ -41,5 +41,9 @@ class BillReminder(TimestampedModel, table=True):
         default=None,
         sa_column=Column(Date(), nullable=True),
     )
+    last_skipped_due_date: dt.date | None = Field(
+        default=None,
+        sa_column=Column(Date(), nullable=True),
+    )
     remind_days_before: int = Field(default=3, nullable=False)
     is_active: bool = Field(default=True, nullable=False)

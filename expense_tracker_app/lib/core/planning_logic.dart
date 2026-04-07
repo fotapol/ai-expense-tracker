@@ -114,6 +114,7 @@ class BillReminderRecord {
     required this.remindDaysBefore,
     required this.isActive,
     this.lastPaidDueDate,
+    this.lastSkippedDueDate,
   });
 
   final String id;
@@ -123,6 +124,7 @@ class BillReminderRecord {
   final String recurrence;
   final DateTime firstDueDate;
   final DateTime? lastPaidDueDate;
+  final DateTime? lastSkippedDueDate;
   final int remindDaysBefore;
   final bool isActive;
 
@@ -141,6 +143,9 @@ class BillReminderRecord {
       lastPaidDueDate: json['last_paid_due_date'] == null
           ? null
           : _dateOnly(DateTime.parse(json['last_paid_due_date'].toString())),
+      lastSkippedDueDate: json['last_skipped_due_date'] == null
+          ? null
+          : _dateOnly(DateTime.parse(json['last_skipped_due_date'].toString())),
       remindDaysBefore:
           int.tryParse(json['remind_days_before']?.toString() ?? '3') ?? 3,
       isActive: json['is_active'] != false,
@@ -240,12 +245,10 @@ DateTime? billReminderDueDateForList(
 
   final today = _dateOnly(now ?? DateTime.now());
   final anchor = _dateOnly(reminder.firstDueDate);
-  final lastPaid = reminder.lastPaidDueDate == null
-      ? null
-      : _dateOnly(reminder.lastPaidDueDate!);
+  final lastHandled = latestHandledBillReminderDueDate(reminder);
   switch (normalizeBillReminderRecurrence(reminder.recurrence)) {
     case billReminderRecurrenceNone:
-      if (lastPaid != null && !lastPaid.isBefore(anchor)) {
+      if (lastHandled != null && !lastHandled.isBefore(anchor)) {
         return null;
       }
       return anchor;
@@ -253,7 +256,7 @@ DateTime? billReminderDueDateForList(
       if (anchor.isAfter(today)) {
         return anchor;
       }
-      if (lastPaid != null && !lastPaid.isBefore(today)) {
+      if (lastHandled != null && !lastHandled.isBefore(today)) {
         return today.add(const Duration(days: 1));
       }
       return today;
@@ -262,7 +265,7 @@ DateTime? billReminderDueDateForList(
       if (anchor.isAfter(currentWeekDue)) {
         return anchor;
       }
-      if (lastPaid != null && !lastPaid.isBefore(currentWeekDue)) {
+      if (lastHandled != null && !lastHandled.isBefore(currentWeekDue)) {
         return nextWeeklyDueDate(currentWeekDue);
       }
       return currentWeekDue;
@@ -271,7 +274,7 @@ DateTime? billReminderDueDateForList(
       if (anchor.isAfter(currentYearDue)) {
         return anchor;
       }
-      if (lastPaid != null && !lastPaid.isBefore(currentYearDue)) {
+      if (lastHandled != null && !lastHandled.isBefore(currentYearDue)) {
         return nextYearlyDueDate(anchor, currentYearDue);
       }
       return currentYearDue;
@@ -281,7 +284,7 @@ DateTime? billReminderDueDateForList(
       if (anchor.isAfter(currentMonthDue)) {
         return anchor;
       }
-      if (lastPaid != null && !lastPaid.isBefore(currentMonthDue)) {
+      if (lastHandled != null && !lastHandled.isBefore(currentMonthDue)) {
         return nextMonthlyDueDate(anchor, currentMonthDue);
       }
       return currentMonthDue;
@@ -340,6 +343,18 @@ double upcomingBillsTotal(Iterable<BillReminderOccurrence> reminders) {
     0,
     (sum, occurrence) => sum + occurrence.reminder.amount,
   );
+}
+
+DateTime? latestHandledBillReminderDueDate(BillReminderRecord reminder) {
+  final lastPaid = reminder.lastPaidDueDate == null
+      ? null
+      : _dateOnly(reminder.lastPaidDueDate!);
+  final lastSkipped = reminder.lastSkippedDueDate == null
+      ? null
+      : _dateOnly(reminder.lastSkippedDueDate!);
+  if (lastPaid == null) return lastSkipped;
+  if (lastSkipped == null) return lastPaid;
+  return lastPaid.isAfter(lastSkipped) ? lastPaid : lastSkipped;
 }
 
 double _parseDouble(Object? value) {
