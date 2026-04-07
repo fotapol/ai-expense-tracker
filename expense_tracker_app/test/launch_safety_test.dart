@@ -9,6 +9,7 @@ import 'package:expense_tracker_app/core/session_invalidation.dart';
 import 'package:expense_tracker_app/core/single_user_launch.dart';
 import 'package:expense_tracker_app/core/subscription_confirmation.dart';
 import 'package:expense_tracker_app/l10n/app_localizations.dart';
+import 'package:expense_tracker_app/widgets/app_tab_footer.dart';
 import 'package:expense_tracker_app/screens/tools_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
@@ -410,4 +411,61 @@ void main() {
     expect(find.text(l10n.tr('tools_export_data')), findsOneWidget);
     expect(find.text(l10n.tr('tools_import_data')), findsOneWidget);
   });
+
+  testWidgets('tools tab stays launch-safe when switching inside shell', (
+    tester,
+  ) async {
+    await tester.pumpWidget(const _ToolsShellHarness());
+    await tester.pumpAndSettle();
+
+    expect(tester.takeException(), isNull);
+    expect(find.text('Home placeholder'), findsOneWidget);
+
+    await tester.tap(find.text('Tools'));
+    await tester.pumpAndSettle();
+
+    expect(tester.takeException(), isNull);
+    expect(find.text('Scan Receipt'), findsOneWidget);
+    expect(find.text('Receipt Manager'), findsAtLeastNWidgets(1));
+  });
+}
+
+class _ToolsShellHarness extends StatefulWidget {
+  const _ToolsShellHarness();
+
+  @override
+  State<_ToolsShellHarness> createState() => _ToolsShellHarnessState();
+}
+
+class _ToolsShellHarnessState extends State<_ToolsShellHarness> {
+  int _selectedIndex = 0;
+
+  @override
+  Widget build(BuildContext context) {
+    return MaterialApp(
+      localizationsDelegates: const [
+        AppLocalizations.delegate,
+        GlobalMaterialLocalizations.delegate,
+        GlobalWidgetsLocalizations.delegate,
+        GlobalCupertinoLocalizations.delegate,
+      ],
+      supportedLocales: AppLocalizations.supportedLocales,
+      home: Scaffold(
+        body: IndexedStack(
+          index: _selectedIndex,
+          children: const [
+            Center(child: Text('Home placeholder')),
+            ToolsScreen(),
+            Center(child: Text('Settings placeholder')),
+          ],
+        ),
+        bottomNavigationBar: AppTabFooter(
+          selectedIndex: _selectedIndex,
+          onSelected: (index) {
+            setState(() => _selectedIndex = index);
+          },
+        ),
+      ),
+    );
+  }
 }

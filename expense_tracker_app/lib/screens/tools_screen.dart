@@ -69,49 +69,38 @@ class ToolsScreen extends StatelessWidget {
               ],
             ),
             SizedBox(height: ShellStyles.scaled(context, 10, min: 8, max: 12)),
-            LayoutBuilder(
-              builder: (context, constraints) {
-                final spacing = ShellStyles.scaled(context, 8, min: 6, max: 10);
-                final cardWidth = (constraints.maxWidth - (spacing * 2)) / 3;
-                return Row(
-                  children: [
-                    SizedBox(
-                      width: cardWidth,
-                      child: _buildShortcutCard(
-                        context,
-                        icon: AppIcons.scan,
-                        title: context.tr('tools_scan_receipt'),
-                        subtitle: 'Quick scan with AI review',
-                        onTap: () =>
-                            _open(context, const ReceiptUploadScreen()),
-                      ),
-                    ),
-                    SizedBox(width: spacing),
-                    SizedBox(
-                      width: cardWidth,
-                      child: _buildShortcutCard(
-                        context,
-                        icon: AppIcons.analyticsAlt,
-                        title: context.tr('tools_analytics'),
-                        subtitle: 'View insights and trends',
-                        onTap: () => _open(context, const AnalyticsScreen()),
-                      ),
-                    ),
-                    SizedBox(width: spacing),
-                    SizedBox(
-                      width: cardWidth,
-                      child: _buildShortcutCard(
-                        context,
-                        icon: AppIcons.receipt,
-                        title: context.tr('tools_receipt_manager'),
-                        subtitle: 'Organize your receipts',
-                        onTap: () =>
-                            _open(context, const ReceiptManagerScreen()),
-                      ),
-                    ),
-                  ],
-                );
-              },
+            Row(
+              children: [
+                Expanded(
+                  child: _buildShortcutCard(
+                    context,
+                    icon: AppIcons.scan,
+                    title: context.tr('tools_scan_receipt'),
+                    subtitle: 'Quick scan with AI review',
+                    onTap: () => _open(context, const ReceiptUploadScreen()),
+                  ),
+                ),
+                SizedBox(width: ShellStyles.scaled(context, 8, min: 6, max: 10)),
+                Expanded(
+                  child: _buildShortcutCard(
+                    context,
+                    icon: AppIcons.analyticsAlt,
+                    title: context.tr('tools_analytics'),
+                    subtitle: 'View insights and trends',
+                    onTap: () => _open(context, const AnalyticsScreen()),
+                  ),
+                ),
+                SizedBox(width: ShellStyles.scaled(context, 8, min: 6, max: 10)),
+                Expanded(
+                  child: _buildShortcutCard(
+                    context,
+                    icon: AppIcons.receipt,
+                    title: context.tr('tools_receipt_manager'),
+                    subtitle: 'Organize your receipts',
+                    onTap: () => _open(context, const ReceiptManagerScreen()),
+                  ),
+                ),
+              ],
             ),
             SizedBox(height: ShellStyles.scaled(context, 22, min: 18, max: 26)),
             ShellStyles.sectionLabel(context, context.tr('tools_all_tools')),
