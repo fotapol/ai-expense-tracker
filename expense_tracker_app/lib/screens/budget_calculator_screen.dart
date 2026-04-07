@@ -379,40 +379,6 @@ class _BudgetCalculatorScreenState extends State<BudgetCalculatorScreen> {
     );
   }
 
-  Widget _buildInlineOverviewMetric(String label, String value) {
-    return Container(
-      padding: const EdgeInsets.all(12),
-      decoration: BoxDecoration(
-        color: ShellStyles.surfaceAlt(context),
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: ShellStyles.border(context)),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            label.toUpperCase(),
-            style: TextStyle(
-              color: ShellStyles.textMuted(context),
-              fontSize: 10.5,
-              fontWeight: FontWeight.w700,
-              letterSpacing: 0.7,
-            ),
-          ),
-          const SizedBox(height: 8),
-          Text(
-            value,
-            style: TextStyle(
-              color: ShellStyles.textPrimary(context),
-              fontSize: 15,
-              fontWeight: FontWeight.w700,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
   Widget _buildCategoryCard(BudgetCategoryProgress category) {
     final controller = _limitControllers[category.categoryId]!;
     final borderColor = category.isExceeded
@@ -600,52 +566,6 @@ class _BudgetCalculatorScreenState extends State<BudgetCalculatorScreen> {
                                   '${CurrencyDisplay.symbolForCode(_currency)} ',
                               hintText: '0',
                             ),
-                          ),
-                          const SizedBox(height: 14),
-                          LayoutBuilder(
-                            builder: (context, constraints) {
-                              final stackMetrics = constraints.maxWidth < 360;
-                              if (stackMetrics) {
-                                return Column(
-                                  children: [
-                                    _buildInlineOverviewMetric(
-                                      'Spent this month',
-                                      _formatCurrency(_totalSpent),
-                                    ),
-                                    const SizedBox(height: 10),
-                                    _buildInlineOverviewMetric(
-                                      'Category limits',
-                                      allocatedCategoryBudget > 0
-                                          ? _formatCurrency(
-                                              allocatedCategoryBudget,
-                                            )
-                                          : 'Not set',
-                                    ),
-                                  ],
-                                );
-                              }
-                              return Row(
-                                children: [
-                                  Expanded(
-                                    child: _buildInlineOverviewMetric(
-                                      'Spent this month',
-                                      _formatCurrency(_totalSpent),
-                                    ),
-                                  ),
-                                  const SizedBox(width: 10),
-                                  Expanded(
-                                    child: _buildInlineOverviewMetric(
-                                      'Category limits',
-                                      allocatedCategoryBudget > 0
-                                          ? _formatCurrency(
-                                              allocatedCategoryBudget,
-                                            )
-                                          : 'Not set',
-                                    ),
-                                  ),
-                                ],
-                              );
-                            },
                           ),
                         ],
                       ),
