@@ -351,7 +351,7 @@ class _BudgetCalculatorScreenState extends State<BudgetCalculatorScreen> {
 
   Widget _buildSummaryCard(String label, String value, {Color? valueColor}) {
     return Container(
-      padding: const EdgeInsets.all(14),
+      padding: const EdgeInsets.all(16),
       decoration: ShellStyles.cardDecoration(context, radius: 18),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -370,8 +370,42 @@ class _BudgetCalculatorScreenState extends State<BudgetCalculatorScreen> {
             value,
             style: TextStyle(
               color: valueColor ?? ShellStyles.textPrimary(context),
-              fontSize: 23,
+              fontSize: 22,
               fontWeight: FontWeight.w800,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildInlineOverviewMetric(String label, String value) {
+    return Container(
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: ShellStyles.surfaceAlt(context),
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: ShellStyles.border(context)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            label.toUpperCase(),
+            style: TextStyle(
+              color: ShellStyles.textMuted(context),
+              fontSize: 10.5,
+              fontWeight: FontWeight.w700,
+              letterSpacing: 0.7,
+            ),
+          ),
+          const SizedBox(height: 8),
+          Text(
+            value,
+            style: TextStyle(
+              color: ShellStyles.textPrimary(context),
+              fontSize: 15,
+              fontWeight: FontWeight.w700,
             ),
           ),
         ],
@@ -489,8 +523,13 @@ class _BudgetCalculatorScreenState extends State<BudgetCalculatorScreen> {
   @override
   Widget build(BuildContext context) {
     final categories = _categoryProgresses();
+    final monthlyBudget = _parseOptionalAmount(_incomeController.text) ?? 0;
+    final allocatedCategoryBudget = categories.fold<double>(
+      0,
+      (sum, category) => sum + category.limitAmount,
+    );
     final overview = buildBudgetOverview(
-      monthlyIncome: _parseOptionalAmount(_incomeController.text) ?? 0,
+      monthlyIncome: monthlyBudget,
       categories: categories,
       totalSpent: _totalSpent,
     );
@@ -531,7 +570,7 @@ class _BudgetCalculatorScreenState extends State<BudgetCalculatorScreen> {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            'Monthly budget overview',
+                            'Monthly budget',
                             style: TextStyle(
                               color: ShellStyles.textPrimary(context),
                               fontSize: 18,
@@ -540,7 +579,7 @@ class _BudgetCalculatorScreenState extends State<BudgetCalculatorScreen> {
                           ),
                           const SizedBox(height: 8),
                           Text(
-                            'Set a total budget for the month. Category limits are optional and can be added below.',
+                            'Set the full monthly budget here. Category limits stay optional and do not replace this total.',
                             style: TextStyle(
                               color: ShellStyles.textMuted(context),
                               fontSize: 13,
@@ -561,6 +600,52 @@ class _BudgetCalculatorScreenState extends State<BudgetCalculatorScreen> {
                                   '${CurrencyDisplay.symbolForCode(_currency)} ',
                               hintText: '0',
                             ),
+                          ),
+                          const SizedBox(height: 14),
+                          LayoutBuilder(
+                            builder: (context, constraints) {
+                              final stackMetrics = constraints.maxWidth < 360;
+                              if (stackMetrics) {
+                                return Column(
+                                  children: [
+                                    _buildInlineOverviewMetric(
+                                      'Spent this month',
+                                      _formatCurrency(_totalSpent),
+                                    ),
+                                    const SizedBox(height: 10),
+                                    _buildInlineOverviewMetric(
+                                      'Category limits',
+                                      allocatedCategoryBudget > 0
+                                          ? _formatCurrency(
+                                              allocatedCategoryBudget,
+                                            )
+                                          : 'Not set',
+                                    ),
+                                  ],
+                                );
+                              }
+                              return Row(
+                                children: [
+                                  Expanded(
+                                    child: _buildInlineOverviewMetric(
+                                      'Spent this month',
+                                      _formatCurrency(_totalSpent),
+                                    ),
+                                  ),
+                                  const SizedBox(width: 10),
+                                  Expanded(
+                                    child: _buildInlineOverviewMetric(
+                                      'Category limits',
+                                      allocatedCategoryBudget > 0
+                                          ? _formatCurrency(
+                                              allocatedCategoryBudget,
+                                            )
+                                          : 'Not set',
+                                    ),
+                                  ),
+                                ],
+                              );
+                            },
                           ),
                         ],
                       ),
@@ -630,6 +715,36 @@ class _BudgetCalculatorScreenState extends State<BudgetCalculatorScreen> {
                                         height: 1.35,
                                       ),
                                     ),
+                                    if (allocatedCategoryBudget > 0) ...[
+                                      const SizedBox(height: 8),
+                                      Container(
+                                        padding: const EdgeInsets.symmetric(
+                                          horizontal: 10,
+                                          vertical: 7,
+                                        ),
+                                        decoration: BoxDecoration(
+                                          color: ShellStyles.surfaceAlt(
+                                            context,
+                                          ),
+                                          borderRadius: BorderRadius.circular(
+                                            999,
+                                          ),
+                                          border: Border.all(
+                                            color: ShellStyles.border(context),
+                                          ),
+                                        ),
+                                        child: Text(
+                                          'Allocated across categories: ${_formatCurrency(allocatedCategoryBudget)}',
+                                          style: TextStyle(
+                                            color: ShellStyles.textPrimary(
+                                              context,
+                                            ),
+                                            fontSize: 11.5,
+                                            fontWeight: FontWeight.w600,
+                                          ),
+                                        ),
+                                      ),
+                                    ],
                                   ],
                                 ),
                               ),

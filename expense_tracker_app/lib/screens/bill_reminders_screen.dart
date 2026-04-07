@@ -25,6 +25,7 @@ class _BillRemindersScreenState extends State<BillRemindersScreen> {
   bool _isCreating = false;
   bool _showComposer = false;
   bool _showHistoryMode = false;
+  _BillHistorySort _historySort = _BillHistorySort.latestDueDate;
   String? _savingBillId;
   String? _deletingBillId;
   String? _error;
@@ -112,7 +113,20 @@ class _BillRemindersScreenState extends State<BillRemindersScreen> {
           ),
         )
         .toList();
-    items.sort((left, right) => right.dueDate.compareTo(left.dueDate));
+    switch (_historySort) {
+      case _BillHistorySort.latestDueDate:
+        items.sort((left, right) => right.dueDate.compareTo(left.dueDate));
+        break;
+      case _BillHistorySort.earliestDueDate:
+        items.sort((left, right) => left.dueDate.compareTo(right.dueDate));
+        break;
+      case _BillHistorySort.highestAmount:
+        items.sort(
+          (left, right) =>
+              right.reminder.amount.compareTo(left.reminder.amount),
+        );
+        break;
+    }
     return items;
   }
 
@@ -168,6 +182,28 @@ class _BillRemindersScreenState extends State<BillRemindersScreen> {
 
   String _dueDateFieldHint() {
     return 'Pick next due date';
+  }
+
+  String _historySortLabel(_BillHistorySort sort) {
+    switch (sort) {
+      case _BillHistorySort.latestDueDate:
+        return 'Latest first';
+      case _BillHistorySort.earliestDueDate:
+        return 'Oldest first';
+      case _BillHistorySort.highestAmount:
+        return 'Highest amount';
+    }
+  }
+
+  String _historySubtitle() {
+    switch (_historySort) {
+      case _BillHistorySort.latestDueDate:
+        return 'Sorted by the most recently paid due date.';
+      case _BillHistorySort.earliestDueDate:
+        return 'Sorted by the oldest paid due date first.';
+      case _BillHistorySort.highestAmount:
+        return 'Sorted by the largest paid reminder amount.';
+    }
   }
 
   Color _statusColor(BillReminderStatus status) {
@@ -822,7 +858,7 @@ class _BillRemindersScreenState extends State<BillRemindersScreen> {
               const SizedBox(width: 8),
               Expanded(
                 child: Text(
-                  '${isHistory ? 'Paid on' : 'Next due'}: ${DateFormat.yMMMd().format(occurrence.dueDate)}',
+                  '${isHistory ? 'Paid for due' : 'Next due'}: ${DateFormat.yMMMd().format(occurrence.dueDate)}',
                   style: TextStyle(
                     color: ShellStyles.textPrimary(context),
                     fontSize: 13,
@@ -885,6 +921,46 @@ class _BillRemindersScreenState extends State<BillRemindersScreen> {
     );
   }
 
+  Widget _buildHistorySortButton() {
+    return PopupMenuButton<_BillHistorySort>(
+      initialValue: _historySort,
+      onSelected: (value) => setState(() => _historySort = value),
+      itemBuilder: (context) => _BillHistorySort.values.map((value) {
+        return PopupMenuItem<_BillHistorySort>(
+          value: value,
+          child: Text(_historySortLabel(value)),
+        );
+      }).toList(),
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 9),
+        decoration: BoxDecoration(
+          color: ShellStyles.surface(context),
+          borderRadius: BorderRadius.circular(14),
+          border: Border.all(color: ShellStyles.border(context)),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(
+              Icons.swap_vert_rounded,
+              size: 16,
+              color: ShellStyles.textPrimary(context),
+            ),
+            const SizedBox(width: 8),
+            Text(
+              _historySortLabel(_historySort),
+              style: TextStyle(
+                color: ShellStyles.textPrimary(context),
+                fontSize: 12.5,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
   String _subtitle(int count) {
     if (count == 1) {
       return context.tr('bill_reminders_subtitle_single');
@@ -909,25 +985,25 @@ class _BillRemindersScreenState extends State<BillRemindersScreen> {
           child: Row(
             mainAxisSize: MainAxisSize.min,
             children: [
-              Container(
-                decoration: BoxDecoration(
-                  color: isShowingHistory
-                      ? ShellStyles.textPrimary(context)
-                      : ShellStyles.surfaceAlt(context),
-                  borderRadius: BorderRadius.circular(12),
-                  border: Border.all(color: ShellStyles.border(context)),
-                ),
-                child: IconButton(
-                  onPressed: _toggleHistoryMode,
-                  tooltip: isShowingHistory
-                      ? 'Show upcoming reminders'
-                      : 'Show paid history',
-                  icon: Icon(
-                    Icons.history,
-                    color: isShowingHistory
-                        ? ShellStyles.surface(context)
-                        : ShellStyles.textPrimary(context),
+              OutlinedButton(
+                onPressed: _toggleHistoryMode,
+                style: OutlinedButton.styleFrom(
+                  minimumSize: const Size(40, 38),
+                  padding: const EdgeInsets.symmetric(horizontal: 11),
+                  backgroundColor: isShowingHistory
+                      ? ShellStyles.surfaceAlt(context)
+                      : ShellStyles.surface(context),
+                  side: BorderSide(color: ShellStyles.border(context)),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(14),
                   ),
+                ),
+                child: Icon(
+                  isShowingHistory
+                      ? Icons.schedule_outlined
+                      : Icons.history_outlined,
+                  size: 18,
+                  color: ShellStyles.textPrimary(context),
                 ),
               ),
               const SizedBox(width: 8),
@@ -936,8 +1012,11 @@ class _BillRemindersScreenState extends State<BillRemindersScreen> {
                 style: FilledButton.styleFrom(
                   backgroundColor: ShellStyles.textPrimary(context),
                   foregroundColor: ShellStyles.surface(context),
-                  minimumSize: const Size(0, 34),
+                  minimumSize: const Size(0, 38),
                   padding: const EdgeInsets.symmetric(horizontal: 14),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(14),
+                  ),
                 ),
                 child: Text(
                   _showComposer
@@ -991,11 +1070,22 @@ class _BillRemindersScreenState extends State<BillRemindersScreen> {
                       _buildComposerCard(),
                     ],
                     const SizedBox(height: 16),
-                    _buildSectionHeader(
-                      isShowingHistory ? 'Paid history' : 'Upcoming',
-                      subtitle: isShowingHistory
-                          ? 'Completed reminders stay here even after a recurring series is removed.'
-                          : 'Sorted by the nearest due date and counted in the summary above.',
+                    Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Expanded(
+                          child: _buildSectionHeader(
+                            isShowingHistory ? 'Paid history' : 'Upcoming',
+                            subtitle: isShowingHistory
+                                ? _historySubtitle()
+                                : 'Sorted by the nearest due date and counted in the summary above.',
+                          ),
+                        ),
+                        if (isShowingHistory && paidItems.isNotEmpty) ...[
+                          const SizedBox(width: 12),
+                          _buildHistorySortButton(),
+                        ],
+                      ],
                     ),
                     const SizedBox(height: 12),
                     if (!isShowingHistory && upcomingItems.isEmpty)
@@ -1055,5 +1145,7 @@ class _BillRemindersScreenState extends State<BillRemindersScreen> {
     );
   }
 }
+
+enum _BillHistorySort { latestDueDate, earliestDueDate, highestAmount }
 
 enum _ReminderDeleteAction { skipOccurrence, deleteSeries }

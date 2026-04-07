@@ -94,12 +94,14 @@ BudgetOverview buildBudgetOverview({
     0,
     (sum, category) => sum + category.limitAmount,
   );
-  final totalBudget = allocatedBudget > 0 ? allocatedBudget : monthlyIncome;
+  final totalBudget = monthlyIncome > 0 ? monthlyIncome : allocatedBudget;
   return BudgetOverview(
     totalBudget: totalBudget,
     totalSpent: totalSpent,
     remaining: totalBudget - totalSpent,
-    savingsGoal: math.max(monthlyIncome - totalBudget, 0),
+    savingsGoal: monthlyIncome > 0 && allocatedBudget > 0
+        ? math.max(monthlyIncome - allocatedBudget, 0)
+        : 0,
   );
 }
 

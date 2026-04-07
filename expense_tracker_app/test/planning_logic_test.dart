@@ -46,15 +46,15 @@ void main() {
         ],
       );
 
-      expect(overview.totalBudget, 1650);
+      expect(overview.totalBudget, 5000);
       expect(overview.totalSpent, 1180);
-      expect(overview.remaining, 470);
+      expect(overview.remaining, 3820);
       expect(overview.savingsGoal, 3350);
       expect(overview.isOverBudget, isFalse);
     });
 
     test(
-      'marks categories and overview as exceeded when spend is too high',
+      'marks categories as exceeded without shrinking the monthly total budget',
       () {
         const category = BudgetCategoryProgress(
           categoryId: 'food',
@@ -73,10 +73,30 @@ void main() {
         expect(category.isExceeded, isTrue);
         expect(category.remainingAmount, -120);
         expect(category.progress, 1);
-        expect(overview.isOverBudget, isTrue);
-        expect(overview.remaining, -120);
+        expect(overview.isOverBudget, isFalse);
+        expect(overview.remaining, 580);
       },
     );
+
+    test('falls back to category totals when no monthly budget is set', () {
+      const category = BudgetCategoryProgress(
+        categoryId: 'food',
+        categoryCode: 'food',
+        categoryName: 'Food',
+        limitAmount: 300,
+        spentAmount: 420,
+      );
+
+      final overview = buildBudgetOverview(
+        monthlyIncome: 0,
+        totalSpent: 420,
+        categories: const [category],
+      );
+
+      expect(overview.totalBudget, 300);
+      expect(overview.isOverBudget, isTrue);
+      expect(overview.remaining, -120);
+    });
 
     test(
       'uses monthly income as the total budget when no categories are set',
