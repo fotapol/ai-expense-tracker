@@ -351,7 +351,7 @@ class _BudgetCalculatorScreenState extends State<BudgetCalculatorScreen> {
 
   Widget _buildSummaryCard(String label, String value, {Color? valueColor}) {
     return Container(
-      padding: const EdgeInsets.all(14),
+      padding: const EdgeInsets.all(16),
       decoration: ShellStyles.cardDecoration(context, radius: 18),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -370,106 +370,8 @@ class _BudgetCalculatorScreenState extends State<BudgetCalculatorScreen> {
             value,
             style: TextStyle(
               color: valueColor ?? ShellStyles.textPrimary(context),
-              fontSize: 23,
+              fontSize: 22,
               fontWeight: FontWeight.w800,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildStatusBanner(
-    BudgetOverview overview,
-    List<BudgetCategoryProgress> categories,
-  ) {
-    if (categories.isEmpty) {
-      return Container(
-        padding: const EdgeInsets.all(16),
-        decoration: BoxDecoration(
-          color: ShellStyles.surface(context),
-          borderRadius: BorderRadius.circular(18),
-          border: Border.all(color: ShellStyles.border(context)),
-        ),
-        child: Text(
-          context.tr('budget_empty_state'),
-          style: TextStyle(
-            color: ShellStyles.textMuted(context),
-            fontSize: 13,
-            height: 1.35,
-          ),
-        ),
-      );
-    }
-
-    final hasExceededCategory = categories.any(
-      (category) => category.isExceeded,
-    );
-    if (overview.isOverBudget || hasExceededCategory) {
-      final overAmount = overview.remaining.abs();
-      return Container(
-        padding: const EdgeInsets.all(16),
-        decoration: BoxDecoration(
-          color: ShellColors.softRed.withAlpha(16),
-          borderRadius: BorderRadius.circular(18),
-          border: Border.all(color: ShellColors.softRed.withAlpha(80)),
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              context.tr('budget_status_over_title'),
-              style: const TextStyle(
-                color: ShellColors.softRed,
-                fontSize: 15,
-                fontWeight: FontWeight.w800,
-              ),
-            ),
-            const SizedBox(height: 6),
-            Text(
-              context.tr(
-                'budget_status_over_body',
-                params: {'amount': _formatCurrency(overAmount)},
-              ),
-              style: TextStyle(
-                color: ShellStyles.textPrimary(context),
-                fontSize: 12.5,
-                height: 1.4,
-              ),
-            ),
-          ],
-        ),
-      );
-    }
-
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: ShellColors.softGreen.withAlpha(16),
-        borderRadius: BorderRadius.circular(18),
-        border: Border.all(color: ShellColors.softGreen.withAlpha(80)),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            context.tr('budget_status_on_track_title'),
-            style: const TextStyle(
-              color: ShellColors.softGreen,
-              fontSize: 15,
-              fontWeight: FontWeight.w800,
-            ),
-          ),
-          const SizedBox(height: 6),
-          Text(
-            context.tr(
-              'budget_status_on_track_body',
-              params: {'amount': _formatCurrency(overview.savingsGoal)},
-            ),
-            style: TextStyle(
-              color: ShellStyles.textPrimary(context),
-              fontSize: 12.5,
-              height: 1.4,
             ),
           ),
         ],
@@ -576,7 +478,9 @@ class _BudgetCalculatorScreenState extends State<BudgetCalculatorScreen> {
             keyboardType: const TextInputType.numberWithOptions(decimal: true),
             decoration: InputDecoration(
               labelText: context.tr('budget_limit_label'),
+              floatingLabelBehavior: FloatingLabelBehavior.always,
               prefixText: '${CurrencyDisplay.symbolForCode(_currency)} ',
+              hintText: '0',
             ),
           ),
         ],
@@ -587,8 +491,13 @@ class _BudgetCalculatorScreenState extends State<BudgetCalculatorScreen> {
   @override
   Widget build(BuildContext context) {
     final categories = _categoryProgresses();
+    final monthlyBudget = _parseOptionalAmount(_incomeController.text) ?? 0;
+    final allocatedCategoryBudget = categories.fold<double>(
+      0,
+      (sum, category) => sum + category.limitAmount,
+    );
     final overview = buildBudgetOverview(
-      monthlyIncome: _parseOptionalAmount(_incomeController.text) ?? 0,
+      monthlyIncome: monthlyBudget,
       categories: categories,
       totalSpent: _totalSpent,
     );
@@ -623,47 +532,70 @@ class _BudgetCalculatorScreenState extends State<BudgetCalculatorScreen> {
                   physics: const AlwaysScrollableScrollPhysics(),
                   padding: EdgeInsets.fromLTRB(16, 16, 16, bottomPadding),
                   children: [
-                    ShellStyles.sectionLabel(
-                      context,
-                      context.tr('budget_income_label'),
-                    ),
-                    const SizedBox(height: 8),
                     SettingsDetailCard(
-                      child: TextField(
-                        controller: _incomeController,
-                        keyboardType: const TextInputType.numberWithOptions(
-                          decimal: true,
-                        ),
-                        decoration: InputDecoration(
-                          prefixText:
-                              '${CurrencyDisplay.symbolForCode(_currency)} ',
-                        ),
+                      padding: const EdgeInsets.all(16),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            'Monthly budget',
+                            style: TextStyle(
+                              color: ShellStyles.textPrimary(context),
+                              fontSize: 18,
+                              fontWeight: FontWeight.w800,
+                            ),
+                          ),
+                          const SizedBox(height: 8),
+                          Text(
+                            'Set the full monthly budget here. Category limits stay optional and do not replace this total.',
+                            style: TextStyle(
+                              color: ShellStyles.textMuted(context),
+                              fontSize: 13,
+                              height: 1.4,
+                            ),
+                          ),
+                          const SizedBox(height: 14),
+                          TextField(
+                            controller: _incomeController,
+                            keyboardType: const TextInputType.numberWithOptions(
+                              decimal: true,
+                            ),
+                            decoration: InputDecoration(
+                              labelText: context.tr('budget_total_budget'),
+                              floatingLabelBehavior:
+                                  FloatingLabelBehavior.always,
+                              prefixText:
+                                  '${CurrencyDisplay.symbolForCode(_currency)} ',
+                              hintText: '0',
+                            ),
+                          ),
+                        ],
                       ),
                     ),
                     const SizedBox(height: 16),
                     LayoutBuilder(
                       builder: (context, constraints) {
-                        final cardWidth = (constraints.maxWidth - 10) / 2;
+                        final halfWidth = (constraints.maxWidth - 10) / 2;
                         return Wrap(
                           spacing: 10,
                           runSpacing: 10,
                           children: [
                             SizedBox(
-                              width: cardWidth,
+                              width: halfWidth,
                               child: _buildSummaryCard(
                                 context.tr('budget_total_budget'),
                                 _formatCurrency(overview.totalBudget),
                               ),
                             ),
                             SizedBox(
-                              width: cardWidth,
+                              width: halfWidth,
                               child: _buildSummaryCard(
                                 context.tr('budget_total_spent'),
                                 _formatCurrency(overview.totalSpent),
                               ),
                             ),
                             SizedBox(
-                              width: cardWidth,
+                              width: constraints.maxWidth,
                               child: _buildSummaryCard(
                                 context.tr('budget_remaining'),
                                 _formatCurrency(overview.remaining),
@@ -672,62 +604,122 @@ class _BudgetCalculatorScreenState extends State<BudgetCalculatorScreen> {
                                     : ShellColors.softGreen,
                               ),
                             ),
-                            SizedBox(
-                              width: cardWidth,
-                              child: _buildSummaryCard(
-                                context.tr('budget_savings_goal'),
-                                _formatCurrency(overview.savingsGoal),
-                                valueColor: ShellColors.softGreen,
-                              ),
-                            ),
                           ],
                         );
                       },
                     ),
                     const SizedBox(height: 18),
-                    Row(
-                      children: [
-                        Expanded(
-                          child: ShellStyles.sectionLabel(
-                            context,
-                            context.tr('budget_category_budgets'),
+                    SettingsDetailCard(
+                      padding: const EdgeInsets.all(16),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          LayoutBuilder(
+                            builder: (context, constraints) {
+                              final description = Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    'Optional category budgets',
+                                    style: TextStyle(
+                                      color: ShellStyles.textPrimary(context),
+                                      fontSize: 16,
+                                      fontWeight: FontWeight.w700,
+                                    ),
+                                  ),
+                                  const SizedBox(height: 4),
+                                  Text(
+                                    'Use these if you want extra guidance for specific categories.',
+                                    style: TextStyle(
+                                      color: ShellStyles.textMuted(context),
+                                      fontSize: 12.5,
+                                      height: 1.35,
+                                    ),
+                                  ),
+                                  if (allocatedCategoryBudget > 0) ...[
+                                    const SizedBox(height: 8),
+                                    Container(
+                                      padding: const EdgeInsets.symmetric(
+                                        horizontal: 10,
+                                        vertical: 7,
+                                      ),
+                                      decoration: BoxDecoration(
+                                        color: ShellStyles.surfaceAlt(context),
+                                        borderRadius: BorderRadius.circular(
+                                          999,
+                                        ),
+                                        border: Border.all(
+                                          color: ShellStyles.border(context),
+                                        ),
+                                      ),
+                                      child: Text(
+                                        'Allocated across categories: ${_formatCurrency(allocatedCategoryBudget)}',
+                                        style: TextStyle(
+                                          color: ShellStyles.textPrimary(
+                                            context,
+                                          ),
+                                          fontSize: 11.5,
+                                          fontWeight: FontWeight.w600,
+                                        ),
+                                      ),
+                                    ),
+                                  ],
+                                ],
+                              );
+                              final addButton = TextButton.icon(
+                                onPressed: _addCategory,
+                                icon: const Icon(Icons.add, size: 16),
+                                label: Text(context.tr('budget_add_category')),
+                              );
+                              if (constraints.maxWidth < 440) {
+                                return Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    description,
+                                    const SizedBox(height: 10),
+                                    addButton,
+                                  ],
+                                );
+                              }
+                              return Row(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Expanded(child: description),
+                                  const SizedBox(width: 12),
+                                  addButton,
+                                ],
+                              );
+                            },
                           ),
-                        ),
-                        TextButton.icon(
-                          onPressed: _addCategory,
-                          icon: const Icon(Icons.add, size: 16),
-                          label: Text(context.tr('budget_add_category')),
-                        ),
-                      ],
+                          const SizedBox(height: 12),
+                          if (categories.isEmpty)
+                            Container(
+                              padding: const EdgeInsets.all(14),
+                              decoration: BoxDecoration(
+                                color: ShellStyles.surfaceAlt(context),
+                                borderRadius: BorderRadius.circular(16),
+                                border: Border.all(
+                                  color: ShellStyles.border(context),
+                                ),
+                              ),
+                              child: Text(
+                                context.tr('budget_empty_state'),
+                                style: TextStyle(
+                                  color: ShellStyles.textMuted(context),
+                                  fontSize: 12.5,
+                                ),
+                              ),
+                            )
+                          else
+                            ...categories.map((category) {
+                              return Padding(
+                                padding: const EdgeInsets.only(bottom: 10),
+                                child: _buildCategoryCard(category),
+                              );
+                            }),
+                        ],
+                      ),
                     ),
-                    const SizedBox(height: 8),
-                    if (categories.isEmpty)
-                      Container(
-                        padding: const EdgeInsets.all(16),
-                        decoration: ShellStyles.cardDecoration(
-                          context,
-                          radius: 18,
-                          withShadow: false,
-                        ),
-                        child: Text(
-                          context.tr('budget_empty_state'),
-                          style: TextStyle(
-                            color: ShellStyles.textMuted(context),
-                            fontSize: 12.5,
-                          ),
-                        ),
-                      )
-                    else
-                      ...categories.map((category) {
-                        return Padding(
-                          padding: const EdgeInsets.only(bottom: 10),
-                          child: _buildCategoryCard(category),
-                        );
-                      }),
-                    if (categories.isNotEmpty) ...[
-                      const SizedBox(height: 12),
-                      _buildStatusBanner(overview, categories),
-                    ],
                     const SizedBox(height: 16),
                     SizedBox(
                       width: double.infinity,

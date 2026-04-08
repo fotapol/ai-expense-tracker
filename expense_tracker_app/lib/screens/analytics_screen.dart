@@ -3,12 +3,15 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 import '../core/analytics_filters.dart';
 import '../core/api_client.dart';
+import '../core/app_navigation.dart';
 import '../core/launch_error_copy.dart';
 import '../core/redesign_system.dart';
 import '../core/session_invalidation.dart';
 import '../core/subscription_confirmation.dart';
 import '../core/taxonomy_localization.dart';
 import '../l10n/app_localizations.dart';
+import '../widgets/app_tab_footer.dart';
+import '../widgets/analytics_shared.dart';
 import '../widgets/filter_bottom_sheet.dart';
 // TODO(household): re-import analytics_household_tab when household feature ships
 import 'analytics_overview_tab.dart';
@@ -32,6 +35,7 @@ class AnalyticsScreen extends StatefulWidget {
 class _AnalyticsScreenState extends State<AnalyticsScreen> {
   static const int _collapsedActiveFilterLimit = 4;
 
+  late final PageController _pageController;
   bool _isLoading = true;
   String? _error;
   AnalyticsSection _selectedSection = AnalyticsSection.overview;
@@ -44,7 +48,14 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
   @override
   void initState() {
     super.initState();
+    _pageController = PageController(initialPage: _selectedSection.index);
     _loadShellState();
+  }
+
+  @override
+  void dispose() {
+    _pageController.dispose();
+    super.dispose();
   }
 
   Future<void> _refreshFeatureCodes() async {
@@ -144,6 +155,10 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
         _featureCodes = featureCodes;
         _isLoading = false;
       });
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (!mounted || !_pageController.hasClients) return;
+        _pageController.jumpToPage(_selectedSection.index);
+      });
     } catch (error) {
       if (await maybeHandleExpiredSession(error)) return;
       if (!mounted) return;
@@ -200,7 +215,28 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
   void _selectSection(AnalyticsSection section) {
     if (section == _selectedSection) return;
     setState(() => _selectedSection = section);
+    if (_pageController.hasClients) {
+      _pageController.animateToPage(
+        section.index,
+        duration: const Duration(milliseconds: 220),
+        curve: Curves.easeOutCubic,
+      );
+    }
     _saveSection();
+  }
+
+  void _handlePageChanged(int index) {
+    final section = AnalyticsSection.values[index];
+    if (section == _selectedSection) return;
+    setState(() => _selectedSection = section);
+    _saveSection();
+  }
+
+  void _openRootTab(int index) {
+    selectRootTab(index);
+    if (Navigator.of(context).canPop()) {
+      Navigator.of(context).popUntil((route) => route.isFirst);
+    }
   }
 
   Widget _buildSectionChip(AnalyticsSection section) {
@@ -349,7 +385,7 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
       padding: const EdgeInsets.all(16),
       decoration: ShellStyles.cardDecoration(
         context,
-        radius: 22,
+        radius: 20,
         color: ShellStyles.surfaceAlt(context),
         withShadow: false,
       ),
@@ -403,7 +439,7 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
                   visualDensity: VisualDensity.compact,
                   padding: const EdgeInsets.symmetric(
                     horizontal: 14,
-                    vertical: 10,
+                    vertical: 9,
                   ),
                 ),
                 child: Text(
@@ -443,6 +479,36 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
     );
   }
 
+  Widget _buildFilterAction() {
+    return InkWell(
+      borderRadius: BorderRadius.circular(18),
+      onTap: _openFilters,
+      child: Ink(
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+        decoration: BoxDecoration(
+          color: ShellStyles.surfaceAlt(context),
+          borderRadius: BorderRadius.circular(18),
+          border: Border.all(color: ShellStyles.border(context)),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(Icons.tune, size: 16, color: ShellStyles.textPrimary(context)),
+            const SizedBox(width: 8),
+            Text(
+              context.tr('filters_title'),
+              style: TextStyle(
+                color: ShellStyles.textPrimary(context),
+                fontSize: 12,
+                fontWeight: FontWeight.w700,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -452,55 +518,42 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
         centerTitle: false,
         actions: [
           Padding(
-            padding: const EdgeInsets.only(right: 8),
-            child: IconButton(
-              onPressed: _openFilters,
-              icon: Badge(
-                isLabelVisible: _filters.activeFilterCount > 0,
-                label: Text('${_filters.activeFilterCount}'),
-                child: const Icon(Icons.tune),
-              ),
-            ),
+            padding: const EdgeInsets.only(right: 20),
+            child: Center(child: _buildFilterAction()),
           ),
         ],
       ),
       body: _isLoading
-          ? const Center(child: CircularProgressIndicator())
+          ? const AnalyticsLoadingState()
           : _error != null
-          ? Center(
-              child: Padding(
-                padding: const EdgeInsets.all(24),
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Icon(
-                      Icons.error_outline,
-                      color: ShellColors.softRed,
-                      size: 42,
-                    ),
-                    const SizedBox(height: 12),
-                    Text(
-                      _error ?? context.tr('common_error'),
-                      textAlign: TextAlign.center,
-                    ),
-                    const SizedBox(height: 16),
-                    FilledButton(
-                      onPressed: _loadShellState,
-                      child: Text(context.tr('common_retry')),
-                    ),
-                  ],
-                ),
-              ),
+          ? AnalyticsErrorState(
+              message: _error ?? context.tr('common_error'),
+              onRetry: _loadShellState,
             )
           : Column(
               children: [
-                Padding(
-                  padding: const EdgeInsets.fromLTRB(20, 12, 20, 12),
-                  child: _buildSectionSelector(),
+                Container(
+                  width: double.infinity,
+                  padding: const EdgeInsets.fromLTRB(20, 12, 20, 10),
+                  decoration: BoxDecoration(
+                    color: ShellStyles.background(context),
+                    border: Border(
+                      bottom: BorderSide(color: ShellStyles.border(context)),
+                    ),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withAlpha(6),
+                        blurRadius: 10,
+                        offset: const Offset(0, 6),
+                      ),
+                    ],
+                  ),
+                  child: Column(children: [_buildSectionSelector()]),
                 ),
                 Expanded(
-                  child: IndexedStack(
-                    index: _selectedSection.index,
+                  child: PageView(
+                    controller: _pageController,
+                    onPageChanged: _handlePageChanged,
                     children: [
                       // TODO(household): restore currentHousehold/onHouseholdUpdated
                       // params to AnalyticsOverviewTab when household feature ships
@@ -530,6 +583,10 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
                 ),
               ],
             ),
+      bottomNavigationBar: AppTabFooter(
+        selectedIndex: 1,
+        onSelected: _openRootTab,
+      ),
     );
   }
 }

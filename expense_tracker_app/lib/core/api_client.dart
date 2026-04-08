@@ -1,4 +1,6 @@
+import 'dart:async';
 import 'dart:convert';
+import 'dart:io';
 import 'dart:typed_data';
 import 'package:http/http.dart' as http;
 import 'package:firebase_auth/firebase_auth.dart';
@@ -18,6 +20,16 @@ class ApiClient {
   );
 
   /// Get a Firebase ID token for the current user.
+  ///
+  /// Network-aware refresh strategy:
+  /// - Returns the cached token immediately when it is not near expiry.
+  /// - Forces a refresh when the token is within the 5-min expiry window.
+  /// - If the network refresh fails due to a transient error
+  ///   ([SocketException] / [TimeoutException]) but a cached token still
+  ///   exists, the cached token is returned so the request can proceed
+  ///   without logging the user out.
+  /// - Only calls [invalidateExpiredSession] when [currentUser] is null,
+  ///   which is the one condition that unambiguously means the session is gone.
   static Future<String> _getToken() async {
     final user = FirebaseAuth.instance.currentUser;
     if (user == null) {
@@ -37,15 +49,43 @@ class ApiClient {
       try {
         final refreshedToken = await user.getIdToken(true);
         return requireAuthenticatedSessionToken(refreshedToken);
+      } on SocketException {
+        // Transient network failure — fall back to the cached token if it
+        // still exists so we do not log the user out unnecessarily.
+        if ((cachedToken ?? '').trim().isNotEmpty) {
+          return requireAuthenticatedSessionToken(cachedToken);
+        }
+        rethrow;
+      } on TimeoutException {
+        if ((cachedToken ?? '').trim().isNotEmpty) {
+          return requireAuthenticatedSessionToken(cachedToken);
+        }
+        rethrow;
       } catch (_) {
+        // For any other refresh failure also try the cached token first.
         if ((cachedToken ?? '').trim().isNotEmpty) {
           return requireAuthenticatedSessionToken(cachedToken);
         }
         rethrow;
       }
     } on StateError {
-      await invalidateExpiredSession();
+      // requireAuthenticatedSessionToken threw — token is genuinely missing.
+      // Do NOT call invalidateExpiredSession here; the caller's
+      // _handleUnauthorizedResponse will deal with it after a retry.
       rethrow;
+    }
+  }
+
+  /// Force-refresh the token without falling back to the cache.
+  ///
+  /// Used by the 401-retry path to get a guaranteed-fresh token.
+  static Future<String?> _forceRefreshToken() async {
+    final user = FirebaseAuth.instance.currentUser;
+    if (user == null) return null;
+    try {
+      return await user.getIdToken(true);
+    } catch (_) {
+      return null;
     }
   }
 
@@ -68,25 +108,78 @@ class ApiClient {
     return response.body;
   }
 
+  /// Handle a 401 response with a single token-refresh retry.
+  ///
+  /// Strategy:
+  /// 1. If the response is not 401 → do nothing.
+  /// 2. Force-refresh the Firebase ID token.
+  /// 3. Retry the original request with the new token.
+  /// 4a. Retry succeeds (non-401) → return the new response.
+  /// 4b. Retry is also 401 → the session is genuinely invalid;
+  ///     call [invalidateExpiredSession] and throw.
+  /// 4c. No token after refresh (user signed out) → same as 4b.
+  ///
+  /// This prevents the app from logging the user out when the backend
+  /// returns a transient 401 (e.g. Redis unavailable, network partition
+  /// between backend and Firebase token endpoint).
+  static Future<http.Response> _handleUnauthorizedResponse(
+    http.Response response, {
+    required Future<http.Response> Function(String freshToken) retry,
+  }) async {
+    if (response.statusCode != 401) return response;
+
+    final freshToken = await _forceRefreshToken();
+    if (freshToken == null || freshToken.trim().isEmpty) {
+      // Could not get a fresh token — session is gone.
+      await invalidateExpiredSession();
+      throw StateError(expiredSessionMessage);
+    }
+
+    final retried = await retry(freshToken);
+    if (retried.statusCode == 401) {
+      // Still 401 after a fresh token → genuinely invalid session.
+      await invalidateExpiredSession();
+      throw StateError(expiredSessionMessage);
+    }
+    return retried;
+  }
+
+  // ---------------------------------------------------------------------------
+  // Legacy helper kept for callers that do not yet use _handleUnauthorizedResponse.
+  // It now uses clearFirebaseSession (does not clear Google Sign-In) when a
+  // retry is not possible (e.g. multipart / presigned-URL requests).
+  // ---------------------------------------------------------------------------
   static Future<void> _throwIfUnauthorizedResponse(
     http.Response response,
   ) async {
     if (response.statusCode != 401) return;
-    await invalidateExpiredSession();
+    // For callers that cannot easily supply a retry callback we still
+    // clear the Firebase session, but we do NOT clear the Google account
+    // so the user can silently re-authenticate on the login screen.
+    await clearFirebaseSession();
     throw StateError(expiredSessionMessage);
   }
 
   /// GET /v1/me
   static Future<Map<String, dynamic>> getMe() async {
     final token = await _getToken();
-    final response = await http.get(
+    http.Response response = await http.get(
       Uri.parse('$apiBaseUrl/v1/me'),
       headers: {
         'Authorization': 'Bearer $token',
         'Content-Type': 'application/json',
       },
     );
-    await _throwIfUnauthorizedResponse(response);
+    response = await _handleUnauthorizedResponse(
+      response,
+      retry: (freshToken) => http.get(
+        Uri.parse('$apiBaseUrl/v1/me'),
+        headers: {
+          'Authorization': 'Bearer $freshToken',
+          'Content-Type': 'application/json',
+        },
+      ),
+    );
 
     if (response.statusCode == 200) {
       return jsonDecode(response.body) as Map<String, dynamic>;
@@ -100,7 +193,7 @@ class ApiClient {
     Map<String, dynamic> payload,
   ) async {
     final token = await _getToken();
-    final response = await http.patch(
+    http.Response response = await http.patch(
       Uri.parse('$apiBaseUrl/v1/me'),
       headers: {
         'Authorization': 'Bearer $token',
@@ -108,7 +201,17 @@ class ApiClient {
       },
       body: jsonEncode(payload),
     );
-    await _throwIfUnauthorizedResponse(response);
+    response = await _handleUnauthorizedResponse(
+      response,
+      retry: (freshToken) => http.patch(
+        Uri.parse('$apiBaseUrl/v1/me'),
+        headers: {
+          'Authorization': 'Bearer $freshToken',
+          'Content-Type': 'application/json',
+        },
+        body: jsonEncode(payload),
+      ),
+    );
 
     if (response.statusCode == 200) {
       return jsonDecode(response.body) as Map<String, dynamic>;
@@ -1121,6 +1224,47 @@ class ApiClient {
     throw Exception(
       'Failed to mark bill reminder as paid: ${response.statusCode} ${_extractErrorMessage(response)}',
     );
+  }
+
+  /// PATCH /v1/planning/bills/{id}/skip
+  static Future<Map<String, dynamic>> skipBillReminder({
+    required String billId,
+    required DateTime dueDate,
+  }) async {
+    final token = await _getToken();
+    final response = await http.patch(
+      Uri.parse('$apiBaseUrl/v1/planning/bills/$billId/skip'),
+      headers: {
+        'Authorization': 'Bearer $token',
+        'Content-Type': 'application/json',
+      },
+      body: jsonEncode({'due_date': _dateOnlyIso(dueDate)}),
+    );
+    await _throwIfUnauthorizedResponse(response);
+    if (response.statusCode == 200) {
+      return jsonDecode(response.body) as Map<String, dynamic>;
+    }
+    throw Exception(
+      'Failed to skip bill reminder: ${response.statusCode} ${_extractErrorMessage(response)}',
+    );
+  }
+
+  /// DELETE /v1/planning/bills/{id}
+  static Future<void> deleteBillReminder(String billId) async {
+    final token = await _getToken();
+    final response = await http.delete(
+      Uri.parse('$apiBaseUrl/v1/planning/bills/$billId'),
+      headers: {
+        'Authorization': 'Bearer $token',
+        'Content-Type': 'application/json',
+      },
+    );
+    await _throwIfUnauthorizedResponse(response);
+    if (response.statusCode != 204) {
+      throw Exception(
+        'Failed to delete bill reminder: ${response.statusCode} ${_extractErrorMessage(response)}',
+      );
+    }
   }
 
   /// GET /v1/categories

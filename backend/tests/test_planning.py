@@ -23,6 +23,7 @@ from app.models.users.user import User
 from app.schemas.planning import (
     BillReminderCreate,
     BillReminderMarkPaid,
+    BillReminderSkip,
     BudgetCategoryLimitInput,
     BudgetPlanUpsert,
 )
@@ -278,8 +279,11 @@ def test_mark_bill_paid_is_idempotent_and_monotonic() -> None:
     )
 
     assert march_paid.last_paid_due_date == dt.date(2026, 3, 15)
+    assert march_paid.last_paid_at is not None
     assert february_paid.last_paid_due_date == dt.date(2026, 3, 15)
+    assert february_paid.last_paid_at == march_paid.last_paid_at
     assert repeated_march_paid.last_paid_due_date == dt.date(2026, 3, 15)
+    assert repeated_march_paid.last_paid_at == march_paid.last_paid_at
 
 
 def test_mark_bill_paid_accepts_daily_recurrence_dates() -> None:
@@ -311,6 +315,7 @@ def test_mark_bill_paid_accepts_daily_recurrence_dates() -> None:
     )
 
     assert paid.last_paid_due_date == dt.date(2026, 3, 24)
+    assert paid.last_paid_at is not None
 
 
 def test_mark_bill_paid_clamps_yearly_leap_day_schedule() -> None:
@@ -342,3 +347,140 @@ def test_mark_bill_paid_clamps_yearly_leap_day_schedule() -> None:
     )
 
     assert paid.last_paid_due_date == dt.date(2026, 2, 28)
+    assert paid.last_paid_at is not None
+
+
+def test_bill_reminder_create_accepts_weekly_and_one_time_recurrence() -> None:
+    session = _build_session()
+    user = _make_user("recurrence@example.com")
+    session.add(user)
+    session.commit()
+
+    weekly = _run(
+        _unlimited(planning.create_bill_reminder)(
+            payload=BillReminderCreate(
+                name="Cleaning",
+                amount=Decimal("30.00"),
+                currency="EUR",
+                recurrence="weekly",
+                first_due_date=dt.date(2026, 4, 7),
+                remind_days_before=2,
+                is_active=True,
+            ),
+            request=_request(),
+            session=session,
+            current_user=user,
+        )
+    )
+    one_time = _run(
+        _unlimited(planning.create_bill_reminder)(
+            payload=BillReminderCreate(
+                name="One-time fee",
+                amount=Decimal("15.00"),
+                currency="EUR",
+                recurrence="none",
+                first_due_date=dt.date(2026, 4, 9),
+                remind_days_before=0,
+                is_active=True,
+            ),
+            request=_request(),
+            session=session,
+            current_user=user,
+        )
+    )
+
+    assert weekly.recurrence == "weekly"
+    assert one_time.recurrence == "none"
+
+
+def test_skip_bill_reminder_updates_last_skipped_due_date_only() -> None:
+    session = _build_session()
+    user = _make_user("skip@example.com")
+    reminder = BillReminder(
+        user_id=user.id,
+        name="Internet",
+        amount=Decimal("50.00"),
+        currency="USD",
+        recurrence="weekly",
+        first_due_date=dt.date(2026, 4, 1),
+        remind_days_before=2,
+        is_active=True,
+    )
+    session.add(user)
+    session.add(reminder)
+    session.commit()
+    session.refresh(reminder)
+
+    skipped = _run(
+        _unlimited(planning.skip_bill_reminder_occurrence)(
+            bill_id=reminder.id,
+            payload=BillReminderSkip(due_date=dt.date(2026, 4, 8)),
+            request=_request(),
+            session=session,
+            current_user=user,
+        )
+    )
+
+    assert skipped.last_skipped_due_date == dt.date(2026, 4, 8)
+    assert skipped.last_paid_due_date is None
+
+
+def test_delete_bill_reminder_keeps_paid_history_entries_in_list() -> None:
+    session = _build_session()
+    user = _make_user("history@example.com")
+    paid_reminder = BillReminder(
+        user_id=user.id,
+        name="Gym",
+        amount=Decimal("45.00"),
+        currency="USD",
+        recurrence="monthly",
+        first_due_date=dt.date(2026, 1, 10),
+        last_paid_due_date=dt.date(2026, 4, 10),
+        remind_days_before=3,
+        is_active=True,
+    )
+    unpaid_reminder = BillReminder(
+        user_id=user.id,
+        name="Parking",
+        amount=Decimal("25.00"),
+        currency="USD",
+        recurrence="monthly",
+        first_due_date=dt.date(2026, 1, 12),
+        remind_days_before=3,
+        is_active=True,
+    )
+    session.add(user)
+    session.add(paid_reminder)
+    session.add(unpaid_reminder)
+    session.commit()
+    session.refresh(paid_reminder)
+    session.refresh(unpaid_reminder)
+
+    _run(
+        _unlimited(planning.delete_bill_reminder)(
+            bill_id=paid_reminder.id,
+            request=_request(),
+            session=session,
+            current_user=user,
+        )
+    )
+    _run(
+        _unlimited(planning.delete_bill_reminder)(
+            bill_id=unpaid_reminder.id,
+            request=_request(),
+            session=session,
+            current_user=user,
+        )
+    )
+
+    visible = _run(
+        _unlimited(planning.list_bill_reminders)(
+            request=_request(),
+            session=session,
+            current_user=user,
+        )
+    )
+
+    assert [bill.name for bill in visible] == ["Gym"]
+    assert visible[0].is_active is False
+    assert visible[0].last_paid_due_date == dt.date(2026, 4, 10)

@@ -3,13 +3,32 @@ import 'package:flutter/material.dart';
 const String expiredSessionMessage =
     'Your session expired. Please sign in again.';
 
+/// Returns true only when [message] clearly signals an auth failure.
+///
+/// Patterns are matched against the exact strings that the backend
+/// returns in its 401 `detail` field (see `backend/app/auth/deps.py`) and
+/// the sentinel values used internally by the app itself.  The old broad
+/// `" 401"` match has been intentionally removed: it matched any error body
+/// that happened to contain those characters (e.g. "status: 401" inside a
+/// 500-error response) and caused false-positive sign-outs.
 bool isExpiredSessionMessage(String? message) {
   final normalized = message?.trim().toLowerCase() ?? '';
   if (normalized.isEmpty) return false;
-  return normalized.contains('session expired') ||
-      normalized.contains('no authenticated user') ||
-      normalized.contains(' 401') ||
-      normalized.contains(': 401');
+  // Internal app sentinel.
+  if (normalized.contains('session expired')) return true;
+  if (normalized.contains('no authenticated user')) return true;
+  // Exact backend 401 detail strings from deps.py.
+  if (normalized.contains('token has expired')) return true;
+  if (normalized.contains('token has been revoked')) return true;
+  if (normalized.contains('invalid authentication token')) return true;
+  if (normalized.contains('authentication failed')) return true;
+  if (normalized.contains('token does not contain a valid uid')) return true;
+  // HTTP status marker — require a word boundary so "401" inside a body
+  // does not match (e.g. "returned 4010 items").
+  if (normalized.contains(': 401')) return true;
+  if (normalized.endsWith(' 401')) return true;
+  if (normalized.contains(' 401 ')) return true;
+  return false;
 }
 
 bool isExpiredSessionError(Object error) {

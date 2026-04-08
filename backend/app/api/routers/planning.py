@@ -24,6 +24,7 @@ from app.schemas.planning import (
     BillReminderCreate,
     BillReminderMarkPaid,
     BillReminderRead,
+    BillReminderSkip,
     BudgetCategoryLimitInput,
     BudgetPlanRead,
     BudgetPlanUpsert,
@@ -138,8 +139,16 @@ def _expected_bill_due_date(
     recurrence: str,
     target_due_date: dt.date,
 ) -> dt.date:
+    if recurrence == "none":
+        return anchor
     if recurrence == "daily":
         return target_due_date if target_due_date >= anchor else anchor
+    if recurrence == "weekly":
+        if target_due_date <= anchor:
+            return anchor
+        elapsed_days = (target_due_date - anchor).days
+        week_offset = elapsed_days // 7
+        return anchor + dt.timedelta(days=week_offset * 7)
     if recurrence == "yearly":
         return _yearly_due_date(anchor, target_due_date.year)
     return _monthly_due_date(anchor, target_due_date.year, target_due_date.month)
@@ -212,13 +221,16 @@ async def list_bill_reminders(
     session: Session = Depends(get_session),  # noqa: B008
     current_user: User = Depends(get_current_user),  # noqa: B008
 ):
-    """List active recurring bill reminders for the current user."""
+    """List active reminders plus inactive reminders that have paid history."""
 
     return session.exec(
         select(BillReminder)
         .where(
             BillReminder.user_id == current_user.id,
-            BillReminder.is_active,
+            or_(
+                BillReminder.is_active,
+                BillReminder.last_paid_due_date.is_not(None),
+            ),
         )
         .order_by(BillReminder.first_due_date, BillReminder.created_at)
     ).all()
@@ -299,8 +311,98 @@ async def mark_bill_reminder_paid(
         or payload.due_date > reminder.last_paid_due_date
     ):
         reminder.last_paid_due_date = payload.due_date
+        reminder.last_paid_at = dt.datetime.now(dt.timezone.utc)
         session.add(reminder)
         session.commit()
         session.refresh(reminder)
 
     return reminder
+
+
+@router.patch("/planning/bills/{bill_id}/skip", response_model=BillReminderRead)
+@limiter.limit("20/minute")
+async def skip_bill_reminder_occurrence(
+    bill_id: uuid.UUID,
+    payload: BillReminderSkip,
+    request: Request,
+    session: Session = Depends(get_session),  # noqa: B008
+    current_user: User = Depends(get_current_user),  # noqa: B008
+):
+    """Skip one recurring reminder cycle without marking it paid."""
+
+    reminder = session.exec(
+        select(BillReminder).where(
+            BillReminder.id == bill_id,
+            BillReminder.user_id == current_user.id,
+            BillReminder.is_active,
+        )
+    ).first()
+    if reminder is None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Bill reminder not found.",
+        )
+
+    if reminder.recurrence == "none":
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="One-time reminders must be deleted instead of skipped.",
+        )
+
+    if payload.due_date < reminder.first_due_date:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Skipped due date cannot be before the first due date.",
+        )
+
+    expected_due_date = _expected_bill_due_date(
+        anchor=reminder.first_due_date,
+        recurrence=reminder.recurrence,
+        target_due_date=payload.due_date,
+    )
+    if payload.due_date != expected_due_date:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Skipped due date must match the reminder schedule.",
+        )
+
+    if (
+        reminder.last_skipped_due_date is None
+        or payload.due_date > reminder.last_skipped_due_date
+    ):
+        reminder.last_skipped_due_date = payload.due_date
+        session.add(reminder)
+        session.commit()
+        session.refresh(reminder)
+
+    return reminder
+
+
+@router.delete("/planning/bills/{bill_id}", status_code=status.HTTP_204_NO_CONTENT)
+@limiter.limit("20/minute")
+async def delete_bill_reminder(
+    bill_id: uuid.UUID,
+    request: Request,
+    session: Session = Depends(get_session),  # noqa: B008
+    current_user: User = Depends(get_current_user),  # noqa: B008
+):
+    """Soft-delete a reminder while preserving any paid-history metadata."""
+
+    reminder = session.exec(
+        select(BillReminder).where(
+            BillReminder.id == bill_id,
+            BillReminder.user_id == current_user.id,
+        )
+    ).first()
+    if reminder is None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Bill reminder not found.",
+        )
+
+    if reminder.is_active:
+        reminder.is_active = False
+        session.add(reminder)
+        session.commit()
+
+    return None

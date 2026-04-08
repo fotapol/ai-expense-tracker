@@ -502,7 +502,7 @@ class _HomeTabState extends State<HomeTab>
                 context,
                 child: CrownIcon(
                   color: ShellColors.gold,
-                  size: 18,
+                  size: ShellStyles.scaled(context, 17, min: 15, max: 18),
                   strokeWidth: 1.7,
                 ),
                 onTap: () => _openSubscriptionScreen(context),
@@ -510,19 +510,38 @@ class _HomeTabState extends State<HomeTab>
             : InkWell(
                 borderRadius: BorderRadius.circular(999),
                 onTap: () => _openSubscriptionScreen(context),
-                child: Container(
-                  width: 52,
-                  height: 52,
-                  decoration: ShellStyles.cardDecoration(context, radius: 999),
-                  alignment: Alignment.center,
-                  child: Text(
-                    _uploadCounterLabel(),
-                    style: TextStyle(
-                      color: ShellStyles.textPrimary(context),
-                      fontSize: 11,
-                      fontWeight: FontWeight.w800,
-                    ),
-                  ),
+                child: Builder(
+                  builder: (context) {
+                    final counterSize = ShellStyles.scaled(
+                      context,
+                      42,
+                      min: 36,
+                      max: 46,
+                    );
+                    return Container(
+                      width: counterSize,
+                      height: counterSize,
+                      decoration: ShellStyles.cardDecoration(
+                        context,
+                        radius: counterSize / 2,
+                      ),
+                      alignment: Alignment.center,
+                      child: Text(
+                        _uploadCounterLabel(),
+                        textAlign: TextAlign.center,
+                        style: TextStyle(
+                          color: ShellStyles.textPrimary(context),
+                          fontSize: ShellStyles.scaled(
+                            context,
+                            10.5,
+                            min: 9.5,
+                            max: 11,
+                          ),
+                          fontWeight: FontWeight.w800,
+                        ),
+                      ),
+                    );
+                  },
                 ),
               ),
         const SizedBox(width: 8),
@@ -546,19 +565,21 @@ class _HomeTabState extends State<HomeTab>
     Color? iconColor,
     required VoidCallback onTap,
   }) {
+    final buttonSize = ShellStyles.scaled(context, 38, min: 34, max: 42);
+    final iconSize = ShellStyles.scaled(context, 16, min: 14, max: 18);
     return InkWell(
-      borderRadius: BorderRadius.circular(20),
+      borderRadius: BorderRadius.circular(buttonSize / 2),
       onTap: onTap,
       child: Container(
-        width: 40,
-        height: 40,
+        width: buttonSize,
+        height: buttonSize,
         alignment: Alignment.center,
         decoration: ShellStyles.iconBadgeDecoration(
           context,
           color: ShellStyles.surface(context),
-          radius: 20,
+          radius: buttonSize / 2,
         ),
-        child: child ?? Icon(icon, color: iconColor, size: 18),
+        child: child ?? Icon(icon, color: iconColor, size: iconSize),
       ),
     );
   }
@@ -1021,22 +1042,28 @@ class _HomeTabState extends State<HomeTab>
         label: context.tr('nav_receipts'),
         onTap: () => _open(context, const ReceiptManagerScreen()),
       ),
+      _QuickAction(
+        icon: AppIcons.analytics,
+        label: context.tr('tools_analytics'),
+        onTap: () => _open(context, const AnalyticsScreen()),
+      ),
     ];
 
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        ShellStyles.sectionLabel(context, context.tr('home_quick_actions')),
-        const SizedBox(height: 12),
-        Column(
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final cardWidth = (constraints.maxWidth - 16) / 3;
+        return Wrap(
+          spacing: 8,
+          runSpacing: 8,
           children: [
-            for (var index = 0; index < actions.length; index++) ...[
-              _buildQuickActionCard(context, actions[index]),
-              if (index != actions.length - 1) const SizedBox(height: 10),
-            ],
+            for (final action in actions)
+              SizedBox(
+                width: cardWidth,
+                child: _buildQuickActionCard(context, action),
+              ),
           ],
-        ),
-      ],
+        );
+      },
     );
   }
 
@@ -1045,11 +1072,10 @@ class _HomeTabState extends State<HomeTab>
       borderRadius: BorderRadius.circular(16),
       onTap: action.onTap,
       child: Container(
-        width: double.infinity,
-        height: 52,
-        padding: const EdgeInsets.symmetric(horizontal: 14),
+        height: 84,
+        padding: const EdgeInsets.fromLTRB(10, 12, 10, 10),
         decoration: ShellStyles.cardDecoration(context, radius: 16),
-        child: Row(
+        child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Container(
@@ -1066,16 +1092,18 @@ class _HomeTabState extends State<HomeTab>
                 size: 15,
               ),
             ),
-            const SizedBox(width: 8),
+            const SizedBox(height: 10),
             Text(
               action.label,
               textAlign: TextAlign.center,
               style: TextStyle(
                 color: ShellStyles.textPrimary(context),
-                fontSize: 14,
+                fontSize: 12.5,
                 height: 1.2,
                 fontWeight: FontWeight.w700,
               ),
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
             ),
           ],
         ),

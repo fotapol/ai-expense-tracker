@@ -19,8 +19,7 @@ class BillReminderNotificationService {
 
   static const String _channelId = 'bill_reminders';
   static const String _channelName = 'Bill Reminders';
-  static const String _channelDescription =
-      'Upcoming and due recurring bill reminders';
+  static const String _channelDescription = 'Upcoming and due bill reminders';
   static const String _payloadPrefix = 'bill_reminder|';
 
   final FlutterLocalNotificationsPlugin _plugin =

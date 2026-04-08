@@ -539,7 +539,9 @@ class _ReceiptItemEditScreenState extends State<ReceiptItemEditScreen> {
   BoxDecoration _cardDecoration() {
     return BoxDecoration(
       color: _surfaceColor,
-      borderRadius: BorderRadius.circular(22),
+      borderRadius: BorderRadius.circular(
+        ShellStyles.scaled(context, 20, min: 18, max: 22),
+      ),
       border: Border.all(color: _strokeColor),
     );
   }
@@ -601,21 +603,32 @@ class _ReceiptItemEditScreenState extends State<ReceiptItemEditScreen> {
       hintStyle: const TextStyle(color: _mutedColor),
       filled: true,
       fillColor: _surfaceAltColor,
-      contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+      contentPadding: EdgeInsets.symmetric(
+        horizontal: ShellStyles.scaled(context, 14, min: 12, max: 16),
+        vertical: ShellStyles.scaled(context, 12, min: 10, max: 14),
+      ),
       border: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(18),
+        borderRadius: BorderRadius.circular(
+          ShellStyles.scaled(context, 16, min: 14, max: 18),
+        ),
         borderSide: const BorderSide(color: _strokeColor),
       ),
       enabledBorder: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(18),
+        borderRadius: BorderRadius.circular(
+          ShellStyles.scaled(context, 16, min: 14, max: 18),
+        ),
         borderSide: const BorderSide(color: _strokeColor),
       ),
       focusedBorder: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(18),
+        borderRadius: BorderRadius.circular(
+          ShellStyles.scaled(context, 16, min: 14, max: 18),
+        ),
         borderSide: const BorderSide(color: _textColor),
       ),
       disabledBorder: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(18),
+        borderRadius: BorderRadius.circular(
+          ShellStyles.scaled(context, 16, min: 14, max: 18),
+        ),
         borderSide: const BorderSide(color: _strokeColor),
       ),
     );
@@ -626,7 +639,7 @@ class _ReceiptItemEditScreenState extends State<ReceiptItemEditScreen> {
       text,
       style: const TextStyle(
         color: _mutedColor,
-        fontSize: 13,
+        fontSize: 12.5,
         fontWeight: FontWeight.w700,
         letterSpacing: 0.7,
       ),
@@ -648,7 +661,7 @@ class _ReceiptItemEditScreenState extends State<ReceiptItemEditScreen> {
       onChanged: onChanged,
       style: const TextStyle(
         color: _textColor,
-        fontSize: 16,
+        fontSize: 15,
         fontWeight: FontWeight.w600,
       ),
       decoration: _fieldDecoration(hintText: hintText),
@@ -664,10 +677,15 @@ class _ReceiptItemEditScreenState extends State<ReceiptItemEditScreen> {
       onTap: onTap,
       borderRadius: BorderRadius.circular(18),
       child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 18),
+        padding: EdgeInsets.symmetric(
+          horizontal: ShellStyles.scaled(context, 14, min: 12, max: 16),
+          vertical: ShellStyles.scaled(context, 14, min: 12, max: 16),
+        ),
         decoration: BoxDecoration(
           color: _surfaceAltColor,
-          borderRadius: BorderRadius.circular(18),
+          borderRadius: BorderRadius.circular(
+            ShellStyles.scaled(context, 16, min: 14, max: 18),
+          ),
           border: Border.all(color: _strokeColor),
         ),
         child: Row(
@@ -678,14 +696,14 @@ class _ReceiptItemEditScreenState extends State<ReceiptItemEditScreen> {
                 children: [
                   Text(
                     label,
-                    style: const TextStyle(color: _mutedColor, fontSize: 13),
+                    style: const TextStyle(color: _mutedColor, fontSize: 12),
                   ),
                   const SizedBox(height: 6),
                   Text(
                     value,
                     style: const TextStyle(
                       color: _textColor,
-                      fontSize: 16,
+                      fontSize: 15,
                       fontWeight: FontWeight.w600,
                     ),
                   ),
@@ -737,7 +755,12 @@ class _ReceiptItemEditScreenState extends State<ReceiptItemEditScreen> {
         child: Column(
           children: [
             Padding(
-              padding: const EdgeInsets.fromLTRB(12, 12, 12, 8),
+              padding: EdgeInsets.fromLTRB(
+                ShellStyles.scaled(context, 10, min: 8, max: 12),
+                ShellStyles.scaled(context, 10, min: 8, max: 12),
+                ShellStyles.scaled(context, 10, min: 8, max: 12),
+                ShellStyles.scaled(context, 6, min: 4, max: 8),
+              ),
               child: Row(
                 children: [
                   TextButton(
@@ -772,7 +795,12 @@ class _ReceiptItemEditScreenState extends State<ReceiptItemEditScreen> {
             ),
             Expanded(
               child: ListView(
-                padding: const EdgeInsets.fromLTRB(16, 20, 16, 28),
+                padding: EdgeInsets.fromLTRB(
+                  ShellStyles.scaled(context, 14, min: 12, max: 16),
+                  ShellStyles.scaled(context, 16, min: 14, max: 18),
+                  ShellStyles.scaled(context, 14, min: 12, max: 16),
+                  ShellStyles.scaled(context, 24, min: 20, max: 28),
+                ),
                 children: [
                   Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
