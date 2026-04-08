@@ -478,7 +478,9 @@ class _BudgetCalculatorScreenState extends State<BudgetCalculatorScreen> {
             keyboardType: const TextInputType.numberWithOptions(decimal: true),
             decoration: InputDecoration(
               labelText: context.tr('budget_limit_label'),
+              floatingLabelBehavior: FloatingLabelBehavior.always,
               prefixText: '${CurrencyDisplay.symbolForCode(_currency)} ',
+              hintText: '0',
             ),
           ),
         ],
@@ -612,69 +614,82 @@ class _BudgetCalculatorScreenState extends State<BudgetCalculatorScreen> {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Row(
-                            children: [
-                              Expanded(
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Text(
-                                      'Optional category budgets',
-                                      style: TextStyle(
-                                        color: ShellStyles.textPrimary(context),
-                                        fontSize: 16,
-                                        fontWeight: FontWeight.w700,
-                                      ),
+                          LayoutBuilder(
+                            builder: (context, constraints) {
+                              final description = Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    'Optional category budgets',
+                                    style: TextStyle(
+                                      color: ShellStyles.textPrimary(context),
+                                      fontSize: 16,
+                                      fontWeight: FontWeight.w700,
                                     ),
-                                    const SizedBox(height: 4),
-                                    Text(
-                                      'Use these if you want extra guidance for specific categories.',
-                                      style: TextStyle(
-                                        color: ShellStyles.textMuted(context),
-                                        fontSize: 12.5,
-                                        height: 1.35,
-                                      ),
+                                  ),
+                                  const SizedBox(height: 4),
+                                  Text(
+                                    'Use these if you want extra guidance for specific categories.',
+                                    style: TextStyle(
+                                      color: ShellStyles.textMuted(context),
+                                      fontSize: 12.5,
+                                      height: 1.35,
                                     ),
-                                    if (allocatedCategoryBudget > 0) ...[
-                                      const SizedBox(height: 8),
-                                      Container(
-                                        padding: const EdgeInsets.symmetric(
-                                          horizontal: 10,
-                                          vertical: 7,
+                                  ),
+                                  if (allocatedCategoryBudget > 0) ...[
+                                    const SizedBox(height: 8),
+                                    Container(
+                                      padding: const EdgeInsets.symmetric(
+                                        horizontal: 10,
+                                        vertical: 7,
+                                      ),
+                                      decoration: BoxDecoration(
+                                        color: ShellStyles.surfaceAlt(context),
+                                        borderRadius: BorderRadius.circular(
+                                          999,
                                         ),
-                                        decoration: BoxDecoration(
-                                          color: ShellStyles.surfaceAlt(
+                                        border: Border.all(
+                                          color: ShellStyles.border(context),
+                                        ),
+                                      ),
+                                      child: Text(
+                                        'Allocated across categories: ${_formatCurrency(allocatedCategoryBudget)}',
+                                        style: TextStyle(
+                                          color: ShellStyles.textPrimary(
                                             context,
                                           ),
-                                          borderRadius: BorderRadius.circular(
-                                            999,
-                                          ),
-                                          border: Border.all(
-                                            color: ShellStyles.border(context),
-                                          ),
-                                        ),
-                                        child: Text(
-                                          'Allocated across categories: ${_formatCurrency(allocatedCategoryBudget)}',
-                                          style: TextStyle(
-                                            color: ShellStyles.textPrimary(
-                                              context,
-                                            ),
-                                            fontSize: 11.5,
-                                            fontWeight: FontWeight.w600,
-                                          ),
+                                          fontSize: 11.5,
+                                          fontWeight: FontWeight.w600,
                                         ),
                                       ),
-                                    ],
+                                    ),
                                   ],
-                                ),
-                              ),
-                              const SizedBox(width: 12),
-                              TextButton.icon(
+                                ],
+                              );
+                              final addButton = TextButton.icon(
                                 onPressed: _addCategory,
                                 icon: const Icon(Icons.add, size: 16),
                                 label: Text(context.tr('budget_add_category')),
-                              ),
-                            ],
+                              );
+                              if (constraints.maxWidth < 440) {
+                                return Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    description,
+                                    const SizedBox(height: 10),
+                                    addButton,
+                                  ],
+                                );
+                              }
+                              return Row(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Expanded(child: description),
+                                  const SizedBox(width: 12),
+                                  addButton,
+                                ],
+                              );
+                            },
                           ),
                           const SizedBox(height: 12),
                           if (categories.isEmpty)
