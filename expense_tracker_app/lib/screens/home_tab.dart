@@ -1021,22 +1021,28 @@ class _HomeTabState extends State<HomeTab>
         label: context.tr('nav_receipts'),
         onTap: () => _open(context, const ReceiptManagerScreen()),
       ),
+      _QuickAction(
+        icon: AppIcons.analytics,
+        label: context.tr('tools_analytics'),
+        onTap: () => _open(context, const AnalyticsScreen()),
+      ),
     ];
 
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        ShellStyles.sectionLabel(context, context.tr('home_quick_actions')),
-        const SizedBox(height: 12),
-        Column(
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final cardWidth = (constraints.maxWidth - 16) / 3;
+        return Wrap(
+          spacing: 8,
+          runSpacing: 8,
           children: [
-            for (var index = 0; index < actions.length; index++) ...[
-              _buildQuickActionCard(context, actions[index]),
-              if (index != actions.length - 1) const SizedBox(height: 10),
-            ],
+            for (final action in actions)
+              SizedBox(
+                width: cardWidth,
+                child: _buildQuickActionCard(context, action),
+              ),
           ],
-        ),
-      ],
+        );
+      },
     );
   }
 
@@ -1045,11 +1051,10 @@ class _HomeTabState extends State<HomeTab>
       borderRadius: BorderRadius.circular(16),
       onTap: action.onTap,
       child: Container(
-        width: double.infinity,
-        height: 52,
-        padding: const EdgeInsets.symmetric(horizontal: 14),
+        height: 84,
+        padding: const EdgeInsets.fromLTRB(10, 12, 10, 10),
         decoration: ShellStyles.cardDecoration(context, radius: 16),
-        child: Row(
+        child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Container(
@@ -1066,16 +1071,18 @@ class _HomeTabState extends State<HomeTab>
                 size: 15,
               ),
             ),
-            const SizedBox(width: 8),
+            const SizedBox(height: 10),
             Text(
               action.label,
               textAlign: TextAlign.center,
               style: TextStyle(
                 color: ShellStyles.textPrimary(context),
-                fontSize: 14,
+                fontSize: 12.5,
                 height: 1.2,
                 fontWeight: FontWeight.w700,
               ),
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
             ),
           ],
         ),
