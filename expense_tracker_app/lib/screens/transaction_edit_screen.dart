@@ -737,7 +737,7 @@ class _TransactionEditScreenState extends State<TransactionEditScreen> {
 
   Future<void> _openMerchantNameEditor() async {
     if (!_canEditTransaction) return;
-    final controller = TextEditingController(text: _merchantController.text);
+    var draftValue = _merchantController.text;
     final value = await showDialog<String>(
       context: context,
       builder: (dialogContext) => ShellStyles.clampOverlayScale(
@@ -752,10 +752,13 @@ class _TransactionEditScreenState extends State<TransactionEditScreen> {
             'Merchant',
             style: TextStyle(color: _textColor, fontWeight: FontWeight.w700),
           ),
-          content: TextField(
-            controller: controller,
+          content: TextFormField(
+            initialValue: draftValue,
             autofocus: true,
             textCapitalization: TextCapitalization.words,
+            onChanged: (value) => draftValue = value,
+            onFieldSubmitted: (_) =>
+                Navigator.pop(dialogContext, draftValue.trim()),
             style: const TextStyle(color: _textColor),
             decoration: InputDecoration(
               hintText: 'Store or merchant name',
@@ -782,8 +785,7 @@ class _TransactionEditScreenState extends State<TransactionEditScreen> {
               child: const Text('Cancel', style: TextStyle(color: _mutedColor)),
             ),
             FilledButton(
-              onPressed: () =>
-                  Navigator.pop(dialogContext, controller.text.trim()),
+              onPressed: () => Navigator.pop(dialogContext, draftValue.trim()),
               style: FilledButton.styleFrom(
                 backgroundColor: _accentColor,
                 foregroundColor: _surfaceColor,
@@ -794,8 +796,6 @@ class _TransactionEditScreenState extends State<TransactionEditScreen> {
         ),
       ),
     );
-    await WidgetsBinding.instance.endOfFrame;
-    controller.dispose();
 
     if (!mounted || value == null) return;
     setState(() {
@@ -806,7 +806,7 @@ class _TransactionEditScreenState extends State<TransactionEditScreen> {
 
   Future<void> _openTotalEditor() async {
     if (!_canEditTransaction) return;
-    final controller = TextEditingController(text: _amountController.text);
+    var draftValue = _amountController.text;
     final value = await showDialog<String>(
       context: context,
       builder: (dialogContext) => ShellStyles.clampOverlayScale(
@@ -821,10 +821,13 @@ class _TransactionEditScreenState extends State<TransactionEditScreen> {
             'Receipt total',
             style: TextStyle(color: _textColor, fontWeight: FontWeight.w700),
           ),
-          content: TextField(
-            controller: controller,
+          content: TextFormField(
+            initialValue: draftValue,
             autofocus: true,
             keyboardType: const TextInputType.numberWithOptions(decimal: true),
+            onChanged: (value) => draftValue = value,
+            onFieldSubmitted: (_) =>
+                Navigator.pop(dialogContext, draftValue.trim()),
             style: const TextStyle(color: _textColor),
             decoration: InputDecoration(
               hintText: '0.00',
@@ -851,8 +854,7 @@ class _TransactionEditScreenState extends State<TransactionEditScreen> {
               child: const Text('Cancel', style: TextStyle(color: _mutedColor)),
             ),
             FilledButton(
-              onPressed: () =>
-                  Navigator.pop(dialogContext, controller.text.trim()),
+              onPressed: () => Navigator.pop(dialogContext, draftValue.trim()),
               style: FilledButton.styleFrom(
                 backgroundColor: _accentColor,
                 foregroundColor: _surfaceColor,
@@ -863,8 +865,6 @@ class _TransactionEditScreenState extends State<TransactionEditScreen> {
         ),
       ),
     );
-    await WidgetsBinding.instance.endOfFrame;
-    controller.dispose();
 
     if (!mounted || value == null) return;
     final parsed = double.tryParse(value.replaceAll(',', '.'));
