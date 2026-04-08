@@ -178,14 +178,14 @@ class ThemeProvider extends ChangeNotifier {
   double get fontSizeFactor {
     switch (_fontSizeId) {
       case '60':
-        return 0.6;
+        return 0.7;
       case '80':
-        return 0.8;
+        return 0.82;
       case '120':
-        return 1.2;
+        return 1.02;
       case '100':
       default:
-        return 1.0;
+        return 0.9;
     }
   }
 

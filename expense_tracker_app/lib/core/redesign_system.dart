@@ -41,7 +41,7 @@ class ShellStyles {
     double max = 1.12,
   }) {
     final rawScale = textScale(context);
-    final adjusted = 1 + ((rawScale - 1) * 0.45);
+    final adjusted = 1 + ((rawScale - 1) * 0.65);
     return adjusted.clamp(min, max);
   }
 
