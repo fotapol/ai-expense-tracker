@@ -364,7 +364,12 @@ class _AnalyticsOverviewTabState extends State<AnalyticsOverviewTab> {
                       formatMoney(currency, totalAmount),
                       style: TextStyle(
                         color: ShellStyles.textPrimary(context),
-                        fontSize: 34,
+                        fontSize: ShellStyles.scaled(
+                          context,
+                          30,
+                          min: 28,
+                          max: 34,
+                        ),
                         fontWeight: FontWeight.w800,
                       ),
                     ),
@@ -462,33 +467,46 @@ class _AnalyticsOverviewTabState extends State<AnalyticsOverviewTab> {
             ),
           ),
           const SizedBox(height: 16),
-          Row(
-            children: [
-              Expanded(
-                child: AnalyticsMiniStatTile(
-                  label: context.tr('analytics_total_transactions'),
-                  value: '$totalTransactions',
-                  icon: Icons.receipt_long_outlined,
-                ),
-              ),
-              const SizedBox(width: 10),
-              Expanded(
-                child: AnalyticsMiniStatTile(
-                  label: context.tr('analytics_average_per_day'),
-                  value: formatMoney(currency, dailyAverage),
-                  icon: Icons.calendar_today_outlined,
-                ),
-              ),
-              const SizedBox(width: 10),
-              Expanded(
-                child: AnalyticsMiniStatTile(
-                  label: context.tr('analytics_total_savings'),
-                  value: formatMoney(currency, totalSavings),
-                  icon: Icons.sell_outlined,
-                  valueColor: totalSavings > 0 ? ShellColors.softGreen : null,
-                ),
-              ),
-            ],
+          LayoutBuilder(
+            builder: (context, constraints) {
+              final useTwoColumns = constraints.maxWidth < 320;
+              final tileWidth = useTwoColumns
+                  ? (constraints.maxWidth - 10) / 2
+                  : (constraints.maxWidth - 20) / 3;
+              return Wrap(
+                spacing: 10,
+                runSpacing: 10,
+                children: [
+                  SizedBox(
+                    width: tileWidth,
+                    child: AnalyticsMiniStatTile(
+                      label: context.tr('analytics_total_transactions'),
+                      value: '$totalTransactions',
+                      icon: Icons.receipt_long_outlined,
+                    ),
+                  ),
+                  SizedBox(
+                    width: tileWidth,
+                    child: AnalyticsMiniStatTile(
+                      label: context.tr('analytics_average_per_day'),
+                      value: formatMoney(currency, dailyAverage),
+                      icon: Icons.calendar_today_outlined,
+                    ),
+                  ),
+                  SizedBox(
+                    width: tileWidth,
+                    child: AnalyticsMiniStatTile(
+                      label: context.tr('analytics_total_savings'),
+                      value: formatMoney(currency, totalSavings),
+                      icon: Icons.sell_outlined,
+                      valueColor: totalSavings > 0
+                          ? ShellColors.softGreen
+                          : null,
+                    ),
+                  ),
+                ],
+              );
+            },
           ),
         ],
       ),
@@ -520,8 +538,7 @@ class _AnalyticsOverviewTabState extends State<AnalyticsOverviewTab> {
             )
           else
             for (var index = 0; index < merchants.length; index++) ...[
-              if (index != 0)
-                Divider(height: 22, color: ShellStyles.border(context)),
+              if (index != 0) const AnalyticsFullBleedDivider(),
               _buildMerchantRow(
                 context,
                 rank: index + 1,
@@ -559,8 +576,7 @@ class _AnalyticsOverviewTabState extends State<AnalyticsOverviewTab> {
             )
           else
             for (var index = 0; index < categories.length; index++) ...[
-              if (index != 0)
-                Divider(height: 22, color: ShellStyles.border(context)),
+              if (index != 0) const AnalyticsFullBleedDivider(),
               _buildCategoryRow(
                 context,
                 rank: index + 1,

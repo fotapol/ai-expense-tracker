@@ -298,44 +298,55 @@ class _AnalyticsTrendsTabState extends State<AnalyticsTrendsTab> {
     required int? previousTransactions,
     required double? previousDailyAverage,
   }) {
-    return Row(
-      children: [
-        Expanded(
-          child: _TrendMetricCard(
-            label: 'Total Spent',
-            value: formatMoney(currency, totalSpent),
-            change: _buildMetricChange(
-              current: totalSpent,
-              previous: previousTotalSpent,
-              lowerIsBetter: true,
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final useTwoColumns = constraints.maxWidth < 320;
+        final tileWidth = useTwoColumns
+            ? (constraints.maxWidth - 10) / 2
+            : (constraints.maxWidth - 20) / 3;
+        return Wrap(
+          spacing: 10,
+          runSpacing: 10,
+          children: [
+            SizedBox(
+              width: tileWidth,
+              child: _TrendMetricCard(
+                label: 'Total Spent',
+                value: formatMoney(currency, totalSpent),
+                change: _buildMetricChange(
+                  current: totalSpent,
+                  previous: previousTotalSpent,
+                  lowerIsBetter: true,
+                ),
+              ),
             ),
-          ),
-        ),
-        const SizedBox(width: 10),
-        Expanded(
-          child: _TrendMetricCard(
-            label: 'Transactions',
-            value: '$totalTransactions',
-            change: _buildMetricChange(
-              current: totalTransactions.toDouble(),
-              previous: previousTransactions?.toDouble(),
-              lowerIsBetter: true,
+            SizedBox(
+              width: tileWidth,
+              child: _TrendMetricCard(
+                label: 'Transactions',
+                value: '$totalTransactions',
+                change: _buildMetricChange(
+                  current: totalTransactions.toDouble(),
+                  previous: previousTransactions?.toDouble(),
+                  lowerIsBetter: true,
+                ),
+              ),
             ),
-          ),
-        ),
-        const SizedBox(width: 10),
-        Expanded(
-          child: _TrendMetricCard(
-            label: 'Daily Avg',
-            value: formatMoney(currency, dailyAverage),
-            change: _buildMetricChange(
-              current: dailyAverage,
-              previous: previousDailyAverage,
-              lowerIsBetter: true,
+            SizedBox(
+              width: tileWidth,
+              child: _TrendMetricCard(
+                label: 'Daily Avg',
+                value: formatMoney(currency, dailyAverage),
+                change: _buildMetricChange(
+                  current: dailyAverage,
+                  previous: previousDailyAverage,
+                  lowerIsBetter: true,
+                ),
+              ),
             ),
-          ),
-        ),
-      ],
+          ],
+        );
+      },
     );
   }
 
@@ -398,9 +409,7 @@ class _AnalyticsTrendsTabState extends State<AnalyticsTrendsTab> {
                 ),
               ),
             ),
-          const SizedBox(height: 16),
-          Divider(color: ShellStyles.border(context), height: 1),
-          const SizedBox(height: 16),
+          const AnalyticsFullBleedDivider(topSpacing: 16, bottomSpacing: 16),
           Row(
             children: [
               Expanded(
@@ -1013,42 +1022,45 @@ class _TrendMetricCard extends StatelessWidget {
         ? ShellColors.softGreen
         : ShellColors.softRed;
     return Container(
-      padding: const EdgeInsets.fromLTRB(14, 14, 14, 12),
+      padding: const EdgeInsets.fromLTRB(12, 12, 12, 13),
       decoration: ShellStyles.cardDecoration(
         context,
         radius: 18,
         color: ShellStyles.surface(context),
+        withShadow: false,
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
             label.toUpperCase(),
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
             style: TextStyle(
               color: ShellStyles.textMuted(context),
-              fontSize: 10,
+              fontSize: 10.5,
               fontWeight: FontWeight.w700,
               letterSpacing: 0.6,
             ),
           ),
-          const SizedBox(height: 10),
+          const SizedBox(height: 8),
           Text(
             value,
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
             style: TextStyle(
               color: ShellStyles.textPrimary(context),
-              fontSize: 20,
+              fontSize: 17,
               fontWeight: FontWeight.w800,
             ),
           ),
-          const SizedBox(height: 10),
+          const SizedBox(height: 8),
           if (change == null)
             Text(
               'No prior',
               style: TextStyle(
                 color: ShellStyles.textMuted(context),
-                fontSize: 11,
+                fontSize: 10.5,
                 fontWeight: FontWeight.w600,
               ),
             )
@@ -1065,7 +1077,7 @@ class _TrendMetricCard extends StatelessWidget {
                   '${change!.percent.round()}%',
                   style: TextStyle(
                     color: changeColor,
-                    fontSize: 11,
+                    fontSize: 10.5,
                     fontWeight: FontWeight.w700,
                   ),
                 ),

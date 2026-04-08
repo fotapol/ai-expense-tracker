@@ -639,8 +639,7 @@ class _AnalyticsTabState extends State<AnalyticsTab>
             )
           else
             for (var index = 0; index < categories.length; index++) ...[
-              if (index != 0)
-                Divider(height: 22, color: ShellStyles.border(context)),
+              if (index != 0) const AnalyticsFullBleedDivider(),
               _buildBreakdownRow(
                 context,
                 category: categories[index],

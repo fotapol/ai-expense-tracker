@@ -180,37 +180,84 @@ class AnalyticsSectionHeader extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Row(
+    final content = Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Expanded(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                title,
-                style: TextStyle(
-                  color: ShellStyles.textPrimary(context),
-                  fontSize: 18,
-                  fontWeight: FontWeight.w800,
-                ),
-              ),
-              if (subtitle != null) ...[
-                const SizedBox(height: 4),
-                Text(
-                  subtitle!,
-                  style: TextStyle(
-                    color: ShellStyles.textMuted(context),
-                    fontSize: 12,
-                    height: 1.35,
-                  ),
-                ),
-              ],
-            ],
+        Text(
+          title,
+          style: TextStyle(
+            color: ShellStyles.textPrimary(context),
+            fontSize: 18,
+            fontWeight: FontWeight.w800,
           ),
         ),
-        if (trailing != null) ...[const SizedBox(width: 12), trailing!],
+        if (subtitle != null) ...[
+          const SizedBox(height: 4),
+          Text(
+            subtitle!,
+            style: TextStyle(
+              color: ShellStyles.textMuted(context),
+              fontSize: 12,
+              height: 1.35,
+            ),
+          ),
+        ],
       ],
+    );
+
+    if (trailing == null) {
+      return content;
+    }
+
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        if (constraints.maxWidth < 440) {
+          return Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [content, const SizedBox(height: 12), trailing!],
+          );
+        }
+        return Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Expanded(child: content),
+            const SizedBox(width: 12),
+            trailing!,
+          ],
+        );
+      },
+    );
+  }
+}
+
+class AnalyticsFullBleedDivider extends StatelessWidget {
+  const AnalyticsFullBleedDivider({
+    super.key,
+    this.bleed = 20,
+    this.topSpacing = 10,
+    this.bottomSpacing = 10,
+  });
+
+  final double bleed;
+  final double topSpacing;
+  final double bottomSpacing;
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: EdgeInsets.only(top: topSpacing, bottom: bottomSpacing),
+      child: LayoutBuilder(
+        builder: (context, constraints) {
+          return Transform.translate(
+            offset: Offset(-bleed, 0),
+            child: SizedBox(
+              width: constraints.maxWidth + (bleed * 2),
+              height: 1,
+              child: ColoredBox(color: ShellStyles.border(context)),
+            ),
+          );
+        },
+      ),
     );
   }
 }
@@ -234,7 +281,7 @@ class AnalyticsMiniStatTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.fromLTRB(14, 14, 14, 15),
+      padding: const EdgeInsets.fromLTRB(12, 12, 12, 13),
       decoration: BoxDecoration(
         color: ShellStyles.surfaceAlt(context),
         borderRadius: BorderRadius.circular(18),
@@ -246,7 +293,7 @@ class AnalyticsMiniStatTile extends StatelessWidget {
           Row(
             children: [
               if (icon != null) ...[
-                Icon(icon, size: 14, color: ShellStyles.textMuted(context)),
+                Icon(icon, size: 13, color: ShellStyles.textMuted(context)),
                 const SizedBox(width: 6),
               ],
               Expanded(
@@ -256,7 +303,7 @@ class AnalyticsMiniStatTile extends StatelessWidget {
                   overflow: TextOverflow.ellipsis,
                   style: TextStyle(
                     color: ShellStyles.textMuted(context),
-                    fontSize: 11,
+                    fontSize: 10.5,
                     fontWeight: FontWeight.w700,
                     letterSpacing: 0.4,
                   ),
@@ -264,12 +311,12 @@ class AnalyticsMiniStatTile extends StatelessWidget {
               ),
             ],
           ),
-          const SizedBox(height: 10),
+          const SizedBox(height: 8),
           Text(
             value,
             style: TextStyle(
               color: valueColor ?? ShellStyles.textPrimary(context),
-              fontSize: 18,
+              fontSize: 17,
               fontWeight: FontWeight.w800,
             ),
           ),
@@ -281,7 +328,7 @@ class AnalyticsMiniStatTile extends StatelessWidget {
               overflow: TextOverflow.ellipsis,
               style: TextStyle(
                 color: ShellStyles.textMuted(context),
-                fontSize: 11,
+                fontSize: 10.5,
                 height: 1.3,
               ),
             ),
