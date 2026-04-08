@@ -1216,6 +1216,9 @@ class _ReceiptsTabState extends State<ReceiptsTab>
 
     final primaryColor = Theme.of(context).colorScheme.primary;
     final mutedColor = ShellStyles.textMuted(context);
+    final savingsLabel = context
+        .tr('transaction_total_savings')
+        .replaceFirst(RegExp(r'[:：]\s*$'), '');
 
     return SafeArea(
       top: false,
@@ -1291,7 +1294,7 @@ class _ReceiptsTabState extends State<ReceiptsTab>
                 ),
                 if (totalPeriodSavings > 0)
                   Text(
-                    '${context.tr('transaction_total_savings')}: ${_formatMoney(totalCurrency, totalPeriodSavings)}',
+                    '$savingsLabel: ${_formatMoney(totalCurrency, totalPeriodSavings)}',
                     style: TextStyle(
                       color: primaryColor,
                       fontSize: ShellStyles.scaled(
