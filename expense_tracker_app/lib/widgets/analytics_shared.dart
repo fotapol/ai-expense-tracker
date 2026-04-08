@@ -248,12 +248,22 @@ class AnalyticsFullBleedDivider extends StatelessWidget {
       padding: EdgeInsets.only(top: topSpacing, bottom: bottomSpacing),
       child: LayoutBuilder(
         builder: (context, constraints) {
-          return Transform.translate(
-            offset: Offset(-bleed, 0),
-            child: SizedBox(
-              width: constraints.maxWidth + (bleed * 2),
-              height: 1,
-              child: ColoredBox(color: ShellStyles.border(context)),
+          final fullWidth = constraints.maxWidth + (bleed * 2);
+          return SizedBox(
+            width: double.infinity,
+            height: 1,
+            child: OverflowBox(
+              alignment: Alignment.centerLeft,
+              minWidth: fullWidth,
+              maxWidth: fullWidth,
+              child: Transform.translate(
+                offset: Offset(-bleed, 0),
+                child: SizedBox(
+                  width: fullWidth,
+                  height: 1,
+                  child: ColoredBox(color: ShellStyles.border(context)),
+                ),
+              ),
             ),
           );
         },
