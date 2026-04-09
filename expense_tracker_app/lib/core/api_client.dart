@@ -1,10 +1,13 @@
+import 'dart:async';
 import 'dart:convert';
+import 'dart:io';
 import 'dart:typed_data';
 import 'package:http/http.dart' as http;
 import 'package:firebase_auth/firebase_auth.dart';
 
 import 'auth_session.dart';
 import 'core_request_timeout.dart';
+import 'session_invalidation.dart';
 
 class ApiClient {
   static const String apiBaseUrl = String.fromEnvironment(
@@ -17,18 +20,73 @@ class ApiClient {
   );
 
   /// Get a Firebase ID token for the current user.
+  ///
+  /// Network-aware refresh strategy:
+  /// - Returns the cached token immediately when it is not near expiry.
+  /// - Forces a refresh when the token is within the 5-min expiry window.
+  /// - If the network refresh fails due to a transient error
+  ///   ([SocketException] / [TimeoutException]) but a cached token still
+  ///   exists, the cached token is returned so the request can proceed
+  ///   without logging the user out.
+  /// - Only calls [invalidateExpiredSession] when [currentUser] is null,
+  ///   which is the one condition that unambiguously means the session is gone.
   static Future<String> _getToken() async {
     final user = FirebaseAuth.instance.currentUser;
     if (user == null) {
+      await invalidateExpiredSession();
       throw StateError(expiredSessionMessage);
     }
-    final cachedToken = await user.getIdToken();
-    if ((cachedToken ?? '').trim().isNotEmpty) {
-      return requireAuthenticatedSessionToken(cachedToken);
-    }
+    try {
+      final tokenResult = await user.getIdTokenResult();
+      final cachedToken = tokenResult.token;
+      final shouldRefresh =
+          (cachedToken ?? '').trim().isEmpty ||
+          shouldForceSessionTokenRefresh(tokenResult.expirationTime);
+      if (!shouldRefresh) {
+        return requireAuthenticatedSessionToken(cachedToken);
+      }
 
-    final refreshedToken = await user.getIdToken(true);
-    return requireAuthenticatedSessionToken(refreshedToken);
+      try {
+        final refreshedToken = await user.getIdToken(true);
+        return requireAuthenticatedSessionToken(refreshedToken);
+      } on SocketException {
+        // Transient network failure — fall back to the cached token if it
+        // still exists so we do not log the user out unnecessarily.
+        if ((cachedToken ?? '').trim().isNotEmpty) {
+          return requireAuthenticatedSessionToken(cachedToken);
+        }
+        rethrow;
+      } on TimeoutException {
+        if ((cachedToken ?? '').trim().isNotEmpty) {
+          return requireAuthenticatedSessionToken(cachedToken);
+        }
+        rethrow;
+      } catch (_) {
+        // For any other refresh failure also try the cached token first.
+        if ((cachedToken ?? '').trim().isNotEmpty) {
+          return requireAuthenticatedSessionToken(cachedToken);
+        }
+        rethrow;
+      }
+    } on StateError {
+      // requireAuthenticatedSessionToken threw — token is genuinely missing.
+      // Do NOT call invalidateExpiredSession here; the caller's
+      // _handleUnauthorizedResponse will deal with it after a retry.
+      rethrow;
+    }
+  }
+
+  /// Force-refresh the token without falling back to the cache.
+  ///
+  /// Used by the 401-retry path to get a guaranteed-fresh token.
+  static Future<String?> _forceRefreshToken() async {
+    final user = FirebaseAuth.instance.currentUser;
+    if (user == null) return null;
+    try {
+      return await user.getIdToken(true);
+    } catch (_) {
+      return null;
+    }
   }
 
   static String _extractErrorMessage(http.Response response) {
@@ -50,15 +108,77 @@ class ApiClient {
     return response.body;
   }
 
+  /// Handle a 401 response with a single token-refresh retry.
+  ///
+  /// Strategy:
+  /// 1. If the response is not 401 → do nothing.
+  /// 2. Force-refresh the Firebase ID token.
+  /// 3. Retry the original request with the new token.
+  /// 4a. Retry succeeds (non-401) → return the new response.
+  /// 4b. Retry is also 401 → the session is genuinely invalid;
+  ///     call [invalidateExpiredSession] and throw.
+  /// 4c. No token after refresh (user signed out) → same as 4b.
+  ///
+  /// This prevents the app from logging the user out when the backend
+  /// returns a transient 401 (e.g. Redis unavailable, network partition
+  /// between backend and Firebase token endpoint).
+  static Future<http.Response> _handleUnauthorizedResponse(
+    http.Response response, {
+    required Future<http.Response> Function(String freshToken) retry,
+  }) async {
+    if (response.statusCode != 401) return response;
+
+    final freshToken = await _forceRefreshToken();
+    if (freshToken == null || freshToken.trim().isEmpty) {
+      // Could not get a fresh token — session is gone.
+      await invalidateExpiredSession();
+      throw StateError(expiredSessionMessage);
+    }
+
+    final retried = await retry(freshToken);
+    if (retried.statusCode == 401) {
+      // Still 401 after a fresh token → genuinely invalid session.
+      await invalidateExpiredSession();
+      throw StateError(expiredSessionMessage);
+    }
+    return retried;
+  }
+
+  // ---------------------------------------------------------------------------
+  // Legacy helper kept for callers that do not yet use _handleUnauthorizedResponse.
+  // It now uses clearFirebaseSession (does not clear Google Sign-In) when a
+  // retry is not possible (e.g. multipart / presigned-URL requests).
+  // ---------------------------------------------------------------------------
+  static Future<void> _throwIfUnauthorizedResponse(
+    http.Response response,
+  ) async {
+    if (response.statusCode != 401) return;
+    // For callers that cannot easily supply a retry callback we still
+    // clear the Firebase session, but we do NOT clear the Google account
+    // so the user can silently re-authenticate on the login screen.
+    await clearFirebaseSession();
+    throw StateError(expiredSessionMessage);
+  }
+
   /// GET /v1/me
   static Future<Map<String, dynamic>> getMe() async {
     final token = await _getToken();
-    final response = await http.get(
+    http.Response response = await http.get(
       Uri.parse('$apiBaseUrl/v1/me'),
       headers: {
         'Authorization': 'Bearer $token',
         'Content-Type': 'application/json',
       },
+    );
+    response = await _handleUnauthorizedResponse(
+      response,
+      retry: (freshToken) => http.get(
+        Uri.parse('$apiBaseUrl/v1/me'),
+        headers: {
+          'Authorization': 'Bearer $freshToken',
+          'Content-Type': 'application/json',
+        },
+      ),
     );
 
     if (response.statusCode == 200) {
@@ -73,13 +193,24 @@ class ApiClient {
     Map<String, dynamic> payload,
   ) async {
     final token = await _getToken();
-    final response = await http.patch(
+    http.Response response = await http.patch(
       Uri.parse('$apiBaseUrl/v1/me'),
       headers: {
         'Authorization': 'Bearer $token',
         'Content-Type': 'application/json',
       },
       body: jsonEncode(payload),
+    );
+    response = await _handleUnauthorizedResponse(
+      response,
+      retry: (freshToken) => http.patch(
+        Uri.parse('$apiBaseUrl/v1/me'),
+        headers: {
+          'Authorization': 'Bearer $freshToken',
+          'Content-Type': 'application/json',
+        },
+        body: jsonEncode(payload),
+      ),
     );
 
     if (response.statusCode == 200) {
@@ -343,6 +474,7 @@ class ApiClient {
       ),
       operationName: 'Create receipt',
     );
+    await _throwIfUnauthorizedResponse(response);
 
     if (response.statusCode == 201) {
       return jsonDecode(response.body) as Map<String, dynamic>;
@@ -360,11 +492,7 @@ class ApiClient {
     required Map<String, String> requiredHeaders,
   }) async {
     final response = await runWithCoreRequestTimeout(
-      http.put(
-        Uri.parse(uploadUrl),
-        headers: requiredHeaders,
-        body: fileBytes,
-      ),
+      http.put(Uri.parse(uploadUrl), headers: requiredHeaders, body: fileBytes),
       operationName: 'Upload receipt',
       timeout: coreUploadRequestTimeout,
     );
@@ -387,6 +515,7 @@ class ApiClient {
       ),
       operationName: 'Confirm receipt upload',
     );
+    await _throwIfUnauthorizedResponse(response);
 
     if (response.statusCode == 200) {
       return jsonDecode(response.body) as Map<String, dynamic>;
@@ -426,6 +555,7 @@ class ApiClient {
       ),
       operationName: 'Poll receipt status',
     );
+    await _throwIfUnauthorizedResponse(response);
 
     if (response.statusCode == 200) {
       return jsonDecode(response.body) as Map<String, dynamic>;
@@ -448,6 +578,7 @@ class ApiClient {
         'Content-Type': 'application/json',
       },
     );
+    await _throwIfUnauthorizedResponse(response);
 
     if (response.statusCode == 200) {
       return jsonDecode(response.body) as Map<String, dynamic>;
@@ -492,6 +623,7 @@ class ApiClient {
       ),
       operationName: 'Create transaction',
     );
+    await _throwIfUnauthorizedResponse(response);
 
     if (response.statusCode == 201) {
       return jsonDecode(response.body) as Map<String, dynamic>;
@@ -531,6 +663,7 @@ class ApiClient {
         'Content-Type': 'application/json',
       },
     );
+    await _throwIfUnauthorizedResponse(response);
 
     if (response.statusCode == 200) {
       return jsonDecode(response.body) as Map<String, dynamic>;
@@ -593,6 +726,7 @@ class ApiClient {
       ),
       operationName: 'Update transaction',
     );
+    await _throwIfUnauthorizedResponse(response);
 
     if (response.statusCode == 200) {
       return jsonDecode(response.body) as Map<String, dynamic>;
@@ -678,6 +812,7 @@ class ApiClient {
           },
         )
         .timeout(const Duration(seconds: 30));
+    await _throwIfUnauthorizedResponse(response);
 
     if (response.statusCode == 200) {
       return jsonDecode(response.body) as List<dynamic>;
@@ -737,6 +872,7 @@ class ApiClient {
         'Content-Type': 'application/json',
       },
     );
+    await _throwIfUnauthorizedResponse(response);
 
     if (response.statusCode == 200) {
       return jsonDecode(response.body) as Map<String, dynamic>;
@@ -789,6 +925,7 @@ class ApiClient {
         'Content-Type': 'application/json',
       },
     );
+    await _throwIfUnauthorizedResponse(response);
 
     if (response.statusCode == 200) {
       return jsonDecode(response.body) as Map<String, dynamic>;
@@ -974,6 +1111,7 @@ class ApiClient {
         'Content-Type': 'application/json',
       },
     );
+    await _throwIfUnauthorizedResponse(response);
     if (response.statusCode == 200) {
       return jsonDecode(response.body) as Map<String, dynamic>;
     }
@@ -1001,6 +1139,7 @@ class ApiClient {
         'category_limits': categoryLimits,
       }),
     );
+    await _throwIfUnauthorizedResponse(response);
     if (response.statusCode == 200) {
       return jsonDecode(response.body) as Map<String, dynamic>;
     }
@@ -1019,6 +1158,7 @@ class ApiClient {
         'Content-Type': 'application/json',
       },
     );
+    await _throwIfUnauthorizedResponse(response);
     if (response.statusCode == 200) {
       return jsonDecode(response.body) as List<dynamic>;
     }
@@ -1032,6 +1172,7 @@ class ApiClient {
     required String name,
     required double amount,
     required String currency,
+    required String recurrence,
     required DateTime firstDueDate,
     int remindDaysBefore = 3,
     bool isActive = true,
@@ -1047,11 +1188,13 @@ class ApiClient {
         'name': name.trim(),
         'amount': amount,
         'currency': currency.toUpperCase(),
+        'recurrence': recurrence.trim().toLowerCase(),
         'first_due_date': _dateOnlyIso(firstDueDate),
         'remind_days_before': remindDaysBefore,
         'is_active': isActive,
       }),
     );
+    await _throwIfUnauthorizedResponse(response);
     if (response.statusCode == 201) {
       return jsonDecode(response.body) as Map<String, dynamic>;
     }
@@ -1074,12 +1217,54 @@ class ApiClient {
       },
       body: jsonEncode({'due_date': _dateOnlyIso(dueDate)}),
     );
+    await _throwIfUnauthorizedResponse(response);
     if (response.statusCode == 200) {
       return jsonDecode(response.body) as Map<String, dynamic>;
     }
     throw Exception(
       'Failed to mark bill reminder as paid: ${response.statusCode} ${_extractErrorMessage(response)}',
     );
+  }
+
+  /// PATCH /v1/planning/bills/{id}/skip
+  static Future<Map<String, dynamic>> skipBillReminder({
+    required String billId,
+    required DateTime dueDate,
+  }) async {
+    final token = await _getToken();
+    final response = await http.patch(
+      Uri.parse('$apiBaseUrl/v1/planning/bills/$billId/skip'),
+      headers: {
+        'Authorization': 'Bearer $token',
+        'Content-Type': 'application/json',
+      },
+      body: jsonEncode({'due_date': _dateOnlyIso(dueDate)}),
+    );
+    await _throwIfUnauthorizedResponse(response);
+    if (response.statusCode == 200) {
+      return jsonDecode(response.body) as Map<String, dynamic>;
+    }
+    throw Exception(
+      'Failed to skip bill reminder: ${response.statusCode} ${_extractErrorMessage(response)}',
+    );
+  }
+
+  /// DELETE /v1/planning/bills/{id}
+  static Future<void> deleteBillReminder(String billId) async {
+    final token = await _getToken();
+    final response = await http.delete(
+      Uri.parse('$apiBaseUrl/v1/planning/bills/$billId'),
+      headers: {
+        'Authorization': 'Bearer $token',
+        'Content-Type': 'application/json',
+      },
+    );
+    await _throwIfUnauthorizedResponse(response);
+    if (response.statusCode != 204) {
+      throw Exception(
+        'Failed to delete bill reminder: ${response.statusCode} ${_extractErrorMessage(response)}',
+      );
+    }
   }
 
   /// GET /v1/categories
@@ -1095,6 +1280,7 @@ class ApiClient {
         'Content-Type': 'application/json',
       },
     );
+    await _throwIfUnauthorizedResponse(response);
     if (response.statusCode == 200) {
       return jsonDecode(response.body) as List<dynamic>;
     } else {
@@ -1229,6 +1415,7 @@ class ApiClient {
         'Content-Type': 'application/json',
       },
     );
+    await _throwIfUnauthorizedResponse(response);
     if (response.statusCode == 200) {
       return jsonDecode(response.body) as List<dynamic>;
     } else {
@@ -1292,6 +1479,7 @@ class ApiClient {
       },
       body: jsonEncode({'transaction_id': transactionId, 'label_id': labelId}),
     );
+    await _throwIfUnauthorizedResponse(response);
     if (response.statusCode == 201 || response.statusCode == 200) {
       return jsonDecode(response.body) as Map<String, dynamic>;
     } else {
@@ -1315,6 +1503,7 @@ class ApiClient {
       },
       body: jsonEncode({'transaction_id': transactionId, 'label_id': labelId}),
     );
+    await _throwIfUnauthorizedResponse(response);
     if (response.statusCode == 200) {
       return jsonDecode(response.body) as Map<String, dynamic>;
     } else {
@@ -1423,6 +1612,7 @@ class ApiClient {
       operationName: 'Load subscription',
       timeout: coreBillingRequestTimeout,
     );
+    await _throwIfUnauthorizedResponse(response);
 
     if (response.statusCode == 200) {
       return jsonDecode(response.body) as Map<String, dynamic>;
@@ -1447,6 +1637,7 @@ class ApiClient {
       operationName: 'Load entitlements',
       timeout: coreBillingRequestTimeout,
     );
+    await _throwIfUnauthorizedResponse(response);
 
     if (response.statusCode == 200) {
       return jsonDecode(response.body) as Map<String, dynamic>;
@@ -1474,6 +1665,7 @@ class ApiClient {
         operationName: 'Sync subscription',
         timeout: coreBillingRequestTimeout,
       );
+      await _throwIfUnauthorizedResponse(response);
 
       if (response.statusCode == 200) {
         return jsonDecode(response.body) as Map<String, dynamic>;

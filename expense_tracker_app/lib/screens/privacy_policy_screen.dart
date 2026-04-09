@@ -69,19 +69,19 @@ class PrivacyPolicyScreen extends StatelessWidget {
       title: '6. Cookies and Tracking',
       body:
           'We use cookies and similar technologies to improve your experience, analyze usage, and personalize content. You can control cookie preferences through your device settings.',
-      bullets: const [],
+      bullets: [],
     ),
     _PolicySection(
       title: '7. Children\'s Privacy',
       body:
           'Our service is not intended for users under 18 years of age. We do not knowingly collect personal information from children.',
-      bullets: const [],
+      bullets: [],
     ),
     _PolicySection(
       title: '8. Changes to This Policy',
       body:
           'We may update this Privacy Policy from time to time. We will notify you of any significant changes via email or through the app.',
-      bullets: const [],
+      bullets: [],
     ),
     _PolicySection(
       title: '9. Contact Us',
@@ -113,17 +113,7 @@ class PrivacyPolicyScreen extends StatelessWidget {
               Container(
                 width: double.infinity,
                 padding: const EdgeInsets.all(18),
-                decoration: BoxDecoration(
-                  color: const Color(0xFF1F1F20),
-                  borderRadius: BorderRadius.circular(18),
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.black.withAlpha(18),
-                      blurRadius: 18,
-                      offset: const Offset(0, 6),
-                    ),
-                  ],
-                ),
+                decoration: ShellStyles.heroCardDecoration(context, radius: 18),
                 child: Row(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
@@ -132,20 +122,26 @@ class PrivacyPolicyScreen extends StatelessWidget {
                       height: 42,
                       alignment: Alignment.center,
                       decoration: BoxDecoration(
-                        color: Colors.white.withAlpha(10),
+                        color: ShellStyles.heroBadgeSurface(context),
                         borderRadius: BorderRadius.circular(12),
+                        border: Border.all(
+                          color: ShellStyles.heroBadgeBorder(context),
+                        ),
                       ),
-                      child: const Icon(AppIcons.privacy, color: Colors.white),
+                      child: Icon(
+                        AppIcons.privacy,
+                        color: ShellStyles.heroBadgeIcon(context),
+                      ),
                     ),
                     const SizedBox(width: 12),
-                    const Expanded(
+                    Expanded(
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
                             'Your Privacy Matters',
                             style: TextStyle(
-                              color: Colors.white,
+                              color: ShellStyles.heroTextPrimary(context),
                               fontSize: 18,
                               fontWeight: FontWeight.w700,
                             ),
@@ -154,7 +150,7 @@ class PrivacyPolicyScreen extends StatelessWidget {
                           Text(
                             'We are committed to protecting your personal information and your right to privacy. This Privacy Policy explains how we collect, use, and protect your data.',
                             style: TextStyle(
-                              color: Color(0xFFD4D4D6),
+                              color: ShellStyles.heroTextSecondary(context),
                               fontSize: 12.5,
                               height: 1.45,
                             ),

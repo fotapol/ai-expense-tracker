@@ -19,8 +19,7 @@ class BillReminderNotificationService {
 
   static const String _channelId = 'bill_reminders';
   static const String _channelName = 'Bill Reminders';
-  static const String _channelDescription =
-      'Upcoming and due monthly bill reminders';
+  static const String _channelDescription = 'Upcoming and due bill reminders';
   static const String _payloadPrefix = 'bill_reminder|';
 
   final FlutterLocalNotificationsPlugin _plugin =
@@ -83,6 +82,75 @@ class BillReminderNotificationService {
           IOSFlutterLocalNotificationsPlugin
         >();
     await iosPlugin?.requestPermissions(alert: true, badge: true, sound: true);
+  }
+
+  Future<bool> ensurePermissions() async {
+    if (kIsWeb) return false;
+    await initialize();
+    switch (defaultTargetPlatform) {
+      case TargetPlatform.android:
+        final androidPlugin = _plugin
+            .resolvePlatformSpecificImplementation<
+              AndroidFlutterLocalNotificationsPlugin
+            >();
+        await androidPlugin?.requestNotificationsPermission();
+        return await androidPlugin?.areNotificationsEnabled() ?? true;
+      case TargetPlatform.iOS:
+        final iosPlugin = _plugin
+            .resolvePlatformSpecificImplementation<
+              IOSFlutterLocalNotificationsPlugin
+            >();
+        await iosPlugin?.requestPermissions(
+          alert: true,
+          badge: true,
+          sound: true,
+        );
+        return (await iosPlugin?.checkPermissions())?.isEnabled ?? false;
+      case TargetPlatform.macOS:
+        final macOsPlugin = _plugin
+            .resolvePlatformSpecificImplementation<
+              MacOSFlutterLocalNotificationsPlugin
+            >();
+        await macOsPlugin?.requestPermissions(
+          alert: true,
+          badge: true,
+          sound: true,
+        );
+        return (await macOsPlugin?.checkPermissions())?.isEnabled ?? false;
+      case TargetPlatform.windows:
+      case TargetPlatform.linux:
+      case TargetPlatform.fuchsia:
+        return true;
+    }
+  }
+
+  Future<bool> areNotificationsEnabled() async {
+    if (kIsWeb) return false;
+    await initialize();
+    switch (defaultTargetPlatform) {
+      case TargetPlatform.android:
+        final androidPlugin = _plugin
+            .resolvePlatformSpecificImplementation<
+              AndroidFlutterLocalNotificationsPlugin
+            >();
+        return await androidPlugin?.areNotificationsEnabled() ?? true;
+      case TargetPlatform.iOS:
+        final iosPlugin = _plugin
+            .resolvePlatformSpecificImplementation<
+              IOSFlutterLocalNotificationsPlugin
+            >();
+        return (await iosPlugin?.checkPermissions())?.isEnabled ?? false;
+      case TargetPlatform.macOS:
+        final macOsPlugin = _plugin
+            .resolvePlatformSpecificImplementation<
+              MacOSFlutterLocalNotificationsPlugin
+            >();
+        return (await macOsPlugin?.checkPermissions())?.isEnabled ?? false;
+      case TargetPlatform.windows:
+      case TargetPlatform.linux:
+      case TargetPlatform.fuchsia:
+        return true;
+    }
   }
 
   Future<void> handleAuthStateChanged(User? user) async {

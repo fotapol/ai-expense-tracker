@@ -9,7 +9,7 @@ class SettingsDetailScaffold extends StatelessWidget {
     required this.title,
     required this.body,
     this.actions,
-    this.showScanAction = true,
+    this.showScanAction = false,
   });
 
   final String title;
@@ -43,8 +43,8 @@ class SettingsDetailScaffold extends StatelessWidget {
       floatingActionButton: showScanAction
           ? FloatingActionButton(
               onPressed: () => _openScan(context),
-              backgroundColor: ShellStyles.textPrimary(context),
-              foregroundColor: ShellStyles.surface(context),
+              backgroundColor: ShellStyles.heroSurface(context),
+              foregroundColor: ShellStyles.textPrimary(context),
               shape: const CircleBorder(),
               child: const Icon(AppIcons.scanFab),
             )

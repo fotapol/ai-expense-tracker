@@ -2,14 +2,14 @@ import datetime as dt
 import uuid
 from decimal import Decimal
 
-from sqlalchemy import CHAR, Column, Date, Index, Numeric, String
+from sqlalchemy import CHAR, Column, Date, DateTime, Index, Numeric, String
 from sqlmodel import Field
 
 from app.models.shared.timestamps import TimestampedModel
 
 
 class BillReminder(TimestampedModel, table=True):
-    """Per-user recurring monthly bill reminder."""
+    """Per-user recurring bill reminder."""
 
     __tablename__ = "bill_reminders"
     __table_args__ = (
@@ -25,10 +25,27 @@ class BillReminder(TimestampedModel, table=True):
         default="EUR",
         sa_column=Column(CHAR(3), nullable=False, default="EUR"),
     )
+    recurrence: str = Field(
+        default="monthly",
+        sa_column=Column(
+            String(16),
+            nullable=False,
+            default="monthly",
+            server_default="monthly",
+        ),
+    )
     first_due_date: dt.date = Field(
         sa_column=Column(Date(), nullable=False),
     )
     last_paid_due_date: dt.date | None = Field(
+        default=None,
+        sa_column=Column(Date(), nullable=True),
+    )
+    last_paid_at: dt.datetime | None = Field(
+        default=None,
+        sa_column=Column(DateTime(timezone=True), nullable=True),
+    )
+    last_skipped_due_date: dt.date | None = Field(
         default=None,
         sa_column=Column(Date(), nullable=True),
     )

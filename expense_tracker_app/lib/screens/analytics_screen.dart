@@ -3,9 +3,15 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 import '../core/analytics_filters.dart';
 import '../core/api_client.dart';
+import '../core/app_navigation.dart';
+import '../core/launch_error_copy.dart';
 import '../core/redesign_system.dart';
+import '../core/session_invalidation.dart';
+import '../core/subscription_confirmation.dart';
 import '../core/taxonomy_localization.dart';
 import '../l10n/app_localizations.dart';
+import '../widgets/app_tab_footer.dart';
+import '../widgets/analytics_shared.dart';
 import '../widgets/filter_bottom_sheet.dart';
 // TODO(household): re-import analytics_household_tab when household feature ships
 import 'analytics_overview_tab.dart';
@@ -29,6 +35,7 @@ class AnalyticsScreen extends StatefulWidget {
 class _AnalyticsScreenState extends State<AnalyticsScreen> {
   static const int _collapsedActiveFilterLimit = 4;
 
+  late final PageController _pageController;
   bool _isLoading = true;
   String? _error;
   AnalyticsSection _selectedSection = AnalyticsSection.overview;
@@ -41,7 +48,37 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
   @override
   void initState() {
     super.initState();
+    _pageController = PageController(initialPage: _selectedSection.index);
     _loadShellState();
+  }
+
+  @override
+  void dispose() {
+    _pageController.dispose();
+    super.dispose();
+  }
+
+  Future<void> _refreshFeatureCodes() async {
+    try {
+      final entitlements = await ApiClient.getMeEntitlements();
+      final mergedFeatureCodes = await featureCodesWithOptimisticPremiumAccess(
+        (entitlements['feature_codes'] as List<dynamic>? ?? const <dynamic>[])
+            .map((code) => code.toString()),
+      );
+      if (!mounted) return;
+      setState(() {
+        _featureCodes = mergedFeatureCodes;
+      });
+    } catch (error) {
+      if (await maybeHandleExpiredSession(error)) return;
+      final mergedFeatureCodes = await featureCodesWithOptimisticPremiumAccess(
+        const <String>{},
+      );
+      if (!mounted) return;
+      setState(() {
+        _featureCodes = mergedFeatureCodes;
+      });
+    }
   }
 
   Future<void> _loadShellState() async {
@@ -90,12 +127,14 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
 
       try {
         final entitlements = await ApiClient.getMeEntitlements();
-        featureCodes =
-            (entitlements['feature_codes'] as List<dynamic>? ??
-                    const <dynamic>[])
-                .map((code) => code.toString())
-                .toSet();
+        featureCodes = await featureCodesWithOptimisticPremiumAccess(
+          (entitlements['feature_codes'] as List<dynamic>? ?? const <dynamic>[])
+              .map((code) => code.toString()),
+        );
       } catch (_) {}
+      featureCodes = await featureCodesWithOptimisticPremiumAccess(
+        featureCodes,
+      );
 
       // TODO(household): restore getCurrentHousehold() call when household feature ships
 
@@ -116,10 +155,18 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
         _featureCodes = featureCodes;
         _isLoading = false;
       });
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (!mounted || !_pageController.hasClients) return;
+        _pageController.jumpToPage(_selectedSection.index);
+      });
     } catch (error) {
+      if (await maybeHandleExpiredSession(error)) return;
       if (!mounted) return;
       setState(() {
-        _error = error.toString();
+        _error = friendlyLaunchErrorMessage(
+          error,
+          fallback: 'Analytics could not load right now. Please try again.',
+        );
         _isLoading = false;
       });
     }
@@ -168,7 +215,28 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
   void _selectSection(AnalyticsSection section) {
     if (section == _selectedSection) return;
     setState(() => _selectedSection = section);
+    if (_pageController.hasClients) {
+      _pageController.animateToPage(
+        section.index,
+        duration: const Duration(milliseconds: 220),
+        curve: Curves.easeOutCubic,
+      );
+    }
     _saveSection();
+  }
+
+  void _handlePageChanged(int index) {
+    final section = AnalyticsSection.values[index];
+    if (section == _selectedSection) return;
+    setState(() => _selectedSection = section);
+    _saveSection();
+  }
+
+  void _openRootTab(int index) {
+    selectRootTab(index);
+    if (Navigator.of(context).canPop()) {
+      Navigator.of(context).popUntil((route) => route.isFirst);
+    }
   }
 
   Widget _buildSectionChip(AnalyticsSection section) {
@@ -182,13 +250,15 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
         decoration: BoxDecoration(
           color: isSelected
-              ? ShellStyles.textPrimary(context)
+              ? ShellStyles.heroSurface(context)
               : Colors.transparent,
           borderRadius: BorderRadius.circular(16),
           boxShadow: isSelected
               ? [
                   BoxShadow(
-                    color: Colors.black.withAlpha(12),
+                    color: Colors.black.withAlpha(
+                      ShellStyles.isDark(context) ? 20 : 12,
+                    ),
                     blurRadius: 12,
                     offset: const Offset(0, 6),
                   ),
@@ -200,7 +270,7 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
           textAlign: TextAlign.center,
           style: TextStyle(
             color: isSelected
-                ? ShellStyles.surface(context)
+                ? ShellStyles.textPrimary(context)
                 : ShellStyles.textMuted(context),
             fontSize: 14,
             fontWeight: isSelected ? FontWeight.w700 : FontWeight.w600,
@@ -239,7 +309,7 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
       ),
       materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
       visualDensity: VisualDensity.compact,
-      backgroundColor: ShellStyles.surface(context),
+      backgroundColor: ShellStyles.elevatedSurface(context),
       side: BorderSide(color: ShellStyles.border(context)),
       deleteIconColor: ShellStyles.textMuted(context),
       onDeleted: onDeleted,
@@ -317,7 +387,7 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
       padding: const EdgeInsets.all(16),
       decoration: ShellStyles.cardDecoration(
         context,
-        radius: 22,
+        radius: 20,
         color: ShellStyles.surfaceAlt(context),
         withShadow: false,
       ),
@@ -371,7 +441,7 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
                   visualDensity: VisualDensity.compact,
                   padding: const EdgeInsets.symmetric(
                     horizontal: 14,
-                    vertical: 10,
+                    vertical: 9,
                   ),
                 ),
                 child: Text(
@@ -396,7 +466,7 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
       width: double.infinity,
       padding: const EdgeInsets.all(8),
       decoration: BoxDecoration(
-        color: ShellStyles.surfaceAlt(context),
+        color: ShellStyles.sectionBackground(context),
         borderRadius: BorderRadius.circular(20),
         border: Border.all(color: ShellStyles.border(context)),
       ),
@@ -411,6 +481,36 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
     );
   }
 
+  Widget _buildFilterAction() {
+    return InkWell(
+      borderRadius: BorderRadius.circular(18),
+      onTap: _openFilters,
+      child: Ink(
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+        decoration: BoxDecoration(
+          color: ShellStyles.elevatedSurface(context),
+          borderRadius: BorderRadius.circular(18),
+          border: Border.all(color: ShellStyles.border(context)),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(Icons.tune, size: 16, color: ShellStyles.textPrimary(context)),
+            const SizedBox(width: 8),
+            Text(
+              context.tr('filters_title'),
+              style: TextStyle(
+                color: ShellStyles.textPrimary(context),
+                fontSize: 12,
+                fontWeight: FontWeight.w700,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -420,55 +520,44 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
         centerTitle: false,
         actions: [
           Padding(
-            padding: const EdgeInsets.only(right: 8),
-            child: IconButton(
-              onPressed: _openFilters,
-              icon: Badge(
-                isLabelVisible: _filters.activeFilterCount > 0,
-                label: Text('${_filters.activeFilterCount}'),
-                child: const Icon(Icons.tune),
-              ),
-            ),
+            padding: const EdgeInsets.only(right: 20),
+            child: Center(child: _buildFilterAction()),
           ),
         ],
       ),
       body: _isLoading
-          ? const Center(child: CircularProgressIndicator())
+          ? const AnalyticsLoadingState()
           : _error != null
-          ? Center(
-              child: Padding(
-                padding: const EdgeInsets.all(24),
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Icon(
-                      Icons.error_outline,
-                      color: ShellColors.softRed,
-                      size: 42,
-                    ),
-                    const SizedBox(height: 12),
-                    Text(
-                      _error ?? context.tr('common_error'),
-                      textAlign: TextAlign.center,
-                    ),
-                    const SizedBox(height: 16),
-                    FilledButton(
-                      onPressed: _loadShellState,
-                      child: Text(context.tr('common_retry')),
-                    ),
-                  ],
-                ),
-              ),
+          ? AnalyticsErrorState(
+              message: _error ?? context.tr('common_error'),
+              onRetry: _loadShellState,
             )
           : Column(
               children: [
-                Padding(
-                  padding: const EdgeInsets.fromLTRB(20, 12, 20, 12),
-                  child: _buildSectionSelector(),
+                Container(
+                  width: double.infinity,
+                  padding: const EdgeInsets.fromLTRB(20, 12, 20, 10),
+                  decoration: BoxDecoration(
+                    color: ShellStyles.sectionBackground(context),
+                    border: Border(
+                      bottom: BorderSide(color: ShellStyles.divider(context)),
+                    ),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withAlpha(
+                          ShellStyles.isDark(context) ? 18 : 6,
+                        ),
+                        blurRadius: 10,
+                        offset: const Offset(0, 4),
+                      ),
+                    ],
+                  ),
+                  child: Column(children: [_buildSectionSelector()]),
                 ),
                 Expanded(
-                  child: IndexedStack(
-                    index: _selectedSection.index,
+                  child: PageView(
+                    controller: _pageController,
+                    onPageChanged: _handlePageChanged,
                     children: [
                       // TODO(household): restore currentHousehold/onHouseholdUpdated
                       // params to AnalyticsOverviewTab when household feature ships
@@ -487,6 +576,7 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
                       AnalyticsTab(
                         filters: _filters,
                         featureCodes: _featureCodes,
+                        onPremiumStatusChanged: _refreshFeatureCodes,
                         activeFiltersBuilder: _filters.hasScopedFilters
                             ? _buildActiveFiltersBar
                             : null,
@@ -497,6 +587,10 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
                 ),
               ],
             ),
+      bottomNavigationBar: AppTabFooter(
+        selectedIndex: 1,
+        onSelected: _openRootTab,
+      ),
     );
   }
 }
