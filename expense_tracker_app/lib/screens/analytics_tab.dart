@@ -401,49 +401,52 @@ class _AnalyticsTabState extends State<AnalyticsTab>
             subtitle: 'The donut shows each group’s share of total spend.',
             trailing: _buildBreakdownToggle(),
           ),
-          const SizedBox(height: 16),
-          SizedBox(
-            height: 228,
-            child: Stack(
-              alignment: Alignment.center,
-              children: [
-                PieChart(
-                  PieChartData(
-                    sectionsSpace: 3,
-                    centerSpaceRadius: 70,
-                    sections: sections,
+          const SizedBox(height: 20),
+          Padding(
+            padding: const EdgeInsets.symmetric(vertical: 10),
+            child: SizedBox(
+              height: 236,
+              child: Stack(
+                alignment: Alignment.center,
+                children: [
+                  PieChart(
+                    PieChartData(
+                      sectionsSpace: 3,
+                      centerSpaceRadius: 70,
+                      sections: sections,
+                    ),
                   ),
-                ),
-                Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Text(
-                      context.tr('analytics_total_spent').toUpperCase(),
-                      style: TextStyle(
-                        color: ShellStyles.textMuted(context),
-                        fontSize: 11,
-                        fontWeight: FontWeight.w700,
-                        letterSpacing: 0.6,
+                  Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text(
+                        context.tr('analytics_total_spent').toUpperCase(),
+                        style: TextStyle(
+                          color: ShellStyles.textMuted(context),
+                          fontSize: 11,
+                          fontWeight: FontWeight.w700,
+                          letterSpacing: 0.6,
+                        ),
                       ),
-                    ),
-                    const SizedBox(height: 4),
-                    Text(
-                      hasData
-                          ? formatMoney(currency, totalAmount)
-                          : context.tr('analytics_no_data'),
-                      textAlign: TextAlign.center,
-                      style: TextStyle(
-                        color: ShellStyles.textPrimary(context),
-                        fontSize: hasData ? 18 : 20,
-                        fontWeight: FontWeight.w800,
+                      const SizedBox(height: 4),
+                      Text(
+                        hasData
+                            ? formatMoney(currency, totalAmount)
+                            : context.tr('analytics_no_data'),
+                        textAlign: TextAlign.center,
+                        style: TextStyle(
+                          color: ShellStyles.textPrimary(context),
+                          fontSize: hasData ? 18 : 20,
+                          fontWeight: FontWeight.w800,
+                        ),
                       ),
-                    ),
-                  ],
-                ),
-              ],
+                    ],
+                  ),
+                ],
+              ),
             ),
           ),
-          const SizedBox(height: 22),
+          const SizedBox(height: 26),
           if (!hasData)
             Text(
               context.tr(
