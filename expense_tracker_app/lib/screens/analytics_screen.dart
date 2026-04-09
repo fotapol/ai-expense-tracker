@@ -250,13 +250,15 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
         decoration: BoxDecoration(
           color: isSelected
-              ? ShellStyles.textPrimary(context)
+              ? ShellStyles.heroSurface(context)
               : Colors.transparent,
           borderRadius: BorderRadius.circular(16),
           boxShadow: isSelected
               ? [
                   BoxShadow(
-                    color: Colors.black.withAlpha(12),
+                    color: Colors.black.withAlpha(
+                      ShellStyles.isDark(context) ? 20 : 12,
+                    ),
                     blurRadius: 12,
                     offset: const Offset(0, 6),
                   ),
@@ -268,7 +270,7 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
           textAlign: TextAlign.center,
           style: TextStyle(
             color: isSelected
-                ? ShellStyles.surface(context)
+                ? ShellStyles.textPrimary(context)
                 : ShellStyles.textMuted(context),
             fontSize: 14,
             fontWeight: isSelected ? FontWeight.w700 : FontWeight.w600,
@@ -307,7 +309,7 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
       ),
       materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
       visualDensity: VisualDensity.compact,
-      backgroundColor: ShellStyles.surface(context),
+      backgroundColor: ShellStyles.elevatedSurface(context),
       side: BorderSide(color: ShellStyles.border(context)),
       deleteIconColor: ShellStyles.textMuted(context),
       onDeleted: onDeleted,
@@ -464,7 +466,7 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
       width: double.infinity,
       padding: const EdgeInsets.all(8),
       decoration: BoxDecoration(
-        color: ShellStyles.surfaceAlt(context),
+        color: ShellStyles.sectionBackground(context),
         borderRadius: BorderRadius.circular(20),
         border: Border.all(color: ShellStyles.border(context)),
       ),
@@ -486,7 +488,7 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
       child: Ink(
         padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
         decoration: BoxDecoration(
-          color: ShellStyles.surfaceAlt(context),
+          color: ShellStyles.elevatedSurface(context),
           borderRadius: BorderRadius.circular(18),
           border: Border.all(color: ShellStyles.border(context)),
         ),
@@ -536,15 +538,17 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
                   width: double.infinity,
                   padding: const EdgeInsets.fromLTRB(20, 12, 20, 10),
                   decoration: BoxDecoration(
-                    color: ShellStyles.background(context),
+                    color: ShellStyles.sectionBackground(context),
                     border: Border(
-                      bottom: BorderSide(color: ShellStyles.border(context)),
+                      bottom: BorderSide(color: ShellStyles.divider(context)),
                     ),
                     boxShadow: [
                       BoxShadow(
-                        color: Colors.black.withAlpha(6),
+                        color: Colors.black.withAlpha(
+                          ShellStyles.isDark(context) ? 18 : 6,
+                        ),
                         blurRadius: 10,
-                        offset: const Offset(0, 6),
+                        offset: const Offset(0, 4),
                       ),
                     ],
                   ),
