@@ -28,6 +28,11 @@ class AppSettings:
     """General application settings read from environment."""
 
     PUBLIC_APP_BASE_URL: str = os.environ.get("PUBLIC_APP_BASE_URL", "").strip().rstrip("/")
+    APP_ENV: str = os.environ.get("APP_ENV", "development").strip().lower()
+
+    @property
+    def is_production(self) -> bool:
+        return self.APP_ENV == "production"
 
 
 s3_settings = S3Settings()
