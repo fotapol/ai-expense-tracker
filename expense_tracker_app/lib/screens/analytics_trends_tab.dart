@@ -419,8 +419,8 @@ class _AnalyticsTrendsTabState extends State<AnalyticsTrendsTab> {
                       ? context.tr('analytics_no_data')
                       : '${formatMoney(currency, lowestPoint.amount)} - ${lowestPoint.label}',
                   icon: Icons.south_east,
-                  tint: ShellColors.softGreen.withAlpha(20),
-                  iconColor: ShellColors.softGreen,
+                  tint: ShellStyles.success(context).withAlpha(20),
+                  iconColor: ShellStyles.success(context),
                 ),
               ),
               const SizedBox(width: 12),
@@ -431,8 +431,8 @@ class _AnalyticsTrendsTabState extends State<AnalyticsTrendsTab> {
                       ? context.tr('analytics_no_data')
                       : '${formatMoney(currency, highestPoint.amount)} - ${highestPoint.label}',
                   icon: Icons.north_east,
-                  tint: ShellColors.softRed.withAlpha(20),
-                  iconColor: ShellColors.softRed,
+                  tint: ShellStyles.error(context).withAlpha(20),
+                  iconColor: ShellStyles.error(context),
                 ),
               ),
             ],
@@ -545,7 +545,7 @@ class _AnalyticsTrendsTabState extends State<AnalyticsTrendsTab> {
         drawVerticalLine: false,
         horizontalInterval: interval,
         getDrawingHorizontalLine: (value) => FlLine(
-          color: ShellStyles.border(context),
+          color: ShellStyles.chartGrid(context),
           strokeWidth: 1,
           dashArray: const [4, 4],
         ),
@@ -559,7 +559,7 @@ class _AnalyticsTrendsTabState extends State<AnalyticsTrendsTab> {
               .map(
                 (index) => TouchedSpotIndicatorData(
                   FlLine(
-                    color: ShellStyles.border(context),
+                    color: ShellStyles.chartGrid(context),
                     strokeWidth: 1,
                     dashArray: const [4, 4],
                   ),
@@ -568,7 +568,7 @@ class _AnalyticsTrendsTabState extends State<AnalyticsTrendsTab> {
                     getDotPainter: (spot, percent, bar, dotIndex) =>
                         FlDotCirclePainter(
                           radius: 5,
-                          color: ShellStyles.textPrimary(context),
+                          color: ShellStyles.chartRamp(context).first,
                           strokeWidth: 2,
                           strokeColor: ShellStyles.surface(context),
                         ),
@@ -580,7 +580,7 @@ class _AnalyticsTrendsTabState extends State<AnalyticsTrendsTab> {
         touchTooltipData: LineTouchTooltipData(
           fitInsideHorizontally: true,
           fitInsideVertically: true,
-          getTooltipColor: (_) => ShellStyles.textPrimary(context),
+          getTooltipColor: (_) => ShellStyles.tooltipSurface(context),
           tooltipPadding: const EdgeInsets.symmetric(
             horizontal: 12,
             vertical: 10,
@@ -591,7 +591,7 @@ class _AnalyticsTrendsTabState extends State<AnalyticsTrendsTab> {
             return LineTooltipItem(
               '${point.tooltipLabel}\nSpent: ${formatMoney(currency, point.amount)}',
               TextStyle(
-                color: ShellStyles.surface(context),
+                color: ShellStyles.tooltipText(context),
                 fontWeight: FontWeight.w700,
                 fontSize: 12,
                 height: 1.35,
@@ -649,12 +649,12 @@ class _AnalyticsTrendsTabState extends State<AnalyticsTrendsTab> {
           curveSmoothness: 0.22,
           preventCurveOverShooting: true,
           barWidth: 3,
-          color: ShellStyles.textPrimary(context),
+          color: ShellStyles.chartRamp(context).first,
           dotData: FlDotData(
             show: true,
             getDotPainter: (spot, percent, bar, index) => FlDotCirclePainter(
               radius: 4,
-              color: ShellStyles.textPrimary(context),
+              color: ShellStyles.chartRamp(context).first,
               strokeWidth: 2,
               strokeColor: ShellStyles.surface(context),
             ),
@@ -691,7 +691,7 @@ class _AnalyticsTrendsTabState extends State<AnalyticsTrendsTab> {
         drawVerticalLine: false,
         horizontalInterval: interval,
         getDrawingHorizontalLine: (value) => FlLine(
-          color: ShellStyles.border(context),
+          color: ShellStyles.chartGrid(context),
           strokeWidth: 1,
           dashArray: const [4, 4],
         ),
@@ -700,7 +700,7 @@ class _AnalyticsTrendsTabState extends State<AnalyticsTrendsTab> {
         touchTooltipData: BarTouchTooltipData(
           fitInsideHorizontally: true,
           fitInsideVertically: true,
-          getTooltipColor: (_) => ShellStyles.textPrimary(context),
+          getTooltipColor: (_) => ShellStyles.tooltipSurface(context),
           tooltipPadding: const EdgeInsets.symmetric(
             horizontal: 12,
             vertical: 10,
@@ -710,7 +710,7 @@ class _AnalyticsTrendsTabState extends State<AnalyticsTrendsTab> {
             return BarTooltipItem(
               '${point.tooltipLabel}\nSpent: ${formatMoney(currency, point.amount)}',
               TextStyle(
-                color: ShellStyles.surface(context),
+                color: ShellStyles.tooltipText(context),
                 fontWeight: FontWeight.w700,
                 fontSize: 12,
                 height: 1.35,
@@ -776,7 +776,7 @@ class _AnalyticsTrendsTabState extends State<AnalyticsTrendsTab> {
                     : values.length >= 8
                     ? 24
                     : 42,
-                color: ShellStyles.textPrimary(context),
+                color: ShellStyles.chartRamp(context).first,
                 borderRadius: const BorderRadius.vertical(
                   top: Radius.circular(8),
                 ),

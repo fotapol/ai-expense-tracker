@@ -188,23 +188,7 @@ class _AnalyticsTabState extends State<AnalyticsTab>
     final code = category['code']?.toString() ?? '';
     final name = category['name']?.toString() ?? '';
     final parentCode = category['parent_category_code']?.toString() ?? '';
-    final palette = ShellStyles.isDark(context)
-        ? const <Color>[
-            Color(0xFFF5F1EA),
-            Color(0xFFDAD3C8),
-            Color(0xFFC1BAAF),
-            Color(0xFFA79F96),
-            Color(0xFF8C857D),
-            Color(0xFF716A64),
-          ]
-        : const <Color>[
-            Color(0xFF1A1817),
-            Color(0xFF34312F),
-            Color(0xFF4C4946),
-            Color(0xFF64615D),
-            Color(0xFF7C7873),
-            Color(0xFF95918B),
-          ];
+    final palette = ShellStyles.chartRamp(context);
     final seed = '$code|$name|$parentCode'.trim().toUpperCase();
     if (seed.isEmpty) return palette.first;
 
@@ -382,8 +366,8 @@ class _AnalyticsTabState extends State<AnalyticsTab>
             final titleColor =
                 ThemeData.estimateBrightnessForColor(sectionColor) ==
                     Brightness.dark
-                ? Colors.white
-                : ShellColors.lightText;
+                ? ShellColors.darkText
+                : ShellColors.darkBackground;
             return PieChartSectionData(
               color: sectionColor,
               value: amount,
