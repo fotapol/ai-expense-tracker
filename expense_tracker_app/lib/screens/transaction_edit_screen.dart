@@ -29,15 +29,17 @@ class TransactionEditScreen extends StatefulWidget {
 }
 
 class _TransactionEditScreenState extends State<TransactionEditScreen> {
-  static const Color _bgColor = Color(0xFFF6F6F7);
-  static const Color _surfaceColor = Colors.white;
-  static const Color _surfaceAltColor = Color(0xFFF1F1F3);
-  static const Color _strokeColor = Color(0xFFE3E3E7);
-  static const Color _textColor = Color(0xFF17171A);
-  static const Color _mutedColor = Color(0xFF7F7F86);
-  static const Color _accentColor = Color(0xFF17171A);
-  static const Color _dangerColor = Color(0xFF17171A);
-  static const Color _warningColor = Color(0xFF5D5D64);
+  Color get _bgColor => ShellStyles.background(context);
+  Color get _surfaceColor => ShellStyles.surface(context);
+  Color get _surfaceAltColor => ShellStyles.inputSurface(context);
+  Color get _strokeColor => ShellStyles.border(context);
+  Color get _textColor => ShellStyles.textPrimary(context);
+  Color get _mutedColor => ShellStyles.textMuted(context);
+  Color get _accentColor => ShellStyles.accent(context);
+  Color get _primaryActionColor => ShellStyles.heroSurface(context);
+  Color get _focusColor => ShellStyles.focusRing(context);
+  Color get _dangerColor => ShellStyles.error(context);
+  Color get _warningColor => ShellStyles.warningPremium(context);
 
   bool _isLoading = true;
   bool _isSaving = false;
@@ -746,9 +748,9 @@ class _TransactionEditScreenState extends State<TransactionEditScreen> {
           backgroundColor: _surfaceColor,
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(22),
-            side: const BorderSide(color: _strokeColor),
+            side: BorderSide(color: _strokeColor),
           ),
-          title: const Text(
+          title: Text(
             'Merchant',
             style: TextStyle(color: _textColor, fontWeight: FontWeight.w700),
           ),
@@ -759,38 +761,38 @@ class _TransactionEditScreenState extends State<TransactionEditScreen> {
             onChanged: (value) => draftValue = value,
             onFieldSubmitted: (_) =>
                 Navigator.pop(dialogContext, draftValue.trim()),
-            style: const TextStyle(color: _textColor),
+            style: TextStyle(color: _textColor),
             decoration: InputDecoration(
               hintText: 'Store or merchant name',
-              hintStyle: const TextStyle(color: _mutedColor),
+              hintStyle: TextStyle(color: _mutedColor),
               filled: true,
               fillColor: _surfaceAltColor,
               border: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(16),
-                borderSide: const BorderSide(color: _strokeColor),
+                borderSide: BorderSide(color: _strokeColor),
               ),
               enabledBorder: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(16),
-                borderSide: const BorderSide(color: _strokeColor),
+                borderSide: BorderSide(color: _strokeColor),
               ),
               focusedBorder: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(16),
-                borderSide: const BorderSide(color: _accentColor),
+                borderSide: BorderSide(color: _focusColor, width: 1.6),
               ),
             ),
           ),
           actions: [
             TextButton(
               onPressed: () => Navigator.pop(dialogContext),
-              child: const Text('Cancel', style: TextStyle(color: _mutedColor)),
+              child: Text('Cancel', style: TextStyle(color: _mutedColor)),
             ),
             FilledButton(
               onPressed: () => Navigator.pop(dialogContext, draftValue.trim()),
               style: FilledButton.styleFrom(
-                backgroundColor: _accentColor,
-                foregroundColor: _surfaceColor,
+                backgroundColor: _primaryActionColor,
+                foregroundColor: ShellStyles.heroTextPrimary(context),
               ),
-              child: const Text('Save'),
+              child: Text('Save'),
             ),
           ],
         ),
@@ -815,9 +817,9 @@ class _TransactionEditScreenState extends State<TransactionEditScreen> {
           backgroundColor: _surfaceColor,
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(22),
-            side: const BorderSide(color: _strokeColor),
+            side: BorderSide(color: _strokeColor),
           ),
-          title: const Text(
+          title: Text(
             'Receipt total',
             style: TextStyle(color: _textColor, fontWeight: FontWeight.w700),
           ),
@@ -828,38 +830,38 @@ class _TransactionEditScreenState extends State<TransactionEditScreen> {
             onChanged: (value) => draftValue = value,
             onFieldSubmitted: (_) =>
                 Navigator.pop(dialogContext, draftValue.trim()),
-            style: const TextStyle(color: _textColor),
+            style: TextStyle(color: _textColor),
             decoration: InputDecoration(
               hintText: '0.00',
-              hintStyle: const TextStyle(color: _mutedColor),
+              hintStyle: TextStyle(color: _mutedColor),
               filled: true,
               fillColor: _surfaceAltColor,
               border: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(16),
-                borderSide: const BorderSide(color: _strokeColor),
+                borderSide: BorderSide(color: _strokeColor),
               ),
               enabledBorder: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(16),
-                borderSide: const BorderSide(color: _strokeColor),
+                borderSide: BorderSide(color: _strokeColor),
               ),
               focusedBorder: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(16),
-                borderSide: const BorderSide(color: _accentColor),
+                borderSide: BorderSide(color: _focusColor, width: 1.6),
               ),
             ),
           ),
           actions: [
             TextButton(
               onPressed: () => Navigator.pop(dialogContext),
-              child: const Text('Cancel', style: TextStyle(color: _mutedColor)),
+              child: Text('Cancel', style: TextStyle(color: _mutedColor)),
             ),
             FilledButton(
               onPressed: () => Navigator.pop(dialogContext, draftValue.trim()),
               style: FilledButton.styleFrom(
-                backgroundColor: _accentColor,
-                foregroundColor: _surfaceColor,
+                backgroundColor: _primaryActionColor,
+                foregroundColor: ShellStyles.heroTextPrimary(context),
               ),
-              child: const Text('Save'),
+              child: Text('Save'),
             ),
           ],
         ),
@@ -1026,48 +1028,45 @@ class _TransactionEditScreenState extends State<TransactionEditScreen> {
         backgroundColor: _surfaceColor,
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(22),
-          side: const BorderSide(color: _strokeColor),
+          side: BorderSide(color: _strokeColor),
         ),
         title: Text(
           context.tr('labels_new_label'),
-          style: const TextStyle(
-            color: _textColor,
-            fontWeight: FontWeight.w700,
-          ),
+          style: TextStyle(color: _textColor, fontWeight: FontWeight.w700),
         ),
         content: TextField(
           controller: controller,
           autofocus: true,
-          style: const TextStyle(color: _textColor),
+          style: TextStyle(color: _textColor),
           decoration: InputDecoration(
             hintText: context.tr('labels_name_hint'),
-            hintStyle: const TextStyle(color: _mutedColor),
+            hintStyle: TextStyle(color: _mutedColor),
             filled: true,
             fillColor: _surfaceAltColor,
             border: OutlineInputBorder(
               borderRadius: BorderRadius.circular(16),
-              borderSide: const BorderSide(color: _strokeColor),
+              borderSide: BorderSide(color: _strokeColor),
             ),
             enabledBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(16),
-              borderSide: const BorderSide(color: _strokeColor),
+              borderSide: BorderSide(color: _strokeColor),
             ),
             focusedBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(16),
-              borderSide: const BorderSide(color: _accentColor),
+              borderSide: BorderSide(color: _focusColor, width: 1.6),
             ),
           ),
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: const Text('Cancel', style: TextStyle(color: _mutedColor)),
+            child: Text('Cancel', style: TextStyle(color: _mutedColor)),
           ),
           FilledButton(
             onPressed: () => Navigator.pop(context, controller.text.trim()),
             style: FilledButton.styleFrom(
-              backgroundColor: _accentColor,
-              foregroundColor: _bgColor,
+              backgroundColor: _primaryActionColor,
+              foregroundColor: ShellStyles.heroTextPrimary(context),
             ),
             child: Text(context.tr('common_create')),
           ),
@@ -1138,7 +1137,7 @@ class _TransactionEditScreenState extends State<TransactionEditScreen> {
                         Navigator.pop(context);
                         await _createAndAssignLabel();
                       },
-                      icon: const Icon(Icons.add),
+                      icon: Icon(Icons.add),
                       label: Text(context.tr('common_new')),
                     ),
                   ],
@@ -1149,7 +1148,7 @@ class _TransactionEditScreenState extends State<TransactionEditScreen> {
                     padding: const EdgeInsets.symmetric(vertical: 20),
                     child: Text(
                       context.tr('labels_empty_subtitle'),
-                      style: const TextStyle(color: _mutedColor),
+                      style: TextStyle(color: _mutedColor),
                     ),
                   )
                 else
@@ -1172,10 +1171,10 @@ class _TransactionEditScreenState extends State<TransactionEditScreen> {
                             value: selected,
                             activeColor: _accentColor,
                             checkColor: _bgColor,
-                            side: const BorderSide(color: _strokeColor),
+                            side: BorderSide(color: _strokeColor),
                             title: Text(
                               name,
-                              style: const TextStyle(
+                              style: TextStyle(
                                 color: _textColor,
                                 fontWeight: FontWeight.w600,
                               ),
@@ -1326,23 +1325,23 @@ class _TransactionEditScreenState extends State<TransactionEditScreen> {
         backgroundColor: _surfaceColor,
         title: Text(
           context.tr('transaction_delete_item_title'),
-          style: const TextStyle(color: _textColor),
+          style: TextStyle(color: _textColor),
         ),
         content: Text(
           context.tr(
             'transaction_delete_item_confirm',
             params: {'name': itemName},
           ),
-          style: const TextStyle(color: _mutedColor),
+          style: TextStyle(color: _mutedColor),
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context, false),
-            child: const Text('Cancel', style: TextStyle(color: _mutedColor)),
+            child: Text('Cancel', style: TextStyle(color: _mutedColor)),
           ),
           TextButton(
             onPressed: () => Navigator.pop(context, true),
-            child: const Text('Delete', style: TextStyle(color: _dangerColor)),
+            child: Text('Delete', style: TextStyle(color: _dangerColor)),
           ),
         ],
       ),
@@ -1522,18 +1521,14 @@ class _TransactionEditScreenState extends State<TransactionEditScreen> {
     }
     if (_error != null) {
       return Scaffold(
-        appBar: AppBar(title: const Text('Review receipt')),
+        appBar: AppBar(title: Text('Review receipt')),
         body: Center(
           child: Padding(
             padding: const EdgeInsets.all(24),
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                const Icon(
-                  Icons.error_outline,
-                  color: Colors.redAccent,
-                  size: 42,
-                ),
+                Icon(Icons.error_outline, color: Colors.redAccent, size: 42),
                 const SizedBox(height: 12),
                 Text(_error!, textAlign: TextAlign.center),
                 const SizedBox(height: 16),
@@ -1584,7 +1579,7 @@ class _TransactionEditScreenState extends State<TransactionEditScreen> {
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                     textAlign: TextAlign.center,
-                    style: const TextStyle(
+                    style: TextStyle(
                       color: _textColor,
                       fontSize: 19,
                       fontWeight: FontWeight.w700,
@@ -1593,7 +1588,7 @@ class _TransactionEditScreenState extends State<TransactionEditScreen> {
                 ),
                 if (_canEditTransaction) ...[
                   const SizedBox(width: 6),
-                  const Icon(Icons.edit_outlined, size: 16, color: _mutedColor),
+                  Icon(Icons.edit_outlined, size: 16, color: _mutedColor),
                 ],
               ],
             ),
@@ -1607,9 +1602,9 @@ class _TransactionEditScreenState extends State<TransactionEditScreen> {
                   ? null
                   : _saveTransaction,
               style: FilledButton.styleFrom(
-                backgroundColor: _accentColor,
+                backgroundColor: _primaryActionColor,
                 disabledBackgroundColor: _surfaceAltColor,
-                foregroundColor: Colors.white,
+                foregroundColor: ShellStyles.heroTextPrimary(context),
                 minimumSize: const Size(0, 42),
                 fixedSize: const Size(42, 42),
                 padding: EdgeInsets.zero,
@@ -1626,7 +1621,7 @@ class _TransactionEditScreenState extends State<TransactionEditScreen> {
                         valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
                       ),
                     )
-                  : const Icon(Icons.check_rounded, size: 20),
+                  : Icon(Icons.check_rounded, size: 20),
             ),
           ),
         ],
@@ -1657,7 +1652,7 @@ class _TransactionEditScreenState extends State<TransactionEditScreen> {
             ),
           ],
           const SizedBox(height: 14),
-          const Text(
+          Text(
             'Items',
             style: TextStyle(
               color: _mutedColor,
@@ -1673,7 +1668,7 @@ class _TransactionEditScreenState extends State<TransactionEditScreen> {
               decoration: _panelDecoration(),
               child: Text(
                 'No line items yet. Add your first item to finish this receipt.',
-                style: const TextStyle(color: _mutedColor, fontSize: 14),
+                style: TextStyle(color: _mutedColor, fontSize: 14),
               ),
             )
           else
@@ -1693,7 +1688,7 @@ class _TransactionEditScreenState extends State<TransactionEditScreen> {
             ),
           _buildAddItemButton(),
           const SizedBox(height: 16),
-          const Text(
+          Text(
             'Labels',
             style: TextStyle(
               color: _mutedColor,
@@ -1710,7 +1705,7 @@ class _TransactionEditScreenState extends State<TransactionEditScreen> {
           ],
           if (!_canEditTransaction) ...[
             const SizedBox(height: 16),
-            const Text(
+            Text(
               'You can review this receipt, but only the owner can edit it.',
               style: TextStyle(color: _mutedColor, fontSize: 13),
             ),
@@ -1745,7 +1740,7 @@ class _TransactionEditScreenState extends State<TransactionEditScreen> {
         children: [
           Text(
             title,
-            style: const TextStyle(
+            style: TextStyle(
               color: _textColor,
               fontSize: 16,
               fontWeight: FontWeight.w700,
@@ -1754,11 +1749,7 @@ class _TransactionEditScreenState extends State<TransactionEditScreen> {
           const SizedBox(height: 6),
           Text(
             subtitle,
-            style: const TextStyle(
-              color: _mutedColor,
-              fontSize: 13,
-              height: 1.4,
-            ),
+            style: TextStyle(color: _mutedColor, fontSize: 13, height: 1.4),
           ),
         ],
       ),
@@ -1815,7 +1806,7 @@ class _TransactionEditScreenState extends State<TransactionEditScreen> {
               ),
               child: Row(
                 children: [
-                  const Icon(
+                  Icon(
                     Icons.calendar_today_outlined,
                     size: 18,
                     color: _textColor,
@@ -1826,7 +1817,7 @@ class _TransactionEditScreenState extends State<TransactionEditScreen> {
                       dateLabel,
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
-                      style: const TextStyle(
+                      style: TextStyle(
                         color: _textColor,
                         fontSize: 16,
                         fontWeight: FontWeight.w600,
@@ -1851,11 +1842,11 @@ class _TransactionEditScreenState extends State<TransactionEditScreen> {
             child: Row(
               mainAxisSize: MainAxisSize.min,
               children: [
-                const Icon(AppIcons.currency, size: 18, color: _textColor),
+                Icon(AppIcons.currency, size: 18, color: _textColor),
                 const SizedBox(width: 8),
                 Text(
                   _currency.toUpperCase(),
-                  style: const TextStyle(
+                  style: TextStyle(
                     color: _textColor,
                     fontSize: 16,
                     fontWeight: FontWeight.w600,
@@ -1880,7 +1871,7 @@ class _TransactionEditScreenState extends State<TransactionEditScreen> {
             ),
             alignment: Alignment.center,
             child: _isTranslatingItems
-                ? const SizedBox(
+                ? SizedBox(
                     width: 18,
                     height: 18,
                     child: CircularProgressIndicator(
@@ -1917,7 +1908,7 @@ class _TransactionEditScreenState extends State<TransactionEditScreen> {
               child: ColoredBox(
                 color: _surfaceAltColor,
                 child: _isLoadingReceiptPreview
-                    ? const Center(
+                    ? Center(
                         child: CircularProgressIndicator(
                           strokeWidth: 2.2,
                           valueColor: AlwaysStoppedAnimation<Color>(_textColor),
@@ -1930,7 +1921,7 @@ class _TransactionEditScreenState extends State<TransactionEditScreen> {
                         errorBuilder: (_, _, _) => _buildPhotoFallback(),
                         loadingBuilder: (context, child, loadingProgress) {
                           if (loadingProgress == null) return child;
-                          return const Center(
+                          return Center(
                             child: CircularProgressIndicator(
                               strokeWidth: 2.2,
                               valueColor: AlwaysStoppedAnimation<Color>(
@@ -1957,14 +1948,14 @@ class _TransactionEditScreenState extends State<TransactionEditScreen> {
                               : context.tr('transaction_photo'),
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
-                          style: const TextStyle(
+                          style: TextStyle(
                             color: _textColor,
                             fontSize: 15,
                             fontWeight: FontWeight.w700,
                           ),
                         ),
                         const SizedBox(height: 4),
-                        const Text(
+                        Text(
                           'Open receipt photo',
                           style: TextStyle(color: _mutedColor, fontSize: 13),
                         ),
@@ -1972,11 +1963,7 @@ class _TransactionEditScreenState extends State<TransactionEditScreen> {
                     ),
                   ),
                   const SizedBox(width: 12),
-                  const Icon(
-                    AppIcons.chevronRight,
-                    size: 18,
-                    color: _mutedColor,
-                  ),
+                  Icon(AppIcons.chevronRight, size: 18, color: _mutedColor),
                 ],
               ),
             ),
@@ -1987,7 +1974,7 @@ class _TransactionEditScreenState extends State<TransactionEditScreen> {
   }
 
   Widget _buildPhotoFallback() {
-    return const Center(
+    return Center(
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
@@ -2052,12 +2039,12 @@ class _TransactionEditScreenState extends State<TransactionEditScreen> {
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Icon(Icons.warning_amber_rounded, color: _textColor, size: 20),
+          Icon(Icons.warning_amber_rounded, color: _textColor, size: 20),
           const SizedBox(width: 8),
           Expanded(
             child: Text(
               'Take a quick final look before saving. ${parts.join(' • ')}.',
-              style: const TextStyle(
+              style: TextStyle(
                 color: _textColor,
                 fontSize: 13,
                 fontWeight: FontWeight.w600,
@@ -2085,14 +2072,14 @@ class _TransactionEditScreenState extends State<TransactionEditScreen> {
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
-            const Icon(AppIcons.labels, size: 20, color: _mutedColor),
+            Icon(AppIcons.labels, size: 20, color: _mutedColor),
             const SizedBox(width: 12),
             Expanded(
               child: Text(
                 _labelsSummaryText(selectedLabels),
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
-                style: const TextStyle(
+                style: TextStyle(
                   color: _textColor,
                   fontSize: 16,
                   fontWeight: FontWeight.w600,
@@ -2100,7 +2087,7 @@ class _TransactionEditScreenState extends State<TransactionEditScreen> {
               ),
             ),
             const SizedBox(width: 12),
-            const Icon(AppIcons.chevronRight, size: 18, color: _mutedColor),
+            Icon(AppIcons.chevronRight, size: 18, color: _mutedColor),
           ],
         ),
       ),
@@ -2182,7 +2169,7 @@ class _TransactionEditScreenState extends State<TransactionEditScreen> {
           color: _dangerColor,
           borderRadius: BorderRadius.circular(18),
         ),
-        child: const Icon(Icons.delete_outline_rounded, color: Colors.white),
+        child: Icon(Icons.delete_outline_rounded, color: Colors.white),
       ),
       child: _buildItemCard(item, mismatch, showDivider: showDivider),
     );
@@ -2253,7 +2240,7 @@ class _TransactionEditScreenState extends State<TransactionEditScreen> {
                             : currentName,
                         maxLines: 3,
                         overflow: TextOverflow.ellipsis,
-                        style: const TextStyle(
+                        style: TextStyle(
                           color: _textColor,
                           fontSize: 16,
                           fontWeight: FontWeight.w600,
@@ -2266,10 +2253,7 @@ class _TransactionEditScreenState extends State<TransactionEditScreen> {
                           translatedName,
                           maxLines: 2,
                           overflow: TextOverflow.ellipsis,
-                          style: const TextStyle(
-                            color: _mutedColor,
-                            fontSize: 13,
-                          ),
+                          style: TextStyle(color: _mutedColor, fontSize: 13),
                         ),
                       ],
                     ],
@@ -2281,7 +2265,7 @@ class _TransactionEditScreenState extends State<TransactionEditScreen> {
                   children: [
                     Text(
                       _formatMoney(_currency, sourceAmount),
-                      style: const TextStyle(
+                      style: TextStyle(
                         color: _textColor,
                         fontSize: 18,
                         fontWeight: FontWeight.w700,
@@ -2295,14 +2279,14 @@ class _TransactionEditScreenState extends State<TransactionEditScreen> {
                               _currency.toUpperCase()
                           ? Text(
                               '$displayCurrencyLabel ${displayAmount.toStringAsFixed(2)}',
-                              style: const TextStyle(
+                              style: TextStyle(
                                 color: _mutedColor,
                                 fontSize: 12,
                               ),
                             )
                           : Text(
                               ' ',
-                              style: const TextStyle(
+                              style: TextStyle(
                                 color: Colors.transparent,
                                 fontSize: 12,
                               ),
@@ -2313,7 +2297,7 @@ class _TransactionEditScreenState extends State<TransactionEditScreen> {
                 const SizedBox(width: 8),
                 Padding(
                   padding: const EdgeInsets.only(top: 2),
-                  child: const Icon(
+                  child: Icon(
                     AppIcons.chevronRight,
                     size: 18,
                     color: _mutedColor,
@@ -2334,7 +2318,7 @@ class _TransactionEditScreenState extends State<TransactionEditScreen> {
               quantityLineParts.isEmpty
                   ? 'Add quantity, unit, and price'
                   : quantityLineParts.join(' / '),
-              style: const TextStyle(
+              style: TextStyle(
                 color: _mutedColor,
                 fontSize: 13,
                 fontWeight: FontWeight.w500,
@@ -2344,14 +2328,14 @@ class _TransactionEditScreenState extends State<TransactionEditScreen> {
               const SizedBox(height: 8),
               Text(
                 '$itemCurrencyLabel ${sourceAmount.toStringAsFixed(2)} / $displayCurrencyLabel ${displayAmount.toStringAsFixed(2)}',
-                style: const TextStyle(color: _mutedColor, fontSize: 12),
+                style: TextStyle(color: _mutedColor, fontSize: 12),
               ),
             ],
             if (mismatch != null) ...[
               const SizedBox(height: 8),
               Text(
                 _lineReviewMessage(mismatch),
-                style: const TextStyle(
+                style: TextStyle(
                   color: _mutedColor,
                   fontSize: 12,
                   fontWeight: FontWeight.w600,
@@ -2374,7 +2358,7 @@ class _TransactionEditScreenState extends State<TransactionEditScreen> {
       ),
       child: Text(
         label.trim(),
-        style: const TextStyle(
+        style: TextStyle(
           color: _mutedColor,
           fontSize: 12,
           fontWeight: FontWeight.w600,
@@ -2398,11 +2382,11 @@ class _TransactionEditScreenState extends State<TransactionEditScreen> {
           child: Row(
             mainAxisSize: MainAxisSize.min,
             children: [
-              const Icon(AppIcons.add, size: 18, color: _textColor),
+              Icon(AppIcons.add, size: 18, color: _textColor),
               const SizedBox(width: 8),
               Text(
                 context.tr('transaction_add_item'),
-                style: const TextStyle(
+                style: TextStyle(
                   color: _textColor,
                   fontSize: 16,
                   fontWeight: FontWeight.w600,
@@ -2437,7 +2421,7 @@ class _TransactionEditScreenState extends State<TransactionEditScreen> {
                   alignment: Alignment.centerLeft,
                   child: Text(
                     _totalReviewMessage(totalMismatch),
-                    style: const TextStyle(
+                    style: TextStyle(
                       color: _warningColor,
                       fontSize: 12,
                       fontWeight: FontWeight.w600,
@@ -2456,7 +2440,7 @@ class _TransactionEditScreenState extends State<TransactionEditScreen> {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          const Text(
+                          Text(
                             'Receipt total',
                             style: TextStyle(
                               color: _mutedColor,
@@ -2468,7 +2452,7 @@ class _TransactionEditScreenState extends State<TransactionEditScreen> {
                           const SizedBox(height: 3),
                           Text(
                             _formatMoney(_currency, sourceTotal),
-                            style: const TextStyle(
+                            style: TextStyle(
                               color: _textColor,
                               fontSize: 20,
                               fontWeight: FontWeight.w700,
@@ -2482,11 +2466,11 @@ class _TransactionEditScreenState extends State<TransactionEditScreen> {
                 if (_displayCurrency.toUpperCase() != _currency.toUpperCase())
                   Text(
                     _formatMoney(_displayCurrency, displayTotal),
-                    style: const TextStyle(color: _mutedColor, fontSize: 12),
+                    style: TextStyle(color: _mutedColor, fontSize: 12),
                   ),
                 if (_canEditTransaction) ...[
                   const SizedBox(width: 10),
-                  const Icon(Icons.edit_outlined, size: 16, color: _mutedColor),
+                  Icon(Icons.edit_outlined, size: 16, color: _mutedColor),
                 ],
               ],
             ),

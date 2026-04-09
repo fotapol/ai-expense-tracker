@@ -312,7 +312,7 @@ class AnalyticsMiniStatTile extends StatelessWidget {
                   maxLines: 2,
                   overflow: TextOverflow.ellipsis,
                   style: TextStyle(
-                    color: ShellStyles.textMuted(context),
+                    color: ShellStyles.textSecondary(context),
                     fontSize: 10.5,
                     fontWeight: FontWeight.w700,
                     letterSpacing: 0.4,
@@ -337,7 +337,7 @@ class AnalyticsMiniStatTile extends StatelessWidget {
               maxLines: 2,
               overflow: TextOverflow.ellipsis,
               style: TextStyle(
-                color: ShellStyles.textMuted(context),
+                color: ShellStyles.textSecondary(context),
                 fontSize: 10.5,
                 height: 1.3,
               ),

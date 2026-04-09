@@ -661,9 +661,9 @@ class _SubscriptionScreenState extends State<SubscriptionScreen> {
         child: Container(
           padding: EdgeInsets.all(14 * uiScale),
           decoration: BoxDecoration(
-            color: Colors.white.withAlpha(14),
+            color: ShellStyles.heroBadgeSurface(context),
             borderRadius: BorderRadius.circular(16),
-            border: Border.all(color: Colors.white.withAlpha(22)),
+            border: Border.all(color: ShellStyles.heroBadgeBorder(context)),
           ),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -671,7 +671,7 @@ class _SubscriptionScreenState extends State<SubscriptionScreen> {
               Text(
                 label.toUpperCase(),
                 style: TextStyle(
-                  color: Colors.white.withAlpha(170),
+                  color: ShellStyles.heroTextSecondary(context),
                   fontSize: 10.5 * uiScale,
                   fontWeight: FontWeight.w700,
                   letterSpacing: 0.8,
@@ -681,7 +681,7 @@ class _SubscriptionScreenState extends State<SubscriptionScreen> {
               Text(
                 value,
                 style: TextStyle(
-                  color: Colors.white,
+                  color: ShellStyles.heroTextPrimary(context),
                   fontSize: 16 * uiScale,
                   fontWeight: FontWeight.w800,
                 ),
@@ -694,21 +694,10 @@ class _SubscriptionScreenState extends State<SubscriptionScreen> {
 
     return Container(
       padding: EdgeInsets.all(20 * uiScale),
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(24),
-        gradient: const LinearGradient(
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-          colors: [Color(0xFF181716), Color(0xFF36312D)],
-        ),
-        border: Border.all(color: ShellColors.gold.withAlpha(55)),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withAlpha(18),
-            blurRadius: 20,
-            offset: const Offset(0, 10),
-          ),
-        ],
+      decoration: ShellStyles.heroCardDecoration(
+        context,
+        radius: 24,
+        highlight: ShellStyles.warningPremium(context),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -721,11 +710,14 @@ class _SubscriptionScreenState extends State<SubscriptionScreen> {
                 height: 46 * uiScale,
                 alignment: Alignment.center,
                 decoration: BoxDecoration(
-                  color: Colors.white.withAlpha(12),
+                  color: ShellStyles.heroBadgeSurface(context),
                   borderRadius: BorderRadius.circular(14),
+                  border: Border.all(
+                    color: ShellStyles.heroBadgeBorder(context),
+                  ),
                 ),
                 child: CrownIcon(
-                  color: ShellColors.gold,
+                  color: ShellStyles.warningPremium(context),
                   size: 24 * uiScale,
                   strokeWidth: 1.8,
                 ),
@@ -738,7 +730,7 @@ class _SubscriptionScreenState extends State<SubscriptionScreen> {
                     Text(
                       _currentPlanTitle(context),
                       style: TextStyle(
-                        color: Colors.white,
+                        color: ShellStyles.heroTextPrimary(context),
                         fontSize: 20 * uiScale,
                         fontWeight: FontWeight.w800,
                       ),
@@ -747,7 +739,7 @@ class _SubscriptionScreenState extends State<SubscriptionScreen> {
                     Text(
                       _currentPlanSubtitle(context),
                       style: TextStyle(
-                        color: Colors.white.withAlpha(210),
+                        color: ShellStyles.heroTextSecondary(context),
                         fontSize: 12.5 * uiScale,
                         height: 1.35,
                       ),
@@ -761,14 +753,16 @@ class _SubscriptionScreenState extends State<SubscriptionScreen> {
                   vertical: 6 * uiScale,
                 ),
                 decoration: BoxDecoration(
-                  color: ShellColors.gold.withAlpha(20),
+                  color: ShellStyles.warningPremium(context).withAlpha(18),
                   borderRadius: BorderRadius.circular(999),
-                  border: Border.all(color: ShellColors.gold.withAlpha(80)),
+                  border: Border.all(
+                    color: ShellStyles.warningPremium(context).withAlpha(90),
+                  ),
                 ),
                 child: Text(
                   'ACTIVE',
                   style: TextStyle(
-                    color: ShellColors.gold,
+                    color: ShellStyles.warningPremium(context),
                     fontSize: 10.5 * uiScale,
                     fontWeight: FontWeight.w800,
                     letterSpacing: 0.8,
@@ -790,9 +784,9 @@ class _SubscriptionScreenState extends State<SubscriptionScreen> {
             width: double.infinity,
             padding: EdgeInsets.all(16 * uiScale),
             decoration: BoxDecoration(
-              color: Colors.white.withAlpha(12),
+              color: ShellStyles.heroBadgeSurface(context),
               borderRadius: BorderRadius.circular(18),
-              border: Border.all(color: Colors.white.withAlpha(18)),
+              border: Border.all(color: ShellStyles.heroBadgeBorder(context)),
             ),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -800,7 +794,7 @@ class _SubscriptionScreenState extends State<SubscriptionScreen> {
                 Text(
                   'Included with Premium',
                   style: TextStyle(
-                    color: Colors.white.withAlpha(185),
+                    color: ShellStyles.heroTextSecondary(context),
                     fontSize: 11.5 * uiScale,
                     fontWeight: FontWeight.w700,
                     letterSpacing: 0.7,
@@ -817,7 +811,7 @@ class _SubscriptionScreenState extends State<SubscriptionScreen> {
                           padding: EdgeInsets.only(top: 2 * uiScale),
                           child: Icon(
                             AppIcons.checkCircle,
-                            color: Color(0xFF79D9A1),
+                            color: ShellStyles.success(context),
                             size: 16 * uiScale,
                           ),
                         ),
@@ -826,7 +820,7 @@ class _SubscriptionScreenState extends State<SubscriptionScreen> {
                           child: Text(
                             text,
                             style: TextStyle(
-                              color: Colors.white.withAlpha(225),
+                              color: ShellStyles.heroTextPrimary(context),
                               fontSize: 13 * uiScale,
                               height: 1.35,
                             ),
@@ -851,7 +845,7 @@ class _SubscriptionScreenState extends State<SubscriptionScreen> {
                 },
               ),
               style: TextStyle(
-                color: Colors.white.withAlpha(170),
+                color: ShellStyles.heroTextSecondary(context),
                 fontSize: 11.5 * uiScale,
               ),
             ),
@@ -860,7 +854,7 @@ class _SubscriptionScreenState extends State<SubscriptionScreen> {
           Text(
             'Restore Purchases is only needed if Premium does not sync on this device right away.',
             style: TextStyle(
-              color: Colors.white.withAlpha(170),
+              color: ShellStyles.heroTextSecondary(context),
               fontSize: 11.5 * uiScale,
               height: 1.35,
             ),

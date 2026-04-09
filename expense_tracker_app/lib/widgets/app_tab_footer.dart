@@ -17,8 +17,8 @@ class AppTabFooter extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       decoration: BoxDecoration(
-        color: ShellStyles.surface(context),
-        border: Border(top: BorderSide(color: ShellStyles.border(context))),
+        color: ShellStyles.sectionBackground(context),
+        border: Border(top: BorderSide(color: ShellStyles.divider(context))),
       ),
       child: SafeArea(
         top: false,

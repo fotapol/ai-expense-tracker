@@ -73,21 +73,7 @@ class _AboutScreenState extends State<AboutScreen> {
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(22),
-        gradient: const LinearGradient(
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-          colors: <Color>[Color(0xFF1A1918), Color(0xFF302824)],
-        ),
-        boxShadow: <BoxShadow>[
-          BoxShadow(
-            color: Colors.black.withAlpha(18),
-            blurRadius: 18,
-            offset: const Offset(0, 8),
-          ),
-        ],
-      ),
+      decoration: ShellStyles.heroCardDecoration(context, radius: 22),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: <Widget>[
@@ -96,16 +82,20 @@ class _AboutScreenState extends State<AboutScreen> {
             height: 44,
             alignment: Alignment.center,
             decoration: BoxDecoration(
-              color: Colors.white.withAlpha(12),
+              color: ShellStyles.heroBadgeSurface(context),
               borderRadius: BorderRadius.circular(14),
+              border: Border.all(color: ShellStyles.heroBadgeBorder(context)),
             ),
-            child: const Icon(AppIcons.info, color: Colors.white),
+            child: Icon(
+              AppIcons.info,
+              color: ShellStyles.heroBadgeIcon(context),
+            ),
           ),
           const SizedBox(height: 16),
-          const Text(
+          Text(
             'AI Expense Tracker',
             style: TextStyle(
-              color: Colors.white,
+              color: ShellStyles.heroTextPrimary(context),
               fontSize: 24,
               fontWeight: FontWeight.w800,
             ),
@@ -114,7 +104,7 @@ class _AboutScreenState extends State<AboutScreen> {
           Text(
             _versionLabel,
             style: TextStyle(
-              color: Colors.white.withAlpha(220),
+              color: ShellStyles.heroTextSecondary(context),
               fontSize: 13,
               fontWeight: FontWeight.w600,
             ),
@@ -124,7 +114,7 @@ class _AboutScreenState extends State<AboutScreen> {
             Text(
               _metadataError!,
               style: TextStyle(
-                color: Colors.white.withAlpha(190),
+                color: ShellStyles.heroTextSecondary(context),
                 fontSize: 12,
               ),
             ),

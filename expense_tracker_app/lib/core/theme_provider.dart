@@ -198,107 +198,289 @@ class ThemeProvider extends ChangeNotifier {
   ThemeData _buildTheme(Brightness brightness) {
     final isDark = brightness == Brightness.dark;
     final accent = accentTheme.primaryFor(brightness);
-    final background = isDark
-        ? ShellColors.darkBackground
-        : ShellColors.lightBackground;
-    final surface = isDark ? ShellColors.darkSurface : ShellColors.lightSurface;
-    final surfaceAlt = isDark
-        ? ShellColors.darkSurfaceAlt
-        : ShellColors.lightSurfaceAlt;
-    final border = isDark ? ShellColors.darkBorder : ShellColors.lightBorder;
-    final text = isDark ? ShellColors.darkText : ShellColors.lightText;
-    final muted = isDark ? ShellColors.darkMuted : ShellColors.lightMuted;
-    final onPrimary = isDark ? ShellColors.darkBackground : Colors.white;
-
-    final base = ThemeData(
+    final palette = isDark ? ShellPalette.dark() : ShellPalette.light();
+    final focusColor = _accentId == 'neutral'
+        ? palette.focusRing
+        : Color.lerp(palette.focusRing, accent, isDark ? 0.55 : 0.35)!;
+    final onPrimary = isDark ? palette.pageBackground : Colors.white;
+    final colorScheme = ColorScheme(
       brightness: brightness,
-      scaffoldBackgroundColor: background,
-      colorScheme: ColorScheme(
-        brightness: brightness,
-        primary: accent,
-        onPrimary: onPrimary,
-        secondary: ShellColors.gold,
-        onSecondary: Colors.black,
-        error: ShellColors.softRed,
-        onError: Colors.white,
-        surface: surface,
-        onSurface: text,
+      primary: accent,
+      onPrimary: onPrimary,
+      secondary: palette.warningPremium,
+      onSecondary: palette.pageBackground,
+      error: palette.error,
+      onError: palette.pageBackground,
+      surface: palette.standardSurface,
+      onSurface: palette.textPrimary,
+    );
+
+    return ThemeData(
+      brightness: brightness,
+      scaffoldBackgroundColor: palette.pageBackground,
+      colorScheme: colorScheme,
+      canvasColor: palette.pageBackground,
+      shadowColor: Colors.black.withAlpha(isDark ? 30 : 16),
+      splashColor: palette.pressedOverlay,
+      highlightColor: palette.pressedOverlay,
+      dividerColor: palette.divider,
+      dividerTheme: DividerThemeData(
+        color: palette.divider,
+        thickness: 1,
+        space: 1,
       ),
-      dividerColor: border,
       appBarTheme: AppBarTheme(
-        backgroundColor: Colors.transparent,
-        foregroundColor: text,
+        backgroundColor: palette.sectionBackground,
+        foregroundColor: palette.textPrimary,
         elevation: 0,
+        scrolledUnderElevation: 0,
+        surfaceTintColor: Colors.transparent,
+        shadowColor: Colors.transparent,
+        iconTheme: IconThemeData(color: palette.textPrimary),
+        actionsIconTheme: IconThemeData(color: palette.textPrimary),
+        titleTextStyle: TextStyle(
+          color: palette.textPrimary,
+          fontSize: 18,
+          fontWeight: FontWeight.w700,
+        ),
       ),
-      snackBarTheme: const SnackBarThemeData(
+      snackBarTheme: SnackBarThemeData(
         behavior: SnackBarBehavior.floating,
+        backgroundColor: palette.heroSurface,
+        contentTextStyle: TextStyle(color: palette.textPrimary),
+        actionTextColor: accent,
+      ),
+      cardColor: palette.standardSurface,
+      cardTheme: CardThemeData(
+        color: palette.standardSurface,
+        surfaceTintColor: Colors.transparent,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(22),
+          side: BorderSide(color: palette.border),
+        ),
       ),
       filledButtonTheme: FilledButtonThemeData(
         style: FilledButton.styleFrom(
           backgroundColor: accent,
           foregroundColor: onPrimary,
+          disabledBackgroundColor: palette.selectedSurface,
+          disabledForegroundColor: palette.textDisabled,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16),
+          ),
         ),
       ),
       textButtonTheme: TextButtonThemeData(
-        style: TextButton.styleFrom(foregroundColor: accent),
+        style: TextButton.styleFrom(
+          foregroundColor: accent,
+          disabledForegroundColor: palette.textDisabled,
+        ),
+      ),
+      outlinedButtonTheme: OutlinedButtonThemeData(
+        style: OutlinedButton.styleFrom(
+          foregroundColor: palette.textPrimary,
+          disabledForegroundColor: palette.textDisabled,
+          side: BorderSide(color: palette.border),
+          backgroundColor: palette.standardSurface,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16),
+          ),
+        ),
       ),
       chipTheme: ChipThemeData(
-        backgroundColor: surfaceAlt,
-        selectedColor: accent.withAlpha(isDark ? 52 : 34),
-        disabledColor: surfaceAlt,
-        secondarySelectedColor: accent.withAlpha(isDark ? 52 : 34),
+        backgroundColor: palette.elevatedSurface,
+        selectedColor: palette.selectedSurface,
+        disabledColor: palette.standardSurface,
+        secondarySelectedColor: palette.selectedSurface,
         padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-        labelStyle: TextStyle(color: text),
-        secondaryLabelStyle: TextStyle(color: text),
+        labelStyle: TextStyle(color: palette.textPrimary),
+        secondaryLabelStyle: TextStyle(color: palette.textPrimary),
         brightness: brightness,
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(999),
-          side: BorderSide(color: border),
+          side: BorderSide(color: palette.border),
         ),
       ),
       inputDecorationTheme: InputDecorationTheme(
         filled: true,
-        fillColor: surface,
-        hintStyle: TextStyle(color: muted),
+        fillColor: palette.inputSurface,
+        labelStyle: TextStyle(color: palette.textMuted),
+        floatingLabelStyle: TextStyle(color: focusColor),
+        helperStyle: TextStyle(color: palette.textMuted),
+        hintStyle: TextStyle(color: palette.textMuted),
+        prefixIconColor: palette.textMuted,
+        suffixIconColor: palette.textMuted,
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(16),
-          borderSide: BorderSide(color: border),
+          borderSide: BorderSide(color: palette.border),
         ),
         enabledBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(16),
-          borderSide: BorderSide(color: border),
+          borderSide: BorderSide(color: palette.border),
+        ),
+        disabledBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(16),
+          borderSide: BorderSide(color: palette.border.withAlpha(120)),
         ),
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(16),
-          borderSide: BorderSide(color: accent, width: 1.3),
+          borderSide: BorderSide(color: focusColor, width: 1.7),
+        ),
+        errorBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(16),
+          borderSide: BorderSide(color: palette.error, width: 1.2),
+        ),
+        focusedErrorBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(16),
+          borderSide: BorderSide(color: palette.error, width: 1.7),
         ),
       ),
       dropdownMenuTheme: DropdownMenuThemeData(
         inputDecorationTheme: InputDecorationTheme(
           filled: true,
-          fillColor: surface,
-          hintStyle: TextStyle(color: muted),
+          fillColor: palette.inputSurface,
+          hintStyle: TextStyle(color: palette.textMuted),
+          labelStyle: TextStyle(color: palette.textMuted),
+          floatingLabelStyle: TextStyle(color: focusColor),
           border: OutlineInputBorder(
             borderRadius: BorderRadius.circular(16),
-            borderSide: BorderSide(color: border),
+            borderSide: BorderSide(color: palette.border),
           ),
           enabledBorder: OutlineInputBorder(
             borderRadius: BorderRadius.circular(16),
-            borderSide: BorderSide(color: border),
+            borderSide: BorderSide(color: palette.border),
           ),
           focusedBorder: OutlineInputBorder(
             borderRadius: BorderRadius.circular(16),
-            borderSide: BorderSide(color: accent, width: 1.3),
+            borderSide: BorderSide(color: focusColor, width: 1.7),
           ),
         ),
         menuStyle: MenuStyle(
-          backgroundColor: WidgetStatePropertyAll<Color>(surface),
+          backgroundColor: WidgetStatePropertyAll<Color>(
+            palette.standardSurface,
+          ),
+          shape: WidgetStatePropertyAll<RoundedRectangleBorder>(
+            RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(18),
+              side: BorderSide(color: palette.border),
+            ),
+          ),
+        ),
+      ),
+      bottomSheetTheme: BottomSheetThemeData(
+        backgroundColor: palette.sectionBackground,
+        surfaceTintColor: Colors.transparent,
+        shape: const RoundedRectangleBorder(
+          borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
+        ),
+        modalBackgroundColor: palette.sectionBackground,
+      ),
+      dialogTheme: DialogThemeData(
+        backgroundColor: palette.sectionBackground,
+        surfaceTintColor: Colors.transparent,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
+      ),
+      popupMenuTheme: PopupMenuThemeData(
+        color: palette.sectionBackground,
+        surfaceTintColor: Colors.transparent,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(18),
+          side: BorderSide(color: palette.border),
+        ),
+        textStyle: TextStyle(color: palette.textPrimary),
+      ),
+      floatingActionButtonTheme: FloatingActionButtonThemeData(
+        backgroundColor: palette.heroSurface,
+        foregroundColor: palette.textPrimary,
+        elevation: isDark ? 2 : 4,
+        highlightElevation: isDark ? 3 : 6,
+        shape: const CircleBorder(),
+      ),
+      tooltipTheme: TooltipThemeData(
+        decoration: BoxDecoration(
+          color: palette.tooltipSurface,
+          borderRadius: BorderRadius.circular(14),
+          border: Border.all(color: palette.border),
+        ),
+        textStyle: TextStyle(
+          color: palette.tooltipText,
+          fontSize: 12,
+          fontWeight: FontWeight.w600,
+        ),
+        waitDuration: const Duration(milliseconds: 350),
+      ),
+      navigationBarTheme: NavigationBarThemeData(
+        backgroundColor: palette.sectionBackground,
+        indicatorColor: palette.selectedSurface,
+        labelTextStyle: WidgetStateProperty.resolveWith<TextStyle?>((states) {
+          final selected = states.contains(WidgetState.selected);
+          return TextStyle(
+            color: selected ? palette.textPrimary : palette.textMuted,
+            fontSize: 12,
+            fontWeight: selected ? FontWeight.w700 : FontWeight.w500,
+          );
+        }),
+        iconTheme: WidgetStateProperty.resolveWith<IconThemeData?>((states) {
+          final selected = states.contains(WidgetState.selected);
+          return IconThemeData(
+            color: selected ? palette.textPrimary : palette.textMuted,
+          );
+        }),
+      ),
+      segmentedButtonTheme: SegmentedButtonThemeData(
+        style: ButtonStyle(
+          backgroundColor: WidgetStateProperty.resolveWith<Color?>((states) {
+            if (states.contains(WidgetState.selected)) {
+              return palette.heroSurface;
+            }
+            return palette.elevatedSurface;
+          }),
+          foregroundColor: WidgetStateProperty.resolveWith<Color?>((states) {
+            return states.contains(WidgetState.selected)
+                ? palette.textPrimary
+                : palette.textMuted;
+          }),
+          side: WidgetStatePropertyAll<BorderSide>(
+            BorderSide(color: palette.border),
+          ),
+          overlayColor: WidgetStatePropertyAll<Color>(palette.pressedOverlay),
           shape: WidgetStatePropertyAll<RoundedRectangleBorder>(
             RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
           ),
         ),
       ),
+      datePickerTheme: DatePickerThemeData(
+        backgroundColor: palette.sectionBackground,
+        surfaceTintColor: Colors.transparent,
+        dividerColor: palette.divider,
+        headerForegroundColor: palette.textPrimary,
+        dayForegroundColor: WidgetStateProperty.resolveWith<Color?>((states) {
+          if (states.contains(WidgetState.disabled)) {
+            return palette.textDisabled;
+          }
+          if (states.contains(WidgetState.selected)) {
+            return onPrimary;
+          }
+          return palette.textPrimary;
+        }),
+        dayBackgroundColor: WidgetStateProperty.resolveWith<Color?>((states) {
+          if (states.contains(WidgetState.selected)) {
+            return accent;
+          }
+          return null;
+        }),
+        todayForegroundColor: WidgetStatePropertyAll<Color>(
+          palette.textPrimary,
+        ),
+        todayBorder: BorderSide(color: focusColor),
+        yearForegroundColor: WidgetStatePropertyAll<Color>(palette.textPrimary),
+        yearBackgroundColor: WidgetStatePropertyAll<Color>(
+          palette.standardSurface,
+        ),
+        rangeSelectionBackgroundColor: palette.selectedSurface,
+      ),
       extensions: <ThemeExtension<dynamic>>[
+        palette,
         AppDisplayThemeExtension(
           symbolPosition: moneyFormatSettings.symbolPosition,
           showDecimals: moneyFormatSettings.showDecimals,
@@ -306,8 +488,6 @@ class ThemeProvider extends ChangeNotifier {
       ],
       useMaterial3: true,
     );
-
-    return base;
   }
 
   ThemeMode _normalizeThemeMode(int? rawIndex) {
