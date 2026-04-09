@@ -26,6 +26,7 @@ from app.core.migrations import run_startup_migrations
 from app.core.rabbitmq import check_rabbitmq_health, close_rabbitmq, connect_rabbitmq
 from app.core.rate_limiter import limiter
 from app.core.redis import check_redis_health, close_redis_pool
+from app.core.startup_checks import validate_production_config
 
 logging.basicConfig(
     level=logging.INFO,
@@ -38,6 +39,7 @@ logger = logging.getLogger(__name__)
 async def lifespan(app: FastAPI):
     """Application startup and shutdown lifecycle handler."""
     # --- Startup ---------------------------------------------------------
+    validate_production_config()
     await run_startup_migrations()
     initialize_firebase()
 
