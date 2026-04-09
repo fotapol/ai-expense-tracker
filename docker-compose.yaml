@@ -7,10 +7,18 @@ services:
       dockerfile: Dockerfile
     env_file:
       - .env
+    healthcheck:
+      test: ["CMD-SHELL", "python -c \"import urllib.request; urllib.request.urlopen('http://localhost:8000/')\""]
+      interval: 10s
+      timeout: 5s
+      retries: 5
     depends_on:
-      - postgres
-      - redis
-      - rabbitmq
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
     restart: unless-stopped
     networks:
       - backend
@@ -18,6 +26,7 @@ services:
       - 8000:8000
     volumes:
       - ./backend/.secrets/firebase_sa.json:/run/secrets/firebase_sa.json:ro
+
   # POSTGRESQL DATABASE
   postgres:
     container_name: postgres
@@ -25,12 +34,18 @@ services:
     restart: always
     env_file:
       - .env
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER:-postgres}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
     networks:
       - backend
     ports:
       - 5432:5432
     volumes:
       - postgres-data:/var/lib/postgresql/data
+
   # REDIS CACHE
   redis:
     container_name: redis
@@ -38,17 +53,28 @@ services:
     restart: always
     env_file:
       - .env
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
     ports:
       - 6379:6379
     networks:
       - backend
+
   # MINIO S3 BUCKET
   minio:
     container_name: minio
-    image: minio/minio:latest
+    image: minio/minio:RELEASE.2024-03-30T09-41-56Z  # Pinned version
     restart: unless-stopped
     env_file:
       - .env
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9000/minio/health/live"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
     ports:
       - "9000:9000" # S3 API
       - "9001:9001" # Web console
@@ -57,6 +83,7 @@ services:
     command: server /data --console-address ":9001"
     networks:
       - backend
+
   # RABBITMQ QUEUE
   rabbitmq:
     container_name: rabbitmq
@@ -64,11 +91,17 @@ services:
     restart: always
     env_file:
       - .env
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "-q", "check_running"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
     networks:
       - backend
     ports:
       - "5672:5672"   # AMQP (clients)
       - "15672:15672" # Web UI
+
   # RECEIPT PROCESSING WORKER
   worker:
     container_name: receipt_worker
@@ -78,10 +111,14 @@ services:
     env_file:
       - .env
     depends_on:
-      - postgres
-      - redis
-      - rabbitmq
-      - minio
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+      minio:
+        condition: service_healthy
     restart: unless-stopped
     networks:
       - backend
