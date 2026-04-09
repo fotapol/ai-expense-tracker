@@ -694,10 +694,7 @@ class _HomeTabState extends State<HomeTab>
       child: Container(
         width: double.infinity,
         padding: const EdgeInsets.fromLTRB(22, 22, 22, 22),
-        decoration: BoxDecoration(
-          color: ShellStyles.textPrimary(context),
-          borderRadius: BorderRadius.circular(24),
-        ),
+        decoration: ShellStyles.heroCardDecoration(context, radius: 24),
         child: Row(
           children: [
             Container(
@@ -705,12 +702,13 @@ class _HomeTabState extends State<HomeTab>
               height: 58,
               alignment: Alignment.center,
               decoration: BoxDecoration(
-                color: Colors.white.withAlpha(25),
+                color: ShellStyles.heroBadgeSurface(context),
                 borderRadius: BorderRadius.circular(18),
+                border: Border.all(color: ShellStyles.heroBadgeBorder(context)),
               ),
               child: Icon(
                 AppIcons.scan,
-                color: ShellStyles.surface(context),
+                color: ShellStyles.heroBadgeIcon(context),
                 size: 26,
               ),
             ),
@@ -722,7 +720,7 @@ class _HomeTabState extends State<HomeTab>
                   Text(
                     'Primary action',
                     style: TextStyle(
-                      color: ShellStyles.surface(context).withAlpha(170),
+                      color: ShellStyles.heroTextSecondary(context),
                       fontSize: 11,
                       fontWeight: FontWeight.w700,
                       letterSpacing: 0.7,
@@ -732,7 +730,7 @@ class _HomeTabState extends State<HomeTab>
                   Text(
                     context.tr('tools_scan_receipt'),
                     style: TextStyle(
-                      color: ShellStyles.surface(context),
+                      color: ShellStyles.heroTextPrimary(context),
                       fontSize: 22,
                       fontWeight: FontWeight.w700,
                     ),
@@ -741,7 +739,7 @@ class _HomeTabState extends State<HomeTab>
                   Text(
                     context.tr('home_scan_receipt_subtitle'),
                     style: TextStyle(
-                      color: ShellStyles.surface(context).withAlpha(160),
+                      color: ShellStyles.heroTextSecondary(context),
                       fontSize: 14,
                       fontWeight: FontWeight.w500,
                     ),
@@ -754,12 +752,13 @@ class _HomeTabState extends State<HomeTab>
               height: 40,
               alignment: Alignment.center,
               decoration: BoxDecoration(
-                color: Colors.white.withAlpha(25),
+                color: ShellStyles.heroBadgeSurface(context),
                 shape: BoxShape.circle,
+                border: Border.all(color: ShellStyles.heroBadgeBorder(context)),
               ),
               child: Icon(
                 AppIcons.chevronRight,
-                color: ShellStyles.surface(context),
+                color: ShellStyles.heroBadgeIcon(context),
                 size: 18,
               ),
             ),
