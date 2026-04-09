@@ -3,7 +3,7 @@
 import logging
 from contextlib import asynccontextmanager
 
-from fastapi import FastAPI
+from fastapi import FastAPI, Request
 from slowapi import _rate_limit_exceeded_handler
 from slowapi.errors import RateLimitExceeded
 
@@ -74,6 +74,25 @@ app = FastAPI(
 # Rate limiting
 app.state.limiter = limiter
 app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
+
+
+# Global unhandled exception handler — ensures unexpected 500 errors return
+# a safe, generic response instead of leaking internal tracebacks to clients.
+@app.exception_handler(Exception)
+async def _unhandled_exception_handler(request: Request, exc: Exception):
+    from starlette.responses import JSONResponse
+
+    logger.exception(
+        "Unhandled %s on %s %s",
+        type(exc).__name__,
+        request.method,
+        request.url.path,
+    )
+    return JSONResponse(
+        status_code=500,
+        content={"detail": "An internal error occurred. Please try again later."},
+    )
+
 
 app.include_router(users.router)
 app.include_router(receipts.router)
