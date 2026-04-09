@@ -43,8 +43,8 @@ class SettingsDetailScaffold extends StatelessWidget {
       floatingActionButton: showScanAction
           ? FloatingActionButton(
               onPressed: () => _openScan(context),
-              backgroundColor: ShellStyles.textPrimary(context),
-              foregroundColor: ShellStyles.surface(context),
+              backgroundColor: ShellStyles.heroSurface(context),
+              foregroundColor: ShellStyles.textPrimary(context),
               shape: const CircleBorder(),
               child: const Icon(AppIcons.scanFab),
             )
