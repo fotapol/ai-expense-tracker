@@ -248,16 +248,9 @@ class _HelpCenterScreenState extends State<HelpCenterScreen> {
                 child: Container(
                   width: double.infinity,
                   padding: const EdgeInsets.all(16),
-                  decoration: BoxDecoration(
-                    color: const Color(0xFF1F1F20),
-                    borderRadius: BorderRadius.circular(18),
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.black.withAlpha(18),
-                        blurRadius: 18,
-                        offset: const Offset(0, 6),
-                      ),
-                    ],
+                  decoration: ShellStyles.heroCardDecoration(
+                    context,
+                    radius: 18,
                   ),
                   child: Row(
                     children: [
@@ -266,38 +259,44 @@ class _HelpCenterScreenState extends State<HelpCenterScreen> {
                         height: 40,
                         alignment: Alignment.center,
                         decoration: BoxDecoration(
-                          color: Colors.white.withAlpha(10),
+                          color: ShellStyles.heroBadgeSurface(context),
                           borderRadius: BorderRadius.circular(12),
+                          border: Border.all(
+                            color: ShellStyles.heroBadgeBorder(context),
+                          ),
                         ),
-                        child: const Icon(AppIcons.help, color: Colors.white),
+                        child: Icon(
+                          AppIcons.help,
+                          color: ShellStyles.heroBadgeIcon(context),
+                        ),
                       ),
                       const SizedBox(width: 12),
                       Expanded(
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
-                          children: const [
+                          children: [
                             Text(
                               'Contact Support',
                               style: TextStyle(
-                                color: Colors.white,
+                                color: ShellStyles.heroTextPrimary(context),
                                 fontSize: 16,
                                 fontWeight: FontWeight.w700,
                               ),
                             ),
-                            SizedBox(height: 4),
+                            const SizedBox(height: 4),
                             Text(
                               'Get help from our support team',
                               style: TextStyle(
-                                color: Color(0xFFD2D2D4),
+                                color: ShellStyles.heroTextSecondary(context),
                                 fontSize: 12.5,
                               ),
                             ),
                           ],
                         ),
                       ),
-                      const Icon(
+                      Icon(
                         AppIcons.chevronRight,
-                        color: Colors.white70,
+                        color: ShellStyles.heroTextSecondary(context),
                         size: 16,
                       ),
                     ],
