@@ -165,8 +165,12 @@ class _AppearanceSettingsScreenState extends State<AppearanceSettingsScreen> {
                 shape: BoxShape.circle,
                 border: Border.all(
                   color: selected
-                      ? Colors.white.withAlpha(220)
-                      : Colors.white.withAlpha(120),
+                      ? (ShellStyles.isDark(context)
+                            ? ShellStyles.textPrimary(context)
+                            : Colors.white.withAlpha(220))
+                      : (ShellStyles.isDark(context)
+                            ? ShellStyles.border(context)
+                            : Colors.white.withAlpha(120)),
                   width: 2,
                 ),
                 boxShadow: <BoxShadow>[
@@ -180,7 +184,7 @@ class _AppearanceSettingsScreenState extends State<AppearanceSettingsScreen> {
                 ],
               ),
               child: selected
-                  ? const Icon(AppIcons.check, color: Colors.white, size: 22)
+                  ? Icon(AppIcons.check, color: Colors.white, size: 22)
                   : null,
             ),
             const SizedBox(height: 10),

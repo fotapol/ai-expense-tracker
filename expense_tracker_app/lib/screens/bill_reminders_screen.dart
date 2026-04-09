@@ -552,21 +552,7 @@ class _BillRemindersScreenState extends State<BillRemindersScreen> {
   Widget _buildSummaryCard(List<BillReminderOccurrence> items) {
     return Container(
       padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(20),
-        gradient: const LinearGradient(
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-          colors: [Color(0xFF1B1B1B), Color(0xFF313131)],
-        ),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withAlpha(18),
-            blurRadius: 18,
-            offset: const Offset(0, 8),
-          ),
-        ],
-      ),
+      decoration: ShellStyles.heroCardDecoration(context, radius: 20),
       child: Row(
         children: [
           Container(
@@ -574,10 +560,14 @@ class _BillRemindersScreenState extends State<BillRemindersScreen> {
             height: 40,
             alignment: Alignment.center,
             decoration: BoxDecoration(
-              color: Colors.white.withAlpha(14),
+              color: ShellStyles.heroBadgeSurface(context),
               borderRadius: BorderRadius.circular(12),
+              border: Border.all(color: ShellStyles.heroBadgeBorder(context)),
             ),
-            child: const Icon(AppIcons.notifications, color: Colors.white),
+            child: Icon(
+              AppIcons.notifications,
+              color: ShellStyles.heroBadgeIcon(context),
+            ),
           ),
           const SizedBox(width: 12),
           Column(
@@ -586,7 +576,7 @@ class _BillRemindersScreenState extends State<BillRemindersScreen> {
               Text(
                 context.tr('bill_reminders_total_upcoming'),
                 style: TextStyle(
-                  color: Colors.white.withAlpha(180),
+                  color: ShellStyles.heroTextSecondary(context),
                   fontSize: 11,
                   fontWeight: FontWeight.w600,
                 ),
@@ -594,8 +584,8 @@ class _BillRemindersScreenState extends State<BillRemindersScreen> {
               const SizedBox(height: 4),
               Text(
                 _formatAmount(upcomingBillsTotal(items)),
-                style: const TextStyle(
-                  color: Colors.white,
+                style: TextStyle(
+                  color: ShellStyles.heroTextPrimary(context),
                   fontSize: 28,
                   fontWeight: FontWeight.w800,
                 ),
@@ -606,7 +596,7 @@ class _BillRemindersScreenState extends State<BillRemindersScreen> {
                     ? 'No upcoming reminders'
                     : '${items.length} upcoming reminder${items.length == 1 ? '' : 's'}',
                 style: TextStyle(
-                  color: Colors.white.withAlpha(180),
+                  color: ShellStyles.heroTextSecondary(context),
                   fontSize: 12,
                   fontWeight: FontWeight.w500,
                 ),

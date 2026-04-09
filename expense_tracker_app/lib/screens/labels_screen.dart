@@ -426,7 +426,9 @@ class _LabelsScreenState extends State<LabelsScreen> {
                   padding: const EdgeInsets.all(3),
                   decoration: BoxDecoration(
                     shape: BoxShape.circle,
-                    color: selected ? Colors.white : Colors.transparent,
+                    color: selected
+                        ? ShellStyles.sectionBackground(context)
+                        : Colors.transparent,
                     border: Border.all(
                       color: selected
                           ? ShellStyles.border(context)
@@ -436,7 +438,9 @@ class _LabelsScreenState extends State<LabelsScreen> {
                     boxShadow: selected
                         ? [
                             BoxShadow(
-                              color: Colors.black.withAlpha(12),
+                              color: Colors.black.withAlpha(
+                                ShellStyles.isDark(context) ? 20 : 12,
+                              ),
                               blurRadius: 10,
                               offset: const Offset(0, 4),
                             ),

@@ -576,21 +576,7 @@ class _MeScreenState extends State<MeScreen> {
 
     return Container(
       padding: const EdgeInsets.fromLTRB(14, 14, 14, 14),
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(16),
-        gradient: const LinearGradient(
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-          colors: [Color(0xFF202020), Color(0xFF3D3934)],
-        ),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withAlpha(18),
-            blurRadius: 18,
-            offset: const Offset(0, 8),
-          ),
-        ],
-      ),
+      decoration: ShellStyles.heroCardDecoration(context, radius: 16),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -599,11 +585,12 @@ class _MeScreenState extends State<MeScreen> {
             height: 44,
             alignment: Alignment.center,
             decoration: BoxDecoration(
-              color: Colors.white.withAlpha(15),
+              color: ShellStyles.heroBadgeSurface(context),
               borderRadius: BorderRadius.circular(12),
+              border: Border.all(color: ShellStyles.heroBadgeBorder(context)),
             ),
-            child: const CrownIcon(
-              color: ShellColors.gold,
+            child: CrownIcon(
+              color: ShellStyles.warningPremium(context),
               size: 24,
               strokeWidth: 1.8,
             ),
@@ -615,8 +602,8 @@ class _MeScreenState extends State<MeScreen> {
               children: [
                 Text(
                   title,
-                  style: const TextStyle(
-                    color: Colors.white,
+                  style: TextStyle(
+                    color: ShellStyles.heroTextPrimary(context),
                     fontSize: 15,
                     fontWeight: FontWeight.w800,
                   ),
@@ -625,7 +612,7 @@ class _MeScreenState extends State<MeScreen> {
                 Text(
                   subtitle,
                   style: TextStyle(
-                    color: Colors.white.withAlpha(220),
+                    color: ShellStyles.heroTextSecondary(context),
                     fontSize: 12,
                     height: 1.3,
                   ),
@@ -634,8 +621,8 @@ class _MeScreenState extends State<MeScreen> {
                 FilledButton(
                   onPressed: _openSubscriptionDetails,
                   style: FilledButton.styleFrom(
-                    backgroundColor: Colors.white,
-                    foregroundColor: const Color(0xFF1E1C1B),
+                    backgroundColor: ShellStyles.heroBadgeSurface(context),
+                    foregroundColor: ShellStyles.heroTextPrimary(context),
                     padding: const EdgeInsets.symmetric(
                       horizontal: 16,
                       vertical: 10,
@@ -643,6 +630,9 @@ class _MeScreenState extends State<MeScreen> {
                     minimumSize: const Size(0, 38),
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(10),
+                      side: BorderSide(
+                        color: ShellStyles.heroBadgeBorder(context),
+                      ),
                     ),
                   ),
                   child: Text(actionLabel),
