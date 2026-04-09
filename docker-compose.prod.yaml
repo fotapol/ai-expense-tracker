@@ -1,0 +1,38 @@
+# Production Docker Compose Override
+# Usage:
+#   docker compose -f docker-compose.yaml -f docker-compose.prod.yaml up -d
+#
+# This file restricts infrastructure ports to 127.0.0.1 to avoid exposing 
+# them to the public internet, and sets APP_ENV to production.
+
+services:
+  backend:
+    environment:
+      APP_ENV: production
+    # Backend SHOULD be exposed publically (e.g. through a reverse proxy)
+    # The default exposes it to 0.0.0.0:8000 which might be fine locally
+    # but in production, we bind it to 127.0.0.1:8000 to be proxied.
+    ports:
+      - "127.0.0.1:8000:8000"
+
+  worker:
+    environment:
+      APP_ENV: production
+
+  postgres:
+    ports:
+      - "127.0.0.1:5432:5432"
+
+  redis:
+    ports:
+      - "127.0.0.1:6379:6379"
+
+  minio:
+    ports:
+      - "127.0.0.1:9000:9000"
+      # Exclude the web console port entirely (9001)
+
+  rabbitmq:
+    ports:
+      - "127.0.0.1:5672:5672"
+      # Exclude the management UI port entirely (15672)

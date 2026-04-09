@@ -22,7 +22,6 @@ import json
 import logging
 import os
 import time
-import traceback
 import uuid
 from decimal import Decimal
 
@@ -617,12 +616,16 @@ def process_receipt(receipt_id: str) -> None:
 
         except Exception:
             session.rollback()
-            tb = traceback.format_exc()
             logger.exception("Failed to process receipt %s.", receipt_id)
             # Re-open session state after rollback
             session.refresh(receipt)
             receipt.status = ReceiptStatus.FAILED
-            receipt.failure_reason = tb[:1000]
+            # Store a user-safe message — the full traceback is already
+            # captured by logger.exception() above for operator debugging.
+            receipt.failure_reason = (
+                "We couldn't extract data from this receipt. "
+                "Please try uploading a clearer image, or add the transaction manually."
+            )
             session.add(receipt)
             session.commit()
 
