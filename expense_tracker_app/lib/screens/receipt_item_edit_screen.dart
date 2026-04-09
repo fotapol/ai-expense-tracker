@@ -39,14 +39,15 @@ class ReceiptItemEditScreen extends StatefulWidget {
 }
 
 class _ReceiptItemEditScreenState extends State<ReceiptItemEditScreen> {
-  static const Color _bgColor = Color(0xFFF6F6F7);
-  static const Color _surfaceColor = Colors.white;
-  static const Color _surfaceAltColor = Color(0xFFF1F1F3);
-  static const Color _strokeColor = Color(0xFFE3E3E7);
-  static const Color _textColor = Color(0xFF17171A);
-  static const Color _mutedColor = Color(0xFF7F7F86);
-  static const Color _accentColor = Color(0xFF17171A);
-  static const Color _warningColor = Color(0xFF5D5D64);
+  Color get _bgColor => ShellStyles.background(context);
+  Color get _surfaceColor => ShellStyles.surface(context);
+  Color get _surfaceAltColor => ShellStyles.inputSurface(context);
+  Color get _strokeColor => ShellStyles.border(context);
+  Color get _textColor => ShellStyles.textPrimary(context);
+  Color get _mutedColor => ShellStyles.textMuted(context);
+  Color get _accentColor => ShellStyles.accent(context);
+  Color get _focusColor => ShellStyles.focusRing(context);
+  Color get _warningColor => ShellStyles.warningPremium(context);
   static const String _discountModeAmount = 'amount';
   static const String _discountModePercent = 'percent';
 
@@ -376,7 +377,7 @@ class _ReceiptItemEditScreenState extends State<ReceiptItemEditScreen> {
                       children: [
                         Text(
                           context.tr('filters_category'),
-                          style: const TextStyle(
+                          style: TextStyle(
                             color: _textColor,
                             fontSize: 18,
                             fontWeight: FontWeight.w700,
@@ -387,7 +388,7 @@ class _ReceiptItemEditScreenState extends State<ReceiptItemEditScreen> {
                           onPressed: () => Navigator.pop(context),
                           child: Text(
                             context.tr('common_cancel'),
-                            style: const TextStyle(color: _mutedColor),
+                            style: TextStyle(color: _mutedColor),
                           ),
                         ),
                       ],
@@ -465,7 +466,7 @@ class _ReceiptItemEditScreenState extends State<ReceiptItemEditScreen> {
                   children: [
                     Text(
                       context.tr('filters_subcategory'),
-                      style: const TextStyle(
+                      style: TextStyle(
                         color: _textColor,
                         fontSize: 18,
                         fontWeight: FontWeight.w700,
@@ -476,7 +477,7 @@ class _ReceiptItemEditScreenState extends State<ReceiptItemEditScreen> {
                       onPressed: () => Navigator.pop(context),
                       child: Text(
                         context.tr('common_cancel'),
-                        style: const TextStyle(color: _mutedColor),
+                        style: TextStyle(color: _mutedColor),
                       ),
                     ),
                   ],
@@ -600,7 +601,7 @@ class _ReceiptItemEditScreenState extends State<ReceiptItemEditScreen> {
   InputDecoration _fieldDecoration({String? hintText}) {
     return InputDecoration(
       hintText: hintText,
-      hintStyle: const TextStyle(color: _mutedColor),
+      hintStyle: TextStyle(color: _mutedColor),
       filled: true,
       fillColor: _surfaceAltColor,
       contentPadding: EdgeInsets.symmetric(
@@ -611,25 +612,25 @@ class _ReceiptItemEditScreenState extends State<ReceiptItemEditScreen> {
         borderRadius: BorderRadius.circular(
           ShellStyles.scaled(context, 16, min: 14, max: 18),
         ),
-        borderSide: const BorderSide(color: _strokeColor),
+        borderSide: BorderSide(color: _strokeColor),
       ),
       enabledBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(
           ShellStyles.scaled(context, 16, min: 14, max: 18),
         ),
-        borderSide: const BorderSide(color: _strokeColor),
+        borderSide: BorderSide(color: _strokeColor),
       ),
       focusedBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(
           ShellStyles.scaled(context, 16, min: 14, max: 18),
         ),
-        borderSide: const BorderSide(color: _textColor),
+        borderSide: BorderSide(color: _focusColor, width: 1.6),
       ),
       disabledBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(
           ShellStyles.scaled(context, 16, min: 14, max: 18),
         ),
-        borderSide: const BorderSide(color: _strokeColor),
+        borderSide: BorderSide(color: _strokeColor),
       ),
     );
   }
@@ -637,7 +638,7 @@ class _ReceiptItemEditScreenState extends State<ReceiptItemEditScreen> {
   Widget _sectionTitle(String text) {
     return Text(
       text,
-      style: const TextStyle(
+      style: TextStyle(
         color: _mutedColor,
         fontSize: 12.5,
         fontWeight: FontWeight.w700,
@@ -659,7 +660,7 @@ class _ReceiptItemEditScreenState extends State<ReceiptItemEditScreen> {
       keyboardType: keyboardType,
       maxLines: maxLines,
       onChanged: onChanged,
-      style: const TextStyle(
+      style: TextStyle(
         color: _textColor,
         fontSize: 15,
         fontWeight: FontWeight.w600,
@@ -696,12 +697,12 @@ class _ReceiptItemEditScreenState extends State<ReceiptItemEditScreen> {
                 children: [
                   Text(
                     label,
-                    style: const TextStyle(color: _mutedColor, fontSize: 12),
+                    style: TextStyle(color: _mutedColor, fontSize: 12),
                   ),
                   const SizedBox(height: 6),
                   Text(
                     value,
-                    style: const TextStyle(
+                    style: TextStyle(
                       color: _textColor,
                       fontSize: 15,
                       fontWeight: FontWeight.w600,
@@ -765,7 +766,7 @@ class _ReceiptItemEditScreenState extends State<ReceiptItemEditScreen> {
                 children: [
                   TextButton(
                     onPressed: () => Navigator.pop(context),
-                    child: const Text(
+                    child: Text(
                       'Cancel',
                       style: TextStyle(color: _mutedColor, fontSize: 16),
                     ),
@@ -774,7 +775,7 @@ class _ReceiptItemEditScreenState extends State<ReceiptItemEditScreen> {
                     child: Text(
                       widget.isNew ? 'New Item' : 'Edit Item',
                       textAlign: TextAlign.center,
-                      style: const TextStyle(
+                      style: TextStyle(
                         color: _textColor,
                         fontSize: 18,
                         fontWeight: FontWeight.w700,
@@ -821,7 +822,7 @@ class _ReceiptItemEditScreenState extends State<ReceiptItemEditScreen> {
                               const SizedBox(height: 10),
                               Text(
                                 translatedName,
-                                style: const TextStyle(
+                                style: TextStyle(
                                   color: _mutedColor,
                                   fontSize: 14,
                                   height: 1.35,
@@ -859,11 +860,11 @@ class _ReceiptItemEditScreenState extends State<ReceiptItemEditScreen> {
                                         value: _unit,
                                         isExpanded: true,
                                         dropdownColor: _surfaceColor,
-                                        icon: const Icon(
+                                        icon: Icon(
                                           Icons.keyboard_arrow_down_rounded,
                                           color: _textColor,
                                         ),
-                                        style: const TextStyle(
+                                        style: TextStyle(
                                           color: _textColor,
                                           fontSize: 16,
                                           fontWeight: FontWeight.w600,
@@ -920,7 +921,7 @@ class _ReceiptItemEditScreenState extends State<ReceiptItemEditScreen> {
                               _discountEnabled
                                   ? 'Price before discount'
                                   : 'Price',
-                              style: const TextStyle(
+                              style: TextStyle(
                                 color: _mutedColor,
                                 fontSize: 13,
                                 fontWeight: FontWeight.w600,
@@ -932,7 +933,7 @@ class _ReceiptItemEditScreenState extends State<ReceiptItemEditScreen> {
                                       widget.sourceCurrency.toUpperCase()
                                   ? 'Matches the receipt currency.'
                                   : 'Converted: ${_formatMoney(widget.displayCurrency, displayAmount)}',
-                              style: const TextStyle(
+                              style: TextStyle(
                                 color: _mutedColor,
                                 fontSize: 13,
                               ),
@@ -941,7 +942,7 @@ class _ReceiptItemEditScreenState extends State<ReceiptItemEditScreen> {
                               const SizedBox(height: 12),
                               Text(
                                 'About ${_formatMoney(widget.sourceCurrency, computedUnitPrice)} per ${_unitLabel(_unit)}',
-                                style: const TextStyle(
+                                style: TextStyle(
                                   color: _mutedColor,
                                   fontSize: 13,
                                 ),
@@ -950,7 +951,7 @@ class _ReceiptItemEditScreenState extends State<ReceiptItemEditScreen> {
                             const SizedBox(height: 18),
                             Row(
                               children: [
-                                const Expanded(
+                                Expanded(
                                   child: Text(
                                     'Discount',
                                     style: TextStyle(
@@ -985,11 +986,11 @@ class _ReceiptItemEditScreenState extends State<ReceiptItemEditScreen> {
                                 runSpacing: 8,
                                 children: [
                                   ChoiceChip(
-                                    label: const Text('Amount'),
+                                    label: Text('Amount'),
                                     showCheckmark: false,
                                     backgroundColor: _surfaceColor,
                                     selectedColor: _surfaceAltColor,
-                                    side: const BorderSide(color: _strokeColor),
+                                    side: BorderSide(color: _strokeColor),
                                     labelStyle: TextStyle(
                                       color:
                                           _discountMode == _discountModeAmount
@@ -1007,11 +1008,11 @@ class _ReceiptItemEditScreenState extends State<ReceiptItemEditScreen> {
                                           }),
                                   ),
                                   ChoiceChip(
-                                    label: const Text('Percent'),
+                                    label: Text('Percent'),
                                     showCheckmark: false,
                                     backgroundColor: _surfaceColor,
                                     selectedColor: _surfaceAltColor,
-                                    side: const BorderSide(color: _strokeColor),
+                                    side: BorderSide(color: _strokeColor),
                                     labelStyle: TextStyle(
                                       color:
                                           _discountMode == _discountModePercent
@@ -1049,7 +1050,7 @@ class _ReceiptItemEditScreenState extends State<ReceiptItemEditScreen> {
                                 _discountMode == _discountModePercent
                                     ? 'Enter the percent taken off this line item.'
                                     : 'Enter the discount amount taken off this line item.',
-                                style: const TextStyle(
+                                style: TextStyle(
                                   color: _mutedColor,
                                   fontSize: 13,
                                 ),
@@ -1067,7 +1068,7 @@ class _ReceiptItemEditScreenState extends State<ReceiptItemEditScreen> {
                                 onChanged: (_) => setState(() {}),
                               ),
                               const SizedBox(height: 10),
-                              const Text(
+                              Text(
                                 'Final price',
                                 style: TextStyle(
                                   color: _mutedColor,
@@ -1080,7 +1081,7 @@ class _ReceiptItemEditScreenState extends State<ReceiptItemEditScreen> {
                               const SizedBox(height: 14),
                               Text(
                                 'Original price: ${_formatMoney(widget.sourceCurrency, originalAmount)}',
-                                style: const TextStyle(
+                                style: TextStyle(
                                   color: _textColor,
                                   fontSize: 13,
                                   fontWeight: FontWeight.w600,
@@ -1090,7 +1091,7 @@ class _ReceiptItemEditScreenState extends State<ReceiptItemEditScreen> {
                               const SizedBox(height: 6),
                               Text(
                                 'Discount: ${_formatMoney(widget.sourceCurrency, discountAmount)}. Final price: ${_formatMoney(widget.sourceCurrency, finalAmount)}.',
-                                style: const TextStyle(
+                                style: TextStyle(
                                   color: _mutedColor,
                                   fontSize: 13,
                                 ),
@@ -1112,7 +1113,7 @@ class _ReceiptItemEditScreenState extends State<ReceiptItemEditScreen> {
                                     ),
                                   },
                                 ),
-                                style: const TextStyle(
+                                style: TextStyle(
                                   color: _warningColor,
                                   fontSize: 13,
                                   fontWeight: FontWeight.w600,
