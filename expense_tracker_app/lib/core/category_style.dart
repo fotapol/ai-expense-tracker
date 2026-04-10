@@ -31,7 +31,7 @@ class CategoryStyle {
       case 'UNCATEGORIZED':
         return Icons.more_horiz;
       default:
-        return Icons.label;
+        return Icons.shopping_bag;
     }
   }
 }

@@ -892,17 +892,17 @@ class _ReceiptsTabState extends State<ReceiptsTab>
       );
     }
     final txCategoryCode = txCategory?['code']?.toString() ?? '';
-    final categoryTone = txCategory != null
+    final categoryTone = hasCategoryHint
         ? ShellStyles.categoryTone(
             context,
-            code: txCategoryCode,
+            code: categoryCode,
             parentCode: txCategory?['parent_category_code']?.toString(),
-            name: txCategory?['name']?.toString(),
+            name: txCategoryLabel ?? txCategoryNameRaw,
           )
         : ShellStyles.accentTone(context);
     final iconColor = categoryTone.base;
-    final iconData = txCategory != null
-        ? CategoryStyle.iconForCode(txCategoryCode)
+    final iconData = hasCategoryHint
+        ? CategoryStyle.iconForCode(categoryCode)
         : Icons.shopping_bag;
 
     final allLabelsRaw = tx['labels'];
