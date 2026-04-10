@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 
 import '../core/api_client.dart';
+import '../core/item_translation_preferences.dart';
 import '../core/item_translation_service.dart';
 import '../core/money_formatter.dart';
 import '../core/redesign_system.dart';
@@ -70,11 +71,6 @@ class _AnalyticsSubcategoryItemsScreenState
       final description = _normalizeText(item['description']?.toString());
       if (description.isEmpty) continue;
 
-      final translated = _normalizeText(
-        item['translated_description']?.toString(),
-      );
-      if (translated.isNotEmpty) continue;
-
       var sourceLanguage = _normalizeLanguageCode(
         item['description_lang']?.toString(),
       );
@@ -83,10 +79,31 @@ class _AnalyticsSubcategoryItemsScreenState
           item['translation_source_language']?.toString(),
         );
       }
+      sourceLanguage =
+          itemTranslationPreferences.resolveSourceLanguage(
+            sourceLanguage,
+            fallbackLanguageCode: _resolveAppLanguage(),
+          ) ??
+          '';
+      final translated = _normalizeText(
+        item['translated_description']?.toString(),
+      );
+      final shouldRefreshExistingTranslation =
+          ItemTranslationService.shouldRetranslate(
+            translatedText: translated,
+            expectedSourceLanguage: sourceLanguage,
+            expectedTargetLanguage: targetLanguage,
+            translatedSourceLanguage: item['translation_source_language']
+                ?.toString(),
+            translatedTargetLanguage: item['translation_language']?.toString(),
+          );
+      if (!shouldRefreshExistingTranslation) continue;
+
       final result = await ItemTranslationService.instance.translate(
         sourceText: description,
         sourceLanguage: sourceLanguage.isNotEmpty ? sourceLanguage : null,
         targetLanguage: targetLanguage,
+        forceRefresh: shouldRefreshExistingTranslation,
       );
       if (result == null || !mounted) continue;
 

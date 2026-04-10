@@ -1,8 +1,5 @@
 class PeriodDateRange {
-  const PeriodDateRange({
-    required this.start,
-    required this.end,
-  });
+  const PeriodDateRange({required this.start, required this.end});
 
   final DateTime? start;
   final DateTime? end;
@@ -60,6 +57,10 @@ class PeriodFilter {
     return DateTime(value.year, value.month, value.day, 23, 59, 59, 999, 999);
   }
 
+  static DateTime _startOfMonth(DateTime value, int monthOffset) {
+    return DateTime(value.year, value.month + monthOffset, 1);
+  }
+
   static PeriodDateRange getRange(String filter) {
     final now = DateTime.now();
     final todayStart = _startOfDay(now);
@@ -82,25 +83,13 @@ class PeriodFilter {
           end: todayEnd,
         );
       case last3Months:
-        return PeriodDateRange(
-          start: todayStart.subtract(const Duration(days: 89)),
-          end: todayEnd,
-        );
+        return PeriodDateRange(start: _startOfMonth(now, -2), end: todayEnd);
       case last6Months:
-        return PeriodDateRange(
-          start: todayStart.subtract(const Duration(days: 179)),
-          end: todayEnd,
-        );
+        return PeriodDateRange(start: _startOfMonth(now, -5), end: todayEnd);
       case last12Months:
-        return PeriodDateRange(
-          start: todayStart.subtract(const Duration(days: 364)),
-          end: todayEnd,
-        );
+        return PeriodDateRange(start: _startOfMonth(now, -11), end: todayEnd);
       case thisYear:
-        return PeriodDateRange(
-          start: DateTime(now.year, 1, 1),
-          end: todayEnd,
-        );
+        return PeriodDateRange(start: DateTime(now.year, 1, 1), end: todayEnd);
       case allTime:
         return PeriodDateRange(start: null, end: todayEnd);
       default:
@@ -170,11 +159,11 @@ class PeriodFilter {
       case last30Days:
         return 30;
       case last3Months:
-        return 90;
+        return inclusiveDays;
       case last6Months:
-        return 180;
+        return inclusiveDays;
       case last12Months:
-        return 365;
+        return inclusiveDays;
       case thisYear:
         return inclusiveDays.clamp(1, 366);
       case allTime:

@@ -34,14 +34,6 @@ class ItemTranslationService {
   Timer? _flushTimer;
   bool _isFlushing = false;
 
-  static const Map<String, String> _mlKitLanguageFallbacks = {
-    // ML Kit does not provide a Serbian model. Croatian gives the closest result.
-    'sr': 'hr',
-    'bs': 'hr',
-    'me': 'hr',
-    'sh': 'hr',
-  };
-
   String normalizeLanguageCode(String? raw) {
     if (raw == null) return '';
     final normalized = raw.trim().toLowerCase().replaceAll('_', '-');
@@ -54,6 +46,48 @@ class ItemTranslationService {
 
   String normalizeSourceText(String raw) {
     return raw.trim().replaceAll(RegExp(r'\s+'), ' ');
+  }
+
+  static bool shouldRetranslate({
+    required String translatedText,
+    required String expectedSourceLanguage,
+    required String expectedTargetLanguage,
+    String? translatedSourceLanguage,
+    String? translatedTargetLanguage,
+  }) {
+    final normalizedTranslation = translatedText.trim().replaceAll(
+      RegExp(r'\s+'),
+      ' ',
+    );
+    if (normalizedTranslation.isEmpty) {
+      return true;
+    }
+
+    String normalizeCode(String? raw) {
+      if (raw == null) return '';
+      final normalized = raw.trim().toLowerCase().replaceAll('_', '-');
+      if (normalized.isEmpty) return '';
+      if (normalized.contains('-')) {
+        return normalized.split('-').first;
+      }
+      return normalized;
+    }
+
+    final normalizedExpectedSource = normalizeCode(expectedSourceLanguage);
+    final normalizedExpectedTarget = normalizeCode(expectedTargetLanguage);
+    final normalizedStoredSource = normalizeCode(translatedSourceLanguage);
+    final normalizedStoredTarget = normalizeCode(translatedTargetLanguage);
+
+    if (normalizedStoredTarget.isEmpty ||
+        normalizedStoredTarget != normalizedExpectedTarget) {
+      return true;
+    }
+
+    if (normalizedExpectedSource.isEmpty) {
+      return normalizedStoredSource.isEmpty;
+    }
+
+    return normalizedStoredSource != normalizedExpectedSource;
   }
 
   Future<ItemTranslationResult?> translate({
@@ -153,8 +187,10 @@ class ItemTranslationService {
     required String sourceLanguage,
     required String targetLanguage,
   }) async {
-    final extractedUnitMatch = RegExp(r'\b\d+(?:[.,]\d+)?\s*(kg|g|gr|ml|l|kom|pcs|pc)\b', caseSensitive: false)
-        .firstMatch(sourceText);
+    final extractedUnitMatch = RegExp(
+      r'\b\d+(?:[.,]\d+)?\s*(kg|g|gr|ml|l|kom|pcs|pc)\b',
+      caseSensitive: false,
+    ).firstMatch(sourceText);
     final extractedUnit = extractedUnitMatch?.group(0);
 
     final preparedSourceText = _prepareSourceText(sourceText);
@@ -199,9 +235,12 @@ class ItemTranslationService {
 
   TranslateLanguage? _toMlKitLanguage(String code) {
     final normalized = normalizeLanguageCode(code);
-    final resolved = _mlKitLanguageFallbacks[normalized] ?? normalized;
+    // TODO(translation): route unsupported Serbian translation requests
+    // through a backend/cloud provider instead of coercing them to another
+    // language on-device. For now we keep the requested language as-is and
+    // fail closed when ML Kit has no matching model.
     for (final lang in TranslateLanguage.values) {
-      if (lang.bcpCode == resolved) {
+      if (lang.bcpCode == normalized) {
         return lang;
       }
     }
@@ -227,13 +266,29 @@ class ItemTranslationService {
     );
     final uppercaseRatio = uppercaseLetters.length / lettersOnly.length;
     if (uppercaseRatio >= 0.65) {
-      prepared = prepared.toLowerCase();
+      // Convert to title case rather than all-lowercase. All-lowercase causes
+      // ML Kit to mis-translate loanwords that are grammatically ambiguous in
+      // the target language (e.g. "desert" → geographic desert instead of the
+      // Serbian/Croatian food loanword "desert/dessert"). Title case preserves
+      // the capital-first-letter convention that helps ML Kit pick the correct
+      // word sense while still removing the ALL-CAPS formatting noise.
+      prepared = prepared
+          .split(' ')
+          .map(
+            (word) => word.isEmpty
+                ? word
+                : '${word[0].toUpperCase()}${word.substring(1).toLowerCase()}',
+          )
+          .join(' ');
     }
 
     // Remove noisy receipt fragments that degrade translation quality.
     prepared = prepared.replaceAll(RegExp(r'\b\d+\s*/\s*\d+\b'), ' ');
     prepared = prepared.replaceAll(
-      RegExp(r'\b\d+(?:[.,]\d+)?\s*(kg|g|gr|ml|l|kom|pcs|pc)\b', caseSensitive: false),
+      RegExp(
+        r'\b\d+(?:[.,]\d+)?\s*(kg|g|gr|ml|l|kom|pcs|pc)\b',
+        caseSensitive: false,
+      ),
       ' ',
     );
     prepared = prepared.replaceFirst(

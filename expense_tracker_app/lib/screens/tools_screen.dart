@@ -22,10 +22,17 @@ class ToolsScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final bottomPadding = MediaQuery.of(context).padding.bottom + 140;
+    final horizontalPadding = ShellStyles.scaled(context, 12, min: 12, max: 16);
+    final bottomPadding = MediaQuery.of(context).padding.bottom + 104;
+
     return SafeArea(
       child: SingleChildScrollView(
-        padding: EdgeInsets.fromLTRB(16, 18, 16, bottomPadding),
+        padding: EdgeInsets.fromLTRB(
+          horizontalPadding,
+          ShellStyles.scaled(context, 18, min: 16, max: 22),
+          horizontalPadding,
+          bottomPadding,
+        ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -33,25 +40,26 @@ class ToolsScreen extends StatelessWidget {
               context.tr('nav_tools'),
               style: TextStyle(
                 color: ShellStyles.textPrimary(context),
-                fontSize: 25,
+                fontSize: ShellStyles.scaled(context, 26, min: 22, max: 30),
                 fontWeight: FontWeight.w800,
               ),
             ),
-            const SizedBox(height: 4),
+            SizedBox(height: ShellStyles.scaled(context, 4, min: 3, max: 6)),
             Text(
               context.tr('tools_subtitle'),
               style: TextStyle(
                 color: ShellStyles.textMuted(context),
-                fontSize: 13,
+                fontSize: ShellStyles.scaled(context, 12.5, min: 12, max: 13.5),
+                height: 1.3,
               ),
             ),
-            const SizedBox(height: 18),
+            SizedBox(height: ShellStyles.scaled(context, 18, min: 14, max: 20)),
             Row(
               children: [
                 Icon(
-                  CupertinoIcons.pin,
-                  size: 14,
-                  color: ShellStyles.textMuted(context),
+                  CupertinoIcons.pin_fill,
+                  size: ShellStyles.scaled(context, 12, min: 11, max: 13),
+                  color: ShellStyles.accentTone(context).base,
                 ),
                 const SizedBox(width: 6),
                 ShellStyles.sectionLabel(
@@ -60,44 +68,44 @@ class ToolsScreen extends StatelessWidget {
                 ),
               ],
             ),
-            const SizedBox(height: 12),
+            SizedBox(height: ShellStyles.scaled(context, 10, min: 8, max: 12)),
             Row(
               children: [
                 Expanded(
-                  child: _buildFeatureCard(
+                  child: _buildShortcutCard(
                     context,
                     icon: AppIcons.scan,
                     title: context.tr('tools_scan_receipt'),
-                    subtitle: context.tr('tools_scan_receipt_subtitle'),
+                    subtitle: 'Quick scan with AI review',
                     onTap: () => _open(context, const ReceiptUploadScreen()),
                   ),
                 ),
-                const SizedBox(width: 8),
+                SizedBox(width: ShellStyles.scaled(context, 8, min: 6, max: 10)),
                 Expanded(
-                  child: _buildFeatureCard(
+                  child: _buildShortcutCard(
                     context,
                     icon: AppIcons.analyticsAlt,
                     title: context.tr('tools_analytics'),
-                    subtitle: context.tr('tools_analytics_subtitle'),
+                    subtitle: 'View insights and trends',
                     onTap: () => _open(context, const AnalyticsScreen()),
                   ),
                 ),
-                const SizedBox(width: 8),
+                SizedBox(width: ShellStyles.scaled(context, 8, min: 6, max: 10)),
                 Expanded(
-                  child: _buildFeatureCard(
+                  child: _buildShortcutCard(
                     context,
                     icon: AppIcons.receipt,
                     title: context.tr('tools_receipt_manager'),
-                    subtitle: context.tr('tools_receipt_manager_subtitle'),
+                    subtitle: 'Organize your receipts',
                     onTap: () => _open(context, const ReceiptManagerScreen()),
                   ),
                 ),
               ],
             ),
-            const SizedBox(height: 18),
+            SizedBox(height: ShellStyles.scaled(context, 22, min: 18, max: 26)),
             ShellStyles.sectionLabel(context, context.tr('tools_all_tools')),
-            const SizedBox(height: 16),
-            _buildSection(
+            SizedBox(height: ShellStyles.scaled(context, 12, min: 10, max: 14)),
+            _buildToolSection(
               context,
               title: context.tr('tools_core'),
               tiles: [
@@ -127,8 +135,8 @@ class ToolsScreen extends StatelessWidget {
                 ),
               ],
             ),
-            const SizedBox(height: 18),
-            _buildSection(
+            SizedBox(height: ShellStyles.scaled(context, 16, min: 14, max: 20)),
+            _buildToolSection(
               context,
               title: context.tr('tools_planning'),
               tiles: [
@@ -147,8 +155,10 @@ class ToolsScreen extends StatelessWidget {
               ],
             ),
             if (launchEnableDataTransferTools) ...[
-              const SizedBox(height: 18),
-              _buildSection(
+              SizedBox(
+                height: ShellStyles.scaled(context, 16, min: 14, max: 20),
+              ),
+              _buildToolSection(
                 context,
                 title: context.tr('tools_data'),
                 tiles: [
@@ -173,7 +183,7 @@ class ToolsScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildSection(
+  Widget _buildToolSection(
     BuildContext context, {
     required String title,
     required List<_ToolTileData> tiles,
@@ -181,24 +191,30 @@ class ToolsScreen extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(
-          title,
-          style: TextStyle(
-            color: ShellStyles.textMuted(context),
-            fontSize: 12,
-            fontWeight: FontWeight.w700,
+        Padding(
+          padding: EdgeInsets.only(
+            left: ShellStyles.scaled(context, 2, min: 0, max: 4),
+            bottom: ShellStyles.scaled(context, 8, min: 6, max: 10),
+          ),
+          child: Text(
+            title,
+            style: TextStyle(
+              color: ShellStyles.textPrimary(context),
+              fontSize: ShellStyles.scaled(context, 12, min: 11, max: 13),
+              fontWeight: FontWeight.w700,
+            ),
           ),
         ),
-        const SizedBox(height: 10),
         for (var index = 0; index < tiles.length; index++) ...[
           _buildListTile(context, tiles[index]),
-          if (index != tiles.length - 1) const SizedBox(height: 10),
+          if (index != tiles.length - 1)
+            SizedBox(height: ShellStyles.scaled(context, 10, min: 8, max: 12)),
         ],
       ],
     );
   }
 
-  Widget _buildFeatureCard(
+  Widget _buildShortcutCard(
     BuildContext context, {
     required IconData icon,
     required String title,
@@ -206,47 +222,64 @@ class ToolsScreen extends StatelessWidget {
     required VoidCallback onTap,
   }) {
     return InkWell(
-      borderRadius: BorderRadius.circular(18),
+      borderRadius: BorderRadius.circular(
+        ShellStyles.scaled(context, 16, min: 14, max: 18),
+      ),
       onTap: onTap,
       child: Container(
-        height: 154,
-        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 16),
-        decoration: ShellStyles.cardDecoration(context, radius: 18),
+        height: ShellStyles.scaled(context, 120, min: 110, max: 130),
+        padding: EdgeInsets.all(
+          ShellStyles.scaled(context, 10, min: 9, max: 12),
+        ),
+        decoration: ShellStyles.cardDecoration(
+          context,
+          radius: ShellStyles.scaled(context, 16, min: 14, max: 18),
+          color: ShellStyles.surface(context),
+        ),
         child: Column(
-          crossAxisAlignment: CrossAxisAlignment.center,
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Container(
-              width: 46,
-              height: 46,
+              width: ShellStyles.scaled(context, 36, min: 32, max: 40),
+              height: ShellStyles.scaled(context, 36, min: 32, max: 40),
               alignment: Alignment.center,
               decoration: BoxDecoration(
-                color: ShellStyles.textPrimary(context),
-                borderRadius: BorderRadius.circular(14),
+                color: ShellStyles.accentTone(context).base,
+                borderRadius: BorderRadius.circular(
+                  ShellStyles.scaled(context, 12, min: 10, max: 13),
+                ),
               ),
-              child: Icon(icon, color: ShellStyles.surface(context), size: 24),
+              child: Icon(
+                icon,
+                size: ShellStyles.scaled(context, 18, min: 16, max: 20),
+                color: ShellStyles.accentTone(context).onSolid,
+              ),
             ),
-            const SizedBox(height: 14),
+            SizedBox(height: ShellStyles.scaled(context, 12, min: 10, max: 14)),
             Text(
               title,
-              textAlign: TextAlign.center,
               maxLines: 2,
               overflow: TextOverflow.ellipsis,
               style: TextStyle(
                 color: ShellStyles.textPrimary(context),
-                fontSize: 13,
+                fontSize: ShellStyles.scaled(context, 12.5, min: 11, max: 13.5),
                 height: 1.15,
                 fontWeight: FontWeight.w700,
               ),
             ),
-            const SizedBox(height: 4),
+            SizedBox(height: ShellStyles.scaled(context, 3, min: 2, max: 5)),
             Text(
               subtitle,
-              textAlign: TextAlign.center,
               maxLines: 2,
               overflow: TextOverflow.ellipsis,
               style: TextStyle(
                 color: ShellStyles.textMuted(context),
-                fontSize: 10.5,
+                fontSize: ShellStyles.scaled(
+                  context,
+                  10.5,
+                  min: 9.5,
+                  max: 11.5,
+                ),
                 height: 1.2,
               ),
             ),
@@ -257,70 +290,88 @@ class ToolsScreen extends StatelessWidget {
   }
 
   Widget _buildListTile(BuildContext context, _ToolTileData tile) {
-    final iconBackground = ShellStyles.textPrimary(context).withAlpha(215);
-
-    return Container(
-      decoration: ShellStyles.cardDecoration(
-        context,
-        radius: 18,
-        withShadow: false,
+    return InkWell(
+      onTap: tile.onTap,
+      borderRadius: BorderRadius.circular(
+        ShellStyles.scaled(context, 18, min: 16, max: 20),
       ),
-      child: InkWell(
-        onTap: tile.onTap,
-        borderRadius: BorderRadius.circular(18),
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
-          child: Row(
-            children: [
-              Container(
-                width: 42,
-                height: 42,
-                alignment: Alignment.center,
-                decoration: BoxDecoration(
-                  color: iconBackground,
-                  borderRadius: BorderRadius.circular(14),
+      child: Container(
+        decoration: ShellStyles.cardDecoration(
+          context,
+          radius: ShellStyles.scaled(context, 18, min: 16, max: 20),
+          color: ShellStyles.surface(context),
+        ),
+        padding: EdgeInsets.symmetric(
+          horizontal: ShellStyles.scaled(context, 14, min: 12, max: 16),
+          vertical: ShellStyles.scaled(context, 14, min: 12, max: 16),
+        ),
+        child: Row(
+          children: [
+            Container(
+              width: ShellStyles.scaled(context, 38, min: 34, max: 42),
+              height: ShellStyles.scaled(context, 38, min: 34, max: 42),
+              alignment: Alignment.center,
+              decoration: BoxDecoration(
+                color: ShellStyles.accentTone(context).container,
+                borderRadius: BorderRadius.circular(
+                  ShellStyles.scaled(context, 12, min: 10, max: 14),
                 ),
-                child: Icon(
-                  tile.icon,
-                  color: ShellStyles.surface(context),
-                  size: 20,
-                ),
+                border: Border.all(color: ShellStyles.accentTone(context).border),
               ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      tile.title,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: TextStyle(
-                        color: ShellStyles.textPrimary(context),
-                        fontSize: 15,
-                        fontWeight: FontWeight.w700,
+              child: Icon(
+                tile.icon,
+                color: ShellStyles.accentTone(context).foreground,
+                size: ShellStyles.scaled(context, 18, min: 16, max: 20),
+              ),
+            ),
+            SizedBox(width: ShellStyles.scaled(context, 12, min: 10, max: 14)),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    tile.title,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: TextStyle(
+                      color: ShellStyles.textPrimary(context),
+                      fontSize: ShellStyles.scaled(
+                        context,
+                        14,
+                        min: 13,
+                        max: 15,
                       ),
+                      fontWeight: FontWeight.w700,
                     ),
-                    const SizedBox(height: 2),
-                    Text(
-                      tile.subtitle,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: TextStyle(
-                        color: ShellStyles.textMuted(context),
-                        fontSize: 12,
+                  ),
+                  SizedBox(
+                    height: ShellStyles.scaled(context, 2, min: 1, max: 4),
+                  ),
+                  Text(
+                    tile.subtitle,
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                    style: TextStyle(
+                      color: ShellStyles.textMuted(context),
+                      fontSize: ShellStyles.scaled(
+                        context,
+                        11,
+                        min: 10.5,
+                        max: 12,
                       ),
+                      height: 1.25,
                     ),
-                  ],
-                ),
+                  ),
+                ],
               ),
-              Icon(
-                AppIcons.chevronRight,
-                color: ShellStyles.textMuted(context),
-                size: 16,
-              ),
-            ],
-          ),
+            ),
+            SizedBox(width: ShellStyles.scaled(context, 10, min: 8, max: 12)),
+            Icon(
+              AppIcons.chevronRight,
+              color: ShellStyles.textMuted(context),
+              size: ShellStyles.scaled(context, 16, min: 14, max: 18),
+            ),
+          ],
         ),
       ),
     );

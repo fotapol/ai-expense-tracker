@@ -3,11 +3,9 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 import '../core/api_client.dart';
 import '../core/category_icon_registry.dart';
-import '../core/category_style.dart';
 import '../core/redesign_system.dart';
 import '../core/taxonomy_localization.dart';
 import '../l10n/app_localizations.dart';
-import 'receipt_upload_screen.dart';
 
 class SubcategoriesScreen extends StatefulWidget {
   const SubcategoriesScreen({
@@ -46,13 +44,6 @@ class _SubcategoriesScreenState extends State<SubcategoriesScreen> {
     _nameController.dispose();
     _nameFocusNode.dispose();
     super.dispose();
-  }
-
-  Future<void> _openScan() async {
-    await Navigator.push(
-      context,
-      MaterialPageRoute(builder: (_) => const ReceiptUploadScreen()),
-    );
   }
 
   Future<void> _fetchSubcategories({bool showLoading = true}) async {
@@ -306,41 +297,33 @@ class _SubcategoriesScreenState extends State<SubcategoriesScreen> {
     );
   }
 
-  Color _iconColor(Map<String, dynamic> category) {
-    final colorValue = category['color']?.toString();
-    if (colorValue != null && colorValue.isNotEmpty) {
-      final hex = colorValue.replaceFirst('#', '');
-      final value = int.tryParse(hex.length == 6 ? 'FF$hex' : hex, radix: 16);
-      if (value != null) return Color(value);
-    }
-    final code = category['code']?.toString();
-    if (code != null && code.isNotEmpty) {
-      return CategoryStyle.colorForCode(code);
-    }
-    return CategoryStyle.colorForSeed(category['name']?.toString());
-  }
-
   Widget _buildActionPill({
     required String label,
     required VoidCallback onTap,
     required bool emphasized,
   }) {
     return InkWell(
-      borderRadius: BorderRadius.circular(10),
+      borderRadius: BorderRadius.circular(999),
       onTap: onTap,
       child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+        padding: EdgeInsets.symmetric(
+          horizontal: ShellStyles.scaled(context, 10, min: 9, max: 12),
+          vertical: ShellStyles.scaled(context, 7, min: 6, max: 8),
+        ),
         decoration: BoxDecoration(
           color: emphasized
-              ? const Color(0xFFA6A6A6)
+              ? ShellStyles.textPrimary(context)
               : ShellStyles.surfaceAlt(context),
-          borderRadius: BorderRadius.circular(10),
+          borderRadius: BorderRadius.circular(999),
+          border: Border.all(color: ShellStyles.border(context)),
         ),
         child: Text(
           label,
           style: TextStyle(
-            color: emphasized ? Colors.white : ShellStyles.textPrimary(context),
-            fontSize: 12,
+            color: emphasized
+                ? ShellStyles.surface(context)
+                : ShellStyles.textMuted(context),
+            fontSize: ShellStyles.scaled(context, 11.5, min: 11, max: 12.5),
             fontWeight: FontWeight.w600,
           ),
         ),
@@ -353,7 +336,11 @@ class _SubcategoriesScreenState extends State<SubcategoriesScreen> {
     required bool disabled,
   }) {
     final name = _localizedName(category);
-    final accent = _iconColor(category);
+    final tone = ShellStyles.categoryTone(
+      context,
+      code: category['code']?.toString(),
+      name: category['name']?.toString(),
+    );
     final icon = CategoryIconRegistry.resolve(
       category['icon']?.toString(),
       code: category['code']?.toString(),
@@ -361,23 +348,29 @@ class _SubcategoriesScreenState extends State<SubcategoriesScreen> {
     final isBuiltIn = category['is_default'] == true;
 
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 13),
+      padding: EdgeInsets.symmetric(
+        horizontal: ShellStyles.scaled(context, 14, min: 12, max: 16),
+        vertical: ShellStyles.scaled(context, 12, min: 10, max: 14),
+      ),
       child: Row(
         children: [
           Container(
-            width: 36,
-            height: 36,
-            decoration: BoxDecoration(
-              color: accent.withAlpha(disabled ? 18 : 28),
-              borderRadius: BorderRadius.circular(10),
+            width: ShellStyles.scaled(context, 36, min: 34, max: 40),
+            height: ShellStyles.scaled(context, 36, min: 34, max: 40),
+            decoration: ShellStyles.semanticBadgeDecoration(
+              context,
+              tone: tone,
+              radius: ShellStyles.scaled(context, 12, min: 10, max: 14),
             ),
             child: Icon(
               icon,
-              size: 18,
-              color: disabled ? ShellStyles.textMuted(context) : accent,
+              size: ShellStyles.scaled(context, 18, min: 16, max: 20),
+              color: disabled
+                  ? ShellStyles.textMuted(context)
+                  : tone.foreground,
             ),
           ),
-          const SizedBox(width: 12),
+          SizedBox(width: ShellStyles.scaled(context, 12, min: 10, max: 14)),
           Expanded(
             child: Text(
               name,
@@ -385,7 +378,7 @@ class _SubcategoriesScreenState extends State<SubcategoriesScreen> {
                 color: disabled
                     ? ShellStyles.textMuted(context)
                     : ShellStyles.textPrimary(context),
-                fontSize: 14,
+                fontSize: ShellStyles.scaled(context, 14, min: 13, max: 15),
                 fontWeight: FontWeight.w600,
               ),
             ),
@@ -505,8 +498,8 @@ class _SubcategoriesScreenState extends State<SubcategoriesScreen> {
                 child: FilledButton(
                   onPressed: _isSubmitting ? null : _createSubcategory,
                   style: FilledButton.styleFrom(
-                    backgroundColor: ShellStyles.textPrimary(context),
-                    foregroundColor: ShellStyles.surface(context),
+                    backgroundColor: ShellStyles.accent(context),
+                    foregroundColor: Theme.of(context).colorScheme.onPrimary,
                     padding: const EdgeInsets.symmetric(vertical: 14),
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(14),
@@ -518,7 +511,7 @@ class _SubcategoriesScreenState extends State<SubcategoriesScreen> {
                           height: 18,
                           child: CircularProgressIndicator(
                             strokeWidth: 2,
-                            color: ShellStyles.surface(context),
+                            color: Theme.of(context).colorScheme.onPrimary,
                           ),
                         )
                       : const Text('Create Subcategory'),
@@ -575,8 +568,8 @@ class _SubcategoriesScreenState extends State<SubcategoriesScreen> {
           FilledButton(
             onPressed: () => _fetchSubcategories(),
             style: FilledButton.styleFrom(
-              backgroundColor: ShellStyles.textPrimary(context),
-              foregroundColor: ShellStyles.surface(context),
+              backgroundColor: ShellStyles.accent(context),
+              foregroundColor: Theme.of(context).colorScheme.onPrimary,
             ),
             child: Text(context.tr('common_retry')),
           ),
@@ -683,8 +676,8 @@ class _SubcategoriesScreenState extends State<SubcategoriesScreen> {
               icon: const Icon(AppIcons.add, size: 15),
               label: Text(context.tr('common_new')),
               style: FilledButton.styleFrom(
-                backgroundColor: ShellStyles.textPrimary(context),
-                foregroundColor: ShellStyles.surface(context),
+                backgroundColor: ShellStyles.accent(context),
+                foregroundColor: Theme.of(context).colorScheme.onPrimary,
                 padding: const EdgeInsets.symmetric(
                   horizontal: 16,
                   vertical: 10,
@@ -711,7 +704,7 @@ class _SubcategoriesScreenState extends State<SubcategoriesScreen> {
                   16,
                   18,
                   16,
-                  MediaQuery.of(context).padding.bottom + 120,
+                  MediaQuery.of(context).padding.bottom + 32,
                 ),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -734,7 +727,7 @@ class _SubcategoriesScreenState extends State<SubcategoriesScreen> {
                               key: ValueKey('create-form-hidden'),
                             ),
                     ),
-                    ShellStyles.sectionLabel(context, 'Built-In Subcategories'),
+                    ShellStyles.sectionLabel(context, 'Default Subcategories'),
                     const SizedBox(height: 12),
                     _buildCardList(
                       _builtInSubcategories,
@@ -758,14 +751,6 @@ class _SubcategoriesScreenState extends State<SubcategoriesScreen> {
                 ),
               ),
             ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: _openScan,
-        backgroundColor: ShellStyles.textPrimary(context),
-        foregroundColor: ShellStyles.surface(context),
-        shape: const CircleBorder(),
-        child: const Icon(AppIcons.scanFab),
-      ),
-      floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
     );
   }
 }

@@ -1,6 +1,8 @@
 import 'dart:async';
 import 'dart:io';
 
+import 'launch_error_copy.dart';
+
 enum ReceiptPollingAction { pending, completed, failed }
 
 const int maxReceiptUploadBytes = 10 * 1024 * 1024;
@@ -121,7 +123,52 @@ String formatReceiptUploadError(Object error) {
   if (normalized.contains('timed out')) {
     return 'The receipt upload timed out. Please check your connection and try again.';
   }
-  return message;
+  return friendlyLaunchErrorMessage(
+    error,
+    fallback: 'We could not finish the receipt upload. Please try again.',
+  );
+}
+
+String formatReceiptExtractionFailure(
+  Object? error, {
+  String fallback =
+      'We couldn\'t recognize a receipt or extract usable data. Try a clearer photo with the full receipt visible.',
+}) {
+  final message = error?.toString().trim() ?? '';
+  final normalized = message.toLowerCase();
+
+  if (normalized.isEmpty) {
+    return fallback;
+  }
+  if (normalized.contains('unsupported') ||
+      normalized.contains('file type') ||
+      normalized.contains('mime')) {
+    return 'This file type is not supported for receipt extraction. Choose a JPG, PNG, WEBP, HEIC, HEIF, or PDF file.';
+  }
+  if (normalized.contains('too large') ||
+      (normalized.contains('size') && normalized.contains('mb'))) {
+    return 'This file is too large for receipt extraction right now. Choose a smaller image or PDF file.';
+  }
+  if (normalized.contains('blur') ||
+      normalized.contains('blurry') ||
+      normalized.contains('low quality') ||
+      normalized.contains('low-confidence') ||
+      normalized.contains('empty') ||
+      normalized.contains('no text') ||
+      normalized.contains('no readable') ||
+      normalized.contains('usable data') ||
+      normalized.contains('receipt not found') ||
+      normalized.contains('not a receipt')) {
+    return fallback;
+  }
+  if (error is String) {
+    return message;
+  }
+
+  if (error == null) {
+    return fallback;
+  }
+  return friendlyLaunchErrorMessage(error, fallback: fallback);
 }
 
 class ReceiptPollingDecision {
@@ -141,10 +188,7 @@ class ReceiptPollingDecision {
       );
 
   const ReceiptPollingDecision.failed(String errorMessage)
-    : this._(
-        action: ReceiptPollingAction.failed,
-        errorMessage: errorMessage,
-      );
+    : this._(action: ReceiptPollingAction.failed, errorMessage: errorMessage);
 
   final ReceiptPollingAction action;
   final String? transactionId;
@@ -167,9 +211,19 @@ ReceiptPollingDecision interpretReceiptPollingPayload(
     case 'FAILED':
       final failureReason = payload['failure_reason']?.toString().trim();
       if (failureReason != null && failureReason.isNotEmpty) {
-        return ReceiptPollingDecision.failed(failureReason);
+        return ReceiptPollingDecision.failed(
+          formatReceiptExtractionFailure(
+            failureReason,
+            fallback: extractionFailedFallback,
+          ),
+        );
       }
-      return ReceiptPollingDecision.failed(extractionFailedFallback);
+      return ReceiptPollingDecision.failed(
+        formatReceiptExtractionFailure(
+          extractionFailedFallback,
+          fallback: extractionFailedFallback,
+        ),
+      );
     default:
       return const ReceiptPollingDecision.pending();
   }

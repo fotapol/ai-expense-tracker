@@ -7,11 +7,14 @@ import '../core/analytics_filters.dart';
 import '../core/api_client.dart';
 import '../core/auto_refresh_state_mixin.dart';
 import '../core/category_style.dart';
+import '../core/launch_error_copy.dart';
 import '../core/money_formatter.dart';
 import '../core/period_filter.dart';
 import '../core/redesign_system.dart';
+import '../core/session_invalidation.dart';
 import '../core/taxonomy_localization.dart';
 import '../l10n/app_localizations.dart';
+import '../widgets/analytics_shared.dart';
 import 'analytics_category_detail_screen.dart';
 import 'analytics_subcategory_items_screen.dart';
 import 'subscription_screen.dart';
@@ -21,11 +24,13 @@ class AnalyticsTab extends StatefulWidget {
     super.key,
     required this.filters,
     required this.featureCodes,
+    this.onPremiumStatusChanged,
     this.activeFiltersBuilder,
   });
 
   final AnalyticsFilters filters;
   final Set<String> featureCodes;
+  final Future<void> Function()? onPremiumStatusChanged;
   final Widget Function()? activeFiltersBuilder;
 
   @override
@@ -45,7 +50,7 @@ class _AnalyticsTabState extends State<AnalyticsTab>
   bool _isRefreshingAnalytics = false;
 
   @override
-  Duration get autoRefreshInterval => const Duration(seconds: 10);
+  Duration get autoRefreshInterval => const Duration(minutes: 1);
 
   @override
   Future<void> performAutoRefresh() => _fetchSummary(showLoader: false);
@@ -96,7 +101,10 @@ class _AnalyticsTabState extends State<AnalyticsTab>
     await prefs.setString('analytics_breakdown_mode', _breakdownMode);
   }
 
-  Future<void> _fetchSummary({bool showLoader = true}) async {
+  Future<void> _fetchSummary({
+    bool showLoader = true,
+    String? breakdownModeOverride,
+  }) async {
     if (_isRefreshingAnalytics) return;
     _isRefreshingAnalytics = true;
     if (!mounted) {
@@ -110,9 +118,9 @@ class _AnalyticsTabState extends State<AnalyticsTab>
       });
     }
 
-    final effectiveBreakdownMode = _hasAdvancedAnalytics
-        ? _breakdownMode
-        : _modeCategory;
+    final effectiveBreakdownMode =
+        breakdownModeOverride ??
+        (_hasAdvancedAnalytics ? _breakdownMode : _modeCategory);
     try {
       final data = await ApiClient.getTransactionsSummary(
         fromDate: PeriodFilter.getStartDate(widget.filters.period),
@@ -136,10 +144,15 @@ class _AnalyticsTabState extends State<AnalyticsTab>
         _error = null;
       });
     } catch (error) {
+      if (await maybeHandleExpiredSession(error)) return;
       if (!mounted) return;
       if (showLoader || _summaryData == null) {
         setState(() {
-          _error = error.toString();
+          _error = friendlyLaunchErrorMessage(
+            error,
+            fallback:
+                'Analytics could not refresh right now. Please try again.',
+          );
           _isLoading = false;
         });
       }
@@ -152,10 +165,17 @@ class _AnalyticsTabState extends State<AnalyticsTab>
     if (mode == _breakdownMode) return;
     if (mode == _modeSubcategory && !_hasAdvancedAnalytics) {
       if (!mounted) return;
-      Navigator.push(
+      final upgraded = await Navigator.push<bool>(
         context,
         MaterialPageRoute(builder: (_) => const SubscriptionScreen()),
       );
+      if (widget.onPremiumStatusChanged != null) {
+        await widget.onPremiumStatusChanged!();
+      }
+      if (!mounted || upgraded != true) return;
+      setState(() => _breakdownMode = mode);
+      await _saveBreakdownMode();
+      await _fetchSummary(breakdownModeOverride: mode);
       return;
     }
 
@@ -165,34 +185,12 @@ class _AnalyticsTabState extends State<AnalyticsTab>
   }
 
   Color _categoryColor(Map<String, dynamic> category) {
-    final code = category['code']?.toString() ?? '';
-    final name = category['name']?.toString() ?? '';
-    final parentCode = category['parent_category_code']?.toString() ?? '';
-    final palette = ShellStyles.isDark(context)
-        ? const <Color>[
-            Color(0xFFF5F1EA),
-            Color(0xFFDAD3C8),
-            Color(0xFFC1BAAF),
-            Color(0xFFA79F96),
-            Color(0xFF8C857D),
-            Color(0xFF716A64),
-          ]
-        : const <Color>[
-            Color(0xFF1A1817),
-            Color(0xFF34312F),
-            Color(0xFF4C4946),
-            Color(0xFF64615D),
-            Color(0xFF7C7873),
-            Color(0xFF95918B),
-          ];
-    final seed = '$code|$name|$parentCode'.trim().toUpperCase();
-    if (seed.isEmpty) return palette.first;
-
-    var hash = 0;
-    for (final unit in seed.codeUnits) {
-      hash = ((hash * 31) + unit) & 0x7fffffff;
-    }
-    return palette[hash % palette.length];
+    return ShellStyles.categoryTone(
+      context,
+      code: category['code']?.toString(),
+      parentCode: category['parent_category_code']?.toString(),
+      name: category['name']?.toString(),
+    ).base;
   }
 
   String _breakdownName(Map<String, dynamic> breakdown) {
@@ -247,30 +245,12 @@ class _AnalyticsTabState extends State<AnalyticsTab>
   Widget build(BuildContext context) {
     final hasData = _summaryData != null;
     if (_isLoading && !hasData) {
-      return const Center(child: CircularProgressIndicator());
+      return const AnalyticsLoadingState();
     }
     if (_error != null && !hasData) {
-      return Center(
-        child: Padding(
-          padding: const EdgeInsets.all(24),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Icon(Icons.error_outline, color: ShellColors.softRed, size: 42),
-              const SizedBox(height: 12),
-              Text(
-                _error ?? context.tr('common_error'),
-                textAlign: TextAlign.center,
-                style: TextStyle(color: ShellStyles.textMuted(context)),
-              ),
-              const SizedBox(height: 16),
-              FilledButton(
-                onPressed: _fetchSummary,
-                child: Text(context.tr('common_retry')),
-              ),
-            ],
-          ),
-        ),
+      return AnalyticsErrorState(
+        message: _error ?? context.tr('common_error'),
+        onRetry: _fetchSummary,
       );
     }
 
@@ -282,158 +262,256 @@ class _AnalyticsTabState extends State<AnalyticsTab>
     final currency = (summaryData['currency']?.toString() ?? 'EUR')
         .toUpperCase();
     final isSubcategoryMode = _breakdownMode == _modeSubcategory;
+    final isEmptyAnalytics =
+        totalTransactions == 0 && breakdown.isEmpty && totalAmount <= 0;
 
     return RefreshIndicator(
       onRefresh: _fetchSummary,
       child: ListView(
-        padding: const EdgeInsets.fromLTRB(20, 12, 20, 32),
+        padding: EdgeInsets.fromLTRB(
+          20,
+          8,
+          20,
+          MediaQuery.of(context).padding.bottom + 32,
+        ),
         children: [
           if (widget.activeFiltersBuilder != null) ...[
             widget.activeFiltersBuilder!(),
             const SizedBox(height: 16),
           ],
-          _buildTotalCard(
-            totalAmount: totalAmount,
-            totalTransactions: totalTransactions,
-            currency: currency,
-          ),
-          const SizedBox(height: 16),
-          _buildBreakdownHeader(isSubcategoryMode: isSubcategoryMode),
-          const SizedBox(height: 16),
-          _buildPieChart(
-            breakdown,
-            totalAmount,
-            currency,
-            isSubcategoryMode: isSubcategoryMode,
-          ),
-          const SizedBox(height: 16),
-          _buildBreakdownList(
-            breakdown,
-            currency,
-            isSubcategoryMode: isSubcategoryMode,
-          ),
-          const SizedBox(height: 16),
-          _buildDiscountSection(currency),
+          if (isEmptyAnalytics)
+            AnalyticsEmptyCard(
+              icon: Icons.pie_chart_outline,
+              title: 'No category insights yet',
+              message:
+                  'Scan receipts to see your spending share by category and drill into the biggest areas.',
+            )
+          else ...[
+            _buildDonutCard(
+              context,
+              breakdown,
+              totalAmount,
+              currency,
+              isSubcategoryMode: isSubcategoryMode,
+            ),
+            const SizedBox(height: 16),
+            _buildBreakdownListCard(
+              context,
+              breakdown,
+              currency,
+              isSubcategoryMode: isSubcategoryMode,
+            ),
+            if (_shouldShowDiscountSection()) ...[
+              const SizedBox(height: 16),
+              _buildDiscountSection(currency),
+            ],
+          ],
+          if (_error != null && hasData) ...[
+            const SizedBox(height: 16),
+            AnalyticsSurfaceCard(
+              color: ShellColors.softRed.withAlpha(16),
+              withShadow: false,
+              padding: const EdgeInsets.all(14),
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Icon(
+                    Icons.info_outline,
+                    color: ShellColors.softRed,
+                    size: 18,
+                  ),
+                  const SizedBox(width: 10),
+                  Expanded(
+                    child: Text(
+                      _error!,
+                      style: TextStyle(
+                        color: ShellStyles.textPrimary(context),
+                        fontSize: 12,
+                        height: 1.35,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
         ],
       ),
     );
   }
 
-  Widget _buildTotalCard({
-    required double totalAmount,
-    required int totalTransactions,
-    required String currency,
+  Widget _buildDonutCard(
+    BuildContext context,
+    List<dynamic> breakdown,
+    double totalAmount,
+    String currency, {
+    required bool isSubcategoryMode,
   }) {
-    final averagePerDay =
-        totalAmount / PeriodFilter.getPeriodDays(widget.filters.period);
+    final categories = breakdown.whereType<Map<String, dynamic>>().toList(
+      growable: false,
+    );
+    final hasData = categories.isNotEmpty && totalAmount > 0;
+    final sections = hasData
+        ? categories.map((category) {
+            final amount = (category['amount'] as num?)?.toDouble() ?? 0;
+            final percentage =
+                (category['percentage'] as num?)?.toDouble() ?? 0;
+            final tone = ShellStyles.categoryTone(
+              context,
+              code: category['code']?.toString(),
+              parentCode: category['parent_category_code']?.toString(),
+              name: category['name']?.toString(),
+            );
+            return PieChartSectionData(
+              color: tone.base,
+              value: amount,
+              title: percentage >= 9 ? '${percentage.toStringAsFixed(0)}%' : '',
+              radius: 58,
+              titleStyle: TextStyle(
+                color: tone.onSolid,
+                fontSize: 11,
+                fontWeight: FontWeight.w700,
+              ),
+            );
+          }).toList()
+        : [
+            PieChartSectionData(
+              color: ShellStyles.surfaceAlt(context),
+              value: 1,
+              title: '',
+              radius: 58,
+            ),
+          ];
 
-    return Container(
-      padding: const EdgeInsets.all(22),
-      decoration: ShellStyles.cardDecoration(context, radius: 28),
+    return AnalyticsSurfaceCard(
+      padding: const EdgeInsets.all(20),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
-            context
-                .tr(PeriodFilter.localizationKey(widget.filters.period))
-                .toUpperCase(),
-            style: TextStyle(
-              color: ShellStyles.textMuted(context),
-              fontSize: 11,
-              fontWeight: FontWeight.w700,
-              letterSpacing: 0.8,
+          AnalyticsSectionHeader(
+            title: isSubcategoryMode
+                ? context.tr('analytics_expense_subcategories')
+                : context.tr('analytics_expense_categories'),
+            subtitle: 'The donut shows each group’s share of total spend.',
+            trailing: _buildBreakdownToggle(),
+          ),
+          const SizedBox(height: 20),
+          Padding(
+            padding: const EdgeInsets.symmetric(vertical: 10),
+            child: SizedBox(
+              height: 236,
+              child: Stack(
+                alignment: Alignment.center,
+                children: [
+                  PieChart(
+                    PieChartData(
+                      sectionsSpace: 3,
+                      centerSpaceRadius: 70,
+                      sections: sections,
+                    ),
+                  ),
+                  Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text(
+                        context.tr('analytics_total_spent').toUpperCase(),
+                        style: TextStyle(
+                          color: ShellStyles.textMuted(context),
+                          fontSize: 11,
+                          fontWeight: FontWeight.w700,
+                          letterSpacing: 0.6,
+                        ),
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        hasData
+                            ? formatMoney(currency, totalAmount)
+                            : context.tr('analytics_no_data'),
+                        textAlign: TextAlign.center,
+                        style: TextStyle(
+                          color: ShellStyles.textPrimary(context),
+                          fontSize: hasData ? 18 : 20,
+                          fontWeight: FontWeight.w800,
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
             ),
           ),
-          const SizedBox(height: 14),
-          Text(
-            formatMoney(currency, totalAmount),
-            style: TextStyle(
-              color: ShellStyles.textPrimary(context),
-              fontSize: 34,
-              fontWeight: FontWeight.w800,
+          const SizedBox(height: 26),
+          if (!hasData)
+            Text(
+              context.tr(
+                isSubcategoryMode
+                    ? 'analytics_no_subcategory_data'
+                    : 'analytics_no_category_data',
+              ),
+              style: TextStyle(
+                color: ShellStyles.textMuted(context),
+                fontSize: 13,
+              ),
+            )
+          else
+            Column(
+              children: categories.map((category) {
+                final amount = (category['amount'] as num?)?.toDouble() ?? 0;
+                final percentage =
+                    (category['percentage'] as num?)?.toDouble() ?? 0;
+                return Padding(
+                  padding: const EdgeInsets.only(bottom: 10),
+                  child: Row(
+                    children: [
+                      Container(
+                        width: 10,
+                        height: 10,
+                        decoration: BoxDecoration(
+                          color: _categoryColor(category),
+                          shape: BoxShape.circle,
+                        ),
+                      ),
+                      const SizedBox(width: 10),
+                      Expanded(
+                        child: Text(
+                          _breakdownName(category),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: TextStyle(
+                            color: ShellStyles.textPrimary(context),
+                            fontSize: 14,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      Text(
+                        '${percentage.toStringAsFixed(0)}%',
+                        style: TextStyle(
+                          color: ShellStyles.textMuted(context),
+                          fontSize: 12,
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      SizedBox(
+                        width: 90,
+                        child: Text(
+                          formatMoney(currency, amount),
+                          textAlign: TextAlign.right,
+                          style: TextStyle(
+                            color: ShellStyles.textPrimary(context),
+                            fontSize: 13,
+                            fontWeight: FontWeight.w700,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                );
+              }).toList(),
             ),
-          ),
-          const SizedBox(height: 18),
-          Row(
-            children: [
-              Expanded(
-                child: _buildSnapshotMetric(
-                  label: context.tr('analytics_average_per_day'),
-                  value: formatMoney(currency, averagePerDay),
-                ),
-              ),
-              Container(
-                width: 1,
-                height: 44,
-                color: ShellStyles.border(context),
-                margin: const EdgeInsets.symmetric(horizontal: 14),
-              ),
-              Expanded(
-                child: _buildSnapshotMetric(
-                  label: context.tr('analytics_total_transactions'),
-                  value: '$totalTransactions',
-                ),
-              ),
-            ],
-          ),
         ],
       ),
-    );
-  }
-
-  Widget _buildSnapshotMetric({required String label, required String value}) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          label,
-          style: TextStyle(color: ShellStyles.textMuted(context), fontSize: 12),
-        ),
-        const SizedBox(height: 6),
-        Text(
-          value,
-          style: TextStyle(
-            color: ShellStyles.textPrimary(context),
-            fontSize: 16,
-            fontWeight: FontWeight.w700,
-          ),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildBreakdownHeader({required bool isSubcategoryMode}) {
-    return Row(
-      children: [
-        Expanded(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                context.tr(
-                  isSubcategoryMode
-                      ? 'analytics_expense_subcategories'
-                      : 'analytics_expense_categories',
-                ),
-                style: TextStyle(
-                  color: ShellStyles.textPrimary(context),
-                  fontSize: 20,
-                  fontWeight: FontWeight.w800,
-                ),
-              ),
-              const SizedBox(height: 4),
-              Text(
-                context.tr('analytics_categories_subtitle'),
-                style: TextStyle(
-                  color: ShellStyles.textMuted(context),
-                  fontSize: 12,
-                ),
-              ),
-            ],
-          ),
-        ),
-        _buildBreakdownToggle(),
-      ],
     );
   }
 
@@ -444,38 +522,42 @@ class _AnalyticsTabState extends State<AnalyticsTab>
       bool locked = false,
     }) {
       final isSelected = _breakdownMode == mode;
+      final background = isSelected
+          ? ShellStyles.textPrimary(context)
+          : ShellStyles.surfaceAlt(context);
+      final foreground = isSelected
+          ? ShellStyles.surface(context)
+          : ShellStyles.textPrimary(context);
       return InkWell(
         borderRadius: BorderRadius.circular(999),
         onTap: () => _setBreakdownMode(mode),
         child: Container(
-          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 9),
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(999),
-            color: isSelected
-                ? ShellStyles.textPrimary(context)
-                : ShellStyles.surfaceAlt(context),
+            color: background,
+            border: Border.all(
+              color: isSelected
+                  ? ShellStyles.textPrimary(context)
+                  : ShellStyles.border(context),
+            ),
           ),
           child: Row(
             mainAxisSize: MainAxisSize.min,
             children: [
               if (locked) ...[
-                Icon(
-                  Icons.lock_outline,
+                CrownIcon(
                   size: 14,
-                  color: isSelected
-                      ? ShellStyles.surface(context)
-                      : ShellStyles.textMuted(context),
+                  color: isSelected ? foreground : ShellColors.gold,
                 ),
                 const SizedBox(width: 4),
               ],
               Text(
                 label,
                 style: TextStyle(
-                  color: isSelected
-                      ? ShellStyles.surface(context)
-                      : ShellStyles.textPrimary(context),
-                  fontWeight: isSelected ? FontWeight.w700 : FontWeight.w600,
+                  color: foreground,
                   fontSize: 12,
+                  fontWeight: isSelected ? FontWeight.w700 : FontWeight.w600,
                 ),
               ),
             ],
@@ -501,187 +583,252 @@ class _AnalyticsTabState extends State<AnalyticsTab>
     );
   }
 
-  Widget _buildPieChart(
+  Widget _buildBreakdownListCard(
+    BuildContext context,
     List<dynamic> breakdown,
-    double totalAmount,
     String currency, {
     required bool isSubcategoryMode,
   }) {
     final categories = breakdown.whereType<Map<String, dynamic>>().toList(
       growable: false,
     );
-    final hasData = categories.isNotEmpty && totalAmount > 0;
-    final sections = hasData
-        ? categories.map((category) {
-            final amount = (category['amount'] as num?)?.toDouble() ?? 0;
-            final percentage =
-                (category['percentage'] as num?)?.toDouble() ?? 0;
-            final sectionColor = _categoryColor(category);
-            final titleColor =
-                ThemeData.estimateBrightnessForColor(sectionColor) ==
-                    Brightness.dark
-                ? Colors.white
-                : ShellColors.lightText;
-            return PieChartSectionData(
-              color: sectionColor,
-              value: amount,
-              title: percentage >= 7 ? '${percentage.toStringAsFixed(0)}%' : '',
-              radius: 56,
-              titleStyle: TextStyle(
-                color: titleColor,
-                fontSize: 11,
-                fontWeight: FontWeight.w700,
-              ),
-            );
-          }).toList()
-        : [
-            PieChartSectionData(
-              color: ShellStyles.surfaceAlt(context),
-              value: 1,
-              title: '',
-              radius: 56,
-            ),
-          ];
-
-    return Container(
+    return AnalyticsSurfaceCard(
       padding: const EdgeInsets.all(20),
-      decoration: ShellStyles.cardDecoration(context, radius: 24),
       child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          SizedBox(
-            height: 240,
-            child: Stack(
-              alignment: Alignment.center,
-              children: [
-                PieChart(
-                  PieChartData(
-                    sectionsSpace: 3,
-                    centerSpaceRadius: 70,
-                    sections: sections,
-                  ),
-                ),
-                Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Text(
-                      hasData
-                          ? formatMoney(currency, totalAmount)
-                          : context.tr('analytics_no_data'),
-                      style: TextStyle(
-                        color: ShellStyles.textPrimary(context),
-                        fontSize: hasData ? 18 : 22,
-                        fontWeight: FontWeight.w800,
-                      ),
-                    ),
-                    const SizedBox(height: 4),
-                    Text(
-                      context.tr(
-                        hasData
-                            ? 'analytics_total_spent'
-                            : isSubcategoryMode
-                            ? 'analytics_no_subcategory_data'
-                            : 'analytics_no_category_data',
-                      ),
-                      textAlign: TextAlign.center,
-                      style: TextStyle(
-                        color: ShellStyles.textMuted(context),
-                        fontSize: 12,
-                      ),
-                    ),
-                  ],
-                ),
-              ],
-            ),
+          AnalyticsSectionHeader(
+            title: isSubcategoryMode
+                ? 'Subcategory details'
+                : 'Category details',
+            subtitle: isSubcategoryMode
+                ? 'Open a subcategory to review the matching items.'
+                : 'Open a category to see the underlying subcategories.',
           ),
-          if (hasData) ...[
-            const SizedBox(height: 12),
-            Wrap(
-              spacing: 12,
-              runSpacing: 8,
-              alignment: WrapAlignment.center,
-              children: categories.map((category) {
-                final color = _categoryColor(category);
-                return Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Container(
-                      width: 10,
-                      height: 10,
-                      decoration: BoxDecoration(
-                        color: color,
-                        shape: BoxShape.circle,
-                      ),
-                    ),
-                    const SizedBox(width: 8),
-                    Text(
-                      _breakdownName(category),
-                      style: TextStyle(
-                        color: ShellStyles.textMuted(context),
-                        fontSize: 12,
-                      ),
-                    ),
-                  ],
-                );
-              }).toList(),
-            ),
-          ],
+          const SizedBox(height: 14),
+          if (categories.isEmpty)
+            Text(
+              context.tr(
+                isSubcategoryMode
+                    ? 'analytics_no_subcategory_data'
+                    : 'analytics_no_category_data',
+              ),
+              style: TextStyle(
+                color: ShellStyles.textMuted(context),
+                fontSize: 13,
+              ),
+            )
+          else
+            for (var index = 0; index < categories.length; index++) ...[
+              if (index != 0) const AnalyticsFullBleedDivider(),
+              _buildBreakdownRow(
+                context,
+                category: categories[index],
+                currency: currency,
+                isSubcategoryMode: isSubcategoryMode,
+              ),
+            ],
         ],
       ),
     );
   }
 
-  Widget _buildBreakdownList(
-    List<dynamic> breakdown,
-    String currency, {
+  Widget _buildBreakdownRow(
+    BuildContext context, {
+    required Map<String, dynamic> category,
+    required String currency,
     required bool isSubcategoryMode,
   }) {
-    final categories = breakdown.whereType<Map<String, dynamic>>().toList(
-      growable: false,
+    final code = category['code']?.toString() ?? '';
+    final amount = (category['amount'] as num?)?.toDouble() ?? 0;
+    final itemCount = (category['item_count'] as num?)?.toInt() ?? 0;
+    final percentage = (category['percentage'] as num?)?.toDouble() ?? 0;
+    final tone = ShellStyles.categoryTone(
+      context,
+      code: code,
+      parentCode: category['parent_category_code']?.toString(),
+      name: category['name']?.toString(),
     );
-    if (categories.isEmpty) {
-      return Container(
-        padding: const EdgeInsets.all(22),
-        decoration: ShellStyles.cardDecoration(context, radius: 24),
-        child: Text(
-          context.tr(
-            isSubcategoryMode
-                ? 'analytics_no_subcategory_data'
-                : 'analytics_no_category_data',
-          ),
-          style: TextStyle(color: ShellStyles.textMuted(context)),
+    final icon = CategoryStyle.iconForCode(code);
+
+    return InkWell(
+      borderRadius: BorderRadius.circular(18),
+      onTap: () => isSubcategoryMode
+          ? _openSubcategoryDetails(category)
+          : _openCategoryDetails(category),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(vertical: 8),
+        child: Row(
+          children: [
+            Container(
+              width: 42,
+              height: 42,
+              alignment: Alignment.center,
+              decoration: ShellStyles.semanticBadgeDecoration(
+                context,
+                tone: tone,
+                radius: 14,
+              ),
+              child: Icon(icon, color: tone.foreground, size: 19),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    _breakdownName(category),
+                    style: TextStyle(
+                      color: ShellStyles.textPrimary(context),
+                      fontSize: 15,
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    context.tr(
+                      'analytics_purchases_count',
+                      params: {'count': itemCount.toString()},
+                    ),
+                    style: TextStyle(
+                      color: ShellStyles.textMuted(context),
+                      fontSize: 12,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(width: 12),
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.end,
+              children: [
+                Text(
+                  formatMoney(currency, amount),
+                  style: TextStyle(
+                    color: ShellStyles.textPrimary(context),
+                    fontSize: 15,
+                    fontWeight: FontWeight.w800,
+                  ),
+                ),
+                const SizedBox(height: 3),
+                Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(
+                      '${percentage.toStringAsFixed(0)}%',
+                      style: TextStyle(
+                        color: ShellStyles.textMuted(context),
+                        fontSize: 12,
+                      ),
+                    ),
+                    const SizedBox(width: 2),
+                    Icon(
+                      Icons.chevron_right,
+                      color: ShellStyles.textMuted(context),
+                      size: 16,
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ],
         ),
-      );
-    }
+      ),
+    );
+  }
 
-    return Column(
-      children: categories.map((category) {
-        final code = category['code']?.toString() ?? '';
-        final amount = (category['amount'] as num?)?.toDouble() ?? 0;
-        final itemCount = (category['item_count'] as num?)?.toInt() ?? 0;
-        final percentage = (category['percentage'] as num?)?.toDouble() ?? 0;
-        final color = _categoryColor(category);
-        final icon = CategoryStyle.iconForCode(code);
+  bool _shouldShowDiscountSection() {
+    final discounts = _summaryData?['discounts'];
+    if (discounts is! Map<String, dynamic>) return false;
 
-        return Padding(
-          padding: const EdgeInsets.only(bottom: 12),
-          child: InkWell(
-            borderRadius: BorderRadius.circular(20),
-            onTap: () => isSubcategoryMode
-                ? _openSubcategoryDetails(category)
-                : _openCategoryDetails(category),
-            child: Container(
+    final totalSavings = (discounts['total_savings'] as num?)?.toDouble() ?? 0;
+    final itemsWithDiscount =
+        (discounts['items_with_discount'] as num?)?.toInt() ?? 0;
+    final biggestDiscount =
+        discounts['biggest_discount'] as Map<String, dynamic>?;
+    return totalSavings > 0 || itemsWithDiscount > 0 || biggestDiscount != null;
+  }
+
+  Widget _buildDiscountSection(String currency) {
+    final discounts = _summaryData?['discounts'] as Map<String, dynamic>;
+    final totalSavings = (discounts['total_savings'] as num?)?.toDouble() ?? 0;
+    final itemsWithDiscount =
+        (discounts['items_with_discount'] as num?)?.toInt() ?? 0;
+    final biggestDiscount =
+        discounts['biggest_discount'] as Map<String, dynamic>?;
+
+    return AnalyticsSurfaceCard(
+      padding: const EdgeInsets.all(20),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          AnalyticsSectionHeader(
+            title: 'Discounts',
+            subtitle: 'Helpful savings spotted in the current results.',
+            trailing: Container(
+              width: 38,
+              height: 38,
+              alignment: Alignment.center,
+              decoration: ShellStyles.iconBadgeDecoration(
+                context,
+                color: ShellStyles.surfaceAlt(context),
+                radius: 14,
+              ),
+              child: const Icon(
+                Icons.sell_outlined,
+                size: 18,
+                color: ShellColors.softGreen,
+              ),
+            ),
+          ),
+          const SizedBox(height: 16),
+          Row(
+            children: [
+              Expanded(
+                child: AnalyticsMiniStatTile(
+                  label: context.tr('analytics_total_savings'),
+                  value: formatMoney(currency, totalSavings),
+                  icon: Icons.sell_outlined,
+                  valueColor: ShellColors.softGreen,
+                ),
+              ),
+              const SizedBox(width: 10),
+              Expanded(
+                child: AnalyticsMiniStatTile(
+                  label: context.tr('analytics_items_with_discount'),
+                  value: '$itemsWithDiscount',
+                  icon: Icons.local_offer_outlined,
+                ),
+              ),
+            ],
+          ),
+          if (biggestDiscount != null) ...[
+            const SizedBox(height: 16),
+            Container(
+              width: double.infinity,
               padding: const EdgeInsets.all(16),
-              decoration: ShellStyles.cardDecoration(context, radius: 20),
+              decoration: BoxDecoration(
+                color: ShellStyles.surfaceAlt(context),
+                borderRadius: BorderRadius.circular(18),
+                border: Border.all(color: ShellStyles.border(context)),
+              ),
               child: Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Container(
-                    width: 46,
-                    height: 46,
+                    width: 40,
+                    height: 40,
+                    alignment: Alignment.center,
                     decoration: BoxDecoration(
-                      color: color.withAlpha(30),
+                      color: ShellStyles.surface(context),
                       borderRadius: BorderRadius.circular(14),
+                      border: Border.all(color: ShellStyles.border(context)),
                     ),
-                    child: Icon(icon, color: color),
+                    child: const Icon(
+                      Icons.local_offer_outlined,
+                      size: 18,
+                      color: ShellColors.softGreen,
+                    ),
                   ),
                   const SizedBox(width: 12),
                   Expanded(
@@ -689,187 +836,43 @@ class _AnalyticsTabState extends State<AnalyticsTab>
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          _breakdownName(category),
+                          context.tr('analytics_biggest_discount'),
+                          style: TextStyle(
+                            color: ShellStyles.textMuted(context),
+                            fontSize: 12,
+                            fontWeight: FontWeight.w700,
+                          ),
+                        ),
+                        const SizedBox(height: 6),
+                        Text(
+                          biggestDiscount['description']?.toString() ??
+                              context.tr('analytics_unknown_item'),
                           style: TextStyle(
                             color: ShellStyles.textPrimary(context),
-                            fontSize: 17,
+                            fontSize: 16,
                             fontWeight: FontWeight.w700,
                           ),
                         ),
                         const SizedBox(height: 4),
                         Text(
-                          context.tr(
-                            'analytics_money_and_purchases',
-                            params: {
-                              'amount': formatMoney(currency, amount),
-                              'count': itemCount.toString(),
-                            },
+                          formatMoney(
+                            currency,
+                            (biggestDiscount['amount'] as num?)?.toDouble() ??
+                                0,
                           ),
-                          style: TextStyle(
-                            color: ShellStyles.textMuted(context),
-                            fontSize: 12,
+                          style: const TextStyle(
+                            color: ShellColors.softGreen,
+                            fontSize: 20,
+                            fontWeight: FontWeight.w800,
                           ),
                         ),
                       ],
                     ),
                   ),
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.end,
-                    children: [
-                      Text(
-                        '${percentage.toStringAsFixed(1)}%',
-                        style: TextStyle(
-                          color: ShellStyles.textPrimary(context),
-                          fontSize: 16,
-                          fontWeight: FontWeight.w800,
-                        ),
-                      ),
-                      const SizedBox(height: 2),
-                      Icon(
-                        Icons.chevron_right,
-                        color: ShellStyles.textMuted(context),
-                      ),
-                    ],
-                  ),
                 ],
               ),
             ),
-          ),
-        );
-      }).toList(),
-    );
-  }
-
-  Widget _buildDiscountSection(String currency) {
-    final discounts = _summaryData?['discounts'];
-    if (discounts is! Map<String, dynamic>) {
-      return const SizedBox.shrink();
-    }
-
-    final totalSavings = (discounts['total_savings'] as num?)?.toDouble() ?? 0;
-    final itemsWithDiscount =
-        (discounts['items_with_discount'] as num?)?.toInt() ?? 0;
-    final biggestDiscount =
-        discounts['biggest_discount'] as Map<String, dynamic>?;
-
-    return Container(
-      padding: const EdgeInsets.all(20),
-      decoration: ShellStyles.cardDecoration(context, radius: 24),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            context.tr('analytics_discounts_title'),
-            style: TextStyle(
-              color: ShellStyles.textPrimary(context),
-              fontSize: 18,
-              fontWeight: FontWeight.w800,
-            ),
-          ),
-          const SizedBox(height: 16),
-          if (totalSavings <= 0 &&
-              itemsWithDiscount <= 0 &&
-              biggestDiscount == null)
-            Text(
-              context.tr('analytics_no_discounts'),
-              style: TextStyle(color: ShellStyles.textMuted(context)),
-            )
-          else ...[
-            Row(
-              children: [
-                Expanded(
-                  child: _buildDiscountMetric(
-                    label: context.tr('analytics_total_savings'),
-                    value: formatMoney(currency, totalSavings),
-                  ),
-                ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: _buildDiscountMetric(
-                    label: context.tr('analytics_items_with_discount'),
-                    value: '$itemsWithDiscount',
-                  ),
-                ),
-              ],
-            ),
-            if (biggestDiscount != null) ...[
-              const SizedBox(height: 16),
-              Container(
-                width: double.infinity,
-                padding: const EdgeInsets.all(16),
-                decoration: BoxDecoration(
-                  color: ShellStyles.surfaceAlt(context),
-                  borderRadius: BorderRadius.circular(18),
-                ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      context.tr('analytics_biggest_discount'),
-                      style: TextStyle(
-                        color: ShellStyles.textMuted(context),
-                        fontSize: 12,
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
-                    const SizedBox(height: 6),
-                    Text(
-                      biggestDiscount['description']?.toString() ??
-                          context.tr('analytics_unknown_item'),
-                      style: TextStyle(
-                        color: ShellStyles.textPrimary(context),
-                        fontSize: 16,
-                        fontWeight: FontWeight.w700,
-                      ),
-                    ),
-                    const SizedBox(height: 4),
-                    Text(
-                      formatMoney(
-                        currency,
-                        (biggestDiscount['amount'] as num?)?.toDouble() ?? 0,
-                      ),
-                      style: const TextStyle(
-                        color: ShellColors.softGreen,
-                        fontSize: 20,
-                        fontWeight: FontWeight.w800,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ],
           ],
-        ],
-      ),
-    );
-  }
-
-  Widget _buildDiscountMetric({required String label, required String value}) {
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: ShellStyles.surfaceAlt(context),
-        borderRadius: BorderRadius.circular(18),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            value,
-            style: TextStyle(
-              color: ShellStyles.textPrimary(context),
-              fontSize: 22,
-              fontWeight: FontWeight.w800,
-            ),
-          ),
-          const SizedBox(height: 4),
-          Text(
-            label,
-            style: TextStyle(
-              color: ShellStyles.textMuted(context),
-              fontSize: 12,
-            ),
-          ),
         ],
       ),
     );

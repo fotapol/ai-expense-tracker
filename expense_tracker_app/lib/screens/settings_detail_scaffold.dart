@@ -9,7 +9,7 @@ class SettingsDetailScaffold extends StatelessWidget {
     required this.title,
     required this.body,
     this.actions,
-    this.showScanAction = true,
+    this.showScanAction = false,
   });
 
   final String title;
@@ -43,8 +43,8 @@ class SettingsDetailScaffold extends StatelessWidget {
       floatingActionButton: showScanAction
           ? FloatingActionButton(
               onPressed: () => _openScan(context),
-              backgroundColor: ShellStyles.textPrimary(context),
-              foregroundColor: ShellStyles.surface(context),
+              backgroundColor: ShellStyles.accent(context),
+              foregroundColor: Theme.of(context).colorScheme.onPrimary,
               shape: const CircleBorder(),
               child: const Icon(AppIcons.scanFab),
             )
@@ -137,8 +137,9 @@ class SettingsChoiceRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final accentTone = ShellStyles.accentTone(context);
     final borderColor = selectedBorder
-        ? ShellStyles.textPrimary(context)
+        ? accentTone.border
         : ShellStyles.border(context);
     return InkWell(
       borderRadius: BorderRadius.circular(16),
@@ -146,7 +147,7 @@ class SettingsChoiceRow extends StatelessWidget {
       child: Container(
         padding: padding,
         decoration: BoxDecoration(
-          color: ShellStyles.surface(context),
+          color: selected ? accentTone.container : ShellStyles.surface(context),
           borderRadius: BorderRadius.circular(16),
           border: Border.all(color: borderColor),
         ),
@@ -181,10 +182,7 @@ class SettingsChoiceRow extends StatelessWidget {
             ),
             trailing ??
                 (selected
-                    ? Icon(
-                        AppIcons.check,
-                        color: ShellStyles.textPrimary(context),
-                      )
+                    ? Icon(AppIcons.check, color: accentTone.foreground)
                     : const SizedBox.shrink()),
           ],
         ),

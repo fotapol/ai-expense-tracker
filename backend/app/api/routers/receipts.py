@@ -45,6 +45,10 @@ _ALLOWED_MIME_TYPES = {
     "application/pdf",
 }
 
+# Server-side file size ceiling — slightly above the client-side 10 MB limit
+# to account for encoding overhead, but prevents abuse via direct presigned uploads.
+_MAX_RECEIPT_FILE_BYTES = 15 * 1024 * 1024  # 15 MB
+
 
 def _get_visible_receipt_and_transaction(
     session: Session,
@@ -168,6 +172,14 @@ async def confirm_upload(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="File not found in storage. Please upload the file first.",
         ) from None
+
+    actual_size = obj_info.get("size_bytes", 0)
+    if actual_size > _MAX_RECEIPT_FILE_BYTES:
+        max_mb = _MAX_RECEIPT_FILE_BYTES // (1024 * 1024)
+        raise HTTPException(
+            status_code=status.HTTP_413_REQUEST_ENTITY_TOO_LARGE,
+            detail=f"Uploaded file exceeds the {max_mb} MB server limit.",
+        )
 
     session.exec(
         select(User.id).where(User.id == current_user.id).with_for_update()

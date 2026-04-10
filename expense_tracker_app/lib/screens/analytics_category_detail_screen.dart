@@ -128,6 +128,11 @@ class _AnalyticsCategoryDetailScreenState
     final subcategories = _data?['subcategories'] as List<dynamic>? ?? [];
     final totalAmount = (_data?['total_amount'] as num?)?.toDouble() ?? 0.0;
     final currency = (_data?['currency']?.toString() ?? 'EUR').toUpperCase();
+    final headerTone = ShellStyles.categoryTone(
+      context,
+      code: widget.categoryCode,
+      name: widget.categoryName,
+    );
 
     return RefreshIndicator(
       onRefresh: _fetchData,
@@ -151,6 +156,26 @@ class _AnalyticsCategoryDetailScreenState
                     color: ShellStyles.textPrimary(context),
                     fontSize: 16,
                     fontWeight: FontWeight.w700,
+                  ),
+                ),
+                const SizedBox(height: 10),
+                Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 10,
+                    vertical: 6,
+                  ),
+                  decoration: BoxDecoration(
+                    color: headerTone.container,
+                    borderRadius: BorderRadius.circular(999),
+                    border: Border.all(color: headerTone.border),
+                  ),
+                  child: Text(
+                    'Category overview',
+                    style: TextStyle(
+                      color: headerTone.foreground,
+                      fontSize: 12,
+                      fontWeight: FontWeight.w700,
+                    ),
                   ),
                 ),
                 const SizedBox(height: 8),
@@ -201,6 +226,12 @@ class _AnalyticsCategoryDetailScreenState
               code: sub['code']?.toString(),
               fallbackName: sub['name']?.toString(),
             );
+            final tone = ShellStyles.categoryTone(
+              context,
+              code: sub['code']?.toString(),
+              parentCode: widget.categoryCode,
+              name: sub['name']?.toString(),
+            );
             final amount = (sub['amount'] as num?)?.toDouble() ?? 0.0;
             final percentage = (sub['percentage'] as num?)?.toDouble() ?? 0.0;
             final itemCount = (sub['item_count'] as num?)?.toInt() ?? 0;
@@ -222,11 +253,14 @@ class _AnalyticsCategoryDetailScreenState
                       Container(
                         width: 40,
                         height: 40,
-                        decoration: ShellStyles.iconBadgeDecoration(context),
+                        decoration: ShellStyles.semanticBadgeDecoration(
+                          context,
+                          tone: tone,
+                        ),
                         child: Icon(
                           Icons.account_tree_outlined,
                           size: 18,
-                          color: ShellStyles.textPrimary(context),
+                          color: tone.foreground,
                         ),
                       ),
                       const SizedBox(width: 12),

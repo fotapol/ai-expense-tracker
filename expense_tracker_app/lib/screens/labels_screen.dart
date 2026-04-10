@@ -4,7 +4,6 @@ import 'package:flutter/material.dart';
 import '../core/api_client.dart';
 import '../core/redesign_system.dart';
 import '../l10n/app_localizations.dart';
-import 'receipt_upload_screen.dart';
 
 class LabelsScreen extends StatefulWidget {
   const LabelsScreen({super.key});
@@ -49,13 +48,6 @@ class _LabelsScreenState extends State<LabelsScreen> {
     _nameController.dispose();
     _nameFocusNode.dispose();
     super.dispose();
-  }
-
-  Future<void> _openScan() async {
-    await Navigator.push(
-      context,
-      MaterialPageRoute(builder: (_) => const ReceiptUploadScreen()),
-    );
   }
 
   Future<void> _fetchLabels({bool showLoading = true}) async {
@@ -277,8 +269,8 @@ class _LabelsScreenState extends State<LabelsScreen> {
               icon: const Icon(AppIcons.add, size: 15),
               label: Text(context.tr('common_new')),
               style: FilledButton.styleFrom(
-                backgroundColor: ShellStyles.textPrimary(context),
-                foregroundColor: ShellStyles.surface(context),
+                backgroundColor: ShellStyles.accent(context),
+                foregroundColor: Theme.of(context).colorScheme.onPrimary,
                 padding: const EdgeInsets.symmetric(
                   horizontal: 16,
                   vertical: 10,
@@ -305,7 +297,7 @@ class _LabelsScreenState extends State<LabelsScreen> {
                   16,
                   18,
                   16,
-                  MediaQuery.of(context).padding.bottom + 120,
+                  MediaQuery.of(context).padding.bottom + 32,
                 ),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -331,20 +323,10 @@ class _LabelsScreenState extends State<LabelsScreen> {
                     ShellStyles.sectionLabel(context, 'Your Labels'),
                     const SizedBox(height: 12),
                     _buildLabelsList(),
-                    const SizedBox(height: 22),
-                    _buildInfoCard(),
                   ],
                 ),
               ),
             ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: _openScan,
-        backgroundColor: ShellStyles.textPrimary(context),
-        foregroundColor: ShellStyles.surface(context),
-        shape: const CircleBorder(),
-        child: const Icon(AppIcons.scanFab),
-      ),
-      floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
     );
   }
 
@@ -388,8 +370,8 @@ class _LabelsScreenState extends State<LabelsScreen> {
           FilledButton(
             onPressed: () => _fetchLabels(),
             style: FilledButton.styleFrom(
-              backgroundColor: ShellStyles.textPrimary(context),
-              foregroundColor: ShellStyles.surface(context),
+              backgroundColor: ShellStyles.accent(context),
+              foregroundColor: Theme.of(context).colorScheme.onPrimary,
             ),
             child: Text(context.tr('common_retry')),
           ),
@@ -444,7 +426,9 @@ class _LabelsScreenState extends State<LabelsScreen> {
                   padding: const EdgeInsets.all(3),
                   decoration: BoxDecoration(
                     shape: BoxShape.circle,
-                    color: selected ? Colors.white : Colors.transparent,
+                    color: selected
+                        ? ShellStyles.sectionBackground(context)
+                        : Colors.transparent,
                     border: Border.all(
                       color: selected
                           ? ShellStyles.border(context)
@@ -454,7 +438,9 @@ class _LabelsScreenState extends State<LabelsScreen> {
                     boxShadow: selected
                         ? [
                             BoxShadow(
-                              color: Colors.black.withAlpha(12),
+                              color: Colors.black.withAlpha(
+                                ShellStyles.isDark(context) ? 20 : 12,
+                              ),
                               blurRadius: 10,
                               offset: const Offset(0, 4),
                             ),
@@ -478,8 +464,8 @@ class _LabelsScreenState extends State<LabelsScreen> {
                 child: FilledButton(
                   onPressed: _isSubmitting ? null : _createLabel,
                   style: FilledButton.styleFrom(
-                    backgroundColor: ShellStyles.textPrimary(context),
-                    foregroundColor: ShellStyles.surface(context),
+                    backgroundColor: ShellStyles.accent(context),
+                    foregroundColor: Theme.of(context).colorScheme.onPrimary,
                     padding: const EdgeInsets.symmetric(vertical: 14),
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(14),
@@ -495,7 +481,7 @@ class _LabelsScreenState extends State<LabelsScreen> {
                           height: 18,
                           child: CircularProgressIndicator(
                             strokeWidth: 2,
-                            color: ShellStyles.surface(context),
+                            color: Theme.of(context).colorScheme.onPrimary,
                           ),
                         )
                       : const Text('Create Label'),
@@ -531,17 +517,19 @@ class _LabelsScreenState extends State<LabelsScreen> {
   Widget _buildLabelsList() {
     if (_labels.isEmpty) {
       return Container(
-        padding: const EdgeInsets.all(18),
+        padding: EdgeInsets.all(
+          ShellStyles.scaled(context, 18, min: 16, max: 20),
+        ),
         decoration: ShellStyles.cardDecoration(context, radius: 20),
         child: Row(
           children: [
             Container(
-              width: 42,
-              height: 42,
+              width: ShellStyles.scaled(context, 42, min: 38, max: 46),
+              height: ShellStyles.scaled(context, 42, min: 38, max: 46),
               decoration: ShellStyles.iconBadgeDecoration(context, radius: 14),
               child: Icon(
                 AppIcons.labels,
-                size: 18,
+                size: ShellStyles.scaled(context, 18, min: 16, max: 20),
                 color: ShellStyles.textMuted(context),
               ),
             ),
@@ -582,26 +570,38 @@ class _LabelsScreenState extends State<LabelsScreen> {
           final label = _labels[index] as Map<String, dynamic>;
           final id = label['id']?.toString() ?? '';
           final name = label['name']?.toString() ?? '';
-          final color = _colorFromHex(label['color']?.toString(), index);
+          final tone = ShellStyles.labelTone(
+            context,
+            labelId: id,
+            name: name,
+            rawHex: label['color']?.toString(),
+          );
           return Column(
             children: [
               Padding(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 14,
-                  vertical: 14,
+                padding: EdgeInsets.symmetric(
+                  horizontal: ShellStyles.scaled(context, 14, min: 12, max: 16),
+                  vertical: ShellStyles.scaled(context, 12, min: 10, max: 14),
                 ),
                 child: Row(
                   children: [
                     Container(
-                      width: 40,
-                      height: 40,
-                      decoration: BoxDecoration(
-                        color: color,
-                        borderRadius: BorderRadius.circular(12),
+                      width: ShellStyles.scaled(context, 38, min: 34, max: 42),
+                      height: ShellStyles.scaled(context, 38, min: 34, max: 42),
+                      decoration: ShellStyles.semanticBadgeDecoration(
+                        context,
+                        tone: tone,
+                        filled: true,
+                        radius: ShellStyles.scaled(
+                          context,
+                          12,
+                          min: 10,
+                          max: 14,
+                        ),
                       ),
-                      child: const Icon(
+                      child: Icon(
                         CupertinoIcons.tag,
-                        color: Colors.white,
+                        color: tone.onSolid,
                         size: 18,
                       ),
                     ),
@@ -611,7 +611,12 @@ class _LabelsScreenState extends State<LabelsScreen> {
                         name,
                         style: TextStyle(
                           color: ShellStyles.textPrimary(context),
-                          fontSize: 15,
+                          fontSize: ShellStyles.scaled(
+                            context,
+                            14.5,
+                            min: 13.5,
+                            max: 15.5,
+                          ),
                           fontWeight: FontWeight.w600,
                         ),
                       ),
@@ -636,40 +641,6 @@ class _LabelsScreenState extends State<LabelsScreen> {
             ],
           );
         }),
-      ),
-    );
-  }
-
-  Widget _buildInfoCard() {
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: ShellStyles.cardDecoration(
-        context,
-        radius: 18,
-        color: ShellStyles.surfaceAlt(context),
-        withShadow: false,
-      ),
-      child: RichText(
-        text: TextSpan(
-          style: TextStyle(
-            color: ShellStyles.textMuted(context),
-            fontSize: 13,
-            height: 1.55,
-          ),
-          children: [
-            TextSpan(
-              text: 'About Labels: ',
-              style: TextStyle(
-                color: ShellStyles.textPrimary(context),
-                fontWeight: FontWeight.w700,
-              ),
-            ),
-            const TextSpan(
-              text:
-                  'Use labels to add custom tags to your transactions. Labels are different from categories - you can add multiple labels to a single expense for more flexible organization.',
-            ),
-          ],
-        ),
       ),
     );
   }

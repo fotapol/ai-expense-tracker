@@ -1,10 +1,9 @@
 import 'package:currency_picker/currency_picker.dart';
 import 'package:flutter/material.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 
 import '../core/api_client.dart';
+import '../core/money_format_preferences.dart';
 import '../core/redesign_system.dart';
-import '../l10n/app_localizations.dart';
 import 'settings_detail_scaffold.dart';
 
 class CurrencySettingsScreen extends StatefulWidget {
@@ -17,56 +16,48 @@ class CurrencySettingsScreen extends StatefulWidget {
 }
 
 class _CurrencySettingsScreenState extends State<CurrencySettingsScreen> {
-  // Show just these popular ones by default
-  static const List<String> _popularCodes = [
-    'USD', 'EUR', 'GBP', 'JPY', 'CNY', 'CHF', 'RUB',
+  static const List<String> _popularCodes = <String>[
+    'USD',
+    'EUR',
+    'GBP',
+    'JPY',
+    'CNY',
+    'CHF',
+    'RUB',
   ];
 
-  // All currencies sorted popular-first
-  static const List<String> _allPopularCodes = [
-    'USD', 'EUR', 'GBP', 'JPY', 'CNY', 'CHF', 'RUB',
-    'AUD', 'CAD', 'INR', 'KRW', 'BRL', 'MXN', 'RSD',
+  static const List<String> _allPopularCodes = <String>[
+    'USD',
+    'EUR',
+    'GBP',
+    'JPY',
+    'CNY',
+    'CHF',
+    'RUB',
+    'AUD',
+    'CAD',
+    'INR',
+    'KRW',
+    'BRL',
+    'MXN',
+    'RSD',
   ];
-
-  static const String _keySymbolPosition = 'currency_symbol_position';
-  static const String _keyShowDecimals = 'currency_show_decimals';
 
   late final List<Currency> _allCurrencies;
   late String _selectedCode;
   String _query = '';
   bool _isSaving = false;
   bool _showAll = false;
-
-  // Format preferences
-  String _symbolPosition = 'before';
-  bool _showDecimals = true;
+  late String _symbolPosition;
+  late bool _showDecimals;
 
   @override
   void initState() {
     super.initState();
     _selectedCode = widget.initialCode.toUpperCase();
     _allCurrencies = CurrencyService().getAll();
-    _loadPreferences();
-  }
-
-  Future<void> _loadPreferences() async {
-    final prefs = await SharedPreferences.getInstance();
-    setState(() {
-      _symbolPosition = prefs.getString(_keySymbolPosition) ?? 'before';
-      _showDecimals = prefs.getBool(_keyShowDecimals) ?? true;
-    });
-  }
-
-  Future<void> _saveSymbolPosition(String value) async {
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.setString(_keySymbolPosition, value);
-    setState(() => _symbolPosition = value);
-  }
-
-  Future<void> _saveShowDecimals(bool value) async {
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.setBool(_keyShowDecimals, value);
-    setState(() => _showDecimals = value);
+    _symbolPosition = moneyFormatSettings.symbolPosition;
+    _showDecimals = moneyFormatSettings.showDecimals;
   }
 
   List<Currency> _filteredCurrencies() {
@@ -74,15 +65,20 @@ class _CurrencySettingsScreenState extends State<CurrencySettingsScreen> {
 
     List<Currency> pool;
     if (_showAll || query.isNotEmpty) {
-      pool = List.of(_allCurrencies);
+      pool = List<Currency>.of(_allCurrencies);
     } else {
-      // Show only popular currencies
-      pool = _allCurrencies.where((c) => _popularCodes.contains(c.code.toUpperCase())).toList();
+      pool = _allCurrencies
+          .where(
+            (currency) => _popularCodes.contains(currency.code.toUpperCase()),
+          )
+          .toList();
     }
 
     if (query.isNotEmpty) {
       pool = pool.where((currency) {
-        final badgeLabel = CurrencyDisplay.labelForCode(currency.code).toLowerCase();
+        final badgeLabel = CurrencyDisplay.labelForCode(
+          currency.code,
+        ).toLowerCase();
         return currency.code.toLowerCase().contains(query) ||
             currency.name.toLowerCase().contains(query) ||
             currency.symbol.toLowerCase().contains(query) ||
@@ -90,15 +86,17 @@ class _CurrencySettingsScreenState extends State<CurrencySettingsScreen> {
       }).toList();
     }
 
-    pool.sort((a, b) {
-      final aIndex = _allPopularCodes.indexOf(a.code.toUpperCase());
-      final bIndex = _allPopularCodes.indexOf(b.code.toUpperCase());
-      final aPinned = aIndex != -1;
-      final bPinned = bIndex != -1;
-      if (aPinned && bPinned) return aIndex.compareTo(bIndex);
-      if (aPinned) return -1;
-      if (bPinned) return 1;
-      return a.name.compareTo(b.name);
+    pool.sort((left, right) {
+      final leftIndex = _allPopularCodes.indexOf(left.code.toUpperCase());
+      final rightIndex = _allPopularCodes.indexOf(right.code.toUpperCase());
+      final leftPinned = leftIndex != -1;
+      final rightPinned = rightIndex != -1;
+      if (leftPinned && rightPinned) {
+        return leftIndex.compareTo(rightIndex);
+      }
+      if (leftPinned) return -1;
+      if (rightPinned) return 1;
+      return left.name.compareTo(right.name);
     });
     return pool;
   }
@@ -108,32 +106,37 @@ class _CurrencySettingsScreenState extends State<CurrencySettingsScreen> {
     if (_isSaving || code == _selectedCode) return;
     setState(() => _isSaving = true);
     try {
-      await ApiClient.updateMe({'default_currency': code});
+      await ApiClient.updateMe(<String, dynamic>{'default_currency': code});
       if (!mounted) return;
       setState(() => _selectedCode = code);
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(
-            context.tr('settings_currency_updated', params: {'code': code}),
-          ),
-        ),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Currency updated to $code.')));
     } catch (error) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text(
-            context.tr(
-              'settings_currency_update_failed',
-              params: {'error': error.toString()},
-            ),
-          ),
+          content: Text('Failed to update currency: $error'),
           backgroundColor: Colors.red,
         ),
       );
     } finally {
-      if (mounted) setState(() => _isSaving = false);
+      if (mounted) {
+        setState(() => _isSaving = false);
+      }
     }
+  }
+
+  Future<void> _setSymbolPosition(String value) async {
+    await moneyFormatSettings.setSymbolPosition(value);
+    if (!mounted) return;
+    setState(() => _symbolPosition = moneyFormatSettings.symbolPosition);
+  }
+
+  Future<void> _setShowDecimals(bool value) async {
+    await moneyFormatSettings.setShowDecimals(value);
+    if (!mounted) return;
+    setState(() => _showDecimals = moneyFormatSettings.showDecimals);
   }
 
   Widget _buildCurrencyRow(Currency currency, bool hasDivider) {
@@ -142,16 +145,19 @@ class _CurrencySettingsScreenState extends State<CurrencySettingsScreen> {
     return InkWell(
       onTap: () => _selectCurrency(currency),
       child: Column(
-        children: [
+        children: <Widget>[
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
             child: Row(
-              children: [
+              children: <Widget>[
                 Container(
                   width: 36,
                   height: 36,
                   alignment: Alignment.center,
-                  decoration: ShellStyles.iconBadgeDecoration(context, radius: 10),
+                  decoration: ShellStyles.iconBadgeDecoration(
+                    context,
+                    radius: 10,
+                  ),
                   child: Text(
                     badgeLabel,
                     style: TextStyle(
@@ -165,7 +171,7 @@ class _CurrencySettingsScreenState extends State<CurrencySettingsScreen> {
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
+                    children: <Widget>[
                       Text(
                         currency.name,
                         style: TextStyle(
@@ -186,116 +192,178 @@ class _CurrencySettingsScreenState extends State<CurrencySettingsScreen> {
                   ),
                 ),
                 if (isSelected)
-                  Icon(AppIcons.check, color: ShellStyles.textPrimary(context), size: 18),
+                  Icon(
+                    AppIcons.check,
+                    color: ShellStyles.textPrimary(context),
+                    size: 18,
+                  ),
               ],
             ),
           ),
           if (hasDivider)
-            Divider(height: 1, indent: 14, endIndent: 14, color: ShellStyles.border(context)),
+            Divider(
+              height: 1,
+              indent: 14,
+              endIndent: 14,
+              color: ShellStyles.border(context),
+            ),
         ],
       ),
     );
   }
 
-  Widget _buildFormatRow({
-    required String label,
-    required String example,
-    required bool isSelected,
+  Widget _buildPreferenceChoice({
+    required String title,
+    required String subtitle,
+    required bool selected,
     required VoidCallback onTap,
   }) {
-    return InkWell(
+    return SettingsChoiceRow(
+      title: title,
+      subtitle: subtitle,
+      selected: selected,
+      selectedBorder: selected,
       onTap: onTap,
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
-        child: Row(
-          children: [
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    label,
-                    style: TextStyle(
-                      color: ShellStyles.textPrimary(context),
-                      fontSize: 14,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                  const SizedBox(height: 2),
-                  Text(
-                    example,
-                    style: TextStyle(
-                      color: ShellColors.softBlue,
-                      fontSize: 12,
-                      fontWeight: FontWeight.w500,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            if (isSelected)
-              Icon(AppIcons.check, color: ShellStyles.textPrimary(context), size: 18),
-          ],
-        ),
-      ),
     );
   }
 
-  String _formatExample(String symbol, double amount, String position) {
-    final amountStr = _showDecimals
-        ? amount.toStringAsFixed(2)
-        : amount.toStringAsFixed(0);
-    if (position == 'before') return '$symbol$amountStr';
-    return '$amountStr$symbol';
+  Widget _buildPreviewCard() {
+    final currencyName = CurrencyService().findByCode(_selectedCode)?.name;
+    final positiveSample = moneyFormatSettings.preview(_selectedCode);
+    final negativeSample = moneyFormatSettings.format(_selectedCode, -42.9);
+    final subtitle = currencyName == null
+        ? _selectedCode
+        : '$_selectedCode - $currencyName';
+
+    return SettingsDetailCard(
+      radius: 22,
+      padding: const EdgeInsets.all(18),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: <Widget>[
+          Text(
+            'Preview',
+            style: TextStyle(
+              color: ShellStyles.textPrimary(context),
+              fontSize: 16,
+              fontWeight: FontWeight.w700,
+            ),
+          ),
+          const SizedBox(height: 4),
+          Text(
+            subtitle,
+            style: TextStyle(
+              color: ShellStyles.textMuted(context),
+              fontSize: 12.5,
+            ),
+          ),
+          const SizedBox(height: 14),
+          Container(
+            width: double.infinity,
+            padding: const EdgeInsets.all(14),
+            decoration: BoxDecoration(
+              color: ShellStyles.surfaceAlt(context),
+              borderRadius: BorderRadius.circular(16),
+              border: Border.all(color: ShellStyles.border(context)),
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: <Widget>[
+                Text(
+                  positiveSample,
+                  style: TextStyle(
+                    color: ShellStyles.textPrimary(context),
+                    fontSize: 24,
+                    fontWeight: FontWeight.w800,
+                  ),
+                ),
+                const SizedBox(height: 6),
+                Text(
+                  negativeSample,
+                  style: const TextStyle(
+                    color: ShellColors.softRed,
+                    fontSize: 14,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 10),
+          Text(
+            'Format options are saved on this device and update supported amount displays, including Home and history.',
+            style: TextStyle(
+              color: ShellStyles.textMuted(context),
+              fontSize: 12,
+              height: 1.4,
+            ),
+          ),
+        ],
+      ),
+    );
   }
 
   @override
   Widget build(BuildContext context) {
     final currencies = _filteredCurrencies();
-    final exampleSymbol = '\$';
 
     return SettingsDetailScaffold(
-      title: context.tr('settings_currency'),
+      title: 'Currency',
       body: SafeArea(
         top: false,
         child: Stack(
-          children: [
+          children: <Widget>[
             SingleChildScrollView(
               padding: const EdgeInsets.fromLTRB(16, 16, 16, 120),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
+                children: <Widget>[
+                  _buildPreviewCard(),
+                  const SizedBox(height: 16),
                   SettingsSearchField(
-                    hintText: context.tr('settings_currency_search'),
+                    hintText: 'Search currencies',
                     onChanged: (value) => setState(() {
                       _query = value;
-                      if (value.isNotEmpty) _showAll = true;
+                      if (value.isNotEmpty) {
+                        _showAll = true;
+                      }
                     }),
                   ),
                   const SizedBox(height: 12),
                   Container(
                     decoration: ShellStyles.cardDecoration(context, radius: 18),
                     child: Column(
-                      children: [
+                      children: <Widget>[
                         for (var index = 0; index < currencies.length; index++)
                           _buildCurrencyRow(
                             currencies[index],
                             index != currencies.length - 1,
                           ),
-                        // View All / Show Less toggle
-                        if (_query.isEmpty) ...[
-                          Divider(height: 1, indent: 14, endIndent: 14, color: ShellStyles.border(context)),
+                        if (_query.isEmpty) ...<Widget>[
+                          Divider(
+                            height: 1,
+                            indent: 14,
+                            endIndent: 14,
+                            color: ShellStyles.border(context),
+                          ),
                           InkWell(
                             onTap: () => setState(() => _showAll = !_showAll),
-                            borderRadius: const BorderRadius.vertical(bottom: Radius.circular(18)),
+                            borderRadius: const BorderRadius.vertical(
+                              bottom: Radius.circular(18),
+                            ),
                             child: Padding(
-                              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 14,
+                                vertical: 14,
+                              ),
                               child: Row(
                                 mainAxisAlignment: MainAxisAlignment.center,
-                                children: [
+                                children: <Widget>[
                                   Text(
-                                    _showAll ? 'Show less' : 'View all currencies',
-                                    style: TextStyle(
+                                    _showAll
+                                        ? 'Show less'
+                                        : 'View all currencies',
+                                    style: const TextStyle(
                                       color: ShellColors.softBlue,
                                       fontSize: 13,
                                       fontWeight: FontWeight.w600,
@@ -303,7 +371,9 @@ class _CurrencySettingsScreenState extends State<CurrencySettingsScreen> {
                                   ),
                                   const SizedBox(width: 4),
                                   Icon(
-                                    _showAll ? Icons.keyboard_arrow_up : Icons.keyboard_arrow_down,
+                                    _showAll
+                                        ? Icons.keyboard_arrow_up
+                                        : Icons.keyboard_arrow_down,
                                     color: ShellColors.softBlue,
                                     size: 18,
                                   ),
@@ -315,52 +385,75 @@ class _CurrencySettingsScreenState extends State<CurrencySettingsScreen> {
                       ],
                     ),
                   ),
-                  const SizedBox(height: 28),
-                  ShellStyles.sectionLabel(context, 'FORMAT OPTIONS'),
+                  const SizedBox(height: 24),
+                  ShellStyles.sectionLabel(context, 'Symbol position'),
                   const SizedBox(height: 8),
-                  Container(
-                    decoration: ShellStyles.cardDecoration(context, radius: 18),
-                    child: Column(
-                      children: [
-                        _buildFormatRow(
-                          label: 'Before amount',
-                          example: _formatExample(exampleSymbol, 100.00, 'before'),
-                          isSelected: _symbolPosition == 'before',
-                          onTap: () => _saveSymbolPosition('before'),
-                        ),
-                        Divider(height: 1, indent: 14, endIndent: 14, color: ShellStyles.border(context)),
-                        _buildFormatRow(
-                          label: 'After amount',
-                          example: _formatExample(exampleSymbol, 100.00, 'after'),
-                          isSelected: _symbolPosition == 'after',
-                          onTap: () => _saveSymbolPosition('after'),
-                        ),
-                      ],
+                  _buildPreferenceChoice(
+                    title: 'Before the amount',
+                    subtitle: _previewFor(
+                      symbolPosition: 'before',
+                      showDecimals: _showDecimals,
                     ),
+                    selected: _symbolPosition == 'before',
+                    onTap: () => _setSymbolPosition('before'),
                   ),
-                  const SizedBox(height: 28),
-                  ShellStyles.sectionLabel(context, 'DISPLAY OPTIONS'),
                   const SizedBox(height: 8),
-                  Container(
-                    decoration: ShellStyles.cardDecoration(context, radius: 18),
-                    child: SettingsToggleRow(
-                      title: 'Show Decimals',
-                      subtitle: 'Display cents/minor units',
-                      value: _showDecimals,
-                      onChanged: _saveShowDecimals,
+                  _buildPreferenceChoice(
+                    title: 'After the amount',
+                    subtitle: _previewFor(
+                      symbolPosition: 'after',
+                      showDecimals: _showDecimals,
                     ),
+                    selected: _symbolPosition == 'after',
+                    onTap: () => _setSymbolPosition('after'),
+                  ),
+                  const SizedBox(height: 24),
+                  ShellStyles.sectionLabel(context, 'Decimals'),
+                  const SizedBox(height: 8),
+                  _buildPreferenceChoice(
+                    title: 'Show decimals',
+                    subtitle: _previewFor(
+                      symbolPosition: _symbolPosition,
+                      showDecimals: true,
+                    ),
+                    selected: _showDecimals,
+                    onTap: () => _setShowDecimals(true),
+                  ),
+                  const SizedBox(height: 8),
+                  _buildPreferenceChoice(
+                    title: 'Hide decimals',
+                    subtitle: _previewFor(
+                      symbolPosition: _symbolPosition,
+                      showDecimals: false,
+                    ),
+                    selected: !_showDecimals,
+                    onTap: () => _setShowDecimals(false),
                   ),
                 ],
               ),
             ),
             if (_isSaving)
               const Positioned(
-                left: 0, right: 0, bottom: 0,
+                left: 0,
+                right: 0,
+                bottom: 0,
                 child: LinearProgressIndicator(minHeight: 2),
               ),
           ],
         ),
       ),
+    );
+  }
+
+  String _previewFor({
+    required String symbolPosition,
+    required bool showDecimals,
+  }) {
+    return moneyFormatSettings.format(
+      _selectedCode,
+      1234.56,
+      symbolPosition: symbolPosition,
+      showDecimals: showDecimals,
     );
   }
 }

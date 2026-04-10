@@ -46,15 +46,15 @@ void main() {
         ],
       );
 
-      expect(overview.totalBudget, 1650);
+      expect(overview.totalBudget, 5000);
       expect(overview.totalSpent, 1180);
-      expect(overview.remaining, 470);
+      expect(overview.remaining, 3820);
       expect(overview.savingsGoal, 3350);
       expect(overview.isOverBudget, isFalse);
     });
 
     test(
-      'marks categories and overview as exceeded when spend is too high',
+      'marks categories as exceeded without shrinking the monthly total budget',
       () {
         const category = BudgetCategoryProgress(
           categoryId: 'food',
@@ -73,8 +73,44 @@ void main() {
         expect(category.isExceeded, isTrue);
         expect(category.remainingAmount, -120);
         expect(category.progress, 1);
-        expect(overview.isOverBudget, isTrue);
-        expect(overview.remaining, -120);
+        expect(overview.isOverBudget, isFalse);
+        expect(overview.remaining, 580);
+      },
+    );
+
+    test('falls back to category totals when no monthly budget is set', () {
+      const category = BudgetCategoryProgress(
+        categoryId: 'food',
+        categoryCode: 'food',
+        categoryName: 'Food',
+        limitAmount: 300,
+        spentAmount: 420,
+      );
+
+      final overview = buildBudgetOverview(
+        monthlyIncome: 0,
+        totalSpent: 420,
+        categories: const [category],
+      );
+
+      expect(overview.totalBudget, 300);
+      expect(overview.isOverBudget, isTrue);
+      expect(overview.remaining, -120);
+    });
+
+    test(
+      'uses monthly income as the total budget when no categories are set',
+      () {
+        final overview = buildBudgetOverview(
+          monthlyIncome: 300,
+          totalSpent: 60.21,
+          categories: const [],
+        );
+
+        expect(overview.totalBudget, 300);
+        expect(overview.totalSpent, 60.21);
+        expect(overview.remaining, closeTo(239.79, 0.0001));
+        expect(overview.savingsGoal, 0);
       },
     );
   });
@@ -85,6 +121,8 @@ void main() {
     BillReminderRecord buildReminder({
       DateTime? firstDueDate,
       DateTime? lastPaidDueDate,
+      DateTime? lastSkippedDueDate,
+      String recurrence = billReminderRecurrenceMonthly,
       bool isActive = true,
     }) {
       return BillReminderRecord(
@@ -92,8 +130,10 @@ void main() {
         name: 'Rent',
         amount: 1500,
         currency: 'USD',
+        recurrence: recurrence,
         firstDueDate: firstDueDate ?? DateTime(2026, 1, 5),
         lastPaidDueDate: lastPaidDueDate,
+        lastSkippedDueDate: lastSkippedDueDate,
         remindDaysBefore: 3,
         isActive: isActive,
       );
@@ -114,22 +154,28 @@ void main() {
       );
     });
 
-    test('marking current cycle as paid hides it until next month', () {
-      final reminder = buildReminder(lastPaidDueDate: DateTime(2026, 3, 5));
+    test(
+      'marking current cycle as paid moves monthly reminder to next month',
+      () {
+        final reminder = buildReminder(lastPaidDueDate: DateTime(2026, 3, 5));
 
-      expect(billReminderOccurrenceForList(reminder, now: now), isNull);
-      expect(
-        nextSchedulableBillReminderDueDate(reminder, now: now),
-        DateTime(2026, 4, 5),
-      );
-      expect(
-        billReminderOccurrenceForList(
-          reminder,
-          now: DateTime(2026, 4, 1),
-        )?.dueDate,
-        DateTime(2026, 4, 5),
-      );
-    });
+        expect(
+          billReminderOccurrenceForList(reminder, now: now)?.dueDate,
+          DateTime(2026, 4, 5),
+        );
+        expect(
+          nextSchedulableBillReminderDueDate(reminder, now: now),
+          DateTime(2026, 4, 5),
+        );
+        expect(
+          billReminderOccurrenceForList(
+            reminder,
+            now: DateTime(2026, 4, 1),
+          )?.dueDate,
+          DateTime(2026, 4, 5),
+        );
+      },
+    );
 
     test('monthly due dates clamp to shorter months', () {
       final reminder = buildReminder(
@@ -166,7 +212,9 @@ void main() {
             name: 'Internet',
             amount: 79.99,
             currency: 'USD',
+            recurrence: billReminderRecurrenceMonthly,
             firstDueDate: DateTime(2026, 1, 25),
+            lastSkippedDueDate: null,
             remindDaysBefore: 3,
             isActive: true,
           ),
@@ -176,6 +224,116 @@ void main() {
       ];
 
       expect(upcomingBillsTotal(occurrences), closeTo(1579.99, 0.0001));
+    });
+
+    test('daily reminders roll forward one day after being marked paid', () {
+      final reminder = buildReminder(
+        recurrence: billReminderRecurrenceDaily,
+        lastPaidDueDate: DateTime(2026, 3, 23),
+      );
+
+      expect(
+        billReminderOccurrenceForList(reminder, now: now)?.dueDate,
+        DateTime(2026, 3, 24),
+      );
+      expect(
+        nextSchedulableBillReminderDueDate(reminder, now: now),
+        DateTime(2026, 3, 24),
+      );
+    });
+
+    test('weekly reminders move forward by one week after payment', () {
+      final reminder = buildReminder(
+        recurrence: billReminderRecurrenceWeekly,
+        firstDueDate: DateTime(2026, 3, 2),
+        lastPaidDueDate: DateTime(2026, 3, 23),
+      );
+
+      expect(
+        billReminderOccurrenceForList(reminder, now: now)?.dueDate,
+        DateTime(2026, 3, 30),
+      );
+    });
+
+    test(
+      'skipped recurring reminders move to the next scheduled occurrence',
+      () {
+        final reminder = buildReminder(
+          recurrence: billReminderRecurrenceMonthly,
+          lastPaidDueDate: DateTime(2026, 3, 5),
+          lastSkippedDueDate: DateTime(2026, 4, 5),
+        );
+
+        expect(
+          billReminderOccurrenceForList(
+            reminder,
+            now: DateTime(2026, 4, 12),
+          )?.dueDate,
+          DateTime(2026, 5, 5),
+        );
+        expect(
+          nextSchedulableBillReminderDueDate(
+            reminder,
+            now: DateTime(2026, 4, 12),
+          ),
+          DateTime(2026, 5, 5),
+        );
+      },
+    );
+
+    test('one-time reminders move to history after payment', () {
+      final reminder = buildReminder(
+        recurrence: billReminderRecurrenceNone,
+        firstDueDate: DateTime(2026, 3, 25),
+        lastPaidDueDate: DateTime(2026, 3, 25),
+      );
+
+      expect(billReminderOccurrenceForList(reminder, now: now), isNull);
+      expect(nextSchedulableBillReminderDueDate(reminder, now: now), isNull);
+    });
+
+    test('yearly reminders clamp leap-day anchors for non-leap years', () {
+      final reminder = buildReminder(
+        recurrence: billReminderRecurrenceYearly,
+        firstDueDate: DateTime(2024, 2, 29),
+        lastPaidDueDate: DateTime(2025, 2, 28),
+      );
+
+      expect(
+        billReminderOccurrenceForList(
+          reminder,
+          now: DateTime(2026, 2, 10),
+        )?.dueDate,
+        DateTime(2026, 2, 28),
+      );
+      expect(
+        nextSchedulableBillReminderDueDate(reminder, now: DateTime(2026, 3, 1)),
+        DateTime(2026, 2, 28),
+      );
+
+      final paidCurrentYear = buildReminder(
+        recurrence: billReminderRecurrenceYearly,
+        firstDueDate: DateTime(2024, 2, 29),
+        lastPaidDueDate: DateTime(2026, 2, 28),
+      );
+      expect(
+        nextSchedulableBillReminderDueDate(
+          paidCurrentYear,
+          now: DateTime(2026, 3, 1),
+        ),
+        DateTime(2027, 2, 28),
+      );
+    });
+
+    test('inactive reminders do not appear in upcoming occurrences', () {
+      final reminder = buildReminder(
+        recurrence: billReminderRecurrenceMonthly,
+        lastPaidDueDate: DateTime(2026, 3, 5),
+        isActive: false,
+      );
+
+      expect(billReminderOccurrenceForList(reminder, now: now), isNull);
+      expect(nextSchedulableBillReminderDueDate(reminder, now: now), isNull);
     });
   });
 }

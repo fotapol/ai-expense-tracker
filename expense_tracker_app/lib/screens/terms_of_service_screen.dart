@@ -121,17 +121,7 @@ class TermsOfServiceScreen extends StatelessWidget {
               Container(
                 width: double.infinity,
                 padding: const EdgeInsets.all(18),
-                decoration: BoxDecoration(
-                  color: const Color(0xFF1F1F20),
-                  borderRadius: BorderRadius.circular(18),
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.black.withAlpha(18),
-                      blurRadius: 18,
-                      offset: const Offset(0, 6),
-                    ),
-                  ],
-                ),
+                decoration: ShellStyles.heroCardDecoration(context, radius: 18),
                 child: Row(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
@@ -140,20 +130,26 @@ class TermsOfServiceScreen extends StatelessWidget {
                       height: 42,
                       alignment: Alignment.center,
                       decoration: BoxDecoration(
-                        color: Colors.white.withAlpha(10),
+                        color: ShellStyles.heroBadgeSurface(context),
                         borderRadius: BorderRadius.circular(12),
+                        border: Border.all(
+                          color: ShellStyles.heroBadgeBorder(context),
+                        ),
                       ),
-                      child: const Icon(AppIcons.document, color: Colors.white),
+                      child: Icon(
+                        AppIcons.document,
+                        color: ShellStyles.heroBadgeIcon(context),
+                      ),
                     ),
                     const SizedBox(width: 12),
-                    const Expanded(
+                    Expanded(
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
                             'Terms of Service',
                             style: TextStyle(
-                              color: Colors.white,
+                              color: ShellStyles.heroTextPrimary(context),
                               fontSize: 18,
                               fontWeight: FontWeight.w700,
                             ),
@@ -162,7 +158,7 @@ class TermsOfServiceScreen extends StatelessWidget {
                           Text(
                             'Please read these terms carefully before using our service. By using AI Expense Tracker, you agree to be bound by these terms.',
                             style: TextStyle(
-                              color: Color(0xFFD4D4D6),
+                              color: ShellStyles.heroTextSecondary(context),
                               fontSize: 12.5,
                               height: 1.45,
                             ),
