@@ -568,7 +568,7 @@ class _AnalyticsTrendsTabState extends State<AnalyticsTrendsTab> {
                     getDotPainter: (spot, percent, bar, dotIndex) =>
                         FlDotCirclePainter(
                           radius: 5,
-                          color: ShellStyles.chartRamp(context).first,
+                          color: ShellStyles.trendPalette(context).first,
                           strokeWidth: 2,
                           strokeColor: ShellStyles.surface(context),
                         ),
@@ -649,12 +649,12 @@ class _AnalyticsTrendsTabState extends State<AnalyticsTrendsTab> {
           curveSmoothness: 0.22,
           preventCurveOverShooting: true,
           barWidth: 3,
-          color: ShellStyles.chartRamp(context).first,
+          color: ShellStyles.trendPalette(context).first,
           dotData: FlDotData(
             show: true,
             getDotPainter: (spot, percent, bar, index) => FlDotCirclePainter(
               radius: 4,
-              color: ShellStyles.chartRamp(context).first,
+              color: ShellStyles.trendPalette(context).first,
               strokeWidth: 2,
               strokeColor: ShellStyles.surface(context),
             ),
@@ -776,7 +776,7 @@ class _AnalyticsTrendsTabState extends State<AnalyticsTrendsTab> {
                     : values.length >= 8
                     ? 24
                     : 42,
-                color: ShellStyles.chartRamp(context).first,
+                color: ShellStyles.trendPalette(context).first,
                 borderRadius: const BorderRadius.vertical(
                   top: Radius.circular(8),
                 ),

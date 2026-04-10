@@ -185,18 +185,12 @@ class _AnalyticsTabState extends State<AnalyticsTab>
   }
 
   Color _categoryColor(Map<String, dynamic> category) {
-    final code = category['code']?.toString() ?? '';
-    final name = category['name']?.toString() ?? '';
-    final parentCode = category['parent_category_code']?.toString() ?? '';
-    final palette = ShellStyles.chartRamp(context);
-    final seed = '$code|$name|$parentCode'.trim().toUpperCase();
-    if (seed.isEmpty) return palette.first;
-
-    var hash = 0;
-    for (final unit in seed.codeUnits) {
-      hash = ((hash * 31) + unit) & 0x7fffffff;
-    }
-    return palette[hash % palette.length];
+    return ShellStyles.categoryTone(
+      context,
+      code: category['code']?.toString(),
+      parentCode: category['parent_category_code']?.toString(),
+      name: category['name']?.toString(),
+    ).base;
   }
 
   String _breakdownName(Map<String, dynamic> breakdown) {
@@ -362,19 +356,19 @@ class _AnalyticsTabState extends State<AnalyticsTab>
             final amount = (category['amount'] as num?)?.toDouble() ?? 0;
             final percentage =
                 (category['percentage'] as num?)?.toDouble() ?? 0;
-            final sectionColor = _categoryColor(category);
-            final titleColor =
-                ThemeData.estimateBrightnessForColor(sectionColor) ==
-                    Brightness.dark
-                ? ShellColors.darkText
-                : ShellColors.darkBackground;
+            final tone = ShellStyles.categoryTone(
+              context,
+              code: category['code']?.toString(),
+              parentCode: category['parent_category_code']?.toString(),
+              name: category['name']?.toString(),
+            );
             return PieChartSectionData(
-              color: sectionColor,
+              color: tone.base,
               value: amount,
               title: percentage >= 9 ? '${percentage.toStringAsFixed(0)}%' : '',
               radius: 58,
               titleStyle: TextStyle(
-                color: titleColor,
+                color: tone.onSolid,
                 fontSize: 11,
                 fontWeight: FontWeight.w700,
               ),
@@ -649,7 +643,12 @@ class _AnalyticsTabState extends State<AnalyticsTab>
     final amount = (category['amount'] as num?)?.toDouble() ?? 0;
     final itemCount = (category['item_count'] as num?)?.toInt() ?? 0;
     final percentage = (category['percentage'] as num?)?.toDouble() ?? 0;
-    final color = _categoryColor(category);
+    final tone = ShellStyles.categoryTone(
+      context,
+      code: code,
+      parentCode: category['parent_category_code']?.toString(),
+      name: category['name']?.toString(),
+    );
     final icon = CategoryStyle.iconForCode(code);
 
     return InkWell(
@@ -665,12 +664,12 @@ class _AnalyticsTabState extends State<AnalyticsTab>
               width: 42,
               height: 42,
               alignment: Alignment.center,
-              decoration: ShellStyles.iconBadgeDecoration(
+              decoration: ShellStyles.semanticBadgeDecoration(
                 context,
-                color: ShellStyles.surfaceAlt(context),
+                tone: tone,
                 radius: 14,
               ),
-              child: Icon(icon, color: color, size: 19),
+              child: Icon(icon, color: tone.foreground, size: 19),
             ),
             const SizedBox(width: 12),
             Expanded(

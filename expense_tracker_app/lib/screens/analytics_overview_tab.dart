@@ -180,6 +180,7 @@ class _AnalyticsOverviewTabState extends State<AnalyticsOverviewTab> {
               final amount = _parseDouble(entry['amount']);
               final percentage = _parseDouble(entry['percentage']);
               return _CategoryInsight(
+                code: entry['code']?.toString() ?? '',
                 name: localizeCategoryByCode(
                   context,
                   code: entry['code']?.toString(),
@@ -675,6 +676,11 @@ class _AnalyticsOverviewTabState extends State<AnalyticsOverviewTab> {
     required String currency,
     required _CategoryInsight category,
   }) {
+    final tone = ShellStyles.categoryTone(
+      context,
+      code: category.code,
+      name: category.name,
+    );
     return Row(
       children: [
         Container(
@@ -697,15 +703,30 @@ class _AnalyticsOverviewTabState extends State<AnalyticsOverviewTab> {
         ),
         const SizedBox(width: 12),
         Expanded(
-          child: Text(
-            category.name,
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
-            style: TextStyle(
-              color: ShellStyles.textPrimary(context),
-              fontSize: 15,
-              fontWeight: FontWeight.w700,
-            ),
+          child: Row(
+            children: [
+              Container(
+                width: 10,
+                height: 10,
+                decoration: BoxDecoration(
+                  color: tone.base,
+                  shape: BoxShape.circle,
+                ),
+              ),
+              const SizedBox(width: 10),
+              Expanded(
+                child: Text(
+                  category.name,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: TextStyle(
+                    color: ShellStyles.textPrimary(context),
+                    fontSize: 15,
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+              ),
+            ],
           ),
         ),
         const SizedBox(width: 12),
@@ -809,11 +830,13 @@ class _OverviewComparisonCopy {
 
 class _CategoryInsight {
   const _CategoryInsight({
+    required this.code,
     required this.name,
     required this.amount,
     required this.share,
   });
 
+  final String code;
   final String name;
   final double amount;
   final double share;
