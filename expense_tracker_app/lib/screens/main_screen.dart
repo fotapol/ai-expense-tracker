@@ -62,12 +62,23 @@ class _MainScreenState extends State<MainScreen> {
       backgroundColor: ShellStyles.background(context),
       body: IndexedStack(index: _selectedIndex, children: _tabs),
       floatingActionButton: _showsScanAction
-          ? FloatingActionButton(
-              onPressed: _openScan,
-              backgroundColor: ShellStyles.accent(context),
-              foregroundColor: Theme.of(context).colorScheme.onPrimary,
-              shape: const CircleBorder(),
-              child: const Icon(AppIcons.scanFab),
+          ? ClipOval(
+              clipBehavior: Clip.antiAliasWithSaveLayer,
+              child: Material(
+                color: ShellStyles.accent(context),
+                child: InkWell(
+                  onTap: _openScan,
+                  child: SizedBox(
+                    width: 56,
+                    height: 56,
+                    child: Icon(
+                      AppIcons.scanFab,
+                      color: Theme.of(context).colorScheme.onPrimary,
+                      size: 24,
+                    ),
+                  ),
+                ),
+              ),
             )
           : null,
       floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
