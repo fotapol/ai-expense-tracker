@@ -604,21 +604,22 @@ class _ReceiptsTabState extends State<ReceiptsTab>
     required IconData icon,
     required VoidCallback onDeleted,
   }) {
+    final tone = ShellStyles.accentTone(context);
     return InputChip(
-      avatar: Icon(icon, size: 16, color: ShellStyles.textPrimary(context)),
+      avatar: Icon(icon, size: 16, color: tone.foreground),
       label: Text(
         label,
         style: TextStyle(
-          color: ShellStyles.textPrimary(context),
+          color: tone.foreground,
           fontSize: 12,
           fontWeight: FontWeight.w700,
         ),
       ),
       materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
       visualDensity: VisualDensity.compact,
-      backgroundColor: ShellStyles.surface(context),
-      side: BorderSide(color: ShellStyles.border(context)),
-      deleteIconColor: ShellStyles.textMuted(context),
+      backgroundColor: tone.container,
+      side: BorderSide(color: tone.border),
+      deleteIconColor: tone.foreground,
       onDeleted: onDeleted,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
     );
@@ -891,11 +892,17 @@ class _ReceiptsTabState extends State<ReceiptsTab>
       );
     }
     final txCategoryCode = txCategory?['code']?.toString() ?? '';
-    final iconColor = txCategory != null
-        ? CategoryStyle.colorForCode(txCategoryCode)
-        : Theme.of(context).colorScheme.primary;
-    final iconData = txCategory != null
-        ? CategoryStyle.iconForCode(txCategoryCode)
+    final categoryTone = hasCategoryHint
+        ? ShellStyles.categoryTone(
+            context,
+            code: categoryCode,
+            parentCode: txCategory?['parent_category_code']?.toString(),
+            name: txCategoryLabel ?? txCategoryNameRaw,
+          )
+        : ShellStyles.accentTone(context);
+    final iconColor = categoryTone.base;
+    final iconData = hasCategoryHint
+        ? CategoryStyle.iconForCode(categoryCode)
         : Icons.shopping_bag;
 
     final allLabelsRaw = tx['labels'];
@@ -992,13 +999,12 @@ class _ReceiptsTabState extends State<ReceiptsTab>
               Container(
                 width: ShellStyles.scaled(context, 44, min: 40, max: 48),
                 height: ShellStyles.scaled(context, 44, min: 40, max: 48),
-                decoration: BoxDecoration(
-                  color: ShellStyles.surfaceAlt(context),
-                  borderRadius: BorderRadius.circular(
-                    ShellStyles.scaled(context, 14, min: 12, max: 16),
-                  ),
+                decoration: ShellStyles.semanticBadgeDecoration(
+                  context,
+                  tone: categoryTone,
+                  radius: ShellStyles.scaled(context, 14, min: 12, max: 16),
                 ),
-                child: Icon(iconData, color: iconColor),
+                child: Icon(iconData, color: categoryTone.foreground),
               ),
               SizedBox(
                 width: ShellStyles.scaled(context, 12, min: 10, max: 14),
@@ -1052,21 +1058,20 @@ class _ReceiptsTabState extends State<ReceiptsTab>
                               color: iconColor,
                             ),
                           ...labelsToRender.map((label) {
-                            final fallbackColor = Theme.of(
-                              context,
-                            ).colorScheme.primary;
-                            final chipColor = _parseHexColor(
-                              label['color']?.toString(),
-                              fallbackColor,
-                            );
                             final labelName = label['name']?.toString() ?? '';
                             if (labelName.isEmpty) {
                               return const SizedBox.shrink();
                             }
+                            final labelTone = ShellStyles.labelTone(
+                              context,
+                              labelId: label['id']?.toString(),
+                              name: labelName,
+                              rawHex: label['color']?.toString(),
+                            );
                             return _buildMetaChip(
                               label: labelName,
                               icon: Icons.push_pin_outlined,
-                              color: chipColor,
+                              color: labelTone.base,
                             );
                           }),
                         ],

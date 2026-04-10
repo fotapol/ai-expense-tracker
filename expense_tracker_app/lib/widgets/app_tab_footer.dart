@@ -72,7 +72,7 @@ class _AppTabFooterItem extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final selectedColor = ShellStyles.textPrimary(context);
+    final selectedColor = ShellStyles.accentTone(context).foreground;
     final unselectedColor = ShellStyles.textMuted(context);
     return Expanded(
       child: InkWell(

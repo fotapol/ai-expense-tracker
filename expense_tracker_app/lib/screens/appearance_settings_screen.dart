@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../core/app_color_semantics.dart';
 import '../core/redesign_system.dart';
 import '../core/theme_provider.dart';
 import '../main.dart';
@@ -38,6 +39,12 @@ class _AppearanceSettingsScreenState extends State<AppearanceSettingsScreen> {
     await WidgetsBinding.instance.endOfFrame;
     if (!mounted) return;
     await themeProvider.setFontSize(id);
+    if (!mounted) return;
+    setState(() {});
+  }
+
+  Future<void> _selectLabelColorMode(AppLabelColorMode mode) async {
+    await themeProvider.setLabelColorMode(mode);
     if (!mounted) return;
     setState(() {});
   }
@@ -114,7 +121,7 @@ class _AppearanceSettingsScreenState extends State<AppearanceSettingsScreen> {
           ),
           const SizedBox(height: 4),
           Text(
-            'Neutral keeps the classic black-and-white look. Purple and Mix add a brighter accent layer across supported controls.',
+            'Mix is the default multi-accent mode. Neutral keeps charts and semantic surfaces monochrome. Purple remaps accents and semantic colors into a restrained purple family.',
             style: TextStyle(
               color: ShellStyles.textMuted(context),
               fontSize: 12.5,
@@ -135,8 +142,56 @@ class _AppearanceSettingsScreenState extends State<AppearanceSettingsScreen> {
     );
   }
 
+  Widget _buildLabelColorModeSection() {
+    return SettingsDetailCard(
+      radius: 22,
+      padding: const EdgeInsets.fromLTRB(18, 18, 18, 16),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: <Widget>[
+          Text(
+            'Label colors',
+            style: TextStyle(
+              color: ShellStyles.textPrimary(context),
+              fontSize: 16,
+              fontWeight: FontWeight.w700,
+            ),
+          ),
+          const SizedBox(height: 4),
+          Text(
+            'Raw colors use each label’s saved color. Accent-aware colors keep labels stable, but remap them into the active Mix, Neutral, or Purple system.',
+            style: TextStyle(
+              color: ShellStyles.textMuted(context),
+              fontSize: 12.5,
+              height: 1.45,
+            ),
+          ),
+          const SizedBox(height: 14),
+          SettingsChoiceRow(
+            title: 'Raw colors',
+            subtitle: 'Default. Preserve each label’s saved color across the app.',
+            selected: themeProvider.labelColorMode == AppLabelColorMode.raw,
+            selectedBorder:
+                themeProvider.labelColorMode == AppLabelColorMode.raw,
+            onTap: () => _selectLabelColorMode(AppLabelColorMode.raw),
+          ),
+          const SizedBox(height: 8),
+          SettingsChoiceRow(
+            title: 'Accent-aware colors',
+            subtitle: 'Map labels into the active theme while keeping each label stable.',
+            selected: themeProvider.labelColorMode == AppLabelColorMode.themed,
+            selectedBorder:
+                themeProvider.labelColorMode == AppLabelColorMode.themed,
+            onTap: () => _selectLabelColorMode(AppLabelColorMode.themed),
+          ),
+        ],
+      ),
+    );
+  }
+
   Widget _buildAccentOption(AppAccentTheme accent) {
     final selected = accent.id == themeProvider.accentId;
+    final previewAccent = accent.primaryFor(Theme.of(context).brightness);
     return InkWell(
       borderRadius: BorderRadius.circular(18),
       onTap: () => _selectAccent(accent.id),
@@ -149,7 +204,7 @@ class _AppearanceSettingsScreenState extends State<AppearanceSettingsScreen> {
           borderRadius: BorderRadius.circular(18),
           border: Border.all(
             color: selected
-                ? ShellStyles.accent(context)
+                ? previewAccent
                 : ShellStyles.border(context),
             width: selected ? 1.4 : 1,
           ),
@@ -175,9 +230,7 @@ class _AppearanceSettingsScreenState extends State<AppearanceSettingsScreen> {
                 ),
                 boxShadow: <BoxShadow>[
                   BoxShadow(
-                    color: accent
-                        .primaryFor(Theme.of(context).brightness)
-                        .withAlpha(45),
+                    color: previewAccent.withAlpha(45),
                     blurRadius: 14,
                     offset: const Offset(0, 5),
                   ),
@@ -315,6 +368,8 @@ class _AppearanceSettingsScreenState extends State<AppearanceSettingsScreen> {
               const SizedBox(height: 16),
               _buildAccentSection(),
               const SizedBox(height: 16),
+              _buildLabelColorModeSection(),
+              const SizedBox(height: 16),
               _buildInterfaceScaleSection(),
             ],
           ),
@@ -341,6 +396,7 @@ class _ThemeModeChoice extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final accentTone = ShellStyles.accentTone(context);
     return SettingsChoiceRow(
       leading: Container(
         width: 38,
@@ -348,19 +404,19 @@ class _ThemeModeChoice extends StatelessWidget {
         alignment: Alignment.center,
         decoration: BoxDecoration(
           color: selected
-              ? ShellStyles.accent(context).withAlpha(24)
+              ? accentTone.container
               : ShellStyles.surfaceAlt(context),
           borderRadius: BorderRadius.circular(12),
           border: Border.all(
             color: selected
-                ? ShellStyles.accent(context).withAlpha(80)
+                ? accentTone.border
                 : ShellStyles.border(context),
           ),
         ),
         child: Icon(
           icon,
           color: selected
-              ? ShellStyles.accent(context)
+              ? accentTone.foreground
               : ShellStyles.textPrimary(context),
           size: 18,
         ),

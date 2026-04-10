@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:currency_picker/currency_picker.dart';
 import 'package:intl/intl.dart';
 import '../core/api_client.dart';
+import '../core/app_color_semantics.dart';
 import '../core/auth_session.dart';
 import '../core/item_translation_preferences.dart';
 import '../core/item_translation_service.dart';
@@ -36,7 +37,7 @@ class _TransactionEditScreenState extends State<TransactionEditScreen> {
   Color get _textColor => ShellStyles.textPrimary(context);
   Color get _mutedColor => ShellStyles.textMuted(context);
   Color get _accentColor => ShellStyles.accent(context);
-  Color get _primaryActionColor => ShellStyles.heroSurface(context);
+  Color get _primaryActionColor => ShellStyles.accent(context);
   Color get _focusColor => ShellStyles.focusRing(context);
   Color get _dangerColor => ShellStyles.error(context);
   Color get _warningColor => ShellStyles.warningPremium(context);
@@ -790,7 +791,7 @@ class _TransactionEditScreenState extends State<TransactionEditScreen> {
               onPressed: () => Navigator.pop(dialogContext, draftValue.trim()),
               style: FilledButton.styleFrom(
                 backgroundColor: _primaryActionColor,
-                foregroundColor: ShellStyles.heroTextPrimary(context),
+                foregroundColor: Theme.of(context).colorScheme.onPrimary,
               ),
               child: Text('Save'),
             ),
@@ -859,7 +860,7 @@ class _TransactionEditScreenState extends State<TransactionEditScreen> {
               onPressed: () => Navigator.pop(dialogContext, draftValue.trim()),
               style: FilledButton.styleFrom(
                 backgroundColor: _primaryActionColor,
-                foregroundColor: ShellStyles.heroTextPrimary(context),
+                foregroundColor: Theme.of(context).colorScheme.onPrimary,
               ),
               child: Text('Save'),
             ),
@@ -894,9 +895,16 @@ class _TransactionEditScreenState extends State<TransactionEditScreen> {
     return null;
   }
 
-  List<String> _itemCategoryTags(String? categoryId) {
+  List<_CategoryTagData> _itemCategoryTags(String? categoryId) {
     final category = _findCategoryById(categoryId);
-    if (category == null) return [context.tr('transaction_select_category')];
+    if (category == null) {
+      return <_CategoryTagData>[
+        _CategoryTagData(
+          label: context.tr('transaction_select_category'),
+          tone: ShellStyles.accentTone(context),
+        ),
+      ];
+    }
 
     final childName = localizeCategoryByCode(
       context,
@@ -904,12 +912,25 @@ class _TransactionEditScreenState extends State<TransactionEditScreen> {
       fallbackName: category['name']?.toString(),
     ).trim();
     if (childName.isEmpty) {
-      return [context.tr('transaction_select_category')];
+      return <_CategoryTagData>[
+        _CategoryTagData(
+          label: context.tr('transaction_select_category'),
+          tone: ShellStyles.accentTone(context),
+        ),
+      ];
     }
+    final childTone = ShellStyles.categoryTone(
+      context,
+      code: category['code']?.toString(),
+      parentCode: category['parent_category_code']?.toString(),
+      name: category['name']?.toString(),
+    );
 
     final parentId = category['parent_id']?.toString();
     if (parentId == null || parentId.isEmpty) {
-      return [childName];
+      return <_CategoryTagData>[
+        _CategoryTagData(label: childName, tone: childTone),
+      ];
     }
 
     final parent = _findCategoryById(parentId);
@@ -919,10 +940,20 @@ class _TransactionEditScreenState extends State<TransactionEditScreen> {
       fallbackName: parent?['name']?.toString(),
     ).trim();
     if (parentName.isEmpty) {
-      return [childName];
+      return <_CategoryTagData>[
+        _CategoryTagData(label: childName, tone: childTone),
+      ];
     }
+    final parentTone = ShellStyles.categoryTone(
+      context,
+      code: parent?['code']?.toString(),
+      name: parent?['name']?.toString(),
+    );
 
-    return [parentName, childName];
+    return <_CategoryTagData>[
+      _CategoryTagData(label: parentName, tone: parentTone),
+      _CategoryTagData(label: childName, tone: childTone),
+    ];
   }
 
   double _round2(double value) => double.parse(value.toStringAsFixed(2));
@@ -1066,7 +1097,7 @@ class _TransactionEditScreenState extends State<TransactionEditScreen> {
             onPressed: () => Navigator.pop(context, controller.text.trim()),
             style: FilledButton.styleFrom(
               backgroundColor: _primaryActionColor,
-              foregroundColor: ShellStyles.heroTextPrimary(context),
+              foregroundColor: Theme.of(context).colorScheme.onPrimary,
             ),
             child: Text(context.tr('common_create')),
           ),
@@ -1604,7 +1635,7 @@ class _TransactionEditScreenState extends State<TransactionEditScreen> {
               style: FilledButton.styleFrom(
                 backgroundColor: _primaryActionColor,
                 disabledBackgroundColor: _surfaceAltColor,
-                foregroundColor: ShellStyles.heroTextPrimary(context),
+                foregroundColor: Theme.of(context).colorScheme.onPrimary,
                 minimumSize: const Size(0, 42),
                 fixedSize: const Size(42, 42),
                 padding: EdgeInsets.zero,
@@ -2310,7 +2341,7 @@ class _TransactionEditScreenState extends State<TransactionEditScreen> {
               spacing: 6,
               runSpacing: 6,
               children: catTags
-                  .map((tag) => _buildCategoryBadge(label: tag))
+                  .map((tag) => _buildCategoryBadge(tag: tag))
                   .toList(growable: false),
             ),
             const SizedBox(height: 8),
@@ -2348,18 +2379,18 @@ class _TransactionEditScreenState extends State<TransactionEditScreen> {
     );
   }
 
-  Widget _buildCategoryBadge({required String label}) {
+  Widget _buildCategoryBadge({required _CategoryTagData tag}) {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
       decoration: BoxDecoration(
-        color: _surfaceAltColor,
+        color: tag.tone.container,
         borderRadius: BorderRadius.circular(999),
-        border: Border.all(color: _strokeColor),
+        border: Border.all(color: tag.tone.border),
       ),
       child: Text(
-        label.trim(),
+        tag.label.trim(),
         style: TextStyle(
-          color: _mutedColor,
+          color: tag.tone.foreground,
           fontSize: 12,
           fontWeight: FontWeight.w600,
         ),
@@ -2479,4 +2510,11 @@ class _TransactionEditScreenState extends State<TransactionEditScreen> {
       ),
     );
   }
+}
+
+class _CategoryTagData {
+  const _CategoryTagData({required this.label, required this.tone});
+
+  final String label;
+  final SemanticColorTone tone;
 }

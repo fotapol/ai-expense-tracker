@@ -1,6 +1,9 @@
+import 'dart:math' as math;
+
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import 'app_color_semantics.dart';
 import 'money_format_preferences.dart';
 import 'redesign_system.dart';
 
@@ -60,7 +63,23 @@ class AppDisplayThemeExtension
 
 const List<AppAccentTheme> appAccentThemes = <AppAccentTheme>[
   AppAccentTheme(
-    id: 'neutral',
+    id: appAccentMix,
+    label: 'Mix',
+    lightPrimary: Color(0xFF2F6BFF),
+    darkPrimary: Color(0xFF9AB8FF),
+    previewGradient: LinearGradient(
+      begin: Alignment.topLeft,
+      end: Alignment.bottomRight,
+      colors: <Color>[
+        Color(0xFF2F6BFF),
+        Color(0xFFD45C7B),
+        Color(0xFF2F9A74),
+        Color(0xFFB87525),
+      ],
+    ),
+  ),
+  AppAccentTheme(
+    id: appAccentNeutral,
     label: 'Neutral',
     lightPrimary: Color(0xFF1C1A19),
     darkPrimary: Color(0xFFE9E1D2),
@@ -71,30 +90,14 @@ const List<AppAccentTheme> appAccentThemes = <AppAccentTheme>[
     ),
   ),
   AppAccentTheme(
-    id: 'purple',
+    id: appAccentPurple,
     label: 'Purple',
     lightPrimary: Color(0xFF7A4DCC),
-    darkPrimary: Color(0xFFD2BCFF),
+    darkPrimary: Color(0xFFD7C2FF),
     previewGradient: LinearGradient(
       begin: Alignment.topLeft,
       end: Alignment.bottomRight,
       colors: <Color>[Color(0xFF6E3FD2), Color(0xFFC08BFF)],
-    ),
-  ),
-  AppAccentTheme(
-    id: 'mix',
-    label: 'Mix',
-    lightPrimary: Color(0xFFE64F8F),
-    darkPrimary: Color(0xFFFFC1E1),
-    previewGradient: LinearGradient(
-      begin: Alignment.topLeft,
-      end: Alignment.bottomRight,
-      colors: <Color>[
-        Color(0xFFFF5F6D),
-        Color(0xFFFFC371),
-        Color(0xFF57CC99),
-        Color(0xFF4D96FF),
-      ],
     ),
   ),
 ];
@@ -103,14 +106,31 @@ class ThemeProvider extends ChangeNotifier {
   static const String _keyTheme = 'theme_mode';
   static const String _keyFontSize = 'font_size';
   static const String _keyAccent = 'accent_color';
+  static const String _keyLabelColorMode = 'label_color_mode';
+  static const String _keyAccentMigrationVersion = 'accent_migration_version';
+  static const int _currentAccentMigrationVersion = 1;
+
+  ThemeProvider({math.Random? random})
+    : _random = random ?? math.Random(),
+      _mixHomeAccentIndex = 0 {
+    _mixHomeAccentIndex = _random.nextInt(
+      AppSemanticColors.mixHomeAccentOptions(Brightness.light).length,
+    );
+  }
+
+  final math.Random _random;
 
   ThemeMode _themeMode = ThemeMode.light;
   String _fontSizeId = '100';
-  String _accentId = 'neutral';
+  String _accentId = appAccentMix;
+  AppLabelColorMode _labelColorMode = AppLabelColorMode.raw;
+  int _mixHomeAccentIndex;
 
   ThemeMode get themeMode => _themeMode;
   String get fontSizeId => _fontSizeId;
   String get accentId => _accentId;
+  AppLabelColorMode get labelColorMode => _labelColorMode;
+  int get mixHomeAccentIndex => _mixHomeAccentIndex;
   List<AppAccentTheme> get availableAccents => appAccentThemes;
 
   AppAccentTheme get accentTheme => _accentFor(_accentId);
@@ -121,9 +141,25 @@ class ThemeProvider extends ChangeNotifier {
     _themeMode = _normalizeThemeMode(prefs.getInt(_keyTheme));
     _fontSizeId = _normalizeFontSizeId(prefs.getString(_keyFontSize));
     _accentId = _normalizeAccentId(prefs.getString(_keyAccent));
+    _labelColorMode = appLabelColorModeFromId(
+      prefs.getString(_keyLabelColorMode),
+    );
+    final accentMigrationVersion =
+        prefs.getInt(_keyAccentMigrationVersion) ?? 0;
+    if (accentMigrationVersion < _currentAccentMigrationVersion) {
+      _accentId = appAccentMix;
+      await prefs.setInt(
+        _keyAccentMigrationVersion,
+        _currentAccentMigrationVersion,
+      );
+    }
     await prefs.setInt(_keyTheme, _themeMode.index);
     await prefs.setString(_keyFontSize, _fontSizeId);
     await prefs.setString(_keyAccent, _accentId);
+    await prefs.setString(
+      _keyLabelColorMode,
+      appLabelColorModeId(_labelColorMode),
+    );
     notifyListeners();
   }
 
@@ -151,6 +187,14 @@ class ThemeProvider extends ChangeNotifier {
     _accentId = normalized;
     final prefs = await SharedPreferences.getInstance();
     await prefs.setString(_keyAccent, _accentId);
+    notifyListeners();
+  }
+
+  Future<void> setLabelColorMode(AppLabelColorMode mode) async {
+    if (_labelColorMode == mode) return;
+    _labelColorMode = mode;
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString(_keyLabelColorMode, appLabelColorModeId(mode));
     notifyListeners();
   }
 
@@ -197,9 +241,16 @@ class ThemeProvider extends ChangeNotifier {
 
   ThemeData _buildTheme(Brightness brightness) {
     final isDark = brightness == Brightness.dark;
-    final accent = accentTheme.primaryFor(brightness);
+    final semanticTheme = AppSemanticThemeExtension(
+      accentId: _accentId,
+      labelColorMode: _labelColorMode,
+      mixHomeAccentIndex: _mixHomeAccentIndex,
+      brightness: brightness,
+    );
+    final accent = semanticTheme.accentTone.base;
+    final accentTone = semanticTheme.accentTone;
     final palette = isDark ? ShellPalette.dark() : ShellPalette.light();
-    final focusColor = _accentId == 'neutral'
+    final focusColor = _accentId == appAccentNeutral
         ? palette.focusRing
         : Color.lerp(palette.focusRing, accent, isDark ? 0.55 : 0.35)!;
     final onPrimary = isDark ? palette.pageBackground : Colors.white;
@@ -289,12 +340,12 @@ class ThemeProvider extends ChangeNotifier {
       ),
       chipTheme: ChipThemeData(
         backgroundColor: palette.elevatedSurface,
-        selectedColor: palette.selectedSurface,
+        selectedColor: accentTone.container,
         disabledColor: palette.standardSurface,
-        secondarySelectedColor: palette.selectedSurface,
+        secondarySelectedColor: accentTone.container,
         padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
         labelStyle: TextStyle(color: palette.textPrimary),
-        secondaryLabelStyle: TextStyle(color: palette.textPrimary),
+        secondaryLabelStyle: TextStyle(color: accentTone.foreground),
         brightness: brightness,
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(999),
@@ -390,11 +441,16 @@ class ThemeProvider extends ChangeNotifier {
         textStyle: TextStyle(color: palette.textPrimary),
       ),
       floatingActionButtonTheme: FloatingActionButtonThemeData(
-        backgroundColor: palette.heroSurface,
-        foregroundColor: palette.textPrimary,
+        backgroundColor: accent,
+        foregroundColor: onPrimary,
         elevation: isDark ? 2 : 4,
         highlightElevation: isDark ? 3 : 6,
         shape: const CircleBorder(),
+      ),
+      progressIndicatorTheme: ProgressIndicatorThemeData(
+        color: accent,
+        circularTrackColor: palette.elevatedSurface,
+        linearTrackColor: palette.elevatedSurface,
       ),
       tooltipTheme: TooltipThemeData(
         decoration: BoxDecoration(
@@ -411,11 +467,11 @@ class ThemeProvider extends ChangeNotifier {
       ),
       navigationBarTheme: NavigationBarThemeData(
         backgroundColor: palette.sectionBackground,
-        indicatorColor: palette.selectedSurface,
+        indicatorColor: accentTone.container,
         labelTextStyle: WidgetStateProperty.resolveWith<TextStyle?>((states) {
           final selected = states.contains(WidgetState.selected);
           return TextStyle(
-            color: selected ? palette.textPrimary : palette.textMuted,
+            color: selected ? accentTone.foreground : palette.textMuted,
             fontSize: 12,
             fontWeight: selected ? FontWeight.w700 : FontWeight.w500,
           );
@@ -423,7 +479,7 @@ class ThemeProvider extends ChangeNotifier {
         iconTheme: WidgetStateProperty.resolveWith<IconThemeData?>((states) {
           final selected = states.contains(WidgetState.selected);
           return IconThemeData(
-            color: selected ? palette.textPrimary : palette.textMuted,
+            color: selected ? accentTone.foreground : palette.textMuted,
           );
         }),
       ),
@@ -431,18 +487,22 @@ class ThemeProvider extends ChangeNotifier {
         style: ButtonStyle(
           backgroundColor: WidgetStateProperty.resolveWith<Color?>((states) {
             if (states.contains(WidgetState.selected)) {
-              return palette.heroSurface;
+              return accentTone.container;
             }
             return palette.elevatedSurface;
           }),
           foregroundColor: WidgetStateProperty.resolveWith<Color?>((states) {
             return states.contains(WidgetState.selected)
-                ? palette.textPrimary
+                ? accentTone.foreground
                 : palette.textMuted;
           }),
-          side: WidgetStatePropertyAll<BorderSide>(
-            BorderSide(color: palette.border),
-          ),
+          side: WidgetStateProperty.resolveWith<BorderSide?>((states) {
+            return BorderSide(
+              color: states.contains(WidgetState.selected)
+                  ? accentTone.border
+                  : palette.border,
+            );
+          }),
           overlayColor: WidgetStatePropertyAll<Color>(palette.pressedOverlay),
           shape: WidgetStatePropertyAll<RoundedRectangleBorder>(
             RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
@@ -481,6 +541,7 @@ class ThemeProvider extends ChangeNotifier {
       ),
       extensions: <ThemeExtension<dynamic>>[
         palette,
+        semanticTheme,
         AppDisplayThemeExtension(
           symbolPosition: moneyFormatSettings.symbolPosition,
           showDecimals: moneyFormatSettings.showDecimals,

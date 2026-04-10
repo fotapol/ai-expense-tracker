@@ -336,7 +336,11 @@ class _SubcategoriesScreenState extends State<SubcategoriesScreen> {
     required bool disabled,
   }) {
     final name = _localizedName(category);
-    final accent = ShellStyles.textPrimary(context);
+    final tone = ShellStyles.categoryTone(
+      context,
+      code: category['code']?.toString(),
+      name: category['name']?.toString(),
+    );
     final icon = CategoryIconRegistry.resolve(
       category['icon']?.toString(),
       code: category['code']?.toString(),
@@ -353,16 +357,17 @@ class _SubcategoriesScreenState extends State<SubcategoriesScreen> {
           Container(
             width: ShellStyles.scaled(context, 36, min: 34, max: 40),
             height: ShellStyles.scaled(context, 36, min: 34, max: 40),
-            decoration: BoxDecoration(
-              color: ShellStyles.surfaceAlt(context),
-              borderRadius: BorderRadius.circular(
-                ShellStyles.scaled(context, 12, min: 10, max: 14),
-              ),
+            decoration: ShellStyles.semanticBadgeDecoration(
+              context,
+              tone: tone,
+              radius: ShellStyles.scaled(context, 12, min: 10, max: 14),
             ),
             child: Icon(
               icon,
               size: ShellStyles.scaled(context, 18, min: 16, max: 20),
-              color: disabled ? ShellStyles.textMuted(context) : accent,
+              color: disabled
+                  ? ShellStyles.textMuted(context)
+                  : tone.foreground,
             ),
           ),
           SizedBox(width: ShellStyles.scaled(context, 12, min: 10, max: 14)),
@@ -493,8 +498,8 @@ class _SubcategoriesScreenState extends State<SubcategoriesScreen> {
                 child: FilledButton(
                   onPressed: _isSubmitting ? null : _createSubcategory,
                   style: FilledButton.styleFrom(
-                    backgroundColor: ShellStyles.textPrimary(context),
-                    foregroundColor: ShellStyles.surface(context),
+                    backgroundColor: ShellStyles.accent(context),
+                    foregroundColor: Theme.of(context).colorScheme.onPrimary,
                     padding: const EdgeInsets.symmetric(vertical: 14),
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(14),
@@ -506,7 +511,7 @@ class _SubcategoriesScreenState extends State<SubcategoriesScreen> {
                           height: 18,
                           child: CircularProgressIndicator(
                             strokeWidth: 2,
-                            color: ShellStyles.surface(context),
+                            color: Theme.of(context).colorScheme.onPrimary,
                           ),
                         )
                       : const Text('Create Subcategory'),
@@ -563,8 +568,8 @@ class _SubcategoriesScreenState extends State<SubcategoriesScreen> {
           FilledButton(
             onPressed: () => _fetchSubcategories(),
             style: FilledButton.styleFrom(
-              backgroundColor: ShellStyles.textPrimary(context),
-              foregroundColor: ShellStyles.surface(context),
+              backgroundColor: ShellStyles.accent(context),
+              foregroundColor: Theme.of(context).colorScheme.onPrimary,
             ),
             child: Text(context.tr('common_retry')),
           ),
@@ -671,8 +676,8 @@ class _SubcategoriesScreenState extends State<SubcategoriesScreen> {
               icon: const Icon(AppIcons.add, size: 15),
               label: Text(context.tr('common_new')),
               style: FilledButton.styleFrom(
-                backgroundColor: ShellStyles.textPrimary(context),
-                foregroundColor: ShellStyles.surface(context),
+                backgroundColor: ShellStyles.accent(context),
+                foregroundColor: Theme.of(context).colorScheme.onPrimary,
                 padding: const EdgeInsets.symmetric(
                   horizontal: 16,
                   vertical: 10,

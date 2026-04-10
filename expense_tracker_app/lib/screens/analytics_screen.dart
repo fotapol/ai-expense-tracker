@@ -3,6 +3,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 import '../core/analytics_filters.dart';
 import '../core/api_client.dart';
+import '../core/app_color_semantics.dart';
 import '../core/app_navigation.dart';
 import '../core/launch_error_copy.dart';
 import '../core/redesign_system.dart';
@@ -42,7 +43,10 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
   bool _showAllActiveFilters = false;
   AnalyticsFilters _filters = const AnalyticsFilters();
   Map<String, String> _categoryNamesById = {};
+  Map<String, String> _categoryCodesById = {};
+  Map<String, String> _categoryParentCodesById = {};
   Map<String, String> _labelNamesById = {};
+  Map<String, String> _labelColorsById = {};
   Set<String> _featureCodes = <String>{};
 
   @override
@@ -99,7 +103,10 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
           prefs.getStringList('analytics_label_ids') ?? const <String>[];
 
       Map<String, String> categoryNamesById = {};
+      Map<String, String> categoryCodesById = {};
+      Map<String, String> categoryParentCodesById = {};
       Map<String, String> labelNamesById = {};
+      Map<String, String> labelColorsById = {};
       Set<String> featureCodes = <String>{};
 
       try {
@@ -114,6 +121,17 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
                 fallbackName: category['name']?.toString(),
               ),
         };
+        categoryCodesById = {
+          for (final category in categories)
+            if (category['id'] != null)
+              category['id'].toString(): category['code']?.toString() ?? '',
+        };
+        categoryParentCodesById = {
+          for (final category in categories)
+            if (category['id'] != null)
+              category['id'].toString():
+                  category['parent_category_code']?.toString() ?? '',
+        };
       } catch (_) {}
 
       try {
@@ -122,6 +140,11 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
           for (final label in labels)
             if (label['id'] != null && label['name'] != null)
               label['id'].toString(): label['name'].toString(),
+        };
+        labelColorsById = {
+          for (final label in labels)
+            if (label['id'] != null)
+              label['id'].toString(): label['color']?.toString() ?? '',
         };
       } catch (_) {}
 
@@ -151,7 +174,10 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
           labelIds: savedLabelIds,
         );
         _categoryNamesById = categoryNamesById;
+        _categoryCodesById = categoryCodesById;
+        _categoryParentCodesById = categoryParentCodesById;
         _labelNamesById = labelNamesById;
+        _labelColorsById = labelColorsById;
         _featureCodes = featureCodes;
         _isLoading = false;
       });
@@ -241,6 +267,7 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
 
   Widget _buildSectionChip(AnalyticsSection section) {
     final isSelected = _selectedSection == section;
+    final accentTone = ShellStyles.accentTone(context);
     return InkWell(
       borderRadius: BorderRadius.circular(16),
       onTap: () => _selectSection(section),
@@ -249,9 +276,7 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
         alignment: Alignment.center,
         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
         decoration: BoxDecoration(
-          color: isSelected
-              ? ShellStyles.heroSurface(context)
-              : Colors.transparent,
+          color: isSelected ? accentTone.container : Colors.transparent,
           borderRadius: BorderRadius.circular(16),
           boxShadow: isSelected
               ? [
@@ -270,7 +295,7 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
           textAlign: TextAlign.center,
           style: TextStyle(
             color: isSelected
-                ? ShellStyles.textPrimary(context)
+                ? accentTone.foreground
                 : ShellStyles.textMuted(context),
             fontSize: 14,
             fontWeight: isSelected ? FontWeight.w700 : FontWeight.w600,
@@ -296,22 +321,24 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
     String label, {
     required IconData icon,
     VoidCallback? onDeleted,
+    SemanticColorTone? tone,
   }) {
+    final resolvedTone = tone ?? ShellStyles.accentTone(context);
     return InputChip(
-      avatar: Icon(icon, size: 16, color: ShellStyles.textPrimary(context)),
+      avatar: Icon(icon, size: 16, color: resolvedTone.foreground),
       label: Text(
         label,
         style: TextStyle(
-          color: ShellStyles.textPrimary(context),
+          color: resolvedTone.foreground,
           fontSize: 12,
           fontWeight: FontWeight.w700,
         ),
       ),
       materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
       visualDensity: VisualDensity.compact,
-      backgroundColor: ShellStyles.elevatedSurface(context),
-      side: BorderSide(color: ShellStyles.border(context)),
-      deleteIconColor: ShellStyles.textMuted(context),
+      backgroundColor: resolvedTone.container,
+      side: BorderSide(color: resolvedTone.border),
+      deleteIconColor: resolvedTone.foreground,
       onDeleted: onDeleted,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
     );
@@ -337,6 +364,12 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
         (id) => _buildFilterChip(
           _categoryNamesById[id] ?? context.tr('filters_category'),
           icon: Icons.category_outlined,
+          tone: ShellStyles.categoryTone(
+            context,
+            code: _categoryCodesById[id],
+            parentCode: _categoryParentCodesById[id],
+            name: _categoryNamesById[id],
+          ),
           onDeleted: () {
             setState(() {
               final newIds = List<String>.from(_filters.categoryIds)
@@ -351,6 +384,12 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
         (id) => _buildFilterChip(
           _categoryNamesById[id] ?? context.tr('filters_subcategory'),
           icon: Icons.account_tree_outlined,
+          tone: ShellStyles.categoryTone(
+            context,
+            code: _categoryCodesById[id],
+            parentCode: _categoryParentCodesById[id],
+            name: _categoryNamesById[id],
+          ),
           onDeleted: () {
             setState(() {
               final newIds = List<String>.from(_filters.subcategoryIds)
@@ -365,6 +404,12 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
         (id) => _buildFilterChip(
           _labelNamesById[id] ?? context.tr('filters_labels'),
           icon: Icons.label_outline,
+          tone: ShellStyles.labelTone(
+            context,
+            labelId: id,
+            name: _labelNamesById[id],
+            rawHex: _labelColorsById[id],
+          ),
           onDeleted: () {
             setState(() {
               final newIds = List<String>.from(_filters.labelIds)..remove(id);
