@@ -269,8 +269,8 @@ class _LabelsScreenState extends State<LabelsScreen> {
               icon: const Icon(AppIcons.add, size: 15),
               label: Text(context.tr('common_new')),
               style: FilledButton.styleFrom(
-                backgroundColor: ShellStyles.textPrimary(context),
-                foregroundColor: ShellStyles.surface(context),
+                backgroundColor: ShellStyles.accent(context),
+                foregroundColor: Theme.of(context).colorScheme.onPrimary,
                 padding: const EdgeInsets.symmetric(
                   horizontal: 16,
                   vertical: 10,
@@ -370,8 +370,8 @@ class _LabelsScreenState extends State<LabelsScreen> {
           FilledButton(
             onPressed: () => _fetchLabels(),
             style: FilledButton.styleFrom(
-              backgroundColor: ShellStyles.textPrimary(context),
-              foregroundColor: ShellStyles.surface(context),
+              backgroundColor: ShellStyles.accent(context),
+              foregroundColor: Theme.of(context).colorScheme.onPrimary,
             ),
             child: Text(context.tr('common_retry')),
           ),
@@ -464,8 +464,8 @@ class _LabelsScreenState extends State<LabelsScreen> {
                 child: FilledButton(
                   onPressed: _isSubmitting ? null : _createLabel,
                   style: FilledButton.styleFrom(
-                    backgroundColor: ShellStyles.textPrimary(context),
-                    foregroundColor: ShellStyles.surface(context),
+                    backgroundColor: ShellStyles.accent(context),
+                    foregroundColor: Theme.of(context).colorScheme.onPrimary,
                     padding: const EdgeInsets.symmetric(vertical: 14),
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(14),
@@ -481,7 +481,7 @@ class _LabelsScreenState extends State<LabelsScreen> {
                           height: 18,
                           child: CircularProgressIndicator(
                             strokeWidth: 2,
-                            color: ShellStyles.surface(context),
+                            color: Theme.of(context).colorScheme.onPrimary,
                           ),
                         )
                       : const Text('Create Label'),
@@ -570,7 +570,12 @@ class _LabelsScreenState extends State<LabelsScreen> {
           final label = _labels[index] as Map<String, dynamic>;
           final id = label['id']?.toString() ?? '';
           final name = label['name']?.toString() ?? '';
-          final color = _colorFromHex(label['color']?.toString(), index);
+          final tone = ShellStyles.labelTone(
+            context,
+            labelId: id,
+            name: name,
+            rawHex: label['color']?.toString(),
+          );
           return Column(
             children: [
               Padding(
@@ -583,15 +588,20 @@ class _LabelsScreenState extends State<LabelsScreen> {
                     Container(
                       width: ShellStyles.scaled(context, 38, min: 34, max: 42),
                       height: ShellStyles.scaled(context, 38, min: 34, max: 42),
-                      decoration: BoxDecoration(
-                        color: color,
-                        borderRadius: BorderRadius.circular(
-                          ShellStyles.scaled(context, 12, min: 10, max: 14),
+                      decoration: ShellStyles.semanticBadgeDecoration(
+                        context,
+                        tone: tone,
+                        filled: true,
+                        radius: ShellStyles.scaled(
+                          context,
+                          12,
+                          min: 10,
+                          max: 14,
                         ),
                       ),
-                      child: const Icon(
+                      child: Icon(
                         CupertinoIcons.tag,
-                        color: Colors.white,
+                        color: tone.onSolid,
                         size: 18,
                       ),
                     ),

@@ -3,6 +3,7 @@ import 'dart:math' as math;
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 
+import 'app_color_semantics.dart';
 import '../l10n/app_localizations.dart';
 
 class ShellColors {
@@ -375,6 +376,48 @@ class ShellStyles {
   static Color accent(BuildContext context) =>
       Theme.of(context).colorScheme.primary;
 
+  static AppSemanticThemeExtension semanticTheme(BuildContext context) =>
+      Theme.of(context).extension<AppSemanticThemeExtension>() ??
+      AppSemanticThemeExtension(
+        accentId: appAccentMix,
+        labelColorMode: AppLabelColorMode.raw,
+        mixHomeAccentIndex: 0,
+        brightness: Theme.of(context).brightness,
+      );
+
+  static String accentId(BuildContext context) =>
+      semanticTheme(context).accentId;
+
+  static AppLabelColorMode labelColorMode(BuildContext context) =>
+      semanticTheme(context).labelColorMode;
+
+  static SemanticColorTone accentTone(BuildContext context) =>
+      semanticTheme(context).accentTone;
+
+  static SemanticColorTone categoryTone(
+    BuildContext context, {
+    String? code,
+    String? parentCode,
+    String? name,
+  }) => semanticTheme(
+    context,
+  ).categoryTone(code: code, parentCode: parentCode, name: name);
+
+  static SemanticColorTone labelTone(
+    BuildContext context, {
+    String? labelId,
+    String? name,
+    String? rawHex,
+  }) => semanticTheme(
+    context,
+  ).labelTone(labelId: labelId, name: name, rawHex: rawHex);
+
+  static HeroAccentTone homeHeroTone(BuildContext context) =>
+      semanticTheme(context).homeHeroTone;
+
+  static List<Color> trendPalette(BuildContext context) =>
+      semanticTheme(context).trendPalette;
+
   static Color success(BuildContext context) => palette(context).success;
 
   static Color error(BuildContext context) => palette(context).error;
@@ -401,7 +444,10 @@ class ShellStyles {
       palette(context).tooltipText;
 
   static List<Color> chartRamp(BuildContext context) =>
-      isDark(context) ? ShellColors.chartRampDark : ShellColors.chartRampLight;
+      semanticTheme(context).chartRamp;
+
+  static Color chartOtherColor(BuildContext context) =>
+      semanticTheme(context).chartOtherColor;
 
   static Color chartGrid(BuildContext context) =>
       divider(context).withAlpha(isDark(context) ? 170 : 120);
@@ -422,6 +468,21 @@ class ShellStyles {
 
   static Color heroBadgeIcon(BuildContext context) =>
       isDark(context) ? textPrimary(context) : Colors.white;
+
+  static Color homeHeroTextPrimary(BuildContext context) =>
+      homeHeroTone(context).foreground;
+
+  static Color homeHeroTextSecondary(BuildContext context) =>
+      homeHeroTone(context).secondaryForeground;
+
+  static Color homeHeroBadgeSurface(BuildContext context) =>
+      homeHeroTone(context).badgeFill;
+
+  static Color homeHeroBadgeBorder(BuildContext context) =>
+      homeHeroTone(context).badgeBorder;
+
+  static Color homeHeroBadgeIcon(BuildContext context) =>
+      homeHeroTone(context).badgeForeground;
 
   static BoxDecoration cardDecoration(
     BuildContext context, {
@@ -449,7 +510,26 @@ class ShellStyles {
     BuildContext context, {
     double radius = 22,
     Color? highlight,
+    HeroAccentTone? tone,
   }) {
+    if (tone != null) {
+      return BoxDecoration(
+        gradient: LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: tone.gradientColors,
+        ),
+        borderRadius: BorderRadius.circular(radius),
+        border: Border.all(color: tone.border.withAlpha(184)),
+        boxShadow: <BoxShadow>[
+          BoxShadow(
+            color: Colors.black.withAlpha(isDark(context) ? 24 : 18),
+            blurRadius: isDark(context) ? 16 : 18,
+            offset: const Offset(0, 8),
+          ),
+        ],
+      );
+    }
     final base = heroSurface(context);
     final top = isDark(context)
         ? Color.lerp(base, elevatedSurface(context), 0.18)!
@@ -485,6 +565,19 @@ class ShellStyles {
       color: badgeColor,
       borderRadius: BorderRadius.circular(radius),
       border: Border.all(color: border(context)),
+    );
+  }
+
+  static BoxDecoration semanticBadgeDecoration(
+    BuildContext context, {
+    required SemanticColorTone tone,
+    double radius = 14,
+    bool filled = false,
+  }) {
+    return BoxDecoration(
+      color: filled ? tone.base : tone.container,
+      borderRadius: BorderRadius.circular(radius),
+      border: Border.all(color: filled ? tone.base : tone.border),
     );
   }
 

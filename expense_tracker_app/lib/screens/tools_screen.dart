@@ -59,7 +59,7 @@ class ToolsScreen extends StatelessWidget {
                 Icon(
                   CupertinoIcons.pin_fill,
                   size: ShellStyles.scaled(context, 12, min: 11, max: 13),
-                  color: ShellStyles.textMuted(context),
+                  color: ShellStyles.accentTone(context).base,
                 ),
                 const SizedBox(width: 6),
                 ShellStyles.sectionLabel(
@@ -244,7 +244,7 @@ class ToolsScreen extends StatelessWidget {
               height: ShellStyles.scaled(context, 36, min: 32, max: 40),
               alignment: Alignment.center,
               decoration: BoxDecoration(
-                color: ShellStyles.textPrimary(context),
+                color: ShellStyles.accentTone(context).base,
                 borderRadius: BorderRadius.circular(
                   ShellStyles.scaled(context, 12, min: 10, max: 13),
                 ),
@@ -252,7 +252,7 @@ class ToolsScreen extends StatelessWidget {
               child: Icon(
                 icon,
                 size: ShellStyles.scaled(context, 18, min: 16, max: 20),
-                color: ShellStyles.surface(context),
+                color: ShellStyles.accentTone(context).onSolid,
               ),
             ),
             SizedBox(height: ShellStyles.scaled(context, 12, min: 10, max: 14)),
@@ -312,15 +312,15 @@ class ToolsScreen extends StatelessWidget {
               height: ShellStyles.scaled(context, 38, min: 34, max: 42),
               alignment: Alignment.center,
               decoration: BoxDecoration(
-                color: ShellStyles.surfaceAlt(context),
+                color: ShellStyles.accentTone(context).container,
                 borderRadius: BorderRadius.circular(
                   ShellStyles.scaled(context, 12, min: 10, max: 14),
                 ),
-                border: Border.all(color: ShellStyles.border(context)),
+                border: Border.all(color: ShellStyles.accentTone(context).border),
               ),
               child: Icon(
                 tile.icon,
-                color: ShellStyles.textPrimary(context),
+                color: ShellStyles.accentTone(context).foreground,
                 size: ShellStyles.scaled(context, 18, min: 16, max: 20),
               ),
             ),

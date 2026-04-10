@@ -462,6 +462,12 @@ class _FilterBottomSheetState extends State<FilterBottomSheet> {
         final id = cat['id'] as String;
         final name = _localizedCategoryName(cat as Map<String, dynamic>);
         final isSelected = _selectedCategoryIds.contains(id);
+        final tone = ShellStyles.categoryTone(
+          context,
+          code: cat['code']?.toString(),
+          parentCode: cat['parent_category_code']?.toString(),
+          name: cat['name']?.toString(),
+        );
 
         return FilterChip(
           label: Text(name),
@@ -477,15 +483,11 @@ class _FilterBottomSheetState extends State<FilterBottomSheet> {
               _pruneUnavailableSubcategories();
             });
           },
-          selectedColor: ShellStyles.textPrimary(context).withAlpha(18),
-          backgroundColor: ShellStyles.surface(context),
-          side: BorderSide(
-            color: isSelected
-                ? ShellStyles.textPrimary(context)
-                : ShellStyles.border(context),
-          ),
+          selectedColor: tone.containerStrong,
+          backgroundColor: tone.container,
+          side: BorderSide(color: isSelected ? tone.base : tone.border),
           labelStyle: TextStyle(
-            color: ShellStyles.textPrimary(context),
+            color: tone.foreground,
             fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
           ),
           shape: RoundedRectangleBorder(
@@ -591,6 +593,12 @@ class _FilterBottomSheetState extends State<FilterBottomSheet> {
         final id = label['id']?.toString() ?? '';
         final name = label['name']?.toString() ?? context.tr('labels_title');
         final isSelected = _selectedLabelIds.contains(id);
+        final tone = ShellStyles.labelTone(
+          context,
+          labelId: id,
+          name: name,
+          rawHex: label['color']?.toString(),
+        );
         return FilterChip(
           label: Text(name),
           selected: isSelected,
@@ -604,15 +612,11 @@ class _FilterBottomSheetState extends State<FilterBottomSheet> {
               }
             });
           },
-          selectedColor: ShellStyles.textPrimary(context).withAlpha(18),
-          backgroundColor: ShellStyles.surface(context),
-          side: BorderSide(
-            color: isSelected
-                ? ShellStyles.textPrimary(context)
-                : ShellStyles.border(context),
-          ),
+          selectedColor: tone.containerStrong,
+          backgroundColor: tone.container,
+          side: BorderSide(color: isSelected ? tone.base : tone.border),
           labelStyle: TextStyle(
-            color: ShellStyles.textPrimary(context),
+            color: tone.foreground,
             fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
           ),
           shape: RoundedRectangleBorder(

@@ -719,8 +719,13 @@ class _MeScreenState extends State<MeScreen> {
     bool showChevron = true,
     VoidCallback? onTap,
   }) {
-    final effectiveIconColor = iconColor ?? ShellStyles.textMuted(context);
+    final defaultTone = ShellStyles.accentTone(context);
+    final effectiveIconColor = iconColor ?? defaultTone.base;
     final effectiveTitleColor = titleColor ?? ShellStyles.textPrimary(context);
+    final effectiveContainerColor = iconColor != null 
+        ? iconColor.withAlpha(14) 
+        : defaultTone.container;
+
     final leadingWidget =
         leading ??
         Container(
@@ -728,7 +733,7 @@ class _MeScreenState extends State<MeScreen> {
           height: 32,
           alignment: Alignment.center,
           decoration: BoxDecoration(
-            color: effectiveIconColor.withAlpha(14),
+            color: effectiveContainerColor,
             borderRadius: BorderRadius.circular(10),
           ),
           child: Icon(icon, color: effectiveIconColor, size: 18),

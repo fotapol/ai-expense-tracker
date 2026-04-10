@@ -46,6 +46,8 @@ class _ReceiptItemEditScreenState extends State<ReceiptItemEditScreen> {
   Color get _textColor => ShellStyles.textPrimary(context);
   Color get _mutedColor => ShellStyles.textMuted(context);
   Color get _accentColor => ShellStyles.accent(context);
+  Color get _accentChipColor => ShellStyles.accentTone(context).container;
+  Color get _accentChipForeground => ShellStyles.accentTone(context).foreground;
   Color get _focusColor => ShellStyles.focusRing(context);
   Color get _warningColor => ShellStyles.warningPremium(context);
   static const String _discountModeAmount = 'amount';
@@ -989,12 +991,12 @@ class _ReceiptItemEditScreenState extends State<ReceiptItemEditScreen> {
                                     label: Text('Amount'),
                                     showCheckmark: false,
                                     backgroundColor: _surfaceColor,
-                                    selectedColor: _surfaceAltColor,
+                                    selectedColor: _accentChipColor,
                                     side: BorderSide(color: _strokeColor),
                                     labelStyle: TextStyle(
                                       color:
                                           _discountMode == _discountModeAmount
-                                          ? _textColor
+                                          ? _accentChipForeground
                                           : _mutedColor,
                                       fontWeight: FontWeight.w600,
                                     ),
@@ -1011,12 +1013,12 @@ class _ReceiptItemEditScreenState extends State<ReceiptItemEditScreen> {
                                     label: Text('Percent'),
                                     showCheckmark: false,
                                     backgroundColor: _surfaceColor,
-                                    selectedColor: _surfaceAltColor,
+                                    selectedColor: _accentChipColor,
                                     side: BorderSide(color: _strokeColor),
                                     labelStyle: TextStyle(
                                       color:
                                           _discountMode == _discountModePercent
-                                          ? _textColor
+                                          ? _accentChipForeground
                                           : _mutedColor,
                                       fontWeight: FontWeight.w600,
                                     ),

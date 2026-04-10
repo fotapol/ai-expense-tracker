@@ -347,7 +347,11 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
     required bool disabled,
   }) {
     final name = _localizedName(category);
-    final accent = ShellStyles.textPrimary(context);
+    final tone = ShellStyles.categoryTone(
+      context,
+      code: category['code']?.toString(),
+      name: category['name']?.toString(),
+    );
     final icon = CategoryIconRegistry.resolve(
       category['icon']?.toString(),
       code: category['code']?.toString(),
@@ -366,16 +370,17 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
             Container(
               width: ShellStyles.scaled(context, 36, min: 34, max: 40),
               height: ShellStyles.scaled(context, 36, min: 34, max: 40),
-              decoration: BoxDecoration(
-                color: ShellStyles.surfaceAlt(context),
-                borderRadius: BorderRadius.circular(
-                  ShellStyles.scaled(context, 12, min: 10, max: 14),
-                ),
+              decoration: ShellStyles.semanticBadgeDecoration(
+                context,
+                tone: tone,
+                radius: ShellStyles.scaled(context, 12, min: 10, max: 14),
               ),
               child: Icon(
                 icon,
                 size: ShellStyles.scaled(context, 18, min: 16, max: 20),
-                color: disabled ? ShellStyles.textMuted(context) : accent,
+                color: disabled
+                    ? ShellStyles.textMuted(context)
+                    : tone.foreground,
               ),
             ),
             SizedBox(width: ShellStyles.scaled(context, 12, min: 10, max: 14)),
@@ -477,8 +482,8 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
           FilledButton(
             onPressed: () => _fetchCategories(),
             style: FilledButton.styleFrom(
-              backgroundColor: ShellStyles.textPrimary(context),
-              foregroundColor: ShellStyles.surface(context),
+              backgroundColor: ShellStyles.accent(context),
+              foregroundColor: Theme.of(context).colorScheme.onPrimary,
             ),
             child: Text(context.tr('common_retry')),
           ),
@@ -528,16 +533,20 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
                   height: 44,
                   decoration: BoxDecoration(
                     color: selected
-                        ? ShellStyles.textPrimary(context)
+                        ? ShellStyles.accentTone(context).container
                         : ShellStyles.surfaceAlt(context),
                     borderRadius: BorderRadius.circular(14),
-                    border: Border.all(color: ShellStyles.border(context)),
+                    border: Border.all(
+                      color: selected
+                          ? ShellStyles.accentTone(context).border
+                          : ShellStyles.border(context),
+                    ),
                   ),
                   child: Icon(
                     option.icon,
                     size: 20,
                     color: selected
-                        ? ShellStyles.surface(context)
+                        ? ShellStyles.accentTone(context).foreground
                         : ShellStyles.textPrimary(context),
                   ),
                 ),
@@ -551,8 +560,8 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
                 child: FilledButton(
                   onPressed: _isSubmitting ? null : _createCategory,
                   style: FilledButton.styleFrom(
-                    backgroundColor: ShellStyles.textPrimary(context),
-                    foregroundColor: ShellStyles.surface(context),
+                    backgroundColor: ShellStyles.accent(context),
+                    foregroundColor: Theme.of(context).colorScheme.onPrimary,
                     padding: const EdgeInsets.symmetric(vertical: 14),
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(14),
@@ -568,7 +577,7 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
                           height: 18,
                           child: CircularProgressIndicator(
                             strokeWidth: 2,
-                            color: ShellStyles.surface(context),
+                            color: Theme.of(context).colorScheme.onPrimary,
                           ),
                         )
                       : const Text('Create Category'),
@@ -695,8 +704,8 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
               icon: const Icon(AppIcons.add, size: 15),
               label: Text(context.tr('common_new')),
               style: FilledButton.styleFrom(
-                backgroundColor: ShellStyles.textPrimary(context),
-                foregroundColor: ShellStyles.surface(context),
+                backgroundColor: ShellStyles.accent(context),
+                foregroundColor: Theme.of(context).colorScheme.onPrimary,
                 padding: const EdgeInsets.symmetric(
                   horizontal: 16,
                   vertical: 10,
