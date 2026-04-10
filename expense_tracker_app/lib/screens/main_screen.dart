@@ -64,8 +64,8 @@ class _MainScreenState extends State<MainScreen> {
       floatingActionButton: _showsScanAction
           ? FloatingActionButton(
               onPressed: _openScan,
-              backgroundColor: ShellStyles.heroSurface(context),
-              foregroundColor: ShellStyles.textPrimary(context),
+              backgroundColor: ShellStyles.accent(context),
+              foregroundColor: Theme.of(context).colorScheme.onPrimary,
               shape: const CircleBorder(),
               child: const Icon(AppIcons.scanFab),
             )

@@ -282,34 +282,25 @@ class _HomeTabState extends State<HomeTab>
         code: code,
         fallbackName: raw['name']?.toString(),
       );
+      final tone = ShellStyles.categoryTone(
+        context,
+        code: code,
+        parentCode: raw['parent_category_code']?.toString(),
+        name: raw['name']?.toString(),
+      );
       slices.add(
         _OverviewSlice(
           name: name,
           amount: amount,
           percentage: (raw['percentage'] as num?)?.toDouble() ?? 0,
-          color: Colors.transparent, // Assigned after sorting
+          color: tone.base,
         ),
       );
     }
 
     slices.sort((left, right) => right.amount.compareTo(left.amount));
 
-    final palette = [
-      ShellStyles.textPrimary(context),
-      ShellStyles.textPrimary(context).withAlpha(150),
-      ShellStyles.textPrimary(context).withAlpha(80),
-      ShellStyles.border(context), // Used for 'Other'
-    ];
-
     if (slices.length <= 3) {
-      for (int i = 0; i < slices.length; i++) {
-        slices[i] = _OverviewSlice(
-          name: slices[i].name,
-          amount: slices[i].amount,
-          percentage: slices[i].percentage,
-          color: palette[i % palette.length],
-        );
-      }
       return slices;
     }
 
@@ -324,22 +315,13 @@ class _HomeTabState extends State<HomeTab>
       (sum, slice) => sum + slice.percentage,
     );
 
-    for (int i = 0; i < visible.length; i++) {
-      visible[i] = _OverviewSlice(
-        name: visible[i].name,
-        amount: visible[i].amount,
-        percentage: visible[i].percentage,
-        color: palette[i],
-      );
-    }
-
     if (otherAmount > 0) {
       visible.add(
         _OverviewSlice(
           name: context.tr('taxonomy_other'),
           amount: otherAmount,
           percentage: otherPercentage,
-          color: palette[3],
+          color: ShellStyles.chartOtherColor(context),
         ),
       );
     }
@@ -692,9 +674,14 @@ class _HomeTabState extends State<HomeTab>
       borderRadius: BorderRadius.circular(24),
       onTap: () => _open(context, const ReceiptUploadScreen()),
       child: Container(
+        key: const Key('home_scan_hero'),
         width: double.infinity,
         padding: const EdgeInsets.fromLTRB(22, 22, 22, 22),
-        decoration: ShellStyles.heroCardDecoration(context, radius: 24),
+        decoration: ShellStyles.heroCardDecoration(
+          context,
+          radius: 24,
+          tone: ShellStyles.homeHeroTone(context),
+        ),
         child: Row(
           children: [
             Container(
@@ -702,13 +689,15 @@ class _HomeTabState extends State<HomeTab>
               height: 58,
               alignment: Alignment.center,
               decoration: BoxDecoration(
-                color: ShellStyles.heroBadgeSurface(context),
+                color: ShellStyles.homeHeroBadgeSurface(context),
                 borderRadius: BorderRadius.circular(18),
-                border: Border.all(color: ShellStyles.heroBadgeBorder(context)),
+                border: Border.all(
+                  color: ShellStyles.homeHeroBadgeBorder(context),
+                ),
               ),
               child: Icon(
                 AppIcons.scan,
-                color: ShellStyles.heroBadgeIcon(context),
+                color: ShellStyles.homeHeroBadgeIcon(context),
                 size: 26,
               ),
             ),
@@ -720,7 +709,7 @@ class _HomeTabState extends State<HomeTab>
                   Text(
                     'Primary action',
                     style: TextStyle(
-                      color: ShellStyles.heroTextSecondary(context),
+                      color: ShellStyles.homeHeroTextSecondary(context),
                       fontSize: 11,
                       fontWeight: FontWeight.w700,
                       letterSpacing: 0.7,
@@ -730,7 +719,7 @@ class _HomeTabState extends State<HomeTab>
                   Text(
                     context.tr('tools_scan_receipt'),
                     style: TextStyle(
-                      color: ShellStyles.heroTextPrimary(context),
+                      color: ShellStyles.homeHeroTextPrimary(context),
                       fontSize: 22,
                       fontWeight: FontWeight.w700,
                     ),
@@ -739,7 +728,7 @@ class _HomeTabState extends State<HomeTab>
                   Text(
                     context.tr('home_scan_receipt_subtitle'),
                     style: TextStyle(
-                      color: ShellStyles.heroTextSecondary(context),
+                      color: ShellStyles.homeHeroTextSecondary(context),
                       fontSize: 14,
                       fontWeight: FontWeight.w500,
                     ),
@@ -752,13 +741,15 @@ class _HomeTabState extends State<HomeTab>
               height: 40,
               alignment: Alignment.center,
               decoration: BoxDecoration(
-                color: ShellStyles.heroBadgeSurface(context),
+                color: ShellStyles.homeHeroBadgeSurface(context),
                 shape: BoxShape.circle,
-                border: Border.all(color: ShellStyles.heroBadgeBorder(context)),
+                border: Border.all(
+                  color: ShellStyles.homeHeroBadgeBorder(context),
+                ),
               ),
               child: Icon(
                 AppIcons.chevronRight,
-                color: ShellStyles.heroBadgeIcon(context),
+                color: ShellStyles.homeHeroBadgeIcon(context),
                 size: 18,
               ),
             ),
