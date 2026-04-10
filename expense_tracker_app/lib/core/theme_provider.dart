@@ -241,13 +241,13 @@ class ThemeProvider extends ChangeNotifier {
 
   ThemeData _buildTheme(Brightness brightness) {
     final isDark = brightness == Brightness.dark;
-    final accent = accentTheme.primaryFor(brightness);
     final semanticTheme = AppSemanticThemeExtension(
       accentId: _accentId,
       labelColorMode: _labelColorMode,
       mixHomeAccentIndex: _mixHomeAccentIndex,
       brightness: brightness,
     );
+    final accent = semanticTheme.accentTone.base;
     final accentTone = semanticTheme.accentTone;
     final palette = isDark ? ShellPalette.dark() : ShellPalette.light();
     final focusColor = _accentId == appAccentNeutral

@@ -85,10 +85,17 @@ class AppSemanticThemeExtension
   final Brightness brightness;
 
   SemanticColorTone get accentTone =>
-      AppSemanticColors.primaryTone(accentId, brightness);
+      AppSemanticColors.primaryTone(
+        accentId,
+        brightness,
+        mixHomeAccentIndex: mixHomeAccentIndex,
+      );
 
-  List<Color> get trendPalette =>
-      AppSemanticColors.trendPalette(accentId, brightness);
+  List<Color> get trendPalette {
+    final palette = AppSemanticColors.trendPalette(accentId, brightness);
+    final accent = accentTone.base;
+    return [accent, ...palette.skip(1)];
+  }
 
   List<Color> get chartRamp =>
       AppSemanticColors.chartRamp(accentId, brightness);
@@ -326,19 +333,25 @@ class AppSemanticColors {
   ];
 
   static const List<Color> _mixHomeAccentPaletteLight = <Color>[
-    Color(0xFF2F6BFF),
-    Color(0xFFD45C7B),
-    Color(0xFF2F9A74),
-    Color(0xFFB87525),
-    Color(0xFF7A4DCC),
+    Color(0xFF2F6BFF), // Vivid blue
+    Color(0xFF1A8A6E), // Emerald
+    Color(0xFF6D4AE8), // Indigo
+    Color(0xFF0E7CC0), // Cobalt
+    Color(0xFF9146D4), // Violet
+    Color(0xFFD14D72), // Rose
+    Color(0xFF1E88A8), // Teal
+    Color(0xFFCF5528), // Burnt orange
   ];
 
   static const List<Color> _mixHomeAccentPaletteDark = <Color>[
-    Color(0xFF9AB8FF),
-    Color(0xFFFFAFBF),
-    Color(0xFF8FE0C0),
-    Color(0xFFFFCB8A),
-    Color(0xFFD7C2FF),
+    Color(0xFF9AB8FF), // Vivid blue
+    Color(0xFF72DEB8), // Emerald
+    Color(0xFFBDA8FF), // Indigo
+    Color(0xFF6DC4F2), // Cobalt
+    Color(0xFFD6AFFF), // Violet
+    Color(0xFFFF9AB5), // Rose
+    Color(0xFF6FD8E8), // Teal
+    Color(0xFFFFAA82), // Burnt orange
   ];
 
   static const List<Color> _neutralTrendPaletteLight = <Color>[
@@ -399,7 +412,11 @@ class AppSemanticColors {
     'UNCATEGORIZED': 11,
   };
 
-  static Color primaryAccent(String accentId, Brightness brightness) {
+  static Color primaryAccent(
+    String accentId,
+    Brightness brightness, {
+    int mixHomeAccentIndex = 0,
+  }) {
     switch (accentId) {
       case appAccentPurple:
         return brightness == Brightness.dark
@@ -411,9 +428,10 @@ class AppSemanticColors {
             : const Color(0xFF1C1A19);
       case appAccentMix:
       default:
-        return brightness == Brightness.dark
-            ? const Color(0xFF9AB8FF)
-            : const Color(0xFF2F6BFF);
+        return _pickIndexed(
+          mixHomeAccentOptions(brightness),
+          mixHomeAccentIndex,
+        );
     }
   }
 
@@ -423,8 +441,19 @@ class AppSemanticColors {
         : _mixHomeAccentPaletteLight;
   }
 
-  static SemanticColorTone primaryTone(String accentId, Brightness brightness) {
-    return toneFromColor(primaryAccent(accentId, brightness), brightness);
+  static SemanticColorTone primaryTone(
+    String accentId,
+    Brightness brightness, {
+    int mixHomeAccentIndex = 0,
+  }) {
+    return toneFromColor(
+      primaryAccent(
+        accentId,
+        brightness,
+        mixHomeAccentIndex: mixHomeAccentIndex,
+      ),
+      brightness,
+    );
   }
 
   static List<Color> trendPalette(String accentId, Brightness brightness) {
@@ -486,9 +515,11 @@ class AppSemanticColors {
     Brightness brightness, {
     required int mixHomeAccentIndex,
   }) {
-    final accent = accentId == appAccentMix
-        ? _pickIndexed(mixHomeAccentOptions(brightness), mixHomeAccentIndex)
-        : primaryAccent(accentId, brightness);
+    final accent = primaryAccent(
+      accentId,
+      brightness,
+      mixHomeAccentIndex: mixHomeAccentIndex,
+    );
     final bool isDark = brightness == Brightness.dark;
     final Color foreground = isDark ? const Color(0xFFF2F5F7) : Colors.white;
     final double startBlend = accentId == appAccentNeutral
