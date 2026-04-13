@@ -1,13 +1,12 @@
 """Redis connection pool and dependency."""
 
 import logging
-import os
 
 import redis.asyncio as aioredis
 
-logger = logging.getLogger(__name__)
+from app.core.config import redis_settings
 
-REDIS_URL: str = os.environ.get("REDIS_URL", "redis://redis:6379/0")
+logger = logging.getLogger(__name__)
 
 _pool: aioredis.ConnectionPool | None = None
 
@@ -17,7 +16,7 @@ def get_redis_pool() -> aioredis.ConnectionPool:
     global _pool
     if _pool is None:
         _pool = aioredis.ConnectionPool.from_url(
-            REDIS_URL,
+            redis_settings.REDIS_URL,
             max_connections=20,
             decode_responses=True,
         )

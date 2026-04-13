@@ -4,27 +4,24 @@ from __future__ import annotations
 
 import datetime as dt
 import logging
-import os
+from collections.abc import Callable
 from dataclasses import dataclass
 from decimal import Decimal, InvalidOperation
 from functools import lru_cache
-from typing import Callable
 
 import httpx
 from sqlalchemy.exc import OperationalError, ProgrammingError
 from sqlmodel import Session, select
 
+from app.core.config import fx_settings
 from app.models.fx.exchange_rate import ExchangeRate
 from app.schemas.shared import normalize_currency_code
 
 logger = logging.getLogger(__name__)
 
-_FRANKFURTER_BASE_URL = os.environ.get("FRANKFURTER_BASE_URL", "https://api.frankfurter.app")
-_CURRENCY_API_CDN_BASE_URL = os.environ.get(
-    "CURRENCY_API_CDN_BASE_URL",
-    "https://cdn.jsdelivr.net/npm/@fawazahmed0/currency-api",
-)
-_FX_TIMEOUT_SECONDS = float(os.environ.get("FX_HTTP_TIMEOUT_SECONDS", "8"))
+_FRANKFURTER_BASE_URL = fx_settings.FRANKFURTER_BASE_URL
+_CURRENCY_API_CDN_BASE_URL = fx_settings.CURRENCY_API_CDN_BASE_URL
+_FX_TIMEOUT_SECONDS = fx_settings.HTTP_TIMEOUT_SECONDS
 _PROVIDER = "frankfurter"
 
 
@@ -61,7 +58,7 @@ def resolve_conversion_date(
         return occurred_at.date()
     if created_at is not None:
         return created_at.date()
-    return dt.datetime.now(dt.timezone.utc).date()
+    return dt.datetime.now(dt.UTC).date()
 
 
 def _find_cached_rate(
@@ -136,7 +133,7 @@ def _persist_rate(
         quote_currency=quote_currency,
         exact_date=rate_date,
     )
-    now = dt.datetime.now(dt.timezone.utc)
+    now = dt.datetime.now(dt.UTC)
 
     if existing is None:
         existing = ExchangeRate(
@@ -264,7 +261,7 @@ def _get_frankfurter_supported_currencies() -> frozenset[str] | None:
 
     supported = {
         normalize_currency_code(code)
-        for code in payload.keys()
+        for code in payload
         if isinstance(code, str) and len(code.strip()) == 3
     }
     return frozenset(supported)
