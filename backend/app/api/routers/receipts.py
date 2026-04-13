@@ -15,7 +15,7 @@ from fastapi import APIRouter, Depends, HTTPException, Request, status
 from sqlmodel import Session, select
 
 from app.auth.deps import get_current_user
-from app.core.config import app_settings
+from app.core.config import app_settings, rabbitmq_settings, s3_settings
 from app.core.db import get_session
 from app.core.minio import generate_presigned_get, generate_presigned_put, head_object
 from app.core.rabbitmq import get_rabbitmq_connection
@@ -105,7 +105,7 @@ async def create_receipt(
 
     receipt_id = uuid.uuid4()
     filename = payload.original_filename or f"{receipt_id}"
-    storage_bucket = "receipts"
+    storage_bucket = s3_settings.BUCKET_RECEIPTS
     storage_key = f"receipts/{current_user.id}/{receipt_id}/{filename}"
 
     receipt = Receipt(
@@ -235,7 +235,7 @@ async def confirm_upload(
                 content_type="application/json",
                 delivery_mode=aio_pika.DeliveryMode.PERSISTENT,
             ),
-            routing_key="receipt_extraction",
+            routing_key=rabbitmq_settings.RECEIPT_EXTRACTION_QUEUE_NAME,
         )
         logger.info("Enqueued extraction job for receipt %s.", receipt_id)
     except Exception:
