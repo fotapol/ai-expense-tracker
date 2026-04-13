@@ -4,6 +4,8 @@ import logging
 from contextlib import asynccontextmanager
 
 from fastapi import FastAPI, Request
+from fastapi.exceptions import RequestValidationError
+from starlette.exceptions import HTTPException as StarletteHTTPException
 from slowapi import _rate_limit_exceeded_handler
 from slowapi.errors import RateLimitExceeded
 
@@ -22,6 +24,7 @@ from app.api.routers import (
     users,
 )
 from app.auth.firebase_admin import initialize_firebase
+from app.core.logging import BackendLoggingMiddleware
 from app.core.migrations import run_startup_migrations
 from app.core.rabbitmq import check_rabbitmq_health, close_rabbitmq, connect_rabbitmq
 from app.core.rate_limiter import limiter
@@ -77,6 +80,34 @@ app = FastAPI(
 app.state.limiter = limiter
 app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
 
+app.add_middleware(BackendLoggingMiddleware)
+
+@app.exception_handler(StarletteHTTPException)
+async def _http_exception_handler(request: Request, exc: StarletteHTTPException):
+    from starlette.responses import JSONResponse
+    # If the detail is a dict (like from auth limits), preserve it, else string
+    message = exc.detail if isinstance(exc.detail, dict) else str(exc.detail)
+    return JSONResponse(
+        status_code=exc.status_code,
+        content={"error": {"code": "HTTP_ERROR", "message": message}},
+    )
+
+@app.exception_handler(RequestValidationError)
+async def _validation_exception_handler(request: Request, exc: RequestValidationError):
+    from starlette.responses import JSONResponse
+    # Safely convert errors to dict layout
+    errors = exc.errors()
+    # Pydantic validation errors format
+    return JSONResponse(
+        status_code=422,
+        content={
+            "error": {
+                "code": "VALIDATION_ERROR",
+                "message": "Invalid request attributes.",
+                "details": errors,
+            }
+        },
+    )
 
 # Global unhandled exception handler — ensures unexpected 500 errors return
 # a safe, generic response instead of leaking internal tracebacks to clients.
@@ -84,15 +115,17 @@ app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
 async def _unhandled_exception_handler(request: Request, exc: Exception):
     from starlette.responses import JSONResponse
 
+    request_id = getattr(request.state, "request_id", "unknown")
     logger.exception(
-        "Unhandled %s on %s %s",
+        "[%s] Unhandled %s on %s %s",
+        request_id,
         type(exc).__name__,
         request.method,
         request.url.path,
     )
     return JSONResponse(
         status_code=500,
-        content={"detail": "An internal error occurred. Please try again later."},
+        content={"error": {"code": "INTERNAL_ERROR", "message": "An internal error occurred. Please try again later."}},
     )
 
 

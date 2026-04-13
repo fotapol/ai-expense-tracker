@@ -15,6 +15,7 @@ from fastapi import APIRouter, Depends, HTTPException, Request, status
 from sqlmodel import Session, select
 
 from app.auth.deps import get_current_user
+from app.core.config import app_settings
 from app.core.db import get_session
 from app.core.minio import generate_presigned_get, generate_presigned_put, head_object
 from app.core.rabbitmq import get_rabbitmq_connection
@@ -47,7 +48,7 @@ _ALLOWED_MIME_TYPES = {
 
 # Server-side file size ceiling — slightly above the client-side 10 MB limit
 # to account for encoding overhead, but prevents abuse via direct presigned uploads.
-_MAX_RECEIPT_FILE_BYTES = 15 * 1024 * 1024  # 15 MB
+_MAX_RECEIPT_FILE_BYTES = app_settings.MAX_RECEIPT_FILE_BYTES
 
 
 def _get_visible_receipt_and_transaction(
@@ -123,6 +124,8 @@ async def create_receipt(
     session.refresh(receipt)
 
     presigned = generate_presigned_put(key=storage_key, content_type=payload.mime_type)
+
+    logger.info("Upload accepted for receipt %s.", receipt.id)
 
     return ReceiptCreateResponse(
         receipt_id=receipt.id,

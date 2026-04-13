@@ -45,6 +45,21 @@ def validate_production_config() -> None:
 
     errors: list[_ConfigError] = []
 
+    # --- General App --------------------------------------------------------
+    public_url = os.environ.get("PUBLIC_APP_BASE_URL", "")
+    if is_prod:
+        if not public_url:
+            errors.append(_ConfigError(
+                "PUBLIC_APP_BASE_URL",
+                "Not set. External links and redirects will not work.",
+            ))
+        elif _LOCAL_PATTERNS.search(public_url):
+            errors.append(_ConfigError(
+                "PUBLIC_APP_BASE_URL",
+                f"Contains a local/private IP ({public_url}). "
+                "Must be a publicly reachable endpoint in production.",
+            ))
+
     # --- Database -----------------------------------------------------------
     db_url = os.environ.get("DATABASE_URL", "")
     if not db_url:

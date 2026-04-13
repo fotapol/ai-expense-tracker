@@ -71,7 +71,7 @@ def test_receipt_failure_reason_is_user_safe_message() -> None:
         status=ReceiptStatus.PROCESSING,
         updated_at=dt.datetime.now(dt.UTC) - dt.timedelta(minutes=30),
         created_at=dt.datetime.now(dt.UTC) - dt.timedelta(hours=1),
-        processing_attempt=1,
+        processing_attempt=2,  # Start at 2 so it hits 3 (max retries) during processing
         failure_reason=None,
         storage_key="receipts/test.jpg",
         storage_bucket="receipts",
