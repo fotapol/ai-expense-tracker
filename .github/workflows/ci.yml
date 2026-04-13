@@ -1,0 +1,104 @@
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+
+jobs:
+  backend:
+    name: Backend Checks
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        shell: bash
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Set up uv
+        uses: astral-sh/setup-uv@v6
+
+      - name: Set up kubectl
+        uses: azure/setup-kubectl@v4
+        with:
+          version: "latest"
+
+      - name: Sync backend dependencies
+        working-directory: backend
+        run: uv sync --frozen --all-groups
+
+      - name: Render production overlay inputs
+        run: |
+          uv run python infra/k8s/scripts/render_k8s_env.py \
+            --env-file .env.production.example \
+            --output-dir infra/k8s/overlays/production/generated
+
+      - name: Lint launch-safe backend paths
+        working-directory: backend
+        run: |
+          uv run ruff check \
+            app/main.py \
+            app/core/config.py \
+            app/core/logging.py \
+            app/core/metrics.py \
+            app/core/langsmith.py \
+            app/core/startup_checks.py \
+            app/api/routers/billing.py \
+            app/services/billing/revenuecat.py \
+            app/services/billing/webhooks.py \
+            app/worker/receipt_processor.py \
+            tests/test_health_checks.py \
+            tests/test_revenuecat_webhooks.py
+
+      - name: Run backend launch-safe tests
+        working-directory: backend
+        run: |
+          uv run pytest \
+            tests/test_health_checks.py \
+            tests/test_billing_dev_guards.py \
+            tests/test_billing_revenuecat.py \
+            tests/test_revenuecat_webhooks.py \
+            tests/test_receipt_worker_launch.py \
+            tests/test_receipts_launch.py
+
+      - name: Validate Alembic head
+        working-directory: backend
+        run: uv run alembic heads
+
+      - name: Validate Kubernetes overlay
+        run: kubectl kustomize infra/k8s/overlays/production > /dev/null
+
+      - name: Build backend image
+        run: docker build -f Dockerfile -t ai-expense-tracker-backend:ci .
+
+      - name: Build backup image
+        run: docker build -f infra/images/postgres-backup/Dockerfile -t ai-expense-tracker-postgres-backup:ci .
+
+  mobile:
+    name: Flutter Analyze
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        shell: bash
+        working-directory: expense_tracker_app
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+
+      - name: Install Flutter dependencies
+        run: flutter pub get
+
+      - name: Analyze Flutter app
+        run: flutter analyze
