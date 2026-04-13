@@ -63,6 +63,7 @@ from app.schemas.shared import quantize_amount  # noqa: E402
 RABBITMQ_URL: str = os.environ.get("RABBITMQ_URL", "amqp://guest:guest@rabbitmq:5672/")
 QUEUE_NAME = "receipt_extraction"
 PROCESSING_STALE_AFTER = dt.timedelta(minutes=15)
+MAX_RETRIES = 3
 
 
 # ---------------------------------------------------------------------------
@@ -466,6 +467,8 @@ def process_receipt(receipt_id: str) -> None:
         receipt.processing_attempt += 1
         session.add(receipt)
         session.commit()
+        
+        logger.info("Started extraction job for receipt %s (attempt %d/3).", receipt_id, receipt.processing_attempt)
 
         try:
             # --- Download image from MinIO -----------------------------------
@@ -616,9 +619,20 @@ def process_receipt(receipt_id: str) -> None:
 
         except Exception:
             session.rollback()
-            logger.exception("Failed to process receipt %s.", receipt_id)
+            logger.exception("Failed to process receipt %s (attempt %d/%d).", receipt_id, receipt.processing_attempt, MAX_RETRIES)
             # Re-open session state after rollback
             session.refresh(receipt)
+
+            if receipt.processing_attempt < MAX_RETRIES:
+                logger.warning("Scheduling retry for receipt %s.", receipt_id)
+                receipt.status = ReceiptStatus.UPLOADED
+                receipt.failure_reason = None
+                session.add(receipt)
+                session.commit()
+                time.sleep(5)  # brief backoff before RabbitMQ immediately redelivers
+                raise  # trigger aio_pika Nack and requeue
+            
+            logger.error("Max retries exhausted for receipt %s.", receipt_id)
             receipt.status = ReceiptStatus.FAILED
             # Store a user-safe message — the full traceback is already
             # captured by logger.exception() above for operator debugging.
