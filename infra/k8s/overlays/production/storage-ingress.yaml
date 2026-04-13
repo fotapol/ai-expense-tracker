@@ -1,0 +1,26 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: expense-tracker-storage
+  annotations:
+    nginx.org/redirect-to-https: "true"
+    nginx.org/client-max-body-size: "20m"
+    nginx.org/proxy-read-timeout: "600s"
+    nginx.org/proxy-send-timeout: "600s"
+spec:
+  ingressClassName: nginx
+  tls:
+    - hosts:
+        - storage.example.invalid
+      secretName: expense-tracker-origin-tls
+  rules:
+    - host: storage.example.invalid
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: minio
+                port:
+                  name: s3

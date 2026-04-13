@@ -136,6 +136,7 @@ celerybeat.pid
 
 # Environments
 .env
+.env.production
 .envrc
 .venv
 env/
@@ -208,3 +209,9 @@ __marimo__/
 
 # Secrets
 .secrets/
+backend/.secrets/
+infra/k8s/overlays/production/generated/config.env
+infra/k8s/overlays/production/generated/secret.env
+infra/k8s/overlays/production/generated/postgres-backup-schedule-patch.yaml
+infra/k8s/overlays/production/generated/prometheus.yml
+infra/k8s/overlays/production/generated/image-overrides-patch.yaml

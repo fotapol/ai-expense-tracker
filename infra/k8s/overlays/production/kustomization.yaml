@@ -1,0 +1,96 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+generatorOptions:
+  disableNameSuffixHash: true
+
+configMapGenerator:
+  - name: expense-tracker-config
+    envs:
+      - generated/config.env
+  - name: prometheus-config
+    files:
+      - prometheus.yml=generated/prometheus.yml
+
+secretGenerator:
+  - name: expense-tracker-secrets
+    envs:
+      - generated/secret.env
+
+resources:
+  - ../../base
+  - ingress.yaml
+  - storage-ingress.yaml
+
+patches:
+  - path: generated/postgres-backup-schedule-patch.yaml
+  - path: generated/image-overrides-patch.yaml
+
+replacements:
+  - source:
+      kind: ConfigMap
+      name: expense-tracker-config
+      fieldPath: data.INGRESS_CLASS_NAME
+    targets:
+      - select:
+          kind: Ingress
+          name: expense-tracker-api
+        fieldPaths:
+          - spec.ingressClassName
+      - select:
+          kind: Ingress
+          name: expense-tracker-storage
+        fieldPaths:
+          - spec.ingressClassName
+  - source:
+      kind: ConfigMap
+      name: expense-tracker-config
+      fieldPath: data.PUBLIC_API_HOST
+    targets:
+      - select:
+          kind: Ingress
+          name: expense-tracker-api
+        fieldPaths:
+          - spec.rules.0.host
+          - spec.tls.0.hosts.0
+  - source:
+      kind: ConfigMap
+      name: expense-tracker-config
+      fieldPath: data.INGRESS_TLS_SECRET_NAME
+    targets:
+      - select:
+          kind: Ingress
+          name: expense-tracker-api
+        fieldPaths:
+          - spec.tls.0.secretName
+      - select:
+          kind: Ingress
+          name: expense-tracker-storage
+        fieldPaths:
+          - spec.tls.0.secretName
+  - source:
+      kind: ConfigMap
+      name: expense-tracker-config
+      fieldPath: data.PUBLIC_STORAGE_HOST
+    targets:
+      - select:
+          kind: Ingress
+          name: expense-tracker-storage
+        fieldPaths:
+          - spec.rules.0.host
+          - spec.tls.0.hosts.0
+  - source:
+      kind: ConfigMap
+      name: expense-tracker-config
+      fieldPath: data.WORKER_METRICS_PORT
+    targets:
+      - select:
+          kind: Deployment
+          name: expense-tracker-worker
+        fieldPaths:
+          - spec.template.spec.containers.0.ports.0.containerPort
+      - select:
+          kind: Service
+          name: expense-tracker-worker
+        fieldPaths:
+          - spec.ports.0.port

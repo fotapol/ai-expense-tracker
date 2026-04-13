@@ -1,0 +1,16 @@
+controller:
+  kind: daemonset
+  hostNetwork: true
+  service:
+    create: false
+  reportIngressStatus:
+    enable: false
+  nginxplus: false
+  ingressClass:
+    create: true
+    name: nginx
+  config:
+    entries:
+      real-ip-header: CF-Connecting-IP
+      real-ip-recursive: "true"
+      set-real-ip-from: REPLACE_WITH_TRUSTED_PROXY_CIDRS
