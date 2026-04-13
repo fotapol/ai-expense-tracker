@@ -29,6 +29,7 @@ class AppSettings:
 
     PUBLIC_APP_BASE_URL: str = os.environ.get("PUBLIC_APP_BASE_URL", "").strip().rstrip("/")
     APP_ENV: str = os.environ.get("APP_ENV", "development").strip().lower()
+    MAX_RECEIPT_FILE_BYTES: int = int(os.environ.get("MAX_RECEIPT_FILE_BYTES", 15 * 1024 * 1024))
 
     @property
     def is_production(self) -> bool:
