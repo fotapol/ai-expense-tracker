@@ -4,6 +4,8 @@ metadata:
   name: expense-tracker-storage
   annotations:
     nginx.org/redirect-to-https: "true"
+    nginx.org/listen-ports: "[80]"
+    nginx.org/listen-ports-ssl: "[8443]"
     nginx.org/client-max-body-size: "20m"
     nginx.org/proxy-read-timeout: "600s"
     nginx.org/proxy-send-timeout: "600s"
