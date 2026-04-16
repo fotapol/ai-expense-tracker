@@ -1,23 +1,44 @@
 controller:
   kind: daemonset
+
   hostNetwork: true
+
   hostPort:
     enable: true
     http: 80
     https: 8443
+
   containerPort:
     http: 80
     https: 8443
+
   service:
     create: false
+
   reportIngressStatus:
     enable: false
+
   nginxplus: false
+
   ingressClass:
     create: true
     name: nginx
+
   defaultHTTPListenerPort: 80
   defaultHTTPSListenerPort: 8443
+
+  globalConfiguration:
+    create: true
+    spec:
+      listeners:
+        - name: http-80
+          port: 80
+          protocol: HTTP
+        - name: https-8443
+          port: 8443
+          protocol: HTTP
+          ssl: true
+
   config:
     entries:
       real-ip-header: CF-Connecting-IP
