@@ -1,0 +1,21 @@
+apiVersion: k8s.nginx.org/v1
+kind: VirtualServer
+metadata:
+  name: expense-tracker-api
+  namespace: expense-tracker
+spec:
+  host: api.nexavend.store
+  listener:
+    https: https-8443
+  tls:
+    secret: expense-tracker-origin-tls
+    redirect:
+      enable: true
+  upstreams:
+    - name: api
+      service: expense-tracker-api
+      port: 80
+  routes:
+    - path: /
+      action:
+        pass: api

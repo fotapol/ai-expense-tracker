@@ -1,0 +1,21 @@
+apiVersion: k8s.nginx.org/v1
+kind: VirtualServer
+metadata:
+  name: expense-tracker-storage
+  namespace: expense-tracker
+spec:
+  host: storage.nexavend.store
+  listener:
+    https: https-8443
+  tls:
+    secret: expense-tracker-origin-tls
+    redirect:
+      enable: true
+  upstreams:
+    - name: minio-s3
+      service: minio
+      port: 9000
+  routes:
+    - path: /
+      action:
+        pass: minio-s3

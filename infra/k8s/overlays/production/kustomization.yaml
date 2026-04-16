@@ -19,8 +19,8 @@ secretGenerator:
 
 resources:
   - ../../base
-  - ingress.yaml
-  - storage-ingress.yaml
+  - api-virtualserver.yaml
+  - storage-virtualserver.yaml
 
 patches:
   - path: generated/postgres-backup-schedule-patch.yaml
@@ -30,55 +30,41 @@ replacements:
   - source:
       kind: ConfigMap
       name: expense-tracker-config
-      fieldPath: data.INGRESS_CLASS_NAME
-    targets:
-      - select:
-          kind: Ingress
-          name: expense-tracker-api
-        fieldPaths:
-          - spec.ingressClassName
-      - select:
-          kind: Ingress
-          name: expense-tracker-storage
-        fieldPaths:
-          - spec.ingressClassName
-  - source:
-      kind: ConfigMap
-      name: expense-tracker-config
       fieldPath: data.PUBLIC_API_HOST
     targets:
       - select:
-          kind: Ingress
+          kind: VirtualServer
           name: expense-tracker-api
         fieldPaths:
-          - spec.rules.0.host
-          - spec.tls.0.hosts.0
+          - spec.host
+
   - source:
       kind: ConfigMap
       name: expense-tracker-config
       fieldPath: data.INGRESS_TLS_SECRET_NAME
     targets:
       - select:
-          kind: Ingress
+          kind: VirtualServer
           name: expense-tracker-api
         fieldPaths:
-          - spec.tls.0.secretName
+          - spec.tls.secret
       - select:
-          kind: Ingress
+          kind: VirtualServer
           name: expense-tracker-storage
         fieldPaths:
-          - spec.tls.0.secretName
+          - spec.tls.secret
+
   - source:
       kind: ConfigMap
       name: expense-tracker-config
       fieldPath: data.PUBLIC_STORAGE_HOST
     targets:
       - select:
-          kind: Ingress
+          kind: VirtualServer
           name: expense-tracker-storage
         fieldPaths:
-          - spec.rules.0.host
-          - spec.tls.0.hosts.0
+          - spec.host
+
   - source:
       kind: ConfigMap
       name: expense-tracker-config
