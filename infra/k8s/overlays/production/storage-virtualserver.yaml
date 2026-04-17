@@ -23,9 +23,9 @@ spec:
           requestHeaders:
             set:
               - name: Host
-                value: ${http_host}
+                value: ${host}:8443
               - name: X-Forwarded-Host
-                value: ${http_host}
+                value: ${host}:8443
               - name: X-Forwarded-Port
                 value: "8443"
               - name: X-Forwarded-Proto
