@@ -207,6 +207,12 @@ marimo/_static/
 marimo/_lsp/
 __marimo__/
 
+# Operator TLS artifacts
+origin.crt
+origin.key
+*.origin.crt
+*.origin.key
+
 # Secrets
 .secrets/
 backend/.secrets/
@@ -215,3 +221,6 @@ infra/k8s/overlays/production/generated/secret.env
 infra/k8s/overlays/production/generated/postgres-backup-schedule-patch.yaml
 infra/k8s/overlays/production/generated/prometheus.yml
 infra/k8s/overlays/production/generated/image-overrides-patch.yaml
+infra/k8s/generated/
+infra/k8s/**/generated/config.env
+infra/k8s/**/generated/secret.env
