@@ -120,7 +120,7 @@ class ThemeProvider extends ChangeNotifier {
 
   final math.Random _random;
 
-  ThemeMode _themeMode = ThemeMode.light;
+  ThemeMode _themeMode = ThemeMode.system;
   String _fontSizeId = '100';
   String _accentId = appAccentMix;
   AppLabelColorMode _labelColorMode = AppLabelColorMode.raw;
@@ -560,7 +560,7 @@ class ThemeProvider extends ChangeNotifier {
       case 2:
         return ThemeMode.dark;
       default:
-        return ThemeMode.light;
+        return ThemeMode.system;
     }
   }
 
