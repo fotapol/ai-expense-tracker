@@ -446,6 +446,28 @@ async def sync_revenuecat_subscription_for_user(
             detail="Current user does not have a valid auth subject for RevenueCat sync.",
         )
 
+    return await sync_revenuecat_subscription(
+        session=session,
+        user_id=current_user.id,
+        app_user_id=app_user_id,
+    )
+
+
+async def sync_revenuecat_subscription(
+    *,
+    session: Session,
+    user_id: uuid.UUID,
+    app_user_id: str,
+) -> Any:
+    """Fetch RevenueCat state and synchronize normalized subscription + entitlements."""
+
+    normalized_app_user_id = app_user_id.strip()
+    if not normalized_app_user_id:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="RevenueCat sync requires a non-empty app user id.",
+        )
+
     timeout_raw = _get_env("REVENUECAT_HTTP_TIMEOUT_SECONDS", "8")
     try:
         timeout_seconds = float(timeout_raw)
@@ -456,7 +478,7 @@ async def sync_revenuecat_subscription_for_user(
         base_url=_get_env("REVENUECAT_API_BASE_URL", "https://api.revenuecat.com"),
         timeout_seconds=max(timeout_seconds, 1.0),
     )
-    payload = await client.fetch_subscriber_payload(app_user_id=app_user_id)
+    payload = await client.fetch_subscriber_payload(app_user_id=normalized_app_user_id)
 
     provider = RevenueCatProvider(
         premium_entitlement_id=_get_env(
@@ -481,6 +503,6 @@ async def sync_revenuecat_subscription_for_user(
     sync_service = SubscriptionSyncService(session)
     return sync_service.handle_provider_event(
         provider=provider,
-        user_id=current_user.id,
+        user_id=user_id,
         payload=payload,
     )

@@ -27,6 +27,7 @@ from app.services.billing.features import (
 from app.services.billing.revenuecat import (
     RevenueCatClient,
     RevenueCatProvider,
+    sync_revenuecat_subscription,
     sync_revenuecat_subscription_for_user,
 )
 from app.services.billing.subscriptions import (
@@ -44,6 +45,7 @@ from app.services.billing.usage import (
     resolve_receipt_scan_usage,
     rolling_30_day_window,
 )
+from app.services.billing.webhooks import process_revenuecat_webhook
 
 __all__ = [
     "FAMILY_PREMIUM_PRODUCT_ID",
@@ -75,7 +77,9 @@ __all__ = [
     "select_effective_subscription",
     "subscription_grants_premium_access",
     "subscription_priority_tier",
+    "sync_revenuecat_subscription",
     "sync_revenuecat_subscription_for_user",
     "sync_subscription_entitlements",
     "user_has_feature",
+    "process_revenuecat_webhook",
 ]

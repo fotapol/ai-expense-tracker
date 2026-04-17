@@ -5,20 +5,19 @@ For DDoS protection use a reverse proxy or CDN (Cloudflare, AWS WAF, nginx).
 """
 
 import logging
-import os
 
 from slowapi import Limiter
 from slowapi.util import get_remote_address
 
-logger = logging.getLogger(__name__)
+from app.core.config import redis_settings
 
-REDIS_URL: str = os.environ.get("REDIS_URL", "redis://redis:6379/0")
+logger = logging.getLogger(__name__)
 
 # slowapi uses the `limits` library under the hood, which accepts
 # Redis URIs directly for distributed rate limit state.
 limiter = Limiter(
     key_func=get_remote_address,
-    storage_uri=REDIS_URL,
+    storage_uri=redis_settings.REDIS_URL,
     default_limits=["60/minute"],
     strategy="fixed-window",
 )

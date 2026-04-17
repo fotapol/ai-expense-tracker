@@ -56,7 +56,7 @@ def generate_presigned_put(
     key: str,
     content_type: str,
     bucket: str | None = None,
-    expiry: int = 600,
+    expiry: int | None = None,
 ) -> dict:
     """Generate a presigned PUT URL for direct client upload.
 
@@ -66,6 +66,7 @@ def generate_presigned_put(
     Returns ``{"url": "...", "required_headers": {"Content-Type": "..."}}``.
     """
     bucket = bucket or s3_settings.BUCKET_RECEIPTS
+    expiry = expiry or s3_settings.PRESIGNED_PUT_EXPIRY_SECONDS
     client = get_s3_presign_client()
     url = client.generate_presigned_url(
         "put_object",
@@ -85,11 +86,12 @@ def generate_presigned_put(
 def generate_presigned_get(
     key: str,
     bucket: str | None = None,
-    expiry: int = 600,
+    expiry: int | None = None,
 ) -> str:
     """Generate a presigned GET URL for client-side object viewing."""
 
     bucket = bucket or s3_settings.BUCKET_RECEIPTS
+    expiry = expiry or s3_settings.PRESIGNED_GET_EXPIRY_SECONDS
     client = get_s3_presign_client()
     return client.generate_presigned_url(
         "get_object",

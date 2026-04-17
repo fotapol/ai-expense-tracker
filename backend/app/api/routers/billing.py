@@ -8,6 +8,7 @@ import os
 
 from fastapi import APIRouter, Depends, HTTPException, Request, status
 from sqlmodel import Session
+from starlette.responses import JSONResponse
 
 from app.auth.deps import get_current_user
 from app.core.db import get_session
@@ -25,6 +26,7 @@ from app.schemas.billing import (
 from app.services.billing import (
     SubscriptionSyncService,
     build_manual_subscription_event,
+    process_revenuecat_webhook,
     resolve_effective_entitlements,
     resolve_effective_subscription,
     resolve_receipt_scan_usage,
@@ -215,6 +217,30 @@ async def sync_revenuecat_subscription(
             period_end_at=usage.period_end_at,
         ),
     )
+
+
+@router.post("/billing/revenuecat/webhook", include_in_schema=False)
+async def revenuecat_webhook(
+    request: Request,
+    session: Session = Depends(get_session),  # noqa: B008
+):
+    """Handle RevenueCat webhook deliveries with auth validation and idempotency."""
+
+    try:
+        payload = await request.json()
+    except Exception as exc:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="RevenueCat webhook payload must be valid JSON.",
+        ) from exc
+
+    result = await process_revenuecat_webhook(
+        session=session,
+        payload=payload if isinstance(payload, dict) else {},
+        headers=request.headers,
+    )
+    status_code = int(result.pop("status_code", status.HTTP_200_OK))
+    return JSONResponse(status_code=status_code, content=result)
 
 
 @router.get("/me/entitlements", response_model=MeEntitlementsResponse)

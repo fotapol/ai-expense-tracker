@@ -6,8 +6,19 @@ would cause hard-to-diagnose runtime failures.
 """
 
 import logging
-import os
 import re
+from pathlib import Path
+
+from app.core.config import (
+    app_settings,
+    billing_settings,
+    database_settings,
+    firebase_settings,
+    llm_settings,
+    observability_settings,
+    rabbitmq_settings,
+    s3_settings,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -40,41 +51,41 @@ def validate_production_config() -> None:
 
     In development, the same checks emit warnings.
     """
-    app_env = os.environ.get("APP_ENV", "development").strip().lower()
-    is_prod = app_env == "production"
+    app_env = app_settings.APP_ENV
+    is_prod = app_settings.is_production
 
     errors: list[_ConfigError] = []
 
     # --- General App --------------------------------------------------------
-    public_url = os.environ.get("PUBLIC_APP_BASE_URL", "")
+    public_url = app_settings.PUBLIC_API_BASE_URL
     if is_prod:
         if not public_url:
             errors.append(_ConfigError(
-                "PUBLIC_APP_BASE_URL",
+                "PUBLIC_API_BASE_URL",
                 "Not set. External links and redirects will not work.",
             ))
         elif _LOCAL_PATTERNS.search(public_url):
             errors.append(_ConfigError(
-                "PUBLIC_APP_BASE_URL",
+                "PUBLIC_API_BASE_URL",
                 f"Contains a local/private IP ({public_url}). "
                 "Must be a publicly reachable endpoint in production.",
             ))
 
     # --- Database -----------------------------------------------------------
-    db_url = os.environ.get("DATABASE_URL", "")
+    db_url = database_settings.DATABASE_URL
     if not db_url:
         errors.append(_ConfigError("DATABASE_URL", "Not set. Database connection will fail."))
 
     # --- S3 / MinIO ---------------------------------------------------------
-    s3_access = os.environ.get("S3_ACCESS_KEY", "")
-    s3_secret = os.environ.get("S3_SECRET_KEY", "")
+    s3_access = s3_settings.ACCESS_KEY
+    s3_secret = s3_settings.SECRET_KEY
     if not s3_access or not s3_secret:
         errors.append(_ConfigError(
             "S3_ACCESS_KEY / S3_SECRET_KEY",
             "Empty. Receipt storage will fail.",
         ))
 
-    s3_ext = os.environ.get("S3_EXTERNAL_ENDPOINT", "")
+    s3_ext = s3_settings.EXTERNAL_ENDPOINT
     if is_prod:
         if not s3_ext:
             errors.append(_ConfigError(
@@ -89,7 +100,7 @@ def validate_production_config() -> None:
             ))
 
     # --- Google / LLM -------------------------------------------------------
-    google_key = os.environ.get("GOOGLE_API_KEY", "")
+    google_key = llm_settings.GOOGLE_API_KEY
     if not google_key:
         errors.append(_ConfigError(
             "GOOGLE_API_KEY",
@@ -97,7 +108,7 @@ def validate_production_config() -> None:
         ))
 
     # --- RabbitMQ -----------------------------------------------------------
-    rabbitmq_url = os.environ.get("RABBITMQ_URL", "")
+    rabbitmq_url = rabbitmq_settings.RABBITMQ_URL
     if rabbitmq_url and "guest:guest" in rabbitmq_url:
         errors.append(_ConfigError(
             "RABBITMQ_URL",
@@ -106,20 +117,38 @@ def validate_production_config() -> None:
         ))
 
     # --- Firebase -----------------------------------------------------------
-    fb_path = os.environ.get("FIREBASE_SERVICE_ACCOUNT_PATH", "")
+    fb_path = firebase_settings.SERVICE_ACCOUNT_PATH
     if not fb_path:
         errors.append(_ConfigError(
             "FIREBASE_SERVICE_ACCOUNT_PATH",
             "Not set. Authentication will fail at startup.",
         ))
+    elif is_prod and not firebase_settings.SERVICE_ACCOUNT_JSON_B64 and not Path(fb_path).is_file():
+        errors.append(_ConfigError(
+            "FIREBASE_SERVICE_ACCOUNT_JSON_B64",
+            "Neither a base64-encoded Firebase service account nor a readable file is present.",
+        ))
 
     # --- RevenueCat ---------------------------------------------------------
-    rc_secret = os.environ.get("REVENUECAT_SECRET_API_KEY", "")
+    rc_secret = billing_settings.REVENUECAT_SECRET_API_KEY
     if not rc_secret:
         errors.append(_ConfigError(
             "REVENUECAT_SECRET_API_KEY",
             "Empty. Subscription billing sync will not work.",
             fatal=False,  # App can start without billing
+        ))
+    elif not billing_settings.REVENUECAT_WEBHOOK_AUTH_SECRET:
+        errors.append(_ConfigError(
+            "REVENUECAT_WEBHOOK_AUTH_SECRET",
+            "Empty. RevenueCat webhook endpoint cannot validate callers safely.",
+            fatal=False,
+        ))
+
+    # --- Observability ------------------------------------------------------
+    if observability_settings.LANGSMITH_TRACING and not observability_settings.LANGSMITH_API_KEY:
+        errors.append(_ConfigError(
+            "LANGSMITH_API_KEY",
+            "Empty while LANGSMITH_TRACING=true. Tracing would fail to initialize.",
         ))
 
     # --- Report results -----------------------------------------------------

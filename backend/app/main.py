@@ -3,11 +3,12 @@
 import logging
 from contextlib import asynccontextmanager
 
-from fastapi import FastAPI, Request
+from fastapi import FastAPI, Request, status
 from fastapi.exceptions import RequestValidationError
-from starlette.exceptions import HTTPException as StarletteHTTPException
 from slowapi import _rate_limit_exceeded_handler
 from slowapi.errors import RateLimitExceeded
+from starlette.exceptions import HTTPException as StarletteHTTPException
+from starlette.responses import JSONResponse
 
 from app.api.routers import (
     billing,
@@ -24,17 +25,16 @@ from app.api.routers import (
     users,
 )
 from app.auth.firebase_admin import initialize_firebase
-from app.core.logging import BackendLoggingMiddleware
+from app.core.db import check_database_health
+from app.core.logging import BackendLoggingMiddleware, configure_logging
+from app.core.metrics import install_metrics, set_api_dependency_health
 from app.core.migrations import run_startup_migrations
 from app.core.rabbitmq import check_rabbitmq_health, close_rabbitmq, connect_rabbitmq
 from app.core.rate_limiter import limiter
 from app.core.redis import check_redis_health, close_redis_pool
 from app.core.startup_checks import validate_production_config
 
-logging.basicConfig(
-    level=logging.INFO,
-    format="%(asctime)s %(levelname)s %(name)s: %(message)s",
-)
+configure_logging(service_name="api")
 logger = logging.getLogger(__name__)
 
 
@@ -54,13 +54,15 @@ async def lifespan(app: FastAPI):
 
     await connect_rabbitmq()
 
-    # Ensure the receipts S3 bucket exists in MinIO.
+    # Ensure required MinIO buckets exist before serving traffic.
     try:
+        from app.core.config import s3_settings
         from app.core.minio import ensure_bucket
 
-        ensure_bucket()
+        ensure_bucket(s3_settings.BUCKET_RECEIPTS)
+        ensure_bucket(s3_settings.BUCKET_BACKUPS)
     except Exception:
-        logger.warning("Could not verify or create S3 receipts bucket.", exc_info=True)
+        logger.warning("Could not verify or create required S3 buckets.", exc_info=True)
 
     logger.info("Application startup complete.")
     yield
@@ -81,6 +83,7 @@ app.state.limiter = limiter
 app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
 
 app.add_middleware(BackendLoggingMiddleware)
+install_metrics(app)
 
 @app.exception_handler(StarletteHTTPException)
 async def _http_exception_handler(request: Request, exc: StarletteHTTPException):
@@ -145,15 +148,52 @@ app.include_router(planning.router)
 if billing.should_include_dev_billing_router():
     app.include_router(billing.dev_router)
 
-@app.get("/", tags=["health"])
-async def healthcheck():
-    """Liveness + dependency health probe."""
+async def _build_health_payload() -> tuple[dict, bool]:
+    """Return dependency health details and readiness state."""
+
+    database_ok = check_database_health()
     redis_ok = await check_redis_health()
     rabbitmq_ok = await check_rabbitmq_health()
+    set_api_dependency_health(dependency="database", is_up=database_ok)
+    set_api_dependency_health(dependency="redis", is_up=redis_ok)
+    set_api_dependency_health(dependency="rabbitmq", is_up=rabbitmq_ok)
+    ready = database_ok and rabbitmq_ok
+    return (
+        {
+            "status": "ok" if ready else "degraded",
+            "dependencies": {
+                "database": "up" if database_ok else "down",
+                "redis": "up" if redis_ok else "down",
+                "rabbitmq": "up" if rabbitmq_ok else "down",
+            },
+        },
+        ready,
+    )
+
+
+@app.get("/", tags=["health"])
+async def healthcheck():
+    """Minimal public-safe root status endpoint."""
+
     return {
         "status": "ok",
-        "dependencies": {
-            "redis": "up" if redis_ok else "down",
-            "rabbitmq": "up" if rabbitmq_ok else "down",
-        },
+        "service": "expense-tracker-api",
     }
+
+
+@app.get("/health/live", tags=["health"])
+async def liveness_check():
+    """Container liveness probe that only verifies the process is serving HTTP."""
+
+    return {"status": "ok"}
+
+
+@app.get("/health/ready", tags=["health"])
+async def readiness_check():
+    """Readiness probe for critical launch-path dependencies."""
+
+    payload, ready = await _build_health_payload()
+    return JSONResponse(
+        status_code=status.HTTP_200_OK if ready else status.HTTP_503_SERVICE_UNAVAILABLE,
+        content=payload,
+    )

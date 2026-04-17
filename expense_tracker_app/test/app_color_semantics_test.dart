@@ -2,6 +2,14 @@ import 'package:expense_tracker_app/core/app_color_semantics.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
+int _colorChannel(double value) => (value * 255.0).round().clamp(0, 255);
+
+int _red(Color color) => _colorChannel(color.r);
+
+int _green(Color color) => _colorChannel(color.g);
+
+int _blue(Color color) => _colorChannel(color.b);
+
 void main() {
   group('AppSemanticColors', () {
     test('keeps category mapping stable for the same category code', () {
@@ -78,8 +86,8 @@ void main() {
         code: 'HEALTH',
       );
 
-      expect(tone.base.red, tone.base.green);
-      expect(tone.base.green, tone.base.blue);
+      expect(_red(tone.base), _green(tone.base));
+      expect(_green(tone.base), _blue(tone.base));
     });
 
     test('Purple remaps category colors into a purple-led family', () {
@@ -89,8 +97,8 @@ void main() {
         code: 'HEALTH',
       );
 
-      expect(tone.base.blue, greaterThan(tone.base.green));
-      expect(tone.base.red, greaterThan(tone.base.green - 10));
+      expect(_blue(tone.base), greaterThan(_green(tone.base)));
+      expect(_red(tone.base), greaterThan(_green(tone.base) - 10));
     });
 
     test('returns distinct trend palettes for Mix, Neutral, and Purple', () {
@@ -109,8 +117,8 @@ void main() {
 
       expect(mix.first, isNot(neutral.first));
       expect(purple.first, isNot(neutral.first));
-      expect(neutral.first.red, neutral.first.green);
-      expect(neutral.first.green, neutral.first.blue);
+      expect(_red(neutral.first), _green(neutral.first));
+      expect(_green(neutral.first), _blue(neutral.first));
     });
   });
 }
