@@ -84,12 +84,11 @@ class AppSemanticThemeExtension
   final int mixHomeAccentIndex;
   final Brightness brightness;
 
-  SemanticColorTone get accentTone =>
-      AppSemanticColors.primaryTone(
-        accentId,
-        brightness,
-        mixHomeAccentIndex: mixHomeAccentIndex,
-      );
+  SemanticColorTone get accentTone => AppSemanticColors.primaryTone(
+    accentId,
+    brightness,
+    mixHomeAccentIndex: mixHomeAccentIndex,
+  );
 
   List<Color> get trendPalette {
     final palette = AppSemanticColors.trendPalette(accentId, brightness);
@@ -113,13 +112,16 @@ class AppSemanticThemeExtension
     String? code,
     String? parentCode,
     String? name,
+    String? rawHex,
   }) {
     return AppSemanticColors.categoryTone(
       accentId: accentId,
       brightness: brightness,
+      labelColorMode: labelColorMode,
       code: code,
       parentCode: parentCode,
       name: name,
+      rawHex: rawHex,
     );
   }
 
@@ -560,10 +562,19 @@ class AppSemanticColors {
   static SemanticColorTone categoryTone({
     required String accentId,
     required Brightness brightness,
+    AppLabelColorMode labelColorMode = AppLabelColorMode.raw,
     String? code,
     String? parentCode,
     String? name,
+    String? rawHex,
   }) {
+    if (labelColorMode == AppLabelColorMode.raw) {
+      final rawColor = parseHexColor(rawHex);
+      if (rawColor != null) {
+        return toneFromColor(rawColor, brightness);
+      }
+    }
+
     final palette = _categoryPalette(accentId, brightness);
     final slot = categorySlot(code: code, parentCode: parentCode, name: name);
     return toneFromColor(palette[slot], brightness);

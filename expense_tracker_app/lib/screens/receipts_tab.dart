@@ -882,6 +882,7 @@ class _ReceiptsTabState extends State<ReceiptsTab>
             code: categoryCode,
             parentCode: txCategory?['parent_category_code']?.toString(),
             name: txCategoryLabel ?? txCategoryNameRaw,
+            rawHex: txCategory?['color']?.toString(),
           )
         : ShellStyles.accentTone(context);
     final iconColor = categoryTone.base;

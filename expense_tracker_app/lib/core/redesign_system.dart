@@ -399,9 +399,13 @@ class ShellStyles {
     String? code,
     String? parentCode,
     String? name,
-  }) => semanticTheme(
-    context,
-  ).categoryTone(code: code, parentCode: parentCode, name: name);
+    String? rawHex,
+  }) => semanticTheme(context).categoryTone(
+    code: code,
+    parentCode: parentCode,
+    name: name,
+    rawHex: rawHex,
+  );
 
   static SemanticColorTone labelTone(
     BuildContext context, {

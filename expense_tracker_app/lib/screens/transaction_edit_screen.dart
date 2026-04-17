@@ -924,6 +924,7 @@ class _TransactionEditScreenState extends State<TransactionEditScreen> {
       code: category['code']?.toString(),
       parentCode: category['parent_category_code']?.toString(),
       name: category['name']?.toString(),
+      rawHex: category['color']?.toString(),
     );
 
     final parentId = category['parent_id']?.toString();
@@ -948,6 +949,7 @@ class _TransactionEditScreenState extends State<TransactionEditScreen> {
       context,
       code: parent?['code']?.toString(),
       name: parent?['name']?.toString(),
+      rawHex: parent?['color']?.toString(),
     );
 
     return <_CategoryTagData>[

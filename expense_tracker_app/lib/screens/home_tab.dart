@@ -291,6 +291,7 @@ class _HomeTabState extends State<HomeTab>
         code: code,
         parentCode: raw['parent_category_code']?.toString(),
         name: raw['name']?.toString(),
+        rawHex: raw['color']?.toString(),
       );
       slices.add(
         _OverviewSlice(

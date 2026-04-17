@@ -186,6 +186,7 @@ class _AnalyticsOverviewTabState extends State<AnalyticsOverviewTab> {
                   code: entry['code']?.toString(),
                   fallbackName: entry['name']?.toString(),
                 ),
+                color: entry['color']?.toString(),
                 amount: amount,
                 share: percentage > 0
                     ? percentage / 100
@@ -680,6 +681,7 @@ class _AnalyticsOverviewTabState extends State<AnalyticsOverviewTab> {
       context,
       code: category.code,
       name: category.name,
+      rawHex: category.color,
     );
     return Row(
       children: [
@@ -832,12 +834,14 @@ class _CategoryInsight {
   const _CategoryInsight({
     required this.code,
     required this.name,
+    this.color,
     required this.amount,
     required this.share,
   });
 
   final String code;
   final String name;
+  final String? color;
   final double amount;
   final double share;
 }

@@ -150,7 +150,7 @@ class _AppearanceSettingsScreenState extends State<AppearanceSettingsScreen> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: <Widget>[
           Text(
-            'Label colors',
+            'Category and label colors',
             style: TextStyle(
               color: ShellStyles.textPrimary(context),
               fontSize: 16,
@@ -159,7 +159,7 @@ class _AppearanceSettingsScreenState extends State<AppearanceSettingsScreen> {
           ),
           const SizedBox(height: 4),
           Text(
-            'Raw colors use each label’s saved color. Accent-aware colors keep labels stable, but remap them into the active Mix, Neutral, or Purple system.',
+            'Raw colors use each category or label saved color. Accent-aware colors keep items stable, but remap them into the active Mix, Neutral, or Purple system.',
             style: TextStyle(
               color: ShellStyles.textMuted(context),
               fontSize: 12.5,
@@ -169,7 +169,8 @@ class _AppearanceSettingsScreenState extends State<AppearanceSettingsScreen> {
           const SizedBox(height: 14),
           SettingsChoiceRow(
             title: 'Raw colors',
-            subtitle: 'Default. Preserve each label’s saved color across the app.',
+            subtitle:
+                'Default. Preserve each category and label saved color across the app.',
             selected: themeProvider.labelColorMode == AppLabelColorMode.raw,
             selectedBorder:
                 themeProvider.labelColorMode == AppLabelColorMode.raw,
@@ -178,7 +179,8 @@ class _AppearanceSettingsScreenState extends State<AppearanceSettingsScreen> {
           const SizedBox(height: 8),
           SettingsChoiceRow(
             title: 'Accent-aware colors',
-            subtitle: 'Map labels into the active theme while keeping each label stable.',
+            subtitle:
+                'Map categories and labels into the active theme while keeping each item stable.',
             selected: themeProvider.labelColorMode == AppLabelColorMode.themed,
             selectedBorder:
                 themeProvider.labelColorMode == AppLabelColorMode.themed,
@@ -203,9 +205,7 @@ class _AppearanceSettingsScreenState extends State<AppearanceSettingsScreen> {
               : ShellStyles.surface(context),
           borderRadius: BorderRadius.circular(18),
           border: Border.all(
-            color: selected
-                ? previewAccent
-                : ShellStyles.border(context),
+            color: selected ? previewAccent : ShellStyles.border(context),
             width: selected ? 1.4 : 1,
           ),
         ),
@@ -408,9 +408,7 @@ class _ThemeModeChoice extends StatelessWidget {
               : ShellStyles.surfaceAlt(context),
           borderRadius: BorderRadius.circular(12),
           border: Border.all(
-            color: selected
-                ? accentTone.border
-                : ShellStyles.border(context),
+            color: selected ? accentTone.border : ShellStyles.border(context),
           ),
         ),
         child: Icon(

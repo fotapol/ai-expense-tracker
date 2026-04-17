@@ -190,6 +190,7 @@ class _AnalyticsTabState extends State<AnalyticsTab>
       code: category['code']?.toString(),
       parentCode: category['parent_category_code']?.toString(),
       name: category['name']?.toString(),
+      rawHex: category['color']?.toString(),
     ).base;
   }
 
@@ -212,6 +213,7 @@ class _AnalyticsTabState extends State<AnalyticsTab>
           categoryId: categoryId,
           categoryName: _breakdownName(category),
           categoryCode: category['code']?.toString() ?? '',
+          categoryColor: category['color']?.toString(),
           fromDate: PeriodFilter.getStartDate(widget.filters.period),
           selectedCategoryIds: widget.filters.categoryIds,
           selectedSubcategoryIds: widget.filters.subcategoryIds,
@@ -361,6 +363,7 @@ class _AnalyticsTabState extends State<AnalyticsTab>
               code: category['code']?.toString(),
               parentCode: category['parent_category_code']?.toString(),
               name: category['name']?.toString(),
+              rawHex: category['color']?.toString(),
             );
             return PieChartSectionData(
               color: tone.base,
@@ -648,6 +651,7 @@ class _AnalyticsTabState extends State<AnalyticsTab>
       code: code,
       parentCode: category['parent_category_code']?.toString(),
       name: category['name']?.toString(),
+      rawHex: category['color']?.toString(),
     );
     final icon = CategoryStyle.iconForCode(code);
 

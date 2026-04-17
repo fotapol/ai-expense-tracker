@@ -45,6 +45,7 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
   Map<String, String> _categoryNamesById = {};
   Map<String, String> _categoryCodesById = {};
   Map<String, String> _categoryParentCodesById = {};
+  Map<String, String> _categoryColorsById = {};
   Map<String, String> _labelNamesById = {};
   Map<String, String> _labelColorsById = {};
   Set<String> _featureCodes = <String>{};
@@ -105,6 +106,7 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
       Map<String, String> categoryNamesById = {};
       Map<String, String> categoryCodesById = {};
       Map<String, String> categoryParentCodesById = {};
+      Map<String, String> categoryColorsById = {};
       Map<String, String> labelNamesById = {};
       Map<String, String> labelColorsById = {};
       Set<String> featureCodes = <String>{};
@@ -131,6 +133,11 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
             if (category['id'] != null)
               category['id'].toString():
                   category['parent_category_code']?.toString() ?? '',
+        };
+        categoryColorsById = {
+          for (final category in categories)
+            if (category['id'] != null)
+              category['id'].toString(): category['color']?.toString() ?? '',
         };
       } catch (_) {}
 
@@ -176,6 +183,7 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
         _categoryNamesById = categoryNamesById;
         _categoryCodesById = categoryCodesById;
         _categoryParentCodesById = categoryParentCodesById;
+        _categoryColorsById = categoryColorsById;
         _labelNamesById = labelNamesById;
         _labelColorsById = labelColorsById;
         _featureCodes = featureCodes;
@@ -369,6 +377,7 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
             code: _categoryCodesById[id],
             parentCode: _categoryParentCodesById[id],
             name: _categoryNamesById[id],
+            rawHex: _categoryColorsById[id],
           ),
           onDeleted: () {
             setState(() {
@@ -389,6 +398,7 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
             code: _categoryCodesById[id],
             parentCode: _categoryParentCodesById[id],
             name: _categoryNamesById[id],
+            rawHex: _categoryColorsById[id],
           ),
           onDeleted: () {
             setState(() {

@@ -59,6 +59,38 @@ void main() {
       expect(tone.base, const Color(0xFF24B7D9));
     });
 
+    test('uses raw category color when available', () {
+      final tone = AppSemanticColors.categoryTone(
+        accentId: appAccentPurple,
+        brightness: Brightness.light,
+        labelColorMode: AppLabelColorMode.raw,
+        code: 'FOOD',
+        rawHex: '#24B7D9',
+      );
+
+      expect(tone.base, const Color(0xFF24B7D9));
+    });
+
+    test('remaps category colors when accent-aware mode is selected', () {
+      final raw = AppSemanticColors.categoryTone(
+        accentId: appAccentMix,
+        brightness: Brightness.light,
+        labelColorMode: AppLabelColorMode.raw,
+        code: 'FOOD',
+        rawHex: '#24B7D9',
+      );
+      final themed = AppSemanticColors.categoryTone(
+        accentId: appAccentMix,
+        brightness: Brightness.light,
+        labelColorMode: AppLabelColorMode.themed,
+        code: 'FOOD',
+        rawHex: '#24B7D9',
+      );
+
+      expect(themed.base, isNot(raw.base));
+      expect(themed.base, const Color(0xFFE27A3F));
+    });
+
     test('falls back to themed mapping when raw label color is invalid', () {
       final rawFallback = AppSemanticColors.labelTone(
         accentId: appAccentMix,

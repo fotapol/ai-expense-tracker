@@ -57,9 +57,12 @@ void main() {
     expect(find.text('Accent-aware colors'), findsOneWidget);
   });
 
-  testWidgets('Appearance settings toggles label color mode', (tester) async {
+  testWidgets('Appearance settings toggles taxonomy color mode', (
+    tester,
+  ) async {
     await pumpLocalizedApp(tester, const AppearanceSettingsScreen());
 
+    expect(find.text('Category and label colors'), findsOneWidget);
     await tester.scrollUntilVisible(
       find.text('Accent-aware colors'),
       220,

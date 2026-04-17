@@ -340,6 +340,7 @@ class _SubcategoriesScreenState extends State<SubcategoriesScreen> {
       context,
       code: category['code']?.toString(),
       name: category['name']?.toString(),
+      rawHex: category['color']?.toString(),
     );
     final icon = CategoryIconRegistry.resolve(
       category['icon']?.toString(),
