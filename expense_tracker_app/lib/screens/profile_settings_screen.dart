@@ -328,12 +328,8 @@ class _ProfileSettingsScreenState extends State<ProfileSettingsScreen> {
                     ShellStyles.sectionLabel(context, 'Account'),
                     const SizedBox(height: 8),
                     SettingsDetailCard(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          const _FieldLabel(label: 'Email'),
-                          _ReadOnlyField(value: _email.isEmpty ? '--' : _email),
-                        ],
+                      child: _AccountEmailTile(
+                        email: _email.isEmpty ? '--' : _email,
                       ),
                     ),
                     const SizedBox(height: 16),
@@ -415,29 +411,75 @@ class _FieldLabel extends StatelessWidget {
   }
 }
 
-class _ReadOnlyField extends StatelessWidget {
-  const _ReadOnlyField({required this.value});
+class _AccountEmailTile extends StatelessWidget {
+  const _AccountEmailTile({required this.email});
 
-  final String value;
+  final String email;
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
-      decoration: BoxDecoration(
-        color: ShellStyles.surfaceAlt(context),
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: ShellStyles.border(context)),
-      ),
-      child: Text(
-        value,
-        style: TextStyle(
-          color: ShellStyles.textPrimary(context),
-          fontSize: 14,
-          fontWeight: FontWeight.w500,
+    final accentTone = ShellStyles.accentTone(context);
+    return Row(
+      children: [
+        Container(
+          width: 42,
+          height: 42,
+          alignment: Alignment.center,
+          decoration: BoxDecoration(
+            color: accentTone.container,
+            borderRadius: BorderRadius.circular(14),
+            border: Border.all(color: accentTone.border),
+          ),
+          child: Icon(
+            Icons.mail_outline_rounded,
+            color: accentTone.foreground,
+            size: 20,
+          ),
         ),
-      ),
+        const SizedBox(width: 12),
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                'Signed-in email',
+                style: TextStyle(
+                  color: ShellStyles.textMuted(context),
+                  fontSize: 11.5,
+                  fontWeight: FontWeight.w700,
+                  letterSpacing: 0.3,
+                ),
+              ),
+              const SizedBox(height: 4),
+              Text(
+                email,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: TextStyle(
+                  color: ShellStyles.textPrimary(context),
+                  fontSize: 15,
+                  fontWeight: FontWeight.w700,
+                ),
+              ),
+              const SizedBox(height: 4),
+              Text(
+                'Managed by your sign-in provider.',
+                style: TextStyle(
+                  color: ShellStyles.textMuted(context),
+                  fontSize: 12,
+                  height: 1.25,
+                ),
+              ),
+            ],
+          ),
+        ),
+        const SizedBox(width: 10),
+        Icon(
+          Icons.lock_outline_rounded,
+          color: ShellStyles.textMuted(context),
+          size: 18,
+        ),
+      ],
     );
   }
 }
