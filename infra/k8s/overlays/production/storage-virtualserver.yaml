@@ -18,4 +18,15 @@ spec:
   routes:
     - path: /
       action:
-        pass: minio-s3
+        proxy:
+          upstream: minio-s3
+          requestHeaders:
+            set:
+              - name: Host
+                value: ${http_host}
+              - name: X-Forwarded-Host
+                value: ${http_host}
+              - name: X-Forwarded-Port
+                value: "8443"
+              - name: X-Forwarded-Proto
+                value: https
