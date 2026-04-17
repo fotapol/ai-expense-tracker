@@ -1497,6 +1497,7 @@ async def get_transactions_summary(
             Category.name,
             Category.code,
             Category.parent_id,
+            Category.color,
             item_scope_subquery.c.amount,
             item_scope_subquery.c.transaction_id,
             Transaction.currency,
@@ -1513,6 +1514,7 @@ async def get_transactions_summary(
         cat_name,
         cat_code,
         cat_parent_id,
+        cat_color,
         amount,
         tx_id,
         tx_currency,
@@ -1534,6 +1536,7 @@ async def get_transactions_summary(
                 "name": cat_name,
                 "code": cat_code,
                 "parent_id": cat_parent_id,
+                "color": cat_color,
                 "amount": Decimal("0"),
                 "item_count": 0,
                 "transaction_ids": set(),
@@ -1549,7 +1552,7 @@ async def get_transactions_summary(
     if parent_ids:
         parents = session.exec(select(Category).where(Category.id.in_(parent_ids))).all()
         for p in parents:
-            parent_map[p.id] = {"name": p.name, "code": p.code}
+            parent_map[p.id] = {"name": p.name, "code": p.code, "color": p.color}
 
     # Roll up totals into parents
     rolled_up_totals = {}
@@ -1557,6 +1560,7 @@ async def get_transactions_summary(
         cat_name = cat_data["name"]
         cat_code = cat_data["code"]
         cat_parent_id = cat_data["parent_id"]
+        cat_color = cat_data["color"]
         cat_total = cat_data["amount"]
         item_count = cat_data["item_count"]
         if cat_parent_id:
@@ -1564,16 +1568,19 @@ async def get_transactions_summary(
             target_id = cat_parent_id
             target_name = parent_map.get(cat_parent_id, {}).get("name", "Unknown Parent")
             target_code = parent_map.get(cat_parent_id, {}).get("code", "OTHER")
+            target_color = parent_map.get(cat_parent_id, {}).get("color")
         else:
             # It's already a top-level category
             target_id = cat_id
             target_name = cat_name
             target_code = cat_code
+            target_color = cat_color
 
         if target_id not in rolled_up_totals:
             rolled_up_totals[target_id] = {
                 "name": target_name,
                 "code": target_code,
+                "color": target_color,
                 "amount": Decimal("0"),
                 "item_count": 0,
             }
@@ -1588,6 +1595,7 @@ async def get_transactions_summary(
             "category_id": cat_id,
             "name": data["name"],
             "code": data["code"],
+            "color": data.get("color"),
             "amount": float(data["amount"]),
             "percentage": float(percentage),
             "item_count": data["item_count"],
@@ -1608,6 +1616,7 @@ async def get_transactions_summary(
         parent_id = data["parent_id"]
         parent_name = parent_map.get(data["parent_id"], {}).get("name", data["name"])
         parent_code = parent_map.get(data["parent_id"], {}).get("code", data["code"])
+        parent_color = parent_map.get(data["parent_id"], {}).get("color")
         subcategory_name = data["name"]
         subcategory_code = data["code"]
         # H-4 fix: do NOT compute percentage here; denominator is still growing.
@@ -1617,12 +1626,14 @@ async def get_transactions_summary(
                 "subcategory_id": cat_id,
                 "name": subcategory_name,
                 "code": subcategory_code,
+                "color": data.get("color"),
                 "amount": float(data["amount"]),
                 "percentage": 0.0,  # filled in by second pass below
                 "item_count": data["item_count"],
                 "parent_category_id": parent_id,
                 "parent_category_name": parent_name,
                 "parent_category_code": parent_code,
+                "parent_category_color": parent_color,
             }
         )
     if subcategory_breakdown:
@@ -2218,6 +2229,7 @@ async def get_category_subcategory_summary(
             rolled_up_subcategories[direct_child.id] = {
                 "name": direct_child.name,
                 "code": direct_child.code,
+                "color": direct_child.color,
                 "amount": Decimal("0"),
                 "item_count": 0,
             }
@@ -2241,6 +2253,7 @@ async def get_category_subcategory_summary(
                 "subcategory_id": subcategory_id,
                 "name": data["name"],
                 "code": data["code"],
+                "color": data.get("color"),
                 "amount": float(data["amount"]),
                 "percentage": float(percentage),
                 "item_count": data["item_count"],
@@ -2252,6 +2265,7 @@ async def get_category_subcategory_summary(
         "category_id": top_level_category.id,
         "category_name": top_level_category.name,
         "category_code": top_level_category.code,
+        "category_color": top_level_category.color,
         "total_amount": float(rolled_up_total),
         "currency": target_currency,
         "subcategories": subcategories,
