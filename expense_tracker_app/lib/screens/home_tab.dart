@@ -37,6 +37,7 @@ class _HomeTabState extends State<HomeTab>
   List<Map<String, dynamic>> _previousMonthTransactions = [];
   bool _isRefreshingHome = false;
   bool _hasPremiumAccess = false;
+  int? _receiptUploadUsed;
   int? _receiptUploadRemaining;
   int? _receiptUploadLimit;
 
@@ -139,6 +140,9 @@ class _HomeTabState extends State<HomeTab>
         _previousMonthTransactions = previousTransactions;
         _hasPremiumAccess = hasPremiumAccess;
         _receiptUploadLimit = int.tryParse((usage['limit'] ?? '').toString());
+        _receiptUploadUsed = optimisticPremium
+            ? null
+            : int.tryParse((usage['used'] ?? '').toString());
         _receiptUploadRemaining = optimisticPremium
             ? null
             : int.tryParse((usage['remaining'] ?? '').toString());
@@ -402,8 +406,9 @@ class _HomeTabState extends State<HomeTab>
     final limit = (_receiptUploadLimit != null && _receiptUploadLimit! > 0)
         ? _receiptUploadLimit!
         : 10;
-    final safeRemaining = remaining == null ? limit : remaining.clamp(0, limit);
-    return '$safeRemaining/$limit';
+    final fallbackUsed = remaining == null ? 0 : limit - remaining;
+    final used = (_receiptUploadUsed ?? fallbackUsed).clamp(0, limit);
+    return '$used/$limit';
   }
 
   @override
