@@ -128,21 +128,6 @@ class _ReceiptsTabState extends State<ReceiptsTab>
     return '$parentName • $childName';
   }
 
-  Color _parseHexColor(String? raw, Color fallback) {
-    final value = raw?.trim();
-    if (value == null || value.isEmpty) return fallback;
-
-    var hex = value.startsWith('#') ? value.substring(1) : value;
-    if (hex.length == 6) {
-      hex = 'FF$hex';
-    }
-    if (hex.length != 8) return fallback;
-
-    final parsed = int.tryParse(hex, radix: 16);
-    if (parsed == null) return fallback;
-    return Color(parsed);
-  }
-
   // ignore: unused_element
   String _currencySymbol(String code) {
     final normalized = code.toUpperCase();
@@ -891,7 +876,6 @@ class _ReceiptsTabState extends State<ReceiptsTab>
         fallbackName: txCategoryNameRaw,
       );
     }
-    final txCategoryCode = txCategory?['code']?.toString() ?? '';
     final categoryTone = hasCategoryHint
         ? ShellStyles.categoryTone(
             context,

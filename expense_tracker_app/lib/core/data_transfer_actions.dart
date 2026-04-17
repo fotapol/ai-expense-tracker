@@ -34,9 +34,12 @@ class DataTransferActions {
       if (!context.mounted) return;
       Navigator.of(context, rootNavigator: true).pop();
 
-      await Share.shareXFiles([
-        XFile(file.path),
-      ], text: 'AI Expense Tracker Export');
+      await SharePlus.instance.share(
+        ShareParams(
+          files: [XFile(file.path)],
+          text: 'AI Expense Tracker Export',
+        ),
+      );
     } catch (error) {
       if (!context.mounted) return;
       final navigator = Navigator.of(context, rootNavigator: true);
@@ -66,6 +69,7 @@ class DataTransferActions {
         withData: true,
       );
       if (result == null || result.files.isEmpty) return;
+      if (!context.mounted) return;
 
       showDialog<void>(
         context: context,
