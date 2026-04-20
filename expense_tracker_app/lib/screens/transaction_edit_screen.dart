@@ -41,6 +41,7 @@ class _TransactionEditScreenState extends State<TransactionEditScreen> {
   Color get _focusColor => ShellStyles.focusRing(context);
   Color get _dangerColor => ShellStyles.error(context);
   Color get _warningColor => ShellStyles.warningPremium(context);
+  Color get _successColor => ShellStyles.success(context);
 
   bool _isLoading = true;
   bool _isSaving = false;
@@ -1276,6 +1277,30 @@ class _TransactionEditScreenState extends State<TransactionEditScreen> {
     return inferredDiscount > 0.01 ? inferredDiscount : 0.0;
   }
 
+  double? _itemAmountBeforeDiscountValue(Map<String, dynamic> item) {
+    final amount = _itemAmountValue(item);
+    final explicitBefore = _toDouble(item['amount_before_discount']);
+    if (explicitBefore != null && explicitBefore > amount) {
+      return _round2(explicitBefore);
+    }
+
+    final discount = _itemDiscountValue(item);
+    if (discount > 0) {
+      return _round2(amount + discount);
+    }
+
+    return null;
+  }
+
+  double _totalSavingsValue() {
+    var total = 0.0;
+    for (final raw in _items) {
+      final item = raw as Map<String, dynamic>;
+      total += _itemDiscountValue(item);
+    }
+    return _round2(total);
+  }
+
   String? _itemCategoryId(Map<String, dynamic> item) {
     final id = item['id']?.toString() ?? '';
     return _itemCategoryIds[id] ?? item['category_id']?.toString();
@@ -2238,6 +2263,9 @@ class _TransactionEditScreenState extends State<TransactionEditScreen> {
     final unitPrice = _itemUnitPriceValue(item);
     final sourceAmount = _itemAmountValue(item);
     final displayAmount = _toDisplayAmount(sourceAmount);
+    final discountAmount = _itemDiscountValue(item);
+    final hasDiscount = discountAmount > 0;
+    final beforeDiscountAmount = _itemAmountBeforeDiscountValue(item);
     final currentName = _normalizeText(_itemDescription(item));
     final translatedName = _normalizeText(
       item['translated_description']?.toString(),
@@ -2321,6 +2349,20 @@ class _TransactionEditScreenState extends State<TransactionEditScreen> {
                         fontWeight: FontWeight.w700,
                       ),
                     ),
+                    if (hasDiscount && beforeDiscountAmount != null) ...[
+                      const SizedBox(height: 4),
+                      Text(
+                        'Was ${_formatMoney(_currency, beforeDiscountAmount)}',
+                        textAlign: TextAlign.right,
+                        style: TextStyle(
+                          color: _mutedColor,
+                          fontSize: 12,
+                          fontWeight: FontWeight.w600,
+                          decoration: TextDecoration.lineThrough,
+                          decorationColor: _mutedColor,
+                        ),
+                      ),
+                    ],
                     const SizedBox(height: 4),
                     SizedBox(
                       height: 18,
@@ -2374,6 +2416,17 @@ class _TransactionEditScreenState extends State<TransactionEditScreen> {
                 fontWeight: FontWeight.w500,
               ),
             ),
+            if (hasDiscount) ...[
+              const SizedBox(height: 6),
+              Text(
+                'Saved ${_formatMoney(_currency, discountAmount)}',
+                style: TextStyle(
+                  color: _successColor,
+                  fontSize: 12,
+                  fontWeight: FontWeight.w700,
+                ),
+              ),
+            ],
             if (_displayCurrency.toUpperCase() != _currency.toUpperCase()) ...[
               const SizedBox(height: 8),
               Text(
@@ -2452,6 +2505,8 @@ class _TransactionEditScreenState extends State<TransactionEditScreen> {
   Widget _buildStickyTotalBar({Map<String, double>? totalMismatch}) {
     final sourceTotal = _toDouble(_amountController.text) ?? 0;
     final displayTotal = _toDisplayAmount(sourceTotal);
+    final totalSavings = _totalSavingsValue();
+    final hasSavings = totalSavings > 0;
 
     return SafeArea(
       top: false,
@@ -2508,6 +2563,17 @@ class _TransactionEditScreenState extends State<TransactionEditScreen> {
                               fontWeight: FontWeight.w700,
                             ),
                           ),
+                          if (hasSavings) ...[
+                            const SizedBox(height: 5),
+                            Text(
+                              'Saved ${_formatMoney(_currency, totalSavings)}',
+                              style: TextStyle(
+                                color: _successColor,
+                                fontSize: 12,
+                                fontWeight: FontWeight.w700,
+                              ),
+                            ),
+                          ],
                         ],
                       ),
                     ),
