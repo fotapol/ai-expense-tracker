@@ -80,10 +80,13 @@ class _ReceiptItemEditScreenState extends State<ReceiptItemEditScreen> {
       text: _item['description']?.toString() ?? '',
     );
     final initialAmount = _toDouble(_item['amount']) ?? 0.0;
-    final initialDiscount = _toDouble(_item['discount_amount']) ?? 0.0;
-    final initialOriginalAmount =
-        _toDouble(_item['amount_before_discount']) ??
-        _round2(initialAmount + initialDiscount);
+    final inferredDiscount = _resolveInitialDiscountAmount(_item);
+    final initialDiscount = inferredDiscount > 0 ? inferredDiscount : 0.0;
+    final initialOriginalAmount = _resolveInitialAmountBeforeDiscount(
+      _item,
+      finalAmount: initialAmount,
+      discountAmount: initialDiscount,
+    );
     _originalPriceController = TextEditingController(
       text: _formatNumberForInput(
         initialOriginalAmount,
@@ -135,6 +138,51 @@ class _ReceiptItemEditScreenState extends State<ReceiptItemEditScreen> {
   }
 
   double _round2(double value) => double.parse(value.toStringAsFixed(2));
+
+  double _resolveInitialDiscountAmount(Map<String, dynamic> item) {
+    final explicitDiscount = _toDouble(item['discount_amount']) ?? 0.0;
+    if (explicitDiscount > 0) {
+      return _round2(explicitDiscount);
+    }
+
+    final finalAmount = _toDouble(item['amount']);
+    final amountBeforeDiscount = _toDouble(item['amount_before_discount']);
+    if (finalAmount != null &&
+        amountBeforeDiscount != null &&
+        amountBeforeDiscount > finalAmount) {
+      return _round2(amountBeforeDiscount - finalAmount);
+    }
+
+    final qty = _toDouble(item['qty']);
+    final unitPrice = _toDouble(item['unit_price']);
+    if (finalAmount == null || qty == null || unitPrice == null || qty <= 0) {
+      return 0.0;
+    }
+
+    final computedBeforeDiscount = _round2(qty * unitPrice);
+    final inferredDiscount = _round2(computedBeforeDiscount - finalAmount);
+    return inferredDiscount > 0.01 ? inferredDiscount : 0.0;
+  }
+
+  double _resolveInitialAmountBeforeDiscount(
+    Map<String, dynamic> item, {
+    required double finalAmount,
+    required double discountAmount,
+  }) {
+    final explicitAmountBeforeDiscount = _toDouble(
+      item['amount_before_discount'],
+    );
+    if (explicitAmountBeforeDiscount != null &&
+        explicitAmountBeforeDiscount > finalAmount) {
+      return _round2(explicitAmountBeforeDiscount);
+    }
+
+    if (discountAmount > 0) {
+      return _round2(finalAmount + discountAmount);
+    }
+
+    return _round2(finalAmount);
+  }
 
   String _formatNumberForInput(
     dynamic value, {

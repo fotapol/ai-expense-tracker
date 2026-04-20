@@ -984,7 +984,7 @@ class _TransactionEditScreenState extends State<TransactionEditScreen> {
       final qty = _toDouble(_itemQtyControllers[itemId]?.text);
       final unitPrice = _toDouble(_itemUnitPriceControllers[itemId]?.text);
       final amount = _toDouble(_itemAmountControllers[itemId]?.text);
-      final discount = _toDouble(item['discount_amount']) ?? 0.0;
+      final discount = _itemDiscountValue(item);
       if (qty == null || unitPrice == null || amount == null) continue;
       final expected = _round2((qty * unitPrice) - discount);
       final actual = _round2(amount);
@@ -1257,6 +1257,23 @@ class _TransactionEditScreenState extends State<TransactionEditScreen> {
     final id = item['id']?.toString() ?? '';
     return _toDouble(_itemUnitPriceControllers[id]?.text) ??
         _toDouble(item['unit_price']);
+  }
+
+  double _itemDiscountValue(Map<String, dynamic> item) {
+    final explicitDiscount = _toDouble(item['discount_amount']) ?? 0.0;
+    if (explicitDiscount > 0) return _round2(explicitDiscount);
+
+    final amount = _itemAmountValue(item);
+    final amountBeforeDiscount = _toDouble(item['amount_before_discount']);
+    if (amountBeforeDiscount != null && amountBeforeDiscount > amount) {
+      return _round2(amountBeforeDiscount - amount);
+    }
+
+    final qty = _itemQtyValue(item);
+    final unitPrice = _itemUnitPriceValue(item);
+    if (qty == null || unitPrice == null || qty <= 0) return 0.0;
+    final inferredDiscount = _round2((qty * unitPrice) - amount);
+    return inferredDiscount > 0.01 ? inferredDiscount : 0.0;
   }
 
   String? _itemCategoryId(Map<String, dynamic> item) {
