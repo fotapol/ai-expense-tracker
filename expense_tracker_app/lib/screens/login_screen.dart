@@ -161,10 +161,14 @@ class _BrandLockup extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final logoAsset = Theme.of(context).brightness == Brightness.dark
+        ? 'assets/brand/logo-login-white.png'
+        : 'assets/brand/logo-login-black.png';
+
     return Column(
       children: [
         Image.asset(
-          'assets/brand/logo-login.png',
+          logoAsset,
           width: 176,
           fit: BoxFit.contain,
           filterQuality: FilterQuality.high,
