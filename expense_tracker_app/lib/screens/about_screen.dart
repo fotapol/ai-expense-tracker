@@ -43,7 +43,7 @@ class _AboutScreenState extends State<AboutScreen> {
   String get _versionLabel {
     final packageInfo = _packageInfo;
     if (packageInfo == null) return 'Loading version...';
-    return 'Version ${packageInfo.version} (${packageInfo.buildNumber})';
+    return 'Version ${packageInfo.version}';
   }
 
   Future<void> _openUrl(String rawUrl) async {
@@ -217,72 +217,6 @@ class _AboutScreenState extends State<AboutScreen> {
     );
   }
 
-  Widget _buildBuildDetailsCard(PackageInfo? packageInfo) {
-    return SettingsDetailCard(
-      radius: 22,
-      padding: const EdgeInsets.all(18),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: <Widget>[
-          Text(
-            'Installed build',
-            style: TextStyle(
-              color: ShellStyles.textPrimary(context),
-              fontSize: 16,
-              fontWeight: FontWeight.w700,
-            ),
-          ),
-          const SizedBox(height: 4),
-          Text(
-            'Live package metadata from this build is shown below.',
-            style: TextStyle(
-              color: ShellStyles.textMuted(context),
-              fontSize: 12.5,
-              height: 1.4,
-            ),
-          ),
-          const SizedBox(height: 16),
-          Container(
-            decoration: BoxDecoration(
-              color: ShellStyles.surfaceAlt(context),
-              borderRadius: BorderRadius.circular(18),
-              border: Border.all(color: ShellStyles.border(context)),
-            ),
-            child: Column(
-              children: <Widget>[
-                _BuildInfoRow(
-                  label: 'Version',
-                  value: packageInfo?.version ?? '--',
-                ),
-                Divider(
-                  height: 1,
-                  color: ShellStyles.border(context),
-                  indent: 14,
-                  endIndent: 14,
-                ),
-                _BuildInfoRow(
-                  label: 'Build number',
-                  value: packageInfo?.buildNumber ?? '--',
-                ),
-                Divider(
-                  height: 1,
-                  color: ShellStyles.border(context),
-                  indent: 14,
-                  endIndent: 14,
-                ),
-                _BuildInfoRow(
-                  label: 'Package name',
-                  value: packageInfo?.packageName ?? '--',
-                  compactValue: true,
-                ),
-              ],
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
   @override
   Widget build(BuildContext context) {
     final packageInfo = _packageInfo;
@@ -356,17 +290,6 @@ class _AboutScreenState extends State<AboutScreen> {
                       endIndent: 14,
                     ),
                     _buildLinkRow(
-                      title: 'GitHub',
-                      subtitle: AppEnv.githubUrl,
-                      onTap: () => _openUrl(AppEnv.githubUrl),
-                    ),
-                    Divider(
-                      height: 1,
-                      color: ShellStyles.border(context),
-                      indent: 14,
-                      endIndent: 14,
-                    ),
-                    _buildLinkRow(
                       title: 'Email support',
                       subtitle: AppEnv.supportEmail,
                       onTap: _openSupportEmail,
@@ -374,65 +297,9 @@ class _AboutScreenState extends State<AboutScreen> {
                   ],
                 ),
               ),
-              const SizedBox(height: 16),
-              ShellStyles.sectionLabel(context, 'Build details'),
-              const SizedBox(height: 8),
-              _buildBuildDetailsCard(packageInfo),
             ],
           ),
         ),
-      ),
-    );
-  }
-}
-
-class _BuildInfoRow extends StatelessWidget {
-  const _BuildInfoRow({
-    required this.label,
-    required this.value,
-    this.compactValue = false,
-  });
-
-  final String label;
-  final String value;
-  final bool compactValue;
-
-  @override
-  Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
-      child: Row(
-        crossAxisAlignment: compactValue
-            ? CrossAxisAlignment.start
-            : CrossAxisAlignment.center,
-        children: <Widget>[
-          Expanded(
-            child: Text(
-              label,
-              style: TextStyle(
-                color: ShellStyles.textMuted(context),
-                fontSize: 12,
-              ),
-            ),
-          ),
-          const SizedBox(width: 12),
-          Flexible(
-            child: Text(
-              value,
-              textAlign: TextAlign.right,
-              maxLines: compactValue ? 2 : 1,
-              overflow: compactValue
-                  ? TextOverflow.ellipsis
-                  : TextOverflow.clip,
-              style: TextStyle(
-                color: ShellStyles.textPrimary(context),
-                fontSize: compactValue ? 12.5 : 15,
-                fontWeight: FontWeight.w700,
-                height: 1.3,
-              ),
-            ),
-          ),
-        ],
       ),
     );
   }

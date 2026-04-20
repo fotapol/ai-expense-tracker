@@ -18,7 +18,7 @@ const Map<String, AppReleaseNotes> _releaseNotesByVersion = {
       'Subscription details are cleaner and match the current Premium offer more closely.',
       'Items translation now supports manual source-language selection when auto-detect is off.',
       'Currency display settings now change symbol position and decimal visibility across supported screens.',
-      'About now reads the live app version/build and uses local release notes instead of placeholder copy.',
+      'About now shows clearer app information and local release notes instead of placeholder copy.',
     ],
   ),
 };
