@@ -5,7 +5,7 @@ class AppEnv {
 
   static Future<void> load() async {
     try {
-      await dotenv.load(fileName: '.env');
+      await dotenv.load(fileName: '.env', isOptional: true);
     } catch (_) {
       // Keep launch-safe fallbacks if the asset is missing in local builds.
     }
@@ -38,6 +38,9 @@ class AppEnv {
   }
 
   static String _read(String key, {required String fallback}) {
+    if (!dotenv.isInitialized) {
+      return fallback;
+    }
     final value = dotenv.env[key]?.trim() ?? '';
     return value.isEmpty ? fallback : value;
   }
