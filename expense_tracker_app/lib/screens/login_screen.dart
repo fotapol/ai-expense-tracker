@@ -95,10 +95,12 @@ class _LoginScreenState extends State<LoginScreen> {
   @override
   Widget build(BuildContext context) {
     final compactHeight = MediaQuery.sizeOf(context).height < 690;
+    final bottomSafePadding = MediaQuery.viewPaddingOf(context).bottom;
 
     return Scaffold(
       backgroundColor: ShellStyles.background(context),
       body: SafeArea(
+        bottom: false,
         child: LayoutBuilder(
           builder: (context, constraints) {
             return SingleChildScrollView(
@@ -110,7 +112,7 @@ class _LoginScreenState extends State<LoginScreen> {
                       20,
                       compactHeight ? 28 : 64,
                       20,
-                      18,
+                      bottomSafePadding + 24,
                     ),
                     child: Column(
                       children: [
@@ -282,7 +284,7 @@ class _SignInCard extends StatelessWidget {
       constraints: const BoxConstraints(maxWidth: 338),
       child: Container(
         width: double.infinity,
-        padding: const EdgeInsets.fromLTRB(18, 22, 18, 20),
+        padding: const EdgeInsets.fromLTRB(18, 20, 18, 20),
         decoration: ShellStyles.cardDecoration(
           context,
           radius: 10,
@@ -290,16 +292,16 @@ class _SignInCard extends StatelessWidget {
         ),
         child: Column(
           children: [
-            Text(
-              'sign in to continue',
-              style: TextStyle(
-                color: ShellStyles.textPrimary(context),
-                fontSize: 16,
-                fontWeight: FontWeight.w800,
-                letterSpacing: -0.1,
-              ),
-            ),
-            const SizedBox(height: 20),
+            // Text(
+            //   // 'Get started',
+            //   style: TextStyle(
+            //     color: ShellStyles.textPrimary(context),
+            //     fontSize: 16,
+            //     fontWeight: FontWeight.w800,
+            //     letterSpacing: -0.1,
+            //   ),
+            // ),
+            const SizedBox(height: 12),
             _GoogleSignInButton(isLoading: isLoading, onPressed: onSignIn),
             const SizedBox(height: 18),
             const _LoginBenefit(text: 'Scan and digitize receipts instantly'),
