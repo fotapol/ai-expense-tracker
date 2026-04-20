@@ -2,6 +2,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 
 import '../core/api_client.dart';
+import '../core/app_color_semantics.dart';
 import '../core/redesign_system.dart';
 import '../l10n/app_localizations.dart';
 
@@ -13,19 +14,6 @@ class LabelsScreen extends StatefulWidget {
 }
 
 class _LabelsScreenState extends State<LabelsScreen> {
-  static const List<String> _colorOptions = [
-    '#4D7BF3',
-    '#A347F5',
-    '#EC2D91',
-    '#FF3838',
-    '#FF6B00',
-    '#F2B900',
-    '#17C653',
-    '#19BFB4',
-    '#24B7D9',
-    '#6F5CF4',
-  ];
-
   final TextEditingController _nameController = TextEditingController();
   final FocusNode _nameFocusNode = FocusNode();
   final GlobalKey _createFormKey = GlobalKey();
@@ -35,7 +23,7 @@ class _LabelsScreenState extends State<LabelsScreen> {
   bool _showCreateForm = false;
   List<dynamic> _labels = [];
   String? _error;
-  String _selectedColorHex = _colorOptions.first;
+  String _selectedColorHex = AppSemanticColors.defaultLabelColorHex;
 
   @override
   void initState() {
@@ -78,7 +66,7 @@ class _LabelsScreenState extends State<LabelsScreen> {
     if (!_showCreateForm) {
       setState(() {
         _showCreateForm = true;
-        _selectedColorHex = _colorOptions.first;
+        _selectedColorHex = AppSemanticColors.defaultLabelColorHex;
       });
     }
 
@@ -100,7 +88,7 @@ class _LabelsScreenState extends State<LabelsScreen> {
       _showCreateForm = false;
       _isSubmitting = false;
       _nameController.clear();
-      _selectedColorHex = _colorOptions.first;
+      _selectedColorHex = AppSemanticColors.defaultLabelColorHex;
     });
   }
 
@@ -131,7 +119,7 @@ class _LabelsScreenState extends State<LabelsScreen> {
         _showCreateForm = false;
         _isSubmitting = false;
         _nameController.clear();
-        _selectedColorHex = _colorOptions.first;
+        _selectedColorHex = AppSemanticColors.defaultLabelColorHex;
         _error = null;
       });
 
@@ -208,23 +196,17 @@ class _LabelsScreenState extends State<LabelsScreen> {
     }
   }
 
-  Color _colorFromHex(String? rawHex, int fallbackIndex) {
-    final normalized = (rawHex ?? '').trim();
-    final source = normalized.isEmpty
-        ? _colorOptions[fallbackIndex % _colorOptions.length]
-        : normalized;
-    final hex = source.replaceFirst('#', '');
-    final expanded = hex.length == 6 ? 'FF$hex' : hex;
-    final value = int.tryParse(expanded, radix: 16);
-    if (value == null) {
-      return _colorFromHex(null, fallbackIndex);
-    }
-    return Color(value);
-  }
-
   String _countLabel() {
     final count = _labels.length;
     return '$count custom label${count == 1 ? '' : 's'}';
+  }
+
+  List<AppColorPickerOption> _labelColorOptions() {
+    return AppSemanticColors.labelColorOptions(
+      accentId: ShellStyles.accentId(context),
+      brightness: Theme.of(context).brightness,
+      labelColorMode: ShellStyles.labelColorMode(context),
+    );
   }
 
   @override
@@ -414,11 +396,11 @@ class _LabelsScreenState extends State<LabelsScreen> {
           Wrap(
             spacing: 12,
             runSpacing: 12,
-            children: _colorOptions.map((hex) {
-              final selected = hex == _selectedColorHex;
-              final color = _colorFromHex(hex, 0);
+            children: _labelColorOptions().map((option) {
+              final selected = option.storedHex == _selectedColorHex;
               return GestureDetector(
-                onTap: () => setState(() => _selectedColorHex = hex),
+                onTap: () =>
+                    setState(() => _selectedColorHex = option.storedHex),
                 child: AnimatedContainer(
                   duration: const Duration(milliseconds: 180),
                   width: 44,
@@ -449,7 +431,7 @@ class _LabelsScreenState extends State<LabelsScreen> {
                   ),
                   child: DecoratedBox(
                     decoration: BoxDecoration(
-                      color: color,
+                      color: option.previewColor,
                       shape: BoxShape.circle,
                     ),
                   ),

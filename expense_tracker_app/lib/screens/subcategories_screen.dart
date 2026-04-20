@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../core/api_client.dart';
+import '../core/app_color_semantics.dart';
 import '../core/category_icon_registry.dart';
 import '../core/redesign_system.dart';
 import '../core/taxonomy_localization.dart';
@@ -32,6 +33,7 @@ class _SubcategoriesScreenState extends State<SubcategoriesScreen> {
   String? _error;
   List<Map<String, dynamic>> _subcategories = [];
   String _selectedIconKey = CategoryIconRegistry.options.first.key;
+  String _selectedColorHex = AppSemanticColors.defaultCategoryColorHex;
 
   @override
   void initState() {
@@ -136,6 +138,7 @@ class _SubcategoriesScreenState extends State<SubcategoriesScreen> {
       setState(() {
         _showCreateForm = true;
         _selectedIconKey = CategoryIconRegistry.options.first.key;
+        _selectedColorHex = AppSemanticColors.defaultCategoryColorHex;
       });
     }
 
@@ -158,6 +161,7 @@ class _SubcategoriesScreenState extends State<SubcategoriesScreen> {
       _isSubmitting = false;
       _nameController.clear();
       _selectedIconKey = CategoryIconRegistry.options.first.key;
+      _selectedColorHex = AppSemanticColors.defaultCategoryColorHex;
     });
   }
 
@@ -176,6 +180,7 @@ class _SubcategoriesScreenState extends State<SubcategoriesScreen> {
         name,
         parentId: widget.parentId,
         icon: _selectedIconKey,
+        color: _selectedColorHex,
       );
       if (!mounted) return;
       setState(() {
@@ -185,6 +190,7 @@ class _SubcategoriesScreenState extends State<SubcategoriesScreen> {
         _isSubmitting = false;
         _nameController.clear();
         _selectedIconKey = CategoryIconRegistry.options.first.key;
+        _selectedColorHex = AppSemanticColors.defaultCategoryColorHex;
         _error = null;
       });
       ScaffoldMessenger.of(context).showSnackBar(
@@ -294,6 +300,62 @@ class _SubcategoriesScreenState extends State<SubcategoriesScreen> {
         ),
         backgroundColor: ShellColors.softRed,
       ),
+    );
+  }
+
+  List<AppColorPickerOption> _categoryColorOptions() {
+    return AppSemanticColors.categoryColorOptions(
+      accentId: ShellStyles.accentId(context),
+      brightness: Theme.of(context).brightness,
+      labelColorMode: ShellStyles.labelColorMode(context),
+    );
+  }
+
+  Widget _buildColorPicker() {
+    return Wrap(
+      spacing: 12,
+      runSpacing: 12,
+      children: _categoryColorOptions().map((option) {
+        final selected = option.storedHex == _selectedColorHex;
+        return GestureDetector(
+          onTap: () => setState(() => _selectedColorHex = option.storedHex),
+          child: AnimatedContainer(
+            duration: const Duration(milliseconds: 180),
+            width: 44,
+            height: 44,
+            padding: const EdgeInsets.all(3),
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              color: selected
+                  ? ShellStyles.sectionBackground(context)
+                  : Colors.transparent,
+              border: Border.all(
+                color: selected
+                    ? ShellStyles.border(context)
+                    : Colors.transparent,
+                width: 2,
+              ),
+              boxShadow: selected
+                  ? [
+                      BoxShadow(
+                        color: Colors.black.withAlpha(
+                          ShellStyles.isDark(context) ? 20 : 12,
+                        ),
+                        blurRadius: 10,
+                        offset: const Offset(0, 4),
+                      ),
+                    ]
+                  : const [],
+            ),
+            child: DecoratedBox(
+              decoration: BoxDecoration(
+                color: option.previewColor,
+                shape: BoxShape.circle,
+              ),
+            ),
+          ),
+        );
+      }).toList(),
     );
   }
 
@@ -492,6 +554,10 @@ class _SubcategoriesScreenState extends State<SubcategoriesScreen> {
               );
             }).toList(),
           ),
+          const SizedBox(height: 16),
+          _fieldLabel('Color'),
+          const SizedBox(height: 10),
+          _buildColorPicker(),
           const SizedBox(height: 18),
           Row(
             children: [
