@@ -573,6 +573,14 @@ class AppSemanticColors {
       if (rawColor != null) {
         return toneFromColor(rawColor, brightness);
       }
+
+      final rawPalette = _categoryPalette(appAccentMix, brightness);
+      final rawSlot = categorySlot(
+        code: code,
+        parentCode: parentCode,
+        name: name,
+      );
+      return toneFromColor(rawPalette[rawSlot], brightness);
     }
 
     final palette = _categoryPalette(accentId, brightness);

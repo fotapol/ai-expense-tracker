@@ -91,6 +91,17 @@ void main() {
       expect(themed.base, const Color(0xFFE27A3F));
     });
 
+    test('keeps raw category fallback independent from accent color', () {
+      final tone = AppSemanticColors.categoryTone(
+        accentId: appAccentPurple,
+        brightness: Brightness.light,
+        labelColorMode: AppLabelColorMode.raw,
+        code: 'FOOD',
+      );
+
+      expect(tone.base, const Color(0xFFE27A3F));
+    });
+
     test('falls back to themed mapping when raw label color is invalid', () {
       final rawFallback = AppSemanticColors.labelTone(
         accentId: appAccentMix,
@@ -115,6 +126,7 @@ void main() {
       final tone = AppSemanticColors.categoryTone(
         accentId: appAccentNeutral,
         brightness: Brightness.light,
+        labelColorMode: AppLabelColorMode.themed,
         code: 'HEALTH',
       );
 
@@ -126,6 +138,7 @@ void main() {
       final tone = AppSemanticColors.categoryTone(
         accentId: appAccentPurple,
         brightness: Brightness.light,
+        labelColorMode: AppLabelColorMode.themed,
         code: 'HEALTH',
       );
 
