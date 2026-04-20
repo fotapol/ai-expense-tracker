@@ -1,9 +1,12 @@
+import 'dart:async';
+
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
+import '../core/app_navigation.dart';
 import '../core/api_client.dart';
 import '../core/auto_refresh_state_mixin.dart';
 import '../core/launch_error_copy.dart';
@@ -40,6 +43,7 @@ class _HomeTabState extends State<HomeTab>
   int? _receiptUploadUsed;
   int? _receiptUploadRemaining;
   int? _receiptUploadLimit;
+  String _profileDisplayName = '';
 
   @override
   Duration get autoRefreshInterval => const Duration(minutes: 1);
@@ -50,12 +54,14 @@ class _HomeTabState extends State<HomeTab>
   @override
   void initState() {
     super.initState();
+    appShellTabIndex.addListener(_handleRootTabChanged);
     moneyFormatSettings.addListener(_handleDisplayPreferencesChanged);
     _loadHomeData();
   }
 
   @override
   void dispose() {
+    appShellTabIndex.removeListener(_handleRootTabChanged);
     moneyFormatSettings.removeListener(_handleDisplayPreferencesChanged);
     super.dispose();
   }
@@ -63,6 +69,11 @@ class _HomeTabState extends State<HomeTab>
   void _handleDisplayPreferencesChanged() {
     if (!mounted) return;
     setState(() {});
+  }
+
+  void _handleRootTabChanged() {
+    if (!mounted || appShellTabIndex.value != 0) return;
+    unawaited(_loadHomeData(showLoader: false));
   }
 
   DateTime get _currentMonthStart {
@@ -123,6 +134,10 @@ class _HomeTabState extends State<HomeTab>
       final usage = usageRaw is Map<String, dynamic>
           ? usageRaw
           : const <String, dynamic>{};
+      final rawProfile = me['profile'];
+      final profileDisplayName = rawProfile is Map<String, dynamic>
+          ? rawProfile['display_name']?.toString().trim() ?? ''
+          : '';
       final optimisticPremium = await hasOptimisticPremiumAccess();
       final hasPremiumAccess =
           subscriptionPayload['has_active_subscription'] == true ||
@@ -138,6 +153,7 @@ class _HomeTabState extends State<HomeTab>
         _monthlySummary = summary;
         _currentMonthTransactions = currentTransactions;
         _previousMonthTransactions = previousTransactions;
+        _profileDisplayName = profileDisplayName;
         _hasPremiumAccess = hasPremiumAccess;
         _receiptUploadLimit = int.tryParse((usage['limit'] ?? '').toString());
         _receiptUploadUsed = optimisticPremium
@@ -178,6 +194,11 @@ class _HomeTabState extends State<HomeTab>
   }
 
   String _resolveDisplayName(BuildContext context) {
+    final profileDisplayName = _profileDisplayName.trim();
+    if (profileDisplayName.isNotEmpty) {
+      return profileDisplayName;
+    }
+
     final user = FirebaseAuth.instance.currentUser;
     final displayName = user?.displayName?.trim();
     if (displayName != null && displayName.isNotEmpty) {

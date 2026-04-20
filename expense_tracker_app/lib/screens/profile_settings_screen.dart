@@ -143,12 +143,31 @@ class _ProfileSettingsScreenState extends State<ProfileSettingsScreen> {
     return '$_allTimeReceiptScans scans';
   }
 
-  String _receiptUsageThisMonthLabel() {
+  Map<String, dynamic>? get _receiptScanUsage {
     final usageRaw = _subscriptionPayload?['receipt_scan_usage'];
-    if (usageRaw is! Map<String, dynamic>) return '--';
-    final used = int.tryParse((usageRaw['used'] ?? 0).toString()) ?? 0;
-    if (usageRaw['is_unlimited'] == true) return '$used scans used';
-    final limit = int.tryParse((usageRaw['limit'] ?? 10).toString()) ?? 10;
+    return usageRaw is Map<String, dynamic> ? usageRaw : null;
+  }
+
+  int get _receiptUsageThisMonthUsed {
+    final usage = _receiptScanUsage;
+    if (usage == null) return 0;
+    return int.tryParse((usage['used'] ?? 0).toString()) ?? 0;
+  }
+
+  int get _receiptUsageThisMonthLimit {
+    final usage = _receiptScanUsage;
+    if (usage == null) return 10;
+    return int.tryParse((usage['limit'] ?? 10).toString()) ?? 10;
+  }
+
+  bool get _receiptUsageThisMonthUnlimited =>
+      _receiptScanUsage?['is_unlimited'] == true;
+
+  String _receiptUsageThisMonthLabel() {
+    if (_receiptScanUsage == null) return '--';
+    final used = _receiptUsageThisMonthUsed;
+    if (_receiptUsageThisMonthUnlimited) return '$used scans used';
+    final limit = _receiptUsageThisMonthLimit;
     return '$used / $limit';
   }
 
@@ -242,6 +261,68 @@ class _ProfileSettingsScreenState extends State<ProfileSettingsScreen> {
                   color: ShellStyles.textPrimary(context),
                   fontSize: 14,
                   fontWeight: FontWeight.w600,
+                ),
+              ),
+            ],
+          ),
+        ),
+        if (hasDivider) Divider(height: 1, color: ShellStyles.border(context)),
+      ],
+    );
+  }
+
+  Widget _buildMonthlyScanProgress({bool hasDivider = true}) {
+    final hasUsage = _receiptScanUsage != null;
+    final used = _receiptUsageThisMonthUsed;
+    final limit = _receiptUsageThisMonthLimit;
+    final progress = !hasUsage
+        ? 0.0
+        : _receiptUsageThisMonthUnlimited
+        ? 1.0
+        : (limit <= 0 ? 0.0 : used / limit).clamp(0.0, 1.0).toDouble();
+    final accentTone = ShellStyles.accentTone(context);
+
+    return Column(
+      children: [
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  Expanded(
+                    child: Text(
+                      'Scans this month',
+                      style: TextStyle(
+                        color: ShellStyles.textMuted(context),
+                        fontSize: 12,
+                      ),
+                    ),
+                  ),
+                  Text(
+                    _receiptUsageThisMonthLabel(),
+                    style: TextStyle(
+                      color: ShellStyles.textPrimary(context),
+                      fontSize: 14,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 10),
+              ClipRRect(
+                borderRadius: BorderRadius.circular(999),
+                child: Container(
+                  height: 8,
+                  color: ShellStyles.border(
+                    context,
+                  ).withAlpha(ShellStyles.isDark(context) ? 120 : 150),
+                  alignment: Alignment.centerLeft,
+                  child: FractionallySizedBox(
+                    widthFactor: progress,
+                    child: Container(color: accentTone.base),
+                  ),
                 ),
               ),
             ],
@@ -351,11 +432,7 @@ class _ProfileSettingsScreenState extends State<ProfileSettingsScreen> {
                       child: Column(
                         children: [
                           _buildStatRow('Total scans', _receiptUsageLabel()),
-                          _buildStatRow(
-                            'Scans this month',
-                            _receiptUsageThisMonthLabel(),
-                            hasDivider: false,
-                          ),
+                          _buildMonthlyScanProgress(hasDivider: false),
                         ],
                       ),
                     ),
