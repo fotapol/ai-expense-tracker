@@ -84,7 +84,7 @@ class _ReceiptUploadScreenState extends State<ReceiptUploadScreen> {
     final currentStep = _currentProcessingStage();
     final isComplete = currentStep > stepIndex;
     final isActive = currentStep == stepIndex;
-    final accent = ShellStyles.textPrimary(context);
+    final accent = ShellStyles.accent(context);
     final muted = ShellStyles.border(context);
 
     return Row(
@@ -102,7 +102,11 @@ class _ReceiptUploadScreenState extends State<ReceiptUploadScreen> {
             border: Border.all(color: isComplete || isActive ? accent : muted),
           ),
           child: isComplete
-              ? Icon(Icons.check, size: 14, color: ShellStyles.surface(context))
+              ? Icon(
+                  Icons.check,
+                  size: 14,
+                  color: Theme.of(context).colorScheme.onPrimary,
+                )
               : Icon(
                   isActive ? Icons.more_horiz : Icons.circle_outlined,
                   size: 14,
@@ -437,7 +441,7 @@ class _ReceiptUploadScreenState extends State<ReceiptUploadScreen> {
                                 min: 24,
                                 max: 30,
                               ),
-                              color: ShellStyles.textPrimary(context),
+                              color: ShellStyles.accent(context),
                             ),
                           ),
                           SizedBox(
@@ -539,7 +543,7 @@ class _ReceiptUploadScreenState extends State<ReceiptUploadScreen> {
                 child: CircularProgressIndicator(
                   strokeWidth: 2.6,
                   value: _status == 'processing' ? null : _progress,
-                  color: ShellStyles.textPrimary(context),
+                  color: ShellStyles.accent(context),
                 ),
               ),
               const SizedBox(width: 14),
@@ -600,7 +604,7 @@ class _ReceiptUploadScreenState extends State<ReceiptUploadScreen> {
           const SizedBox(height: 16),
           LinearProgressIndicator(
             value: _progress,
-            color: ShellStyles.textPrimary(context),
+            color: ShellStyles.accent(context),
           ),
         ],
       ),
@@ -690,8 +694,6 @@ class _ReceiptUploadScreenState extends State<ReceiptUploadScreen> {
                   minimumSize: Size.fromHeight(
                     ShellStyles.minTapTarget(context),
                   ),
-                  backgroundColor: ShellStyles.textPrimary(context),
-                  foregroundColor: ShellStyles.surface(context),
                 ),
                 icon: const Icon(Icons.photo_camera_outlined),
                 label: Text(context.tr('upload_camera')),
@@ -720,8 +722,6 @@ class _ReceiptUploadScreenState extends State<ReceiptUploadScreen> {
                   minimumSize: Size.fromHeight(
                     ShellStyles.minTapTarget(context),
                   ),
-                  backgroundColor: ShellStyles.textPrimary(context),
-                  foregroundColor: ShellStyles.surface(context),
                 ),
                 icon: const Icon(Icons.cloud_upload_outlined),
                 label: Text(context.tr('upload_action_extract')),

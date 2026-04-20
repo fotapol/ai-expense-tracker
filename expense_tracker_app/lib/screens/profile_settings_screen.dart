@@ -221,13 +221,13 @@ class _ProfileSettingsScreenState extends State<ProfileSettingsScreen> {
     // management is fully designed and launch-safe.
     return CircleAvatar(
       radius: 30,
-      backgroundColor: ShellStyles.textPrimary(context),
+      backgroundColor: ShellStyles.accent(context),
       backgroundImage: avatarUrl.isNotEmpty ? NetworkImage(avatarUrl) : null,
       child: avatarUrl.isEmpty
           ? Text(
               _initials(),
               style: TextStyle(
-                color: ShellStyles.surface(context),
+                color: Theme.of(context).colorScheme.onPrimary,
                 fontSize: 20,
                 fontWeight: FontWeight.w700,
               ),
@@ -440,8 +440,6 @@ class _ProfileSettingsScreenState extends State<ProfileSettingsScreen> {
                         child: FilledButton(
                           onPressed: _isSaving ? null : _save,
                           style: FilledButton.styleFrom(
-                            backgroundColor: ShellStyles.textPrimary(context),
-                            foregroundColor: ShellStyles.surface(context),
                             minimumSize: const Size.fromHeight(52),
                             shape: RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(16),

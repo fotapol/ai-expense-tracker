@@ -612,6 +612,7 @@ class _BillRemindersScreenState extends State<BillRemindersScreen> {
     final dateText = _selectedDueDate == null
         ? _dueDateFieldHint()
         : DateFormat.yMMMd().format(_selectedDueDate!);
+    final accentTone = ShellStyles.accentTone(context);
 
     return SettingsDetailCard(
       child: Column(
@@ -705,11 +706,15 @@ class _BillRemindersScreenState extends State<BillRemindersScreen> {
                     selected: _selectedRecurrence == recurrence,
                     showCheckmark: false,
                     backgroundColor: ShellStyles.surface(context),
-                    selectedColor: ShellStyles.surfaceAlt(context),
-                    side: BorderSide(color: ShellStyles.border(context)),
+                    selectedColor: accentTone.container,
+                    side: BorderSide(
+                      color: _selectedRecurrence == recurrence
+                          ? accentTone.border
+                          : ShellStyles.border(context),
+                    ),
                     labelStyle: TextStyle(
                       color: _selectedRecurrence == recurrence
-                          ? ShellStyles.textPrimary(context)
+                          ? accentTone.foreground
                           : ShellStyles.textMuted(context),
                       fontWeight: FontWeight.w600,
                     ),
@@ -731,8 +736,6 @@ class _BillRemindersScreenState extends State<BillRemindersScreen> {
                 child: FilledButton(
                   onPressed: _isCreating ? null : _createReminder,
                   style: FilledButton.styleFrom(
-                    backgroundColor: ShellStyles.textPrimary(context),
-                    foregroundColor: ShellStyles.surface(context),
                     minimumSize: const Size.fromHeight(46),
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(14),
@@ -1015,6 +1018,7 @@ class _BillRemindersScreenState extends State<BillRemindersScreen> {
     final upcomingItems = _upcomingOccurrences();
     final paidItems = _paidHistoryOccurrences();
     final isShowingHistory = _showHistoryMode;
+    final accentTone = ShellStyles.accentTone(context);
 
     return PopScope<bool>(
       canPop: !_showHistoryMode && !_showComposer,
@@ -1036,9 +1040,13 @@ class _BillRemindersScreenState extends State<BillRemindersScreen> {
                     minimumSize: const Size(40, 38),
                     padding: const EdgeInsets.symmetric(horizontal: 11),
                     backgroundColor: isShowingHistory
-                        ? ShellStyles.surfaceAlt(context)
+                        ? accentTone.container
                         : ShellStyles.surface(context),
-                    side: BorderSide(color: ShellStyles.border(context)),
+                    side: BorderSide(
+                      color: isShowingHistory
+                          ? accentTone.border
+                          : ShellStyles.border(context),
+                    ),
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(14),
                     ),
@@ -1048,15 +1056,15 @@ class _BillRemindersScreenState extends State<BillRemindersScreen> {
                         ? Icons.schedule_outlined
                         : Icons.history_outlined,
                     size: 18,
-                    color: ShellStyles.textPrimary(context),
+                    color: isShowingHistory
+                        ? accentTone.foreground
+                        : ShellStyles.textPrimary(context),
                   ),
                 ),
                 const SizedBox(width: 8),
                 FilledButton(
                   onPressed: _toggleComposer,
                   style: FilledButton.styleFrom(
-                    backgroundColor: ShellStyles.textPrimary(context),
-                    foregroundColor: ShellStyles.surface(context),
                     minimumSize: const Size(0, 38),
                     padding: const EdgeInsets.symmetric(horizontal: 14),
                     shape: RoundedRectangleBorder(

@@ -726,8 +726,6 @@ class _BudgetCalculatorScreenState extends State<BudgetCalculatorScreen> {
                       child: FilledButton(
                         onPressed: _isSaving ? null : _save,
                         style: FilledButton.styleFrom(
-                          backgroundColor: ShellStyles.textPrimary(context),
-                          foregroundColor: ShellStyles.surface(context),
                           minimumSize: const Size.fromHeight(50),
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(16),

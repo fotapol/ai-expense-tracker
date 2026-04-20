@@ -1377,8 +1377,6 @@ class _SubscriptionScreenState extends State<SubscriptionScreen> {
                           ? null
                           : _purchasePro,
                       style: FilledButton.styleFrom(
-                        backgroundColor: ShellStyles.textPrimary(context),
-                        foregroundColor: ShellStyles.surface(context),
                         minimumSize: const Size.fromHeight(52),
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(16),
