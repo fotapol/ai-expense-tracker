@@ -297,9 +297,13 @@ class ThemeProvider extends ChangeNotifier {
       ),
       snackBarTheme: SnackBarThemeData(
         behavior: SnackBarBehavior.floating,
-        backgroundColor: palette.heroSurface,
-        contentTextStyle: TextStyle(color: palette.textPrimary),
+        backgroundColor: palette.tooltipSurface,
+        contentTextStyle: TextStyle(
+          color: palette.tooltipText,
+          fontWeight: FontWeight.w600,
+        ),
         actionTextColor: accent,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
       ),
       cardColor: palette.standardSurface,
       cardTheme: CardThemeData(

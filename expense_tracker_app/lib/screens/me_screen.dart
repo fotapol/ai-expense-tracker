@@ -191,22 +191,28 @@ class _MeScreenState extends State<MeScreen> {
     Widget screen, {
     bool refreshProfile = false,
     bool refreshBilling = false,
+    String? successMessage,
   }) async {
-    await Navigator.push(context, MaterialPageRoute(builder: (_) => screen));
+    final result = await Navigator.push<dynamic>(
+      context,
+      MaterialPageRoute(builder: (_) => screen),
+    );
     if (!mounted) return;
     if (refreshProfile && refreshBilling) {
       await _refreshSettings();
-      return;
-    }
-    if (refreshProfile) {
+    } else if (refreshProfile) {
       await _fetchProfile();
-      return;
-    }
-    if (refreshBilling) {
+    } else if (refreshBilling) {
       await _loadBillingData(showLoading: false);
-      return;
+    } else {
+      setState(() {});
     }
-    setState(() {});
+    if (!mounted) return;
+    if (result == true && successMessage != null) {
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(successMessage)));
+    }
   }
 
   Future<void> _fetchProfile() async {
@@ -385,6 +391,7 @@ class _MeScreenState extends State<MeScreen> {
                     const ProfileSettingsScreen(),
                     refreshProfile: true,
                     refreshBilling: true,
+                    successMessage: 'Profile updated.',
                   ),
                 ),
               ],
@@ -722,8 +729,8 @@ class _MeScreenState extends State<MeScreen> {
     final defaultTone = ShellStyles.accentTone(context);
     final effectiveIconColor = iconColor ?? defaultTone.base;
     final effectiveTitleColor = titleColor ?? ShellStyles.textPrimary(context);
-    final effectiveContainerColor = iconColor != null 
-        ? iconColor.withAlpha(14) 
+    final effectiveContainerColor = iconColor != null
+        ? iconColor.withAlpha(14)
         : defaultTone.container;
 
     final leadingWidget =

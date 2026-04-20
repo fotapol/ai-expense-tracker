@@ -185,9 +185,6 @@ class _ProfileSettingsScreenState extends State<ProfileSettingsScreen> {
         _profileData = updated;
         _initialDisplayName = nextName;
       });
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(const SnackBar(content: Text('Profile updated.')));
       Navigator.pop(context, true);
     } catch (error) {
       if (await maybeHandleExpiredSession(error)) return;
