@@ -78,6 +78,7 @@ MAX_RETRIES = worker_settings.MAX_RETRIES
 # Vision LLM call
 # ---------------------------------------------------------------------------
 
+
 def _call_vision_llm(
     *,
     receipt_id: str,
@@ -123,6 +124,17 @@ You must choose the best fitting ITEM subcategory ONLY from this list:
 {item_cat_lines}
 
 If no item subcategory matches confidently, use UNKNOWN_ITEM.
+
+Line item discount handling is required:
+- If the receipt shows a discount, promotion, loyalty saving, coupon, or
+  "discounted price" line for an item, attach that saving to the item above it.
+- Do not create separate items for discount/promotion rows.
+- For discounted items, set `amount` to the final paid line amount after the
+  discount, set `amount_before_discount` to the original line amount before the
+  saving, and set `discount_amount` to a positive absolute saving.
+- If both a regular price and a discounted/final price are visible, keep both
+  values by using `amount_before_discount` and `discount_amount`.
+- Include related discount text in `raw_line` when it helps explain the item.
 """
 
     message = HumanMessage(
@@ -149,12 +161,12 @@ If no item subcategory matches confidently, use UNKNOWN_ITEM.
 
         with (
             build_receipt_trace_context(
-            receipt_id=receipt_id,
-            attempt=attempt,
-            mime_type=mime_type,
-            image_size_bytes=len(image_bytes),
-            transaction_category_count=len(transaction_category_list),
-            item_category_count=len(item_subcategory_list),
+                receipt_id=receipt_id,
+                attempt=attempt,
+                mime_type=mime_type,
+                image_size_bytes=len(image_bytes),
+                transaction_category_count=len(transaction_category_list),
+                item_category_count=len(item_subcategory_list),
             ),
             ls.trace(
                 name="receipt_vision_extract",
@@ -195,10 +207,19 @@ def _compute_extraction_warnings(extracted: ExtractedReceiptData) -> list:
     warnings = []
 
     for idx, item in enumerate(extracted.items, start=1):
-        if item.qty is None or item.unit_price is None or item.amount is None:
+        if item.amount is None:
             continue
 
-        expected_amount = quantize_amount(item.qty * item.unit_price)
+        expected_amount: Decimal | None = None
+        discount_amount = item.discount_amount or Decimal("0")
+        if item.amount_before_discount is not None and discount_amount >= Decimal("0"):
+            expected_amount = quantize_amount(item.amount_before_discount - discount_amount)
+        elif item.qty is not None and item.unit_price is not None:
+            expected_amount = quantize_amount((item.qty * item.unit_price) - discount_amount)
+
+        if expected_amount is None:
+            continue
+
         extracted_amount = quantize_amount(item.amount)
         if expected_amount != extracted_amount:
             warnings.append(
@@ -227,9 +248,75 @@ def _compute_extraction_warnings(extracted: ExtractedReceiptData) -> list:
     return warnings
 
 
+def _normalize_extracted_item_discounts(
+    extracted: ExtractedReceiptData,
+) -> ExtractedReceiptData:
+    """Backfill item discount fields from reliable receipt math.
+
+    Vision models sometimes read the final paid item amount correctly but omit
+    `discount_amount`. Keeping the final price is important for totals, but the
+    editor also needs explicit discount fields to show the discount toggle.
+    """
+
+    normalized_items = []
+    changed = False
+
+    for item in extracted.items:
+        amount = item.amount
+        discount_amount = item.discount_amount
+        amount_before_discount = item.amount_before_discount
+
+        if amount is not None:
+            if (
+                (discount_amount is None or discount_amount <= Decimal("0"))
+                and amount_before_discount is not None
+                and amount_before_discount > amount
+            ):
+                discount_amount = quantize_amount(amount_before_discount - amount)
+
+            if (
+                amount_before_discount is None
+                and discount_amount is not None
+                and discount_amount > Decimal("0")
+            ):
+                amount_before_discount = quantize_amount(amount + discount_amount)
+
+            if (
+                (discount_amount is None or discount_amount <= Decimal("0"))
+                and amount_before_discount is None
+                and item.qty is not None
+                and item.unit_price is not None
+            ):
+                candidate_before = quantize_amount(item.qty * item.unit_price)
+                candidate_discount = quantize_amount(candidate_before - amount)
+                if candidate_discount > Decimal("0.01"):
+                    amount_before_discount = candidate_before
+                    discount_amount = candidate_discount
+
+        if (
+            discount_amount != item.discount_amount
+            or amount_before_discount != item.amount_before_discount
+        ):
+            item = item.model_copy(
+                update={
+                    "discount_amount": discount_amount,
+                    "amount_before_discount": amount_before_discount,
+                }
+            )
+            changed = True
+
+        normalized_items.append(item)
+
+    if not changed:
+        return extracted
+
+    return extracted.model_copy(update={"items": normalized_items})
+
+
 # ---------------------------------------------------------------------------
 # Category resolution helpers
 # ---------------------------------------------------------------------------
+
 
 def _get_or_create_global_category(
     session: Session,
@@ -288,7 +375,8 @@ def _resolve_category_with_scope(
 
     clean_code = code.strip().upper()
     candidates = session.exec(
-        select(Category).where(
+        select(Category)
+        .where(
             Category.scope == scope,
             Category.code == clean_code,
             Category.is_active,
@@ -392,9 +480,9 @@ def _derive_transaction_category_id_from_items(
             parent_code = parent_by_id[category.parent_id].code
         else:
             parent_code = category.code
-        totals_by_parent_code[parent_code] = totals_by_parent_code.get(parent_code, Decimal("0")) + (
-            amount or Decimal("0")
-        )
+        totals_by_parent_code[parent_code] = totals_by_parent_code.get(
+            parent_code, Decimal("0")
+        ) + (amount or Decimal("0"))
 
     if not totals_by_parent_code:
         return None
@@ -486,6 +574,7 @@ def _reconcile_existing_processing_state(
 # ---------------------------------------------------------------------------
 # Core processing logic
 # ---------------------------------------------------------------------------
+
 
 def process_receipt(receipt_id: str) -> None:
     """Process a single receipt — called per RabbitMQ message."""
@@ -628,6 +717,7 @@ def process_receipt(receipt_id: str) -> None:
 
             # --- Validate with Pydantic --------------------------------------
             extracted = ExtractedReceiptData.model_validate(raw_json)
+            extracted = _normalize_extracted_item_discounts(extracted)
             computed_warnings = _compute_extraction_warnings(extracted)
             if computed_warnings:
                 extracted = extracted.model_copy(
@@ -791,6 +881,7 @@ def process_receipt(receipt_id: str) -> None:
 # ---------------------------------------------------------------------------
 # RabbitMQ consumer loop
 # ---------------------------------------------------------------------------
+
 
 async def main() -> None:
     """Connect to RabbitMQ and consume the receipt_extraction queue."""
