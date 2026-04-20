@@ -292,7 +292,7 @@ class _ProfileSettingsScreenState extends State<ProfileSettingsScreen> {
                                 ),
                                 const SizedBox(height: 4),
                                 Text(
-                                  'Your signed-in account info is shown here. Only the display name can be edited right now.',
+                                  'Your email and photo are managed by Google.',
                                   style: TextStyle(
                                     color: ShellStyles.textMuted(context),
                                     fontSize: 12.5,
@@ -306,8 +306,6 @@ class _ProfileSettingsScreenState extends State<ProfileSettingsScreen> {
                       ),
                     ),
                     const SizedBox(height: 16),
-                    ShellStyles.sectionLabel(context, 'Editable'),
-                    const SizedBox(height: 8),
                     SettingsDetailCard(
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
@@ -317,8 +315,7 @@ class _ProfileSettingsScreenState extends State<ProfileSettingsScreen> {
                             controller: _nameController,
                             textCapitalization: TextCapitalization.words,
                             decoration: const InputDecoration(
-                              hintText:
-                                  'Add the name you want shown in the app',
+                              hintText: 'Enter display name',
                             ),
                           ),
                         ],
@@ -327,13 +324,24 @@ class _ProfileSettingsScreenState extends State<ProfileSettingsScreen> {
                     const SizedBox(height: 16),
                     ShellStyles.sectionLabel(context, 'Account'),
                     const SizedBox(height: 8),
-                    SettingsDetailCard(
-                      child: _AccountEmailTile(
-                        email: _email.isEmpty ? '--' : _email,
+                    Container(
+                      decoration: ShellStyles.cardDecoration(
+                        context,
+                        radius: 18,
+                      ),
+                      child: Column(
+                        children: [
+                          _buildStatRow('Joined', _memberSinceLabel()),
+                          _buildStatRow(
+                            'Plan',
+                            _accountTypeLabel(),
+                            hasDivider: false,
+                          ),
+                        ],
                       ),
                     ),
                     const SizedBox(height: 16),
-                    ShellStyles.sectionLabel(context, 'Account details'),
+                    ShellStyles.sectionLabel(context, 'Usage'),
                     const SizedBox(height: 8),
                     Container(
                       decoration: ShellStyles.cardDecoration(
@@ -342,14 +350,9 @@ class _ProfileSettingsScreenState extends State<ProfileSettingsScreen> {
                       ),
                       child: Column(
                         children: [
-                          _buildStatRow('Member since', _memberSinceLabel()),
-                          _buildStatRow('Plan', _accountTypeLabel()),
+                          _buildStatRow('Total scans', _receiptUsageLabel()),
                           _buildStatRow(
-                            'Receipt scans all time',
-                            _receiptUsageLabel(),
-                          ),
-                          _buildStatRow(
-                            'Receipt scans this month',
+                            'Scans this month',
                             _receiptUsageThisMonthLabel(),
                             hasDivider: false,
                           ),
@@ -407,79 +410,6 @@ class _FieldLabel extends StatelessWidget {
           fontWeight: FontWeight.w600,
         ),
       ),
-    );
-  }
-}
-
-class _AccountEmailTile extends StatelessWidget {
-  const _AccountEmailTile({required this.email});
-
-  final String email;
-
-  @override
-  Widget build(BuildContext context) {
-    final accentTone = ShellStyles.accentTone(context);
-    return Row(
-      children: [
-        Container(
-          width: 42,
-          height: 42,
-          alignment: Alignment.center,
-          decoration: BoxDecoration(
-            color: accentTone.container,
-            borderRadius: BorderRadius.circular(14),
-            border: Border.all(color: accentTone.border),
-          ),
-          child: Icon(
-            Icons.mail_outline_rounded,
-            color: accentTone.foreground,
-            size: 20,
-          ),
-        ),
-        const SizedBox(width: 12),
-        Expanded(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                'Signed-in email',
-                style: TextStyle(
-                  color: ShellStyles.textMuted(context),
-                  fontSize: 11.5,
-                  fontWeight: FontWeight.w700,
-                  letterSpacing: 0.3,
-                ),
-              ),
-              const SizedBox(height: 4),
-              Text(
-                email,
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-                style: TextStyle(
-                  color: ShellStyles.textPrimary(context),
-                  fontSize: 15,
-                  fontWeight: FontWeight.w700,
-                ),
-              ),
-              const SizedBox(height: 4),
-              Text(
-                'Managed by your sign-in provider.',
-                style: TextStyle(
-                  color: ShellStyles.textMuted(context),
-                  fontSize: 12,
-                  height: 1.25,
-                ),
-              ),
-            ],
-          ),
-        ),
-        const SizedBox(width: 10),
-        Icon(
-          Icons.lock_outline_rounded,
-          color: ShellStyles.textMuted(context),
-          size: 18,
-        ),
-      ],
     );
   }
 }
