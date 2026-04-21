@@ -12,6 +12,7 @@ import pytest
 from fastapi import HTTPException
 from starlette.requests import Request
 
+from app.models.receipts.receipt_extraction import ReceiptExtraction
 from app.models.shared.enums import CategoryScope, TransactionSource
 from app.models.taxonomy.category import Category
 from app.models.transactions.transaction import Transaction
@@ -1055,6 +1056,80 @@ def test_update_transaction_duplicate_submissions_stay_stable_and_keep_labels(mo
     assert result_two["labels"] == [{"id": label_id}]
     assert result_two["item_ids"] == [item_id]
     assert item.description == "Line item updated"
+
+
+def test_confirmed_receipt_update_clears_extraction_warnings(monkeypatch) -> None:
+    """A user save should accept edited receipt data and clear stale extraction warnings."""
+
+    from app.api.routers import transactions as router
+
+    current_user = SimpleNamespace(
+        id=uuid.uuid4(),
+        default_currency="EUR",
+        items_language=None,
+    )
+    transaction_id = uuid.uuid4()
+    receipt_id = uuid.uuid4()
+    item_id = uuid.uuid4()
+    transaction = Transaction(
+        id=transaction_id,
+        user_id=current_user.id,
+        receipt_id=receipt_id,
+        amount_total=Decimal("9.99"),
+        currency="EUR",
+        merchant_name="Corner Market",
+        source=TransactionSource.RECEIPT,
+        status="DRAFT",
+    )
+    extraction = ReceiptExtraction(
+        receipt_id=receipt_id,
+        provider="test",
+        model_name="test-model",
+        structured_json={
+            "warnings": [
+                {
+                    "code": "total_mismatch",
+                    "message": "Receipt total differs from item sum.",
+                }
+            ]
+        },
+    )
+    item = TransactionItem(
+        id=item_id,
+        transaction_id=transaction_id,
+        line_no=1,
+        description="Line item",
+        amount=Decimal("9.99"),
+    )
+
+    monkeypatch.setattr(router, "validate_transaction_attribution", lambda *args, **kwargs: None)
+    monkeypatch.setattr(
+        router,
+        "_build_transaction_read",
+        lambda **kwargs: kwargs["transaction"],
+    )
+
+    session = _Session(exec_results=[[transaction], [extraction], [item]])
+    result = asyncio.run(
+        _unwrap(router.update_transaction)(
+            request=_request(),
+            transaction_id=transaction_id,
+            payload=TransactionUpdateRequest(
+                status="CONFIRMED",
+                amount_total=Decimal("9.99"),
+            ),
+            target_currency=None,
+            item_language=None,
+            app_language=None,
+            session=session,
+            current_user=current_user,
+        )
+    )
+
+    assert result is transaction
+    assert transaction.status == "CONFIRMED"
+    assert extraction.structured_json["warnings"] == []
+    assert extraction in session.added
 
 
 def test_update_transaction_last_write_wins_without_revision_guard(monkeypatch) -> None:

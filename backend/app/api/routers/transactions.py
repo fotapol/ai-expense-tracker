@@ -9,7 +9,7 @@ from typing import Annotated, Any
 
 from fastapi import APIRouter, Depends, HTTPException, Request, status
 from pydantic import TypeAdapter
-from sqlalchemy import and_, func, or_
+from sqlalchemy import func, or_
 from sqlmodel import Session, select
 
 from app.auth.deps import get_current_user
@@ -956,6 +956,34 @@ def _load_warnings_by_receipt_id(
     for receipt_id, structured_json in rows:
         warnings_by_receipt[receipt_id] = _extract_warnings_from_structured_json(structured_json)
     return warnings_by_receipt
+
+
+def _clear_extraction_warnings_after_user_confirmation(
+    session: Session,
+    *,
+    transaction: Transaction,
+) -> None:
+    """Treat a confirmed user save as the authoritative review result."""
+
+    if transaction.status != "CONFIRMED" or transaction.receipt_id is None:
+        return
+
+    extraction = session.exec(
+        select(ReceiptExtraction).where(
+            ReceiptExtraction.receipt_id == transaction.receipt_id,
+        )
+    ).first()
+    if extraction is None or not isinstance(extraction.structured_json, dict):
+        return
+
+    warnings = extraction.structured_json.get("warnings")
+    if not isinstance(warnings, list) or not warnings:
+        return
+
+    updated_structured_json = dict(extraction.structured_json)
+    updated_structured_json["warnings"] = []
+    extraction.structured_json = updated_structured_json
+    session.add(extraction)
 
 
 def _load_transaction_user_snippets(
@@ -2569,6 +2597,10 @@ async def update_transaction(
     for key, value in update_data.items():
         setattr(transaction, key, value)
     transaction.household_id = None
+    _clear_extraction_warnings_after_user_confirmation(
+        session,
+        transaction=transaction,
+    )
 
     session.add(transaction)
 
