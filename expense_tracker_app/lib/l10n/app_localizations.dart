@@ -60,6 +60,8 @@ class AppLocalizations {
       'common_error_with_message': 'Error: {message}',
       'common_yes': 'Yes',
       'common_no': 'No',
+      'common_filter': 'Filter',
+      'common_clear_filters': 'Clear filters',
       'nav_home': 'Home',
       'nav_receipts': 'Receipts',
       'nav_scan_receipt': 'Scan Receipt',
@@ -447,6 +449,7 @@ class AppLocalizations {
       'home_no_receipts': 'No receipts found',
       'home_no_receipts_for_day':
           'You haven\'t added any receipts for this day',
+      'home_start_subtitle': 'Scan a receipt or add an expense to get started.',
       'home_all_reviewed': 'All receipts are reviewed',
       'home_review_count_single': '1 receipt needs review',
       'home_review_count_plural': '{count} receipts need review',
@@ -465,6 +468,7 @@ class AppLocalizations {
       'home_insight_review_count': '{count} receipts still need review.',
       'home_insight_all_caught_up': 'You are all caught up on receipt review.',
       'home_scan_receipt_subtitle': 'AI-powered instant capture',
+      'home_primary_action': 'Primary action',
       'home_spending_overview': 'Spending Overview',
       'home_no_spending_data': 'No spending data for this month yet.',
       'home_view_all': 'View All',
@@ -472,6 +476,8 @@ class AppLocalizations {
       'home_quick_actions': 'Quick Actions',
       'home_add_expense': 'Add Expense',
       'home_categories': 'Categories',
+      'home_refresh_error':
+          'Home could not refresh just now. Please try again.',
       'receipts_filter_needs_review': 'Needs review',
       'receipts_needs_review': 'Needs review',
       'receipts_check_extraction': 'Check extraction',
@@ -479,6 +485,17 @@ class AppLocalizations {
       'receipts_review_empty_title': 'No receipts need review.',
       'receipts_review_empty_body':
           'Everything in this period looks confirmed and warning-free.',
+      'receipts_empty_body':
+          'Scan your first receipt to start building a history you can review and filter.',
+      'receipts_scan_first_action': 'Scan your first receipt',
+      'receipts_no_filter_matches': 'No receipts match the current filters.',
+      'receipts_no_filter_matches_body':
+          'Try another period, merchant search, or clear the active filters.',
+      'receipts_history_total': 'Receipt history total',
+      'receipts_history_load_error':
+          'Your history could not load right now. Please try again.',
+      'receipts_remove_error':
+          'We could not remove that entry. Please try again.',
       'common_apply': 'Apply',
       'common_create': 'Create',
       'common_save': 'Save',
@@ -647,8 +664,46 @@ class AppLocalizations {
       'manual_transaction_deleted': 'Manual transaction deleted.',
       'manual_transaction_delete_missing_id': 'Transaction ID is missing.',
       'transaction_amount_required': 'Enter a total amount before saving.',
+      'transaction_invalid_total': 'Enter a valid total amount.',
       'transaction_save_before_labels':
           'Save the transaction before adding labels.',
+      'transaction_new_expense': 'New expense',
+      'transaction_review_receipt': 'Review receipt',
+      'transaction_merchant_dialog_title': 'Merchant',
+      'transaction_merchant_hint': 'Store or merchant name',
+      'transaction_unsaved_changes_title': 'Unsaved changes',
+      'transaction_unsaved_changes_body':
+          'Your edits are not saved yet. Save them before leaving, or discard the changes.',
+      'transaction_keep_editing': 'Keep editing',
+      'transaction_discard_changes': 'Discard',
+      'transaction_line_review_message':
+          'Review this line item: it should be {expected} and currently shows {actual}.',
+      'transaction_total_review_message':
+          'Review the total before saving: items add up to {expected} while the receipt total is {actual}.',
+      'transaction_items_heading': 'Items',
+      'transaction_empty_items':
+          'No line items yet. Add your first item to finish this receipt.',
+      'transaction_read_only_owner':
+          'You can review this receipt, but only the owner can edit it.',
+      'transaction_receipt_photo_title': 'Receipt photo',
+      'transaction_receipt_photo_subtitle': 'View original photo',
+      'transaction_warning_review_one_item': 'Review 1 item total',
+      'transaction_warning_review_items': 'Review {count} item totals',
+      'transaction_warning_review_total': 'Review the receipt total',
+      'transaction_warning_check_one_detail': 'Check 1 extracted detail',
+      'transaction_warning_check_details': 'Check {count} extracted details',
+      'transaction_warning_accepts_edits':
+          'Take a quick final look before saving. {details}. Saving accepts your edits.',
+      'transaction_was_amount': 'Was {amount}',
+      'transaction_saved_amount': 'Saved {amount}',
+      'transaction_missing_quantity_price': 'Add quantity, unit, and price',
+      'transaction_receipt_total_label': 'Receipt total',
+      'transaction_open_receipt_error':
+          'We could not open this receipt right now. Please try again.',
+      'transaction_save_error':
+          'We could not save your changes. Please review the receipt and try again.',
+      'transaction_receipt_preview_error':
+          'We could not open the receipt preview right now.',
       'transaction_select_labels': 'Select Labels',
       'transaction_add_labels': 'Add labels',
       'transaction_set_date': 'Set Date',
