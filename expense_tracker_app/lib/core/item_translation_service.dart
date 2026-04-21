@@ -194,8 +194,8 @@ class ItemTranslationService {
     final extractedUnit = extractedUnitMatch?.group(0);
 
     final preparedSourceText = _prepareSourceText(sourceText);
-    final sourceMl = _toMlKitLanguage(sourceLanguage);
-    final targetMl = _toMlKitLanguage(targetLanguage);
+    final sourceMl = _toMlKitLanguage(sourceLanguage, isSource: true);
+    final targetMl = _toMlKitLanguage(targetLanguage, isSource: false);
     if (sourceMl == null || targetMl == null) return null;
     if (sourceMl.bcpCode == targetMl.bcpCode) return null;
 
@@ -233,15 +233,19 @@ class ItemTranslationService {
     }
   }
 
-  TranslateLanguage? _toMlKitLanguage(String code) {
+  TranslateLanguage? _toMlKitLanguage(String code, {required bool isSource}) {
     final normalized = normalizeLanguageCode(code);
-    // TODO(translation): route unsupported Serbian translation requests
-    // through a backend/cloud provider instead of coercing them to another
-    // language on-device. For now we keep the requested language as-is and
-    // fail closed when ML Kit has no matching model.
-    for (final lang in TranslateLanguage.values) {
-      if (lang.bcpCode == normalized) {
-        return lang;
+    final candidates = <String>[normalized];
+    if (isSource && {'sr', 'bs', 'sh'}.contains(normalized)) {
+      // ML Kit does not expose Serbian; Croatian handles Latin-script Balkan
+      // receipt item names well enough for source-side translation detection.
+      candidates.add('hr');
+    }
+    for (final candidate in candidates) {
+      for (final lang in TranslateLanguage.values) {
+        if (lang.bcpCode == candidate) {
+          return lang;
+        }
       }
     }
     return null;
