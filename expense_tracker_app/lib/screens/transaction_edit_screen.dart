@@ -352,8 +352,7 @@ class _TransactionEditScreenState extends State<TransactionEditScreen> {
         setState(() {
           _error = _friendlyEditorError(
             e,
-            fallback:
-                'We could not open this receipt right now. Please try again.',
+            fallback: context.tr('transaction_open_receipt_error'),
           );
           _isLoading = false;
         });
@@ -374,6 +373,7 @@ class _TransactionEditScreenState extends State<TransactionEditScreen> {
     }
 
     setState(() => _isSaving = true);
+    final saveError = context.tr('transaction_save_error');
     try {
       final payload = {
         'merchant_name': _merchantController.text,
@@ -480,11 +480,7 @@ class _TransactionEditScreenState extends State<TransactionEditScreen> {
         Navigator.pop(context, true);
       }
     } catch (e) {
-      _showEditorError(
-        e,
-        fallback:
-            'We could not save your changes. Please review the receipt and try again.',
-      );
+      _showEditorError(e, fallback: saveError);
     } finally {
       if (mounted) setState(() => _isSaving = false);
     }
@@ -493,28 +489,28 @@ class _TransactionEditScreenState extends State<TransactionEditScreen> {
   Future<void> _openReceiptPhoto() async {
     final receiptId = _receiptId;
     if (receiptId == null) return;
+    final invalidUrlText = context.tr('receipt_photo_invalid_url');
+    final previewError = context.tr('transaction_receipt_preview_error');
+    final photoTitle = context.tr('transaction_receipt_photo_title');
 
     try {
       final payload = await ApiClient.getReceiptViewUrl(receiptId);
       if (!mounted) return;
       final viewUrl = payload['view_url']?.toString();
       if (viewUrl == null || viewUrl.isEmpty) {
-        throw Exception(context.tr('receipt_photo_invalid_url'));
+        throw Exception(invalidUrlText);
       }
       await Navigator.of(context).push(
         MaterialPageRoute(
           builder: (_) => ReceiptPhotoViewScreen(
-            title: 'Receipt photo',
+            title: photoTitle,
             viewUrl: viewUrl,
             mimeType: payload['mime_type']?.toString() ?? '',
           ),
         ),
       );
     } catch (e) {
-      _showEditorError(
-        e,
-        fallback: 'We could not open the receipt preview right now.',
-      );
+      _showEditorError(e, fallback: previewError);
     }
   }
 
@@ -735,7 +731,9 @@ class _TransactionEditScreenState extends State<TransactionEditScreen> {
   String _merchantDisplayName() {
     final merchant = _merchantController.text.trim();
     if (merchant.isNotEmpty) return merchant;
-    return _isDraftCreateMode ? 'New expense' : 'Review receipt';
+    return _isDraftCreateMode
+        ? context.tr('transaction_new_expense')
+        : context.tr('transaction_review_receipt');
   }
 
   Future<void> _openMerchantNameEditor() async {
@@ -752,7 +750,7 @@ class _TransactionEditScreenState extends State<TransactionEditScreen> {
             side: BorderSide(color: _strokeColor),
           ),
           title: Text(
-            'Merchant',
+            context.tr('transaction_merchant_dialog_title'),
             style: TextStyle(color: _textColor, fontWeight: FontWeight.w700),
           ),
           content: TextFormField(
@@ -764,7 +762,7 @@ class _TransactionEditScreenState extends State<TransactionEditScreen> {
                 Navigator.pop(dialogContext, draftValue.trim()),
             style: TextStyle(color: _textColor),
             decoration: InputDecoration(
-              hintText: 'Store or merchant name',
+              hintText: context.tr('transaction_merchant_hint'),
               hintStyle: TextStyle(color: _mutedColor),
               filled: true,
               fillColor: _surfaceAltColor,
@@ -785,7 +783,10 @@ class _TransactionEditScreenState extends State<TransactionEditScreen> {
           actions: [
             TextButton(
               onPressed: () => Navigator.pop(dialogContext),
-              child: Text('Cancel', style: TextStyle(color: _mutedColor)),
+              child: Text(
+                context.tr('common_cancel'),
+                style: TextStyle(color: _mutedColor),
+              ),
             ),
             FilledButton(
               onPressed: () => Navigator.pop(dialogContext, draftValue.trim()),
@@ -793,7 +794,7 @@ class _TransactionEditScreenState extends State<TransactionEditScreen> {
                 backgroundColor: _primaryActionColor,
                 foregroundColor: Theme.of(context).colorScheme.onPrimary,
               ),
-              child: Text('Save'),
+              child: Text(context.tr('common_save')),
             ),
           ],
         ),
@@ -821,7 +822,7 @@ class _TransactionEditScreenState extends State<TransactionEditScreen> {
             side: BorderSide(color: _strokeColor),
           ),
           title: Text(
-            'Receipt total',
+            context.tr('transaction_receipt_total_label'),
             style: TextStyle(color: _textColor, fontWeight: FontWeight.w700),
           ),
           content: TextFormField(
@@ -854,7 +855,10 @@ class _TransactionEditScreenState extends State<TransactionEditScreen> {
           actions: [
             TextButton(
               onPressed: () => Navigator.pop(dialogContext),
-              child: Text('Cancel', style: TextStyle(color: _mutedColor)),
+              child: Text(
+                context.tr('common_cancel'),
+                style: TextStyle(color: _mutedColor),
+              ),
             ),
             FilledButton(
               onPressed: () => Navigator.pop(dialogContext, draftValue.trim()),
@@ -862,7 +866,7 @@ class _TransactionEditScreenState extends State<TransactionEditScreen> {
                 backgroundColor: _primaryActionColor,
                 foregroundColor: Theme.of(context).colorScheme.onPrimary,
               ),
-              child: Text('Save'),
+              child: Text(context.tr('common_save')),
             ),
           ],
         ),
@@ -873,7 +877,7 @@ class _TransactionEditScreenState extends State<TransactionEditScreen> {
     final parsed = double.tryParse(value.replaceAll(',', '.'));
     if (parsed == null) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Enter a valid total amount.')),
+        SnackBar(content: Text(context.tr('transaction_invalid_total'))),
       );
       return;
     }
@@ -1093,7 +1097,10 @@ class _TransactionEditScreenState extends State<TransactionEditScreen> {
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: Text('Cancel', style: TextStyle(color: _mutedColor)),
+            child: Text(
+              context.tr('common_cancel'),
+              style: TextStyle(color: _mutedColor),
+            ),
           ),
           FilledButton(
             onPressed: () => Navigator.pop(context, controller.text.trim()),
@@ -1411,11 +1418,17 @@ class _TransactionEditScreenState extends State<TransactionEditScreen> {
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context, false),
-            child: Text('Cancel', style: TextStyle(color: _mutedColor)),
+            child: Text(
+              context.tr('common_cancel'),
+              style: TextStyle(color: _mutedColor),
+            ),
           ),
           TextButton(
             onPressed: () => Navigator.pop(context, true),
-            child: Text('Delete', style: TextStyle(color: _dangerColor)),
+            child: Text(
+              context.tr('common_delete'),
+              style: TextStyle(color: _dangerColor),
+            ),
           ),
         ],
       ),
@@ -1597,21 +1610,27 @@ class _TransactionEditScreenState extends State<TransactionEditScreen> {
             side: BorderSide(color: _strokeColor),
           ),
           title: Text(
-            'Unsaved changes',
+            context.tr('transaction_unsaved_changes_title'),
             style: TextStyle(color: _textColor, fontWeight: FontWeight.w800),
           ),
           content: Text(
-            'Your edits are not saved yet. Save them before leaving, or discard the changes.',
+            context.tr('transaction_unsaved_changes_body'),
             style: TextStyle(color: _mutedColor, height: 1.4),
           ),
           actions: [
             TextButton(
               onPressed: () => Navigator.pop(dialogContext, 'stay'),
-              child: Text('Keep editing', style: TextStyle(color: _mutedColor)),
+              child: Text(
+                context.tr('transaction_keep_editing'),
+                style: TextStyle(color: _mutedColor),
+              ),
             ),
             TextButton(
               onPressed: () => Navigator.pop(dialogContext, 'discard'),
-              child: Text('Discard', style: TextStyle(color: _dangerColor)),
+              child: Text(
+                context.tr('transaction_discard_changes'),
+                style: TextStyle(color: _dangerColor),
+              ),
             ),
             FilledButton(
               onPressed: _isSaving
@@ -1621,7 +1640,7 @@ class _TransactionEditScreenState extends State<TransactionEditScreen> {
                 backgroundColor: _primaryActionColor,
                 foregroundColor: Theme.of(context).colorScheme.onPrimary,
               ),
-              child: const Text('Save'),
+              child: Text(context.tr('common_save')),
             ),
           ],
         ),
@@ -1639,11 +1658,23 @@ class _TransactionEditScreenState extends State<TransactionEditScreen> {
   }
 
   String _lineReviewMessage(Map<String, double> mismatch) {
-    return 'Review this line item: it should be ${_formatMoney(_currency, mismatch['expected'] ?? 0)} and currently shows ${_formatMoney(_currency, mismatch['actual'] ?? 0)}.';
+    return context.tr(
+      'transaction_line_review_message',
+      params: {
+        'expected': _formatMoney(_currency, mismatch['expected'] ?? 0),
+        'actual': _formatMoney(_currency, mismatch['actual'] ?? 0),
+      },
+    );
   }
 
   String _totalReviewMessage(Map<String, double> totalMismatch) {
-    return 'Review the total before saving: items add up to ${_formatMoney(_currency, totalMismatch['expected'] ?? 0)} while the receipt total is ${_formatMoney(_currency, totalMismatch['actual'] ?? 0)}.';
+    return context.tr(
+      'transaction_total_review_message',
+      params: {
+        'expected': _formatMoney(_currency, totalMismatch['expected'] ?? 0),
+        'actual': _formatMoney(_currency, totalMismatch['actual'] ?? 0),
+      },
+    );
   }
 
   @override
@@ -1653,7 +1684,7 @@ class _TransactionEditScreenState extends State<TransactionEditScreen> {
     }
     if (_error != null) {
       return Scaffold(
-        appBar: AppBar(title: Text('Review receipt')),
+        appBar: AppBar(title: Text(context.tr('transaction_review_receipt'))),
         body: Center(
           child: Padding(
             padding: const EdgeInsets.all(24),
@@ -1795,7 +1826,7 @@ class _TransactionEditScreenState extends State<TransactionEditScreen> {
               child: Row(
                 children: [
                   Text(
-                    'Items',
+                    context.tr('transaction_items_heading'),
                     style: TextStyle(
                       color: _textColor,
                       fontSize: 15,
@@ -1820,7 +1851,7 @@ class _TransactionEditScreenState extends State<TransactionEditScreen> {
                 padding: const EdgeInsets.all(14),
                 decoration: _panelDecoration(),
                 child: Text(
-                  'No line items yet. Add your first item to finish this receipt.',
+                  context.tr('transaction_empty_items'),
                   style: TextStyle(color: _mutedColor, fontSize: 13),
                 ),
               )
@@ -1843,7 +1874,7 @@ class _TransactionEditScreenState extends State<TransactionEditScreen> {
             _buildAddItemButton(),
             const SizedBox(height: 12),
             Text(
-              'Labels',
+              context.tr('labels_title'),
               style: TextStyle(
                 color: _mutedColor,
                 fontSize: 12,
@@ -1860,7 +1891,7 @@ class _TransactionEditScreenState extends State<TransactionEditScreen> {
             if (!_canEditTransaction) ...[
               const SizedBox(height: 12),
               Text(
-                'You can review this receipt, but only the owner can edit it.',
+                context.tr('transaction_read_only_owner'),
                 style: TextStyle(color: _mutedColor, fontSize: 13),
               ),
             ],
@@ -1897,7 +1928,7 @@ class _TransactionEditScreenState extends State<TransactionEditScreen> {
     final occurred = _occurredAt;
     final dateLabel = occurred != null
         ? DateFormat('MMM d, HH:mm').format(occurred)
-        : 'Set date';
+        : context.tr('transaction_set_date');
     final translationEnabled =
         _effectiveItemsLanguage.isNotEmpty && _showTranslatedItems;
     final languageLabel = _effectiveItemsLanguage.isEmpty
@@ -2106,7 +2137,7 @@ class _TransactionEditScreenState extends State<TransactionEditScreen> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    'Receipt photo',
+                    context.tr('transaction_receipt_photo_title'),
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                     style: TextStyle(
@@ -2117,7 +2148,7 @@ class _TransactionEditScreenState extends State<TransactionEditScreen> {
                   ),
                   const SizedBox(height: 3),
                   Text(
-                    'View original photo',
+                    context.tr('transaction_receipt_photo_subtitle'),
                     style: TextStyle(
                       color: _mutedColor,
                       fontSize: 12,
@@ -2145,7 +2176,7 @@ class _TransactionEditScreenState extends State<TransactionEditScreen> {
                 Icon(AppIcons.photo, size: 30, color: _mutedColor),
                 SizedBox(height: 10),
                 Text(
-                  'Receipt photo',
+                  context.tr('transaction_receipt_photo_title'),
                   style: TextStyle(
                     color: _mutedColor,
                     fontWeight: FontWeight.w600,
@@ -2179,20 +2210,26 @@ class _TransactionEditScreenState extends State<TransactionEditScreen> {
     }
 
     final lineText = lineMismatchCount == 1
-        ? 'Review 1 item total'
-        : 'Review $lineMismatchCount item totals';
+        ? context.tr('transaction_warning_review_one_item')
+        : context.tr(
+            'transaction_warning_review_items',
+            params: {'count': lineMismatchCount.toString()},
+          );
     final parts = <String>[];
     if (lineMismatchCount > 0) {
       parts.add(lineText);
     }
     if (hasTotalMismatch) {
-      parts.add('Review the receipt total');
+      parts.add(context.tr('transaction_warning_review_total'));
     }
     if (serverWarningCount > 0) {
       parts.add(
         serverWarningCount == 1
-            ? 'Check 1 extracted detail'
-            : 'Check $serverWarningCount extracted details',
+            ? context.tr('transaction_warning_check_one_detail')
+            : context.tr(
+                'transaction_warning_check_details',
+                params: {'count': serverWarningCount.toString()},
+              ),
       );
     }
 
@@ -2211,7 +2248,10 @@ class _TransactionEditScreenState extends State<TransactionEditScreen> {
           const SizedBox(width: 8),
           Expanded(
             child: Text(
-              'Take a quick final look before saving. ${parts.join(' / ')}. Saving accepts your edits.',
+              context.tr(
+                'transaction_warning_accepts_edits',
+                params: {'details': parts.join(' / ')},
+              ),
               style: TextStyle(
                 color: _textColor,
                 fontSize: 12,
@@ -2476,7 +2516,12 @@ class _TransactionEditScreenState extends State<TransactionEditScreen> {
                 runSpacing: 4,
                 children: [
                   Text(
-                    'Was ${_formatMoney(_currency, beforeDiscountAmount)}',
+                    context.tr(
+                      'transaction_was_amount',
+                      params: {
+                        'amount': _formatMoney(_currency, beforeDiscountAmount),
+                      },
+                    ),
                     style: TextStyle(
                       color: _mutedColor,
                       fontSize: 11.5,
@@ -2486,7 +2531,12 @@ class _TransactionEditScreenState extends State<TransactionEditScreen> {
                     ),
                   ),
                   Text(
-                    'Saved ${_formatMoney(_currency, discountAmount)}',
+                    context.tr(
+                      'transaction_saved_amount',
+                      params: {
+                        'amount': _formatMoney(_currency, discountAmount),
+                      },
+                    ),
                     style: TextStyle(
                       color: _successColor,
                       fontSize: 11.5,
@@ -2499,7 +2549,7 @@ class _TransactionEditScreenState extends State<TransactionEditScreen> {
             const SizedBox(height: 7),
             Text(
               quantityLineParts.isEmpty
-                  ? 'Add quantity, unit, and price'
+                  ? context.tr('transaction_missing_quantity_price')
                   : quantityLineParts.join(' / '),
               style: TextStyle(
                 color: _mutedColor,
@@ -2628,7 +2678,7 @@ class _TransactionEditScreenState extends State<TransactionEditScreen> {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            'Receipt total',
+                            context.tr('transaction_receipt_total_label'),
                             style: TextStyle(
                               color: _mutedColor,
                               fontSize: 11,
@@ -2671,7 +2721,15 @@ class _TransactionEditScreenState extends State<TransactionEditScreen> {
                           if (hasSavings) ...[
                             const SizedBox(height: 2),
                             Text(
-                              'Saved ${_formatMoney(_currency, totalSavings)}',
+                              context.tr(
+                                'transaction_saved_amount',
+                                params: {
+                                  'amount': _formatMoney(
+                                    _currency,
+                                    totalSavings,
+                                  ),
+                                },
+                              ),
                               style: TextStyle(
                                 color: _successColor,
                                 fontSize: 11.5,

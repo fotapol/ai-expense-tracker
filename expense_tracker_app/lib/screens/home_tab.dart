@@ -181,7 +181,7 @@ class _HomeTabState extends State<HomeTab>
       setState(() {
         _error = friendlyLaunchErrorMessage(
           error,
-          fallback: 'Home could not refresh just now. Please try again.',
+          fallback: context.tr('home_refresh_error'),
         );
         _isLoading = false;
       });
@@ -243,7 +243,7 @@ class _HomeTabState extends State<HomeTab>
   String _reviewSubtitle(BuildContext context) {
     if (_currentMonthTransactions.isEmpty &&
         _previousMonthTransactions.isEmpty) {
-      return 'Scan a receipt or add an expense to get started.';
+      return context.tr('home_start_subtitle');
     }
     if (_reviewCount == 0) {
       return context.tr('home_all_reviewed');
@@ -805,7 +805,7 @@ class _HomeTabState extends State<HomeTab>
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    'Primary action',
+                    context.tr('home_primary_action'),
                     style: TextStyle(
                       color: ShellStyles.homeHeroTextSecondary(context),
                       fontSize: 11,
@@ -1235,7 +1235,7 @@ class _HomeTabState extends State<HomeTab>
           ),
           const SizedBox(height: 10),
           Text(
-            _error ?? 'Home could not refresh just now.',
+            _error ?? context.tr('home_refresh_error'),
             textAlign: TextAlign.center,
             style: TextStyle(color: ShellStyles.textPrimary(context)),
           ),

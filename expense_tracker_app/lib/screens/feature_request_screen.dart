@@ -246,7 +246,24 @@ class _FeatureRequestScreenState extends State<FeatureRequestScreen> {
   }
 
   String _categoryLabel(String category) {
-    return context.tr('feature_request_category_$category');
+    return switch (category) {
+      'analytics_reports' => context.tr(
+        'feature_request_category_analytics_reports',
+      ),
+      'receipts_scanning' => context.tr(
+        'feature_request_category_receipts_scanning',
+      ),
+      'budgets_planning' => context.tr(
+        'feature_request_category_budgets_planning',
+      ),
+      'household_sharing' => context.tr(
+        'feature_request_category_household_sharing',
+      ),
+      'design_accessibility' => context.tr(
+        'feature_request_category_design_accessibility',
+      ),
+      _ => context.tr('feature_request_category_other'),
+    };
   }
 
   Color _statusColor(_FeatureRequestItem item) {

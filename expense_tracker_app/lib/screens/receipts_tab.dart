@@ -251,8 +251,7 @@ class _ReceiptsTabState extends State<ReceiptsTab>
         setState(() {
           _error = friendlyLaunchErrorMessage(
             e,
-            fallback:
-                'Your history could not load right now. Please try again.',
+            fallback: context.tr('receipts_history_load_error'),
           );
           _isLoading = false;
         });
@@ -354,7 +353,7 @@ class _ReceiptsTabState extends State<ReceiptsTab>
               content: Text(
                 friendlyLaunchErrorMessage(
                   e,
-                  fallback: 'We could not remove that entry. Please try again.',
+                  fallback: context.tr('receipts_remove_error'),
                 ),
               ),
               backgroundColor: Colors.red,
@@ -662,7 +661,7 @@ class _ReceiptsTabState extends State<ReceiptsTab>
             const Icon(Icons.error_outline, color: Colors.red, size: 48),
             const SizedBox(height: 16),
             Text(
-              _error ?? 'Your history could not load right now.',
+              _error ?? context.tr('receipts_history_load_error'),
               textAlign: TextAlign.center,
             ),
             const SizedBox(height: 16),
@@ -711,7 +710,7 @@ class _ReceiptsTabState extends State<ReceiptsTab>
               ),
               const SizedBox(height: 8),
               Text(
-                'Scan your first receipt to start building a history you can review and filter.',
+                context.tr('receipts_empty_body'),
                 textAlign: TextAlign.center,
                 style: TextStyle(
                   color: ShellStyles.textMuted(context),
@@ -730,7 +729,7 @@ class _ReceiptsTabState extends State<ReceiptsTab>
                   );
                 },
                 icon: const Icon(Icons.document_scanner_outlined),
-                label: const Text('Scan your first receipt'),
+                label: Text(context.tr('receipts_scan_first_action')),
               ),
             ],
           ),
@@ -766,7 +765,7 @@ class _ReceiptsTabState extends State<ReceiptsTab>
               Text(
                 _reviewOnly
                     ? context.tr('receipts_review_empty_title')
-                    : 'No receipts match the current filters.',
+                    : context.tr('receipts_no_filter_matches'),
                 textAlign: TextAlign.center,
                 style: TextStyle(
                   color: ShellStyles.textPrimary(context),
@@ -778,7 +777,7 @@ class _ReceiptsTabState extends State<ReceiptsTab>
               Text(
                 _reviewOnly
                     ? context.tr('receipts_review_empty_body')
-                    : 'Try another period, merchant search, or clear the active filters.',
+                    : context.tr('receipts_no_filter_matches_body'),
                 textAlign: TextAlign.center,
                 style: TextStyle(
                   color: ShellStyles.textMuted(context),
@@ -790,7 +789,7 @@ class _ReceiptsTabState extends State<ReceiptsTab>
               if (_hasScopedFilters)
                 OutlinedButton(
                   onPressed: _clearAllFilters,
-                  child: const Text('Clear filters'),
+                  child: Text(context.tr('common_clear_filters')),
                 ),
             ],
           ),
@@ -1313,7 +1312,7 @@ class _ReceiptsTabState extends State<ReceiptsTab>
                 children: [
                   Text(
                     _selectedPeriod == PeriodFilter.allTime
-                        ? 'Receipt history total'
+                        ? context.tr('receipts_history_total')
                         : context.tr('receipts_total_for_period'),
                     style: TextStyle(
                       color: mutedColor,
