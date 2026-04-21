@@ -36,6 +36,7 @@ class _HomeTabState extends State<HomeTab>
   String? _error;
   String _preferredCurrency = 'EUR';
   Map<String, dynamic>? _monthlySummary;
+  Map<String, dynamic>? _monthlySubcategorySummary;
   List<Map<String, dynamic>> _currentMonthTransactions = [];
   List<Map<String, dynamic>> _previousMonthTransactions = [];
   bool _isRefreshingHome = false;
@@ -105,17 +106,23 @@ class _HomeTabState extends State<HomeTab>
       final subscriptionFuture = ApiClient.getMeSubscription().catchError(
         (_) => <String, dynamic>{},
       );
+      final subcategorySummaryFuture = ApiClient.getTransactionsSummary(
+        fromDate: _currentMonthStart,
+        groupBy: 'subcategory',
+      ).catchError((_) => <String, dynamic>{});
       final results = await Future.wait([
         ApiClient.getMe(),
         ApiClient.getTransactionsSummary(fromDate: _currentMonthStart),
         ApiClient.listTransactions(fromDate: _previousMonthStart),
         subscriptionFuture,
+        subcategorySummaryFuture,
       ]);
 
       final me = results[0] as Map<String, dynamic>;
       final summary = results[1] as Map<String, dynamic>;
       final rawTransactions = results[2] as List<dynamic>;
       final subscriptionPayload = results[3] as Map<String, dynamic>;
+      final subcategorySummary = results[4] as Map<String, dynamic>;
       final allTransactions = rawTransactions.whereType<Map<String, dynamic>>();
 
       final currentTransactions = <Map<String, dynamic>>[];
@@ -151,6 +158,9 @@ class _HomeTabState extends State<HomeTab>
             ? _preferredCurrency
             : defaultCurrency.toUpperCase();
         _monthlySummary = summary;
+        _monthlySubcategorySummary = subcategorySummary.isEmpty
+            ? null
+            : subcategorySummary;
         _currentMonthTransactions = currentTransactions;
         _previousMonthTransactions = previousTransactions;
         _profileDisplayName = profileDisplayName;
@@ -295,8 +305,12 @@ class _HomeTabState extends State<HomeTab>
     );
   }
 
-  List<_OverviewSlice> _overviewSlices(BuildContext context) {
-    final rawBreakdown = _monthlySummary?['breakdown'] as List<dynamic>? ?? [];
+  List<_OverviewSlice> _overviewSlices(
+    BuildContext context, {
+    Map<String, dynamic>? summary,
+  }) {
+    final source = summary ?? _monthlySummary;
+    final rawBreakdown = source?['breakdown'] as List<dynamic>? ?? [];
     final slices = <_OverviewSlice>[];
     for (final raw in rawBreakdown.whereType<Map<String, dynamic>>()) {
       final amount = (raw['amount'] as num?)?.toDouble() ?? 0;
@@ -361,37 +375,10 @@ class _HomeTabState extends State<HomeTab>
         (_monthlySummary?['breakdown'] as List<dynamic>? ?? const []).isEmpty) {
       return insights;
     }
-    final ratio = _changeRatio;
-    if (ratio != null) {
-      final previousMonthLabel = DateFormat('MMMM').format(_previousMonthStart);
-      final percent = (ratio.abs() * 100).round();
-      if (percent > 0) {
-        insights.add(
-          context.tr(
-            ratio < 0
-                ? 'home_insight_less_than_last_month'
-                : 'home_insight_more_than_last_month',
-            params: {
-              'percent': percent.toString(),
-              'month': previousMonthLabel,
-            },
-          ),
-        );
-      }
-    }
 
-    final slices = _overviewSlices(context);
-    if (insights.isEmpty && slices.isNotEmpty) {
-      final topSlice = slices.first;
-      insights.add(
-        context.tr(
-          'home_insight_top_category',
-          params: {
-            'category': topSlice.name,
-            'percent': topSlice.percentage.round().toString(),
-          },
-        ),
-      );
+    final topCategoryInsight = _buildTopCategoryInsight(context);
+    if (topCategoryInsight != null) {
+      insights.add(topCategoryInsight);
     }
 
     if (_reviewCount > 0) {
@@ -401,11 +388,68 @@ class _HomeTabState extends State<HomeTab>
           params: {'count': _reviewCount.toString()},
         ),
       );
-    } else {
+      return insights.take(2).toList();
+    }
+
+    final topSubcategoryInsight = _buildTopSubcategoryInsight(context);
+    if (topSubcategoryInsight != null) {
+      insights.add(topSubcategoryInsight);
+      return insights.take(2).toList();
+    }
+
+    final monthChangeInsight = _buildMonthChangeInsight(context);
+    if (monthChangeInsight != null) {
+      insights.add(monthChangeInsight);
+    } else if (insights.length < 2) {
       insights.add(context.tr('home_insight_all_caught_up'));
     }
 
     return insights.take(2).toList();
+  }
+
+  String? _buildTopCategoryInsight(BuildContext context) {
+    final slices = _overviewSlices(context);
+    if (slices.isEmpty) return null;
+    final topSlice = slices.first;
+    return context.tr(
+      'home_insight_top_category',
+      params: {
+        'category': topSlice.name,
+        'percent': topSlice.percentage.round().toString(),
+      },
+    );
+  }
+
+  String? _buildTopSubcategoryInsight(BuildContext context) {
+    final subcategorySummary = _monthlySubcategorySummary;
+    if (subcategorySummary == null) return null;
+    final slices = _overviewSlices(context, summary: subcategorySummary);
+    if (slices.isEmpty) return null;
+    final topSlice = slices.first;
+    return context.tr(
+      'home_insight_top_subcategory',
+      params: {
+        'subcategory': topSlice.name,
+        'percent': topSlice.percentage.round().toString(),
+      },
+    );
+  }
+
+  String? _buildMonthChangeInsight(BuildContext context) {
+    final ratio = _changeRatio;
+    if (ratio != null) {
+      final previousMonthLabel = DateFormat('MMMM').format(_previousMonthStart);
+      final percent = (ratio.abs() * 100).round();
+      if (percent > 0) {
+        return context.tr(
+          ratio < 0
+              ? 'home_insight_less_than_last_month'
+              : 'home_insight_more_than_last_month',
+          params: {'percent': percent.toString(), 'month': previousMonthLabel},
+        );
+      }
+    }
+    return null;
   }
 
   void _open(BuildContext context, Widget screen) {
@@ -476,6 +520,10 @@ class _HomeTabState extends State<HomeTab>
   }
 
   Widget _buildHeader(BuildContext context) {
+    final reviewCount = _reviewCount;
+    final subtitleColor = reviewCount > 0
+        ? ShellStyles.warningPremium(context)
+        : ShellStyles.textMuted(context);
     return Row(
       crossAxisAlignment: CrossAxisAlignment.center,
       children: [
@@ -495,11 +543,34 @@ class _HomeTabState extends State<HomeTab>
                 ),
               ),
               const SizedBox(height: 4),
-              Text(
-                _reviewSubtitle(context),
-                style: TextStyle(
-                  color: ShellStyles.textMuted(context),
-                  fontSize: 13,
+              GestureDetector(
+                behavior: HitTestBehavior.opaque,
+                onTap: reviewCount > 0
+                    ? () => _open(
+                        context,
+                        const ReceiptManagerScreen(reviewOnly: true),
+                      )
+                    : null,
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Flexible(
+                      child: Text(
+                        _reviewSubtitle(context),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: TextStyle(color: subtitleColor, fontSize: 13),
+                      ),
+                    ),
+                    if (reviewCount > 0) ...[
+                      const SizedBox(width: 4),
+                      Icon(
+                        AppIcons.chevronRight,
+                        size: 12,
+                        color: subtitleColor,
+                      ),
+                    ],
+                  ],
                 ),
               ),
             ],

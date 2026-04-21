@@ -380,6 +380,7 @@ class _TransactionEditScreenState extends State<TransactionEditScreen> {
         'amount_total': parsedAmount,
         'currency': _currency,
         'category_id': _transactionCategoryId,
+        'status': 'CONFIRMED',
       };
 
       if (_occurredAt != null) {
@@ -1676,7 +1677,7 @@ class _TransactionEditScreenState extends State<TransactionEditScreen> {
 
     final lineMismatches = _computeLineMismatches();
     final totalMismatch = _computeTotalMismatch();
-    final showServerWarnings = !_hasLocalEdits && _serverWarnings.isNotEmpty;
+    final showServerWarnings = _serverWarnings.isNotEmpty;
     final hasWarnings =
         lineMismatches.isNotEmpty ||
         totalMismatch != null ||
@@ -2210,7 +2211,7 @@ class _TransactionEditScreenState extends State<TransactionEditScreen> {
           const SizedBox(width: 8),
           Expanded(
             child: Text(
-              'Take a quick final look before saving. ${parts.join(' • ')}.',
+              'Take a quick final look before saving. ${parts.join(' / ')}. Saving accepts your edits.',
               style: TextStyle(
                 color: _textColor,
                 fontSize: 12,
