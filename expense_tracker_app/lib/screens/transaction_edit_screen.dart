@@ -1985,7 +1985,10 @@ class _TransactionEditScreenState extends State<TransactionEditScreen> {
           borderRadius: BorderRadius.circular(16),
           child: Container(
             height: 42,
-            padding: const EdgeInsets.symmetric(horizontal: 10),
+            width: _isTranslatingItems ? 42 : null,
+            padding: EdgeInsets.symmetric(
+              horizontal: _isTranslatingItems ? 0 : 10,
+            ),
             decoration: _panelDecoration(
               color: translationEnabled
                   ? ShellStyles.accentTone(context).container
@@ -1996,12 +1999,14 @@ class _TransactionEditScreenState extends State<TransactionEditScreen> {
               radius: 14,
             ),
             child: _isTranslatingItems
-                ? SizedBox(
-                    width: 16,
-                    height: 16,
-                    child: CircularProgressIndicator(
-                      strokeWidth: 2,
-                      valueColor: AlwaysStoppedAnimation<Color>(_accentColor),
+                ? Center(
+                    child: SizedBox(
+                      width: 13,
+                      height: 13,
+                      child: CircularProgressIndicator(
+                        strokeWidth: 1.8,
+                        valueColor: AlwaysStoppedAnimation<Color>(_accentColor),
+                      ),
                     ),
                   )
                 : Row(
