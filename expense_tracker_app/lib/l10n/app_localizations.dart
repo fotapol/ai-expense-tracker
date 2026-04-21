@@ -460,6 +460,8 @@ class AppLocalizations {
           'Spending is {percent}% higher than {month}.',
       'home_insight_top_category':
           'Top category is {category} at {percent}% of monthly spend.',
+      'home_insight_top_subcategory':
+          'Top subcategory is {subcategory} at {percent}% of item spend.',
       'home_insight_review_count': '{count} receipts still need review.',
       'home_insight_all_caught_up': 'You are all caught up on receipt review.',
       'home_scan_receipt_subtitle': 'AI-powered instant capture',
@@ -470,6 +472,13 @@ class AppLocalizations {
       'home_quick_actions': 'Quick Actions',
       'home_add_expense': 'Add Expense',
       'home_categories': 'Categories',
+      'receipts_filter_needs_review': 'Needs review',
+      'receipts_needs_review': 'Needs review',
+      'receipts_check_extraction': 'Check extraction',
+      'receipts_draft': 'Needs save',
+      'receipts_review_empty_title': 'No receipts need review.',
+      'receipts_review_empty_body':
+          'Everything in this period looks confirmed and warning-free.',
       'common_apply': 'Apply',
       'common_create': 'Create',
       'common_save': 'Save',
