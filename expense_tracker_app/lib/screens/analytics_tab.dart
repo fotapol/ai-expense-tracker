@@ -284,7 +284,7 @@ class _AnalyticsTabState extends State<AnalyticsTab>
           if (isEmptyAnalytics)
             AnalyticsEmptyCard(
               icon: Icons.pie_chart_outline,
-              title: 'No category insights yet',
+              title: context.tr('no_category_insights_yet'),
               message:
                   'Scan receipts to see your spending share by category and drill into the biggest areas.',
             )
@@ -395,7 +395,7 @@ class _AnalyticsTabState extends State<AnalyticsTab>
             title: isSubcategoryMode
                 ? context.tr('analytics_expense_subcategories')
                 : context.tr('analytics_expense_categories'),
-            subtitle: 'The donut shows each group’s share of total spend.',
+            subtitle: context.tr('the_donut_shows_each_groups_share_of_tot'),
             trailing: _buildBreakdownToggle(),
           ),
           const SizedBox(height: 20),
@@ -768,7 +768,7 @@ class _AnalyticsTabState extends State<AnalyticsTab>
         children: [
           AnalyticsSectionHeader(
             title: 'Discounts',
-            subtitle: 'Helpful savings spotted in the current results.',
+            subtitle: context.tr('helpful_savings_spotted_in_the_current_r'),
             trailing: Container(
               width: 38,
               height: 38,

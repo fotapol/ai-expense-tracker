@@ -223,7 +223,7 @@ class _AnalyticsTrendsTabState extends State<AnalyticsTrendsTab> {
           if (isEmptyTrends)
             AnalyticsEmptyCard(
               icon: Icons.show_chart,
-              title: 'No trend data yet',
+              title: context.tr('no_trend_data_yet'),
               message:
                   'Scan receipts over time to see how spending moves across days, weeks, or months.',
             )
@@ -311,7 +311,7 @@ class _AnalyticsTrendsTabState extends State<AnalyticsTrendsTab> {
             SizedBox(
               width: tileWidth,
               child: _TrendMetricCard(
-                label: 'Total Spent',
+                label: context.tr('total_spent'),
                 value: formatMoney(currency, totalSpent),
                 change: _buildMetricChange(
                   current: totalSpent,
@@ -335,7 +335,7 @@ class _AnalyticsTrendsTabState extends State<AnalyticsTrendsTab> {
             SizedBox(
               width: tileWidth,
               child: _TrendMetricCard(
-                label: 'Daily Avg',
+                label: context.tr('daily_avg'),
                 value: formatMoney(currency, dailyAverage),
                 change: _buildMetricChange(
                   current: dailyAverage,

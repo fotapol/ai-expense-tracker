@@ -262,7 +262,7 @@ class _AnalyticsOverviewTabState extends State<AnalyticsOverviewTab> {
           if (isEmptyOverview)
             AnalyticsEmptyCard(
               icon: Icons.insights_outlined,
-              title: 'No overview yet',
+              title: context.tr('no_overview_yet'),
               message:
                   'Scan receipts to track totals, compare periods, and surface your top merchants here.',
             )
@@ -526,8 +526,8 @@ class _AnalyticsOverviewTabState extends State<AnalyticsOverviewTab> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           const AnalyticsSectionHeader(
-            title: 'Top Merchants',
-            subtitle: 'Where the most spending happened in this period.',
+            title: context.tr('top_merchants'),
+            subtitle: context.tr('where_the_most_spending_happened_in_this'),
           ),
           const SizedBox(height: 14),
           if (merchants.isEmpty)
@@ -564,8 +564,8 @@ class _AnalyticsOverviewTabState extends State<AnalyticsOverviewTab> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           const AnalyticsSectionHeader(
-            title: 'Top Categories',
-            subtitle: 'The biggest spending groups in this period.',
+            title: context.tr('top_categories'),
+            subtitle: context.tr('the_biggest_spending_groups_in_this_peri'),
           ),
           const SizedBox(height: 14),
           if (categories.isEmpty)
@@ -765,13 +765,13 @@ class _AnalyticsOverviewTabState extends State<AnalyticsOverviewTab> {
     if (previousTotal == null) {
       return const _OverviewComparisonCopy(
         icon: Icons.timeline_outlined,
-        title: 'Previous comparison is unavailable for this range.',
+        title: context.tr('previous_comparison_is_unavailable_for_t'),
       );
     }
     if (previousTotal <= 0) {
       return const _OverviewComparisonCopy(
         icon: Icons.remove_circle_outline,
-        title: 'No spend was recorded in the matching previous period.',
+        title: context.tr('no_spend_was_recorded_in_the_matching_pr'),
       );
     }
     if (changePercentage == null || changePercentage == 0) {

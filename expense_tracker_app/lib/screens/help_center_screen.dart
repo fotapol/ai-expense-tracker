@@ -17,7 +17,7 @@ class HelpCenterScreen extends StatefulWidget {
 class _HelpCenterScreenState extends State<HelpCenterScreen> {
   static const List<_FaqSection> _sections = [
     _FaqSection(
-      title: 'Getting Started',
+      title: context.tr('getting_started'),
       items: [
         _FaqItem(
           question: 'How do I scan my first receipt?',
@@ -37,7 +37,7 @@ class _HelpCenterScreenState extends State<HelpCenterScreen> {
       ],
     ),
     _FaqSection(
-      title: 'Subscription & Billing',
+      title: context.tr('subscription_billing'),
       items: [
         _FaqItem(
           question: 'What\'s included in the Free plan?',
@@ -62,7 +62,7 @@ class _HelpCenterScreenState extends State<HelpCenterScreen> {
       ],
     ),
     _FaqSection(
-      title: 'Features & Tools',
+      title: context.tr('features_tools'),
       items: [
         _FaqItem(
           question: 'How do I review extracted items?',
@@ -82,7 +82,7 @@ class _HelpCenterScreenState extends State<HelpCenterScreen> {
       ],
     ),
     _FaqSection(
-      title: 'Privacy & Security',
+      title: context.tr('privacy_security'),
       items: [
         _FaqItem(
           question: 'Is my financial data secure?',

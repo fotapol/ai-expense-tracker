@@ -5,6 +5,7 @@ import '../core/bill_reminder_notification_service.dart';
 import '../core/notification_preferences.dart';
 import '../core/redesign_system.dart';
 import 'settings_detail_scaffold.dart';
+import '../l10n/app_localizations.dart';
 
 class NotificationsSettingsScreen extends StatefulWidget {
   const NotificationsSettingsScreen({super.key});
@@ -248,7 +249,7 @@ class _NotificationsSettingsScreenState
                     ShellStyles.sectionLabel(context, 'Device'),
                     const SizedBox(height: 8),
                     _buildToggleCard(
-                      title: 'Enable notifications in the app',
+                      title: context.tr('enable_notifications_in_the_app'),
                       subtitle: !_notificationsAvailableOnPlatform
                           ? 'Unavailable in this web build.'
                           : _systemNotificationsEnabled
@@ -262,7 +263,7 @@ class _NotificationsSettingsScreenState
                     ShellStyles.sectionLabel(context, 'Bill reminders'),
                     const SizedBox(height: 8),
                     _buildToggleCard(
-                      title: 'Upcoming and due reminders',
+                      title: context.tr('upcoming_and_due_reminders'),
                       subtitle: !_notificationsAvailableOnPlatform
                           ? 'Unavailable in this web build.'
                           : _effectiveNotificationsEnabled

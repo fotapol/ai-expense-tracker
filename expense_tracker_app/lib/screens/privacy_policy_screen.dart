@@ -9,7 +9,7 @@ class PrivacyPolicyScreen extends StatelessWidget {
 
   static const List<_PolicySection> _sections = [
     _PolicySection(
-      title: '1. Information We Collect',
+      title: context.tr('1_information_we_collect'),
       body:
           'We collect information that you provide directly to us, including:',
       bullets: [
@@ -21,7 +21,7 @@ class PrivacyPolicyScreen extends StatelessWidget {
       ],
     ),
     _PolicySection(
-      title: '2. How We Use Your Information',
+      title: context.tr('2_how_we_use_your_information'),
       body: 'We use the information we collect to:',
       bullets: [
         'Provide, maintain, and improve our services',
@@ -32,7 +32,7 @@ class PrivacyPolicyScreen extends StatelessWidget {
       ],
     ),
     _PolicySection(
-      title: '3. Data Security',
+      title: context.tr('3_data_security'),
       body:
           'We implement industry-standard security measures to protect your data:',
       bullets: [
@@ -44,7 +44,7 @@ class PrivacyPolicyScreen extends StatelessWidget {
       ],
     ),
     _PolicySection(
-      title: '4. Data Sharing',
+      title: context.tr('4_data_sharing'),
       body:
           'We do not sell your personal information. We may share your data only:',
       bullets: [
@@ -55,7 +55,7 @@ class PrivacyPolicyScreen extends StatelessWidget {
       ],
     ),
     _PolicySection(
-      title: '5. Your Rights',
+      title: context.tr('5_your_rights'),
       body: 'You have the right to:',
       bullets: [
         'Access and download your data',
@@ -66,25 +66,25 @@ class PrivacyPolicyScreen extends StatelessWidget {
       ],
     ),
     _PolicySection(
-      title: '6. Cookies and Tracking',
+      title: context.tr('6_cookies_and_tracking'),
       body:
           'We use cookies and similar technologies to improve your experience, analyze usage, and personalize content. You can control cookie preferences through your device settings.',
       bullets: [],
     ),
     _PolicySection(
-      title: '7. Children\'s Privacy',
+      title: context.tr('7_children')s Privacy',
       body:
           'Our service is not intended for users under 18 years of age. We do not knowingly collect personal information from children.',
       bullets: [],
     ),
     _PolicySection(
-      title: '8. Changes to This Policy',
+      title: context.tr('8_changes_to_this_policy'),
       body:
           'We may update this Privacy Policy from time to time. We will notify you of any significant changes via email or through the app.',
       bullets: [],
     ),
     _PolicySection(
-      title: '9. Contact Us',
+      title: context.tr('9_contact_us'),
       body:
           'If you have questions about this Privacy Policy, please contact us at:',
       bullets: ['privacy@expensetracker.com'],

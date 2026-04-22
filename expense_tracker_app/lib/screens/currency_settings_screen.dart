@@ -5,6 +5,7 @@ import '../core/api_client.dart';
 import '../core/money_format_preferences.dart';
 import '../core/redesign_system.dart';
 import 'settings_detail_scaffold.dart';
+import '../l10n/app_localizations.dart';
 
 class CurrencySettingsScreen extends StatefulWidget {
   const CurrencySettingsScreen({super.key, required this.initialCode});
@@ -389,7 +390,7 @@ class _CurrencySettingsScreenState extends State<CurrencySettingsScreen> {
                   ShellStyles.sectionLabel(context, 'Symbol position'),
                   const SizedBox(height: 8),
                   _buildPreferenceChoice(
-                    title: 'Before the amount',
+                    title: context.tr('before_the_amount'),
                     subtitle: _previewFor(
                       symbolPosition: 'before',
                       showDecimals: _showDecimals,
@@ -399,7 +400,7 @@ class _CurrencySettingsScreenState extends State<CurrencySettingsScreen> {
                   ),
                   const SizedBox(height: 8),
                   _buildPreferenceChoice(
-                    title: 'After the amount',
+                    title: context.tr('after_the_amount'),
                     subtitle: _previewFor(
                       symbolPosition: 'after',
                       showDecimals: _showDecimals,
@@ -411,7 +412,7 @@ class _CurrencySettingsScreenState extends State<CurrencySettingsScreen> {
                   ShellStyles.sectionLabel(context, 'Decimals'),
                   const SizedBox(height: 8),
                   _buildPreferenceChoice(
-                    title: 'Show decimals',
+                    title: context.tr('show_decimals'),
                     subtitle: _previewFor(
                       symbolPosition: _symbolPosition,
                       showDecimals: true,
@@ -421,7 +422,7 @@ class _CurrencySettingsScreenState extends State<CurrencySettingsScreen> {
                   ),
                   const SizedBox(height: 8),
                   _buildPreferenceChoice(
-                    title: 'Hide decimals',
+                    title: context.tr('hide_decimals'),
                     subtitle: _previewFor(
                       symbolPosition: _symbolPosition,
                       showDecimals: false,

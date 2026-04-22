@@ -6,6 +6,7 @@ import '../core/redesign_system.dart';
 import '../l10n/app_languages.dart';
 import '../main.dart';
 import 'settings_detail_scaffold.dart';
+import '../l10n/app_localizations.dart';
 
 class ItemsTranslationSettingsScreen extends StatefulWidget {
   const ItemsTranslationSettingsScreen({super.key, required this.initialCode});
@@ -257,7 +258,7 @@ class _ItemsTranslationSettingsScreenState
     final sourceLanguage = _languageForCode(_manualSourceCode);
 
     return SettingsDetailScaffold(
-      title: 'Items Translation',
+      title: context.tr('items_translation'),
       body: SafeArea(
         top: false,
         child: Stack(
@@ -272,13 +273,13 @@ class _ItemsTranslationSettingsScreenState
                   ShellStyles.sectionLabel(context, 'Target language'),
                   const SizedBox(height: 8),
                   _buildSelectorField(
-                    label: 'Translate items into',
+                    label: context.tr('translate_items_into'),
                     title: targetLanguage.englishName,
                     subtitle:
                         '${targetLanguage.nativeName} - Translated item names will appear in this language.',
                     onTap: () async {
                       final picked = await _showLanguagePicker(
-                        title: 'Translate items to',
+                        title: context.tr('translate_items_to'),
                         currentCode: _selectedTargetCode,
                       );
                       if (picked != null) {
@@ -295,7 +296,7 @@ class _ItemsTranslationSettingsScreenState
                     child: Column(
                       children: <Widget>[
                         SettingsToggleRow(
-                          title: 'Auto-detect source language',
+                          title: context.tr('autodetect_source_language'),
                           subtitle:
                               'Use the item text to guess the original language before translation.',
                           value: _autoDetect,
@@ -325,13 +326,13 @@ class _ItemsTranslationSettingsScreenState
                                   ),
                                 )
                               : _buildSelectorField(
-                                  label: 'Use this source language',
+                                  label: context.tr('use_this_source_language'),
                                   title: sourceLanguage.englishName,
                                   subtitle:
                                       '${sourceLanguage.nativeName} - The app will use this as the original language before translation.',
                                   onTap: () async {
                                     final picked = await _showLanguagePicker(
-                                      title: 'Choose source language',
+                                      title: context.tr('choose_source_language'),
                                       currentCode: _manualSourceCode,
                                     );
                                     if (picked != null) {

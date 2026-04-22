@@ -96,7 +96,7 @@ class _LabelsScreenState extends State<LabelsScreen> {
     final name = _nameController.text.trim();
     if (name.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Please enter a label name.')),
+        const SnackBar(content: Text(context.tr('please_enter_a_label_name'))),
       );
       return;
     }
@@ -466,7 +466,7 @@ class _LabelsScreenState extends State<LabelsScreen> {
                             color: Theme.of(context).colorScheme.onPrimary,
                           ),
                         )
-                      : const Text('Create Label'),
+                      : const Text(context.tr('create_label')),
                 ),
               ),
               const SizedBox(width: 10),

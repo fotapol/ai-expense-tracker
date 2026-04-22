@@ -10,6 +10,7 @@ import 'package:timezone/timezone.dart' as tz;
 import 'api_client.dart';
 import 'notification_preferences.dart';
 import 'planning_logic.dart';
+import '../l10n/app_localizations.dart';
 
 class BillReminderNotificationService {
   BillReminderNotificationService._();
@@ -228,7 +229,7 @@ class BillReminderNotificationService {
     if (dueSoonAt.isAfter(now)) {
       await _scheduleNotification(
         id: _notificationId(reminder.id, 'soon'),
-        title: 'Bill due soon',
+        title: context.tr('bill_due_soon'),
         body:
             '${reminder.name} is due on ${_shortDate(dueDate)}. '
             'Amount: ${reminder.currency} ${reminder.amount.toStringAsFixed(2)}',
@@ -241,7 +242,7 @@ class BillReminderNotificationService {
     if (dueAt.isAfter(now)) {
       await _scheduleNotification(
         id: _notificationId(reminder.id, 'due'),
-        title: 'Bill due today',
+        title: context.tr('bill_due_today'),
         body:
             '${reminder.name} is due today. '
             'Amount: ${reminder.currency} ${reminder.amount.toStringAsFixed(2)}',

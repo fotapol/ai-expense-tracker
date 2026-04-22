@@ -9,13 +9,13 @@ class TermsOfServiceScreen extends StatelessWidget {
 
   static const List<_TermsSection> _sections = [
     _TermsSection(
-      title: '1. Acceptance of Terms',
+      title: context.tr('1_acceptance_of_terms'),
       paragraphs: [
         'By creating an account and using AI Expense Tracker, you agree to comply with and be bound by these Terms of Service. If you do not agree to these terms, please do not use our service.',
       ],
     ),
     _TermsSection(
-      title: '2. Description of Service',
+      title: context.tr('2_description_of_service'),
       paragraphs: ['AI Expense Tracker provides:'],
       bullets: [
         'Receipt scanning and optical character recognition (OCR)',
@@ -26,7 +26,7 @@ class TermsOfServiceScreen extends StatelessWidget {
       ],
     ),
     _TermsSection(
-      title: '3. User Accounts',
+      title: context.tr('3_user_accounts'),
       paragraphs: ['You are responsible for:'],
       bullets: [
         'Maintaining the confidentiality of your account credentials',
@@ -37,13 +37,13 @@ class TermsOfServiceScreen extends StatelessWidget {
       ],
     ),
     _TermsSection(
-      title: '4. Subscription and Billing',
+      title: context.tr('4_subscription_and_billing'),
       paragraphs: [
         'Paid subscriptions are billed in advance on a monthly or yearly basis. You can cancel your subscription at any time, and you will continue to have access until the end of your billing period. No refunds are provided for partial periods.',
       ],
     ),
     _TermsSection(
-      title: '5. Prohibited Uses',
+      title: context.tr('5_prohibited_uses'),
       paragraphs: ['You agree not to:'],
       bullets: [
         'Use the service for illegal, fraudulent, or misleading activity',
@@ -55,43 +55,43 @@ class TermsOfServiceScreen extends StatelessWidget {
       ],
     ),
     _TermsSection(
-      title: '6. Intellectual Property',
+      title: context.tr('6_intellectual_property'),
       paragraphs: [
         'All content, features, and functionality of AI Expense Tracker are owned by us and are protected by copyright, trademark, and other intellectual property laws. You retain ownership of your data and receipts.',
       ],
     ),
     _TermsSection(
-      title: '7. Service Availability',
+      title: context.tr('7_service_availability'),
       paragraphs: [
         'We strive to provide reliable service but do not guarantee uninterrupted access. We may modify, suspend, or discontinue any part of the service at any time with reasonable notice.',
       ],
     ),
     _TermsSection(
-      title: '8. Limitation of Liability',
+      title: context.tr('8_limitation_of_liability'),
       paragraphs: [
         'We are not liable for any indirect, incidental, special, or consequential damages arising from your use of the service. Our total liability shall not exceed the amount you paid in the past 12 months.',
       ],
     ),
     _TermsSection(
-      title: '9. Termination',
+      title: context.tr('9_termination'),
       paragraphs: [
         'We reserve the right to terminate or suspend your account if you violate these terms. Upon termination, you may request a copy of your data within 30 days.',
       ],
     ),
     _TermsSection(
-      title: '10. Changes to Terms',
+      title: context.tr('10_changes_to_terms'),
       paragraphs: [
         'We may modify these terms at any time. Continued use of the service after changes constitutes acceptance of the new terms. We will notify you of significant changes.',
       ],
     ),
     _TermsSection(
-      title: '11. Governing Law',
+      title: context.tr('11_governing_law'),
       paragraphs: [
         'These terms are governed by the laws of the United States. Any disputes shall be resolved in the courts of San Francisco, California.',
       ],
     ),
     _TermsSection(
-      title: '12. Contact',
+      title: context.tr('12_contact'),
       paragraphs: [
         'For questions about these Terms of Service, contact us at:',
         'legal@expensetracker.com',

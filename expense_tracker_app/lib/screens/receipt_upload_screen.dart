@@ -586,19 +586,19 @@ class _ReceiptUploadScreenState extends State<ReceiptUploadScreen> {
           SizedBox(height: ShellStyles.scaled(context, 18, min: 16, max: 20)),
           _buildProcessingStep(
             stepIndex: 0,
-            title: 'Upload receipt',
+            title: context.tr('upload_receipt'),
             body: 'Store the file securely in your account.',
           ),
           const SizedBox(height: 12),
           _buildProcessingStep(
             stepIndex: 1,
-            title: 'Read totals and items',
+            title: context.tr('read_totals_and_items'),
             body: 'Extract the merchant, totals, and line items.',
           ),
           const SizedBox(height: 12),
           _buildProcessingStep(
             stepIndex: 2,
-            title: 'Open review',
+            title: context.tr('open_review'),
             body: 'Prepare the editable review screen before saving.',
           ),
           const SizedBox(height: 16),
@@ -768,7 +768,7 @@ class _ReceiptUploadScreenState extends State<ReceiptUploadScreen> {
                 const SizedBox(height: 10),
                 TextButton(
                   onPressed: () => _clearFailure(keepSelection: true),
-                  child: const Text('Keep this image and try later'),
+                  child: const Text(context.tr('keep_this_image_and_try_later')),
                 ),
               ],
             ],

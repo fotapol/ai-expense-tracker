@@ -7,6 +7,7 @@ import '../core/launch_error_copy.dart';
 import '../core/redesign_system.dart';
 import '../core/session_invalidation.dart';
 import 'settings_detail_scaffold.dart';
+import '../l10n/app_localizations.dart';
 
 class ProfileSettingsScreen extends StatefulWidget {
   const ProfileSettingsScreen({super.key});
@@ -388,7 +389,7 @@ class _ProfileSettingsScreenState extends State<ProfileSettingsScreen> {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          const _FieldLabel(label: 'Display name'),
+                          const _FieldLabel(label: context.tr('display_name')),
                           TextField(
                             controller: _nameController,
                             textCapitalization: TextCapitalization.words,
@@ -453,7 +454,7 @@ class _ProfileSettingsScreenState extends State<ProfileSettingsScreen> {
                                     strokeWidth: 2,
                                   ),
                                 )
-                              : const Text('Save changes'),
+                              : const Text(context.tr('save_changes')),
                         ),
                       ),
                     ],

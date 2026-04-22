@@ -1,3 +1,4 @@
+import '../l10n/app_localizations.dart';
 class AppReleaseNotes {
   const AppReleaseNotes({
     required this.version,
@@ -13,7 +14,7 @@ class AppReleaseNotes {
 const Map<String, AppReleaseNotes> _releaseNotesByVersion = {
   '1.0.0': AppReleaseNotes(
     version: '1.0.0',
-    title: 'Settings and account polish',
+    title: context.tr('settings_and_account_polish'),
     highlights: [
       'Subscription details are cleaner and match the current Premium offer more closely.',
       'Items translation now supports manual source-language selection when auto-detect is off.',
@@ -28,7 +29,7 @@ AppReleaseNotes releaseNotesForVersion(String version) {
   return _releaseNotesByVersion[normalized] ??
       AppReleaseNotes(
         version: normalized.isEmpty ? 'Current version' : normalized,
-        title: 'Current release',
+        title: context.tr('current_release'),
         highlights: const [
           'This build includes the latest account, settings, and display updates for AI Expense Tracker.',
         ],

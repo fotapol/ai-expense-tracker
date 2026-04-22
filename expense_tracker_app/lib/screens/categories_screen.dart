@@ -176,7 +176,7 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
     final name = _nameController.text.trim();
     if (name.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Please enter a category name.')),
+        const SnackBar(content: Text(context.tr('please_enter_a_category_name'))),
       );
       return;
     }
@@ -647,7 +647,7 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
                             color: Theme.of(context).colorScheme.onPrimary,
                           ),
                         )
-                      : const Text('Create Category'),
+                      : const Text(context.tr('create_category')),
                 ),
               ),
               const SizedBox(width: 10),

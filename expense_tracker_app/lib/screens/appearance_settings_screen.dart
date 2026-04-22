@@ -5,6 +5,7 @@ import '../core/redesign_system.dart';
 import '../core/theme_provider.dart';
 import '../main.dart';
 import 'settings_detail_scaffold.dart';
+import '../l10n/app_localizations.dart';
 
 class AppearanceSettingsScreen extends StatefulWidget {
   const AppearanceSettingsScreen({super.key});
@@ -16,10 +17,10 @@ class AppearanceSettingsScreen extends StatefulWidget {
 
 class _AppearanceSettingsScreenState extends State<AppearanceSettingsScreen> {
   static const List<_ScaleOption> _scaleOptions = <_ScaleOption>[
-    _ScaleOption(id: '60', label: '60%', subtitle: 'Extra compact text'),
-    _ScaleOption(id: '80', label: '80%', subtitle: 'Smaller interface'),
+    _ScaleOption(id: '60', label: '60%', subtitle: context.tr('extra_compact_text')),
+    _ScaleOption(id: '80', label: '80%', subtitle: context.tr('smaller_interface')),
     _ScaleOption(id: '100', label: '100%', subtitle: 'Default'),
-    _ScaleOption(id: '120', label: '120%', subtitle: 'Larger interface'),
+    _ScaleOption(id: '120', label: '120%', subtitle: context.tr('larger_interface')),
   ];
 
   Future<void> _selectThemeMode(ThemeMode mode) async {
@@ -77,7 +78,7 @@ class _AppearanceSettingsScreenState extends State<AppearanceSettingsScreen> {
           _ThemeModeChoice(
             icon: AppIcons.sun,
             title: 'Light',
-            subtitle: 'Always use the light interface.',
+            subtitle: context.tr('always_use_the_light_interface'),
             selected: themeProvider.themeMode == ThemeMode.light,
             onTap: () => _selectThemeMode(ThemeMode.light),
           ),
@@ -85,7 +86,7 @@ class _AppearanceSettingsScreenState extends State<AppearanceSettingsScreen> {
           _ThemeModeChoice(
             icon: AppIcons.moon,
             title: 'Dark',
-            subtitle: 'Always use the dark interface.',
+            subtitle: context.tr('always_use_the_dark_interface'),
             selected: themeProvider.themeMode == ThemeMode.dark,
             onTap: () => _selectThemeMode(ThemeMode.dark),
           ),
@@ -93,7 +94,7 @@ class _AppearanceSettingsScreenState extends State<AppearanceSettingsScreen> {
           _ThemeModeChoice(
             icon: AppIcons.auto,
             title: 'Auto',
-            subtitle: 'Follow your device theme setting.',
+            subtitle: context.tr('follow_your_device_theme_setting'),
             selected: themeProvider.themeMode == ThemeMode.system,
             onTap: () => _selectThemeMode(ThemeMode.system),
           ),
@@ -168,7 +169,7 @@ class _AppearanceSettingsScreenState extends State<AppearanceSettingsScreen> {
           ),
           const SizedBox(height: 14),
           SettingsChoiceRow(
-            title: 'Raw colors',
+            title: context.tr('raw_colors'),
             subtitle:
                 'Default. Preserve each category and label saved color across the app.',
             selected: themeProvider.labelColorMode == AppLabelColorMode.raw,
@@ -178,7 +179,7 @@ class _AppearanceSettingsScreenState extends State<AppearanceSettingsScreen> {
           ),
           const SizedBox(height: 8),
           SettingsChoiceRow(
-            title: 'Accent-aware colors',
+            title: context.tr('accentaware_colors'),
             subtitle:
                 'Map categories and labels into the active theme while keeping each item stable.',
             selected: themeProvider.labelColorMode == AppLabelColorMode.themed,

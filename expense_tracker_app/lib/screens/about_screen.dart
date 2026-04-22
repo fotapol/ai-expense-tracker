@@ -6,6 +6,7 @@ import '../core/app_env.dart';
 import '../core/app_release_notes.dart';
 import '../core/redesign_system.dart';
 import 'settings_detail_scaffold.dart';
+import '../l10n/app_localizations.dart';
 
 class AboutScreen extends StatefulWidget {
   const AboutScreen({super.key});
@@ -53,7 +54,7 @@ class _AboutScreenState extends State<AboutScreen> {
     if (!mounted || opened) return;
     ScaffoldMessenger.of(
       context,
-    ).showSnackBar(const SnackBar(content: Text('Could not open that link.')));
+    ).showSnackBar(const SnackBar(content: Text(context.tr('could_not_open_that_link'))));
   }
 
   Future<void> _openSupportEmail() async {
@@ -268,7 +269,7 @@ class _AboutScreenState extends State<AboutScreen> {
                       endIndent: 14,
                     ),
                     _buildLinkRow(
-                      title: 'Privacy policy',
+                      title: context.tr('privacy_policy'),
                       subtitle: AppEnv.privacyUrl,
                       onTap: () => _openUrl(AppEnv.privacyUrl),
                     ),
@@ -279,7 +280,7 @@ class _AboutScreenState extends State<AboutScreen> {
                       endIndent: 14,
                     ),
                     _buildLinkRow(
-                      title: 'Terms of service',
+                      title: context.tr('terms_of_service'),
                       subtitle: AppEnv.termsUrl,
                       onTap: () => _openUrl(AppEnv.termsUrl),
                     ),
@@ -290,7 +291,7 @@ class _AboutScreenState extends State<AboutScreen> {
                       endIndent: 14,
                     ),
                     _buildLinkRow(
-                      title: 'Email support',
+                      title: context.tr('email_support'),
                       subtitle: AppEnv.supportEmail,
                       onTap: _openSupportEmail,
                     ),

@@ -395,7 +395,7 @@ class _BillRemindersScreenState extends State<BillRemindersScreen> {
         builder: (dialogContext) => ShellStyles.clampOverlayScale(
           dialogContext,
           AlertDialog(
-            title: const Text('Delete reminder'),
+            title: const Text(context.tr('delete_reminder')),
             content: Text(
               'Delete "${reminder.name}"?',
               style: TextStyle(
@@ -428,7 +428,7 @@ class _BillRemindersScreenState extends State<BillRemindersScreen> {
       builder: (dialogContext) => ShellStyles.clampOverlayScale(
         dialogContext,
         AlertDialog(
-          title: const Text('Remove reminder'),
+          title: const Text(context.tr('remove_reminder')),
           content: Text(
             'Choose whether to remove only the next due reminder or the whole recurring series.',
             style: TextStyle(
@@ -447,7 +447,7 @@ class _BillRemindersScreenState extends State<BillRemindersScreen> {
                 _ReminderDeleteAction.skipOccurrence,
               ),
               style: TextButton.styleFrom(foregroundColor: ShellColors.softRed),
-              child: const Text('Remove this reminder'),
+              child: const Text(context.tr('remove_this_reminder')),
             ),
             FilledButton(
               onPressed: () => Navigator.pop(
@@ -458,7 +458,7 @@ class _BillRemindersScreenState extends State<BillRemindersScreen> {
                 backgroundColor: ShellColors.softRed,
                 foregroundColor: Colors.white,
               ),
-              child: const Text('Remove all in series'),
+              child: const Text(context.tr('remove_all_in_series')),
             ),
           ],
         ),
