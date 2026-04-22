@@ -11,82 +11,82 @@ class PrivacyPolicyScreen extends StatelessWidget {
     _PolicySection(
       title: context.tr('1_information_we_collect'),
       body:
-          'We collect information that you provide directly to us, including:',
+          context.tr('privacy_collect_body'),
       bullets: [
-        'Account information (name, email, password)',
-        'Receipt images and scanned data',
-        'Expense tracking and categorization data',
-        'Payment and subscription information',
-        'Device information and usage analytics',
+        context.tr('privacy_collect_bullet_1'),
+        context.tr('privacy_collect_bullet_2'),
+        context.tr('privacy_collect_bullet_3'),
+        context.tr('privacy_collect_bullet_4'),
+        context.tr('privacy_collect_bullet_5'),
       ],
     ),
     _PolicySection(
       title: context.tr('2_how_we_use_your_information'),
-      body: 'We use the information we collect to:',
+      body: context.tr('privacy_use_body'),
       bullets: [
-        'Provide, maintain, and improve our services',
-        'Process your receipts and categorize expenses',
-        'Generate AI-powered insights and analytics',
-        'Send you updates and promotional materials (with consent)',
-        'Detect and prevent fraud and security issues',
+        context.tr('privacy_use_bullet_1'),
+        context.tr('privacy_use_bullet_2'),
+        context.tr('privacy_use_bullet_3'),
+        context.tr('privacy_use_bullet_4'),
+        context.tr('privacy_use_bullet_5'),
       ],
     ),
     _PolicySection(
       title: context.tr('3_data_security'),
       body:
-          'We implement industry-standard security measures to protect your data:',
+          context.tr('privacy_security_body'),
       bullets: [
-        'End-to-end encryption for all data transmission',
-        'Secure cloud storage with regular backups',
-        'Two-factor authentication support',
-        'Regular security audits and updates',
-        'Limited employee access to personal data',
+        context.tr('privacy_security_bullet_1'),
+        context.tr('privacy_security_bullet_2'),
+        context.tr('privacy_security_bullet_3'),
+        context.tr('privacy_security_bullet_4'),
+        context.tr('privacy_security_bullet_5'),
       ],
     ),
     _PolicySection(
       title: context.tr('4_data_sharing'),
       body:
-          'We do not sell your personal information. We may share your data only:',
+          context.tr('privacy_sharing_body'),
       bullets: [
-        'With your consent',
-        'To comply with legal obligations',
-        'With service providers who assist our operations',
-        'In case of business transfers or mergers',
+        context.tr('privacy_sharing_bullet_1'),
+        context.tr('privacy_sharing_bullet_2'),
+        context.tr('privacy_sharing_bullet_3'),
+        context.tr('privacy_sharing_bullet_4'),
       ],
     ),
     _PolicySection(
       title: context.tr('5_your_rights'),
-      body: 'You have the right to:',
+      body: context.tr('privacy_rights_body'),
       bullets: [
-        'Access and download your data',
-        'Correct inaccurate information',
-        'Delete your account and data',
-        'Opt out of marketing communications',
-        'Withdraw consent for data processing',
+        context.tr('privacy_rights_bullet_1'),
+        context.tr('privacy_rights_bullet_2'),
+        context.tr('privacy_rights_bullet_3'),
+        context.tr('privacy_rights_bullet_4'),
+        context.tr('privacy_rights_bullet_5'),
       ],
     ),
     _PolicySection(
       title: context.tr('6_cookies_and_tracking'),
       body:
-          'We use cookies and similar technologies to improve your experience, analyze usage, and personalize content. You can control cookie preferences through your device settings.',
+          context.tr('privacy_cookies_body'),
       bullets: [],
     ),
     _PolicySection(
-      title: context.tr('7_children')s Privacy',
+      title: context.tr('privacy_children_title'),
       body:
-          'Our service is not intended for users under 18 years of age. We do not knowingly collect personal information from children.',
+          context.tr('privacy_children_body'),
       bullets: [],
     ),
     _PolicySection(
       title: context.tr('8_changes_to_this_policy'),
       body:
-          'We may update this Privacy Policy from time to time. We will notify you of any significant changes via email or through the app.',
+          context.tr('privacy_changes_body'),
       bullets: [],
     ),
     _PolicySection(
       title: context.tr('9_contact_us'),
       body:
-          'If you have questions about this Privacy Policy, please contact us at:',
+          context.tr('privacy_contact_body'),
       bullets: ['privacy@expensetracker.com'],
     ),
   ];
@@ -103,7 +103,7 @@ class PrivacyPolicyScreen extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
-                'Last updated: March 18, 2026',
+                context.tr('privacy_last_updated'),
                 style: TextStyle(
                   color: ShellStyles.textMuted(context),
                   fontSize: 12.5,
@@ -139,7 +139,7 @@ class PrivacyPolicyScreen extends StatelessWidget {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            'Your Privacy Matters',
+                            context.tr('privacy_hero_title'),
                             style: TextStyle(
                               color: ShellStyles.heroTextPrimary(context),
                               fontSize: 18,
@@ -148,7 +148,7 @@ class PrivacyPolicyScreen extends StatelessWidget {
                           ),
                           SizedBox(height: 6),
                           Text(
-                            'We are committed to protecting your personal information and your right to privacy. This Privacy Policy explains how we collect, use, and protect your data.',
+                            context.tr('privacy_intro'),
                             style: TextStyle(
                               color: ShellStyles.heroTextSecondary(context),
                               fontSize: 12.5,

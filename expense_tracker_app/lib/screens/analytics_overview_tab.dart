@@ -111,7 +111,7 @@ class _AnalyticsOverviewTabState extends State<AnalyticsOverviewTab> {
         _error = friendlyLaunchErrorMessage(
           error,
           fallback:
-              'Overview insights are unavailable right now. Please try again.',
+              context.tr('analytics_error_message'),
         );
         _isLoading = false;
       });
@@ -264,7 +264,7 @@ class _AnalyticsOverviewTabState extends State<AnalyticsOverviewTab> {
               icon: Icons.insights_outlined,
               title: context.tr('no_overview_yet'),
               message:
-                  'Scan receipts to track totals, compare periods, and surface your top merchants here.',
+                  context.tr('analytics_empty_overview_message'),
             )
           else ...[
             _buildSummaryCard(
@@ -525,14 +525,14 @@ class _AnalyticsOverviewTabState extends State<AnalyticsOverviewTab> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const AnalyticsSectionHeader(
+          AnalyticsSectionHeader(
             title: context.tr('top_merchants'),
             subtitle: context.tr('where_the_most_spending_happened_in_this'),
           ),
           const SizedBox(height: 14),
           if (merchants.isEmpty)
             Text(
-              'Merchant insights will appear after more receipts are scanned.',
+              context.tr('analytics_empty_merchants_message'),
               style: TextStyle(
                 color: ShellStyles.textMuted(context),
                 fontSize: 13,
@@ -563,14 +563,14 @@ class _AnalyticsOverviewTabState extends State<AnalyticsOverviewTab> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const AnalyticsSectionHeader(
+          AnalyticsSectionHeader(
             title: context.tr('top_categories'),
             subtitle: context.tr('the_biggest_spending_groups_in_this_peri'),
           ),
           const SizedBox(height: 14),
           if (categories.isEmpty)
             Text(
-              'Category highlights will appear after more spending is recorded.',
+              context.tr('analytics_empty_categories_message'),
               style: TextStyle(
                 color: ShellStyles.textMuted(context),
                 fontSize: 13,
@@ -763,13 +763,13 @@ class _AnalyticsOverviewTabState extends State<AnalyticsOverviewTab> {
     required double? changePercentage,
   }) {
     if (previousTotal == null) {
-      return const _OverviewComparisonCopy(
+      return _OverviewComparisonCopy(
         icon: Icons.timeline_outlined,
         title: context.tr('previous_comparison_is_unavailable_for_t'),
       );
     }
     if (previousTotal <= 0) {
-      return const _OverviewComparisonCopy(
+      return _OverviewComparisonCopy(
         icon: Icons.remove_circle_outline,
         title: context.tr('no_spend_was_recorded_in_the_matching_pr'),
       );
@@ -788,7 +788,7 @@ class _AnalyticsOverviewTabState extends State<AnalyticsOverviewTab> {
             : 'analytics_change_less',
         params: {'percent': changePercentage.abs().round().toString()},
       ),
-      supporting: 'Compared with the matching previous period.',
+      supporting: context.tr('analytics_comparison_subtitle'),
       color: changePercentage > 0 ? ShellColors.softRed : ShellColors.softGreen,
     );
   }

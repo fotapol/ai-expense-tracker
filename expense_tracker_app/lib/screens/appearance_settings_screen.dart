@@ -16,7 +16,7 @@ class AppearanceSettingsScreen extends StatefulWidget {
 }
 
 class _AppearanceSettingsScreenState extends State<AppearanceSettingsScreen> {
-  static const List<_ScaleOption> _scaleOptions = <_ScaleOption>[
+  static List<_ScaleOption> _scaleOptions(BuildContext context) => <_ScaleOption>[
     _ScaleOption(id: '60', label: '60%', subtitle: context.tr('extra_compact_text')),
     _ScaleOption(id: '80', label: '80%', subtitle: context.tr('smaller_interface')),
     _ScaleOption(id: '100', label: '100%', subtitle: 'Default'),
@@ -288,7 +288,7 @@ class _AppearanceSettingsScreenState extends State<AppearanceSettingsScreen> {
               labelText: 'Scale',
               isDense: true,
             ),
-            items: _scaleOptions.map((option) {
+            items: _scaleOptions(context).map((option) {
               return DropdownMenuItem<String>(
                 value: option.id,
                 child: Text('${option.label} - ${option.subtitle}'),
@@ -343,7 +343,7 @@ class _AppearanceSettingsScreenState extends State<AppearanceSettingsScreen> {
   }
 
   String _scaleSubtitleFor(String id) {
-    for (final option in _scaleOptions) {
+    for (final option in _scaleOptions(context)) {
       if (option.id == id) {
         return '${option.label} is active right now.';
       }

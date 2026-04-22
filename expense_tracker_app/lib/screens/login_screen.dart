@@ -32,7 +32,7 @@ class _LoginScreenState extends State<LoginScreen> {
   String _friendlyLoginError(Object error) {
     return friendlyLaunchErrorMessage(
       error,
-      fallback: 'We could not sign you in right now. Please try again.',
+      fallback: context.tr('login_error_fallback'),
     );
   }
 
@@ -180,7 +180,7 @@ class _BrandLockup extends StatelessWidget {
         ConstrainedBox(
           constraints: const BoxConstraints(maxWidth: 270),
           child: Text(
-            'AI-powered expense tracking. Scan receipts and gain insights.',
+            context.tr('login_subtitle'),
             textAlign: TextAlign.center,
             style: TextStyle(
               color: ShellStyles.textSecondary(context),
@@ -304,11 +304,11 @@ class _SignInCard extends StatelessWidget {
             const SizedBox(height: 12),
             _GoogleSignInButton(isLoading: isLoading, onPressed: onSignIn),
             const SizedBox(height: 18),
-            const _LoginBenefit(text: 'Scan and digitize receipts instantly'),
+            const _LoginBenefit(text: context.tr('login_benefit_1')),
             const _LoginBenefit(
-              text: 'Track spending with AI-powered insights',
+              text: context.tr('login_benefit_2'),
             ),
-            const _LoginBenefit(text: 'Your data is encrypted and secure'),
+            const _LoginBenefit(text: context.tr('login_benefit_3')),
           ],
         ),
       ),
@@ -481,7 +481,7 @@ class _LegalFooter extends StatelessWidget {
         crossAxisAlignment: WrapCrossAlignment.center,
         children: [
           Text(
-            'By signing in, you agree to our ',
+            context.tr('login_legal_prefix'),
             textAlign: TextAlign.center,
             style: TextStyle(color: muted, fontSize: 12.5, height: 1.35),
           ),
@@ -491,7 +491,7 @@ class _LegalFooter extends StatelessWidget {
             onTap: onOpenTerms,
           ),
           Text(
-            ' and ',
+            context.tr('login_legal_and'),
             style: TextStyle(color: muted, fontSize: 12.5, height: 1.35),
           ),
           _LegalLink(

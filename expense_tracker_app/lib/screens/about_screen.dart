@@ -36,15 +36,15 @@ class _AboutScreenState extends State<AboutScreen> {
     } catch (_) {
       if (!mounted) return;
       setState(() {
-        _metadataError = 'Version details are unavailable on this device.';
+        _metadataError = context.tr('about_version_error');
       });
     }
   }
 
   String get _versionLabel {
     final packageInfo = _packageInfo;
-    if (packageInfo == null) return 'Loading version...';
-    return 'Version ${packageInfo.version}';
+    if (packageInfo == null) return context.tr('about_loading_version');
+    return context.tr('about_version_format', params: {'version': packageInfo.version});
   }
 
   Future<void> _openUrl(String rawUrl) async {
@@ -221,7 +221,7 @@ class _AboutScreenState extends State<AboutScreen> {
   @override
   Widget build(BuildContext context) {
     final packageInfo = _packageInfo;
-    final releaseNotes = releaseNotesForVersion(packageInfo?.version ?? '');
+    final releaseNotes = releaseNotesForVersion(context, packageInfo?.version ?? '');
 
     return SettingsDetailScaffold(
       title: 'About',
@@ -234,11 +234,11 @@ class _AboutScreenState extends State<AboutScreen> {
             children: <Widget>[
               _buildHero(),
               const SizedBox(height: 16),
-              ShellStyles.sectionLabel(context, "What's new"),
+              ShellStyles.sectionLabel(context, context.tr('about_whats_new_section')),
               const SizedBox(height: 8),
               _buildWhatIsNewCard(releaseNotes),
               const SizedBox(height: 16),
-              ShellStyles.sectionLabel(context, 'About the app'),
+              ShellStyles.sectionLabel(context, context.tr('about_app_section')),
               const SizedBox(height: 8),
               SettingsDetailCard(
                 child: Text(

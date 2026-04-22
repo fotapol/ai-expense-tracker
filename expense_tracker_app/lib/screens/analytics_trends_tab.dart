@@ -121,7 +121,7 @@ class _AnalyticsTrendsTabState extends State<AnalyticsTrendsTab> {
         _error = friendlyLaunchErrorMessage(
           error,
           fallback:
-              'Trend insights are unavailable right now. Please try again.',
+              context.tr('analytics_trends_load_error'),
         );
         _isLoading = false;
       });
@@ -225,7 +225,7 @@ class _AnalyticsTrendsTabState extends State<AnalyticsTrendsTab> {
               icon: Icons.show_chart,
               title: context.tr('no_trend_data_yet'),
               message:
-                  'Scan receipts over time to see how spending moves across days, weeks, or months.',
+                  context.tr('analytics_trends_empty_subtitle'),
             )
           else ...[
             _buildMetricsRow(
@@ -367,7 +367,7 @@ class _AnalyticsTrendsTabState extends State<AnalyticsTrendsTab> {
             children: [
               Expanded(
                 child: Text(
-                  'Spending Trend',
+                  context.tr('analytics_trends_title'),
                   style: TextStyle(
                     color: ShellStyles.textPrimary(context),
                     fontSize: 18,
@@ -389,7 +389,7 @@ class _AnalyticsTrendsTabState extends State<AnalyticsTrendsTab> {
                 border: Border.all(color: ShellStyles.border(context)),
               ),
               child: Text(
-                'Not enough activity yet to draw a spending trend for this range.',
+                context.tr('analytics_trends_empty_message'),
                 textAlign: TextAlign.center,
                 style: TextStyle(
                   color: ShellStyles.textMuted(context),
@@ -455,8 +455,8 @@ class _AnalyticsTrendsTabState extends State<AnalyticsTrendsTab> {
         children: [
           Text(
             widget.filters.period == PeriodFilter.last7Days
-                ? 'Daily Breakdown'
-                : 'Period Breakdown',
+                ? context.tr('analytics_trends_daily_breakdown')
+                : context.tr('analytics_trends_period_breakdown'),
             style: TextStyle(
               color: ShellStyles.textPrimary(context),
               fontSize: 18,
@@ -474,7 +474,7 @@ class _AnalyticsTrendsTabState extends State<AnalyticsTrendsTab> {
                 border: Border.all(color: ShellStyles.border(context)),
               ),
               child: Text(
-                'There is not enough activity yet to break this period down.',
+                context.tr('analytics_trends_no_breakdown'),
                 textAlign: TextAlign.center,
                 style: TextStyle(
                   color: ShellStyles.textMuted(context),
@@ -977,7 +977,7 @@ class _AnalyticsTrendsTabState extends State<AnalyticsTrendsTab> {
 
   String _trendCardPeriodLabel(BuildContext context) {
     if (widget.filters.period == PeriodFilter.last7Days) {
-      return 'This Week';
+      return context.tr('analytics_trends_this_week');
     }
     return context.tr(PeriodFilter.localizationKey(widget.filters.period));
   }

@@ -1,4 +1,6 @@
+import 'package:flutter/widgets.dart';
 import '../l10n/app_localizations.dart';
+
 class AppReleaseNotes {
   const AppReleaseNotes({
     required this.version,
@@ -11,11 +13,11 @@ class AppReleaseNotes {
   final List<String> highlights;
 }
 
-const Map<String, AppReleaseNotes> _releaseNotesByVersion = {
+Map<String, AppReleaseNotes> _releaseNotesByVersion(BuildContext context) => {
   '1.0.0': AppReleaseNotes(
     version: '1.0.0',
     title: context.tr('settings_and_account_polish'),
-    highlights: [
+    highlights: const [
       'Subscription details are cleaner and match the current Premium offer more closely.',
       'Items translation now supports manual source-language selection when auto-detect is off.',
       'Currency display settings now change symbol position and decimal visibility across supported screens.',
@@ -24,9 +26,9 @@ const Map<String, AppReleaseNotes> _releaseNotesByVersion = {
   ),
 };
 
-AppReleaseNotes releaseNotesForVersion(String version) {
+AppReleaseNotes releaseNotesForVersion(BuildContext context, String version) {
   final normalized = version.trim();
-  return _releaseNotesByVersion[normalized] ??
+  return _releaseNotesByVersion(context)[normalized] ??
       AppReleaseNotes(
         version: normalized.isEmpty ? 'Current version' : normalized,
         title: context.tr('current_release'),
@@ -37,4 +39,4 @@ AppReleaseNotes releaseNotesForVersion(String version) {
 }
 
 const String appAboutIdentityCopy =
-    'AI Expense Tracker helps you scan receipts, review spending, manage categories and labels, and stay on top of budgets and bill reminders in one place.';
+    context.tr('app_about_identity_copy');
