@@ -604,7 +604,7 @@ class _ReceiptItemEditScreenState extends State<ReceiptItemEditScreen> {
     final rawDiscount = _toDouble(_discountController.text) ?? 0.0;
     if (_discountEnabled && rawDiscount < 0) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text(context.tr('discount_must_be_zero_or_higher'))),
+        SnackBar(content: Text(context.tr('discount_must_be_zero_or_higher'))),
       );
       return;
     }
@@ -612,7 +612,7 @@ class _ReceiptItemEditScreenState extends State<ReceiptItemEditScreen> {
         _discountMode == _discountModePercent &&
         rawDiscount >= 100) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
+        SnackBar(
           content: Text(context.tr('discount_percentage_must_stay_under_100')),
         ),
       );

@@ -7,7 +7,7 @@ import 'settings_detail_scaffold.dart';
 class TermsOfServiceScreen extends StatelessWidget {
   const TermsOfServiceScreen({super.key});
 
-  static const List<_TermsSection> _sections = [
+  static List<_TermsSection> _sections(BuildContext context) => [
     _TermsSection(
       title: context.tr('1_acceptance_of_terms'),
       paragraphs: [
@@ -175,12 +175,12 @@ class TermsOfServiceScreen extends StatelessWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    for (var index = 0; index < _sections.length; index++) ...[
+                    for (var index = 0; index < _sections(context).length; index++) ...[
                       Padding(
                         padding: const EdgeInsets.all(16),
-                        child: _TermsBlock(section: _sections[index]),
+                        child: _TermsBlock(section: _sections(context)[index]),
                       ),
-                      if (index != _sections.length - 1)
+                      if (index != _sections(context).length - 1)
                         Divider(height: 1, color: ShellStyles.border(context)),
                     ],
                   ],

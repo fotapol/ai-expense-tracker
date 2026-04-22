@@ -54,7 +54,7 @@ class _AboutScreenState extends State<AboutScreen> {
     if (!mounted || opened) return;
     ScaffoldMessenger.of(
       context,
-    ).showSnackBar(const SnackBar(content: Text(context.tr('could_not_open_that_link'))));
+    ).showSnackBar(SnackBar(content: Text(context.tr('could_not_open_that_link'))));
   }
 
   Future<void> _openSupportEmail() async {

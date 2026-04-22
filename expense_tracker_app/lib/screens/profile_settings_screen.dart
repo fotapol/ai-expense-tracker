@@ -389,7 +389,7 @@ class _ProfileSettingsScreenState extends State<ProfileSettingsScreen> {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          const _FieldLabel(label: context.tr('display_name')),
+                          _FieldLabel(label: context.tr('display_name')),
                           TextField(
                             controller: _nameController,
                             textCapitalization: TextCapitalization.words,
@@ -454,7 +454,7 @@ class _ProfileSettingsScreenState extends State<ProfileSettingsScreen> {
                                     strokeWidth: 2,
                                   ),
                                 )
-                              : const Text(context.tr('save_changes')),
+                              : Text(context.tr('save_changes')),
                         ),
                       ),
                     ],

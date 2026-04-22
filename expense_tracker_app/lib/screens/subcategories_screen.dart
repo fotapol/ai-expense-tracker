@@ -169,7 +169,7 @@ class _SubcategoriesScreenState extends State<SubcategoriesScreen> {
     final name = _nameController.text.trim();
     if (name.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text(context.tr('please_enter_a_subcategory_name'))),
+        SnackBar(content: Text(context.tr('please_enter_a_subcategory_name'))),
       );
       return;
     }
@@ -581,7 +581,7 @@ class _SubcategoriesScreenState extends State<SubcategoriesScreen> {
                             color: Theme.of(context).colorScheme.onPrimary,
                           ),
                         )
-                      : const Text(context.tr('create_subcategory')),
+                      : Text(context.tr('create_subcategory')),
                 ),
               ),
               const SizedBox(width: 10),

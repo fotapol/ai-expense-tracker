@@ -376,7 +376,7 @@ class _SubscriptionScreenState extends State<SubscriptionScreen> {
     );
     if (!RevenueCatService.isAvailable) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
+        SnackBar(
           content: Text(context.tr('revenuecat_is_not_configured_in_this_bui')),
           backgroundColor: Colors.redAccent,
         ),
@@ -1289,7 +1289,7 @@ class _SubscriptionScreenState extends State<SubscriptionScreen> {
             onPressed: _isDevActionLoading
                 ? null
                 : () => _applyDevAction('activate'),
-            child: const Text(context.tr('activate_pro')),
+            child: Text(context.tr('activate_pro')),
           ),
           FilledButton(
             onPressed: _isDevActionLoading

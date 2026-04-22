@@ -768,7 +768,7 @@ class _ReceiptUploadScreenState extends State<ReceiptUploadScreen> {
                 const SizedBox(height: 10),
                 TextButton(
                   onPressed: () => _clearFailure(keepSelection: true),
-                  child: const Text(context.tr('keep_this_image_and_try_later')),
+                  child: Text(context.tr('keep_this_image_and_try_later')),
                 ),
               ],
             ],
