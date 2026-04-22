@@ -59,18 +59,18 @@ class AppLocalizations {
       'common_error': 'Error',
       'common_error_with_message': 'Error: {message}',
       'common_yes': 'Yes',
-      'common_no': 'NO',
-      'common_filter': 'Filtre',
-      'common_clear_filters': 'Filter löschen',
-      'nav_home': 'Casa',
+      'common_no': 'No',
+      'common_filter': 'Filter',
+      'common_clear_filters': 'Clear filters',
+      'nav_home': 'Home',
       'nav_receipts': 'Receipts',
       'nav_scan_receipt': 'Scan Receipt',
       'nav_analytics': 'Analytics',
       'nav_profile': 'Profile',
-      'nav_tools': 'Werkzeuge',
-      'nav_settings': 'Einstellungen',
+      'nav_tools': 'Tools',
+      'nav_settings': 'Settings',
       'login_title': 'Login',
-      'login_welcome_title': 'Willkommen zurück',
+      'login_welcome_title': 'Welcome back',
       'login_welcome_description':
           'Track expenses your way, review receipts, and keep your spending history in one place.',
       'login_continue_google': 'Continue with Google',
@@ -81,7 +81,7 @@ class AppLocalizations {
       'login_footer_note':
           'By continuing, you will sign in with your Google account.',
       'settings_title': 'Settings',
-      'settings_subtitle': 'Verwalten Sie Ihre Präferenzen',
+      'settings_subtitle': 'Manage your preferences',
       'settings_currency': 'Currency',
       'settings_language': 'Language',
       'settings_items_language': 'Items translation language',
@@ -90,8 +90,8 @@ class AppLocalizations {
           'Manage categories & subcategories',
       'settings_labels': 'Labels',
       'settings_manage_labels': 'Manage labels',
-      'household_settings_title': 'Familienhaushalt',
-      'household_settings_subtitle': 'Teilen und verwalten Sie den Haushaltszugang',
+      'household_settings_title': 'Family household',
+      'household_settings_subtitle': 'Share and manage household access',
       'settings_notifications': 'Notifications',
       'settings_dark_mode': 'Dark Mode',
       'settings_signed_in_as': 'Signed in as',
@@ -102,238 +102,238 @@ class AppLocalizations {
       'settings_currency_update_failed': 'Failed to update currency: {error}',
       'settings_language_updated': 'Language updated to {language}',
       'settings_failed_load_profile': 'Failed to load profile: {error}',
-      'settings_account_section': 'Konto',
-      'settings_preferences_section': 'Präferenzen',
-      'settings_support_section': 'Unterstützung',
-      'settings_legal_section': 'Légal',
-      'settings_session_section': 'Sitzung',
-      'settings_subscription': 'Abonnement',
-      'settings_subscription_loading': 'Abonnementstatus wird geladen',
-      'settings_subscription_active_until': 'Aktiv bis {Datum}',
-      'settings_subscription_inactive': 'Kein aktiver Plan',
-      'settings_household': 'Haushalt',
-      'settings_profile': 'Profil',
-      'settings_security': 'Sicherheit',
-      'settings_security_subtitle': 'Passwort- und Kontosicherheit',
-      'settings_appearance': 'Aussehen',
-      'settings_appearance_subtitle': 'Wählen Sie zwischen Hell- und Dunkelmodus',
-      'settings_theme': 'Thema',
-      'settings_theme_light': 'Licht',
-      'settings_theme_dark': 'Dunkel',
-      'settings_theme_light_subtitle': 'Klassische Lichtoptik',
-      'settings_theme_dark_subtitle': 'Schont die Augen',
-      'settings_theme_auto': 'Авто',
-      'settings_theme_auto_subtitle': 'Entspricht den Systemeinstellungen',
-      'settings_accent_color': 'Akzentfarbe',
-      'settings_accent_neutral': 'Neutre',
-      'settings_accent_blue': 'Blau',
-      'settings_accent_violet': 'Lila',
-      'settings_accent_green': 'Grün',
-      'settings_accent_amber': 'Bernstein',
-      'settings_accent_red': 'Rot',
-      'settings_font_size': 'Schriftgröße',
-      'settings_font_small': 'Klein',
-      'settings_font_medium': 'Moyen',
-      'settings_font_large': 'Groß',
-      'settings_display_options': 'Anzeigeoptionen',
-      'settings_compact_mode': 'Kompaktmodus',
-      'settings_compact_mode_subtitle': 'Zeigen Sie mehr Inhalte auf dem Bildschirm an',
-      'settings_animations': 'Animationen',
-      'settings_animations_subtitle': 'Ermöglichen Sie reibungslose Übergänge',
-      'settings_notifications_subtitle': 'Warnungen und Erinnerungen',
-      'settings_notification_channels': 'Kanäle',
-      'settings_push_notifications': 'Push-Benachrichtigungen',
-      'settings_push_notifications_subtitle': 'Benachrichtigungen auf Ihrem Gerät',
-      'settings_email_notifications': 'E-Mail-Benachrichtigungen',
-      'settings_email_notifications_subtitle': 'Updates per E-Mail',
-      'settings_notification_activity': 'Aktivität',
-      'settings_spending_alerts': 'Ausgabenwarnungen',
-      'settings_spending_alerts_subtitle': 'Ungewöhnliche Ausgaben festgestellt',
-      'settings_budget_alerts': 'Budgetwarnungen',
-      'settings_budget_alerts_subtitle': 'Bei Annäherung an Budgetgrenzen',
-      'settings_bill_reminders': 'Rechnungserinnerungen',
+      'settings_account_section': 'Account',
+      'settings_preferences_section': 'Preferences',
+      'settings_support_section': 'Support',
+      'settings_legal_section': 'Legal',
+      'settings_session_section': 'Session',
+      'settings_subscription': 'Subscription',
+      'settings_subscription_loading': 'Loading subscription status',
+      'settings_subscription_active_until': 'Active until {date}',
+      'settings_subscription_inactive': 'No active plan',
+      'settings_household': 'Household',
+      'settings_profile': 'Profile',
+      'settings_security': 'Security',
+      'settings_security_subtitle': 'Password and account safety',
+      'settings_appearance': 'Appearance',
+      'settings_appearance_subtitle': 'Choose between light and dark mode',
+      'settings_theme': 'Theme',
+      'settings_theme_light': 'Light',
+      'settings_theme_dark': 'Dark',
+      'settings_theme_light_subtitle': 'Classic light appearance',
+      'settings_theme_dark_subtitle': 'Easy on the eyes',
+      'settings_theme_auto': 'Auto',
+      'settings_theme_auto_subtitle': 'Matches system settings',
+      'settings_accent_color': 'Accent color',
+      'settings_accent_neutral': 'Neutral',
+      'settings_accent_blue': 'Blue',
+      'settings_accent_violet': 'Purple',
+      'settings_accent_green': 'Green',
+      'settings_accent_amber': 'Amber',
+      'settings_accent_red': 'Red',
+      'settings_font_size': 'Font size',
+      'settings_font_small': 'Small',
+      'settings_font_medium': 'Medium',
+      'settings_font_large': 'Large',
+      'settings_display_options': 'Display options',
+      'settings_compact_mode': 'Compact Mode',
+      'settings_compact_mode_subtitle': 'Show more content on screen',
+      'settings_animations': 'Animations',
+      'settings_animations_subtitle': 'Enable smooth transitions',
+      'settings_notifications_subtitle': 'Alerts and reminders',
+      'settings_notification_channels': 'Channels',
+      'settings_push_notifications': 'Push Notifications',
+      'settings_push_notifications_subtitle': 'Alerts on your device',
+      'settings_email_notifications': 'Email Notifications',
+      'settings_email_notifications_subtitle': 'Updates via email',
+      'settings_notification_activity': 'Activity',
+      'settings_spending_alerts': 'Spending Alerts',
+      'settings_spending_alerts_subtitle': 'Unusual spending detected',
+      'settings_budget_alerts': 'Budget Alerts',
+      'settings_budget_alerts_subtitle': 'When approaching budget limits',
+      'settings_bill_reminders': 'Bill Reminders',
       'settings_bill_reminders_subtitle':
           'Monthly reminders for upcoming payments',
-      'settings_receipt_reminders': 'Empfangserinnerungen',
-      'settings_receipt_reminders_subtitle': 'Erinnern Sie daran, Belege zu scannen',
-      'settings_notification_summaries': 'Zusammenfassungen',
-      'settings_weekly_summary': 'Wöchentliche Zusammenfassung',
-      'settings_weekly_summary_subtitle': 'Jeden Montag um 9 Uhr',
-      'settings_ai_insights': 'KI-Einblicke',
-      'settings_ai_insights_subtitle': 'Personalisierte Ausgabentipps',
-      'settings_notification_marketing': 'Commercialisation',
-      'settings_promotions_updates': 'Werbeaktionen und Updates',
-      'settings_promotions_updates_subtitle': 'Neue Funktionen und Angebote',
-      'settings_profile_saved': 'Profil aktualisiert.',
-      'settings_profile_photo': 'Profilfoto',
-      'settings_profile_photo_subtitle': 'JPG, PNG oder GIF. Maximal 5 MB',
-      'settings_personal_information': 'Persönliche Informationen',
-      'settings_full_name': 'Vollständiger Name',
-      'settings_email': 'E-Mail',
-      'settings_account_details': 'Kontodaten',
-      'settings_member_since': 'Mitglied seit',
-      'settings_account_type': 'Kontotyp',
-      'settings_account_type_family': 'Familie',
-      'settings_account_type_pro': 'Profi',
-      'settings_account_type_free': 'Frei',
-      'settings_receipt_usage_this_month': 'Belegverwendung in diesem Monat',
-      'settings_language_search': 'Sprachen suchen...',
-      'settings_currency_search': 'Währungen suchen...',
-      'settings_items_translation_title': 'Artikelübersetzung',
-      'settings_beta_feature': 'Beta-Funktion',
+      'settings_receipt_reminders': 'Receipt Reminders',
+      'settings_receipt_reminders_subtitle': 'Remind to scan receipts',
+      'settings_notification_summaries': 'Summaries',
+      'settings_weekly_summary': 'Weekly Summary',
+      'settings_weekly_summary_subtitle': 'Every Monday at 9 AM',
+      'settings_ai_insights': 'AI Insights',
+      'settings_ai_insights_subtitle': 'Personalized spending tips',
+      'settings_notification_marketing': 'Marketing',
+      'settings_promotions_updates': 'Promotions & Updates',
+      'settings_promotions_updates_subtitle': 'New features and offers',
+      'settings_profile_saved': 'Profile updated.',
+      'settings_profile_photo': 'Profile Photo',
+      'settings_profile_photo_subtitle': 'JPG, PNG or GIF. Max 5MB',
+      'settings_personal_information': 'Personal information',
+      'settings_full_name': 'Full Name',
+      'settings_email': 'Email',
+      'settings_account_details': 'Account details',
+      'settings_member_since': 'Member Since',
+      'settings_account_type': 'Account Type',
+      'settings_account_type_family': 'Family',
+      'settings_account_type_pro': 'Pro',
+      'settings_account_type_free': 'Free',
+      'settings_receipt_usage_this_month': 'Receipt usage this month',
+      'settings_language_search': 'Search languages...',
+      'settings_currency_search': 'Search currencies...',
+      'settings_items_translation_title': 'Items Translation',
+      'settings_beta_feature': 'Beta Feature',
       'settings_items_translation_beta_hint':
           'This feature is in beta. Translation accuracy may vary.',
-      'settings_enable_translation': 'Übersetzung aktivieren',
+      'settings_enable_translation': 'Enable Translation',
       'settings_enable_translation_subtitle':
           'Automatically translate receipt items',
-      'settings_translate_to': 'Übersetzen nach',
-      'settings_options': 'Optionen',
-      'settings_auto_detect_source_language': 'Quellsprache automatisch erkennen',
+      'settings_translate_to': 'Translate to',
+      'settings_options': 'Options',
+      'settings_auto_detect_source_language': 'Auto-detect Source Language',
       'settings_auto_detect_source_language_subtitle':
           'Automatically detect original language',
-      'settings_example': 'Beispiel',
-      'settings_original_text': 'Оригінал',
-      'settings_translated_text': 'Übersetzt',
-      'settings_help_center': 'Hilfecenter',
-      'settings_feature_request': 'Funktionsanfrage',
-      'feature_request_subtitle': 'Teilen Sie Ihre Ideen mit uns',
-      'feature_request_new_idea': 'Neue Idee',
-      'feature_request_submit_title': 'Reichen Sie Ihre Idee ein',
-      'feature_request_title_label': 'Titel',
-      'feature_request_title_hint': 'Kurze Beschreibung Ihrer Idee...',
-      'feature_request_category_label': 'Kategorie',
-      'feature_request_description_label': 'Beschreibung',
+      'settings_example': 'Example',
+      'settings_original_text': 'Original',
+      'settings_translated_text': 'Translated',
+      'settings_help_center': 'Help Center',
+      'settings_feature_request': 'Feature Request',
+      'feature_request_subtitle': 'Share your ideas with us',
+      'feature_request_new_idea': 'New Idea',
+      'feature_request_submit_title': 'Submit Your Idea',
+      'feature_request_title_label': 'Title',
+      'feature_request_title_hint': 'Brief description of your idea...',
+      'feature_request_category_label': 'Category',
+      'feature_request_description_label': 'Description',
       'feature_request_description_hint':
           'Describe your feature request in detail...',
-      'feature_request_submit_action': 'Anfrage senden',
-      'feature_request_submit_success': 'Funktionsanfrage eingereicht.',
+      'feature_request_submit_action': 'Submit Request',
+      'feature_request_submit_success': 'Feature request submitted.',
       'feature_request_title_length_error':
           'Title must be between 3 and 120 characters.',
       'feature_request_description_length_error':
           'Description must be between 10 and 2000 characters.',
-      'feature_request_load_error_title': 'Funktionsanfragen konnten nicht geladen werden',
-      'feature_request_your_ideas': 'Ihre Ideen',
-      'feature_request_your_ideas_empty_title': 'Noch keine Ideen eingereicht',
+      'feature_request_load_error_title': 'Could not load feature requests',
+      'feature_request_your_ideas': 'Your Ideas',
+      'feature_request_your_ideas_empty_title': 'No ideas submitted yet',
       'feature_request_your_ideas_empty_subtitle':
           'Your submitted ideas will appear here while they wait for review or move into the public board.',
-      'feature_request_popular_requests': 'Beliebte Anfragen',
+      'feature_request_popular_requests': 'Popular Requests',
       'feature_request_popular_requests_empty_title':
           'No public feature requests yet',
       'feature_request_popular_requests_empty_subtitle':
           'Approved ideas will appear here once they are curated for the public board.',
-      'feature_request_group_pending': 'Ausstehend',
-      'feature_request_group_approved': 'Genehmigt',
-      'feature_request_group_rejected': 'Abgelehnt',
-      'feature_request_status_pending': 'Ausstehende Genehmigung',
-      'feature_request_status_under_review': 'Wird überprüft',
-      'feature_request_status_planned': 'Geplant',
-      'feature_request_status_in_progress': 'Im Gange',
-      'feature_request_status_completed': 'Vollendet',
-      'feature_request_status_rejected': 'Abgelehnt',
-      'feature_request_category_analytics_reports': 'Analysen und Berichte',
-      'feature_request_category_receipts_scanning': 'Quittungen und Scannen',
-      'feature_request_category_budgets_planning': 'Budgets und Planung',
-      'feature_request_category_household_sharing': 'Haushalt & Teilen',
-      'feature_request_category_design_accessibility': 'Design und Zugänglichkeit',
-      'feature_request_category_other': 'Andere',
-      'settings_privacy_policy': 'Datenschutzrichtlinie',
-      'settings_terms_of_service': 'Nutzungsbedingungen',
-      'settings_about': 'Um',
-      'settings_banner_active_title': 'Pro ist aktiv',
-      'settings_banner_upgrade_title': 'Upgrade auf Pro',
+      'feature_request_group_pending': 'Pending',
+      'feature_request_group_approved': 'Approved',
+      'feature_request_group_rejected': 'Rejected',
+      'feature_request_status_pending': 'Pending Approval',
+      'feature_request_status_under_review': 'Under Review',
+      'feature_request_status_planned': 'Planned',
+      'feature_request_status_in_progress': 'In Progress',
+      'feature_request_status_completed': 'Completed',
+      'feature_request_status_rejected': 'Rejected',
+      'feature_request_category_analytics_reports': 'Analytics & Reports',
+      'feature_request_category_receipts_scanning': 'Receipts & Scanning',
+      'feature_request_category_budgets_planning': 'Budgets & Planning',
+      'feature_request_category_household_sharing': 'Household & Sharing',
+      'feature_request_category_design_accessibility': 'Design & Accessibility',
+      'feature_request_category_other': 'Other',
+      'settings_privacy_policy': 'Privacy Policy',
+      'settings_terms_of_service': 'Terms of Service',
+      'settings_about': 'About',
+      'settings_banner_active_title': 'Pro is active',
+      'settings_banner_upgrade_title': 'Upgrade to Pro',
       'settings_banner_active_subtitle':
           'AI tools, unlimited receipts, and advanced analytics are active on your account.',
       'settings_banner_upgrade_subtitle':
           'Unlock AI insights, unlimited receipts, and advanced analytics.',
-      'settings_see_plan': 'Siehe Pläne',
-      'settings_manage_subscription': 'Abonnement verwalten',
-      'household_title': 'Haushalt',
-      'household_create_title': 'Haushalt erstellen',
-      'household_name_label': 'Haushaltsname',
-      'household_name_hint': 'z.B. Familie Smith',
-      'household_created_success': 'Haushalt erstellt.',
-      'household_edit_name_title': 'Bearbeiten Sie den Haushaltsnamen',
-      'household_updated_success': 'Haushalt aktualisiert.',
-      'household_empty_title': 'Noch kein Haushalt',
+      'settings_see_plan': 'See Plans',
+      'settings_manage_subscription': 'Manage Subscription',
+      'household_title': 'Household',
+      'household_create_title': 'Create household',
+      'household_name_label': 'Household name',
+      'household_name_hint': 'e.g. Smith Family',
+      'household_created_success': 'Household created.',
+      'household_edit_name_title': 'Edit household name',
+      'household_updated_success': 'Household updated.',
+      'household_empty_title': 'No household yet',
       'household_empty_subtitle':
           'Create a household to manage members and invite access.',
-      'household_create_cta': 'Haushalt erstellen',
+      'household_create_cta': 'Create household',
       'household_join_via_link_only':
           'Join is handled by opening an invite link directly.',
-      'household_role_label': 'Ihre Rolle: {role}',
-      'household_role_owner': 'Eigentümer',
-      'household_role_admin': 'Administrateur',
-      'household_role_member': 'Mitglied',
-      'household_you_badge': 'Du',
-      'household_members_title': 'Mitglieder',
-      'household_remove_member_title': 'Mitglied entfernen',
-      'household_remove_member_confirm': '{Name} aus diesem Haushalt entfernen?',
-      'household_member_removed': 'Mitglied entfernt.',
-      'household_leave_title': 'Verlassen Sie den Haushalt',
+      'household_role_label': 'Your role: {role}',
+      'household_role_owner': 'Owner',
+      'household_role_admin': 'Admin',
+      'household_role_member': 'Member',
+      'household_you_badge': 'You',
+      'household_members_title': 'Members',
+      'household_remove_member_title': 'Remove member',
+      'household_remove_member_confirm': 'Remove {name} from this household?',
+      'household_member_removed': 'Member removed.',
+      'household_leave_title': 'Leave household',
       'household_leave_confirm':
           'Leave this household and remove shared access from your account?',
-      'household_leave_action': 'Verlassen Sie den Haushalt',
-      'household_left_success': 'Sie haben den Haushalt verlassen.',
-      'household_delete_title': 'Familiengruppe entfernen',
+      'household_leave_action': 'Leave household',
+      'household_left_success': 'You left the household.',
+      'household_delete_title': 'Remove family group',
       'household_delete_confirm':
           'Remove this household for everyone? Shared transactions will be detached and invites will be revoked.',
-      'household_delete_action': 'Familiengruppe entfernen',
-      'household_deleted_success': 'Familiengruppe entfernt.',
-      'household_invites_title': 'Lädt ein',
-      'household_invite_add': 'Einladen',
-      'household_invites_empty': 'Noch keine Einladungen.',
-      'household_invite_create_title': 'Einladung erstellen',
-      'household_invite_email_label': 'E-Mail',
-      'household_invite_email_hint': 'nom@exemple.com',
-      'household_invite_send': 'Einladung senden',
-      'household_invite_created': 'Einladung erstellt.',
-      'household_invite_share_title': 'Einladungslink teilen',
-      'household_invite_copy_link': 'Link kopieren',
-      'household_invite_share_link': 'Link teilen',
-      'household_invite_link_copied': 'Einladungslink kopiert.',
-      'household_invite_revoke': 'Widerrufen',
-      'household_invite_revoke_title': 'Einladung widerrufen',
+      'household_delete_action': 'Remove family group',
+      'household_deleted_success': 'Family group removed.',
+      'household_invites_title': 'Invites',
+      'household_invite_add': 'Invite',
+      'household_invites_empty': 'No invites yet.',
+      'household_invite_create_title': 'Create invite',
+      'household_invite_email_label': 'Email',
+      'household_invite_email_hint': 'name@example.com',
+      'household_invite_send': 'Send invite',
+      'household_invite_created': 'Invite created.',
+      'household_invite_share_title': 'Share invite link',
+      'household_invite_copy_link': 'Copy link',
+      'household_invite_share_link': 'Share link',
+      'household_invite_link_copied': 'Invite link copied.',
+      'household_invite_revoke': 'Revoke',
+      'household_invite_revoke_title': 'Revoke invite',
       'household_invite_revoke_confirm':
           'This invite can no longer be accepted. Continue?',
-      'household_invite_revoked': 'Einladung widerrufen.',
-      'household_invite_expires_at': 'Läuft ab am: {Datum}',
-      'household_invite_state_pending': 'Ausstehend',
-      'household_invite_state_accepted': 'Akzeptiert',
-      'household_invite_state_revoked': 'Widerrufen',
-      'household_invite_state_expired': 'Abgelaufen',
-      'household_locked_title': 'Die Haushaltsverwaltung ist gesperrt',
+      'household_invite_revoked': 'Invite revoked.',
+      'household_invite_expires_at': 'Expires at: {date}',
+      'household_invite_state_pending': 'Pending',
+      'household_invite_state_accepted': 'Accepted',
+      'household_invite_state_revoked': 'Revoked',
+      'household_invite_state_expired': 'Expired',
+      'household_locked_title': 'Household management is locked',
       'household_locked_subtitle':
           'An active family plan is required for create/invite/remove actions.',
-      'household_family_plan_required': 'Familienplan erforderlich',
-      'household_member_count': '{count} Mitglieder',
-      'household_member_count_with_limit': '{count} von {limit} Mitgliedern',
-      'household_shared_expenses': 'Geteilte Ausgaben',
-      'household_shared_expenses_subtitle': 'Erlauben Sie allen Mitgliedern, Ausgaben hinzuzufügen',
-      'household_budget_notifications': 'Budgetbenachrichtigungen',
+      'household_family_plan_required': 'Family Plan Required',
+      'household_member_count': '{count} members',
+      'household_member_count_with_limit': '{count} of {limit} members',
+      'household_shared_expenses': 'Shared Expenses',
+      'household_shared_expenses_subtitle': 'Allow all members to add expenses',
+      'household_budget_notifications': 'Budget Notifications',
       'household_budget_notifications_subtitle':
           'Notify when household budget limit is reached',
-      'household_upgrade_cta': 'Pläne ansehen',
-      'billing_period_title': 'Abrechnungszeitraum',
-      'billing_period_monthly': 'Monatlich',
-      'billing_period_yearly': 'Jährlich',
-      'billing_best_value': 'Das beste Preis-Leistungs-Verhältnis',
-      'billing_restore_purchases': 'Einkäufe wiederherstellen',
-      'billing_restore_success': 'Einkäufe wiederhergestellt.',
-      'billing_restore_failed': 'Wiederherstellung fehlgeschlagen: {message}',
-      'billing_current_plan': 'Aktueller Plan',
-      'billing_subscribe_to_plan': 'Abonnieren Sie {plan} – {price}{unit}',
+      'household_upgrade_cta': 'View plans',
+      'billing_period_title': 'Billing Period',
+      'billing_period_monthly': 'Monthly',
+      'billing_period_yearly': 'Yearly',
+      'billing_best_value': 'BEST VALUE',
+      'billing_restore_purchases': 'Restore Purchases',
+      'billing_restore_success': 'Purchases restored.',
+      'billing_restore_failed': 'Restore failed: {message}',
+      'billing_current_plan': 'Current Plan',
+      'billing_subscribe_to_plan': 'Subscribe to {plan} - {price}{unit}',
       'billing_subscribe_unavailable':
           'No purchasable package available right now.',
-      'billing_plan_free': 'Kostenloser Plan',
-      'billing_free_plan_subtitle': 'Begrenzt auf {limit} Belege pro Monat',
-      'billing_active_until_compact': 'Aktiv bis {Datum}',
-      'billing_resets_on': 'Wird am {Datum} zurückgesetzt',
-      'household_invite_title': 'Haushaltseinladung',
-      'household_invite_accepting': 'Einladung annehmen...',
+      'billing_plan_free': 'Free Plan',
+      'billing_free_plan_subtitle': 'Limited to {limit} receipts per month',
+      'billing_active_until_compact': 'Active until {date}',
+      'billing_resets_on': 'Resets on {date}',
+      'household_invite_title': 'Household invite',
+      'household_invite_accepting': 'Accepting invite...',
       'household_invite_accept_success':
           'Invite accepted. You are now in this household.',
-      'household_open_screen': 'Offener Haushalt',
-      'household_continue_app': 'Weitermachen',
+      'household_open_screen': 'Open household',
+      'household_continue_app': 'Continue',
       'language_picker_title': 'Select language',
       'lang_english': 'English',
       'lang_serbian': 'Serbian',
@@ -343,11 +343,11 @@ class AppLocalizations {
       'receipts_delete_title': 'Delete Receipt',
       'receipts_delete_confirm':
           'This will permanently delete the receipt and all its items. Are you sure?',
-      'receipts_delete_missing_id': 'Die Beleg-ID fehlt.',
+      'receipts_delete_missing_id': 'Receipt ID is missing.',
       'receipts_deleted': 'Receipt deleted.',
       'receipts_no_data': 'No receipts found',
-      'receipts_no_discounts': 'Nessuno sconto in questo periodo',
-      'transaction_no_discounts': 'Auf diese Quittung gibt es keinen Rabatt',
+      'receipts_no_discounts': 'No discounts in this period',
+      'transaction_no_discounts': 'No discounts on this receipt',
       'receipts_total_for_period': 'Total for period',
       'receipts_count': '{count} receipts',
       'receipts_unknown_store': 'Unknown Store',
@@ -365,98 +365,98 @@ class AppLocalizations {
       'upload_pick_failed': 'Failed to pick image: {error}',
       'upload_extraction_failed': 'Extraction failed',
       'upload_timed_out': 'Extraction timed out after 2 minutes.',
-      'tools_subtitle': 'KI-gestützte Finanztools',
-      'tools_most_used': 'Am häufigsten verwendet',
-      'tools_scan_receipt': 'Quittung scannen',
-      'tools_scan_receipt_subtitle': 'Schneller Scan mit KI-Erkennung',
-      'tools_analytics': 'Analytik',
-      'tools_analytics_subtitle': 'Sehen Sie sich Erkenntnisse und Trends an',
-      'tools_receipt_manager': 'Empfangsmanager',
-      'tools_receipt_manager_subtitle': 'Organisieren Sie Ihre Quittungen',
-      'tools_all_tools': 'Alle Werkzeuge',
-      'tools_core': 'Kern',
-      'tools_categories': 'Kategorien und Unterkategorien',
-      'tools_categories_subtitle': 'Organisieren Sie Ihre Ausgaben',
-      'tools_planning': 'Planung',
-      'tools_budget_calculator': 'Budgetrechner',
-      'tools_budget_calculator_subtitle': 'Planen Sie Ihr Monatsbudget',
-      'tools_bill_reminders': 'Rechnungserinnerungen',
-      'tools_bill_reminders_subtitle': 'Verpassen Sie nie wieder eine Zahlung',
-      'budget_income_label': 'Monatliches Einkommen',
-      'budget_total_budget': 'Gesamtbudget',
-      'budget_total_spent': 'Gesamtausgaben',
-      'budget_remaining': 'Übrig',
-      'budget_savings_goal': 'Sparziel',
-      'budget_category_budgets': 'Kategoriebudgets',
-      'budget_add_category': 'Kategorie hinzufügen',
-      'budget_remove_category': 'Kategorie entfernen',
-      'budget_limit_label': 'Bilancio',
+      'tools_subtitle': 'AI-powered financial tools',
+      'tools_most_used': 'Most used',
+      'tools_scan_receipt': 'Scan Receipt',
+      'tools_scan_receipt_subtitle': 'Quick scan with AI recognition',
+      'tools_analytics': 'Analytics',
+      'tools_analytics_subtitle': 'View insights and trends',
+      'tools_receipt_manager': 'Receipt Manager',
+      'tools_receipt_manager_subtitle': 'Organize your receipts',
+      'tools_all_tools': 'All tools',
+      'tools_core': 'Core',
+      'tools_categories': 'Categories & Subcategories',
+      'tools_categories_subtitle': 'Organize your expenses',
+      'tools_planning': 'Planning',
+      'tools_budget_calculator': 'Budget Calculator',
+      'tools_budget_calculator_subtitle': 'Plan your monthly budget',
+      'tools_bill_reminders': 'Bill Reminders',
+      'tools_bill_reminders_subtitle': 'Never miss a payment',
+      'budget_income_label': 'Monthly Income',
+      'budget_total_budget': 'Total Budget',
+      'budget_total_spent': 'Total Spent',
+      'budget_remaining': 'Remaining',
+      'budget_savings_goal': 'Savings Goal',
+      'budget_category_budgets': 'Category Budgets',
+      'budget_add_category': 'Add Category',
+      'budget_remove_category': 'Remove category',
+      'budget_limit_label': 'Budget',
       'budget_empty_state':
           'Add category limits to start tracking your monthly budget.',
-      'budget_status_over_title': 'Budget überschritten',
+      'budget_status_over_title': 'Budget exceeded',
       'budget_status_over_body':
           'You are over plan by {amount}. Adjust your category limits or slow spending this month.',
-      'budget_status_on_track_title': 'Tolle Arbeit!',
+      'budget_status_on_track_title': 'Great job!',
       'budget_status_on_track_body':
           'You are on track to save {amount} this month. Keep up the good work.',
-      'budget_category_exceeded': '{amount} über dem Limit',
-      'budget_category_remaining': '{Betrag} übrig',
-      'budget_invalid_amount': 'Geben Sie einen gültigen Betrag ein.',
-      'budget_saved': 'Budget aktualisiert.',
-      'budget_save_action': 'Budget sparen',
+      'budget_category_exceeded': '{amount} over limit',
+      'budget_category_remaining': '{amount} left',
+      'budget_invalid_amount': 'Enter a valid amount.',
+      'budget_saved': 'Budget updated.',
+      'budget_save_action': 'Save Budget',
       'budget_all_categories_added':
           'All available categories are already added.',
-      'bill_reminders_subtitle_single': '1 bevorstehende Rechnung',
-      'bill_reminders_subtitle_plural': '{count} anstehende Rechnungen',
-      'bill_reminders_total_upcoming': 'Total bevorstehend',
-      'bill_reminders_add_title': 'Neue Rechnungserinnerung hinzufügen',
-      'bill_reminders_name': 'Rechnungsname',
-      'bill_reminders_name_hint': 'z. B. Stromrechnung',
-      'bill_reminders_amount': 'Menge',
-      'bill_reminders_due_date': 'Fälligkeitsdatum',
-      'bill_reminders_pick_date': 'Fälligkeitsdatum auswählen',
-      'bill_reminders_first_due_date': 'Erstes Fälligkeitsdatum',
-      'bill_reminders_pick_first_due_date': 'Wählen Sie das erste Fälligkeitsdatum aus',
-      'bill_reminders_start_date': 'Beginnt am',
-      'bill_reminders_pick_start_date': 'Wählen Sie das Startdatum',
-      'bill_reminders_recurring': 'Wiederkehrend',
-      'bill_reminders_recurring_daily': 'Täglich',
-      'bill_reminders_recurring_monthly': 'Monatlich',
-      'bill_reminders_recurring_yearly': 'Jährlich',
-      'bill_reminders_add_action': 'Erinnerung hinzufügen',
-      'bill_reminders_mark_paid': 'Als bezahlt markieren',
-      'bill_reminders_upcoming': 'Demnächst',
-      'bill_reminders_due_soon': 'Bald fällig',
-      'bill_reminders_overdue': 'Überfällig',
+      'bill_reminders_subtitle_single': '1 upcoming bill',
+      'bill_reminders_subtitle_plural': '{count} upcoming bills',
+      'bill_reminders_total_upcoming': 'Total Upcoming',
+      'bill_reminders_add_title': 'Add New Bill Reminder',
+      'bill_reminders_name': 'Bill Name',
+      'bill_reminders_name_hint': 'e.g., Electric Bill',
+      'bill_reminders_amount': 'Amount',
+      'bill_reminders_due_date': 'Due Date',
+      'bill_reminders_pick_date': 'Select due date',
+      'bill_reminders_first_due_date': 'First Due Date',
+      'bill_reminders_pick_first_due_date': 'Select first due date',
+      'bill_reminders_start_date': 'Starts On',
+      'bill_reminders_pick_start_date': 'Select start date',
+      'bill_reminders_recurring': 'Recurring',
+      'bill_reminders_recurring_daily': 'Daily',
+      'bill_reminders_recurring_monthly': 'Monthly',
+      'bill_reminders_recurring_yearly': 'Yearly',
+      'bill_reminders_add_action': 'Add Reminder',
+      'bill_reminders_mark_paid': 'Mark as Paid',
+      'bill_reminders_upcoming': 'Upcoming',
+      'bill_reminders_due_soon': 'Due Soon',
+      'bill_reminders_overdue': 'Overdue',
       'bill_reminders_invalid_form':
           'Fill in the bill name, amount, and due date.',
-      'bill_reminders_saved': 'Rechnungserinnerung hinzugefügt.',
-      'bill_reminders_paid': 'Rechnung als bezahlt markiert.',
+      'bill_reminders_saved': 'Bill reminder added.',
+      'bill_reminders_paid': 'Bill marked as paid.',
       'bill_reminders_empty':
           'No bills are due right now. Add a reminder to stay ahead of upcoming payments.',
-      'tools_data': 'Daten',
-      'tools_export_data': 'Daten exportieren',
-      'tools_export_data_subtitle': 'Laden Sie Ihre Finanzdaten herunter',
-      'tools_import_data': 'Daten importieren',
-      'tools_import_data_subtitle': 'Importieren Sie Transaktionen aus Dateien',
-      'tools_import_success': 'Daten erfolgreich importiert.',
-      'home_greeting_morning': 'Buongiorno',
-      'home_greeting_afternoon': 'Buon pomeriggio',
-      'home_greeting_evening': 'Buonasera',
+      'tools_data': 'Data',
+      'tools_export_data': 'Export Data',
+      'tools_export_data_subtitle': 'Download your financial data',
+      'tools_import_data': 'Import Data',
+      'tools_import_data_subtitle': 'Import transactions from files',
+      'tools_import_success': 'Data imported successfully.',
+      'home_greeting_morning': 'Good morning',
+      'home_greeting_afternoon': 'Good afternoon',
+      'home_greeting_evening': 'Good evening',
       'home_welcome': 'Welcome,',
       'home_default_user': 'User',
       'home_daily_spending': 'Daily spending',
       'home_no_receipts': 'No receipts found',
       'home_no_receipts_for_day':
           'You haven\'t added any receipts for this day',
-      'home_start_subtitle': 'Scansiona una ricevuta o aggiungi una spesa per iniziare.',
-      'home_all_reviewed': 'Tutte le ricevute vengono esaminate',
-      'home_review_count_single': '1 ricevuta necessita di revisione',
-      'home_review_count_plural': '{count} ricevute necessitano di revisione',
-      'home_total_spending_month': 'Spesa totale questo mese',
-      'home_change_flat': 'Nessun cambiamento',
-      'home_change_less': '{percent}% in meno',
-      'home_change_more': '{percent}% in più',
+      'home_start_subtitle': 'Scan a receipt or add an expense to get started.',
+      'home_all_reviewed': 'All receipts are reviewed',
+      'home_review_count_single': '1 receipt needs review',
+      'home_review_count_plural': '{count} receipts need review',
+      'home_total_spending_month': 'Total spending this month',
+      'home_change_flat': 'No change',
+      'home_change_less': '{percent}% less',
+      'home_change_more': '{percent}% more',
       'home_insight_less_than_last_month':
           'Spending is {percent}% lower than {month}.',
       'home_insight_more_than_last_month':
@@ -465,40 +465,40 @@ class AppLocalizations {
           'Top category is {category} at {percent}% of monthly spend.',
       'home_insight_top_subcategory':
           'Top subcategory is {subcategory} at {percent}% of item spend.',
-      'home_insight_review_count': '{count} ricevute devono ancora essere revisionate.',
-      'home_insight_all_caught_up': 'Siete tutti impegnati nella revisione delle ricevute.',
-      'home_scan_receipt_subtitle': 'Acquisizione istantanea basata sull\'intelligenza artificiale',
-      'home_primary_action': 'Azione primaria',
-      'home_spending_overview': 'Panoramica della spesa',
-      'home_no_spending_data': 'Nessun dato di spesa per questo mese ancora.',
-      'home_view_all': 'Visualizza tutto',
-      'home_smart_insights': 'Approfondimenti intelligenti',
-      'home_quick_actions': 'Schnelle Aktionen',
-      'home_add_expense': 'Aggiungi spesa',
-      'home_categories': 'Kategorien',
+      'home_insight_review_count': '{count} receipts still need review.',
+      'home_insight_all_caught_up': 'You are all caught up on receipt review.',
+      'home_scan_receipt_subtitle': 'AI-powered instant capture',
+      'home_primary_action': 'Primary action',
+      'home_spending_overview': 'Spending Overview',
+      'home_no_spending_data': 'No spending data for this month yet.',
+      'home_view_all': 'View All',
+      'home_smart_insights': 'Smart Insights',
+      'home_quick_actions': 'Quick Actions',
+      'home_add_expense': 'Add Expense',
+      'home_categories': 'Categories',
       'home_refresh_error':
           'Home could not refresh just now. Please try again.',
-      'receipts_filter_needs_review': 'Necessita di revisione',
-      'receipts_needs_review': 'Necessita di revisione',
-      'receipts_check_extraction': 'Controllare l\'estrazione',
-      'receipts_draft': 'Ha bisogno di essere salvato',
-      'receipts_review_empty_title': 'Nessuna ricevuta necessita di revisione.',
+      'receipts_filter_needs_review': 'Needs review',
+      'receipts_needs_review': 'Needs review',
+      'receipts_check_extraction': 'Check extraction',
+      'receipts_draft': 'Needs save',
+      'receipts_review_empty_title': 'No receipts need review.',
       'receipts_review_empty_body':
           'Everything in this period looks confirmed and warning-free.',
       'receipts_empty_body':
           'Scan your first receipt to start building a history you can review and filter.',
-      'receipts_scan_first_action': 'Scansiona la tua prima ricevuta',
-      'receipts_no_filter_matches': 'Nessuna ricevuta corrisponde ai filtri attuali.',
+      'receipts_scan_first_action': 'Scan your first receipt',
+      'receipts_no_filter_matches': 'No receipts match the current filters.',
       'receipts_no_filter_matches_body':
           'Try another period, merchant search, or clear the active filters.',
-      'receipts_history_total': 'Totale cronologia ricevute',
+      'receipts_history_total': 'Receipt history total',
       'receipts_history_load_error':
           'Your history could not load right now. Please try again.',
       'receipts_remove_error':
           'We could not remove that entry. Please try again.',
       'common_apply': 'Apply',
       'common_create': 'Create',
-      'common_save': 'Speichern',
+      'common_save': 'Save',
       'common_new': 'New',
       'common_unknown': 'Unknown',
       'period_last_7_days': 'Last 7 Days',
@@ -528,11 +528,11 @@ class AppLocalizations {
       'filters_selected_count': '{count} selected',
       'language_picker_search': 'Search...',
       'categories_title': 'Categories',
-      'categories_add_action': 'Hinzufügen',
-      'categories_add_category': 'Kategorie hinzufügen',
+      'categories_add_action': 'Add',
+      'categories_add_category': 'Add Category',
       'categories_new_subcategory': 'New Subcategory',
-      'categories_new_category': 'Neue Kategorie',
-      'categories_category_hint': 'Kategoriename (z. B. Reisen)',
+      'categories_new_category': 'New Category',
+      'categories_category_hint': 'Category name (e.g., Travel)',
       'categories_parent_category': 'Parent category',
       'categories_subcategory_hint': 'Subcategory name (e.g., Coffee)',
       'categories_add_subcategory': 'Add Subcategory',
@@ -541,20 +541,20 @@ class AppLocalizations {
           'Create or restore a top-level category first.',
       'categories_delete_title': 'Delete Category',
       'categories_delete_confirm': 'Are you sure you want to delete "{name}"?',
-      'categories_disable_title': 'Kategorie deaktivieren',
+      'categories_disable_title': 'Disable Category',
       'categories_disable_confirm':
           'Disable "{name}" for future categorization and hide it from pickers?',
-      'categories_disable_action': 'Deaktivieren',
+      'categories_disable_action': 'Disable',
       'categories_deleted': '"{name}" deleted.',
-      'categories_disabled': '„{name}“ deaktiviert.',
-      'categories_restored': '„{name}“ wiederhergestellt.',
+      'categories_disabled': '"{name}" disabled.',
+      'categories_restored': '"{name}" restored.',
       'categories_built_in': 'Built-in',
       'categories_custom': 'Custom',
-      'categories_restore_action': 'Wiederherstellen',
-      'categories_disabled_state': 'Deaktiviert',
-      'categories_active_section': 'Aktive Kategorien',
-      'categories_disabled_section': 'Deaktivierte Kategorien',
-      'categories_category_created': 'Kategorie „{name}“ erstellt!',
+      'categories_restore_action': 'Restore',
+      'categories_disabled_state': 'Disabled',
+      'categories_active_section': 'Active categories',
+      'categories_disabled_section': 'Disabled categories',
+      'categories_category_created': 'Category "{name}" created!',
       'categories_subcategory_created': 'Subcategory "{name}" created!',
       'subcategories_new_for_parent': 'New Subcategory for {name}',
       'subcategories_name_hint': 'Subcategory name',
@@ -562,13 +562,13 @@ class AppLocalizations {
       'subcategories_delete_title': 'Delete Subcategory',
       'subcategories_delete_confirm':
           'Are you sure you want to delete "{name}"?',
-      'subcategories_disable_title': 'Unterkategorie deaktivieren',
+      'subcategories_disable_title': 'Disable Subcategory',
       'subcategories_disable_confirm':
           'Disable "{name}" for future categorization and hide it from pickers?',
       'subcategories_deleted': '"{name}" deleted.',
-      'subcategories_disabled': '„{name}“ deaktiviert.',
-      'subcategories_restored': '„{name}“ wiederhergestellt.',
-      'subcategories_active_state': 'Aktiv',
+      'subcategories_disabled': '"{name}" disabled.',
+      'subcategories_restored': '"{name}" restored.',
+      'subcategories_active_state': 'Active',
       'subcategories_title_for_parent': '{name} Subcategories',
       'subcategories_not_found_for_parent':
           'No subcategories found for {name}.',
@@ -583,43 +583,43 @@ class AppLocalizations {
       'labels_empty_title': 'No labels yet',
       'labels_empty_subtitle': 'Create labels to tag your receipts',
       'analytics_expense_categories': 'Expense Categories',
-      'analytics_expense_subcategories': 'Ausgaben-Unterkategorien',
-      'analytics_tab_overview': 'Überblick',
-      'analytics_tab_trends': 'Tendances',
-      'analytics_tab_categories': 'Kategorien',
-      'analytics_tab_households': 'Haushalte',
-      'analytics_active_filters': 'Aktive Filter',
-      'analytics_clear_all_filters': 'Alle Filter löschen',
+      'analytics_expense_subcategories': 'Expense Subcategories',
+      'analytics_tab_overview': 'Overview',
+      'analytics_tab_trends': 'Trends',
+      'analytics_tab_categories': 'Categories',
+      'analytics_tab_households': 'Households',
+      'analytics_active_filters': 'Active filters',
+      'analytics_clear_all_filters': 'Clear all filters',
       'analytics_view_all_active_filters':
           'View all active filters ({count} more)',
-      'analytics_show_fewer_filters': 'Weniger Filter anzeigen',
-      'analytics_categories_subtitle': 'Entdecken Sie, wohin Ihr Geld fließt',
-      'analytics_overview_top_categories': 'Top-Kategorien',
-      'analytics_change_unavailable': 'Der vorherige Vergleich ist nicht verfügbar.',
-      'analytics_change_flat': 'Die Ausgaben sind im Vergleich zur Vorperiode unverändert.',
-      'analytics_change_more': 'Anstieg um {percent} % im Vergleich zum vorherigen Zeitraum.',
-      'analytics_change_less': 'Rückgang um {percent} % im Vergleich zum vorherigen Zeitraum.',
-      'analytics_compared_with_previous': 'Im Vergleich zur Vorperiode',
-      'analytics_trends_period_label': 'Ausgewähltes Trendfenster',
-      'analytics_trends_chart_title': 'Ausgabentrend',
+      'analytics_show_fewer_filters': 'Show fewer filters',
+      'analytics_categories_subtitle': 'Explore where your money goes',
+      'analytics_overview_top_categories': 'Top categories',
+      'analytics_change_unavailable': 'Previous comparison is unavailable.',
+      'analytics_change_flat': 'Spending is flat versus the previous period.',
+      'analytics_change_more': 'Up {percent}% versus the previous period.',
+      'analytics_change_less': 'Down {percent}% versus the previous period.',
+      'analytics_compared_with_previous': 'Compared with previous period',
+      'analytics_trends_period_label': 'Selected trend window',
+      'analytics_trends_chart_title': 'Spending trend',
       'analytics_trends_chart_subtitle':
           'Automatic daily, weekly, or monthly buckets for your selected period.',
-      'analytics_trends_no_data': 'Für diese Filter liegen keine Trenddaten vor.',
-      'analytics_trends_highest_bucket': 'Höchster Eimer',
-      'analytics_trends_average_bucket': 'Durchschnittliche Bucket-Ausgaben',
-      'analytics_household_empty_title': 'Noch keine Haushaltsanalyse',
+      'analytics_trends_no_data': 'No trend data for these filters.',
+      'analytics_trends_highest_bucket': 'Highest bucket',
+      'analytics_trends_average_bucket': 'Average bucket spend',
+      'analytics_household_empty_title': 'No household analytics yet',
       'analytics_household_empty_subtitle':
           'Create or open a household to compare spending across members.',
-      'analytics_household_no_data': 'Für diese Filter fallen keine Haushaltsausgaben an.',
+      'analytics_household_no_data': 'No household spending for these filters.',
       'analytics_household_no_data_subtitle':
           'Try widening the date range or clearing a few filters.',
-      'analytics_household_preview_subtitle': 'Gemeinsame Ausgaben für diesen Zeitraum',
-      'analytics_household_total_transactions': '{count} geteilte Transaktionen',
-      'analytics_household_member_transactions': '{count} Transaktionen',
-      'analytics_household_top_category': 'Top-Kategorie: {category}',
-      'analytics_household_top_category_unknown': 'Noch keine Kategorie',
-      'analytics_breakdown_categories': 'Kategorien',
-      'analytics_breakdown_subcategories': 'Unterkategorien',
+      'analytics_household_preview_subtitle': 'Shared spend for this period',
+      'analytics_household_total_transactions': '{count} shared transactions',
+      'analytics_household_member_transactions': '{count} transactions',
+      'analytics_household_top_category': 'Top category: {category}',
+      'analytics_household_top_category_unknown': 'No category yet',
+      'analytics_breakdown_categories': 'Categories',
+      'analytics_breakdown_subcategories': 'Subcategories',
       'analytics_average_per_day': 'Average per day',
       'analytics_total_transactions': 'Total Transactions',
       'analytics_total_spent': 'Total Spent',
@@ -633,71 +633,71 @@ class AppLocalizations {
       'analytics_bought_times': 'Bought {count} times',
       'analytics_total_quantity': 'Total quantity {qty} {unit}',
       'analytics_purchased_items': 'Purchased Items',
-      'analytics_discounts_title': 'Rabatte',
-      'analytics_total_savings': 'Gesamteinsparungen',
-      'analytics_items_with_discount': 'Artikel mit Rabatt',
-      'analytics_biggest_discount': 'Größter Rabatt',
-      'analytics_no_discounts': 'Haben Sie keine Quittungen mit Rabatten',
+      'analytics_discounts_title': 'Discounts',
+      'analytics_total_savings': 'Total savings',
+      'analytics_items_with_discount': 'Items with discount',
+      'analytics_biggest_discount': 'Biggest discount',
+      'analytics_no_discounts': 'Do not have receipts with discounts',
       'analytics_no_items_for_subcategory':
           'No items found for this subcategory.',
       'analytics_unknown_item': 'Unknown item',
       'analytics_purchases_count': '{count} purchases',
       'transaction_saved_successfully': 'Saved successfully',
-      'transaction_created_successfully': 'Transazione creata con successo',
-      'manual_transaction_title': 'Transaktion hinzufügen',
-      'manual_transaction_heading': 'Fügen Sie eine Transaktion manuell hinzu',
+      'transaction_created_successfully': 'Transaction created successfully',
+      'manual_transaction_title': 'Add Transaction',
+      'manual_transaction_heading': 'Add a transaction manually',
       'manual_transaction_subtitle':
           'Create a transaction without scanning a receipt, then fine-tune the details on the next screen.',
-      'manual_transaction_merchant_label': 'Händler',
-      'manual_transaction_merchant_hint': 'z.B. Eckmarkt',
-      'manual_transaction_amount_label': 'Menge',
-      'manual_transaction_currency_label': 'Währung',
-      'manual_transaction_date_label': 'Datum',
-      'manual_transaction_time_label': 'Zeit',
-      'manual_transaction_category_label': 'Kategorie',
-      'manual_transaction_category_none': 'Keine Kategorie',
+      'manual_transaction_merchant_label': 'Merchant',
+      'manual_transaction_merchant_hint': 'e.g. Corner Market',
+      'manual_transaction_amount_label': 'Amount',
+      'manual_transaction_currency_label': 'Currency',
+      'manual_transaction_date_label': 'Date',
+      'manual_transaction_time_label': 'Time',
+      'manual_transaction_category_label': 'Category',
+      'manual_transaction_category_none': 'No category',
       'manual_transaction_unlimited_note':
           'Manual transactions are unlimited on the free plan.',
-      'manual_transaction_create_action': 'Erstellen und fortfahren',
+      'manual_transaction_create_action': 'Create and continue',
       'manual_transaction_amount_invalid':
           'Enter a valid amount greater than zero.',
-      'manual_transaction_deleted': 'Manuelle Transaktion gelöscht.',
-      'manual_transaction_delete_missing_id': 'Transaktions-ID fehlt.',
-      'transaction_amount_required': 'Inserisci un importo totale prima di salvare.',
-      'transaction_invalid_total': 'Inserisci un importo totale valido.',
+      'manual_transaction_deleted': 'Manual transaction deleted.',
+      'manual_transaction_delete_missing_id': 'Transaction ID is missing.',
+      'transaction_amount_required': 'Enter a total amount before saving.',
+      'transaction_invalid_total': 'Enter a valid total amount.',
       'transaction_save_before_labels':
           'Save the transaction before adding labels.',
-      'transaction_new_expense': 'Nuova spesa',
-      'transaction_review_receipt': 'Esaminare la ricevuta',
-      'transaction_merchant_dialog_title': 'Mercante',
-      'transaction_merchant_hint': 'Nome del negozio o del commerciante',
-      'transaction_unsaved_changes_title': 'Modifiche non salvate',
+      'transaction_new_expense': 'New expense',
+      'transaction_review_receipt': 'Review receipt',
+      'transaction_merchant_dialog_title': 'Merchant',
+      'transaction_merchant_hint': 'Store or merchant name',
+      'transaction_unsaved_changes_title': 'Unsaved changes',
       'transaction_unsaved_changes_body':
           'Your edits are not saved yet. Save them before leaving, or discard the changes.',
-      'transaction_keep_editing': 'Continua a modificare',
-      'transaction_discard_changes': 'Scartare',
+      'transaction_keep_editing': 'Keep editing',
+      'transaction_discard_changes': 'Discard',
       'transaction_line_review_message':
           'Review this line item: it should be {expected} and currently shows {actual}.',
       'transaction_total_review_message':
           'Review the total before saving: items add up to {expected} while the receipt total is {actual}.',
-      'transaction_items_heading': 'Elementi',
+      'transaction_items_heading': 'Items',
       'transaction_empty_items':
           'No line items yet. Add your first item to finish this receipt.',
       'transaction_read_only_owner':
           'You can review this receipt, but only the owner can edit it.',
-      'transaction_receipt_photo_title': 'Foto della ricevuta',
-      'transaction_receipt_photo_subtitle': 'Visualizza la foto originale',
-      'transaction_warning_review_one_item': 'Recensisci 1 articolo in totale',
-      'transaction_warning_review_items': 'Controlla il totale di {count} articoli',
-      'transaction_warning_review_total': 'Controlla il totale della ricevuta',
-      'transaction_warning_check_one_detail': 'Controlla 1 dettaglio estratto',
-      'transaction_warning_check_details': 'Controlla {count} dettagli estratti',
+      'transaction_receipt_photo_title': 'Receipt photo',
+      'transaction_receipt_photo_subtitle': 'View original photo',
+      'transaction_warning_review_one_item': 'Review 1 item total',
+      'transaction_warning_review_items': 'Review {count} item totals',
+      'transaction_warning_review_total': 'Review the receipt total',
+      'transaction_warning_check_one_detail': 'Check 1 extracted detail',
+      'transaction_warning_check_details': 'Check {count} extracted details',
       'transaction_warning_accepts_edits':
           'Take a quick final look before saving. {details}. Saving accepts your edits.',
-      'transaction_was_amount': 'Era {importo}',
-      'transaction_saved_amount': '{importo} risparmiato',
-      'transaction_missing_quantity_price': 'Aggiungi quantità, unità e prezzo',
-      'transaction_receipt_total_label': 'Totale scontrino',
+      'transaction_was_amount': 'Was {amount}',
+      'transaction_saved_amount': 'Saved {amount}',
+      'transaction_missing_quantity_price': 'Add quantity, unit, and price',
+      'transaction_receipt_total_label': 'Receipt total',
       'transaction_open_receipt_error':
           'We could not open this receipt right now. Please try again.',
       'transaction_save_error':
@@ -710,13 +710,13 @@ class AppLocalizations {
       'transaction_set_time': 'Set Time',
       'transaction_translate': 'Translate',
       'transaction_photo': 'Photo',
-      'receipt_photo_invalid_url': 'Die URL des Belegfotos ist ungültig.',
+      'receipt_photo_invalid_url': 'Receipt photo URL is invalid.',
       'receipt_photo_open_fallback':
           'Could not open the file automatically. The link was copied instead.',
-      'receipt_photo_load_failed': 'Dieses Belegbild konnte nicht geladen werden.',
-      'receipt_photo_download': 'Herunterladen',
-      'receipt_photo_downloaded': 'Quittung unter {Pfad} gespeichert',
-      'receipt_photo_open_external': 'Von außen öffnen',
+      'receipt_photo_load_failed': 'Could not load this receipt image.',
+      'receipt_photo_download': 'Download',
+      'receipt_photo_downloaded': 'Receipt saved to {path}',
+      'receipt_photo_open_external': 'Open externally',
       'receipt_photo_non_image_hint':
           'This receipt file is not an image. Open it in another app.',
       'billing_household_purchase_block_title':
@@ -727,8 +727,8 @@ class AppLocalizations {
           'You currently belong to a family household. Leave the household before buying an individual plan.',
       'billing_purchase_not_confirmed':
           'Purchase completed, but premium access was not confirmed yet. Please restore purchases or try syncing again.',
-      'billing_purchase_confirmed': 'Premium-Zugang bestätigt.',
-      'billing_purchase_failed': 'Kauf fehlgeschlagen: {message}',
+      'billing_purchase_confirmed': 'Premium access confirmed.',
+      'billing_purchase_failed': 'Purchase failed: {message}',
       'transaction_item_name': 'Item Name',
       'transaction_select_category': 'Select Category',
       'transaction_merchant_name': 'Merchant Name',
@@ -746,11 +746,11 @@ class AppLocalizations {
           'Mismatch: expected {expected} but extracted {actual}',
       'transaction_add_item': '+ Add item',
       'transaction_total_amount': 'Total Amount:',
-      'transaction_total_savings': 'Risparmio totale:',
-      'transaction_attribution_title': 'Namensnennung',
-      'transaction_attribution_household': 'Haushalt',
-      'transaction_attribution_created_by': 'Erstellt von',
-      'transaction_attribution_owner': 'Ausgabeneigentümer',
+      'transaction_total_savings': 'Total Savings:',
+      'transaction_attribution_title': 'Attribution',
+      'transaction_attribution_household': 'Household',
+      'transaction_attribution_created_by': 'Created by',
+      'transaction_attribution_owner': 'Expense owner',
       'transaction_total_mismatch':
           'Total mismatch: expected {expected} but extracted {actual}',
       'taxonomy_food': 'Food',
@@ -852,105 +852,92 @@ class AppLocalizations {
       'taxonomy_fees_and_charges': 'Fees and Charges',
       'taxonomy_unknown_item': 'Unknown Item',
       'taxonomy_uncategorized': 'Uncategorized',
-      '10_changes_to_terms': '10. Änderungen der Bedingungen',
-      '11_governing_law': '11. Anwendbares Recht',
-      '12_contact': '12. Kontakt',
-      '1_acceptance_of_terms': '1. Annahme der Bedingungen',
-      '1_information_we_collect': '1. Informationen, die wir sammeln',
-      '2_description_of_service': '2. Beschreibung des Dienstes',
-      '2_how_we_use_your_information': '2. Wie wir Ihre Daten verwenden',
-      '3_data_security': '3. Datensicherheit',
-      '3_user_accounts': '3. Benutzerkonten',
-      '4_data_sharing': '4. Datenaustausch',
-      '4_subscription_and_billing': '4. Abonnement und Abrechnung',
-      '5_prohibited_uses': '5. Verbotene Verwendungen',
-      '5_your_rights': '5. Ihre Rechte',
-      '6_cookies_and_tracking': '6. Cookies und Tracking',
-      '6_intellectual_property': '6. Geistiges Eigentum',
-      '7_children': '7. Kinder',
-      '7_service_availability': '7. Serviceverfügbarkeit',
-      '8_changes_to_this_policy': '8. Änderungen dieser Richtlinie',
-      '8_limitation_of_liability': '8. Haftungsbeschränkung',
-      '9_contact_us': '9. Kontaktieren Sie uns',
-      '9_termination': '9. Kündigung',
-      'accentaware_colors': 'Akzentbewusste Farben',
-      'activate_pro': 'Aktivieren Sie PRO',
-      'after_the_amount': 'Nach dem Betrag',
-      'always_use_the_dark_interface': 'Verwenden Sie immer die dunkle Oberfläche.',
-      'always_use_the_light_interface': 'Benutzen Sie immer die Lichtschnittstelle.',
-      'autodetect_source_language': 'Quellsprache automatisch erkennen',
-      'before_the_amount': 'Vor dem Betrag',
-      'bill_due_soon': 'Rechnung bald fällig',
-      'bill_due_today': 'Rechnung heute fällig',
-      'billing_date': 'Rechnungsdatum',
-      'choose_source_language': 'Wählen Sie die Ausgangssprache',
-      'could_not_open_that_link': 'Dieser Link konnte nicht geöffnet werden.',
-      'create_category': 'Kategorie erstellen',
-      'create_label': 'Etikett erstellen',
-      'create_subcategory': 'Unterkategorie erstellen',
-      'current_release': 'Aktuelle Veröffentlichung',
-      'daily_avg': 'Täglicher Durchschn',
-      'delete_reminder': 'Erinnerung löschen',
-      'discount_must_be_zero_or_higher': 'Der Rabatt muss Null oder höher sein.',
-      'discount_percentage_must_stay_under_100':
-          'Discount percentage must stay under 100%.',
-      'display_name': 'Anzeigename',
-      'email_support': 'E-Mail-Support',
-      'enable_notifications_in_the_app': 'Aktivieren Sie Benachrichtigungen in der App',
-      'extra_compact_text': 'Extra kompakter Text',
-      'features_tools': 'Funktionen und Tools',
-      'follow_your_device_theme_setting': 'Befolgen Sie die Designeinstellungen Ihres Geräts.',
-      'getting_started': 'Erste Schritte',
-      'helpful_savings_spotted_in_the_current_r':
-          'Helpful savings spotted in the current results.',
-      'hide_decimals': 'Dezimalstellen ausblenden',
-      'items_translation': 'Artikelübersetzung',
-      'keep_this_image_and_try_later': 'Behalten Sie dieses Bild und versuchen Sie es später',
-      'larger_interface': 'Größere Schnittstelle',
-      'no_category_insights_yet': 'Noch keine Einblicke in die Kategorie',
-      'no_overview_yet': 'Noch keine Übersicht',
-      'no_spend_was_recorded_in_the_matching_pr':
-          'No spend was recorded in the matching previous period.',
-      'no_trend_data_yet': 'Noch keine Trenddaten',
-      'open_review': 'Rezension öffnen',
-      'organize_your_receipts': 'Organisieren Sie Ihre Quittungen',
-      'please_enter_a_category_name': 'Bitte geben Sie einen Kategorienamen ein.',
-      'please_enter_a_label_name': 'Bitte geben Sie einen Labelnamen ein.',
-      'please_enter_a_subcategory_name': 'Bitte geben Sie einen Unterkategorienamen ein.',
-      'previous_comparison_is_unavailable_for_t':
-          'Previous comparison is unavailable for this range.',
-      'privacy_policy': 'Datenschutzrichtlinie',
-      'privacy_security': 'Datenschutz und Sicherheit',
-      'quick_scan_with_ai_review': 'Schneller Scan mit KI-Überprüfung',
-      'raw_colors': 'Rohe Farben',
-      'read_totals_and_items': 'Summen und Posten lesen',
-      'receipt_scans': 'Quittungsscans',
-      'remove_all_in_series': 'Alles nacheinander entfernen',
-      'remove_reminder': 'Erinnerung entfernen',
-      'remove_this_reminder': 'Entfernen Sie diese Erinnerung',
-      'revenuecat_is_not_configured_in_this_bui':
-          'RevenueCat is not configured in this build.',
-      'save_changes': 'Änderungen speichern',
-      'settings_and_account_polish': 'Einstellungen und Kontopolitur',
-      'show_decimals': 'Dezimalstellen anzeigen',
-      'smaller_interface': 'Kleinere Schnittstelle',
-      'subscription_billing': 'Abonnement und Abrechnung',
-      'terms_of_service': 'Nutzungsbedingungen',
-      'the_biggest_spending_groups_in_this_peri':
-          'The biggest spending groups in this period.',
-      'the_donut_shows_each_groups_share_of_tot':
-          'The donut shows each group’s share of total spend.',
-      'top_categories': 'Top-Kategorien',
-      'top_merchants': 'Top-Händler',
-      'total_spent': 'Gesamtausgaben',
-      'translate_items_into': 'Übersetzen Sie Elemente in',
-      'translate_items_to': 'Elemente übersetzen in',
-      'upcoming_and_due_reminders': 'Anstehende und fällige Erinnerungen',
-      'upload_receipt': 'Quittung hochladen',
-      'use_this_source_language': 'Verwenden Sie diese Ausgangssprache',
-      'view_insights_and_trends': 'Sehen Sie sich Erkenntnisse und Trends an',
-      'where_the_most_spending_happened_in_this':
-          'Where the most spending happened in this period.',
+      '10_changes_to_terms': '10. Changes to Terms',
+      '11_governing_law': '11. Governing Law',
+      '12_contact': '12. Contact',
+      '1_acceptance_of_terms': '1. Acceptance of Terms',
+      '1_information_we_collect': '1. Information We Collect',
+      '2_description_of_service': '2. Description of Service',
+      '2_how_we_use_your_information': '2. How We Use Your Information',
+      '3_data_security': '3. Data Security',
+      '3_user_accounts': '3. User Accounts',
+      '4_data_sharing': '4. Data Sharing',
+      '4_subscription_and_billing': '4. Subscription and Billing',
+      '5_prohibited_uses': '5. Prohibited Uses',
+      '5_your_rights': '5. Your Rights',
+      '6_cookies_and_tracking': '6. Cookies and Tracking',
+      '6_intellectual_property': '6. Intellectual Property',
+      '7_service_availability': '7. Service Availability',
+      '8_changes_to_this_policy': '8. Changes to this Policy',
+      '8_limitation_of_liability': '8. Limitation of Liability',
+      '9_contact_us': '9. Contact Us',
+      '9_termination': '9. Termination',
+      'accentaware_colors': 'Accent-aware colors',
+      'activate_pro': 'Activate Pro',
+      'after_the_amount': 'After the amount',
+      'always_use_the_dark_interface': 'Always use the dark interface',
+      'always_use_the_light_interface': 'Always use the light interface',
+      'autodetect_source_language': 'Auto-detect source language',
+      'before_the_amount': 'Before the amount',
+      'billing_date': 'Billing date',
+      'choose_source_language': 'Choose source language',
+      'could_not_open_that_link': 'Could not open that link',
+      'create_category': 'Create category',
+      'create_label': 'Create label',
+      'create_subcategory': 'Create subcategory',
+      'daily_avg': 'Daily avg',
+      'delete_reminder': 'Delete reminder',
+      'discount_must_be_zero_or_higher': 'Discount must be 0 or higher',
+      'discount_percentage_must_stay_under_100': 'Discount percentage must stay under 100%',
+      'display_name': 'Display name',
+      'email_support': 'Email support',
+      'enable_notifications_in_the_app': 'Enable notifications in the app',
+      'extra_compact_text': 'Extra compact text',
+      'features_tools': 'Features & Tools',
+      'follow_your_device_theme_setting': 'Follow your device theme setting',
+      'getting_started': 'Getting Started',
+      'helpful_savings_spotted_in_the_current_r': 'Helpful savings spotted in the current receipt.',
+      'hide_decimals': 'Hide decimals',
+      'items_translation': 'Items translation',
+      'keep_this_image_and_try_later': 'Keep this image and try later',
+      'larger_interface': 'Larger interface',
+      'no_category_insights_yet': 'No category insights yet',
+      'no_overview_yet': 'No overview yet',
+      'no_spend_was_recorded_in_the_matching_pr': 'No spend was recorded in the matching previous period.',
+      'no_trend_data_yet': 'No trend data yet',
+      'open_review': 'Open review',
+      'organize_your_receipts': 'Organize your receipts',
+      'please_enter_a_category_name': 'Please enter a category name',
+      'please_enter_a_label_name': 'Please enter a label name',
+      'please_enter_a_subcategory_name': 'Please enter a subcategory name',
+      'previous_comparison_is_unavailable_for_t': 'Previous comparison is unavailable for this period.',
+      'privacy_policy': 'Privacy Policy',
+      'privacy_security': 'Privacy & Security',
+      'quick_scan_with_ai_review': 'Quick scan with AI review',
+      'raw_colors': 'Raw colors',
+      'read_totals_and_items': 'Read totals and items',
+      'receipt_scans': 'Receipt scans',
+      'remove_all_in_series': 'Remove all in series',
+      'remove_reminder': 'Remove reminder',
+      'remove_this_reminder': 'Remove this reminder',
+      'revenuecat_is_not_configured_in_this_bui': 'RevenueCat is not configured in this build.',
+      'save_changes': 'Save changes',
+      'show_decimals': 'Show decimals',
+      'smaller_interface': 'Smaller interface',
+      'subscription_billing': 'Subscription & Billing',
+      'terms_of_service': 'Terms of Service',
+      'the_biggest_spending_groups_in_this_peri': 'The biggest spending groups in this period.',
+      'the_donut_shows_each_groups_share_of_tot': 'The donut shows each group\'s share of total spend.',
+      'top_categories': 'Top Categories',
+      'top_merchants': 'Top Merchants',
+      'total_spent': 'Total Spent',
+      'translate_items_into': 'Translate items into',
+      'translate_items_to': 'Translate items to',
+      'upcoming_and_due_reminders': 'Upcoming and due reminders',
+      'upload_receipt': 'Upload receipt',
+      'use_this_source_language': 'Use this source language',
+      'view_insights_and_trends': 'View insights and trends',
+      'where_the_most_spending_happened_in_this': 'Where the most spending happened in this period.',
     },
     'de': {
       'app_title': 'Spesen-Tracker',
@@ -1140,7 +1127,7 @@ class AppLocalizations {
           'Gesamtabweichung: {expected} erwartet, aber {actual} extrahiert',
       'taxonomy_food': 'Essen',
       'taxonomy_clothing': 'Kleidung',
-      'taxonomy_transport': 'Transport',
+      'taxonomy_transport': 'Транспорт',
       'taxonomy_utilities': 'Dienstprogramme',
       'taxonomy_health': 'Gesundheit',
       'taxonomy_entertainment': 'Unterhaltung',
@@ -1179,8 +1166,8 @@ class AppLocalizations {
       'taxonomy_vehicle_insurance': 'Kfz-Versicherung',
       'taxonomy_electricity': 'Strom',
       'taxonomy_water': 'Wasser',
-      'taxonomy_gas': 'Gas',
-      'taxonomy_internet': 'Internet',
+      'taxonomy_gas': 'Гас',
+      'taxonomy_internet': 'Интернет',
       'taxonomy_mobile_phone': 'Mobiltelefon',
       'taxonomy_tv_and_streaming': 'TV und Streaming',
       'taxonomy_waste_collection': 'Abfallsammlung',
@@ -1214,7 +1201,7 @@ class AppLocalizations {
       'taxonomy_tablets': 'Tabletten',
       'taxonomy_software': 'Software',
       'taxonomy_gaming_hardware': 'Gaming-Hardware',
-      'taxonomy_smart_home': 'Smart Home',
+      'taxonomy_smart_home': 'Смарт Хоме',
       'taxonomy_repairs': 'Reparaturen',
       'taxonomy_tuition': 'Unterricht',
       'taxonomy_courses': 'Kurse',
@@ -1345,7 +1332,8 @@ class AppLocalizations {
           'By continuing, you will sign in with your Google account.',
       'settings_subtitle': 'Verwalten Sie Ihre Präferenzen',
       'household_settings_title': 'Familienhaushalt',
-      'household_settings_subtitle': 'Teilen und verwalten Sie den Haushaltszugang',
+      'household_settings_subtitle':
+          'Teilen und verwalten Sie den Haushaltszugang',
       'settings_account_section': 'Konto',
       'settings_preferences_section': 'Präferenzen',
       'settings_support_section': 'Unterstützung',
@@ -1360,7 +1348,8 @@ class AppLocalizations {
       'settings_security': 'Sicherheit',
       'settings_security_subtitle': 'Passwort- und Kontosicherheit',
       'settings_appearance': 'Aussehen',
-      'settings_appearance_subtitle': 'Wählen Sie zwischen Hell- und Dunkelmodus',
+      'settings_appearance_subtitle':
+          'Wählen Sie zwischen Hell- und Dunkelmodus',
       'settings_theme': 'Thema',
       'settings_theme_light': 'Licht',
       'settings_theme_dark': 'Dunkel',
@@ -1381,25 +1370,29 @@ class AppLocalizations {
       'settings_font_large': 'Groß',
       'settings_display_options': 'Anzeigeoptionen',
       'settings_compact_mode': 'Kompaktmodus',
-      'settings_compact_mode_subtitle': 'Zeigen Sie mehr Inhalte auf dem Bildschirm an',
+      'settings_compact_mode_subtitle':
+          'Zeigen Sie mehr Inhalte auf dem Bildschirm an',
       'settings_animations': 'Animationen',
       'settings_animations_subtitle': 'Ermöglichen Sie reibungslose Übergänge',
       'settings_notifications_subtitle': 'Warnungen und Erinnerungen',
       'settings_notification_channels': 'Kanäle',
       'settings_push_notifications': 'Push-Benachrichtigungen',
-      'settings_push_notifications_subtitle': 'Benachrichtigungen auf Ihrem Gerät',
+      'settings_push_notifications_subtitle':
+          'Benachrichtigungen auf Ihrem Gerät',
       'settings_email_notifications': 'E-Mail-Benachrichtigungen',
       'settings_email_notifications_subtitle': 'Updates per E-Mail',
       'settings_notification_activity': 'Aktivität',
       'settings_spending_alerts': 'Ausgabenwarnungen',
-      'settings_spending_alerts_subtitle': 'Ungewöhnliche Ausgaben festgestellt',
+      'settings_spending_alerts_subtitle':
+          'Ungewöhnliche Ausgaben festgestellt',
       'settings_budget_alerts': 'Budgetwarnungen',
       'settings_budget_alerts_subtitle': 'Bei Annäherung an Budgetgrenzen',
       'settings_bill_reminders': 'Rechnungserinnerungen',
       'settings_bill_reminders_subtitle':
           'Monthly reminders for upcoming payments',
       'settings_receipt_reminders': 'Empfangserinnerungen',
-      'settings_receipt_reminders_subtitle': 'Erinnern Sie daran, Belege zu scannen',
+      'settings_receipt_reminders_subtitle':
+          'Erinnern Sie daran, Belege zu scannen',
       'settings_notification_summaries': 'Zusammenfassungen',
       'settings_weekly_summary': 'Wöchentliche Zusammenfassung',
       'settings_weekly_summary_subtitle': 'Jeden Montag um 9 Uhr',
@@ -1432,7 +1425,8 @@ class AppLocalizations {
           'Automatically translate receipt items',
       'settings_translate_to': 'Übersetzen nach',
       'settings_options': 'Optionen',
-      'settings_auto_detect_source_language': 'Quellsprache automatisch erkennen',
+      'settings_auto_detect_source_language':
+          'Quellsprache automatisch erkennen',
       'settings_auto_detect_source_language_subtitle':
           'Automatically detect original language',
       'settings_example': 'Beispiel',
@@ -1455,7 +1449,8 @@ class AppLocalizations {
           'Title must be between 3 and 120 characters.',
       'feature_request_description_length_error':
           'Description must be between 10 and 2000 characters.',
-      'feature_request_load_error_title': 'Funktionsanfragen konnten nicht geladen werden',
+      'feature_request_load_error_title':
+          'Funktionsanfragen konnten nicht geladen werden',
       'feature_request_your_ideas': 'Ihre Ideen',
       'feature_request_your_ideas_empty_title': 'Noch keine Ideen eingereicht',
       'feature_request_your_ideas_empty_subtitle':
@@ -1478,7 +1473,8 @@ class AppLocalizations {
       'feature_request_category_receipts_scanning': 'Quittungen und Scannen',
       'feature_request_category_budgets_planning': 'Budgets und Planung',
       'feature_request_category_household_sharing': 'Haushalt & Teilen',
-      'feature_request_category_design_accessibility': 'Design und Zugänglichkeit',
+      'feature_request_category_design_accessibility':
+          'Design und Zugänglichkeit',
       'feature_request_category_other': 'Andere',
       'settings_privacy_policy': 'Datenschutzrichtlinie',
       'settings_terms_of_service': 'Nutzungsbedingungen',
@@ -1511,7 +1507,8 @@ class AppLocalizations {
       'household_you_badge': 'Du',
       'household_members_title': 'Mitglieder',
       'household_remove_member_title': 'Mitglied entfernen',
-      'household_remove_member_confirm': '{Name} aus diesem Haushalt entfernen?',
+      'household_remove_member_confirm':
+          '{Name} aus diesem Haushalt entfernen?',
       'household_member_removed': 'Mitglied entfernt.',
       'household_leave_title': 'Verlassen Sie den Haushalt',
       'household_leave_confirm':
@@ -1552,7 +1549,8 @@ class AppLocalizations {
       'household_member_count': '{count} Mitglieder',
       'household_member_count_with_limit': '{count} von {limit} Mitgliedern',
       'household_shared_expenses': 'Geteilte Ausgaben',
-      'household_shared_expenses_subtitle': 'Erlauben Sie allen Mitgliedern, Ausgaben hinzuzufügen',
+      'household_shared_expenses_subtitle':
+          'Erlauben Sie allen Mitgliedern, Ausgaben hinzuzufügen',
       'household_budget_notifications': 'Budgetbenachrichtigungen',
       'household_budget_notifications_subtitle':
           'Notify when household budget limit is reached',
@@ -1631,7 +1629,8 @@ class AppLocalizations {
       'bill_reminders_due_date': 'Fälligkeitsdatum',
       'bill_reminders_pick_date': 'Fälligkeitsdatum auswählen',
       'bill_reminders_first_due_date': 'Erstes Fälligkeitsdatum',
-      'bill_reminders_pick_first_due_date': 'Wählen Sie das erste Fälligkeitsdatum aus',
+      'bill_reminders_pick_first_due_date':
+          'Wählen Sie das erste Fälligkeitsdatum aus',
       'bill_reminders_start_date': 'Beginnt am',
       'bill_reminders_pick_start_date': 'Wählen Sie das Startdatum',
       'bill_reminders_recurring': 'Wiederkehrend',
@@ -1697,26 +1696,34 @@ class AppLocalizations {
       'analytics_show_fewer_filters': 'Weniger Filter anzeigen',
       'analytics_categories_subtitle': 'Entdecken Sie, wohin Ihr Geld fließt',
       'analytics_overview_top_categories': 'Top-Kategorien',
-      'analytics_change_unavailable': 'Der vorherige Vergleich ist nicht verfügbar.',
-      'analytics_change_flat': 'Die Ausgaben sind im Vergleich zur Vorperiode unverändert.',
-      'analytics_change_more': 'Anstieg um {percent} % im Vergleich zum vorherigen Zeitraum.',
-      'analytics_change_less': 'Rückgang um {percent} % im Vergleich zum vorherigen Zeitraum.',
+      'analytics_change_unavailable':
+          'Der vorherige Vergleich ist nicht verfügbar.',
+      'analytics_change_flat':
+          'Die Ausgaben sind im Vergleich zur Vorperiode unverändert.',
+      'analytics_change_more':
+          'Anstieg um {percent} % im Vergleich zum vorherigen Zeitraum.',
+      'analytics_change_less':
+          'Rückgang um {percent} % im Vergleich zum vorherigen Zeitraum.',
       'analytics_compared_with_previous': 'Im Vergleich zur Vorperiode',
       'analytics_trends_period_label': 'Ausgewähltes Trendfenster',
       'analytics_trends_chart_title': 'Ausgabentrend',
       'analytics_trends_chart_subtitle':
           'Automatic daily, weekly, or monthly buckets for your selected period.',
-      'analytics_trends_no_data': 'Für diese Filter liegen keine Trenddaten vor.',
+      'analytics_trends_no_data':
+          'Für diese Filter liegen keine Trenddaten vor.',
       'analytics_trends_highest_bucket': 'Höchster Eimer',
       'analytics_trends_average_bucket': 'Durchschnittliche Bucket-Ausgaben',
       'analytics_household_empty_title': 'Noch keine Haushaltsanalyse',
       'analytics_household_empty_subtitle':
           'Create or open a household to compare spending across members.',
-      'analytics_household_no_data': 'Für diese Filter fallen keine Haushaltsausgaben an.',
+      'analytics_household_no_data':
+          'Für diese Filter fallen keine Haushaltsausgaben an.',
       'analytics_household_no_data_subtitle':
           'Try widening the date range or clearing a few filters.',
-      'analytics_household_preview_subtitle': 'Gemeinsame Ausgaben für diesen Zeitraum',
-      'analytics_household_total_transactions': '{count} geteilte Transaktionen',
+      'analytics_household_preview_subtitle':
+          'Gemeinsame Ausgaben für diesen Zeitraum',
+      'analytics_household_total_transactions':
+          '{count} geteilte Transaktionen',
       'analytics_household_member_transactions': '{count} Transaktionen',
       'analytics_household_top_category': 'Top-Kategorie: {category}',
       'analytics_household_top_category_unknown': 'Noch keine Kategorie',
@@ -1749,7 +1756,8 @@ class AppLocalizations {
       'receipt_photo_invalid_url': 'Die URL des Belegfotos ist ungültig.',
       'receipt_photo_open_fallback':
           'Could not open the file automatically. The link was copied instead.',
-      'receipt_photo_load_failed': 'Dieses Belegbild konnte nicht geladen werden.',
+      'receipt_photo_load_failed':
+          'Dieses Belegbild konnte nicht geladen werden.',
       'receipt_photo_download': 'Herunterladen',
       'receipt_photo_downloaded': 'Quittung unter {Pfad} gespeichert',
       'receipt_photo_open_external': 'Von außen öffnen',
@@ -1793,8 +1801,10 @@ class AppLocalizations {
       'accentaware_colors': 'Akzentbewusste Farben',
       'activate_pro': 'Aktivieren Sie PRO',
       'after_the_amount': 'Nach dem Betrag',
-      'always_use_the_dark_interface': 'Verwenden Sie immer die dunkle Oberfläche.',
-      'always_use_the_light_interface': 'Benutzen Sie immer die Lichtschnittstelle.',
+      'always_use_the_dark_interface':
+          'Verwenden Sie immer die dunkle Oberfläche.',
+      'always_use_the_light_interface':
+          'Benutzen Sie immer die Lichtschnittstelle.',
       'autodetect_source_language': 'Quellsprache automatisch erkennen',
       'before_the_amount': 'Vor dem Betrag',
       'bill_due_soon': 'Rechnung bald fällig',
@@ -1808,21 +1818,25 @@ class AppLocalizations {
       'current_release': 'Aktuelle Veröffentlichung',
       'daily_avg': 'Täglicher Durchschn',
       'delete_reminder': 'Erinnerung löschen',
-      'discount_must_be_zero_or_higher': 'Der Rabatt muss Null oder höher sein.',
+      'discount_must_be_zero_or_higher':
+          'Der Rabatt muss Null oder höher sein.',
       'discount_percentage_must_stay_under_100':
           'Discount percentage must stay under 100%.',
       'display_name': 'Anzeigename',
       'email_support': 'E-Mail-Support',
-      'enable_notifications_in_the_app': 'Aktivieren Sie Benachrichtigungen in der App',
+      'enable_notifications_in_the_app':
+          'Aktivieren Sie Benachrichtigungen in der App',
       'extra_compact_text': 'Extra kompakter Text',
       'features_tools': 'Funktionen und Tools',
-      'follow_your_device_theme_setting': 'Befolgen Sie die Designeinstellungen Ihres Geräts.',
+      'follow_your_device_theme_setting':
+          'Befolgen Sie die Designeinstellungen Ihres Geräts.',
       'getting_started': 'Erste Schritte',
       'helpful_savings_spotted_in_the_current_r':
           'Helpful savings spotted in the current results.',
       'hide_decimals': 'Dezimalstellen ausblenden',
       'items_translation': 'Artikelübersetzung',
-      'keep_this_image_and_try_later': 'Behalten Sie dieses Bild und versuchen Sie es später',
+      'keep_this_image_and_try_later':
+          'Behalten Sie dieses Bild und versuchen Sie es später',
       'larger_interface': 'Größere Schnittstelle',
       'no_category_insights_yet': 'Noch keine Einblicke in die Kategorie',
       'no_overview_yet': 'Noch keine Übersicht',
@@ -1831,9 +1845,11 @@ class AppLocalizations {
       'no_trend_data_yet': 'Noch keine Trenddaten',
       'open_review': 'Rezension öffnen',
       'organize_your_receipts': 'Organisieren Sie Ihre Quittungen',
-      'please_enter_a_category_name': 'Bitte geben Sie einen Kategorienamen ein.',
+      'please_enter_a_category_name':
+          'Bitte geben Sie einen Kategorienamen ein.',
       'please_enter_a_label_name': 'Bitte geben Sie einen Labelnamen ein.',
-      'please_enter_a_subcategory_name': 'Bitte geben Sie einen Unterkategorienamen ein.',
+      'please_enter_a_subcategory_name':
+          'Bitte geben Sie einen Unterkategorienamen ein.',
       'previous_comparison_is_unavailable_for_t':
           'Previous comparison is unavailable for this range.',
       'privacy_policy': 'Datenschutzrichtlinie',
@@ -1866,7 +1882,8 @@ class AppLocalizations {
       'upload_receipt': 'Quittung hochladen',
       'use_this_source_language': 'Verwenden Sie diese Ausgangssprache',
       'view_insights_and_trends': 'Sehen Sie sich Erkenntnisse und Trends an',
-      'where_the_most_spending_happened_in_this': 'Where the most spending happened in this period.'
+      'where_the_most_spending_happened_in_this':
+          'Where the most spending happened in this period.',
     },
     'fr': {
       'app_title': 'Suivi des dépenses',
@@ -2052,7 +2069,7 @@ class AppLocalizations {
           'Inadéquation totale : {expected} attendu mais extrait {actual}',
       'taxonomy_food': 'Nourriture',
       'taxonomy_clothing': 'Vêtements',
-      'taxonomy_transport': 'Transport',
+      'taxonomy_transport': 'Транспорт',
       'taxonomy_utilities': 'Utilitaires',
       'taxonomy_health': 'Santé',
       'taxonomy_entertainment': 'Divertissement',
@@ -2084,7 +2101,7 @@ class AppLocalizations {
       'taxonomy_fuel': 'Carburant',
       'taxonomy_public_transport': 'Transports publics',
       'taxonomy_taxi_ride_hailing': 'Appel de taxi et de transport',
-      'taxonomy_parking': 'Parking',
+      'taxonomy_parking': 'Паркинг',
       'taxonomy_tolls': 'Péages',
       'taxonomy_car_maintenance': 'Entretien de la voiture',
       'taxonomy_car_wash': 'Lavage de voiture',
@@ -2092,7 +2109,7 @@ class AppLocalizations {
       'taxonomy_electricity': 'Électricité',
       'taxonomy_water': 'Eau',
       'taxonomy_gas': 'Gaz',
-      'taxonomy_internet': 'Internet',
+      'taxonomy_internet': 'Интернет',
       'taxonomy_mobile_phone': 'Téléphone mobile',
       'taxonomy_tv_and_streaming': 'Télévision et streaming',
       'taxonomy_waste_collection': 'Collecte des déchets',
@@ -2257,7 +2274,8 @@ class AppLocalizations {
           'By continuing, you will sign in with your Google account.',
       'settings_subtitle': 'Verwalten Sie Ihre Präferenzen',
       'household_settings_title': 'Familienhaushalt',
-      'household_settings_subtitle': 'Teilen und verwalten Sie den Haushaltszugang',
+      'household_settings_subtitle':
+          'Teilen und verwalten Sie den Haushaltszugang',
       'settings_account_section': 'Konto',
       'settings_preferences_section': 'Präferenzen',
       'settings_support_section': 'Unterstützung',
@@ -2272,7 +2290,8 @@ class AppLocalizations {
       'settings_security': 'Sicherheit',
       'settings_security_subtitle': 'Passwort- und Kontosicherheit',
       'settings_appearance': 'Aussehen',
-      'settings_appearance_subtitle': 'Wählen Sie zwischen Hell- und Dunkelmodus',
+      'settings_appearance_subtitle':
+          'Wählen Sie zwischen Hell- und Dunkelmodus',
       'settings_theme': 'Thema',
       'settings_theme_light': 'Licht',
       'settings_theme_dark': 'Dunkel',
@@ -2293,25 +2312,29 @@ class AppLocalizations {
       'settings_font_large': 'Groß',
       'settings_display_options': 'Anzeigeoptionen',
       'settings_compact_mode': 'Kompaktmodus',
-      'settings_compact_mode_subtitle': 'Zeigen Sie mehr Inhalte auf dem Bildschirm an',
+      'settings_compact_mode_subtitle':
+          'Zeigen Sie mehr Inhalte auf dem Bildschirm an',
       'settings_animations': 'Animationen',
       'settings_animations_subtitle': 'Ermöglichen Sie reibungslose Übergänge',
       'settings_notifications_subtitle': 'Warnungen und Erinnerungen',
       'settings_notification_channels': 'Kanäle',
       'settings_push_notifications': 'Push-Benachrichtigungen',
-      'settings_push_notifications_subtitle': 'Benachrichtigungen auf Ihrem Gerät',
+      'settings_push_notifications_subtitle':
+          'Benachrichtigungen auf Ihrem Gerät',
       'settings_email_notifications': 'E-Mail-Benachrichtigungen',
       'settings_email_notifications_subtitle': 'Updates per E-Mail',
       'settings_notification_activity': 'Aktivität',
       'settings_spending_alerts': 'Ausgabenwarnungen',
-      'settings_spending_alerts_subtitle': 'Ungewöhnliche Ausgaben festgestellt',
+      'settings_spending_alerts_subtitle':
+          'Ungewöhnliche Ausgaben festgestellt',
       'settings_budget_alerts': 'Budgetwarnungen',
       'settings_budget_alerts_subtitle': 'Bei Annäherung an Budgetgrenzen',
       'settings_bill_reminders': 'Rechnungserinnerungen',
       'settings_bill_reminders_subtitle':
           'Monthly reminders for upcoming payments',
       'settings_receipt_reminders': 'Empfangserinnerungen',
-      'settings_receipt_reminders_subtitle': 'Erinnern Sie daran, Belege zu scannen',
+      'settings_receipt_reminders_subtitle':
+          'Erinnern Sie daran, Belege zu scannen',
       'settings_notification_summaries': 'Zusammenfassungen',
       'settings_weekly_summary': 'Wöchentliche Zusammenfassung',
       'settings_weekly_summary_subtitle': 'Jeden Montag um 9 Uhr',
@@ -2344,7 +2367,8 @@ class AppLocalizations {
           'Automatically translate receipt items',
       'settings_translate_to': 'Übersetzen nach',
       'settings_options': 'Optionen',
-      'settings_auto_detect_source_language': 'Quellsprache automatisch erkennen',
+      'settings_auto_detect_source_language':
+          'Quellsprache automatisch erkennen',
       'settings_auto_detect_source_language_subtitle':
           'Automatically detect original language',
       'settings_example': 'Beispiel',
@@ -2367,7 +2391,8 @@ class AppLocalizations {
           'Title must be between 3 and 120 characters.',
       'feature_request_description_length_error':
           'Description must be between 10 and 2000 characters.',
-      'feature_request_load_error_title': 'Funktionsanfragen konnten nicht geladen werden',
+      'feature_request_load_error_title':
+          'Funktionsanfragen konnten nicht geladen werden',
       'feature_request_your_ideas': 'Ihre Ideen',
       'feature_request_your_ideas_empty_title': 'Noch keine Ideen eingereicht',
       'feature_request_your_ideas_empty_subtitle':
@@ -2390,7 +2415,8 @@ class AppLocalizations {
       'feature_request_category_receipts_scanning': 'Quittungen und Scannen',
       'feature_request_category_budgets_planning': 'Budgets und Planung',
       'feature_request_category_household_sharing': 'Haushalt & Teilen',
-      'feature_request_category_design_accessibility': 'Design und Zugänglichkeit',
+      'feature_request_category_design_accessibility':
+          'Design und Zugänglichkeit',
       'feature_request_category_other': 'Andere',
       'settings_privacy_policy': 'Datenschutzrichtlinie',
       'settings_terms_of_service': 'Nutzungsbedingungen',
@@ -2423,7 +2449,8 @@ class AppLocalizations {
       'household_you_badge': 'Du',
       'household_members_title': 'Mitglieder',
       'household_remove_member_title': 'Mitglied entfernen',
-      'household_remove_member_confirm': '{Name} aus diesem Haushalt entfernen?',
+      'household_remove_member_confirm':
+          '{Name} aus diesem Haushalt entfernen?',
       'household_member_removed': 'Mitglied entfernt.',
       'household_leave_title': 'Verlassen Sie den Haushalt',
       'household_leave_confirm':
@@ -2464,7 +2491,8 @@ class AppLocalizations {
       'household_member_count': '{count} Mitglieder',
       'household_member_count_with_limit': '{count} von {limit} Mitgliedern',
       'household_shared_expenses': 'Geteilte Ausgaben',
-      'household_shared_expenses_subtitle': 'Erlauben Sie allen Mitgliedern, Ausgaben hinzuzufügen',
+      'household_shared_expenses_subtitle':
+          'Erlauben Sie allen Mitgliedern, Ausgaben hinzuzufügen',
       'household_budget_notifications': 'Budgetbenachrichtigungen',
       'household_budget_notifications_subtitle':
           'Notify when household budget limit is reached',
@@ -2543,7 +2571,8 @@ class AppLocalizations {
       'bill_reminders_due_date': 'Fälligkeitsdatum',
       'bill_reminders_pick_date': 'Fälligkeitsdatum auswählen',
       'bill_reminders_first_due_date': 'Erstes Fälligkeitsdatum',
-      'bill_reminders_pick_first_due_date': 'Wählen Sie das erste Fälligkeitsdatum aus',
+      'bill_reminders_pick_first_due_date':
+          'Wählen Sie das erste Fälligkeitsdatum aus',
       'bill_reminders_start_date': 'Beginnt am',
       'bill_reminders_pick_start_date': 'Wählen Sie das Startdatum',
       'bill_reminders_recurring': 'Wiederkehrend',
@@ -2609,26 +2638,34 @@ class AppLocalizations {
       'analytics_show_fewer_filters': 'Weniger Filter anzeigen',
       'analytics_categories_subtitle': 'Entdecken Sie, wohin Ihr Geld fließt',
       'analytics_overview_top_categories': 'Top-Kategorien',
-      'analytics_change_unavailable': 'Der vorherige Vergleich ist nicht verfügbar.',
-      'analytics_change_flat': 'Die Ausgaben sind im Vergleich zur Vorperiode unverändert.',
-      'analytics_change_more': 'Anstieg um {percent} % im Vergleich zum vorherigen Zeitraum.',
-      'analytics_change_less': 'Rückgang um {percent} % im Vergleich zum vorherigen Zeitraum.',
+      'analytics_change_unavailable':
+          'Der vorherige Vergleich ist nicht verfügbar.',
+      'analytics_change_flat':
+          'Die Ausgaben sind im Vergleich zur Vorperiode unverändert.',
+      'analytics_change_more':
+          'Anstieg um {percent} % im Vergleich zum vorherigen Zeitraum.',
+      'analytics_change_less':
+          'Rückgang um {percent} % im Vergleich zum vorherigen Zeitraum.',
       'analytics_compared_with_previous': 'Im Vergleich zur Vorperiode',
       'analytics_trends_period_label': 'Ausgewähltes Trendfenster',
       'analytics_trends_chart_title': 'Ausgabentrend',
       'analytics_trends_chart_subtitle':
           'Automatic daily, weekly, or monthly buckets for your selected period.',
-      'analytics_trends_no_data': 'Für diese Filter liegen keine Trenddaten vor.',
+      'analytics_trends_no_data':
+          'Für diese Filter liegen keine Trenddaten vor.',
       'analytics_trends_highest_bucket': 'Höchster Eimer',
       'analytics_trends_average_bucket': 'Durchschnittliche Bucket-Ausgaben',
       'analytics_household_empty_title': 'Noch keine Haushaltsanalyse',
       'analytics_household_empty_subtitle':
           'Create or open a household to compare spending across members.',
-      'analytics_household_no_data': 'Für diese Filter fallen keine Haushaltsausgaben an.',
+      'analytics_household_no_data':
+          'Für diese Filter fallen keine Haushaltsausgaben an.',
       'analytics_household_no_data_subtitle':
           'Try widening the date range or clearing a few filters.',
-      'analytics_household_preview_subtitle': 'Gemeinsame Ausgaben für diesen Zeitraum',
-      'analytics_household_total_transactions': '{count} geteilte Transaktionen',
+      'analytics_household_preview_subtitle':
+          'Gemeinsame Ausgaben für diesen Zeitraum',
+      'analytics_household_total_transactions':
+          '{count} geteilte Transaktionen',
       'analytics_household_member_transactions': '{count} Transaktionen',
       'analytics_household_top_category': 'Top-Kategorie: {category}',
       'analytics_household_top_category_unknown': 'Noch keine Kategorie',
@@ -2661,7 +2698,8 @@ class AppLocalizations {
       'receipt_photo_invalid_url': 'Die URL des Belegfotos ist ungültig.',
       'receipt_photo_open_fallback':
           'Could not open the file automatically. The link was copied instead.',
-      'receipt_photo_load_failed': 'Dieses Belegbild konnte nicht geladen werden.',
+      'receipt_photo_load_failed':
+          'Dieses Belegbild konnte nicht geladen werden.',
       'receipt_photo_download': 'Herunterladen',
       'receipt_photo_downloaded': 'Quittung unter {Pfad} gespeichert',
       'receipt_photo_open_external': 'Von außen öffnen',
@@ -2705,8 +2743,10 @@ class AppLocalizations {
       'accentaware_colors': 'Akzentbewusste Farben',
       'activate_pro': 'Aktivieren Sie PRO',
       'after_the_amount': 'Nach dem Betrag',
-      'always_use_the_dark_interface': 'Verwenden Sie immer die dunkle Oberfläche.',
-      'always_use_the_light_interface': 'Benutzen Sie immer die Lichtschnittstelle.',
+      'always_use_the_dark_interface':
+          'Verwenden Sie immer die dunkle Oberfläche.',
+      'always_use_the_light_interface':
+          'Benutzen Sie immer die Lichtschnittstelle.',
       'autodetect_source_language': 'Quellsprache automatisch erkennen',
       'before_the_amount': 'Vor dem Betrag',
       'bill_due_soon': 'Rechnung bald fällig',
@@ -2720,21 +2760,25 @@ class AppLocalizations {
       'current_release': 'Aktuelle Veröffentlichung',
       'daily_avg': 'Täglicher Durchschn',
       'delete_reminder': 'Erinnerung löschen',
-      'discount_must_be_zero_or_higher': 'Der Rabatt muss Null oder höher sein.',
+      'discount_must_be_zero_or_higher':
+          'Der Rabatt muss Null oder höher sein.',
       'discount_percentage_must_stay_under_100':
           'Discount percentage must stay under 100%.',
       'display_name': 'Anzeigename',
       'email_support': 'E-Mail-Support',
-      'enable_notifications_in_the_app': 'Aktivieren Sie Benachrichtigungen in der App',
+      'enable_notifications_in_the_app':
+          'Aktivieren Sie Benachrichtigungen in der App',
       'extra_compact_text': 'Extra kompakter Text',
       'features_tools': 'Funktionen und Tools',
-      'follow_your_device_theme_setting': 'Befolgen Sie die Designeinstellungen Ihres Geräts.',
+      'follow_your_device_theme_setting':
+          'Befolgen Sie die Designeinstellungen Ihres Geräts.',
       'getting_started': 'Erste Schritte',
       'helpful_savings_spotted_in_the_current_r':
           'Helpful savings spotted in the current results.',
       'hide_decimals': 'Dezimalstellen ausblenden',
       'items_translation': 'Artikelübersetzung',
-      'keep_this_image_and_try_later': 'Behalten Sie dieses Bild und versuchen Sie es später',
+      'keep_this_image_and_try_later':
+          'Behalten Sie dieses Bild und versuchen Sie es später',
       'larger_interface': 'Größere Schnittstelle',
       'no_category_insights_yet': 'Noch keine Einblicke in die Kategorie',
       'no_overview_yet': 'Noch keine Übersicht',
@@ -2743,9 +2787,11 @@ class AppLocalizations {
       'no_trend_data_yet': 'Noch keine Trenddaten',
       'open_review': 'Rezension öffnen',
       'organize_your_receipts': 'Organisieren Sie Ihre Quittungen',
-      'please_enter_a_category_name': 'Bitte geben Sie einen Kategorienamen ein.',
+      'please_enter_a_category_name':
+          'Bitte geben Sie einen Kategorienamen ein.',
       'please_enter_a_label_name': 'Bitte geben Sie einen Labelnamen ein.',
-      'please_enter_a_subcategory_name': 'Bitte geben Sie einen Unterkategorienamen ein.',
+      'please_enter_a_subcategory_name':
+          'Bitte geben Sie einen Unterkategorienamen ein.',
       'previous_comparison_is_unavailable_for_t':
           'Previous comparison is unavailable for this range.',
       'privacy_policy': 'Datenschutzrichtlinie',
@@ -2778,7 +2824,8 @@ class AppLocalizations {
       'upload_receipt': 'Quittung hochladen',
       'use_this_source_language': 'Verwenden Sie diese Ausgangssprache',
       'view_insights_and_trends': 'Sehen Sie sich Erkenntnisse und Trends an',
-      'where_the_most_spending_happened_in_this': 'Where the most spending happened in this period.'
+      'where_the_most_spending_happened_in_this':
+          'Where the most spending happened in this period.',
     },
     'uk': {
       'app_title': 'Трекер витрат',
@@ -3314,11 +3361,13 @@ class AppLocalizations {
       'login_footer_note':
           'By continuing, you will sign in with your Google account.',
       'household_settings_title': 'Familienhaushalt',
-      'household_settings_subtitle': 'Teilen und verwalten Sie den Haushaltszugang',
+      'household_settings_subtitle':
+          'Teilen und verwalten Sie den Haushaltszugang',
       'settings_household': 'Haushalt',
       'settings_security': 'Sicherheit',
       'settings_security_subtitle': 'Passwort- und Kontosicherheit',
-      'settings_appearance_subtitle': 'Wählen Sie zwischen Hell- und Dunkelmodus',
+      'settings_appearance_subtitle':
+          'Wählen Sie zwischen Hell- und Dunkelmodus',
       'settings_theme': 'Thema',
       'settings_theme_light': 'Licht',
       'settings_theme_dark': 'Dunkel',
@@ -3339,24 +3388,28 @@ class AppLocalizations {
       'settings_font_large': 'Groß',
       'settings_display_options': 'Anzeigeoptionen',
       'settings_compact_mode': 'Kompaktmodus',
-      'settings_compact_mode_subtitle': 'Zeigen Sie mehr Inhalte auf dem Bildschirm an',
+      'settings_compact_mode_subtitle':
+          'Zeigen Sie mehr Inhalte auf dem Bildschirm an',
       'settings_animations': 'Animationen',
       'settings_animations_subtitle': 'Ermöglichen Sie reibungslose Übergänge',
       'settings_notification_channels': 'Kanäle',
       'settings_push_notifications': 'Push-Benachrichtigungen',
-      'settings_push_notifications_subtitle': 'Benachrichtigungen auf Ihrem Gerät',
+      'settings_push_notifications_subtitle':
+          'Benachrichtigungen auf Ihrem Gerät',
       'settings_email_notifications': 'E-Mail-Benachrichtigungen',
       'settings_email_notifications_subtitle': 'Updates per E-Mail',
       'settings_notification_activity': 'Aktivität',
       'settings_spending_alerts': 'Ausgabenwarnungen',
-      'settings_spending_alerts_subtitle': 'Ungewöhnliche Ausgaben festgestellt',
+      'settings_spending_alerts_subtitle':
+          'Ungewöhnliche Ausgaben festgestellt',
       'settings_budget_alerts': 'Budgetwarnungen',
       'settings_budget_alerts_subtitle': 'Bei Annäherung an Budgetgrenzen',
       'settings_bill_reminders': 'Rechnungserinnerungen',
       'settings_bill_reminders_subtitle':
           'Monthly reminders for upcoming payments',
       'settings_receipt_reminders': 'Empfangserinnerungen',
-      'settings_receipt_reminders_subtitle': 'Erinnern Sie daran, Belege zu scannen',
+      'settings_receipt_reminders_subtitle':
+          'Erinnern Sie daran, Belege zu scannen',
       'settings_notification_summaries': 'Zusammenfassungen',
       'settings_weekly_summary': 'Wöchentliche Zusammenfassung',
       'settings_weekly_summary_subtitle': 'Jeden Montag um 9 Uhr',
@@ -3388,7 +3441,8 @@ class AppLocalizations {
           'Automatically translate receipt items',
       'settings_translate_to': 'Übersetzen nach',
       'settings_options': 'Optionen',
-      'settings_auto_detect_source_language': 'Quellsprache automatisch erkennen',
+      'settings_auto_detect_source_language':
+          'Quellsprache automatisch erkennen',
       'settings_auto_detect_source_language_subtitle':
           'Automatically detect original language',
       'settings_example': 'Beispiel',
@@ -3414,7 +3468,8 @@ class AppLocalizations {
       'household_you_badge': 'Du',
       'household_members_title': 'Mitglieder',
       'household_remove_member_title': 'Mitglied entfernen',
-      'household_remove_member_confirm': '{Name} aus diesem Haushalt entfernen?',
+      'household_remove_member_confirm':
+          '{Name} aus diesem Haushalt entfernen?',
       'household_member_removed': 'Mitglied entfernt.',
       'household_leave_title': 'Verlassen Sie den Haushalt',
       'household_leave_confirm':
@@ -3455,7 +3510,8 @@ class AppLocalizations {
       'household_member_count': '{count} Mitglieder',
       'household_member_count_with_limit': '{count} von {limit} Mitgliedern',
       'household_shared_expenses': 'Geteilte Ausgaben',
-      'household_shared_expenses_subtitle': 'Erlauben Sie allen Mitgliedern, Ausgaben hinzuzufügen',
+      'household_shared_expenses_subtitle':
+          'Erlauben Sie allen Mitgliedern, Ausgaben hinzuzufügen',
       'household_budget_notifications': 'Budgetbenachrichtigungen',
       'household_budget_notifications_subtitle':
           'Notify when household budget limit is reached',
@@ -3486,7 +3542,8 @@ class AppLocalizations {
       'bill_reminders_due_date': 'Fälligkeitsdatum',
       'bill_reminders_pick_date': 'Fälligkeitsdatum auswählen',
       'bill_reminders_first_due_date': 'Erstes Fälligkeitsdatum',
-      'bill_reminders_pick_first_due_date': 'Wählen Sie das erste Fälligkeitsdatum aus',
+      'bill_reminders_pick_first_due_date':
+          'Wählen Sie das erste Fälligkeitsdatum aus',
       'bill_reminders_start_date': 'Beginnt am',
       'bill_reminders_pick_start_date': 'Wählen Sie das Startdatum',
       'bill_reminders_recurring': 'Wiederkehrend',
@@ -3528,26 +3585,34 @@ class AppLocalizations {
       'analytics_show_fewer_filters': 'Weniger Filter anzeigen',
       'analytics_categories_subtitle': 'Entdecken Sie, wohin Ihr Geld fließt',
       'analytics_overview_top_categories': 'Top-Kategorien',
-      'analytics_change_unavailable': 'Der vorherige Vergleich ist nicht verfügbar.',
-      'analytics_change_flat': 'Die Ausgaben sind im Vergleich zur Vorperiode unverändert.',
-      'analytics_change_more': 'Anstieg um {percent} % im Vergleich zum vorherigen Zeitraum.',
-      'analytics_change_less': 'Rückgang um {percent} % im Vergleich zum vorherigen Zeitraum.',
+      'analytics_change_unavailable':
+          'Der vorherige Vergleich ist nicht verfügbar.',
+      'analytics_change_flat':
+          'Die Ausgaben sind im Vergleich zur Vorperiode unverändert.',
+      'analytics_change_more':
+          'Anstieg um {percent} % im Vergleich zum vorherigen Zeitraum.',
+      'analytics_change_less':
+          'Rückgang um {percent} % im Vergleich zum vorherigen Zeitraum.',
       'analytics_compared_with_previous': 'Im Vergleich zur Vorperiode',
       'analytics_trends_period_label': 'Ausgewähltes Trendfenster',
       'analytics_trends_chart_title': 'Ausgabentrend',
       'analytics_trends_chart_subtitle':
           'Automatic daily, weekly, or monthly buckets for your selected period.',
-      'analytics_trends_no_data': 'Für diese Filter liegen keine Trenddaten vor.',
+      'analytics_trends_no_data':
+          'Für diese Filter liegen keine Trenddaten vor.',
       'analytics_trends_highest_bucket': 'Höchster Eimer',
       'analytics_trends_average_bucket': 'Durchschnittliche Bucket-Ausgaben',
       'analytics_household_empty_title': 'Noch keine Haushaltsanalyse',
       'analytics_household_empty_subtitle':
           'Create or open a household to compare spending across members.',
-      'analytics_household_no_data': 'Für diese Filter fallen keine Haushaltsausgaben an.',
+      'analytics_household_no_data':
+          'Für diese Filter fallen keine Haushaltsausgaben an.',
       'analytics_household_no_data_subtitle':
           'Try widening the date range or clearing a few filters.',
-      'analytics_household_preview_subtitle': 'Gemeinsame Ausgaben für diesen Zeitraum',
-      'analytics_household_total_transactions': '{count} geteilte Transaktionen',
+      'analytics_household_preview_subtitle':
+          'Gemeinsame Ausgaben für diesen Zeitraum',
+      'analytics_household_total_transactions':
+          '{count} geteilte Transaktionen',
       'analytics_household_member_transactions': '{count} Transaktionen',
       'analytics_household_top_category': 'Top-Kategorie: {category}',
       'analytics_household_top_category_unknown': 'Noch keine Kategorie',
@@ -3609,8 +3674,10 @@ class AppLocalizations {
       'accentaware_colors': 'Akzentbewusste Farben',
       'activate_pro': 'Aktivieren Sie PRO',
       'after_the_amount': 'Nach dem Betrag',
-      'always_use_the_dark_interface': 'Verwenden Sie immer die dunkle Oberfläche.',
-      'always_use_the_light_interface': 'Benutzen Sie immer die Lichtschnittstelle.',
+      'always_use_the_dark_interface':
+          'Verwenden Sie immer die dunkle Oberfläche.',
+      'always_use_the_light_interface':
+          'Benutzen Sie immer die Lichtschnittstelle.',
       'autodetect_source_language': 'Quellsprache automatisch erkennen',
       'before_the_amount': 'Vor dem Betrag',
       'bill_due_soon': 'Rechnung bald fällig',
@@ -3624,21 +3691,25 @@ class AppLocalizations {
       'current_release': 'Aktuelle Veröffentlichung',
       'daily_avg': 'Täglicher Durchschn',
       'delete_reminder': 'Erinnerung löschen',
-      'discount_must_be_zero_or_higher': 'Der Rabatt muss Null oder höher sein.',
+      'discount_must_be_zero_or_higher':
+          'Der Rabatt muss Null oder höher sein.',
       'discount_percentage_must_stay_under_100':
           'Discount percentage must stay under 100%.',
       'display_name': 'Anzeigename',
       'email_support': 'E-Mail-Support',
-      'enable_notifications_in_the_app': 'Aktivieren Sie Benachrichtigungen in der App',
+      'enable_notifications_in_the_app':
+          'Aktivieren Sie Benachrichtigungen in der App',
       'extra_compact_text': 'Extra kompakter Text',
       'features_tools': 'Funktionen und Tools',
-      'follow_your_device_theme_setting': 'Befolgen Sie die Designeinstellungen Ihres Geräts.',
+      'follow_your_device_theme_setting':
+          'Befolgen Sie die Designeinstellungen Ihres Geräts.',
       'getting_started': 'Erste Schritte',
       'helpful_savings_spotted_in_the_current_r':
           'Helpful savings spotted in the current results.',
       'hide_decimals': 'Dezimalstellen ausblenden',
       'items_translation': 'Artikelübersetzung',
-      'keep_this_image_and_try_later': 'Behalten Sie dieses Bild und versuchen Sie es später',
+      'keep_this_image_and_try_later':
+          'Behalten Sie dieses Bild und versuchen Sie es später',
       'larger_interface': 'Größere Schnittstelle',
       'no_category_insights_yet': 'Noch keine Einblicke in die Kategorie',
       'no_overview_yet': 'Noch keine Übersicht',
@@ -3647,9 +3718,11 @@ class AppLocalizations {
       'no_trend_data_yet': 'Noch keine Trenddaten',
       'open_review': 'Rezension öffnen',
       'organize_your_receipts': 'Organisieren Sie Ihre Quittungen',
-      'please_enter_a_category_name': 'Bitte geben Sie einen Kategorienamen ein.',
+      'please_enter_a_category_name':
+          'Bitte geben Sie einen Kategorienamen ein.',
       'please_enter_a_label_name': 'Bitte geben Sie einen Labelnamen ein.',
-      'please_enter_a_subcategory_name': 'Bitte geben Sie einen Unterkategorienamen ein.',
+      'please_enter_a_subcategory_name':
+          'Bitte geben Sie einen Unterkategorienamen ein.',
       'previous_comparison_is_unavailable_for_t':
           'Previous comparison is unavailable for this range.',
       'privacy_policy': 'Datenschutzrichtlinie',
@@ -3682,7 +3755,8 @@ class AppLocalizations {
       'upload_receipt': 'Quittung hochladen',
       'use_this_source_language': 'Verwenden Sie diese Ausgangssprache',
       'view_insights_and_trends': 'Sehen Sie sich Erkenntnisse und Trends an',
-      'where_the_most_spending_happened_in_this': 'Where the most spending happened in this period.'
+      'where_the_most_spending_happened_in_this':
+          'Where the most spending happened in this period.',
     },
     'it': {
       'app_title': 'Monitoraggio delle spese',
@@ -3911,8 +3985,8 @@ class AppLocalizations {
       'taxonomy_vehicle_insurance': 'Assicurazione del veicolo',
       'taxonomy_electricity': 'Elettricità',
       'taxonomy_water': 'Acqua',
-      'taxonomy_gas': 'Gas',
-      'taxonomy_internet': 'Internet',
+      'taxonomy_gas': 'Гас',
+      'taxonomy_internet': 'Интернет',
       'taxonomy_mobile_phone': 'Telefono cellulare',
       'taxonomy_tv_and_streaming': 'TV e streaming',
       'taxonomy_waste_collection': 'Raccolta rifiuti',
@@ -3982,7 +4056,8 @@ class AppLocalizations {
           'By continuing, you will sign in with your Google account.',
       'settings_subtitle': 'Verwalten Sie Ihre Präferenzen',
       'household_settings_title': 'Familienhaushalt',
-      'household_settings_subtitle': 'Teilen und verwalten Sie den Haushaltszugang',
+      'household_settings_subtitle':
+          'Teilen und verwalten Sie den Haushaltszugang',
       'settings_account_section': 'Konto',
       'settings_preferences_section': 'Präferenzen',
       'settings_support_section': 'Unterstützung',
@@ -3997,7 +4072,8 @@ class AppLocalizations {
       'settings_security': 'Sicherheit',
       'settings_security_subtitle': 'Passwort- und Kontosicherheit',
       'settings_appearance': 'Aussehen',
-      'settings_appearance_subtitle': 'Wählen Sie zwischen Hell- und Dunkelmodus',
+      'settings_appearance_subtitle':
+          'Wählen Sie zwischen Hell- und Dunkelmodus',
       'settings_theme': 'Thema',
       'settings_theme_light': 'Licht',
       'settings_theme_dark': 'Dunkel',
@@ -4018,25 +4094,29 @@ class AppLocalizations {
       'settings_font_large': 'Groß',
       'settings_display_options': 'Anzeigeoptionen',
       'settings_compact_mode': 'Kompaktmodus',
-      'settings_compact_mode_subtitle': 'Zeigen Sie mehr Inhalte auf dem Bildschirm an',
+      'settings_compact_mode_subtitle':
+          'Zeigen Sie mehr Inhalte auf dem Bildschirm an',
       'settings_animations': 'Animationen',
       'settings_animations_subtitle': 'Ermöglichen Sie reibungslose Übergänge',
       'settings_notifications_subtitle': 'Warnungen und Erinnerungen',
       'settings_notification_channels': 'Kanäle',
       'settings_push_notifications': 'Push-Benachrichtigungen',
-      'settings_push_notifications_subtitle': 'Benachrichtigungen auf Ihrem Gerät',
+      'settings_push_notifications_subtitle':
+          'Benachrichtigungen auf Ihrem Gerät',
       'settings_email_notifications': 'E-Mail-Benachrichtigungen',
       'settings_email_notifications_subtitle': 'Updates per E-Mail',
       'settings_notification_activity': 'Aktivität',
       'settings_spending_alerts': 'Ausgabenwarnungen',
-      'settings_spending_alerts_subtitle': 'Ungewöhnliche Ausgaben festgestellt',
+      'settings_spending_alerts_subtitle':
+          'Ungewöhnliche Ausgaben festgestellt',
       'settings_budget_alerts': 'Budgetwarnungen',
       'settings_budget_alerts_subtitle': 'Bei Annäherung an Budgetgrenzen',
       'settings_bill_reminders': 'Rechnungserinnerungen',
       'settings_bill_reminders_subtitle':
           'Monthly reminders for upcoming payments',
       'settings_receipt_reminders': 'Empfangserinnerungen',
-      'settings_receipt_reminders_subtitle': 'Erinnern Sie daran, Belege zu scannen',
+      'settings_receipt_reminders_subtitle':
+          'Erinnern Sie daran, Belege zu scannen',
       'settings_notification_summaries': 'Zusammenfassungen',
       'settings_weekly_summary': 'Wöchentliche Zusammenfassung',
       'settings_weekly_summary_subtitle': 'Jeden Montag um 9 Uhr',
@@ -4069,7 +4149,8 @@ class AppLocalizations {
           'Automatically translate receipt items',
       'settings_translate_to': 'Übersetzen nach',
       'settings_options': 'Optionen',
-      'settings_auto_detect_source_language': 'Quellsprache automatisch erkennen',
+      'settings_auto_detect_source_language':
+          'Quellsprache automatisch erkennen',
       'settings_auto_detect_source_language_subtitle':
           'Automatically detect original language',
       'settings_example': 'Beispiel',
@@ -4092,7 +4173,8 @@ class AppLocalizations {
           'Title must be between 3 and 120 characters.',
       'feature_request_description_length_error':
           'Description must be between 10 and 2000 characters.',
-      'feature_request_load_error_title': 'Funktionsanfragen konnten nicht geladen werden',
+      'feature_request_load_error_title':
+          'Funktionsanfragen konnten nicht geladen werden',
       'feature_request_your_ideas': 'Ihre Ideen',
       'feature_request_your_ideas_empty_title': 'Noch keine Ideen eingereicht',
       'feature_request_your_ideas_empty_subtitle':
@@ -4115,7 +4197,8 @@ class AppLocalizations {
       'feature_request_category_receipts_scanning': 'Quittungen und Scannen',
       'feature_request_category_budgets_planning': 'Budgets und Planung',
       'feature_request_category_household_sharing': 'Haushalt & Teilen',
-      'feature_request_category_design_accessibility': 'Design und Zugänglichkeit',
+      'feature_request_category_design_accessibility':
+          'Design und Zugänglichkeit',
       'feature_request_category_other': 'Andere',
       'settings_privacy_policy': 'Datenschutzrichtlinie',
       'settings_terms_of_service': 'Nutzungsbedingungen',
@@ -4148,7 +4231,8 @@ class AppLocalizations {
       'household_you_badge': 'Du',
       'household_members_title': 'Mitglieder',
       'household_remove_member_title': 'Mitglied entfernen',
-      'household_remove_member_confirm': '{Name} aus diesem Haushalt entfernen?',
+      'household_remove_member_confirm':
+          '{Name} aus diesem Haushalt entfernen?',
       'household_member_removed': 'Mitglied entfernt.',
       'household_leave_title': 'Verlassen Sie den Haushalt',
       'household_leave_confirm':
@@ -4189,7 +4273,8 @@ class AppLocalizations {
       'household_member_count': '{count} Mitglieder',
       'household_member_count_with_limit': '{count} von {limit} Mitgliedern',
       'household_shared_expenses': 'Geteilte Ausgaben',
-      'household_shared_expenses_subtitle': 'Erlauben Sie allen Mitgliedern, Ausgaben hinzuzufügen',
+      'household_shared_expenses_subtitle':
+          'Erlauben Sie allen Mitgliedern, Ausgaben hinzuzufügen',
       'household_budget_notifications': 'Budgetbenachrichtigungen',
       'household_budget_notifications_subtitle':
           'Notify when household budget limit is reached',
@@ -4269,7 +4354,8 @@ class AppLocalizations {
       'bill_reminders_due_date': 'Fälligkeitsdatum',
       'bill_reminders_pick_date': 'Fälligkeitsdatum auswählen',
       'bill_reminders_first_due_date': 'Erstes Fälligkeitsdatum',
-      'bill_reminders_pick_first_due_date': 'Wählen Sie das erste Fälligkeitsdatum aus',
+      'bill_reminders_pick_first_due_date':
+          'Wählen Sie das erste Fälligkeitsdatum aus',
       'bill_reminders_start_date': 'Beginnt am',
       'bill_reminders_pick_start_date': 'Wählen Sie das Startdatum',
       'bill_reminders_recurring': 'Wiederkehrend',
@@ -4296,7 +4382,8 @@ class AppLocalizations {
       'home_greeting_morning': 'Buongiorno',
       'home_greeting_afternoon': 'Buon pomeriggio',
       'home_greeting_evening': 'Buonasera',
-      'home_start_subtitle': 'Scansiona una ricevuta o aggiungi una spesa per iniziare.',
+      'home_start_subtitle':
+          'Scansiona una ricevuta o aggiungi una spesa per iniziare.',
       'home_all_reviewed': 'Tutte le ricevute vengono esaminate',
       'home_review_count_single': '1 ricevuta necessita di revisione',
       'home_review_count_plural': '{count} ricevute necessitano di revisione',
@@ -4312,9 +4399,12 @@ class AppLocalizations {
           'Top category is {category} at {percent}% of monthly spend.',
       'home_insight_top_subcategory':
           'Top subcategory is {subcategory} at {percent}% of item spend.',
-      'home_insight_review_count': '{count} ricevute devono ancora essere revisionate.',
-      'home_insight_all_caught_up': 'Siete tutti impegnati nella revisione delle ricevute.',
-      'home_scan_receipt_subtitle': 'Acquisizione istantanea basata sull\'intelligenza artificiale',
+      'home_insight_review_count':
+          '{count} ricevute devono ancora essere revisionate.',
+      'home_insight_all_caught_up':
+          'Siete tutti impegnati nella revisione delle ricevute.',
+      'home_scan_receipt_subtitle':
+          'Acquisizione istantanea basata sull\'intelligenza artificiale',
       'home_primary_action': 'Azione primaria',
       'home_spending_overview': 'Panoramica della spesa',
       'home_no_spending_data': 'Nessun dato di spesa per questo mese ancora.',
@@ -4335,7 +4425,8 @@ class AppLocalizations {
       'receipts_empty_body':
           'Scan your first receipt to start building a history you can review and filter.',
       'receipts_scan_first_action': 'Scansiona la tua prima ricevuta',
-      'receipts_no_filter_matches': 'Nessuna ricevuta corrisponde ai filtri attuali.',
+      'receipts_no_filter_matches':
+          'Nessuna ricevuta corrisponde ai filtri attuali.',
       'receipts_no_filter_matches_body':
           'Try another period, merchant search, or clear the active filters.',
       'receipts_history_total': 'Totale cronologia ricevute',
@@ -4379,26 +4470,34 @@ class AppLocalizations {
       'analytics_show_fewer_filters': 'Weniger Filter anzeigen',
       'analytics_categories_subtitle': 'Entdecken Sie, wohin Ihr Geld fließt',
       'analytics_overview_top_categories': 'Top-Kategorien',
-      'analytics_change_unavailable': 'Der vorherige Vergleich ist nicht verfügbar.',
-      'analytics_change_flat': 'Die Ausgaben sind im Vergleich zur Vorperiode unverändert.',
-      'analytics_change_more': 'Anstieg um {percent} % im Vergleich zum vorherigen Zeitraum.',
-      'analytics_change_less': 'Rückgang um {percent} % im Vergleich zum vorherigen Zeitraum.',
+      'analytics_change_unavailable':
+          'Der vorherige Vergleich ist nicht verfügbar.',
+      'analytics_change_flat':
+          'Die Ausgaben sind im Vergleich zur Vorperiode unverändert.',
+      'analytics_change_more':
+          'Anstieg um {percent} % im Vergleich zum vorherigen Zeitraum.',
+      'analytics_change_less':
+          'Rückgang um {percent} % im Vergleich zum vorherigen Zeitraum.',
       'analytics_compared_with_previous': 'Im Vergleich zur Vorperiode',
       'analytics_trends_period_label': 'Ausgewähltes Trendfenster',
       'analytics_trends_chart_title': 'Ausgabentrend',
       'analytics_trends_chart_subtitle':
           'Automatic daily, weekly, or monthly buckets for your selected period.',
-      'analytics_trends_no_data': 'Für diese Filter liegen keine Trenddaten vor.',
+      'analytics_trends_no_data':
+          'Für diese Filter liegen keine Trenddaten vor.',
       'analytics_trends_highest_bucket': 'Höchster Eimer',
       'analytics_trends_average_bucket': 'Durchschnittliche Bucket-Ausgaben',
       'analytics_household_empty_title': 'Noch keine Haushaltsanalyse',
       'analytics_household_empty_subtitle':
           'Create or open a household to compare spending across members.',
-      'analytics_household_no_data': 'Für diese Filter fallen keine Haushaltsausgaben an.',
+      'analytics_household_no_data':
+          'Für diese Filter fallen keine Haushaltsausgaben an.',
       'analytics_household_no_data_subtitle':
           'Try widening the date range or clearing a few filters.',
-      'analytics_household_preview_subtitle': 'Gemeinsame Ausgaben für diesen Zeitraum',
-      'analytics_household_total_transactions': '{count} geteilte Transaktionen',
+      'analytics_household_preview_subtitle':
+          'Gemeinsame Ausgaben für diesen Zeitraum',
+      'analytics_household_total_transactions':
+          '{count} geteilte Transaktionen',
       'analytics_household_member_transactions': '{count} Transaktionen',
       'analytics_household_top_category': 'Top-Kategorie: {category}',
       'analytics_household_top_category_unknown': 'Noch keine Kategorie',
@@ -4429,7 +4528,8 @@ class AppLocalizations {
           'Enter a valid amount greater than zero.',
       'manual_transaction_deleted': 'Manuelle Transaktion gelöscht.',
       'manual_transaction_delete_missing_id': 'Transaktions-ID fehlt.',
-      'transaction_amount_required': 'Inserisci un importo totale prima di salvare.',
+      'transaction_amount_required':
+          'Inserisci un importo totale prima di salvare.',
       'transaction_invalid_total': 'Inserisci un importo totale valido.',
       'transaction_save_before_labels':
           'Save the transaction before adding labels.',
@@ -4454,10 +4554,12 @@ class AppLocalizations {
       'transaction_receipt_photo_title': 'Foto della ricevuta',
       'transaction_receipt_photo_subtitle': 'Visualizza la foto originale',
       'transaction_warning_review_one_item': 'Recensisci 1 articolo in totale',
-      'transaction_warning_review_items': 'Controlla il totale di {count} articoli',
+      'transaction_warning_review_items':
+          'Controlla il totale di {count} articoli',
       'transaction_warning_review_total': 'Controlla il totale della ricevuta',
       'transaction_warning_check_one_detail': 'Controlla 1 dettaglio estratto',
-      'transaction_warning_check_details': 'Controlla {count} dettagli estratti',
+      'transaction_warning_check_details':
+          'Controlla {count} dettagli estratti',
       'transaction_warning_accepts_edits':
           'Take a quick final look before saving. {details}. Saving accepts your edits.',
       'transaction_was_amount': 'Era {importo}',
@@ -4473,7 +4575,8 @@ class AppLocalizations {
       'receipt_photo_invalid_url': 'Die URL des Belegfotos ist ungültig.',
       'receipt_photo_open_fallback':
           'Could not open the file automatically. The link was copied instead.',
-      'receipt_photo_load_failed': 'Dieses Belegbild konnte nicht geladen werden.',
+      'receipt_photo_load_failed':
+          'Dieses Belegbild konnte nicht geladen werden.',
       'receipt_photo_download': 'Herunterladen',
       'receipt_photo_downloaded': 'Quittung unter {Pfad} gespeichert',
       'receipt_photo_open_external': 'Von außen öffnen',
@@ -4518,8 +4621,10 @@ class AppLocalizations {
       'accentaware_colors': 'Akzentbewusste Farben',
       'activate_pro': 'Aktivieren Sie PRO',
       'after_the_amount': 'Nach dem Betrag',
-      'always_use_the_dark_interface': 'Verwenden Sie immer die dunkle Oberfläche.',
-      'always_use_the_light_interface': 'Benutzen Sie immer die Lichtschnittstelle.',
+      'always_use_the_dark_interface':
+          'Verwenden Sie immer die dunkle Oberfläche.',
+      'always_use_the_light_interface':
+          'Benutzen Sie immer die Lichtschnittstelle.',
       'autodetect_source_language': 'Quellsprache automatisch erkennen',
       'before_the_amount': 'Vor dem Betrag',
       'bill_due_soon': 'Rechnung bald fällig',
@@ -4533,21 +4638,25 @@ class AppLocalizations {
       'current_release': 'Aktuelle Veröffentlichung',
       'daily_avg': 'Täglicher Durchschn',
       'delete_reminder': 'Erinnerung löschen',
-      'discount_must_be_zero_or_higher': 'Der Rabatt muss Null oder höher sein.',
+      'discount_must_be_zero_or_higher':
+          'Der Rabatt muss Null oder höher sein.',
       'discount_percentage_must_stay_under_100':
           'Discount percentage must stay under 100%.',
       'display_name': 'Anzeigename',
       'email_support': 'E-Mail-Support',
-      'enable_notifications_in_the_app': 'Aktivieren Sie Benachrichtigungen in der App',
+      'enable_notifications_in_the_app':
+          'Aktivieren Sie Benachrichtigungen in der App',
       'extra_compact_text': 'Extra kompakter Text',
       'features_tools': 'Funktionen und Tools',
-      'follow_your_device_theme_setting': 'Befolgen Sie die Designeinstellungen Ihres Geräts.',
+      'follow_your_device_theme_setting':
+          'Befolgen Sie die Designeinstellungen Ihres Geräts.',
       'getting_started': 'Erste Schritte',
       'helpful_savings_spotted_in_the_current_r':
           'Helpful savings spotted in the current results.',
       'hide_decimals': 'Dezimalstellen ausblenden',
       'items_translation': 'Artikelübersetzung',
-      'keep_this_image_and_try_later': 'Behalten Sie dieses Bild und versuchen Sie es später',
+      'keep_this_image_and_try_later':
+          'Behalten Sie dieses Bild und versuchen Sie es später',
       'larger_interface': 'Größere Schnittstelle',
       'no_category_insights_yet': 'Noch keine Einblicke in die Kategorie',
       'no_overview_yet': 'Noch keine Übersicht',
@@ -4556,9 +4665,11 @@ class AppLocalizations {
       'no_trend_data_yet': 'Noch keine Trenddaten',
       'open_review': 'Rezension öffnen',
       'organize_your_receipts': 'Organisieren Sie Ihre Quittungen',
-      'please_enter_a_category_name': 'Bitte geben Sie einen Kategorienamen ein.',
+      'please_enter_a_category_name':
+          'Bitte geben Sie einen Kategorienamen ein.',
       'please_enter_a_label_name': 'Bitte geben Sie einen Labelnamen ein.',
-      'please_enter_a_subcategory_name': 'Bitte geben Sie einen Unterkategorienamen ein.',
+      'please_enter_a_subcategory_name':
+          'Bitte geben Sie einen Unterkategorienamen ein.',
       'previous_comparison_is_unavailable_for_t':
           'Previous comparison is unavailable for this range.',
       'privacy_policy': 'Datenschutzrichtlinie',
@@ -4591,7 +4702,8 @@ class AppLocalizations {
       'upload_receipt': 'Quittung hochladen',
       'use_this_source_language': 'Verwenden Sie diese Ausgangssprache',
       'view_insights_and_trends': 'Sehen Sie sich Erkenntnisse und Trends an',
-      'where_the_most_spending_happened_in_this': 'Where the most spending happened in this period.'
+      'where_the_most_spending_happened_in_this':
+          'Where the most spending happened in this period.',
     },
     'pl': {
       'app_title': 'Śledzenie wydatków',
@@ -4776,7 +4888,7 @@ class AppLocalizations {
           'Całkowite niedopasowanie: oczekiwano {expected}, ale wyodrębniono {actual}',
       'taxonomy_food': 'Żywność',
       'taxonomy_clothing': 'Odzież',
-      'taxonomy_transport': 'Transport',
+      'taxonomy_transport': 'Транспорт',
       'taxonomy_utilities': 'Narzędzia',
       'taxonomy_health': 'Zdrowie',
       'taxonomy_entertainment': 'Rozrywka',
@@ -4808,7 +4920,7 @@ class AppLocalizations {
       'taxonomy_fuel': 'Paliwo',
       'taxonomy_public_transport': 'Transport publiczny',
       'taxonomy_taxi_ride_hailing': 'Taksówka i przejazd',
-      'taxonomy_parking': 'Parking',
+      'taxonomy_parking': 'Паркинг',
       'taxonomy_tolls': 'Opłaty',
       'taxonomy_car_maintenance': 'Konserwacja samochodu',
       'taxonomy_car_wash': 'Myjnia samochodowa',
@@ -4816,7 +4928,7 @@ class AppLocalizations {
       'taxonomy_electricity': 'Elektryczność',
       'taxonomy_water': 'Woda',
       'taxonomy_gas': 'Gaz',
-      'taxonomy_internet': 'Internet',
+      'taxonomy_internet': 'Интернет',
       'taxonomy_mobile_phone': 'Telefon komórkowy',
       'taxonomy_tv_and_streaming': 'Telewizja i streaming',
       'taxonomy_waste_collection': 'Zbiórka odpadów',
@@ -4886,7 +4998,8 @@ class AppLocalizations {
           'By continuing, you will sign in with your Google account.',
       'settings_subtitle': 'Verwalten Sie Ihre Präferenzen',
       'household_settings_title': 'Familienhaushalt',
-      'household_settings_subtitle': 'Teilen und verwalten Sie den Haushaltszugang',
+      'household_settings_subtitle':
+          'Teilen und verwalten Sie den Haushaltszugang',
       'settings_account_section': 'Konto',
       'settings_preferences_section': 'Präferenzen',
       'settings_support_section': 'Unterstützung',
@@ -4901,7 +5014,8 @@ class AppLocalizations {
       'settings_security': 'Sicherheit',
       'settings_security_subtitle': 'Passwort- und Kontosicherheit',
       'settings_appearance': 'Aussehen',
-      'settings_appearance_subtitle': 'Wählen Sie zwischen Hell- und Dunkelmodus',
+      'settings_appearance_subtitle':
+          'Wählen Sie zwischen Hell- und Dunkelmodus',
       'settings_theme': 'Thema',
       'settings_theme_light': 'Licht',
       'settings_theme_dark': 'Dunkel',
@@ -4922,25 +5036,29 @@ class AppLocalizations {
       'settings_font_large': 'Groß',
       'settings_display_options': 'Anzeigeoptionen',
       'settings_compact_mode': 'Kompaktmodus',
-      'settings_compact_mode_subtitle': 'Zeigen Sie mehr Inhalte auf dem Bildschirm an',
+      'settings_compact_mode_subtitle':
+          'Zeigen Sie mehr Inhalte auf dem Bildschirm an',
       'settings_animations': 'Animationen',
       'settings_animations_subtitle': 'Ermöglichen Sie reibungslose Übergänge',
       'settings_notifications_subtitle': 'Warnungen und Erinnerungen',
       'settings_notification_channels': 'Kanäle',
       'settings_push_notifications': 'Push-Benachrichtigungen',
-      'settings_push_notifications_subtitle': 'Benachrichtigungen auf Ihrem Gerät',
+      'settings_push_notifications_subtitle':
+          'Benachrichtigungen auf Ihrem Gerät',
       'settings_email_notifications': 'E-Mail-Benachrichtigungen',
       'settings_email_notifications_subtitle': 'Updates per E-Mail',
       'settings_notification_activity': 'Aktivität',
       'settings_spending_alerts': 'Ausgabenwarnungen',
-      'settings_spending_alerts_subtitle': 'Ungewöhnliche Ausgaben festgestellt',
+      'settings_spending_alerts_subtitle':
+          'Ungewöhnliche Ausgaben festgestellt',
       'settings_budget_alerts': 'Budgetwarnungen',
       'settings_budget_alerts_subtitle': 'Bei Annäherung an Budgetgrenzen',
       'settings_bill_reminders': 'Rechnungserinnerungen',
       'settings_bill_reminders_subtitle':
           'Monthly reminders for upcoming payments',
       'settings_receipt_reminders': 'Empfangserinnerungen',
-      'settings_receipt_reminders_subtitle': 'Erinnern Sie daran, Belege zu scannen',
+      'settings_receipt_reminders_subtitle':
+          'Erinnern Sie daran, Belege zu scannen',
       'settings_notification_summaries': 'Zusammenfassungen',
       'settings_weekly_summary': 'Wöchentliche Zusammenfassung',
       'settings_weekly_summary_subtitle': 'Jeden Montag um 9 Uhr',
@@ -4973,7 +5091,8 @@ class AppLocalizations {
           'Automatically translate receipt items',
       'settings_translate_to': 'Übersetzen nach',
       'settings_options': 'Optionen',
-      'settings_auto_detect_source_language': 'Quellsprache automatisch erkennen',
+      'settings_auto_detect_source_language':
+          'Quellsprache automatisch erkennen',
       'settings_auto_detect_source_language_subtitle':
           'Automatically detect original language',
       'settings_example': 'Beispiel',
@@ -4996,7 +5115,8 @@ class AppLocalizations {
           'Title must be between 3 and 120 characters.',
       'feature_request_description_length_error':
           'Description must be between 10 and 2000 characters.',
-      'feature_request_load_error_title': 'Funktionsanfragen konnten nicht geladen werden',
+      'feature_request_load_error_title':
+          'Funktionsanfragen konnten nicht geladen werden',
       'feature_request_your_ideas': 'Ihre Ideen',
       'feature_request_your_ideas_empty_title': 'Noch keine Ideen eingereicht',
       'feature_request_your_ideas_empty_subtitle':
@@ -5019,7 +5139,8 @@ class AppLocalizations {
       'feature_request_category_receipts_scanning': 'Quittungen und Scannen',
       'feature_request_category_budgets_planning': 'Budgets und Planung',
       'feature_request_category_household_sharing': 'Haushalt & Teilen',
-      'feature_request_category_design_accessibility': 'Design und Zugänglichkeit',
+      'feature_request_category_design_accessibility':
+          'Design und Zugänglichkeit',
       'feature_request_category_other': 'Andere',
       'settings_privacy_policy': 'Datenschutzrichtlinie',
       'settings_terms_of_service': 'Nutzungsbedingungen',
@@ -5052,7 +5173,8 @@ class AppLocalizations {
       'household_you_badge': 'Du',
       'household_members_title': 'Mitglieder',
       'household_remove_member_title': 'Mitglied entfernen',
-      'household_remove_member_confirm': '{Name} aus diesem Haushalt entfernen?',
+      'household_remove_member_confirm':
+          '{Name} aus diesem Haushalt entfernen?',
       'household_member_removed': 'Mitglied entfernt.',
       'household_leave_title': 'Verlassen Sie den Haushalt',
       'household_leave_confirm':
@@ -5093,7 +5215,8 @@ class AppLocalizations {
       'household_member_count': '{count} Mitglieder',
       'household_member_count_with_limit': '{count} von {limit} Mitgliedern',
       'household_shared_expenses': 'Geteilte Ausgaben',
-      'household_shared_expenses_subtitle': 'Erlauben Sie allen Mitgliedern, Ausgaben hinzuzufügen',
+      'household_shared_expenses_subtitle':
+          'Erlauben Sie allen Mitgliedern, Ausgaben hinzuzufügen',
       'household_budget_notifications': 'Budgetbenachrichtigungen',
       'household_budget_notifications_subtitle':
           'Notify when household budget limit is reached',
@@ -5173,7 +5296,8 @@ class AppLocalizations {
       'bill_reminders_due_date': 'Fälligkeitsdatum',
       'bill_reminders_pick_date': 'Fälligkeitsdatum auswählen',
       'bill_reminders_first_due_date': 'Erstes Fälligkeitsdatum',
-      'bill_reminders_pick_first_due_date': 'Wählen Sie das erste Fälligkeitsdatum aus',
+      'bill_reminders_pick_first_due_date':
+          'Wählen Sie das erste Fälligkeitsdatum aus',
       'bill_reminders_start_date': 'Beginnt am',
       'bill_reminders_pick_start_date': 'Wählen Sie das Startdatum',
       'bill_reminders_recurring': 'Wiederkehrend',
@@ -5200,7 +5324,8 @@ class AppLocalizations {
       'home_greeting_morning': 'Buongiorno',
       'home_greeting_afternoon': 'Buon pomeriggio',
       'home_greeting_evening': 'Buonasera',
-      'home_start_subtitle': 'Scansiona una ricevuta o aggiungi una spesa per iniziare.',
+      'home_start_subtitle':
+          'Scansiona una ricevuta o aggiungi una spesa per iniziare.',
       'home_all_reviewed': 'Tutte le ricevute vengono esaminate',
       'home_review_count_single': '1 ricevuta necessita di revisione',
       'home_review_count_plural': '{count} ricevute necessitano di revisione',
@@ -5216,9 +5341,12 @@ class AppLocalizations {
           'Top category is {category} at {percent}% of monthly spend.',
       'home_insight_top_subcategory':
           'Top subcategory is {subcategory} at {percent}% of item spend.',
-      'home_insight_review_count': '{count} ricevute devono ancora essere revisionate.',
-      'home_insight_all_caught_up': 'Siete tutti impegnati nella revisione delle ricevute.',
-      'home_scan_receipt_subtitle': 'Acquisizione istantanea basata sull\'intelligenza artificiale',
+      'home_insight_review_count':
+          '{count} ricevute devono ancora essere revisionate.',
+      'home_insight_all_caught_up':
+          'Siete tutti impegnati nella revisione delle ricevute.',
+      'home_scan_receipt_subtitle':
+          'Acquisizione istantanea basata sull\'intelligenza artificiale',
       'home_primary_action': 'Azione primaria',
       'home_spending_overview': 'Panoramica della spesa',
       'home_no_spending_data': 'Nessun dato di spesa per questo mese ancora.',
@@ -5239,7 +5367,8 @@ class AppLocalizations {
       'receipts_empty_body':
           'Scan your first receipt to start building a history you can review and filter.',
       'receipts_scan_first_action': 'Scansiona la tua prima ricevuta',
-      'receipts_no_filter_matches': 'Nessuna ricevuta corrisponde ai filtri attuali.',
+      'receipts_no_filter_matches':
+          'Nessuna ricevuta corrisponde ai filtri attuali.',
       'receipts_no_filter_matches_body':
           'Try another period, merchant search, or clear the active filters.',
       'receipts_history_total': 'Totale cronologia ricevute',
@@ -5283,26 +5412,34 @@ class AppLocalizations {
       'analytics_show_fewer_filters': 'Weniger Filter anzeigen',
       'analytics_categories_subtitle': 'Entdecken Sie, wohin Ihr Geld fließt',
       'analytics_overview_top_categories': 'Top-Kategorien',
-      'analytics_change_unavailable': 'Der vorherige Vergleich ist nicht verfügbar.',
-      'analytics_change_flat': 'Die Ausgaben sind im Vergleich zur Vorperiode unverändert.',
-      'analytics_change_more': 'Anstieg um {percent} % im Vergleich zum vorherigen Zeitraum.',
-      'analytics_change_less': 'Rückgang um {percent} % im Vergleich zum vorherigen Zeitraum.',
+      'analytics_change_unavailable':
+          'Der vorherige Vergleich ist nicht verfügbar.',
+      'analytics_change_flat':
+          'Die Ausgaben sind im Vergleich zur Vorperiode unverändert.',
+      'analytics_change_more':
+          'Anstieg um {percent} % im Vergleich zum vorherigen Zeitraum.',
+      'analytics_change_less':
+          'Rückgang um {percent} % im Vergleich zum vorherigen Zeitraum.',
       'analytics_compared_with_previous': 'Im Vergleich zur Vorperiode',
       'analytics_trends_period_label': 'Ausgewähltes Trendfenster',
       'analytics_trends_chart_title': 'Ausgabentrend',
       'analytics_trends_chart_subtitle':
           'Automatic daily, weekly, or monthly buckets for your selected period.',
-      'analytics_trends_no_data': 'Für diese Filter liegen keine Trenddaten vor.',
+      'analytics_trends_no_data':
+          'Für diese Filter liegen keine Trenddaten vor.',
       'analytics_trends_highest_bucket': 'Höchster Eimer',
       'analytics_trends_average_bucket': 'Durchschnittliche Bucket-Ausgaben',
       'analytics_household_empty_title': 'Noch keine Haushaltsanalyse',
       'analytics_household_empty_subtitle':
           'Create or open a household to compare spending across members.',
-      'analytics_household_no_data': 'Für diese Filter fallen keine Haushaltsausgaben an.',
+      'analytics_household_no_data':
+          'Für diese Filter fallen keine Haushaltsausgaben an.',
       'analytics_household_no_data_subtitle':
           'Try widening the date range or clearing a few filters.',
-      'analytics_household_preview_subtitle': 'Gemeinsame Ausgaben für diesen Zeitraum',
-      'analytics_household_total_transactions': '{count} geteilte Transaktionen',
+      'analytics_household_preview_subtitle':
+          'Gemeinsame Ausgaben für diesen Zeitraum',
+      'analytics_household_total_transactions':
+          '{count} geteilte Transaktionen',
       'analytics_household_member_transactions': '{count} Transaktionen',
       'analytics_household_top_category': 'Top-Kategorie: {category}',
       'analytics_household_top_category_unknown': 'Noch keine Kategorie',
@@ -5333,7 +5470,8 @@ class AppLocalizations {
           'Enter a valid amount greater than zero.',
       'manual_transaction_deleted': 'Manuelle Transaktion gelöscht.',
       'manual_transaction_delete_missing_id': 'Transaktions-ID fehlt.',
-      'transaction_amount_required': 'Inserisci un importo totale prima di salvare.',
+      'transaction_amount_required':
+          'Inserisci un importo totale prima di salvare.',
       'transaction_invalid_total': 'Inserisci un importo totale valido.',
       'transaction_save_before_labels':
           'Save the transaction before adding labels.',
@@ -5358,10 +5496,12 @@ class AppLocalizations {
       'transaction_receipt_photo_title': 'Foto della ricevuta',
       'transaction_receipt_photo_subtitle': 'Visualizza la foto originale',
       'transaction_warning_review_one_item': 'Recensisci 1 articolo in totale',
-      'transaction_warning_review_items': 'Controlla il totale di {count} articoli',
+      'transaction_warning_review_items':
+          'Controlla il totale di {count} articoli',
       'transaction_warning_review_total': 'Controlla il totale della ricevuta',
       'transaction_warning_check_one_detail': 'Controlla 1 dettaglio estratto',
-      'transaction_warning_check_details': 'Controlla {count} dettagli estratti',
+      'transaction_warning_check_details':
+          'Controlla {count} dettagli estratti',
       'transaction_warning_accepts_edits':
           'Take a quick final look before saving. {details}. Saving accepts your edits.',
       'transaction_was_amount': 'Era {importo}',
@@ -5377,7 +5517,8 @@ class AppLocalizations {
       'receipt_photo_invalid_url': 'Die URL des Belegfotos ist ungültig.',
       'receipt_photo_open_fallback':
           'Could not open the file automatically. The link was copied instead.',
-      'receipt_photo_load_failed': 'Dieses Belegbild konnte nicht geladen werden.',
+      'receipt_photo_load_failed':
+          'Dieses Belegbild konnte nicht geladen werden.',
       'receipt_photo_download': 'Herunterladen',
       'receipt_photo_downloaded': 'Quittung unter {Pfad} gespeichert',
       'receipt_photo_open_external': 'Von außen öffnen',
@@ -5422,8 +5563,10 @@ class AppLocalizations {
       'accentaware_colors': 'Akzentbewusste Farben',
       'activate_pro': 'Aktivieren Sie PRO',
       'after_the_amount': 'Nach dem Betrag',
-      'always_use_the_dark_interface': 'Verwenden Sie immer die dunkle Oberfläche.',
-      'always_use_the_light_interface': 'Benutzen Sie immer die Lichtschnittstelle.',
+      'always_use_the_dark_interface':
+          'Verwenden Sie immer die dunkle Oberfläche.',
+      'always_use_the_light_interface':
+          'Benutzen Sie immer die Lichtschnittstelle.',
       'autodetect_source_language': 'Quellsprache automatisch erkennen',
       'before_the_amount': 'Vor dem Betrag',
       'bill_due_soon': 'Rechnung bald fällig',
@@ -5437,21 +5580,25 @@ class AppLocalizations {
       'current_release': 'Aktuelle Veröffentlichung',
       'daily_avg': 'Täglicher Durchschn',
       'delete_reminder': 'Erinnerung löschen',
-      'discount_must_be_zero_or_higher': 'Der Rabatt muss Null oder höher sein.',
+      'discount_must_be_zero_or_higher':
+          'Der Rabatt muss Null oder höher sein.',
       'discount_percentage_must_stay_under_100':
           'Discount percentage must stay under 100%.',
       'display_name': 'Anzeigename',
       'email_support': 'E-Mail-Support',
-      'enable_notifications_in_the_app': 'Aktivieren Sie Benachrichtigungen in der App',
+      'enable_notifications_in_the_app':
+          'Aktivieren Sie Benachrichtigungen in der App',
       'extra_compact_text': 'Extra kompakter Text',
       'features_tools': 'Funktionen und Tools',
-      'follow_your_device_theme_setting': 'Befolgen Sie die Designeinstellungen Ihres Geräts.',
+      'follow_your_device_theme_setting':
+          'Befolgen Sie die Designeinstellungen Ihres Geräts.',
       'getting_started': 'Erste Schritte',
       'helpful_savings_spotted_in_the_current_r':
           'Helpful savings spotted in the current results.',
       'hide_decimals': 'Dezimalstellen ausblenden',
       'items_translation': 'Artikelübersetzung',
-      'keep_this_image_and_try_later': 'Behalten Sie dieses Bild und versuchen Sie es später',
+      'keep_this_image_and_try_later':
+          'Behalten Sie dieses Bild und versuchen Sie es später',
       'larger_interface': 'Größere Schnittstelle',
       'no_category_insights_yet': 'Noch keine Einblicke in die Kategorie',
       'no_overview_yet': 'Noch keine Übersicht',
@@ -5460,9 +5607,11 @@ class AppLocalizations {
       'no_trend_data_yet': 'Noch keine Trenddaten',
       'open_review': 'Rezension öffnen',
       'organize_your_receipts': 'Organisieren Sie Ihre Quittungen',
-      'please_enter_a_category_name': 'Bitte geben Sie einen Kategorienamen ein.',
+      'please_enter_a_category_name':
+          'Bitte geben Sie einen Kategorienamen ein.',
       'please_enter_a_label_name': 'Bitte geben Sie einen Labelnamen ein.',
-      'please_enter_a_subcategory_name': 'Bitte geben Sie einen Unterkategorienamen ein.',
+      'please_enter_a_subcategory_name':
+          'Bitte geben Sie einen Unterkategorienamen ein.',
       'previous_comparison_is_unavailable_for_t':
           'Previous comparison is unavailable for this range.',
       'privacy_policy': 'Datenschutzrichtlinie',
@@ -5495,7 +5644,8 @@ class AppLocalizations {
       'upload_receipt': 'Quittung hochladen',
       'use_this_source_language': 'Verwenden Sie diese Ausgangssprache',
       'view_insights_and_trends': 'Sehen Sie sich Erkenntnisse und Trends an',
-      'where_the_most_spending_happened_in_this': 'Where the most spending happened in this period.'
+      'where_the_most_spending_happened_in_this':
+          'Where the most spending happened in this period.',
     },
     'sr': {
       'app_title': 'Praćenje Troškova',
@@ -5581,7 +5731,7 @@ class AppLocalizations {
       'period_all_time': 'Sve vreme',
       'filters_title': 'Filteri',
       'filters_title_with_count': 'Filteri ({count})',
-      'filters_period': 'Period',
+      'filters_period': 'Период',
       'filters_category': 'Kategorija',
       'filters_subcategory': 'Potkategorija',
       'filters_labels': 'Oznake',
@@ -5678,7 +5828,7 @@ class AppLocalizations {
           'Neslaganje ukupnog: ocekivano {expected}, izvuceno {actual}',
       'taxonomy_food': 'Hrana',
       'taxonomy_clothing': 'Odeca',
-      'taxonomy_transport': 'Transport',
+      'taxonomy_transport': 'Транспорт',
       'taxonomy_utilities': 'Komunalne usluge',
       'taxonomy_health': 'Zdravlje',
       'taxonomy_entertainment': 'Zabava',
@@ -5710,15 +5860,15 @@ class AppLocalizations {
       'taxonomy_fuel': 'Gorivo',
       'taxonomy_public_transport': 'Javni prevoz',
       'taxonomy_taxi_ride_hailing': 'Taksi i voznja',
-      'taxonomy_parking': 'Parking',
+      'taxonomy_parking': 'Паркинг',
       'taxonomy_tolls': 'Putarine',
       'taxonomy_car_maintenance': 'Odrzavanje automobila',
       'taxonomy_car_wash': 'Auto-perionica',
       'taxonomy_vehicle_insurance': 'Osiguranje vozila',
       'taxonomy_electricity': 'Elektricna energija',
       'taxonomy_water': 'Voda',
-      'taxonomy_gas': 'Gas',
-      'taxonomy_internet': 'Internet',
+      'taxonomy_gas': 'Гас',
+      'taxonomy_internet': 'Интернет',
       'taxonomy_mobile_phone': 'Mobilni telefon',
       'taxonomy_tv_and_streaming': 'TV i striming',
       'taxonomy_waste_collection': 'Sakupljanje otpada',
@@ -5752,7 +5902,7 @@ class AppLocalizations {
       'taxonomy_tablets': 'Tablete',
       'taxonomy_software': 'Softver',
       'taxonomy_gaming_hardware': 'Hardver za igre',
-      'taxonomy_smart_home': 'Smart Home',
+      'taxonomy_smart_home': 'Смарт Хоме',
       'taxonomy_repairs': 'Popravke',
       'taxonomy_tuition': 'Skolarina',
       'taxonomy_courses': 'Kursevi',
@@ -5788,7 +5938,8 @@ class AppLocalizations {
           'By continuing, you will sign in with your Google account.',
       'settings_subtitle': 'Verwalten Sie Ihre Präferenzen',
       'household_settings_title': 'Familienhaushalt',
-      'household_settings_subtitle': 'Teilen und verwalten Sie den Haushaltszugang',
+      'household_settings_subtitle':
+          'Teilen und verwalten Sie den Haushaltszugang',
       'settings_account_section': 'Konto',
       'settings_preferences_section': 'Präferenzen',
       'settings_support_section': 'Unterstützung',
@@ -5803,7 +5954,8 @@ class AppLocalizations {
       'settings_security': 'Sicherheit',
       'settings_security_subtitle': 'Passwort- und Kontosicherheit',
       'settings_appearance': 'Aussehen',
-      'settings_appearance_subtitle': 'Wählen Sie zwischen Hell- und Dunkelmodus',
+      'settings_appearance_subtitle':
+          'Wählen Sie zwischen Hell- und Dunkelmodus',
       'settings_theme': 'Thema',
       'settings_theme_light': 'Licht',
       'settings_theme_dark': 'Dunkel',
@@ -5824,25 +5976,29 @@ class AppLocalizations {
       'settings_font_large': 'Groß',
       'settings_display_options': 'Anzeigeoptionen',
       'settings_compact_mode': 'Kompaktmodus',
-      'settings_compact_mode_subtitle': 'Zeigen Sie mehr Inhalte auf dem Bildschirm an',
+      'settings_compact_mode_subtitle':
+          'Zeigen Sie mehr Inhalte auf dem Bildschirm an',
       'settings_animations': 'Animationen',
       'settings_animations_subtitle': 'Ermöglichen Sie reibungslose Übergänge',
       'settings_notifications_subtitle': 'Warnungen und Erinnerungen',
       'settings_notification_channels': 'Kanäle',
       'settings_push_notifications': 'Push-Benachrichtigungen',
-      'settings_push_notifications_subtitle': 'Benachrichtigungen auf Ihrem Gerät',
+      'settings_push_notifications_subtitle':
+          'Benachrichtigungen auf Ihrem Gerät',
       'settings_email_notifications': 'E-Mail-Benachrichtigungen',
       'settings_email_notifications_subtitle': 'Updates per E-Mail',
       'settings_notification_activity': 'Aktivität',
       'settings_spending_alerts': 'Ausgabenwarnungen',
-      'settings_spending_alerts_subtitle': 'Ungewöhnliche Ausgaben festgestellt',
+      'settings_spending_alerts_subtitle':
+          'Ungewöhnliche Ausgaben festgestellt',
       'settings_budget_alerts': 'Budgetwarnungen',
       'settings_budget_alerts_subtitle': 'Bei Annäherung an Budgetgrenzen',
       'settings_bill_reminders': 'Rechnungserinnerungen',
       'settings_bill_reminders_subtitle':
           'Monthly reminders for upcoming payments',
       'settings_receipt_reminders': 'Empfangserinnerungen',
-      'settings_receipt_reminders_subtitle': 'Erinnern Sie daran, Belege zu scannen',
+      'settings_receipt_reminders_subtitle':
+          'Erinnern Sie daran, Belege zu scannen',
       'settings_notification_summaries': 'Zusammenfassungen',
       'settings_weekly_summary': 'Wöchentliche Zusammenfassung',
       'settings_weekly_summary_subtitle': 'Jeden Montag um 9 Uhr',
@@ -5875,7 +6031,8 @@ class AppLocalizations {
           'Automatically translate receipt items',
       'settings_translate_to': 'Übersetzen nach',
       'settings_options': 'Optionen',
-      'settings_auto_detect_source_language': 'Quellsprache automatisch erkennen',
+      'settings_auto_detect_source_language':
+          'Quellsprache automatisch erkennen',
       'settings_auto_detect_source_language_subtitle':
           'Automatically detect original language',
       'settings_example': 'Beispiel',
@@ -5898,7 +6055,8 @@ class AppLocalizations {
           'Title must be between 3 and 120 characters.',
       'feature_request_description_length_error':
           'Description must be between 10 and 2000 characters.',
-      'feature_request_load_error_title': 'Funktionsanfragen konnten nicht geladen werden',
+      'feature_request_load_error_title':
+          'Funktionsanfragen konnten nicht geladen werden',
       'feature_request_your_ideas': 'Ihre Ideen',
       'feature_request_your_ideas_empty_title': 'Noch keine Ideen eingereicht',
       'feature_request_your_ideas_empty_subtitle':
@@ -5921,7 +6079,8 @@ class AppLocalizations {
       'feature_request_category_receipts_scanning': 'Quittungen und Scannen',
       'feature_request_category_budgets_planning': 'Budgets und Planung',
       'feature_request_category_household_sharing': 'Haushalt & Teilen',
-      'feature_request_category_design_accessibility': 'Design und Zugänglichkeit',
+      'feature_request_category_design_accessibility':
+          'Design und Zugänglichkeit',
       'feature_request_category_other': 'Andere',
       'settings_privacy_policy': 'Datenschutzrichtlinie',
       'settings_terms_of_service': 'Nutzungsbedingungen',
@@ -5954,7 +6113,8 @@ class AppLocalizations {
       'household_you_badge': 'Du',
       'household_members_title': 'Mitglieder',
       'household_remove_member_title': 'Mitglied entfernen',
-      'household_remove_member_confirm': '{Name} aus diesem Haushalt entfernen?',
+      'household_remove_member_confirm':
+          '{Name} aus diesem Haushalt entfernen?',
       'household_member_removed': 'Mitglied entfernt.',
       'household_leave_title': 'Verlassen Sie den Haushalt',
       'household_leave_confirm':
@@ -5995,7 +6155,8 @@ class AppLocalizations {
       'household_member_count': '{count} Mitglieder',
       'household_member_count_with_limit': '{count} von {limit} Mitgliedern',
       'household_shared_expenses': 'Geteilte Ausgaben',
-      'household_shared_expenses_subtitle': 'Erlauben Sie allen Mitgliedern, Ausgaben hinzuzufügen',
+      'household_shared_expenses_subtitle':
+          'Erlauben Sie allen Mitgliedern, Ausgaben hinzuzufügen',
       'household_budget_notifications': 'Budgetbenachrichtigungen',
       'household_budget_notifications_subtitle':
           'Notify when household budget limit is reached',
@@ -6075,7 +6236,8 @@ class AppLocalizations {
       'bill_reminders_due_date': 'Fälligkeitsdatum',
       'bill_reminders_pick_date': 'Fälligkeitsdatum auswählen',
       'bill_reminders_first_due_date': 'Erstes Fälligkeitsdatum',
-      'bill_reminders_pick_first_due_date': 'Wählen Sie das erste Fälligkeitsdatum aus',
+      'bill_reminders_pick_first_due_date':
+          'Wählen Sie das erste Fälligkeitsdatum aus',
       'bill_reminders_start_date': 'Beginnt am',
       'bill_reminders_pick_start_date': 'Wählen Sie das Startdatum',
       'bill_reminders_recurring': 'Wiederkehrend',
@@ -6102,7 +6264,8 @@ class AppLocalizations {
       'home_greeting_morning': 'Buongiorno',
       'home_greeting_afternoon': 'Buon pomeriggio',
       'home_greeting_evening': 'Buonasera',
-      'home_start_subtitle': 'Scansiona una ricevuta o aggiungi una spesa per iniziare.',
+      'home_start_subtitle':
+          'Scansiona una ricevuta o aggiungi una spesa per iniziare.',
       'home_all_reviewed': 'Tutte le ricevute vengono esaminate',
       'home_review_count_single': '1 ricevuta necessita di revisione',
       'home_review_count_plural': '{count} ricevute necessitano di revisione',
@@ -6118,9 +6281,12 @@ class AppLocalizations {
           'Top category is {category} at {percent}% of monthly spend.',
       'home_insight_top_subcategory':
           'Top subcategory is {subcategory} at {percent}% of item spend.',
-      'home_insight_review_count': '{count} ricevute devono ancora essere revisionate.',
-      'home_insight_all_caught_up': 'Siete tutti impegnati nella revisione delle ricevute.',
-      'home_scan_receipt_subtitle': 'Acquisizione istantanea basata sull\'intelligenza artificiale',
+      'home_insight_review_count':
+          '{count} ricevute devono ancora essere revisionate.',
+      'home_insight_all_caught_up':
+          'Siete tutti impegnati nella revisione delle ricevute.',
+      'home_scan_receipt_subtitle':
+          'Acquisizione istantanea basata sull\'intelligenza artificiale',
       'home_primary_action': 'Azione primaria',
       'home_spending_overview': 'Panoramica della spesa',
       'home_no_spending_data': 'Nessun dato di spesa per questo mese ancora.',
@@ -6141,7 +6307,8 @@ class AppLocalizations {
       'receipts_empty_body':
           'Scan your first receipt to start building a history you can review and filter.',
       'receipts_scan_first_action': 'Scansiona la tua prima ricevuta',
-      'receipts_no_filter_matches': 'Nessuna ricevuta corrisponde ai filtri attuali.',
+      'receipts_no_filter_matches':
+          'Nessuna ricevuta corrisponde ai filtri attuali.',
       'receipts_no_filter_matches_body':
           'Try another period, merchant search, or clear the active filters.',
       'receipts_history_total': 'Totale cronologia ricevute',
@@ -6185,26 +6352,34 @@ class AppLocalizations {
       'analytics_show_fewer_filters': 'Weniger Filter anzeigen',
       'analytics_categories_subtitle': 'Entdecken Sie, wohin Ihr Geld fließt',
       'analytics_overview_top_categories': 'Top-Kategorien',
-      'analytics_change_unavailable': 'Der vorherige Vergleich ist nicht verfügbar.',
-      'analytics_change_flat': 'Die Ausgaben sind im Vergleich zur Vorperiode unverändert.',
-      'analytics_change_more': 'Anstieg um {percent} % im Vergleich zum vorherigen Zeitraum.',
-      'analytics_change_less': 'Rückgang um {percent} % im Vergleich zum vorherigen Zeitraum.',
+      'analytics_change_unavailable':
+          'Der vorherige Vergleich ist nicht verfügbar.',
+      'analytics_change_flat':
+          'Die Ausgaben sind im Vergleich zur Vorperiode unverändert.',
+      'analytics_change_more':
+          'Anstieg um {percent} % im Vergleich zum vorherigen Zeitraum.',
+      'analytics_change_less':
+          'Rückgang um {percent} % im Vergleich zum vorherigen Zeitraum.',
       'analytics_compared_with_previous': 'Im Vergleich zur Vorperiode',
       'analytics_trends_period_label': 'Ausgewähltes Trendfenster',
       'analytics_trends_chart_title': 'Ausgabentrend',
       'analytics_trends_chart_subtitle':
           'Automatic daily, weekly, or monthly buckets for your selected period.',
-      'analytics_trends_no_data': 'Für diese Filter liegen keine Trenddaten vor.',
+      'analytics_trends_no_data':
+          'Für diese Filter liegen keine Trenddaten vor.',
       'analytics_trends_highest_bucket': 'Höchster Eimer',
       'analytics_trends_average_bucket': 'Durchschnittliche Bucket-Ausgaben',
       'analytics_household_empty_title': 'Noch keine Haushaltsanalyse',
       'analytics_household_empty_subtitle':
           'Create or open a household to compare spending across members.',
-      'analytics_household_no_data': 'Für diese Filter fallen keine Haushaltsausgaben an.',
+      'analytics_household_no_data':
+          'Für diese Filter fallen keine Haushaltsausgaben an.',
       'analytics_household_no_data_subtitle':
           'Try widening the date range or clearing a few filters.',
-      'analytics_household_preview_subtitle': 'Gemeinsame Ausgaben für diesen Zeitraum',
-      'analytics_household_total_transactions': '{count} geteilte Transaktionen',
+      'analytics_household_preview_subtitle':
+          'Gemeinsame Ausgaben für diesen Zeitraum',
+      'analytics_household_total_transactions':
+          '{count} geteilte Transaktionen',
       'analytics_household_member_transactions': '{count} Transaktionen',
       'analytics_household_top_category': 'Top-Kategorie: {category}',
       'analytics_household_top_category_unknown': 'Noch keine Kategorie',
@@ -6235,7 +6410,8 @@ class AppLocalizations {
           'Enter a valid amount greater than zero.',
       'manual_transaction_deleted': 'Manuelle Transaktion gelöscht.',
       'manual_transaction_delete_missing_id': 'Transaktions-ID fehlt.',
-      'transaction_amount_required': 'Inserisci un importo totale prima di salvare.',
+      'transaction_amount_required':
+          'Inserisci un importo totale prima di salvare.',
       'transaction_invalid_total': 'Inserisci un importo totale valido.',
       'transaction_save_before_labels':
           'Save the transaction before adding labels.',
@@ -6260,10 +6436,12 @@ class AppLocalizations {
       'transaction_receipt_photo_title': 'Foto della ricevuta',
       'transaction_receipt_photo_subtitle': 'Visualizza la foto originale',
       'transaction_warning_review_one_item': 'Recensisci 1 articolo in totale',
-      'transaction_warning_review_items': 'Controlla il totale di {count} articoli',
+      'transaction_warning_review_items':
+          'Controlla il totale di {count} articoli',
       'transaction_warning_review_total': 'Controlla il totale della ricevuta',
       'transaction_warning_check_one_detail': 'Controlla 1 dettaglio estratto',
-      'transaction_warning_check_details': 'Controlla {count} dettagli estratti',
+      'transaction_warning_check_details':
+          'Controlla {count} dettagli estratti',
       'transaction_warning_accepts_edits':
           'Take a quick final look before saving. {details}. Saving accepts your edits.',
       'transaction_was_amount': 'Era {importo}',
@@ -6279,7 +6457,8 @@ class AppLocalizations {
       'receipt_photo_invalid_url': 'Die URL des Belegfotos ist ungültig.',
       'receipt_photo_open_fallback':
           'Could not open the file automatically. The link was copied instead.',
-      'receipt_photo_load_failed': 'Dieses Belegbild konnte nicht geladen werden.',
+      'receipt_photo_load_failed':
+          'Dieses Belegbild konnte nicht geladen werden.',
       'receipt_photo_download': 'Herunterladen',
       'receipt_photo_downloaded': 'Quittung unter {Pfad} gespeichert',
       'receipt_photo_open_external': 'Von außen öffnen',
@@ -6324,8 +6503,10 @@ class AppLocalizations {
       'accentaware_colors': 'Akzentbewusste Farben',
       'activate_pro': 'Aktivieren Sie PRO',
       'after_the_amount': 'Nach dem Betrag',
-      'always_use_the_dark_interface': 'Verwenden Sie immer die dunkle Oberfläche.',
-      'always_use_the_light_interface': 'Benutzen Sie immer die Lichtschnittstelle.',
+      'always_use_the_dark_interface':
+          'Verwenden Sie immer die dunkle Oberfläche.',
+      'always_use_the_light_interface':
+          'Benutzen Sie immer die Lichtschnittstelle.',
       'autodetect_source_language': 'Quellsprache automatisch erkennen',
       'before_the_amount': 'Vor dem Betrag',
       'bill_due_soon': 'Rechnung bald fällig',
@@ -6339,21 +6520,25 @@ class AppLocalizations {
       'current_release': 'Aktuelle Veröffentlichung',
       'daily_avg': 'Täglicher Durchschn',
       'delete_reminder': 'Erinnerung löschen',
-      'discount_must_be_zero_or_higher': 'Der Rabatt muss Null oder höher sein.',
+      'discount_must_be_zero_or_higher':
+          'Der Rabatt muss Null oder höher sein.',
       'discount_percentage_must_stay_under_100':
           'Discount percentage must stay under 100%.',
       'display_name': 'Anzeigename',
       'email_support': 'E-Mail-Support',
-      'enable_notifications_in_the_app': 'Aktivieren Sie Benachrichtigungen in der App',
+      'enable_notifications_in_the_app':
+          'Aktivieren Sie Benachrichtigungen in der App',
       'extra_compact_text': 'Extra kompakter Text',
       'features_tools': 'Funktionen und Tools',
-      'follow_your_device_theme_setting': 'Befolgen Sie die Designeinstellungen Ihres Geräts.',
+      'follow_your_device_theme_setting':
+          'Befolgen Sie die Designeinstellungen Ihres Geräts.',
       'getting_started': 'Erste Schritte',
       'helpful_savings_spotted_in_the_current_r':
           'Helpful savings spotted in the current results.',
       'hide_decimals': 'Dezimalstellen ausblenden',
       'items_translation': 'Artikelübersetzung',
-      'keep_this_image_and_try_later': 'Behalten Sie dieses Bild und versuchen Sie es später',
+      'keep_this_image_and_try_later':
+          'Behalten Sie dieses Bild und versuchen Sie es später',
       'larger_interface': 'Größere Schnittstelle',
       'no_category_insights_yet': 'Noch keine Einblicke in die Kategorie',
       'no_overview_yet': 'Noch keine Übersicht',
@@ -6362,9 +6547,11 @@ class AppLocalizations {
       'no_trend_data_yet': 'Noch keine Trenddaten',
       'open_review': 'Rezension öffnen',
       'organize_your_receipts': 'Organisieren Sie Ihre Quittungen',
-      'please_enter_a_category_name': 'Bitte geben Sie einen Kategorienamen ein.',
+      'please_enter_a_category_name':
+          'Bitte geben Sie einen Kategorienamen ein.',
       'please_enter_a_label_name': 'Bitte geben Sie einen Labelnamen ein.',
-      'please_enter_a_subcategory_name': 'Bitte geben Sie einen Unterkategorienamen ein.',
+      'please_enter_a_subcategory_name':
+          'Bitte geben Sie einen Unterkategorienamen ein.',
       'previous_comparison_is_unavailable_for_t':
           'Previous comparison is unavailable for this range.',
       'privacy_policy': 'Datenschutzrichtlinie',
@@ -6397,7 +6584,8 @@ class AppLocalizations {
       'upload_receipt': 'Quittung hochladen',
       'use_this_source_language': 'Verwenden Sie diese Ausgangssprache',
       'view_insights_and_trends': 'Sehen Sie sich Erkenntnisse und Trends an',
-      'where_the_most_spending_happened_in_this': 'Where the most spending happened in this period.'
+      'where_the_most_spending_happened_in_this':
+          'Where the most spending happened in this period.',
     },
     'ru': {
       'app_title': 'Учет Расходов',
@@ -6783,7 +6971,8 @@ class AppLocalizations {
           'By continuing, you will sign in with your Google account.',
       'settings_subtitle': 'Verwalten Sie Ihre Präferenzen',
       'household_settings_title': 'Familienhaushalt',
-      'household_settings_subtitle': 'Teilen und verwalten Sie den Haushaltszugang',
+      'household_settings_subtitle':
+          'Teilen und verwalten Sie den Haushaltszugang',
       'settings_account_section': 'Konto',
       'settings_preferences_section': 'Präferenzen',
       'settings_support_section': 'Unterstützung',
@@ -6798,7 +6987,8 @@ class AppLocalizations {
       'settings_security': 'Sicherheit',
       'settings_security_subtitle': 'Passwort- und Kontosicherheit',
       'settings_appearance': 'Aussehen',
-      'settings_appearance_subtitle': 'Wählen Sie zwischen Hell- und Dunkelmodus',
+      'settings_appearance_subtitle':
+          'Wählen Sie zwischen Hell- und Dunkelmodus',
       'settings_theme': 'Thema',
       'settings_theme_light': 'Licht',
       'settings_theme_dark': 'Dunkel',
@@ -6819,25 +7009,29 @@ class AppLocalizations {
       'settings_font_large': 'Groß',
       'settings_display_options': 'Anzeigeoptionen',
       'settings_compact_mode': 'Kompaktmodus',
-      'settings_compact_mode_subtitle': 'Zeigen Sie mehr Inhalte auf dem Bildschirm an',
+      'settings_compact_mode_subtitle':
+          'Zeigen Sie mehr Inhalte auf dem Bildschirm an',
       'settings_animations': 'Animationen',
       'settings_animations_subtitle': 'Ermöglichen Sie reibungslose Übergänge',
       'settings_notifications_subtitle': 'Warnungen und Erinnerungen',
       'settings_notification_channels': 'Kanäle',
       'settings_push_notifications': 'Push-Benachrichtigungen',
-      'settings_push_notifications_subtitle': 'Benachrichtigungen auf Ihrem Gerät',
+      'settings_push_notifications_subtitle':
+          'Benachrichtigungen auf Ihrem Gerät',
       'settings_email_notifications': 'E-Mail-Benachrichtigungen',
       'settings_email_notifications_subtitle': 'Updates per E-Mail',
       'settings_notification_activity': 'Aktivität',
       'settings_spending_alerts': 'Ausgabenwarnungen',
-      'settings_spending_alerts_subtitle': 'Ungewöhnliche Ausgaben festgestellt',
+      'settings_spending_alerts_subtitle':
+          'Ungewöhnliche Ausgaben festgestellt',
       'settings_budget_alerts': 'Budgetwarnungen',
       'settings_budget_alerts_subtitle': 'Bei Annäherung an Budgetgrenzen',
       'settings_bill_reminders': 'Rechnungserinnerungen',
       'settings_bill_reminders_subtitle':
           'Monthly reminders for upcoming payments',
       'settings_receipt_reminders': 'Empfangserinnerungen',
-      'settings_receipt_reminders_subtitle': 'Erinnern Sie daran, Belege zu scannen',
+      'settings_receipt_reminders_subtitle':
+          'Erinnern Sie daran, Belege zu scannen',
       'settings_notification_summaries': 'Zusammenfassungen',
       'settings_weekly_summary': 'Wöchentliche Zusammenfassung',
       'settings_weekly_summary_subtitle': 'Jeden Montag um 9 Uhr',
@@ -6870,7 +7064,8 @@ class AppLocalizations {
           'Automatically translate receipt items',
       'settings_translate_to': 'Übersetzen nach',
       'settings_options': 'Optionen',
-      'settings_auto_detect_source_language': 'Quellsprache automatisch erkennen',
+      'settings_auto_detect_source_language':
+          'Quellsprache automatisch erkennen',
       'settings_auto_detect_source_language_subtitle':
           'Automatically detect original language',
       'settings_example': 'Beispiel',
@@ -6893,7 +7088,8 @@ class AppLocalizations {
           'Title must be between 3 and 120 characters.',
       'feature_request_description_length_error':
           'Description must be between 10 and 2000 characters.',
-      'feature_request_load_error_title': 'Funktionsanfragen konnten nicht geladen werden',
+      'feature_request_load_error_title':
+          'Funktionsanfragen konnten nicht geladen werden',
       'feature_request_your_ideas': 'Ihre Ideen',
       'feature_request_your_ideas_empty_title': 'Noch keine Ideen eingereicht',
       'feature_request_your_ideas_empty_subtitle':
@@ -6916,7 +7112,8 @@ class AppLocalizations {
       'feature_request_category_receipts_scanning': 'Quittungen und Scannen',
       'feature_request_category_budgets_planning': 'Budgets und Planung',
       'feature_request_category_household_sharing': 'Haushalt & Teilen',
-      'feature_request_category_design_accessibility': 'Design und Zugänglichkeit',
+      'feature_request_category_design_accessibility':
+          'Design und Zugänglichkeit',
       'feature_request_category_other': 'Andere',
       'settings_privacy_policy': 'Datenschutzrichtlinie',
       'settings_terms_of_service': 'Nutzungsbedingungen',
@@ -6949,7 +7146,8 @@ class AppLocalizations {
       'household_you_badge': 'Du',
       'household_members_title': 'Mitglieder',
       'household_remove_member_title': 'Mitglied entfernen',
-      'household_remove_member_confirm': '{Name} aus diesem Haushalt entfernen?',
+      'household_remove_member_confirm':
+          '{Name} aus diesem Haushalt entfernen?',
       'household_member_removed': 'Mitglied entfernt.',
       'household_leave_title': 'Verlassen Sie den Haushalt',
       'household_leave_confirm':
@@ -6990,7 +7188,8 @@ class AppLocalizations {
       'household_member_count': '{count} Mitglieder',
       'household_member_count_with_limit': '{count} von {limit} Mitgliedern',
       'household_shared_expenses': 'Geteilte Ausgaben',
-      'household_shared_expenses_subtitle': 'Erlauben Sie allen Mitgliedern, Ausgaben hinzuzufügen',
+      'household_shared_expenses_subtitle':
+          'Erlauben Sie allen Mitgliedern, Ausgaben hinzuzufügen',
       'household_budget_notifications': 'Budgetbenachrichtigungen',
       'household_budget_notifications_subtitle':
           'Notify when household budget limit is reached',
@@ -7069,7 +7268,8 @@ class AppLocalizations {
       'bill_reminders_due_date': 'Fälligkeitsdatum',
       'bill_reminders_pick_date': 'Fälligkeitsdatum auswählen',
       'bill_reminders_first_due_date': 'Erstes Fälligkeitsdatum',
-      'bill_reminders_pick_first_due_date': 'Wählen Sie das erste Fälligkeitsdatum aus',
+      'bill_reminders_pick_first_due_date':
+          'Wählen Sie das erste Fälligkeitsdatum aus',
       'bill_reminders_start_date': 'Beginnt am',
       'bill_reminders_pick_start_date': 'Wählen Sie das Startdatum',
       'bill_reminders_recurring': 'Wiederkehrend',
@@ -7135,26 +7335,34 @@ class AppLocalizations {
       'analytics_show_fewer_filters': 'Weniger Filter anzeigen',
       'analytics_categories_subtitle': 'Entdecken Sie, wohin Ihr Geld fließt',
       'analytics_overview_top_categories': 'Top-Kategorien',
-      'analytics_change_unavailable': 'Der vorherige Vergleich ist nicht verfügbar.',
-      'analytics_change_flat': 'Die Ausgaben sind im Vergleich zur Vorperiode unverändert.',
-      'analytics_change_more': 'Anstieg um {percent} % im Vergleich zum vorherigen Zeitraum.',
-      'analytics_change_less': 'Rückgang um {percent} % im Vergleich zum vorherigen Zeitraum.',
+      'analytics_change_unavailable':
+          'Der vorherige Vergleich ist nicht verfügbar.',
+      'analytics_change_flat':
+          'Die Ausgaben sind im Vergleich zur Vorperiode unverändert.',
+      'analytics_change_more':
+          'Anstieg um {percent} % im Vergleich zum vorherigen Zeitraum.',
+      'analytics_change_less':
+          'Rückgang um {percent} % im Vergleich zum vorherigen Zeitraum.',
       'analytics_compared_with_previous': 'Im Vergleich zur Vorperiode',
       'analytics_trends_period_label': 'Ausgewähltes Trendfenster',
       'analytics_trends_chart_title': 'Ausgabentrend',
       'analytics_trends_chart_subtitle':
           'Automatic daily, weekly, or monthly buckets for your selected period.',
-      'analytics_trends_no_data': 'Für diese Filter liegen keine Trenddaten vor.',
+      'analytics_trends_no_data':
+          'Für diese Filter liegen keine Trenddaten vor.',
       'analytics_trends_highest_bucket': 'Höchster Eimer',
       'analytics_trends_average_bucket': 'Durchschnittliche Bucket-Ausgaben',
       'analytics_household_empty_title': 'Noch keine Haushaltsanalyse',
       'analytics_household_empty_subtitle':
           'Create or open a household to compare spending across members.',
-      'analytics_household_no_data': 'Für diese Filter fallen keine Haushaltsausgaben an.',
+      'analytics_household_no_data':
+          'Für diese Filter fallen keine Haushaltsausgaben an.',
       'analytics_household_no_data_subtitle':
           'Try widening the date range or clearing a few filters.',
-      'analytics_household_preview_subtitle': 'Gemeinsame Ausgaben für diesen Zeitraum',
-      'analytics_household_total_transactions': '{count} geteilte Transaktionen',
+      'analytics_household_preview_subtitle':
+          'Gemeinsame Ausgaben für diesen Zeitraum',
+      'analytics_household_total_transactions':
+          '{count} geteilte Transaktionen',
       'analytics_household_member_transactions': '{count} Transaktionen',
       'analytics_household_top_category': 'Top-Kategorie: {category}',
       'analytics_household_top_category_unknown': 'Noch keine Kategorie',
@@ -7187,7 +7395,8 @@ class AppLocalizations {
       'receipt_photo_invalid_url': 'Die URL des Belegfotos ist ungültig.',
       'receipt_photo_open_fallback':
           'Could not open the file automatically. The link was copied instead.',
-      'receipt_photo_load_failed': 'Dieses Belegbild konnte nicht geladen werden.',
+      'receipt_photo_load_failed':
+          'Dieses Belegbild konnte nicht geladen werden.',
       'receipt_photo_download': 'Herunterladen',
       'receipt_photo_downloaded': 'Quittung unter {Pfad} gespeichert',
       'receipt_photo_open_external': 'Von außen öffnen',
@@ -7231,8 +7440,10 @@ class AppLocalizations {
       'accentaware_colors': 'Akzentbewusste Farben',
       'activate_pro': 'Aktivieren Sie PRO',
       'after_the_amount': 'Nach dem Betrag',
-      'always_use_the_dark_interface': 'Verwenden Sie immer die dunkle Oberfläche.',
-      'always_use_the_light_interface': 'Benutzen Sie immer die Lichtschnittstelle.',
+      'always_use_the_dark_interface':
+          'Verwenden Sie immer die dunkle Oberfläche.',
+      'always_use_the_light_interface':
+          'Benutzen Sie immer die Lichtschnittstelle.',
       'autodetect_source_language': 'Quellsprache automatisch erkennen',
       'before_the_amount': 'Vor dem Betrag',
       'bill_due_soon': 'Rechnung bald fällig',
@@ -7246,21 +7457,25 @@ class AppLocalizations {
       'current_release': 'Aktuelle Veröffentlichung',
       'daily_avg': 'Täglicher Durchschn',
       'delete_reminder': 'Erinnerung löschen',
-      'discount_must_be_zero_or_higher': 'Der Rabatt muss Null oder höher sein.',
+      'discount_must_be_zero_or_higher':
+          'Der Rabatt muss Null oder höher sein.',
       'discount_percentage_must_stay_under_100':
           'Discount percentage must stay under 100%.',
       'display_name': 'Anzeigename',
       'email_support': 'E-Mail-Support',
-      'enable_notifications_in_the_app': 'Aktivieren Sie Benachrichtigungen in der App',
+      'enable_notifications_in_the_app':
+          'Aktivieren Sie Benachrichtigungen in der App',
       'extra_compact_text': 'Extra kompakter Text',
       'features_tools': 'Funktionen und Tools',
-      'follow_your_device_theme_setting': 'Befolgen Sie die Designeinstellungen Ihres Geräts.',
+      'follow_your_device_theme_setting':
+          'Befolgen Sie die Designeinstellungen Ihres Geräts.',
       'getting_started': 'Erste Schritte',
       'helpful_savings_spotted_in_the_current_r':
           'Helpful savings spotted in the current results.',
       'hide_decimals': 'Dezimalstellen ausblenden',
       'items_translation': 'Artikelübersetzung',
-      'keep_this_image_and_try_later': 'Behalten Sie dieses Bild und versuchen Sie es später',
+      'keep_this_image_and_try_later':
+          'Behalten Sie dieses Bild und versuchen Sie es später',
       'larger_interface': 'Größere Schnittstelle',
       'no_category_insights_yet': 'Noch keine Einblicke in die Kategorie',
       'no_overview_yet': 'Noch keine Übersicht',
@@ -7269,9 +7484,11 @@ class AppLocalizations {
       'no_trend_data_yet': 'Noch keine Trenddaten',
       'open_review': 'Rezension öffnen',
       'organize_your_receipts': 'Organisieren Sie Ihre Quittungen',
-      'please_enter_a_category_name': 'Bitte geben Sie einen Kategorienamen ein.',
+      'please_enter_a_category_name':
+          'Bitte geben Sie einen Kategorienamen ein.',
       'please_enter_a_label_name': 'Bitte geben Sie einen Labelnamen ein.',
-      'please_enter_a_subcategory_name': 'Bitte geben Sie einen Unterkategorienamen ein.',
+      'please_enter_a_subcategory_name':
+          'Bitte geben Sie einen Unterkategorienamen ein.',
       'previous_comparison_is_unavailable_for_t':
           'Previous comparison is unavailable for this range.',
       'privacy_policy': 'Datenschutzrichtlinie',
@@ -7304,7 +7521,8 @@ class AppLocalizations {
       'upload_receipt': 'Quittung hochladen',
       'use_this_source_language': 'Verwenden Sie diese Ausgangssprache',
       'view_insights_and_trends': 'Sehen Sie sich Erkenntnisse und Trends an',
-      'where_the_most_spending_happened_in_this': 'Where the most spending happened in this period.'
+      'where_the_most_spending_happened_in_this':
+          'Where the most spending happened in this period.',
     },
     'pt': {
       'app_title': 'Rastreador de despesas',
@@ -7531,7 +7749,7 @@ class AppLocalizations {
       'taxonomy_electricity': 'Eletricidade',
       'taxonomy_water': 'Água',
       'taxonomy_gas': 'Gás',
-      'taxonomy_internet': 'Internet',
+      'taxonomy_internet': 'Интернет',
       'taxonomy_mobile_phone': 'Celular',
       'taxonomy_tv_and_streaming': 'TV e streaming',
       'taxonomy_waste_collection': 'Coleta de Resíduos',
@@ -7601,7 +7819,8 @@ class AppLocalizations {
           'By continuing, you will sign in with your Google account.',
       'settings_subtitle': 'Verwalten Sie Ihre Präferenzen',
       'household_settings_title': 'Familienhaushalt',
-      'household_settings_subtitle': 'Teilen und verwalten Sie den Haushaltszugang',
+      'household_settings_subtitle':
+          'Teilen und verwalten Sie den Haushaltszugang',
       'settings_account_section': 'Konto',
       'settings_preferences_section': 'Präferenzen',
       'settings_support_section': 'Unterstützung',
@@ -7616,7 +7835,8 @@ class AppLocalizations {
       'settings_security': 'Sicherheit',
       'settings_security_subtitle': 'Passwort- und Kontosicherheit',
       'settings_appearance': 'Aussehen',
-      'settings_appearance_subtitle': 'Wählen Sie zwischen Hell- und Dunkelmodus',
+      'settings_appearance_subtitle':
+          'Wählen Sie zwischen Hell- und Dunkelmodus',
       'settings_theme': 'Thema',
       'settings_theme_light': 'Licht',
       'settings_theme_dark': 'Dunkel',
@@ -7637,25 +7857,29 @@ class AppLocalizations {
       'settings_font_large': 'Groß',
       'settings_display_options': 'Anzeigeoptionen',
       'settings_compact_mode': 'Kompaktmodus',
-      'settings_compact_mode_subtitle': 'Zeigen Sie mehr Inhalte auf dem Bildschirm an',
+      'settings_compact_mode_subtitle':
+          'Zeigen Sie mehr Inhalte auf dem Bildschirm an',
       'settings_animations': 'Animationen',
       'settings_animations_subtitle': 'Ermöglichen Sie reibungslose Übergänge',
       'settings_notifications_subtitle': 'Warnungen und Erinnerungen',
       'settings_notification_channels': 'Kanäle',
       'settings_push_notifications': 'Push-Benachrichtigungen',
-      'settings_push_notifications_subtitle': 'Benachrichtigungen auf Ihrem Gerät',
+      'settings_push_notifications_subtitle':
+          'Benachrichtigungen auf Ihrem Gerät',
       'settings_email_notifications': 'E-Mail-Benachrichtigungen',
       'settings_email_notifications_subtitle': 'Updates per E-Mail',
       'settings_notification_activity': 'Aktivität',
       'settings_spending_alerts': 'Ausgabenwarnungen',
-      'settings_spending_alerts_subtitle': 'Ungewöhnliche Ausgaben festgestellt',
+      'settings_spending_alerts_subtitle':
+          'Ungewöhnliche Ausgaben festgestellt',
       'settings_budget_alerts': 'Budgetwarnungen',
       'settings_budget_alerts_subtitle': 'Bei Annäherung an Budgetgrenzen',
       'settings_bill_reminders': 'Rechnungserinnerungen',
       'settings_bill_reminders_subtitle':
           'Monthly reminders for upcoming payments',
       'settings_receipt_reminders': 'Empfangserinnerungen',
-      'settings_receipt_reminders_subtitle': 'Erinnern Sie daran, Belege zu scannen',
+      'settings_receipt_reminders_subtitle':
+          'Erinnern Sie daran, Belege zu scannen',
       'settings_notification_summaries': 'Zusammenfassungen',
       'settings_weekly_summary': 'Wöchentliche Zusammenfassung',
       'settings_weekly_summary_subtitle': 'Jeden Montag um 9 Uhr',
@@ -7688,7 +7912,8 @@ class AppLocalizations {
           'Automatically translate receipt items',
       'settings_translate_to': 'Übersetzen nach',
       'settings_options': 'Optionen',
-      'settings_auto_detect_source_language': 'Quellsprache automatisch erkennen',
+      'settings_auto_detect_source_language':
+          'Quellsprache automatisch erkennen',
       'settings_auto_detect_source_language_subtitle':
           'Automatically detect original language',
       'settings_example': 'Beispiel',
@@ -7711,7 +7936,8 @@ class AppLocalizations {
           'Title must be between 3 and 120 characters.',
       'feature_request_description_length_error':
           'Description must be between 10 and 2000 characters.',
-      'feature_request_load_error_title': 'Funktionsanfragen konnten nicht geladen werden',
+      'feature_request_load_error_title':
+          'Funktionsanfragen konnten nicht geladen werden',
       'feature_request_your_ideas': 'Ihre Ideen',
       'feature_request_your_ideas_empty_title': 'Noch keine Ideen eingereicht',
       'feature_request_your_ideas_empty_subtitle':
@@ -7734,7 +7960,8 @@ class AppLocalizations {
       'feature_request_category_receipts_scanning': 'Quittungen und Scannen',
       'feature_request_category_budgets_planning': 'Budgets und Planung',
       'feature_request_category_household_sharing': 'Haushalt & Teilen',
-      'feature_request_category_design_accessibility': 'Design und Zugänglichkeit',
+      'feature_request_category_design_accessibility':
+          'Design und Zugänglichkeit',
       'feature_request_category_other': 'Andere',
       'settings_privacy_policy': 'Datenschutzrichtlinie',
       'settings_terms_of_service': 'Nutzungsbedingungen',
@@ -7767,7 +7994,8 @@ class AppLocalizations {
       'household_you_badge': 'Du',
       'household_members_title': 'Mitglieder',
       'household_remove_member_title': 'Mitglied entfernen',
-      'household_remove_member_confirm': '{Name} aus diesem Haushalt entfernen?',
+      'household_remove_member_confirm':
+          '{Name} aus diesem Haushalt entfernen?',
       'household_member_removed': 'Mitglied entfernt.',
       'household_leave_title': 'Verlassen Sie den Haushalt',
       'household_leave_confirm':
@@ -7808,7 +8036,8 @@ class AppLocalizations {
       'household_member_count': '{count} Mitglieder',
       'household_member_count_with_limit': '{count} von {limit} Mitgliedern',
       'household_shared_expenses': 'Geteilte Ausgaben',
-      'household_shared_expenses_subtitle': 'Erlauben Sie allen Mitgliedern, Ausgaben hinzuzufügen',
+      'household_shared_expenses_subtitle':
+          'Erlauben Sie allen Mitgliedern, Ausgaben hinzuzufügen',
       'household_budget_notifications': 'Budgetbenachrichtigungen',
       'household_budget_notifications_subtitle':
           'Notify when household budget limit is reached',
@@ -7888,7 +8117,8 @@ class AppLocalizations {
       'bill_reminders_due_date': 'Fälligkeitsdatum',
       'bill_reminders_pick_date': 'Fälligkeitsdatum auswählen',
       'bill_reminders_first_due_date': 'Erstes Fälligkeitsdatum',
-      'bill_reminders_pick_first_due_date': 'Wählen Sie das erste Fälligkeitsdatum aus',
+      'bill_reminders_pick_first_due_date':
+          'Wählen Sie das erste Fälligkeitsdatum aus',
       'bill_reminders_start_date': 'Beginnt am',
       'bill_reminders_pick_start_date': 'Wählen Sie das Startdatum',
       'bill_reminders_recurring': 'Wiederkehrend',
@@ -7915,7 +8145,8 @@ class AppLocalizations {
       'home_greeting_morning': 'Buongiorno',
       'home_greeting_afternoon': 'Buon pomeriggio',
       'home_greeting_evening': 'Buonasera',
-      'home_start_subtitle': 'Scansiona una ricevuta o aggiungi una spesa per iniziare.',
+      'home_start_subtitle':
+          'Scansiona una ricevuta o aggiungi una spesa per iniziare.',
       'home_all_reviewed': 'Tutte le ricevute vengono esaminate',
       'home_review_count_single': '1 ricevuta necessita di revisione',
       'home_review_count_plural': '{count} ricevute necessitano di revisione',
@@ -7931,9 +8162,12 @@ class AppLocalizations {
           'Top category is {category} at {percent}% of monthly spend.',
       'home_insight_top_subcategory':
           'Top subcategory is {subcategory} at {percent}% of item spend.',
-      'home_insight_review_count': '{count} ricevute devono ancora essere revisionate.',
-      'home_insight_all_caught_up': 'Siete tutti impegnati nella revisione delle ricevute.',
-      'home_scan_receipt_subtitle': 'Acquisizione istantanea basata sull\'intelligenza artificiale',
+      'home_insight_review_count':
+          '{count} ricevute devono ancora essere revisionate.',
+      'home_insight_all_caught_up':
+          'Siete tutti impegnati nella revisione delle ricevute.',
+      'home_scan_receipt_subtitle':
+          'Acquisizione istantanea basata sull\'intelligenza artificiale',
       'home_primary_action': 'Azione primaria',
       'home_spending_overview': 'Panoramica della spesa',
       'home_no_spending_data': 'Nessun dato di spesa per questo mese ancora.',
@@ -7954,7 +8188,8 @@ class AppLocalizations {
       'receipts_empty_body':
           'Scan your first receipt to start building a history you can review and filter.',
       'receipts_scan_first_action': 'Scansiona la tua prima ricevuta',
-      'receipts_no_filter_matches': 'Nessuna ricevuta corrisponde ai filtri attuali.',
+      'receipts_no_filter_matches':
+          'Nessuna ricevuta corrisponde ai filtri attuali.',
       'receipts_no_filter_matches_body':
           'Try another period, merchant search, or clear the active filters.',
       'receipts_history_total': 'Totale cronologia ricevute',
@@ -7998,26 +8233,34 @@ class AppLocalizations {
       'analytics_show_fewer_filters': 'Weniger Filter anzeigen',
       'analytics_categories_subtitle': 'Entdecken Sie, wohin Ihr Geld fließt',
       'analytics_overview_top_categories': 'Top-Kategorien',
-      'analytics_change_unavailable': 'Der vorherige Vergleich ist nicht verfügbar.',
-      'analytics_change_flat': 'Die Ausgaben sind im Vergleich zur Vorperiode unverändert.',
-      'analytics_change_more': 'Anstieg um {percent} % im Vergleich zum vorherigen Zeitraum.',
-      'analytics_change_less': 'Rückgang um {percent} % im Vergleich zum vorherigen Zeitraum.',
+      'analytics_change_unavailable':
+          'Der vorherige Vergleich ist nicht verfügbar.',
+      'analytics_change_flat':
+          'Die Ausgaben sind im Vergleich zur Vorperiode unverändert.',
+      'analytics_change_more':
+          'Anstieg um {percent} % im Vergleich zum vorherigen Zeitraum.',
+      'analytics_change_less':
+          'Rückgang um {percent} % im Vergleich zum vorherigen Zeitraum.',
       'analytics_compared_with_previous': 'Im Vergleich zur Vorperiode',
       'analytics_trends_period_label': 'Ausgewähltes Trendfenster',
       'analytics_trends_chart_title': 'Ausgabentrend',
       'analytics_trends_chart_subtitle':
           'Automatic daily, weekly, or monthly buckets for your selected period.',
-      'analytics_trends_no_data': 'Für diese Filter liegen keine Trenddaten vor.',
+      'analytics_trends_no_data':
+          'Für diese Filter liegen keine Trenddaten vor.',
       'analytics_trends_highest_bucket': 'Höchster Eimer',
       'analytics_trends_average_bucket': 'Durchschnittliche Bucket-Ausgaben',
       'analytics_household_empty_title': 'Noch keine Haushaltsanalyse',
       'analytics_household_empty_subtitle':
           'Create or open a household to compare spending across members.',
-      'analytics_household_no_data': 'Für diese Filter fallen keine Haushaltsausgaben an.',
+      'analytics_household_no_data':
+          'Für diese Filter fallen keine Haushaltsausgaben an.',
       'analytics_household_no_data_subtitle':
           'Try widening the date range or clearing a few filters.',
-      'analytics_household_preview_subtitle': 'Gemeinsame Ausgaben für diesen Zeitraum',
-      'analytics_household_total_transactions': '{count} geteilte Transaktionen',
+      'analytics_household_preview_subtitle':
+          'Gemeinsame Ausgaben für diesen Zeitraum',
+      'analytics_household_total_transactions':
+          '{count} geteilte Transaktionen',
       'analytics_household_member_transactions': '{count} Transaktionen',
       'analytics_household_top_category': 'Top-Kategorie: {category}',
       'analytics_household_top_category_unknown': 'Noch keine Kategorie',
@@ -8048,7 +8291,8 @@ class AppLocalizations {
           'Enter a valid amount greater than zero.',
       'manual_transaction_deleted': 'Manuelle Transaktion gelöscht.',
       'manual_transaction_delete_missing_id': 'Transaktions-ID fehlt.',
-      'transaction_amount_required': 'Inserisci un importo totale prima di salvare.',
+      'transaction_amount_required':
+          'Inserisci un importo totale prima di salvare.',
       'transaction_invalid_total': 'Inserisci un importo totale valido.',
       'transaction_save_before_labels':
           'Save the transaction before adding labels.',
@@ -8073,10 +8317,12 @@ class AppLocalizations {
       'transaction_receipt_photo_title': 'Foto della ricevuta',
       'transaction_receipt_photo_subtitle': 'Visualizza la foto originale',
       'transaction_warning_review_one_item': 'Recensisci 1 articolo in totale',
-      'transaction_warning_review_items': 'Controlla il totale di {count} articoli',
+      'transaction_warning_review_items':
+          'Controlla il totale di {count} articoli',
       'transaction_warning_review_total': 'Controlla il totale della ricevuta',
       'transaction_warning_check_one_detail': 'Controlla 1 dettaglio estratto',
-      'transaction_warning_check_details': 'Controlla {count} dettagli estratti',
+      'transaction_warning_check_details':
+          'Controlla {count} dettagli estratti',
       'transaction_warning_accepts_edits':
           'Take a quick final look before saving. {details}. Saving accepts your edits.',
       'transaction_was_amount': 'Era {importo}',
@@ -8092,7 +8338,8 @@ class AppLocalizations {
       'receipt_photo_invalid_url': 'Die URL des Belegfotos ist ungültig.',
       'receipt_photo_open_fallback':
           'Could not open the file automatically. The link was copied instead.',
-      'receipt_photo_load_failed': 'Dieses Belegbild konnte nicht geladen werden.',
+      'receipt_photo_load_failed':
+          'Dieses Belegbild konnte nicht geladen werden.',
       'receipt_photo_download': 'Herunterladen',
       'receipt_photo_downloaded': 'Quittung unter {Pfad} gespeichert',
       'receipt_photo_open_external': 'Von außen öffnen',
@@ -8137,8 +8384,10 @@ class AppLocalizations {
       'accentaware_colors': 'Akzentbewusste Farben',
       'activate_pro': 'Aktivieren Sie PRO',
       'after_the_amount': 'Nach dem Betrag',
-      'always_use_the_dark_interface': 'Verwenden Sie immer die dunkle Oberfläche.',
-      'always_use_the_light_interface': 'Benutzen Sie immer die Lichtschnittstelle.',
+      'always_use_the_dark_interface':
+          'Verwenden Sie immer die dunkle Oberfläche.',
+      'always_use_the_light_interface':
+          'Benutzen Sie immer die Lichtschnittstelle.',
       'autodetect_source_language': 'Quellsprache automatisch erkennen',
       'before_the_amount': 'Vor dem Betrag',
       'bill_due_soon': 'Rechnung bald fällig',
@@ -8152,21 +8401,25 @@ class AppLocalizations {
       'current_release': 'Aktuelle Veröffentlichung',
       'daily_avg': 'Täglicher Durchschn',
       'delete_reminder': 'Erinnerung löschen',
-      'discount_must_be_zero_or_higher': 'Der Rabatt muss Null oder höher sein.',
+      'discount_must_be_zero_or_higher':
+          'Der Rabatt muss Null oder höher sein.',
       'discount_percentage_must_stay_under_100':
           'Discount percentage must stay under 100%.',
       'display_name': 'Anzeigename',
       'email_support': 'E-Mail-Support',
-      'enable_notifications_in_the_app': 'Aktivieren Sie Benachrichtigungen in der App',
+      'enable_notifications_in_the_app':
+          'Aktivieren Sie Benachrichtigungen in der App',
       'extra_compact_text': 'Extra kompakter Text',
       'features_tools': 'Funktionen und Tools',
-      'follow_your_device_theme_setting': 'Befolgen Sie die Designeinstellungen Ihres Geräts.',
+      'follow_your_device_theme_setting':
+          'Befolgen Sie die Designeinstellungen Ihres Geräts.',
       'getting_started': 'Erste Schritte',
       'helpful_savings_spotted_in_the_current_r':
           'Helpful savings spotted in the current results.',
       'hide_decimals': 'Dezimalstellen ausblenden',
       'items_translation': 'Artikelübersetzung',
-      'keep_this_image_and_try_later': 'Behalten Sie dieses Bild und versuchen Sie es später',
+      'keep_this_image_and_try_later':
+          'Behalten Sie dieses Bild und versuchen Sie es später',
       'larger_interface': 'Größere Schnittstelle',
       'no_category_insights_yet': 'Noch keine Einblicke in die Kategorie',
       'no_overview_yet': 'Noch keine Übersicht',
@@ -8175,9 +8428,11 @@ class AppLocalizations {
       'no_trend_data_yet': 'Noch keine Trenddaten',
       'open_review': 'Rezension öffnen',
       'organize_your_receipts': 'Organisieren Sie Ihre Quittungen',
-      'please_enter_a_category_name': 'Bitte geben Sie einen Kategorienamen ein.',
+      'please_enter_a_category_name':
+          'Bitte geben Sie einen Kategorienamen ein.',
       'please_enter_a_label_name': 'Bitte geben Sie einen Labelnamen ein.',
-      'please_enter_a_subcategory_name': 'Bitte geben Sie einen Unterkategorienamen ein.',
+      'please_enter_a_subcategory_name':
+          'Bitte geben Sie einen Unterkategorienamen ein.',
       'previous_comparison_is_unavailable_for_t':
           'Previous comparison is unavailable for this range.',
       'privacy_policy': 'Datenschutzrichtlinie',
@@ -8210,7 +8465,8 @@ class AppLocalizations {
       'upload_receipt': 'Quittung hochladen',
       'use_this_source_language': 'Verwenden Sie diese Ausgangssprache',
       'view_insights_and_trends': 'Sehen Sie sich Erkenntnisse und Trends an',
-      'where_the_most_spending_happened_in_this': 'Where the most spending happened in this period.'
+      'where_the_most_spending_happened_in_this':
+          'Where the most spending happened in this period.',
     },
     'tr': {
       'app_title': 'Gider Takibi',
@@ -8504,7 +8760,8 @@ class AppLocalizations {
           'By continuing, you will sign in with your Google account.',
       'settings_subtitle': 'Verwalten Sie Ihre Präferenzen',
       'household_settings_title': 'Familienhaushalt',
-      'household_settings_subtitle': 'Teilen und verwalten Sie den Haushaltszugang',
+      'household_settings_subtitle':
+          'Teilen und verwalten Sie den Haushaltszugang',
       'settings_account_section': 'Konto',
       'settings_preferences_section': 'Präferenzen',
       'settings_support_section': 'Unterstützung',
@@ -8519,7 +8776,8 @@ class AppLocalizations {
       'settings_security': 'Sicherheit',
       'settings_security_subtitle': 'Passwort- und Kontosicherheit',
       'settings_appearance': 'Aussehen',
-      'settings_appearance_subtitle': 'Wählen Sie zwischen Hell- und Dunkelmodus',
+      'settings_appearance_subtitle':
+          'Wählen Sie zwischen Hell- und Dunkelmodus',
       'settings_theme': 'Thema',
       'settings_theme_light': 'Licht',
       'settings_theme_dark': 'Dunkel',
@@ -8540,25 +8798,29 @@ class AppLocalizations {
       'settings_font_large': 'Groß',
       'settings_display_options': 'Anzeigeoptionen',
       'settings_compact_mode': 'Kompaktmodus',
-      'settings_compact_mode_subtitle': 'Zeigen Sie mehr Inhalte auf dem Bildschirm an',
+      'settings_compact_mode_subtitle':
+          'Zeigen Sie mehr Inhalte auf dem Bildschirm an',
       'settings_animations': 'Animationen',
       'settings_animations_subtitle': 'Ermöglichen Sie reibungslose Übergänge',
       'settings_notifications_subtitle': 'Warnungen und Erinnerungen',
       'settings_notification_channels': 'Kanäle',
       'settings_push_notifications': 'Push-Benachrichtigungen',
-      'settings_push_notifications_subtitle': 'Benachrichtigungen auf Ihrem Gerät',
+      'settings_push_notifications_subtitle':
+          'Benachrichtigungen auf Ihrem Gerät',
       'settings_email_notifications': 'E-Mail-Benachrichtigungen',
       'settings_email_notifications_subtitle': 'Updates per E-Mail',
       'settings_notification_activity': 'Aktivität',
       'settings_spending_alerts': 'Ausgabenwarnungen',
-      'settings_spending_alerts_subtitle': 'Ungewöhnliche Ausgaben festgestellt',
+      'settings_spending_alerts_subtitle':
+          'Ungewöhnliche Ausgaben festgestellt',
       'settings_budget_alerts': 'Budgetwarnungen',
       'settings_budget_alerts_subtitle': 'Bei Annäherung an Budgetgrenzen',
       'settings_bill_reminders': 'Rechnungserinnerungen',
       'settings_bill_reminders_subtitle':
           'Monthly reminders for upcoming payments',
       'settings_receipt_reminders': 'Empfangserinnerungen',
-      'settings_receipt_reminders_subtitle': 'Erinnern Sie daran, Belege zu scannen',
+      'settings_receipt_reminders_subtitle':
+          'Erinnern Sie daran, Belege zu scannen',
       'settings_notification_summaries': 'Zusammenfassungen',
       'settings_weekly_summary': 'Wöchentliche Zusammenfassung',
       'settings_weekly_summary_subtitle': 'Jeden Montag um 9 Uhr',
@@ -8591,7 +8853,8 @@ class AppLocalizations {
           'Automatically translate receipt items',
       'settings_translate_to': 'Übersetzen nach',
       'settings_options': 'Optionen',
-      'settings_auto_detect_source_language': 'Quellsprache automatisch erkennen',
+      'settings_auto_detect_source_language':
+          'Quellsprache automatisch erkennen',
       'settings_auto_detect_source_language_subtitle':
           'Automatically detect original language',
       'settings_example': 'Beispiel',
@@ -8614,7 +8877,8 @@ class AppLocalizations {
           'Title must be between 3 and 120 characters.',
       'feature_request_description_length_error':
           'Description must be between 10 and 2000 characters.',
-      'feature_request_load_error_title': 'Funktionsanfragen konnten nicht geladen werden',
+      'feature_request_load_error_title':
+          'Funktionsanfragen konnten nicht geladen werden',
       'feature_request_your_ideas': 'Ihre Ideen',
       'feature_request_your_ideas_empty_title': 'Noch keine Ideen eingereicht',
       'feature_request_your_ideas_empty_subtitle':
@@ -8637,7 +8901,8 @@ class AppLocalizations {
       'feature_request_category_receipts_scanning': 'Quittungen und Scannen',
       'feature_request_category_budgets_planning': 'Budgets und Planung',
       'feature_request_category_household_sharing': 'Haushalt & Teilen',
-      'feature_request_category_design_accessibility': 'Design und Zugänglichkeit',
+      'feature_request_category_design_accessibility':
+          'Design und Zugänglichkeit',
       'feature_request_category_other': 'Andere',
       'settings_privacy_policy': 'Datenschutzrichtlinie',
       'settings_terms_of_service': 'Nutzungsbedingungen',
@@ -8670,7 +8935,8 @@ class AppLocalizations {
       'household_you_badge': 'Du',
       'household_members_title': 'Mitglieder',
       'household_remove_member_title': 'Mitglied entfernen',
-      'household_remove_member_confirm': '{Name} aus diesem Haushalt entfernen?',
+      'household_remove_member_confirm':
+          '{Name} aus diesem Haushalt entfernen?',
       'household_member_removed': 'Mitglied entfernt.',
       'household_leave_title': 'Verlassen Sie den Haushalt',
       'household_leave_confirm':
@@ -8711,7 +8977,8 @@ class AppLocalizations {
       'household_member_count': '{count} Mitglieder',
       'household_member_count_with_limit': '{count} von {limit} Mitgliedern',
       'household_shared_expenses': 'Geteilte Ausgaben',
-      'household_shared_expenses_subtitle': 'Erlauben Sie allen Mitgliedern, Ausgaben hinzuzufügen',
+      'household_shared_expenses_subtitle':
+          'Erlauben Sie allen Mitgliedern, Ausgaben hinzuzufügen',
       'household_budget_notifications': 'Budgetbenachrichtigungen',
       'household_budget_notifications_subtitle':
           'Notify when household budget limit is reached',
@@ -8791,7 +9058,8 @@ class AppLocalizations {
       'bill_reminders_due_date': 'Fälligkeitsdatum',
       'bill_reminders_pick_date': 'Fälligkeitsdatum auswählen',
       'bill_reminders_first_due_date': 'Erstes Fälligkeitsdatum',
-      'bill_reminders_pick_first_due_date': 'Wählen Sie das erste Fälligkeitsdatum aus',
+      'bill_reminders_pick_first_due_date':
+          'Wählen Sie das erste Fälligkeitsdatum aus',
       'bill_reminders_start_date': 'Beginnt am',
       'bill_reminders_pick_start_date': 'Wählen Sie das Startdatum',
       'bill_reminders_recurring': 'Wiederkehrend',
@@ -8818,7 +9086,8 @@ class AppLocalizations {
       'home_greeting_morning': 'Buongiorno',
       'home_greeting_afternoon': 'Buon pomeriggio',
       'home_greeting_evening': 'Buonasera',
-      'home_start_subtitle': 'Scansiona una ricevuta o aggiungi una spesa per iniziare.',
+      'home_start_subtitle':
+          'Scansiona una ricevuta o aggiungi una spesa per iniziare.',
       'home_all_reviewed': 'Tutte le ricevute vengono esaminate',
       'home_review_count_single': '1 ricevuta necessita di revisione',
       'home_review_count_plural': '{count} ricevute necessitano di revisione',
@@ -8834,9 +9103,12 @@ class AppLocalizations {
           'Top category is {category} at {percent}% of monthly spend.',
       'home_insight_top_subcategory':
           'Top subcategory is {subcategory} at {percent}% of item spend.',
-      'home_insight_review_count': '{count} ricevute devono ancora essere revisionate.',
-      'home_insight_all_caught_up': 'Siete tutti impegnati nella revisione delle ricevute.',
-      'home_scan_receipt_subtitle': 'Acquisizione istantanea basata sull\'intelligenza artificiale',
+      'home_insight_review_count':
+          '{count} ricevute devono ancora essere revisionate.',
+      'home_insight_all_caught_up':
+          'Siete tutti impegnati nella revisione delle ricevute.',
+      'home_scan_receipt_subtitle':
+          'Acquisizione istantanea basata sull\'intelligenza artificiale',
       'home_primary_action': 'Azione primaria',
       'home_spending_overview': 'Panoramica della spesa',
       'home_no_spending_data': 'Nessun dato di spesa per questo mese ancora.',
@@ -8857,7 +9129,8 @@ class AppLocalizations {
       'receipts_empty_body':
           'Scan your first receipt to start building a history you can review and filter.',
       'receipts_scan_first_action': 'Scansiona la tua prima ricevuta',
-      'receipts_no_filter_matches': 'Nessuna ricevuta corrisponde ai filtri attuali.',
+      'receipts_no_filter_matches':
+          'Nessuna ricevuta corrisponde ai filtri attuali.',
       'receipts_no_filter_matches_body':
           'Try another period, merchant search, or clear the active filters.',
       'receipts_history_total': 'Totale cronologia ricevute',
@@ -8901,26 +9174,34 @@ class AppLocalizations {
       'analytics_show_fewer_filters': 'Weniger Filter anzeigen',
       'analytics_categories_subtitle': 'Entdecken Sie, wohin Ihr Geld fließt',
       'analytics_overview_top_categories': 'Top-Kategorien',
-      'analytics_change_unavailable': 'Der vorherige Vergleich ist nicht verfügbar.',
-      'analytics_change_flat': 'Die Ausgaben sind im Vergleich zur Vorperiode unverändert.',
-      'analytics_change_more': 'Anstieg um {percent} % im Vergleich zum vorherigen Zeitraum.',
-      'analytics_change_less': 'Rückgang um {percent} % im Vergleich zum vorherigen Zeitraum.',
+      'analytics_change_unavailable':
+          'Der vorherige Vergleich ist nicht verfügbar.',
+      'analytics_change_flat':
+          'Die Ausgaben sind im Vergleich zur Vorperiode unverändert.',
+      'analytics_change_more':
+          'Anstieg um {percent} % im Vergleich zum vorherigen Zeitraum.',
+      'analytics_change_less':
+          'Rückgang um {percent} % im Vergleich zum vorherigen Zeitraum.',
       'analytics_compared_with_previous': 'Im Vergleich zur Vorperiode',
       'analytics_trends_period_label': 'Ausgewähltes Trendfenster',
       'analytics_trends_chart_title': 'Ausgabentrend',
       'analytics_trends_chart_subtitle':
           'Automatic daily, weekly, or monthly buckets for your selected period.',
-      'analytics_trends_no_data': 'Für diese Filter liegen keine Trenddaten vor.',
+      'analytics_trends_no_data':
+          'Für diese Filter liegen keine Trenddaten vor.',
       'analytics_trends_highest_bucket': 'Höchster Eimer',
       'analytics_trends_average_bucket': 'Durchschnittliche Bucket-Ausgaben',
       'analytics_household_empty_title': 'Noch keine Haushaltsanalyse',
       'analytics_household_empty_subtitle':
           'Create or open a household to compare spending across members.',
-      'analytics_household_no_data': 'Für diese Filter fallen keine Haushaltsausgaben an.',
+      'analytics_household_no_data':
+          'Für diese Filter fallen keine Haushaltsausgaben an.',
       'analytics_household_no_data_subtitle':
           'Try widening the date range or clearing a few filters.',
-      'analytics_household_preview_subtitle': 'Gemeinsame Ausgaben für diesen Zeitraum',
-      'analytics_household_total_transactions': '{count} geteilte Transaktionen',
+      'analytics_household_preview_subtitle':
+          'Gemeinsame Ausgaben für diesen Zeitraum',
+      'analytics_household_total_transactions':
+          '{count} geteilte Transaktionen',
       'analytics_household_member_transactions': '{count} Transaktionen',
       'analytics_household_top_category': 'Top-Kategorie: {category}',
       'analytics_household_top_category_unknown': 'Noch keine Kategorie',
@@ -8951,7 +9232,8 @@ class AppLocalizations {
           'Enter a valid amount greater than zero.',
       'manual_transaction_deleted': 'Manuelle Transaktion gelöscht.',
       'manual_transaction_delete_missing_id': 'Transaktions-ID fehlt.',
-      'transaction_amount_required': 'Inserisci un importo totale prima di salvare.',
+      'transaction_amount_required':
+          'Inserisci un importo totale prima di salvare.',
       'transaction_invalid_total': 'Inserisci un importo totale valido.',
       'transaction_save_before_labels':
           'Save the transaction before adding labels.',
@@ -8976,10 +9258,12 @@ class AppLocalizations {
       'transaction_receipt_photo_title': 'Foto della ricevuta',
       'transaction_receipt_photo_subtitle': 'Visualizza la foto originale',
       'transaction_warning_review_one_item': 'Recensisci 1 articolo in totale',
-      'transaction_warning_review_items': 'Controlla il totale di {count} articoli',
+      'transaction_warning_review_items':
+          'Controlla il totale di {count} articoli',
       'transaction_warning_review_total': 'Controlla il totale della ricevuta',
       'transaction_warning_check_one_detail': 'Controlla 1 dettaglio estratto',
-      'transaction_warning_check_details': 'Controlla {count} dettagli estratti',
+      'transaction_warning_check_details':
+          'Controlla {count} dettagli estratti',
       'transaction_warning_accepts_edits':
           'Take a quick final look before saving. {details}. Saving accepts your edits.',
       'transaction_was_amount': 'Era {importo}',
@@ -8995,7 +9279,8 @@ class AppLocalizations {
       'receipt_photo_invalid_url': 'Die URL des Belegfotos ist ungültig.',
       'receipt_photo_open_fallback':
           'Could not open the file automatically. The link was copied instead.',
-      'receipt_photo_load_failed': 'Dieses Belegbild konnte nicht geladen werden.',
+      'receipt_photo_load_failed':
+          'Dieses Belegbild konnte nicht geladen werden.',
       'receipt_photo_download': 'Herunterladen',
       'receipt_photo_downloaded': 'Quittung unter {Pfad} gespeichert',
       'receipt_photo_open_external': 'Von außen öffnen',
@@ -9040,8 +9325,10 @@ class AppLocalizations {
       'accentaware_colors': 'Akzentbewusste Farben',
       'activate_pro': 'Aktivieren Sie PRO',
       'after_the_amount': 'Nach dem Betrag',
-      'always_use_the_dark_interface': 'Verwenden Sie immer die dunkle Oberfläche.',
-      'always_use_the_light_interface': 'Benutzen Sie immer die Lichtschnittstelle.',
+      'always_use_the_dark_interface':
+          'Verwenden Sie immer die dunkle Oberfläche.',
+      'always_use_the_light_interface':
+          'Benutzen Sie immer die Lichtschnittstelle.',
       'autodetect_source_language': 'Quellsprache automatisch erkennen',
       'before_the_amount': 'Vor dem Betrag',
       'bill_due_soon': 'Rechnung bald fällig',
@@ -9055,21 +9342,25 @@ class AppLocalizations {
       'current_release': 'Aktuelle Veröffentlichung',
       'daily_avg': 'Täglicher Durchschn',
       'delete_reminder': 'Erinnerung löschen',
-      'discount_must_be_zero_or_higher': 'Der Rabatt muss Null oder höher sein.',
+      'discount_must_be_zero_or_higher':
+          'Der Rabatt muss Null oder höher sein.',
       'discount_percentage_must_stay_under_100':
           'Discount percentage must stay under 100%.',
       'display_name': 'Anzeigename',
       'email_support': 'E-Mail-Support',
-      'enable_notifications_in_the_app': 'Aktivieren Sie Benachrichtigungen in der App',
+      'enable_notifications_in_the_app':
+          'Aktivieren Sie Benachrichtigungen in der App',
       'extra_compact_text': 'Extra kompakter Text',
       'features_tools': 'Funktionen und Tools',
-      'follow_your_device_theme_setting': 'Befolgen Sie die Designeinstellungen Ihres Geräts.',
+      'follow_your_device_theme_setting':
+          'Befolgen Sie die Designeinstellungen Ihres Geräts.',
       'getting_started': 'Erste Schritte',
       'helpful_savings_spotted_in_the_current_r':
           'Helpful savings spotted in the current results.',
       'hide_decimals': 'Dezimalstellen ausblenden',
       'items_translation': 'Artikelübersetzung',
-      'keep_this_image_and_try_later': 'Behalten Sie dieses Bild und versuchen Sie es später',
+      'keep_this_image_and_try_later':
+          'Behalten Sie dieses Bild und versuchen Sie es später',
       'larger_interface': 'Größere Schnittstelle',
       'no_category_insights_yet': 'Noch keine Einblicke in die Kategorie',
       'no_overview_yet': 'Noch keine Übersicht',
@@ -9078,9 +9369,11 @@ class AppLocalizations {
       'no_trend_data_yet': 'Noch keine Trenddaten',
       'open_review': 'Rezension öffnen',
       'organize_your_receipts': 'Organisieren Sie Ihre Quittungen',
-      'please_enter_a_category_name': 'Bitte geben Sie einen Kategorienamen ein.',
+      'please_enter_a_category_name':
+          'Bitte geben Sie einen Kategorienamen ein.',
       'please_enter_a_label_name': 'Bitte geben Sie einen Labelnamen ein.',
-      'please_enter_a_subcategory_name': 'Bitte geben Sie einen Unterkategorienamen ein.',
+      'please_enter_a_subcategory_name':
+          'Bitte geben Sie einen Unterkategorienamen ein.',
       'previous_comparison_is_unavailable_for_t':
           'Previous comparison is unavailable for this range.',
       'privacy_policy': 'Datenschutzrichtlinie',
@@ -9113,7 +9406,8 @@ class AppLocalizations {
       'upload_receipt': 'Quittung hochladen',
       'use_this_source_language': 'Verwenden Sie diese Ausgangssprache',
       'view_insights_and_trends': 'Sehen Sie sich Erkenntnisse und Trends an',
-      'where_the_most_spending_happened_in_this': 'Where the most spending happened in this period.'
+      'where_the_most_spending_happened_in_this':
+          'Where the most spending happened in this period.',
     },
     'nl': {
       'app_title': 'Kostentracker',
@@ -9339,8 +9633,8 @@ class AppLocalizations {
       'taxonomy_vehicle_insurance': 'Voertuigverzekering',
       'taxonomy_electricity': 'Elektriciteit',
       'taxonomy_water': 'Water',
-      'taxonomy_gas': 'Gas',
-      'taxonomy_internet': 'Internet',
+      'taxonomy_gas': 'Гас',
+      'taxonomy_internet': 'Интернет',
       'taxonomy_mobile_phone': 'Mobiele telefoon',
       'taxonomy_tv_and_streaming': 'TV en streaming',
       'taxonomy_waste_collection': 'Afvalinzameling',
@@ -9410,7 +9704,8 @@ class AppLocalizations {
           'By continuing, you will sign in with your Google account.',
       'settings_subtitle': 'Verwalten Sie Ihre Präferenzen',
       'household_settings_title': 'Familienhaushalt',
-      'household_settings_subtitle': 'Teilen und verwalten Sie den Haushaltszugang',
+      'household_settings_subtitle':
+          'Teilen und verwalten Sie den Haushaltszugang',
       'settings_account_section': 'Konto',
       'settings_preferences_section': 'Präferenzen',
       'settings_support_section': 'Unterstützung',
@@ -9425,7 +9720,8 @@ class AppLocalizations {
       'settings_security': 'Sicherheit',
       'settings_security_subtitle': 'Passwort- und Kontosicherheit',
       'settings_appearance': 'Aussehen',
-      'settings_appearance_subtitle': 'Wählen Sie zwischen Hell- und Dunkelmodus',
+      'settings_appearance_subtitle':
+          'Wählen Sie zwischen Hell- und Dunkelmodus',
       'settings_theme': 'Thema',
       'settings_theme_light': 'Licht',
       'settings_theme_dark': 'Dunkel',
@@ -9446,25 +9742,29 @@ class AppLocalizations {
       'settings_font_large': 'Groß',
       'settings_display_options': 'Anzeigeoptionen',
       'settings_compact_mode': 'Kompaktmodus',
-      'settings_compact_mode_subtitle': 'Zeigen Sie mehr Inhalte auf dem Bildschirm an',
+      'settings_compact_mode_subtitle':
+          'Zeigen Sie mehr Inhalte auf dem Bildschirm an',
       'settings_animations': 'Animationen',
       'settings_animations_subtitle': 'Ermöglichen Sie reibungslose Übergänge',
       'settings_notifications_subtitle': 'Warnungen und Erinnerungen',
       'settings_notification_channels': 'Kanäle',
       'settings_push_notifications': 'Push-Benachrichtigungen',
-      'settings_push_notifications_subtitle': 'Benachrichtigungen auf Ihrem Gerät',
+      'settings_push_notifications_subtitle':
+          'Benachrichtigungen auf Ihrem Gerät',
       'settings_email_notifications': 'E-Mail-Benachrichtigungen',
       'settings_email_notifications_subtitle': 'Updates per E-Mail',
       'settings_notification_activity': 'Aktivität',
       'settings_spending_alerts': 'Ausgabenwarnungen',
-      'settings_spending_alerts_subtitle': 'Ungewöhnliche Ausgaben festgestellt',
+      'settings_spending_alerts_subtitle':
+          'Ungewöhnliche Ausgaben festgestellt',
       'settings_budget_alerts': 'Budgetwarnungen',
       'settings_budget_alerts_subtitle': 'Bei Annäherung an Budgetgrenzen',
       'settings_bill_reminders': 'Rechnungserinnerungen',
       'settings_bill_reminders_subtitle':
           'Monthly reminders for upcoming payments',
       'settings_receipt_reminders': 'Empfangserinnerungen',
-      'settings_receipt_reminders_subtitle': 'Erinnern Sie daran, Belege zu scannen',
+      'settings_receipt_reminders_subtitle':
+          'Erinnern Sie daran, Belege zu scannen',
       'settings_notification_summaries': 'Zusammenfassungen',
       'settings_weekly_summary': 'Wöchentliche Zusammenfassung',
       'settings_weekly_summary_subtitle': 'Jeden Montag um 9 Uhr',
@@ -9497,7 +9797,8 @@ class AppLocalizations {
           'Automatically translate receipt items',
       'settings_translate_to': 'Übersetzen nach',
       'settings_options': 'Optionen',
-      'settings_auto_detect_source_language': 'Quellsprache automatisch erkennen',
+      'settings_auto_detect_source_language':
+          'Quellsprache automatisch erkennen',
       'settings_auto_detect_source_language_subtitle':
           'Automatically detect original language',
       'settings_example': 'Beispiel',
@@ -9520,7 +9821,8 @@ class AppLocalizations {
           'Title must be between 3 and 120 characters.',
       'feature_request_description_length_error':
           'Description must be between 10 and 2000 characters.',
-      'feature_request_load_error_title': 'Funktionsanfragen konnten nicht geladen werden',
+      'feature_request_load_error_title':
+          'Funktionsanfragen konnten nicht geladen werden',
       'feature_request_your_ideas': 'Ihre Ideen',
       'feature_request_your_ideas_empty_title': 'Noch keine Ideen eingereicht',
       'feature_request_your_ideas_empty_subtitle':
@@ -9543,7 +9845,8 @@ class AppLocalizations {
       'feature_request_category_receipts_scanning': 'Quittungen und Scannen',
       'feature_request_category_budgets_planning': 'Budgets und Planung',
       'feature_request_category_household_sharing': 'Haushalt & Teilen',
-      'feature_request_category_design_accessibility': 'Design und Zugänglichkeit',
+      'feature_request_category_design_accessibility':
+          'Design und Zugänglichkeit',
       'feature_request_category_other': 'Andere',
       'settings_privacy_policy': 'Datenschutzrichtlinie',
       'settings_terms_of_service': 'Nutzungsbedingungen',
@@ -9576,7 +9879,8 @@ class AppLocalizations {
       'household_you_badge': 'Du',
       'household_members_title': 'Mitglieder',
       'household_remove_member_title': 'Mitglied entfernen',
-      'household_remove_member_confirm': '{Name} aus diesem Haushalt entfernen?',
+      'household_remove_member_confirm':
+          '{Name} aus diesem Haushalt entfernen?',
       'household_member_removed': 'Mitglied entfernt.',
       'household_leave_title': 'Verlassen Sie den Haushalt',
       'household_leave_confirm':
@@ -9617,7 +9921,8 @@ class AppLocalizations {
       'household_member_count': '{count} Mitglieder',
       'household_member_count_with_limit': '{count} von {limit} Mitgliedern',
       'household_shared_expenses': 'Geteilte Ausgaben',
-      'household_shared_expenses_subtitle': 'Erlauben Sie allen Mitgliedern, Ausgaben hinzuzufügen',
+      'household_shared_expenses_subtitle':
+          'Erlauben Sie allen Mitgliedern, Ausgaben hinzuzufügen',
       'household_budget_notifications': 'Budgetbenachrichtigungen',
       'household_budget_notifications_subtitle':
           'Notify when household budget limit is reached',
@@ -9697,7 +10002,8 @@ class AppLocalizations {
       'bill_reminders_due_date': 'Fälligkeitsdatum',
       'bill_reminders_pick_date': 'Fälligkeitsdatum auswählen',
       'bill_reminders_first_due_date': 'Erstes Fälligkeitsdatum',
-      'bill_reminders_pick_first_due_date': 'Wählen Sie das erste Fälligkeitsdatum aus',
+      'bill_reminders_pick_first_due_date':
+          'Wählen Sie das erste Fälligkeitsdatum aus',
       'bill_reminders_start_date': 'Beginnt am',
       'bill_reminders_pick_start_date': 'Wählen Sie das Startdatum',
       'bill_reminders_recurring': 'Wiederkehrend',
@@ -9724,7 +10030,8 @@ class AppLocalizations {
       'home_greeting_morning': 'Buongiorno',
       'home_greeting_afternoon': 'Buon pomeriggio',
       'home_greeting_evening': 'Buonasera',
-      'home_start_subtitle': 'Scansiona una ricevuta o aggiungi una spesa per iniziare.',
+      'home_start_subtitle':
+          'Scansiona una ricevuta o aggiungi una spesa per iniziare.',
       'home_all_reviewed': 'Tutte le ricevute vengono esaminate',
       'home_review_count_single': '1 ricevuta necessita di revisione',
       'home_review_count_plural': '{count} ricevute necessitano di revisione',
@@ -9740,9 +10047,12 @@ class AppLocalizations {
           'Top category is {category} at {percent}% of monthly spend.',
       'home_insight_top_subcategory':
           'Top subcategory is {subcategory} at {percent}% of item spend.',
-      'home_insight_review_count': '{count} ricevute devono ancora essere revisionate.',
-      'home_insight_all_caught_up': 'Siete tutti impegnati nella revisione delle ricevute.',
-      'home_scan_receipt_subtitle': 'Acquisizione istantanea basata sull\'intelligenza artificiale',
+      'home_insight_review_count':
+          '{count} ricevute devono ancora essere revisionate.',
+      'home_insight_all_caught_up':
+          'Siete tutti impegnati nella revisione delle ricevute.',
+      'home_scan_receipt_subtitle':
+          'Acquisizione istantanea basata sull\'intelligenza artificiale',
       'home_primary_action': 'Azione primaria',
       'home_spending_overview': 'Panoramica della spesa',
       'home_no_spending_data': 'Nessun dato di spesa per questo mese ancora.',
@@ -9763,7 +10073,8 @@ class AppLocalizations {
       'receipts_empty_body':
           'Scan your first receipt to start building a history you can review and filter.',
       'receipts_scan_first_action': 'Scansiona la tua prima ricevuta',
-      'receipts_no_filter_matches': 'Nessuna ricevuta corrisponde ai filtri attuali.',
+      'receipts_no_filter_matches':
+          'Nessuna ricevuta corrisponde ai filtri attuali.',
       'receipts_no_filter_matches_body':
           'Try another period, merchant search, or clear the active filters.',
       'receipts_history_total': 'Totale cronologia ricevute',
@@ -9807,26 +10118,34 @@ class AppLocalizations {
       'analytics_show_fewer_filters': 'Weniger Filter anzeigen',
       'analytics_categories_subtitle': 'Entdecken Sie, wohin Ihr Geld fließt',
       'analytics_overview_top_categories': 'Top-Kategorien',
-      'analytics_change_unavailable': 'Der vorherige Vergleich ist nicht verfügbar.',
-      'analytics_change_flat': 'Die Ausgaben sind im Vergleich zur Vorperiode unverändert.',
-      'analytics_change_more': 'Anstieg um {percent} % im Vergleich zum vorherigen Zeitraum.',
-      'analytics_change_less': 'Rückgang um {percent} % im Vergleich zum vorherigen Zeitraum.',
+      'analytics_change_unavailable':
+          'Der vorherige Vergleich ist nicht verfügbar.',
+      'analytics_change_flat':
+          'Die Ausgaben sind im Vergleich zur Vorperiode unverändert.',
+      'analytics_change_more':
+          'Anstieg um {percent} % im Vergleich zum vorherigen Zeitraum.',
+      'analytics_change_less':
+          'Rückgang um {percent} % im Vergleich zum vorherigen Zeitraum.',
       'analytics_compared_with_previous': 'Im Vergleich zur Vorperiode',
       'analytics_trends_period_label': 'Ausgewähltes Trendfenster',
       'analytics_trends_chart_title': 'Ausgabentrend',
       'analytics_trends_chart_subtitle':
           'Automatic daily, weekly, or monthly buckets for your selected period.',
-      'analytics_trends_no_data': 'Für diese Filter liegen keine Trenddaten vor.',
+      'analytics_trends_no_data':
+          'Für diese Filter liegen keine Trenddaten vor.',
       'analytics_trends_highest_bucket': 'Höchster Eimer',
       'analytics_trends_average_bucket': 'Durchschnittliche Bucket-Ausgaben',
       'analytics_household_empty_title': 'Noch keine Haushaltsanalyse',
       'analytics_household_empty_subtitle':
           'Create or open a household to compare spending across members.',
-      'analytics_household_no_data': 'Für diese Filter fallen keine Haushaltsausgaben an.',
+      'analytics_household_no_data':
+          'Für diese Filter fallen keine Haushaltsausgaben an.',
       'analytics_household_no_data_subtitle':
           'Try widening the date range or clearing a few filters.',
-      'analytics_household_preview_subtitle': 'Gemeinsame Ausgaben für diesen Zeitraum',
-      'analytics_household_total_transactions': '{count} geteilte Transaktionen',
+      'analytics_household_preview_subtitle':
+          'Gemeinsame Ausgaben für diesen Zeitraum',
+      'analytics_household_total_transactions':
+          '{count} geteilte Transaktionen',
       'analytics_household_member_transactions': '{count} Transaktionen',
       'analytics_household_top_category': 'Top-Kategorie: {category}',
       'analytics_household_top_category_unknown': 'Noch keine Kategorie',
@@ -9857,7 +10176,8 @@ class AppLocalizations {
           'Enter a valid amount greater than zero.',
       'manual_transaction_deleted': 'Manuelle Transaktion gelöscht.',
       'manual_transaction_delete_missing_id': 'Transaktions-ID fehlt.',
-      'transaction_amount_required': 'Inserisci un importo totale prima di salvare.',
+      'transaction_amount_required':
+          'Inserisci un importo totale prima di salvare.',
       'transaction_invalid_total': 'Inserisci un importo totale valido.',
       'transaction_save_before_labels':
           'Save the transaction before adding labels.',
@@ -9882,10 +10202,12 @@ class AppLocalizations {
       'transaction_receipt_photo_title': 'Foto della ricevuta',
       'transaction_receipt_photo_subtitle': 'Visualizza la foto originale',
       'transaction_warning_review_one_item': 'Recensisci 1 articolo in totale',
-      'transaction_warning_review_items': 'Controlla il totale di {count} articoli',
+      'transaction_warning_review_items':
+          'Controlla il totale di {count} articoli',
       'transaction_warning_review_total': 'Controlla il totale della ricevuta',
       'transaction_warning_check_one_detail': 'Controlla 1 dettaglio estratto',
-      'transaction_warning_check_details': 'Controlla {count} dettagli estratti',
+      'transaction_warning_check_details':
+          'Controlla {count} dettagli estratti',
       'transaction_warning_accepts_edits':
           'Take a quick final look before saving. {details}. Saving accepts your edits.',
       'transaction_was_amount': 'Era {importo}',
@@ -9901,7 +10223,8 @@ class AppLocalizations {
       'receipt_photo_invalid_url': 'Die URL des Belegfotos ist ungültig.',
       'receipt_photo_open_fallback':
           'Could not open the file automatically. The link was copied instead.',
-      'receipt_photo_load_failed': 'Dieses Belegbild konnte nicht geladen werden.',
+      'receipt_photo_load_failed':
+          'Dieses Belegbild konnte nicht geladen werden.',
       'receipt_photo_download': 'Herunterladen',
       'receipt_photo_downloaded': 'Quittung unter {Pfad} gespeichert',
       'receipt_photo_open_external': 'Von außen öffnen',
@@ -9946,8 +10269,10 @@ class AppLocalizations {
       'accentaware_colors': 'Akzentbewusste Farben',
       'activate_pro': 'Aktivieren Sie PRO',
       'after_the_amount': 'Nach dem Betrag',
-      'always_use_the_dark_interface': 'Verwenden Sie immer die dunkle Oberfläche.',
-      'always_use_the_light_interface': 'Benutzen Sie immer die Lichtschnittstelle.',
+      'always_use_the_dark_interface':
+          'Verwenden Sie immer die dunkle Oberfläche.',
+      'always_use_the_light_interface':
+          'Benutzen Sie immer die Lichtschnittstelle.',
       'autodetect_source_language': 'Quellsprache automatisch erkennen',
       'before_the_amount': 'Vor dem Betrag',
       'bill_due_soon': 'Rechnung bald fällig',
@@ -9961,21 +10286,25 @@ class AppLocalizations {
       'current_release': 'Aktuelle Veröffentlichung',
       'daily_avg': 'Täglicher Durchschn',
       'delete_reminder': 'Erinnerung löschen',
-      'discount_must_be_zero_or_higher': 'Der Rabatt muss Null oder höher sein.',
+      'discount_must_be_zero_or_higher':
+          'Der Rabatt muss Null oder höher sein.',
       'discount_percentage_must_stay_under_100':
           'Discount percentage must stay under 100%.',
       'display_name': 'Anzeigename',
       'email_support': 'E-Mail-Support',
-      'enable_notifications_in_the_app': 'Aktivieren Sie Benachrichtigungen in der App',
+      'enable_notifications_in_the_app':
+          'Aktivieren Sie Benachrichtigungen in der App',
       'extra_compact_text': 'Extra kompakter Text',
       'features_tools': 'Funktionen und Tools',
-      'follow_your_device_theme_setting': 'Befolgen Sie die Designeinstellungen Ihres Geräts.',
+      'follow_your_device_theme_setting':
+          'Befolgen Sie die Designeinstellungen Ihres Geräts.',
       'getting_started': 'Erste Schritte',
       'helpful_savings_spotted_in_the_current_r':
           'Helpful savings spotted in the current results.',
       'hide_decimals': 'Dezimalstellen ausblenden',
       'items_translation': 'Artikelübersetzung',
-      'keep_this_image_and_try_later': 'Behalten Sie dieses Bild und versuchen Sie es später',
+      'keep_this_image_and_try_later':
+          'Behalten Sie dieses Bild und versuchen Sie es später',
       'larger_interface': 'Größere Schnittstelle',
       'no_category_insights_yet': 'Noch keine Einblicke in die Kategorie',
       'no_overview_yet': 'Noch keine Übersicht',
@@ -9984,9 +10313,11 @@ class AppLocalizations {
       'no_trend_data_yet': 'Noch keine Trenddaten',
       'open_review': 'Rezension öffnen',
       'organize_your_receipts': 'Organisieren Sie Ihre Quittungen',
-      'please_enter_a_category_name': 'Bitte geben Sie einen Kategorienamen ein.',
+      'please_enter_a_category_name':
+          'Bitte geben Sie einen Kategorienamen ein.',
       'please_enter_a_label_name': 'Bitte geben Sie einen Labelnamen ein.',
-      'please_enter_a_subcategory_name': 'Bitte geben Sie einen Unterkategorienamen ein.',
+      'please_enter_a_subcategory_name':
+          'Bitte geben Sie einen Unterkategorienamen ein.',
       'previous_comparison_is_unavailable_for_t':
           'Previous comparison is unavailable for this range.',
       'privacy_policy': 'Datenschutzrichtlinie',
@@ -10019,7 +10350,8 @@ class AppLocalizations {
       'upload_receipt': 'Quittung hochladen',
       'use_this_source_language': 'Verwenden Sie diese Ausgangssprache',
       'view_insights_and_trends': 'Sehen Sie sich Erkenntnisse und Trends an',
-      'where_the_most_spending_happened_in_this': 'Where the most spending happened in this period.'
+      'where_the_most_spending_happened_in_this':
+          'Where the most spending happened in this period.',
     },
     'sv': {
       'app_title': 'Expense Tracker',
@@ -10108,7 +10440,7 @@ class AppLocalizations {
       'period_all_time': 'Hela tiden',
       'filters_title': 'Filter',
       'filters_title_with_count': 'Filter ({count})',
-      'filters_period': 'Period',
+      'filters_period': 'Период',
       'filters_category': 'Kategori',
       'filters_subcategory': 'Underkategori',
       'filters_labels': 'Etiketter',
@@ -10204,7 +10536,7 @@ class AppLocalizations {
           'Total oöverensstämmelse: förväntad {expected} men extraherad {actual}',
       'taxonomy_food': 'Mat',
       'taxonomy_clothing': 'Kläder',
-      'taxonomy_transport': 'Transport',
+      'taxonomy_transport': 'Транспорт',
       'taxonomy_utilities': 'Verktyg',
       'taxonomy_health': 'Hälsa',
       'taxonomy_entertainment': 'Underhållning',
@@ -10243,8 +10575,8 @@ class AppLocalizations {
       'taxonomy_vehicle_insurance': 'Fordonsförsäkring',
       'taxonomy_electricity': 'Elektricitet',
       'taxonomy_water': 'Vatten',
-      'taxonomy_gas': 'Gas',
-      'taxonomy_internet': 'Internet',
+      'taxonomy_gas': 'Гас',
+      'taxonomy_internet': 'Интернет',
       'taxonomy_mobile_phone': 'Mobiltelefon',
       'taxonomy_tv_and_streaming': 'TV och streaming',
       'taxonomy_waste_collection': 'Avfallsinsamling',
@@ -10314,7 +10646,8 @@ class AppLocalizations {
           'By continuing, you will sign in with your Google account.',
       'settings_subtitle': 'Verwalten Sie Ihre Präferenzen',
       'household_settings_title': 'Familienhaushalt',
-      'household_settings_subtitle': 'Teilen und verwalten Sie den Haushaltszugang',
+      'household_settings_subtitle':
+          'Teilen und verwalten Sie den Haushaltszugang',
       'settings_account_section': 'Konto',
       'settings_preferences_section': 'Präferenzen',
       'settings_support_section': 'Unterstützung',
@@ -10329,7 +10662,8 @@ class AppLocalizations {
       'settings_security': 'Sicherheit',
       'settings_security_subtitle': 'Passwort- und Kontosicherheit',
       'settings_appearance': 'Aussehen',
-      'settings_appearance_subtitle': 'Wählen Sie zwischen Hell- und Dunkelmodus',
+      'settings_appearance_subtitle':
+          'Wählen Sie zwischen Hell- und Dunkelmodus',
       'settings_theme': 'Thema',
       'settings_theme_light': 'Licht',
       'settings_theme_dark': 'Dunkel',
@@ -10350,25 +10684,29 @@ class AppLocalizations {
       'settings_font_large': 'Groß',
       'settings_display_options': 'Anzeigeoptionen',
       'settings_compact_mode': 'Kompaktmodus',
-      'settings_compact_mode_subtitle': 'Zeigen Sie mehr Inhalte auf dem Bildschirm an',
+      'settings_compact_mode_subtitle':
+          'Zeigen Sie mehr Inhalte auf dem Bildschirm an',
       'settings_animations': 'Animationen',
       'settings_animations_subtitle': 'Ermöglichen Sie reibungslose Übergänge',
       'settings_notifications_subtitle': 'Warnungen und Erinnerungen',
       'settings_notification_channels': 'Kanäle',
       'settings_push_notifications': 'Push-Benachrichtigungen',
-      'settings_push_notifications_subtitle': 'Benachrichtigungen auf Ihrem Gerät',
+      'settings_push_notifications_subtitle':
+          'Benachrichtigungen auf Ihrem Gerät',
       'settings_email_notifications': 'E-Mail-Benachrichtigungen',
       'settings_email_notifications_subtitle': 'Updates per E-Mail',
       'settings_notification_activity': 'Aktivität',
       'settings_spending_alerts': 'Ausgabenwarnungen',
-      'settings_spending_alerts_subtitle': 'Ungewöhnliche Ausgaben festgestellt',
+      'settings_spending_alerts_subtitle':
+          'Ungewöhnliche Ausgaben festgestellt',
       'settings_budget_alerts': 'Budgetwarnungen',
       'settings_budget_alerts_subtitle': 'Bei Annäherung an Budgetgrenzen',
       'settings_bill_reminders': 'Rechnungserinnerungen',
       'settings_bill_reminders_subtitle':
           'Monthly reminders for upcoming payments',
       'settings_receipt_reminders': 'Empfangserinnerungen',
-      'settings_receipt_reminders_subtitle': 'Erinnern Sie daran, Belege zu scannen',
+      'settings_receipt_reminders_subtitle':
+          'Erinnern Sie daran, Belege zu scannen',
       'settings_notification_summaries': 'Zusammenfassungen',
       'settings_weekly_summary': 'Wöchentliche Zusammenfassung',
       'settings_weekly_summary_subtitle': 'Jeden Montag um 9 Uhr',
@@ -10401,7 +10739,8 @@ class AppLocalizations {
           'Automatically translate receipt items',
       'settings_translate_to': 'Übersetzen nach',
       'settings_options': 'Optionen',
-      'settings_auto_detect_source_language': 'Quellsprache automatisch erkennen',
+      'settings_auto_detect_source_language':
+          'Quellsprache automatisch erkennen',
       'settings_auto_detect_source_language_subtitle':
           'Automatically detect original language',
       'settings_example': 'Beispiel',
@@ -10424,7 +10763,8 @@ class AppLocalizations {
           'Title must be between 3 and 120 characters.',
       'feature_request_description_length_error':
           'Description must be between 10 and 2000 characters.',
-      'feature_request_load_error_title': 'Funktionsanfragen konnten nicht geladen werden',
+      'feature_request_load_error_title':
+          'Funktionsanfragen konnten nicht geladen werden',
       'feature_request_your_ideas': 'Ihre Ideen',
       'feature_request_your_ideas_empty_title': 'Noch keine Ideen eingereicht',
       'feature_request_your_ideas_empty_subtitle':
@@ -10447,7 +10787,8 @@ class AppLocalizations {
       'feature_request_category_receipts_scanning': 'Quittungen und Scannen',
       'feature_request_category_budgets_planning': 'Budgets und Planung',
       'feature_request_category_household_sharing': 'Haushalt & Teilen',
-      'feature_request_category_design_accessibility': 'Design und Zugänglichkeit',
+      'feature_request_category_design_accessibility':
+          'Design und Zugänglichkeit',
       'feature_request_category_other': 'Andere',
       'settings_privacy_policy': 'Datenschutzrichtlinie',
       'settings_terms_of_service': 'Nutzungsbedingungen',
@@ -10480,7 +10821,8 @@ class AppLocalizations {
       'household_you_badge': 'Du',
       'household_members_title': 'Mitglieder',
       'household_remove_member_title': 'Mitglied entfernen',
-      'household_remove_member_confirm': '{Name} aus diesem Haushalt entfernen?',
+      'household_remove_member_confirm':
+          '{Name} aus diesem Haushalt entfernen?',
       'household_member_removed': 'Mitglied entfernt.',
       'household_leave_title': 'Verlassen Sie den Haushalt',
       'household_leave_confirm':
@@ -10521,7 +10863,8 @@ class AppLocalizations {
       'household_member_count': '{count} Mitglieder',
       'household_member_count_with_limit': '{count} von {limit} Mitgliedern',
       'household_shared_expenses': 'Geteilte Ausgaben',
-      'household_shared_expenses_subtitle': 'Erlauben Sie allen Mitgliedern, Ausgaben hinzuzufügen',
+      'household_shared_expenses_subtitle':
+          'Erlauben Sie allen Mitgliedern, Ausgaben hinzuzufügen',
       'household_budget_notifications': 'Budgetbenachrichtigungen',
       'household_budget_notifications_subtitle':
           'Notify when household budget limit is reached',
@@ -10601,7 +10944,8 @@ class AppLocalizations {
       'bill_reminders_due_date': 'Fälligkeitsdatum',
       'bill_reminders_pick_date': 'Fälligkeitsdatum auswählen',
       'bill_reminders_first_due_date': 'Erstes Fälligkeitsdatum',
-      'bill_reminders_pick_first_due_date': 'Wählen Sie das erste Fälligkeitsdatum aus',
+      'bill_reminders_pick_first_due_date':
+          'Wählen Sie das erste Fälligkeitsdatum aus',
       'bill_reminders_start_date': 'Beginnt am',
       'bill_reminders_pick_start_date': 'Wählen Sie das Startdatum',
       'bill_reminders_recurring': 'Wiederkehrend',
@@ -10628,7 +10972,8 @@ class AppLocalizations {
       'home_greeting_morning': 'Buongiorno',
       'home_greeting_afternoon': 'Buon pomeriggio',
       'home_greeting_evening': 'Buonasera',
-      'home_start_subtitle': 'Scansiona una ricevuta o aggiungi una spesa per iniziare.',
+      'home_start_subtitle':
+          'Scansiona una ricevuta o aggiungi una spesa per iniziare.',
       'home_all_reviewed': 'Tutte le ricevute vengono esaminate',
       'home_review_count_single': '1 ricevuta necessita di revisione',
       'home_review_count_plural': '{count} ricevute necessitano di revisione',
@@ -10644,9 +10989,12 @@ class AppLocalizations {
           'Top category is {category} at {percent}% of monthly spend.',
       'home_insight_top_subcategory':
           'Top subcategory is {subcategory} at {percent}% of item spend.',
-      'home_insight_review_count': '{count} ricevute devono ancora essere revisionate.',
-      'home_insight_all_caught_up': 'Siete tutti impegnati nella revisione delle ricevute.',
-      'home_scan_receipt_subtitle': 'Acquisizione istantanea basata sull\'intelligenza artificiale',
+      'home_insight_review_count':
+          '{count} ricevute devono ancora essere revisionate.',
+      'home_insight_all_caught_up':
+          'Siete tutti impegnati nella revisione delle ricevute.',
+      'home_scan_receipt_subtitle':
+          'Acquisizione istantanea basata sull\'intelligenza artificiale',
       'home_primary_action': 'Azione primaria',
       'home_spending_overview': 'Panoramica della spesa',
       'home_no_spending_data': 'Nessun dato di spesa per questo mese ancora.',
@@ -10667,7 +11015,8 @@ class AppLocalizations {
       'receipts_empty_body':
           'Scan your first receipt to start building a history you can review and filter.',
       'receipts_scan_first_action': 'Scansiona la tua prima ricevuta',
-      'receipts_no_filter_matches': 'Nessuna ricevuta corrisponde ai filtri attuali.',
+      'receipts_no_filter_matches':
+          'Nessuna ricevuta corrisponde ai filtri attuali.',
       'receipts_no_filter_matches_body':
           'Try another period, merchant search, or clear the active filters.',
       'receipts_history_total': 'Totale cronologia ricevute',
@@ -10711,26 +11060,34 @@ class AppLocalizations {
       'analytics_show_fewer_filters': 'Weniger Filter anzeigen',
       'analytics_categories_subtitle': 'Entdecken Sie, wohin Ihr Geld fließt',
       'analytics_overview_top_categories': 'Top-Kategorien',
-      'analytics_change_unavailable': 'Der vorherige Vergleich ist nicht verfügbar.',
-      'analytics_change_flat': 'Die Ausgaben sind im Vergleich zur Vorperiode unverändert.',
-      'analytics_change_more': 'Anstieg um {percent} % im Vergleich zum vorherigen Zeitraum.',
-      'analytics_change_less': 'Rückgang um {percent} % im Vergleich zum vorherigen Zeitraum.',
+      'analytics_change_unavailable':
+          'Der vorherige Vergleich ist nicht verfügbar.',
+      'analytics_change_flat':
+          'Die Ausgaben sind im Vergleich zur Vorperiode unverändert.',
+      'analytics_change_more':
+          'Anstieg um {percent} % im Vergleich zum vorherigen Zeitraum.',
+      'analytics_change_less':
+          'Rückgang um {percent} % im Vergleich zum vorherigen Zeitraum.',
       'analytics_compared_with_previous': 'Im Vergleich zur Vorperiode',
       'analytics_trends_period_label': 'Ausgewähltes Trendfenster',
       'analytics_trends_chart_title': 'Ausgabentrend',
       'analytics_trends_chart_subtitle':
           'Automatic daily, weekly, or monthly buckets for your selected period.',
-      'analytics_trends_no_data': 'Für diese Filter liegen keine Trenddaten vor.',
+      'analytics_trends_no_data':
+          'Für diese Filter liegen keine Trenddaten vor.',
       'analytics_trends_highest_bucket': 'Höchster Eimer',
       'analytics_trends_average_bucket': 'Durchschnittliche Bucket-Ausgaben',
       'analytics_household_empty_title': 'Noch keine Haushaltsanalyse',
       'analytics_household_empty_subtitle':
           'Create or open a household to compare spending across members.',
-      'analytics_household_no_data': 'Für diese Filter fallen keine Haushaltsausgaben an.',
+      'analytics_household_no_data':
+          'Für diese Filter fallen keine Haushaltsausgaben an.',
       'analytics_household_no_data_subtitle':
           'Try widening the date range or clearing a few filters.',
-      'analytics_household_preview_subtitle': 'Gemeinsame Ausgaben für diesen Zeitraum',
-      'analytics_household_total_transactions': '{count} geteilte Transaktionen',
+      'analytics_household_preview_subtitle':
+          'Gemeinsame Ausgaben für diesen Zeitraum',
+      'analytics_household_total_transactions':
+          '{count} geteilte Transaktionen',
       'analytics_household_member_transactions': '{count} Transaktionen',
       'analytics_household_top_category': 'Top-Kategorie: {category}',
       'analytics_household_top_category_unknown': 'Noch keine Kategorie',
@@ -10761,7 +11118,8 @@ class AppLocalizations {
           'Enter a valid amount greater than zero.',
       'manual_transaction_deleted': 'Manuelle Transaktion gelöscht.',
       'manual_transaction_delete_missing_id': 'Transaktions-ID fehlt.',
-      'transaction_amount_required': 'Inserisci un importo totale prima di salvare.',
+      'transaction_amount_required':
+          'Inserisci un importo totale prima di salvare.',
       'transaction_invalid_total': 'Inserisci un importo totale valido.',
       'transaction_save_before_labels':
           'Save the transaction before adding labels.',
@@ -10786,10 +11144,12 @@ class AppLocalizations {
       'transaction_receipt_photo_title': 'Foto della ricevuta',
       'transaction_receipt_photo_subtitle': 'Visualizza la foto originale',
       'transaction_warning_review_one_item': 'Recensisci 1 articolo in totale',
-      'transaction_warning_review_items': 'Controlla il totale di {count} articoli',
+      'transaction_warning_review_items':
+          'Controlla il totale di {count} articoli',
       'transaction_warning_review_total': 'Controlla il totale della ricevuta',
       'transaction_warning_check_one_detail': 'Controlla 1 dettaglio estratto',
-      'transaction_warning_check_details': 'Controlla {count} dettagli estratti',
+      'transaction_warning_check_details':
+          'Controlla {count} dettagli estratti',
       'transaction_warning_accepts_edits':
           'Take a quick final look before saving. {details}. Saving accepts your edits.',
       'transaction_was_amount': 'Era {importo}',
@@ -10805,7 +11165,8 @@ class AppLocalizations {
       'receipt_photo_invalid_url': 'Die URL des Belegfotos ist ungültig.',
       'receipt_photo_open_fallback':
           'Could not open the file automatically. The link was copied instead.',
-      'receipt_photo_load_failed': 'Dieses Belegbild konnte nicht geladen werden.',
+      'receipt_photo_load_failed':
+          'Dieses Belegbild konnte nicht geladen werden.',
       'receipt_photo_download': 'Herunterladen',
       'receipt_photo_downloaded': 'Quittung unter {Pfad} gespeichert',
       'receipt_photo_open_external': 'Von außen öffnen',
@@ -10850,8 +11211,10 @@ class AppLocalizations {
       'accentaware_colors': 'Akzentbewusste Farben',
       'activate_pro': 'Aktivieren Sie PRO',
       'after_the_amount': 'Nach dem Betrag',
-      'always_use_the_dark_interface': 'Verwenden Sie immer die dunkle Oberfläche.',
-      'always_use_the_light_interface': 'Benutzen Sie immer die Lichtschnittstelle.',
+      'always_use_the_dark_interface':
+          'Verwenden Sie immer die dunkle Oberfläche.',
+      'always_use_the_light_interface':
+          'Benutzen Sie immer die Lichtschnittstelle.',
       'autodetect_source_language': 'Quellsprache automatisch erkennen',
       'before_the_amount': 'Vor dem Betrag',
       'bill_due_soon': 'Rechnung bald fällig',
@@ -10865,21 +11228,25 @@ class AppLocalizations {
       'current_release': 'Aktuelle Veröffentlichung',
       'daily_avg': 'Täglicher Durchschn',
       'delete_reminder': 'Erinnerung löschen',
-      'discount_must_be_zero_or_higher': 'Der Rabatt muss Null oder höher sein.',
+      'discount_must_be_zero_or_higher':
+          'Der Rabatt muss Null oder höher sein.',
       'discount_percentage_must_stay_under_100':
           'Discount percentage must stay under 100%.',
       'display_name': 'Anzeigename',
       'email_support': 'E-Mail-Support',
-      'enable_notifications_in_the_app': 'Aktivieren Sie Benachrichtigungen in der App',
+      'enable_notifications_in_the_app':
+          'Aktivieren Sie Benachrichtigungen in der App',
       'extra_compact_text': 'Extra kompakter Text',
       'features_tools': 'Funktionen und Tools',
-      'follow_your_device_theme_setting': 'Befolgen Sie die Designeinstellungen Ihres Geräts.',
+      'follow_your_device_theme_setting':
+          'Befolgen Sie die Designeinstellungen Ihres Geräts.',
       'getting_started': 'Erste Schritte',
       'helpful_savings_spotted_in_the_current_r':
           'Helpful savings spotted in the current results.',
       'hide_decimals': 'Dezimalstellen ausblenden',
       'items_translation': 'Artikelübersetzung',
-      'keep_this_image_and_try_later': 'Behalten Sie dieses Bild und versuchen Sie es später',
+      'keep_this_image_and_try_later':
+          'Behalten Sie dieses Bild und versuchen Sie es später',
       'larger_interface': 'Größere Schnittstelle',
       'no_category_insights_yet': 'Noch keine Einblicke in die Kategorie',
       'no_overview_yet': 'Noch keine Übersicht',
@@ -10888,9 +11255,11 @@ class AppLocalizations {
       'no_trend_data_yet': 'Noch keine Trenddaten',
       'open_review': 'Rezension öffnen',
       'organize_your_receipts': 'Organisieren Sie Ihre Quittungen',
-      'please_enter_a_category_name': 'Bitte geben Sie einen Kategorienamen ein.',
+      'please_enter_a_category_name':
+          'Bitte geben Sie einen Kategorienamen ein.',
       'please_enter_a_label_name': 'Bitte geben Sie einen Labelnamen ein.',
-      'please_enter_a_subcategory_name': 'Bitte geben Sie einen Unterkategorienamen ein.',
+      'please_enter_a_subcategory_name':
+          'Bitte geben Sie einen Unterkategorienamen ein.',
       'previous_comparison_is_unavailable_for_t':
           'Previous comparison is unavailable for this range.',
       'privacy_policy': 'Datenschutzrichtlinie',
@@ -10923,7 +11292,8 @@ class AppLocalizations {
       'upload_receipt': 'Quittung hochladen',
       'use_this_source_language': 'Verwenden Sie diese Ausgangssprache',
       'view_insights_and_trends': 'Sehen Sie sich Erkenntnisse und Trends an',
-      'where_the_most_spending_happened_in_this': 'Where the most spending happened in this period.'
+      'where_the_most_spending_happened_in_this':
+          'Where the most spending happened in this period.',
     },
     'cs': {
       'app_title': 'Sledování výdajů',
@@ -11143,7 +11513,7 @@ class AppLocalizations {
       'taxonomy_electricity': 'Elektřina',
       'taxonomy_water': 'Voda',
       'taxonomy_gas': 'Plyn',
-      'taxonomy_internet': 'Internet',
+      'taxonomy_internet': 'Интернет',
       'taxonomy_mobile_phone': 'Mobilní telefon',
       'taxonomy_tv_and_streaming': 'TV a streamování',
       'taxonomy_waste_collection': 'Sběr odpadu',
@@ -11177,7 +11547,7 @@ class AppLocalizations {
       'taxonomy_tablets': 'Tablety',
       'taxonomy_software': 'Software',
       'taxonomy_gaming_hardware': 'Herní hardware',
-      'taxonomy_smart_home': 'Smart Home',
+      'taxonomy_smart_home': 'Смарт Хоме',
       'taxonomy_repairs': 'Opravy',
       'taxonomy_tuition': 'Výuka',
       'taxonomy_courses': 'Kurzy',
@@ -11213,7 +11583,8 @@ class AppLocalizations {
           'By continuing, you will sign in with your Google account.',
       'settings_subtitle': 'Verwalten Sie Ihre Präferenzen',
       'household_settings_title': 'Familienhaushalt',
-      'household_settings_subtitle': 'Teilen und verwalten Sie den Haushaltszugang',
+      'household_settings_subtitle':
+          'Teilen und verwalten Sie den Haushaltszugang',
       'settings_account_section': 'Konto',
       'settings_preferences_section': 'Präferenzen',
       'settings_support_section': 'Unterstützung',
@@ -11228,7 +11599,8 @@ class AppLocalizations {
       'settings_security': 'Sicherheit',
       'settings_security_subtitle': 'Passwort- und Kontosicherheit',
       'settings_appearance': 'Aussehen',
-      'settings_appearance_subtitle': 'Wählen Sie zwischen Hell- und Dunkelmodus',
+      'settings_appearance_subtitle':
+          'Wählen Sie zwischen Hell- und Dunkelmodus',
       'settings_theme': 'Thema',
       'settings_theme_light': 'Licht',
       'settings_theme_dark': 'Dunkel',
@@ -11249,25 +11621,29 @@ class AppLocalizations {
       'settings_font_large': 'Groß',
       'settings_display_options': 'Anzeigeoptionen',
       'settings_compact_mode': 'Kompaktmodus',
-      'settings_compact_mode_subtitle': 'Zeigen Sie mehr Inhalte auf dem Bildschirm an',
+      'settings_compact_mode_subtitle':
+          'Zeigen Sie mehr Inhalte auf dem Bildschirm an',
       'settings_animations': 'Animationen',
       'settings_animations_subtitle': 'Ermöglichen Sie reibungslose Übergänge',
       'settings_notifications_subtitle': 'Warnungen und Erinnerungen',
       'settings_notification_channels': 'Kanäle',
       'settings_push_notifications': 'Push-Benachrichtigungen',
-      'settings_push_notifications_subtitle': 'Benachrichtigungen auf Ihrem Gerät',
+      'settings_push_notifications_subtitle':
+          'Benachrichtigungen auf Ihrem Gerät',
       'settings_email_notifications': 'E-Mail-Benachrichtigungen',
       'settings_email_notifications_subtitle': 'Updates per E-Mail',
       'settings_notification_activity': 'Aktivität',
       'settings_spending_alerts': 'Ausgabenwarnungen',
-      'settings_spending_alerts_subtitle': 'Ungewöhnliche Ausgaben festgestellt',
+      'settings_spending_alerts_subtitle':
+          'Ungewöhnliche Ausgaben festgestellt',
       'settings_budget_alerts': 'Budgetwarnungen',
       'settings_budget_alerts_subtitle': 'Bei Annäherung an Budgetgrenzen',
       'settings_bill_reminders': 'Rechnungserinnerungen',
       'settings_bill_reminders_subtitle':
           'Monthly reminders for upcoming payments',
       'settings_receipt_reminders': 'Empfangserinnerungen',
-      'settings_receipt_reminders_subtitle': 'Erinnern Sie daran, Belege zu scannen',
+      'settings_receipt_reminders_subtitle':
+          'Erinnern Sie daran, Belege zu scannen',
       'settings_notification_summaries': 'Zusammenfassungen',
       'settings_weekly_summary': 'Wöchentliche Zusammenfassung',
       'settings_weekly_summary_subtitle': 'Jeden Montag um 9 Uhr',
@@ -11300,7 +11676,8 @@ class AppLocalizations {
           'Automatically translate receipt items',
       'settings_translate_to': 'Übersetzen nach',
       'settings_options': 'Optionen',
-      'settings_auto_detect_source_language': 'Quellsprache automatisch erkennen',
+      'settings_auto_detect_source_language':
+          'Quellsprache automatisch erkennen',
       'settings_auto_detect_source_language_subtitle':
           'Automatically detect original language',
       'settings_example': 'Beispiel',
@@ -11323,7 +11700,8 @@ class AppLocalizations {
           'Title must be between 3 and 120 characters.',
       'feature_request_description_length_error':
           'Description must be between 10 and 2000 characters.',
-      'feature_request_load_error_title': 'Funktionsanfragen konnten nicht geladen werden',
+      'feature_request_load_error_title':
+          'Funktionsanfragen konnten nicht geladen werden',
       'feature_request_your_ideas': 'Ihre Ideen',
       'feature_request_your_ideas_empty_title': 'Noch keine Ideen eingereicht',
       'feature_request_your_ideas_empty_subtitle':
@@ -11346,7 +11724,8 @@ class AppLocalizations {
       'feature_request_category_receipts_scanning': 'Quittungen und Scannen',
       'feature_request_category_budgets_planning': 'Budgets und Planung',
       'feature_request_category_household_sharing': 'Haushalt & Teilen',
-      'feature_request_category_design_accessibility': 'Design und Zugänglichkeit',
+      'feature_request_category_design_accessibility':
+          'Design und Zugänglichkeit',
       'feature_request_category_other': 'Andere',
       'settings_privacy_policy': 'Datenschutzrichtlinie',
       'settings_terms_of_service': 'Nutzungsbedingungen',
@@ -11379,7 +11758,8 @@ class AppLocalizations {
       'household_you_badge': 'Du',
       'household_members_title': 'Mitglieder',
       'household_remove_member_title': 'Mitglied entfernen',
-      'household_remove_member_confirm': '{Name} aus diesem Haushalt entfernen?',
+      'household_remove_member_confirm':
+          '{Name} aus diesem Haushalt entfernen?',
       'household_member_removed': 'Mitglied entfernt.',
       'household_leave_title': 'Verlassen Sie den Haushalt',
       'household_leave_confirm':
@@ -11420,7 +11800,8 @@ class AppLocalizations {
       'household_member_count': '{count} Mitglieder',
       'household_member_count_with_limit': '{count} von {limit} Mitgliedern',
       'household_shared_expenses': 'Geteilte Ausgaben',
-      'household_shared_expenses_subtitle': 'Erlauben Sie allen Mitgliedern, Ausgaben hinzuzufügen',
+      'household_shared_expenses_subtitle':
+          'Erlauben Sie allen Mitgliedern, Ausgaben hinzuzufügen',
       'household_budget_notifications': 'Budgetbenachrichtigungen',
       'household_budget_notifications_subtitle':
           'Notify when household budget limit is reached',
@@ -11500,7 +11881,8 @@ class AppLocalizations {
       'bill_reminders_due_date': 'Fälligkeitsdatum',
       'bill_reminders_pick_date': 'Fälligkeitsdatum auswählen',
       'bill_reminders_first_due_date': 'Erstes Fälligkeitsdatum',
-      'bill_reminders_pick_first_due_date': 'Wählen Sie das erste Fälligkeitsdatum aus',
+      'bill_reminders_pick_first_due_date':
+          'Wählen Sie das erste Fälligkeitsdatum aus',
       'bill_reminders_start_date': 'Beginnt am',
       'bill_reminders_pick_start_date': 'Wählen Sie das Startdatum',
       'bill_reminders_recurring': 'Wiederkehrend',
@@ -11527,7 +11909,8 @@ class AppLocalizations {
       'home_greeting_morning': 'Buongiorno',
       'home_greeting_afternoon': 'Buon pomeriggio',
       'home_greeting_evening': 'Buonasera',
-      'home_start_subtitle': 'Scansiona una ricevuta o aggiungi una spesa per iniziare.',
+      'home_start_subtitle':
+          'Scansiona una ricevuta o aggiungi una spesa per iniziare.',
       'home_all_reviewed': 'Tutte le ricevute vengono esaminate',
       'home_review_count_single': '1 ricevuta necessita di revisione',
       'home_review_count_plural': '{count} ricevute necessitano di revisione',
@@ -11543,9 +11926,12 @@ class AppLocalizations {
           'Top category is {category} at {percent}% of monthly spend.',
       'home_insight_top_subcategory':
           'Top subcategory is {subcategory} at {percent}% of item spend.',
-      'home_insight_review_count': '{count} ricevute devono ancora essere revisionate.',
-      'home_insight_all_caught_up': 'Siete tutti impegnati nella revisione delle ricevute.',
-      'home_scan_receipt_subtitle': 'Acquisizione istantanea basata sull\'intelligenza artificiale',
+      'home_insight_review_count':
+          '{count} ricevute devono ancora essere revisionate.',
+      'home_insight_all_caught_up':
+          'Siete tutti impegnati nella revisione delle ricevute.',
+      'home_scan_receipt_subtitle':
+          'Acquisizione istantanea basata sull\'intelligenza artificiale',
       'home_primary_action': 'Azione primaria',
       'home_spending_overview': 'Panoramica della spesa',
       'home_no_spending_data': 'Nessun dato di spesa per questo mese ancora.',
@@ -11566,7 +11952,8 @@ class AppLocalizations {
       'receipts_empty_body':
           'Scan your first receipt to start building a history you can review and filter.',
       'receipts_scan_first_action': 'Scansiona la tua prima ricevuta',
-      'receipts_no_filter_matches': 'Nessuna ricevuta corrisponde ai filtri attuali.',
+      'receipts_no_filter_matches':
+          'Nessuna ricevuta corrisponde ai filtri attuali.',
       'receipts_no_filter_matches_body':
           'Try another period, merchant search, or clear the active filters.',
       'receipts_history_total': 'Totale cronologia ricevute',
@@ -11610,26 +11997,34 @@ class AppLocalizations {
       'analytics_show_fewer_filters': 'Weniger Filter anzeigen',
       'analytics_categories_subtitle': 'Entdecken Sie, wohin Ihr Geld fließt',
       'analytics_overview_top_categories': 'Top-Kategorien',
-      'analytics_change_unavailable': 'Der vorherige Vergleich ist nicht verfügbar.',
-      'analytics_change_flat': 'Die Ausgaben sind im Vergleich zur Vorperiode unverändert.',
-      'analytics_change_more': 'Anstieg um {percent} % im Vergleich zum vorherigen Zeitraum.',
-      'analytics_change_less': 'Rückgang um {percent} % im Vergleich zum vorherigen Zeitraum.',
+      'analytics_change_unavailable':
+          'Der vorherige Vergleich ist nicht verfügbar.',
+      'analytics_change_flat':
+          'Die Ausgaben sind im Vergleich zur Vorperiode unverändert.',
+      'analytics_change_more':
+          'Anstieg um {percent} % im Vergleich zum vorherigen Zeitraum.',
+      'analytics_change_less':
+          'Rückgang um {percent} % im Vergleich zum vorherigen Zeitraum.',
       'analytics_compared_with_previous': 'Im Vergleich zur Vorperiode',
       'analytics_trends_period_label': 'Ausgewähltes Trendfenster',
       'analytics_trends_chart_title': 'Ausgabentrend',
       'analytics_trends_chart_subtitle':
           'Automatic daily, weekly, or monthly buckets for your selected period.',
-      'analytics_trends_no_data': 'Für diese Filter liegen keine Trenddaten vor.',
+      'analytics_trends_no_data':
+          'Für diese Filter liegen keine Trenddaten vor.',
       'analytics_trends_highest_bucket': 'Höchster Eimer',
       'analytics_trends_average_bucket': 'Durchschnittliche Bucket-Ausgaben',
       'analytics_household_empty_title': 'Noch keine Haushaltsanalyse',
       'analytics_household_empty_subtitle':
           'Create or open a household to compare spending across members.',
-      'analytics_household_no_data': 'Für diese Filter fallen keine Haushaltsausgaben an.',
+      'analytics_household_no_data':
+          'Für diese Filter fallen keine Haushaltsausgaben an.',
       'analytics_household_no_data_subtitle':
           'Try widening the date range or clearing a few filters.',
-      'analytics_household_preview_subtitle': 'Gemeinsame Ausgaben für diesen Zeitraum',
-      'analytics_household_total_transactions': '{count} geteilte Transaktionen',
+      'analytics_household_preview_subtitle':
+          'Gemeinsame Ausgaben für diesen Zeitraum',
+      'analytics_household_total_transactions':
+          '{count} geteilte Transaktionen',
       'analytics_household_member_transactions': '{count} Transaktionen',
       'analytics_household_top_category': 'Top-Kategorie: {category}',
       'analytics_household_top_category_unknown': 'Noch keine Kategorie',
@@ -11660,7 +12055,8 @@ class AppLocalizations {
           'Enter a valid amount greater than zero.',
       'manual_transaction_deleted': 'Manuelle Transaktion gelöscht.',
       'manual_transaction_delete_missing_id': 'Transaktions-ID fehlt.',
-      'transaction_amount_required': 'Inserisci un importo totale prima di salvare.',
+      'transaction_amount_required':
+          'Inserisci un importo totale prima di salvare.',
       'transaction_invalid_total': 'Inserisci un importo totale valido.',
       'transaction_save_before_labels':
           'Save the transaction before adding labels.',
@@ -11685,10 +12081,12 @@ class AppLocalizations {
       'transaction_receipt_photo_title': 'Foto della ricevuta',
       'transaction_receipt_photo_subtitle': 'Visualizza la foto originale',
       'transaction_warning_review_one_item': 'Recensisci 1 articolo in totale',
-      'transaction_warning_review_items': 'Controlla il totale di {count} articoli',
+      'transaction_warning_review_items':
+          'Controlla il totale di {count} articoli',
       'transaction_warning_review_total': 'Controlla il totale della ricevuta',
       'transaction_warning_check_one_detail': 'Controlla 1 dettaglio estratto',
-      'transaction_warning_check_details': 'Controlla {count} dettagli estratti',
+      'transaction_warning_check_details':
+          'Controlla {count} dettagli estratti',
       'transaction_warning_accepts_edits':
           'Take a quick final look before saving. {details}. Saving accepts your edits.',
       'transaction_was_amount': 'Era {importo}',
@@ -11704,7 +12102,8 @@ class AppLocalizations {
       'receipt_photo_invalid_url': 'Die URL des Belegfotos ist ungültig.',
       'receipt_photo_open_fallback':
           'Could not open the file automatically. The link was copied instead.',
-      'receipt_photo_load_failed': 'Dieses Belegbild konnte nicht geladen werden.',
+      'receipt_photo_load_failed':
+          'Dieses Belegbild konnte nicht geladen werden.',
       'receipt_photo_download': 'Herunterladen',
       'receipt_photo_downloaded': 'Quittung unter {Pfad} gespeichert',
       'receipt_photo_open_external': 'Von außen öffnen',
@@ -11749,8 +12148,10 @@ class AppLocalizations {
       'accentaware_colors': 'Akzentbewusste Farben',
       'activate_pro': 'Aktivieren Sie PRO',
       'after_the_amount': 'Nach dem Betrag',
-      'always_use_the_dark_interface': 'Verwenden Sie immer die dunkle Oberfläche.',
-      'always_use_the_light_interface': 'Benutzen Sie immer die Lichtschnittstelle.',
+      'always_use_the_dark_interface':
+          'Verwenden Sie immer die dunkle Oberfläche.',
+      'always_use_the_light_interface':
+          'Benutzen Sie immer die Lichtschnittstelle.',
       'autodetect_source_language': 'Quellsprache automatisch erkennen',
       'before_the_amount': 'Vor dem Betrag',
       'bill_due_soon': 'Rechnung bald fällig',
@@ -11764,21 +12165,25 @@ class AppLocalizations {
       'current_release': 'Aktuelle Veröffentlichung',
       'daily_avg': 'Täglicher Durchschn',
       'delete_reminder': 'Erinnerung löschen',
-      'discount_must_be_zero_or_higher': 'Der Rabatt muss Null oder höher sein.',
+      'discount_must_be_zero_or_higher':
+          'Der Rabatt muss Null oder höher sein.',
       'discount_percentage_must_stay_under_100':
           'Discount percentage must stay under 100%.',
       'display_name': 'Anzeigename',
       'email_support': 'E-Mail-Support',
-      'enable_notifications_in_the_app': 'Aktivieren Sie Benachrichtigungen in der App',
+      'enable_notifications_in_the_app':
+          'Aktivieren Sie Benachrichtigungen in der App',
       'extra_compact_text': 'Extra kompakter Text',
       'features_tools': 'Funktionen und Tools',
-      'follow_your_device_theme_setting': 'Befolgen Sie die Designeinstellungen Ihres Geräts.',
+      'follow_your_device_theme_setting':
+          'Befolgen Sie die Designeinstellungen Ihres Geräts.',
       'getting_started': 'Erste Schritte',
       'helpful_savings_spotted_in_the_current_r':
           'Helpful savings spotted in the current results.',
       'hide_decimals': 'Dezimalstellen ausblenden',
       'items_translation': 'Artikelübersetzung',
-      'keep_this_image_and_try_later': 'Behalten Sie dieses Bild und versuchen Sie es später',
+      'keep_this_image_and_try_later':
+          'Behalten Sie dieses Bild und versuchen Sie es später',
       'larger_interface': 'Größere Schnittstelle',
       'no_category_insights_yet': 'Noch keine Einblicke in die Kategorie',
       'no_overview_yet': 'Noch keine Übersicht',
@@ -11787,9 +12192,11 @@ class AppLocalizations {
       'no_trend_data_yet': 'Noch keine Trenddaten',
       'open_review': 'Rezension öffnen',
       'organize_your_receipts': 'Organisieren Sie Ihre Quittungen',
-      'please_enter_a_category_name': 'Bitte geben Sie einen Kategorienamen ein.',
+      'please_enter_a_category_name':
+          'Bitte geben Sie einen Kategorienamen ein.',
       'please_enter_a_label_name': 'Bitte geben Sie einen Labelnamen ein.',
-      'please_enter_a_subcategory_name': 'Bitte geben Sie einen Unterkategorienamen ein.',
+      'please_enter_a_subcategory_name':
+          'Bitte geben Sie einen Unterkategorienamen ein.',
       'previous_comparison_is_unavailable_for_t':
           'Previous comparison is unavailable for this range.',
       'privacy_policy': 'Datenschutzrichtlinie',
@@ -11822,7 +12229,8 @@ class AppLocalizations {
       'upload_receipt': 'Quittung hochladen',
       'use_this_source_language': 'Verwenden Sie diese Ausgangssprache',
       'view_insights_and_trends': 'Sehen Sie sich Erkenntnisse und Trends an',
-      'where_the_most_spending_happened_in_this': 'Where the most spending happened in this period.'
+      'where_the_most_spending_happened_in_this':
+          'Where the most spending happened in this period.',
     },
     'ro': {
       'app_title': 'Tracker cheltuieli',
@@ -12008,7 +12416,7 @@ class AppLocalizations {
           'Nepotrivire totală: așteptată {expected}, dar extrasă {actual}',
       'taxonomy_food': 'Mâncare',
       'taxonomy_clothing': 'Îmbrăcăminte',
-      'taxonomy_transport': 'Transport',
+      'taxonomy_transport': 'Транспорт',
       'taxonomy_utilities': 'Utilități',
       'taxonomy_health': 'Sănătate',
       'taxonomy_entertainment': 'Divertisment',
@@ -12048,7 +12456,7 @@ class AppLocalizations {
       'taxonomy_electricity': 'Electricitate',
       'taxonomy_water': 'Apă',
       'taxonomy_gas': 'Gaz',
-      'taxonomy_internet': 'Internet',
+      'taxonomy_internet': 'Интернет',
       'taxonomy_mobile_phone': 'Telefon mobil',
       'taxonomy_tv_and_streaming': 'TV și streaming',
       'taxonomy_waste_collection': 'Colectarea deșeurilor',
@@ -12118,7 +12526,8 @@ class AppLocalizations {
           'By continuing, you will sign in with your Google account.',
       'settings_subtitle': 'Verwalten Sie Ihre Präferenzen',
       'household_settings_title': 'Familienhaushalt',
-      'household_settings_subtitle': 'Teilen und verwalten Sie den Haushaltszugang',
+      'household_settings_subtitle':
+          'Teilen und verwalten Sie den Haushaltszugang',
       'settings_account_section': 'Konto',
       'settings_preferences_section': 'Präferenzen',
       'settings_support_section': 'Unterstützung',
@@ -12133,7 +12542,8 @@ class AppLocalizations {
       'settings_security': 'Sicherheit',
       'settings_security_subtitle': 'Passwort- und Kontosicherheit',
       'settings_appearance': 'Aussehen',
-      'settings_appearance_subtitle': 'Wählen Sie zwischen Hell- und Dunkelmodus',
+      'settings_appearance_subtitle':
+          'Wählen Sie zwischen Hell- und Dunkelmodus',
       'settings_theme': 'Thema',
       'settings_theme_light': 'Licht',
       'settings_theme_dark': 'Dunkel',
@@ -12154,25 +12564,29 @@ class AppLocalizations {
       'settings_font_large': 'Groß',
       'settings_display_options': 'Anzeigeoptionen',
       'settings_compact_mode': 'Kompaktmodus',
-      'settings_compact_mode_subtitle': 'Zeigen Sie mehr Inhalte auf dem Bildschirm an',
+      'settings_compact_mode_subtitle':
+          'Zeigen Sie mehr Inhalte auf dem Bildschirm an',
       'settings_animations': 'Animationen',
       'settings_animations_subtitle': 'Ermöglichen Sie reibungslose Übergänge',
       'settings_notifications_subtitle': 'Warnungen und Erinnerungen',
       'settings_notification_channels': 'Kanäle',
       'settings_push_notifications': 'Push-Benachrichtigungen',
-      'settings_push_notifications_subtitle': 'Benachrichtigungen auf Ihrem Gerät',
+      'settings_push_notifications_subtitle':
+          'Benachrichtigungen auf Ihrem Gerät',
       'settings_email_notifications': 'E-Mail-Benachrichtigungen',
       'settings_email_notifications_subtitle': 'Updates per E-Mail',
       'settings_notification_activity': 'Aktivität',
       'settings_spending_alerts': 'Ausgabenwarnungen',
-      'settings_spending_alerts_subtitle': 'Ungewöhnliche Ausgaben festgestellt',
+      'settings_spending_alerts_subtitle':
+          'Ungewöhnliche Ausgaben festgestellt',
       'settings_budget_alerts': 'Budgetwarnungen',
       'settings_budget_alerts_subtitle': 'Bei Annäherung an Budgetgrenzen',
       'settings_bill_reminders': 'Rechnungserinnerungen',
       'settings_bill_reminders_subtitle':
           'Monthly reminders for upcoming payments',
       'settings_receipt_reminders': 'Empfangserinnerungen',
-      'settings_receipt_reminders_subtitle': 'Erinnern Sie daran, Belege zu scannen',
+      'settings_receipt_reminders_subtitle':
+          'Erinnern Sie daran, Belege zu scannen',
       'settings_notification_summaries': 'Zusammenfassungen',
       'settings_weekly_summary': 'Wöchentliche Zusammenfassung',
       'settings_weekly_summary_subtitle': 'Jeden Montag um 9 Uhr',
@@ -12205,7 +12619,8 @@ class AppLocalizations {
           'Automatically translate receipt items',
       'settings_translate_to': 'Übersetzen nach',
       'settings_options': 'Optionen',
-      'settings_auto_detect_source_language': 'Quellsprache automatisch erkennen',
+      'settings_auto_detect_source_language':
+          'Quellsprache automatisch erkennen',
       'settings_auto_detect_source_language_subtitle':
           'Automatically detect original language',
       'settings_example': 'Beispiel',
@@ -12228,7 +12643,8 @@ class AppLocalizations {
           'Title must be between 3 and 120 characters.',
       'feature_request_description_length_error':
           'Description must be between 10 and 2000 characters.',
-      'feature_request_load_error_title': 'Funktionsanfragen konnten nicht geladen werden',
+      'feature_request_load_error_title':
+          'Funktionsanfragen konnten nicht geladen werden',
       'feature_request_your_ideas': 'Ihre Ideen',
       'feature_request_your_ideas_empty_title': 'Noch keine Ideen eingereicht',
       'feature_request_your_ideas_empty_subtitle':
@@ -12251,7 +12667,8 @@ class AppLocalizations {
       'feature_request_category_receipts_scanning': 'Quittungen und Scannen',
       'feature_request_category_budgets_planning': 'Budgets und Planung',
       'feature_request_category_household_sharing': 'Haushalt & Teilen',
-      'feature_request_category_design_accessibility': 'Design und Zugänglichkeit',
+      'feature_request_category_design_accessibility':
+          'Design und Zugänglichkeit',
       'feature_request_category_other': 'Andere',
       'settings_privacy_policy': 'Datenschutzrichtlinie',
       'settings_terms_of_service': 'Nutzungsbedingungen',
@@ -12284,7 +12701,8 @@ class AppLocalizations {
       'household_you_badge': 'Du',
       'household_members_title': 'Mitglieder',
       'household_remove_member_title': 'Mitglied entfernen',
-      'household_remove_member_confirm': '{Name} aus diesem Haushalt entfernen?',
+      'household_remove_member_confirm':
+          '{Name} aus diesem Haushalt entfernen?',
       'household_member_removed': 'Mitglied entfernt.',
       'household_leave_title': 'Verlassen Sie den Haushalt',
       'household_leave_confirm':
@@ -12325,7 +12743,8 @@ class AppLocalizations {
       'household_member_count': '{count} Mitglieder',
       'household_member_count_with_limit': '{count} von {limit} Mitgliedern',
       'household_shared_expenses': 'Geteilte Ausgaben',
-      'household_shared_expenses_subtitle': 'Erlauben Sie allen Mitgliedern, Ausgaben hinzuzufügen',
+      'household_shared_expenses_subtitle':
+          'Erlauben Sie allen Mitgliedern, Ausgaben hinzuzufügen',
       'household_budget_notifications': 'Budgetbenachrichtigungen',
       'household_budget_notifications_subtitle':
           'Notify when household budget limit is reached',
@@ -12405,7 +12824,8 @@ class AppLocalizations {
       'bill_reminders_due_date': 'Fälligkeitsdatum',
       'bill_reminders_pick_date': 'Fälligkeitsdatum auswählen',
       'bill_reminders_first_due_date': 'Erstes Fälligkeitsdatum',
-      'bill_reminders_pick_first_due_date': 'Wählen Sie das erste Fälligkeitsdatum aus',
+      'bill_reminders_pick_first_due_date':
+          'Wählen Sie das erste Fälligkeitsdatum aus',
       'bill_reminders_start_date': 'Beginnt am',
       'bill_reminders_pick_start_date': 'Wählen Sie das Startdatum',
       'bill_reminders_recurring': 'Wiederkehrend',
@@ -12432,7 +12852,8 @@ class AppLocalizations {
       'home_greeting_morning': 'Buongiorno',
       'home_greeting_afternoon': 'Buon pomeriggio',
       'home_greeting_evening': 'Buonasera',
-      'home_start_subtitle': 'Scansiona una ricevuta o aggiungi una spesa per iniziare.',
+      'home_start_subtitle':
+          'Scansiona una ricevuta o aggiungi una spesa per iniziare.',
       'home_all_reviewed': 'Tutte le ricevute vengono esaminate',
       'home_review_count_single': '1 ricevuta necessita di revisione',
       'home_review_count_plural': '{count} ricevute necessitano di revisione',
@@ -12448,9 +12869,12 @@ class AppLocalizations {
           'Top category is {category} at {percent}% of monthly spend.',
       'home_insight_top_subcategory':
           'Top subcategory is {subcategory} at {percent}% of item spend.',
-      'home_insight_review_count': '{count} ricevute devono ancora essere revisionate.',
-      'home_insight_all_caught_up': 'Siete tutti impegnati nella revisione delle ricevute.',
-      'home_scan_receipt_subtitle': 'Acquisizione istantanea basata sull\'intelligenza artificiale',
+      'home_insight_review_count':
+          '{count} ricevute devono ancora essere revisionate.',
+      'home_insight_all_caught_up':
+          'Siete tutti impegnati nella revisione delle ricevute.',
+      'home_scan_receipt_subtitle':
+          'Acquisizione istantanea basata sull\'intelligenza artificiale',
       'home_primary_action': 'Azione primaria',
       'home_spending_overview': 'Panoramica della spesa',
       'home_no_spending_data': 'Nessun dato di spesa per questo mese ancora.',
@@ -12471,7 +12895,8 @@ class AppLocalizations {
       'receipts_empty_body':
           'Scan your first receipt to start building a history you can review and filter.',
       'receipts_scan_first_action': 'Scansiona la tua prima ricevuta',
-      'receipts_no_filter_matches': 'Nessuna ricevuta corrisponde ai filtri attuali.',
+      'receipts_no_filter_matches':
+          'Nessuna ricevuta corrisponde ai filtri attuali.',
       'receipts_no_filter_matches_body':
           'Try another period, merchant search, or clear the active filters.',
       'receipts_history_total': 'Totale cronologia ricevute',
@@ -12515,26 +12940,34 @@ class AppLocalizations {
       'analytics_show_fewer_filters': 'Weniger Filter anzeigen',
       'analytics_categories_subtitle': 'Entdecken Sie, wohin Ihr Geld fließt',
       'analytics_overview_top_categories': 'Top-Kategorien',
-      'analytics_change_unavailable': 'Der vorherige Vergleich ist nicht verfügbar.',
-      'analytics_change_flat': 'Die Ausgaben sind im Vergleich zur Vorperiode unverändert.',
-      'analytics_change_more': 'Anstieg um {percent} % im Vergleich zum vorherigen Zeitraum.',
-      'analytics_change_less': 'Rückgang um {percent} % im Vergleich zum vorherigen Zeitraum.',
+      'analytics_change_unavailable':
+          'Der vorherige Vergleich ist nicht verfügbar.',
+      'analytics_change_flat':
+          'Die Ausgaben sind im Vergleich zur Vorperiode unverändert.',
+      'analytics_change_more':
+          'Anstieg um {percent} % im Vergleich zum vorherigen Zeitraum.',
+      'analytics_change_less':
+          'Rückgang um {percent} % im Vergleich zum vorherigen Zeitraum.',
       'analytics_compared_with_previous': 'Im Vergleich zur Vorperiode',
       'analytics_trends_period_label': 'Ausgewähltes Trendfenster',
       'analytics_trends_chart_title': 'Ausgabentrend',
       'analytics_trends_chart_subtitle':
           'Automatic daily, weekly, or monthly buckets for your selected period.',
-      'analytics_trends_no_data': 'Für diese Filter liegen keine Trenddaten vor.',
+      'analytics_trends_no_data':
+          'Für diese Filter liegen keine Trenddaten vor.',
       'analytics_trends_highest_bucket': 'Höchster Eimer',
       'analytics_trends_average_bucket': 'Durchschnittliche Bucket-Ausgaben',
       'analytics_household_empty_title': 'Noch keine Haushaltsanalyse',
       'analytics_household_empty_subtitle':
           'Create or open a household to compare spending across members.',
-      'analytics_household_no_data': 'Für diese Filter fallen keine Haushaltsausgaben an.',
+      'analytics_household_no_data':
+          'Für diese Filter fallen keine Haushaltsausgaben an.',
       'analytics_household_no_data_subtitle':
           'Try widening the date range or clearing a few filters.',
-      'analytics_household_preview_subtitle': 'Gemeinsame Ausgaben für diesen Zeitraum',
-      'analytics_household_total_transactions': '{count} geteilte Transaktionen',
+      'analytics_household_preview_subtitle':
+          'Gemeinsame Ausgaben für diesen Zeitraum',
+      'analytics_household_total_transactions':
+          '{count} geteilte Transaktionen',
       'analytics_household_member_transactions': '{count} Transaktionen',
       'analytics_household_top_category': 'Top-Kategorie: {category}',
       'analytics_household_top_category_unknown': 'Noch keine Kategorie',
@@ -12565,7 +12998,8 @@ class AppLocalizations {
           'Enter a valid amount greater than zero.',
       'manual_transaction_deleted': 'Manuelle Transaktion gelöscht.',
       'manual_transaction_delete_missing_id': 'Transaktions-ID fehlt.',
-      'transaction_amount_required': 'Inserisci un importo totale prima di salvare.',
+      'transaction_amount_required':
+          'Inserisci un importo totale prima di salvare.',
       'transaction_invalid_total': 'Inserisci un importo totale valido.',
       'transaction_save_before_labels':
           'Save the transaction before adding labels.',
@@ -12590,10 +13024,12 @@ class AppLocalizations {
       'transaction_receipt_photo_title': 'Foto della ricevuta',
       'transaction_receipt_photo_subtitle': 'Visualizza la foto originale',
       'transaction_warning_review_one_item': 'Recensisci 1 articolo in totale',
-      'transaction_warning_review_items': 'Controlla il totale di {count} articoli',
+      'transaction_warning_review_items':
+          'Controlla il totale di {count} articoli',
       'transaction_warning_review_total': 'Controlla il totale della ricevuta',
       'transaction_warning_check_one_detail': 'Controlla 1 dettaglio estratto',
-      'transaction_warning_check_details': 'Controlla {count} dettagli estratti',
+      'transaction_warning_check_details':
+          'Controlla {count} dettagli estratti',
       'transaction_warning_accepts_edits':
           'Take a quick final look before saving. {details}. Saving accepts your edits.',
       'transaction_was_amount': 'Era {importo}',
@@ -12609,7 +13045,8 @@ class AppLocalizations {
       'receipt_photo_invalid_url': 'Die URL des Belegfotos ist ungültig.',
       'receipt_photo_open_fallback':
           'Could not open the file automatically. The link was copied instead.',
-      'receipt_photo_load_failed': 'Dieses Belegbild konnte nicht geladen werden.',
+      'receipt_photo_load_failed':
+          'Dieses Belegbild konnte nicht geladen werden.',
       'receipt_photo_download': 'Herunterladen',
       'receipt_photo_downloaded': 'Quittung unter {Pfad} gespeichert',
       'receipt_photo_open_external': 'Von außen öffnen',
@@ -12654,8 +13091,10 @@ class AppLocalizations {
       'accentaware_colors': 'Akzentbewusste Farben',
       'activate_pro': 'Aktivieren Sie PRO',
       'after_the_amount': 'Nach dem Betrag',
-      'always_use_the_dark_interface': 'Verwenden Sie immer die dunkle Oberfläche.',
-      'always_use_the_light_interface': 'Benutzen Sie immer die Lichtschnittstelle.',
+      'always_use_the_dark_interface':
+          'Verwenden Sie immer die dunkle Oberfläche.',
+      'always_use_the_light_interface':
+          'Benutzen Sie immer die Lichtschnittstelle.',
       'autodetect_source_language': 'Quellsprache automatisch erkennen',
       'before_the_amount': 'Vor dem Betrag',
       'bill_due_soon': 'Rechnung bald fällig',
@@ -12669,21 +13108,25 @@ class AppLocalizations {
       'current_release': 'Aktuelle Veröffentlichung',
       'daily_avg': 'Täglicher Durchschn',
       'delete_reminder': 'Erinnerung löschen',
-      'discount_must_be_zero_or_higher': 'Der Rabatt muss Null oder höher sein.',
+      'discount_must_be_zero_or_higher':
+          'Der Rabatt muss Null oder höher sein.',
       'discount_percentage_must_stay_under_100':
           'Discount percentage must stay under 100%.',
       'display_name': 'Anzeigename',
       'email_support': 'E-Mail-Support',
-      'enable_notifications_in_the_app': 'Aktivieren Sie Benachrichtigungen in der App',
+      'enable_notifications_in_the_app':
+          'Aktivieren Sie Benachrichtigungen in der App',
       'extra_compact_text': 'Extra kompakter Text',
       'features_tools': 'Funktionen und Tools',
-      'follow_your_device_theme_setting': 'Befolgen Sie die Designeinstellungen Ihres Geräts.',
+      'follow_your_device_theme_setting':
+          'Befolgen Sie die Designeinstellungen Ihres Geräts.',
       'getting_started': 'Erste Schritte',
       'helpful_savings_spotted_in_the_current_r':
           'Helpful savings spotted in the current results.',
       'hide_decimals': 'Dezimalstellen ausblenden',
       'items_translation': 'Artikelübersetzung',
-      'keep_this_image_and_try_later': 'Behalten Sie dieses Bild und versuchen Sie es später',
+      'keep_this_image_and_try_later':
+          'Behalten Sie dieses Bild und versuchen Sie es später',
       'larger_interface': 'Größere Schnittstelle',
       'no_category_insights_yet': 'Noch keine Einblicke in die Kategorie',
       'no_overview_yet': 'Noch keine Übersicht',
@@ -12692,9 +13135,11 @@ class AppLocalizations {
       'no_trend_data_yet': 'Noch keine Trenddaten',
       'open_review': 'Rezension öffnen',
       'organize_your_receipts': 'Organisieren Sie Ihre Quittungen',
-      'please_enter_a_category_name': 'Bitte geben Sie einen Kategorienamen ein.',
+      'please_enter_a_category_name':
+          'Bitte geben Sie einen Kategorienamen ein.',
       'please_enter_a_label_name': 'Bitte geben Sie einen Labelnamen ein.',
-      'please_enter_a_subcategory_name': 'Bitte geben Sie einen Unterkategorienamen ein.',
+      'please_enter_a_subcategory_name':
+          'Bitte geben Sie einen Unterkategorienamen ein.',
       'previous_comparison_is_unavailable_for_t':
           'Previous comparison is unavailable for this range.',
       'privacy_policy': 'Datenschutzrichtlinie',
@@ -12727,7 +13172,8 @@ class AppLocalizations {
       'upload_receipt': 'Quittung hochladen',
       'use_this_source_language': 'Verwenden Sie diese Ausgangssprache',
       'view_insights_and_trends': 'Sehen Sie sich Erkenntnisse und Trends an',
-      'where_the_most_spending_happened_in_this': 'Where the most spending happened in this period.'
+      'where_the_most_spending_happened_in_this':
+          'Where the most spending happened in this period.',
     },
     'hu': {
       'app_title': 'Költségkövető',
@@ -12952,7 +13398,7 @@ class AppLocalizations {
       'taxonomy_electricity': 'Villany',
       'taxonomy_water': 'Víz',
       'taxonomy_gas': 'Gáz',
-      'taxonomy_internet': 'Internet',
+      'taxonomy_internet': 'Интернет',
       'taxonomy_mobile_phone': 'Mobiltelefon',
       'taxonomy_tv_and_streaming': 'TV és Streaming',
       'taxonomy_waste_collection': 'Hulladékgyűjtés',
@@ -13022,7 +13468,8 @@ class AppLocalizations {
           'By continuing, you will sign in with your Google account.',
       'settings_subtitle': 'Verwalten Sie Ihre Präferenzen',
       'household_settings_title': 'Familienhaushalt',
-      'household_settings_subtitle': 'Teilen und verwalten Sie den Haushaltszugang',
+      'household_settings_subtitle':
+          'Teilen und verwalten Sie den Haushaltszugang',
       'settings_account_section': 'Konto',
       'settings_preferences_section': 'Präferenzen',
       'settings_support_section': 'Unterstützung',
@@ -13037,7 +13484,8 @@ class AppLocalizations {
       'settings_security': 'Sicherheit',
       'settings_security_subtitle': 'Passwort- und Kontosicherheit',
       'settings_appearance': 'Aussehen',
-      'settings_appearance_subtitle': 'Wählen Sie zwischen Hell- und Dunkelmodus',
+      'settings_appearance_subtitle':
+          'Wählen Sie zwischen Hell- und Dunkelmodus',
       'settings_theme': 'Thema',
       'settings_theme_light': 'Licht',
       'settings_theme_dark': 'Dunkel',
@@ -13058,25 +13506,29 @@ class AppLocalizations {
       'settings_font_large': 'Groß',
       'settings_display_options': 'Anzeigeoptionen',
       'settings_compact_mode': 'Kompaktmodus',
-      'settings_compact_mode_subtitle': 'Zeigen Sie mehr Inhalte auf dem Bildschirm an',
+      'settings_compact_mode_subtitle':
+          'Zeigen Sie mehr Inhalte auf dem Bildschirm an',
       'settings_animations': 'Animationen',
       'settings_animations_subtitle': 'Ermöglichen Sie reibungslose Übergänge',
       'settings_notifications_subtitle': 'Warnungen und Erinnerungen',
       'settings_notification_channels': 'Kanäle',
       'settings_push_notifications': 'Push-Benachrichtigungen',
-      'settings_push_notifications_subtitle': 'Benachrichtigungen auf Ihrem Gerät',
+      'settings_push_notifications_subtitle':
+          'Benachrichtigungen auf Ihrem Gerät',
       'settings_email_notifications': 'E-Mail-Benachrichtigungen',
       'settings_email_notifications_subtitle': 'Updates per E-Mail',
       'settings_notification_activity': 'Aktivität',
       'settings_spending_alerts': 'Ausgabenwarnungen',
-      'settings_spending_alerts_subtitle': 'Ungewöhnliche Ausgaben festgestellt',
+      'settings_spending_alerts_subtitle':
+          'Ungewöhnliche Ausgaben festgestellt',
       'settings_budget_alerts': 'Budgetwarnungen',
       'settings_budget_alerts_subtitle': 'Bei Annäherung an Budgetgrenzen',
       'settings_bill_reminders': 'Rechnungserinnerungen',
       'settings_bill_reminders_subtitle':
           'Monthly reminders for upcoming payments',
       'settings_receipt_reminders': 'Empfangserinnerungen',
-      'settings_receipt_reminders_subtitle': 'Erinnern Sie daran, Belege zu scannen',
+      'settings_receipt_reminders_subtitle':
+          'Erinnern Sie daran, Belege zu scannen',
       'settings_notification_summaries': 'Zusammenfassungen',
       'settings_weekly_summary': 'Wöchentliche Zusammenfassung',
       'settings_weekly_summary_subtitle': 'Jeden Montag um 9 Uhr',
@@ -13109,7 +13561,8 @@ class AppLocalizations {
           'Automatically translate receipt items',
       'settings_translate_to': 'Übersetzen nach',
       'settings_options': 'Optionen',
-      'settings_auto_detect_source_language': 'Quellsprache automatisch erkennen',
+      'settings_auto_detect_source_language':
+          'Quellsprache automatisch erkennen',
       'settings_auto_detect_source_language_subtitle':
           'Automatically detect original language',
       'settings_example': 'Beispiel',
@@ -13132,7 +13585,8 @@ class AppLocalizations {
           'Title must be between 3 and 120 characters.',
       'feature_request_description_length_error':
           'Description must be between 10 and 2000 characters.',
-      'feature_request_load_error_title': 'Funktionsanfragen konnten nicht geladen werden',
+      'feature_request_load_error_title':
+          'Funktionsanfragen konnten nicht geladen werden',
       'feature_request_your_ideas': 'Ihre Ideen',
       'feature_request_your_ideas_empty_title': 'Noch keine Ideen eingereicht',
       'feature_request_your_ideas_empty_subtitle':
@@ -13155,7 +13609,8 @@ class AppLocalizations {
       'feature_request_category_receipts_scanning': 'Quittungen und Scannen',
       'feature_request_category_budgets_planning': 'Budgets und Planung',
       'feature_request_category_household_sharing': 'Haushalt & Teilen',
-      'feature_request_category_design_accessibility': 'Design und Zugänglichkeit',
+      'feature_request_category_design_accessibility':
+          'Design und Zugänglichkeit',
       'feature_request_category_other': 'Andere',
       'settings_privacy_policy': 'Datenschutzrichtlinie',
       'settings_terms_of_service': 'Nutzungsbedingungen',
@@ -13188,7 +13643,8 @@ class AppLocalizations {
       'household_you_badge': 'Du',
       'household_members_title': 'Mitglieder',
       'household_remove_member_title': 'Mitglied entfernen',
-      'household_remove_member_confirm': '{Name} aus diesem Haushalt entfernen?',
+      'household_remove_member_confirm':
+          '{Name} aus diesem Haushalt entfernen?',
       'household_member_removed': 'Mitglied entfernt.',
       'household_leave_title': 'Verlassen Sie den Haushalt',
       'household_leave_confirm':
@@ -13229,7 +13685,8 @@ class AppLocalizations {
       'household_member_count': '{count} Mitglieder',
       'household_member_count_with_limit': '{count} von {limit} Mitgliedern',
       'household_shared_expenses': 'Geteilte Ausgaben',
-      'household_shared_expenses_subtitle': 'Erlauben Sie allen Mitgliedern, Ausgaben hinzuzufügen',
+      'household_shared_expenses_subtitle':
+          'Erlauben Sie allen Mitgliedern, Ausgaben hinzuzufügen',
       'household_budget_notifications': 'Budgetbenachrichtigungen',
       'household_budget_notifications_subtitle':
           'Notify when household budget limit is reached',
@@ -13309,7 +13766,8 @@ class AppLocalizations {
       'bill_reminders_due_date': 'Fälligkeitsdatum',
       'bill_reminders_pick_date': 'Fälligkeitsdatum auswählen',
       'bill_reminders_first_due_date': 'Erstes Fälligkeitsdatum',
-      'bill_reminders_pick_first_due_date': 'Wählen Sie das erste Fälligkeitsdatum aus',
+      'bill_reminders_pick_first_due_date':
+          'Wählen Sie das erste Fälligkeitsdatum aus',
       'bill_reminders_start_date': 'Beginnt am',
       'bill_reminders_pick_start_date': 'Wählen Sie das Startdatum',
       'bill_reminders_recurring': 'Wiederkehrend',
@@ -13336,7 +13794,8 @@ class AppLocalizations {
       'home_greeting_morning': 'Buongiorno',
       'home_greeting_afternoon': 'Buon pomeriggio',
       'home_greeting_evening': 'Buonasera',
-      'home_start_subtitle': 'Scansiona una ricevuta o aggiungi una spesa per iniziare.',
+      'home_start_subtitle':
+          'Scansiona una ricevuta o aggiungi una spesa per iniziare.',
       'home_all_reviewed': 'Tutte le ricevute vengono esaminate',
       'home_review_count_single': '1 ricevuta necessita di revisione',
       'home_review_count_plural': '{count} ricevute necessitano di revisione',
@@ -13352,9 +13811,12 @@ class AppLocalizations {
           'Top category is {category} at {percent}% of monthly spend.',
       'home_insight_top_subcategory':
           'Top subcategory is {subcategory} at {percent}% of item spend.',
-      'home_insight_review_count': '{count} ricevute devono ancora essere revisionate.',
-      'home_insight_all_caught_up': 'Siete tutti impegnati nella revisione delle ricevute.',
-      'home_scan_receipt_subtitle': 'Acquisizione istantanea basata sull\'intelligenza artificiale',
+      'home_insight_review_count':
+          '{count} ricevute devono ancora essere revisionate.',
+      'home_insight_all_caught_up':
+          'Siete tutti impegnati nella revisione delle ricevute.',
+      'home_scan_receipt_subtitle':
+          'Acquisizione istantanea basata sull\'intelligenza artificiale',
       'home_primary_action': 'Azione primaria',
       'home_spending_overview': 'Panoramica della spesa',
       'home_no_spending_data': 'Nessun dato di spesa per questo mese ancora.',
@@ -13375,7 +13837,8 @@ class AppLocalizations {
       'receipts_empty_body':
           'Scan your first receipt to start building a history you can review and filter.',
       'receipts_scan_first_action': 'Scansiona la tua prima ricevuta',
-      'receipts_no_filter_matches': 'Nessuna ricevuta corrisponde ai filtri attuali.',
+      'receipts_no_filter_matches':
+          'Nessuna ricevuta corrisponde ai filtri attuali.',
       'receipts_no_filter_matches_body':
           'Try another period, merchant search, or clear the active filters.',
       'receipts_history_total': 'Totale cronologia ricevute',
@@ -13419,26 +13882,34 @@ class AppLocalizations {
       'analytics_show_fewer_filters': 'Weniger Filter anzeigen',
       'analytics_categories_subtitle': 'Entdecken Sie, wohin Ihr Geld fließt',
       'analytics_overview_top_categories': 'Top-Kategorien',
-      'analytics_change_unavailable': 'Der vorherige Vergleich ist nicht verfügbar.',
-      'analytics_change_flat': 'Die Ausgaben sind im Vergleich zur Vorperiode unverändert.',
-      'analytics_change_more': 'Anstieg um {percent} % im Vergleich zum vorherigen Zeitraum.',
-      'analytics_change_less': 'Rückgang um {percent} % im Vergleich zum vorherigen Zeitraum.',
+      'analytics_change_unavailable':
+          'Der vorherige Vergleich ist nicht verfügbar.',
+      'analytics_change_flat':
+          'Die Ausgaben sind im Vergleich zur Vorperiode unverändert.',
+      'analytics_change_more':
+          'Anstieg um {percent} % im Vergleich zum vorherigen Zeitraum.',
+      'analytics_change_less':
+          'Rückgang um {percent} % im Vergleich zum vorherigen Zeitraum.',
       'analytics_compared_with_previous': 'Im Vergleich zur Vorperiode',
       'analytics_trends_period_label': 'Ausgewähltes Trendfenster',
       'analytics_trends_chart_title': 'Ausgabentrend',
       'analytics_trends_chart_subtitle':
           'Automatic daily, weekly, or monthly buckets for your selected period.',
-      'analytics_trends_no_data': 'Für diese Filter liegen keine Trenddaten vor.',
+      'analytics_trends_no_data':
+          'Für diese Filter liegen keine Trenddaten vor.',
       'analytics_trends_highest_bucket': 'Höchster Eimer',
       'analytics_trends_average_bucket': 'Durchschnittliche Bucket-Ausgaben',
       'analytics_household_empty_title': 'Noch keine Haushaltsanalyse',
       'analytics_household_empty_subtitle':
           'Create or open a household to compare spending across members.',
-      'analytics_household_no_data': 'Für diese Filter fallen keine Haushaltsausgaben an.',
+      'analytics_household_no_data':
+          'Für diese Filter fallen keine Haushaltsausgaben an.',
       'analytics_household_no_data_subtitle':
           'Try widening the date range or clearing a few filters.',
-      'analytics_household_preview_subtitle': 'Gemeinsame Ausgaben für diesen Zeitraum',
-      'analytics_household_total_transactions': '{count} geteilte Transaktionen',
+      'analytics_household_preview_subtitle':
+          'Gemeinsame Ausgaben für diesen Zeitraum',
+      'analytics_household_total_transactions':
+          '{count} geteilte Transaktionen',
       'analytics_household_member_transactions': '{count} Transaktionen',
       'analytics_household_top_category': 'Top-Kategorie: {category}',
       'analytics_household_top_category_unknown': 'Noch keine Kategorie',
@@ -13469,7 +13940,8 @@ class AppLocalizations {
           'Enter a valid amount greater than zero.',
       'manual_transaction_deleted': 'Manuelle Transaktion gelöscht.',
       'manual_transaction_delete_missing_id': 'Transaktions-ID fehlt.',
-      'transaction_amount_required': 'Inserisci un importo totale prima di salvare.',
+      'transaction_amount_required':
+          'Inserisci un importo totale prima di salvare.',
       'transaction_invalid_total': 'Inserisci un importo totale valido.',
       'transaction_save_before_labels':
           'Save the transaction before adding labels.',
@@ -13494,10 +13966,12 @@ class AppLocalizations {
       'transaction_receipt_photo_title': 'Foto della ricevuta',
       'transaction_receipt_photo_subtitle': 'Visualizza la foto originale',
       'transaction_warning_review_one_item': 'Recensisci 1 articolo in totale',
-      'transaction_warning_review_items': 'Controlla il totale di {count} articoli',
+      'transaction_warning_review_items':
+          'Controlla il totale di {count} articoli',
       'transaction_warning_review_total': 'Controlla il totale della ricevuta',
       'transaction_warning_check_one_detail': 'Controlla 1 dettaglio estratto',
-      'transaction_warning_check_details': 'Controlla {count} dettagli estratti',
+      'transaction_warning_check_details':
+          'Controlla {count} dettagli estratti',
       'transaction_warning_accepts_edits':
           'Take a quick final look before saving. {details}. Saving accepts your edits.',
       'transaction_was_amount': 'Era {importo}',
@@ -13513,7 +13987,8 @@ class AppLocalizations {
       'receipt_photo_invalid_url': 'Die URL des Belegfotos ist ungültig.',
       'receipt_photo_open_fallback':
           'Could not open the file automatically. The link was copied instead.',
-      'receipt_photo_load_failed': 'Dieses Belegbild konnte nicht geladen werden.',
+      'receipt_photo_load_failed':
+          'Dieses Belegbild konnte nicht geladen werden.',
       'receipt_photo_download': 'Herunterladen',
       'receipt_photo_downloaded': 'Quittung unter {Pfad} gespeichert',
       'receipt_photo_open_external': 'Von außen öffnen',
@@ -13558,8 +14033,10 @@ class AppLocalizations {
       'accentaware_colors': 'Akzentbewusste Farben',
       'activate_pro': 'Aktivieren Sie PRO',
       'after_the_amount': 'Nach dem Betrag',
-      'always_use_the_dark_interface': 'Verwenden Sie immer die dunkle Oberfläche.',
-      'always_use_the_light_interface': 'Benutzen Sie immer die Lichtschnittstelle.',
+      'always_use_the_dark_interface':
+          'Verwenden Sie immer die dunkle Oberfläche.',
+      'always_use_the_light_interface':
+          'Benutzen Sie immer die Lichtschnittstelle.',
       'autodetect_source_language': 'Quellsprache automatisch erkennen',
       'before_the_amount': 'Vor dem Betrag',
       'bill_due_soon': 'Rechnung bald fällig',
@@ -13573,21 +14050,25 @@ class AppLocalizations {
       'current_release': 'Aktuelle Veröffentlichung',
       'daily_avg': 'Täglicher Durchschn',
       'delete_reminder': 'Erinnerung löschen',
-      'discount_must_be_zero_or_higher': 'Der Rabatt muss Null oder höher sein.',
+      'discount_must_be_zero_or_higher':
+          'Der Rabatt muss Null oder höher sein.',
       'discount_percentage_must_stay_under_100':
           'Discount percentage must stay under 100%.',
       'display_name': 'Anzeigename',
       'email_support': 'E-Mail-Support',
-      'enable_notifications_in_the_app': 'Aktivieren Sie Benachrichtigungen in der App',
+      'enable_notifications_in_the_app':
+          'Aktivieren Sie Benachrichtigungen in der App',
       'extra_compact_text': 'Extra kompakter Text',
       'features_tools': 'Funktionen und Tools',
-      'follow_your_device_theme_setting': 'Befolgen Sie die Designeinstellungen Ihres Geräts.',
+      'follow_your_device_theme_setting':
+          'Befolgen Sie die Designeinstellungen Ihres Geräts.',
       'getting_started': 'Erste Schritte',
       'helpful_savings_spotted_in_the_current_r':
           'Helpful savings spotted in the current results.',
       'hide_decimals': 'Dezimalstellen ausblenden',
       'items_translation': 'Artikelübersetzung',
-      'keep_this_image_and_try_later': 'Behalten Sie dieses Bild und versuchen Sie es später',
+      'keep_this_image_and_try_later':
+          'Behalten Sie dieses Bild und versuchen Sie es später',
       'larger_interface': 'Größere Schnittstelle',
       'no_category_insights_yet': 'Noch keine Einblicke in die Kategorie',
       'no_overview_yet': 'Noch keine Übersicht',
@@ -13596,9 +14077,11 @@ class AppLocalizations {
       'no_trend_data_yet': 'Noch keine Trenddaten',
       'open_review': 'Rezension öffnen',
       'organize_your_receipts': 'Organisieren Sie Ihre Quittungen',
-      'please_enter_a_category_name': 'Bitte geben Sie einen Kategorienamen ein.',
+      'please_enter_a_category_name':
+          'Bitte geben Sie einen Kategorienamen ein.',
       'please_enter_a_label_name': 'Bitte geben Sie einen Labelnamen ein.',
-      'please_enter_a_subcategory_name': 'Bitte geben Sie einen Unterkategorienamen ein.',
+      'please_enter_a_subcategory_name':
+          'Bitte geben Sie einen Unterkategorienamen ein.',
       'previous_comparison_is_unavailable_for_t':
           'Previous comparison is unavailable for this range.',
       'privacy_policy': 'Datenschutzrichtlinie',
@@ -13631,7 +14114,8 @@ class AppLocalizations {
       'upload_receipt': 'Quittung hochladen',
       'use_this_source_language': 'Verwenden Sie diese Ausgangssprache',
       'view_insights_and_trends': 'Sehen Sie sich Erkenntnisse und Trends an',
-      'where_the_most_spending_happened_in_this': 'Where the most spending happened in this period.'
+      'where_the_most_spending_happened_in_this':
+          'Where the most spending happened in this period.',
     },
     'id': {
       'app_title': 'Pelacak Biaya',
@@ -13854,8 +14338,8 @@ class AppLocalizations {
       'taxonomy_vehicle_insurance': 'Asuransi Kendaraan',
       'taxonomy_electricity': 'Listrik',
       'taxonomy_water': 'Air',
-      'taxonomy_gas': 'Gas',
-      'taxonomy_internet': 'Internet',
+      'taxonomy_gas': 'Гас',
+      'taxonomy_internet': 'Интернет',
       'taxonomy_mobile_phone': 'Telepon genggam',
       'taxonomy_tv_and_streaming': 'TV dan Streaming',
       'taxonomy_waste_collection': 'Pengumpulan Sampah',
@@ -13925,7 +14409,8 @@ class AppLocalizations {
           'By continuing, you will sign in with your Google account.',
       'settings_subtitle': 'Verwalten Sie Ihre Präferenzen',
       'household_settings_title': 'Familienhaushalt',
-      'household_settings_subtitle': 'Teilen und verwalten Sie den Haushaltszugang',
+      'household_settings_subtitle':
+          'Teilen und verwalten Sie den Haushaltszugang',
       'settings_account_section': 'Konto',
       'settings_preferences_section': 'Präferenzen',
       'settings_support_section': 'Unterstützung',
@@ -13940,7 +14425,8 @@ class AppLocalizations {
       'settings_security': 'Sicherheit',
       'settings_security_subtitle': 'Passwort- und Kontosicherheit',
       'settings_appearance': 'Aussehen',
-      'settings_appearance_subtitle': 'Wählen Sie zwischen Hell- und Dunkelmodus',
+      'settings_appearance_subtitle':
+          'Wählen Sie zwischen Hell- und Dunkelmodus',
       'settings_theme': 'Thema',
       'settings_theme_light': 'Licht',
       'settings_theme_dark': 'Dunkel',
@@ -13961,25 +14447,29 @@ class AppLocalizations {
       'settings_font_large': 'Groß',
       'settings_display_options': 'Anzeigeoptionen',
       'settings_compact_mode': 'Kompaktmodus',
-      'settings_compact_mode_subtitle': 'Zeigen Sie mehr Inhalte auf dem Bildschirm an',
+      'settings_compact_mode_subtitle':
+          'Zeigen Sie mehr Inhalte auf dem Bildschirm an',
       'settings_animations': 'Animationen',
       'settings_animations_subtitle': 'Ermöglichen Sie reibungslose Übergänge',
       'settings_notifications_subtitle': 'Warnungen und Erinnerungen',
       'settings_notification_channels': 'Kanäle',
       'settings_push_notifications': 'Push-Benachrichtigungen',
-      'settings_push_notifications_subtitle': 'Benachrichtigungen auf Ihrem Gerät',
+      'settings_push_notifications_subtitle':
+          'Benachrichtigungen auf Ihrem Gerät',
       'settings_email_notifications': 'E-Mail-Benachrichtigungen',
       'settings_email_notifications_subtitle': 'Updates per E-Mail',
       'settings_notification_activity': 'Aktivität',
       'settings_spending_alerts': 'Ausgabenwarnungen',
-      'settings_spending_alerts_subtitle': 'Ungewöhnliche Ausgaben festgestellt',
+      'settings_spending_alerts_subtitle':
+          'Ungewöhnliche Ausgaben festgestellt',
       'settings_budget_alerts': 'Budgetwarnungen',
       'settings_budget_alerts_subtitle': 'Bei Annäherung an Budgetgrenzen',
       'settings_bill_reminders': 'Rechnungserinnerungen',
       'settings_bill_reminders_subtitle':
           'Monthly reminders for upcoming payments',
       'settings_receipt_reminders': 'Empfangserinnerungen',
-      'settings_receipt_reminders_subtitle': 'Erinnern Sie daran, Belege zu scannen',
+      'settings_receipt_reminders_subtitle':
+          'Erinnern Sie daran, Belege zu scannen',
       'settings_notification_summaries': 'Zusammenfassungen',
       'settings_weekly_summary': 'Wöchentliche Zusammenfassung',
       'settings_weekly_summary_subtitle': 'Jeden Montag um 9 Uhr',
@@ -14012,7 +14502,8 @@ class AppLocalizations {
           'Automatically translate receipt items',
       'settings_translate_to': 'Übersetzen nach',
       'settings_options': 'Optionen',
-      'settings_auto_detect_source_language': 'Quellsprache automatisch erkennen',
+      'settings_auto_detect_source_language':
+          'Quellsprache automatisch erkennen',
       'settings_auto_detect_source_language_subtitle':
           'Automatically detect original language',
       'settings_example': 'Beispiel',
@@ -14035,7 +14526,8 @@ class AppLocalizations {
           'Title must be between 3 and 120 characters.',
       'feature_request_description_length_error':
           'Description must be between 10 and 2000 characters.',
-      'feature_request_load_error_title': 'Funktionsanfragen konnten nicht geladen werden',
+      'feature_request_load_error_title':
+          'Funktionsanfragen konnten nicht geladen werden',
       'feature_request_your_ideas': 'Ihre Ideen',
       'feature_request_your_ideas_empty_title': 'Noch keine Ideen eingereicht',
       'feature_request_your_ideas_empty_subtitle':
@@ -14058,7 +14550,8 @@ class AppLocalizations {
       'feature_request_category_receipts_scanning': 'Quittungen und Scannen',
       'feature_request_category_budgets_planning': 'Budgets und Planung',
       'feature_request_category_household_sharing': 'Haushalt & Teilen',
-      'feature_request_category_design_accessibility': 'Design und Zugänglichkeit',
+      'feature_request_category_design_accessibility':
+          'Design und Zugänglichkeit',
       'feature_request_category_other': 'Andere',
       'settings_privacy_policy': 'Datenschutzrichtlinie',
       'settings_terms_of_service': 'Nutzungsbedingungen',
@@ -14091,7 +14584,8 @@ class AppLocalizations {
       'household_you_badge': 'Du',
       'household_members_title': 'Mitglieder',
       'household_remove_member_title': 'Mitglied entfernen',
-      'household_remove_member_confirm': '{Name} aus diesem Haushalt entfernen?',
+      'household_remove_member_confirm':
+          '{Name} aus diesem Haushalt entfernen?',
       'household_member_removed': 'Mitglied entfernt.',
       'household_leave_title': 'Verlassen Sie den Haushalt',
       'household_leave_confirm':
@@ -14132,7 +14626,8 @@ class AppLocalizations {
       'household_member_count': '{count} Mitglieder',
       'household_member_count_with_limit': '{count} von {limit} Mitgliedern',
       'household_shared_expenses': 'Geteilte Ausgaben',
-      'household_shared_expenses_subtitle': 'Erlauben Sie allen Mitgliedern, Ausgaben hinzuzufügen',
+      'household_shared_expenses_subtitle':
+          'Erlauben Sie allen Mitgliedern, Ausgaben hinzuzufügen',
       'household_budget_notifications': 'Budgetbenachrichtigungen',
       'household_budget_notifications_subtitle':
           'Notify when household budget limit is reached',
@@ -14212,7 +14707,8 @@ class AppLocalizations {
       'bill_reminders_due_date': 'Fälligkeitsdatum',
       'bill_reminders_pick_date': 'Fälligkeitsdatum auswählen',
       'bill_reminders_first_due_date': 'Erstes Fälligkeitsdatum',
-      'bill_reminders_pick_first_due_date': 'Wählen Sie das erste Fälligkeitsdatum aus',
+      'bill_reminders_pick_first_due_date':
+          'Wählen Sie das erste Fälligkeitsdatum aus',
       'bill_reminders_start_date': 'Beginnt am',
       'bill_reminders_pick_start_date': 'Wählen Sie das Startdatum',
       'bill_reminders_recurring': 'Wiederkehrend',
@@ -14239,7 +14735,8 @@ class AppLocalizations {
       'home_greeting_morning': 'Buongiorno',
       'home_greeting_afternoon': 'Buon pomeriggio',
       'home_greeting_evening': 'Buonasera',
-      'home_start_subtitle': 'Scansiona una ricevuta o aggiungi una spesa per iniziare.',
+      'home_start_subtitle':
+          'Scansiona una ricevuta o aggiungi una spesa per iniziare.',
       'home_all_reviewed': 'Tutte le ricevute vengono esaminate',
       'home_review_count_single': '1 ricevuta necessita di revisione',
       'home_review_count_plural': '{count} ricevute necessitano di revisione',
@@ -14255,9 +14752,12 @@ class AppLocalizations {
           'Top category is {category} at {percent}% of monthly spend.',
       'home_insight_top_subcategory':
           'Top subcategory is {subcategory} at {percent}% of item spend.',
-      'home_insight_review_count': '{count} ricevute devono ancora essere revisionate.',
-      'home_insight_all_caught_up': 'Siete tutti impegnati nella revisione delle ricevute.',
-      'home_scan_receipt_subtitle': 'Acquisizione istantanea basata sull\'intelligenza artificiale',
+      'home_insight_review_count':
+          '{count} ricevute devono ancora essere revisionate.',
+      'home_insight_all_caught_up':
+          'Siete tutti impegnati nella revisione delle ricevute.',
+      'home_scan_receipt_subtitle':
+          'Acquisizione istantanea basata sull\'intelligenza artificiale',
       'home_primary_action': 'Azione primaria',
       'home_spending_overview': 'Panoramica della spesa',
       'home_no_spending_data': 'Nessun dato di spesa per questo mese ancora.',
@@ -14278,7 +14778,8 @@ class AppLocalizations {
       'receipts_empty_body':
           'Scan your first receipt to start building a history you can review and filter.',
       'receipts_scan_first_action': 'Scansiona la tua prima ricevuta',
-      'receipts_no_filter_matches': 'Nessuna ricevuta corrisponde ai filtri attuali.',
+      'receipts_no_filter_matches':
+          'Nessuna ricevuta corrisponde ai filtri attuali.',
       'receipts_no_filter_matches_body':
           'Try another period, merchant search, or clear the active filters.',
       'receipts_history_total': 'Totale cronologia ricevute',
@@ -14322,26 +14823,34 @@ class AppLocalizations {
       'analytics_show_fewer_filters': 'Weniger Filter anzeigen',
       'analytics_categories_subtitle': 'Entdecken Sie, wohin Ihr Geld fließt',
       'analytics_overview_top_categories': 'Top-Kategorien',
-      'analytics_change_unavailable': 'Der vorherige Vergleich ist nicht verfügbar.',
-      'analytics_change_flat': 'Die Ausgaben sind im Vergleich zur Vorperiode unverändert.',
-      'analytics_change_more': 'Anstieg um {percent} % im Vergleich zum vorherigen Zeitraum.',
-      'analytics_change_less': 'Rückgang um {percent} % im Vergleich zum vorherigen Zeitraum.',
+      'analytics_change_unavailable':
+          'Der vorherige Vergleich ist nicht verfügbar.',
+      'analytics_change_flat':
+          'Die Ausgaben sind im Vergleich zur Vorperiode unverändert.',
+      'analytics_change_more':
+          'Anstieg um {percent} % im Vergleich zum vorherigen Zeitraum.',
+      'analytics_change_less':
+          'Rückgang um {percent} % im Vergleich zum vorherigen Zeitraum.',
       'analytics_compared_with_previous': 'Im Vergleich zur Vorperiode',
       'analytics_trends_period_label': 'Ausgewähltes Trendfenster',
       'analytics_trends_chart_title': 'Ausgabentrend',
       'analytics_trends_chart_subtitle':
           'Automatic daily, weekly, or monthly buckets for your selected period.',
-      'analytics_trends_no_data': 'Für diese Filter liegen keine Trenddaten vor.',
+      'analytics_trends_no_data':
+          'Für diese Filter liegen keine Trenddaten vor.',
       'analytics_trends_highest_bucket': 'Höchster Eimer',
       'analytics_trends_average_bucket': 'Durchschnittliche Bucket-Ausgaben',
       'analytics_household_empty_title': 'Noch keine Haushaltsanalyse',
       'analytics_household_empty_subtitle':
           'Create or open a household to compare spending across members.',
-      'analytics_household_no_data': 'Für diese Filter fallen keine Haushaltsausgaben an.',
+      'analytics_household_no_data':
+          'Für diese Filter fallen keine Haushaltsausgaben an.',
       'analytics_household_no_data_subtitle':
           'Try widening the date range or clearing a few filters.',
-      'analytics_household_preview_subtitle': 'Gemeinsame Ausgaben für diesen Zeitraum',
-      'analytics_household_total_transactions': '{count} geteilte Transaktionen',
+      'analytics_household_preview_subtitle':
+          'Gemeinsame Ausgaben für diesen Zeitraum',
+      'analytics_household_total_transactions':
+          '{count} geteilte Transaktionen',
       'analytics_household_member_transactions': '{count} Transaktionen',
       'analytics_household_top_category': 'Top-Kategorie: {category}',
       'analytics_household_top_category_unknown': 'Noch keine Kategorie',
@@ -14372,7 +14881,8 @@ class AppLocalizations {
           'Enter a valid amount greater than zero.',
       'manual_transaction_deleted': 'Manuelle Transaktion gelöscht.',
       'manual_transaction_delete_missing_id': 'Transaktions-ID fehlt.',
-      'transaction_amount_required': 'Inserisci un importo totale prima di salvare.',
+      'transaction_amount_required':
+          'Inserisci un importo totale prima di salvare.',
       'transaction_invalid_total': 'Inserisci un importo totale valido.',
       'transaction_save_before_labels':
           'Save the transaction before adding labels.',
@@ -14397,10 +14907,12 @@ class AppLocalizations {
       'transaction_receipt_photo_title': 'Foto della ricevuta',
       'transaction_receipt_photo_subtitle': 'Visualizza la foto originale',
       'transaction_warning_review_one_item': 'Recensisci 1 articolo in totale',
-      'transaction_warning_review_items': 'Controlla il totale di {count} articoli',
+      'transaction_warning_review_items':
+          'Controlla il totale di {count} articoli',
       'transaction_warning_review_total': 'Controlla il totale della ricevuta',
       'transaction_warning_check_one_detail': 'Controlla 1 dettaglio estratto',
-      'transaction_warning_check_details': 'Controlla {count} dettagli estratti',
+      'transaction_warning_check_details':
+          'Controlla {count} dettagli estratti',
       'transaction_warning_accepts_edits':
           'Take a quick final look before saving. {details}. Saving accepts your edits.',
       'transaction_was_amount': 'Era {importo}',
@@ -14416,7 +14928,8 @@ class AppLocalizations {
       'receipt_photo_invalid_url': 'Die URL des Belegfotos ist ungültig.',
       'receipt_photo_open_fallback':
           'Could not open the file automatically. The link was copied instead.',
-      'receipt_photo_load_failed': 'Dieses Belegbild konnte nicht geladen werden.',
+      'receipt_photo_load_failed':
+          'Dieses Belegbild konnte nicht geladen werden.',
       'receipt_photo_download': 'Herunterladen',
       'receipt_photo_downloaded': 'Quittung unter {Pfad} gespeichert',
       'receipt_photo_open_external': 'Von außen öffnen',
@@ -14461,8 +14974,10 @@ class AppLocalizations {
       'accentaware_colors': 'Akzentbewusste Farben',
       'activate_pro': 'Aktivieren Sie PRO',
       'after_the_amount': 'Nach dem Betrag',
-      'always_use_the_dark_interface': 'Verwenden Sie immer die dunkle Oberfläche.',
-      'always_use_the_light_interface': 'Benutzen Sie immer die Lichtschnittstelle.',
+      'always_use_the_dark_interface':
+          'Verwenden Sie immer die dunkle Oberfläche.',
+      'always_use_the_light_interface':
+          'Benutzen Sie immer die Lichtschnittstelle.',
       'autodetect_source_language': 'Quellsprache automatisch erkennen',
       'before_the_amount': 'Vor dem Betrag',
       'bill_due_soon': 'Rechnung bald fällig',
@@ -14476,21 +14991,25 @@ class AppLocalizations {
       'current_release': 'Aktuelle Veröffentlichung',
       'daily_avg': 'Täglicher Durchschn',
       'delete_reminder': 'Erinnerung löschen',
-      'discount_must_be_zero_or_higher': 'Der Rabatt muss Null oder höher sein.',
+      'discount_must_be_zero_or_higher':
+          'Der Rabatt muss Null oder höher sein.',
       'discount_percentage_must_stay_under_100':
           'Discount percentage must stay under 100%.',
       'display_name': 'Anzeigename',
       'email_support': 'E-Mail-Support',
-      'enable_notifications_in_the_app': 'Aktivieren Sie Benachrichtigungen in der App',
+      'enable_notifications_in_the_app':
+          'Aktivieren Sie Benachrichtigungen in der App',
       'extra_compact_text': 'Extra kompakter Text',
       'features_tools': 'Funktionen und Tools',
-      'follow_your_device_theme_setting': 'Befolgen Sie die Designeinstellungen Ihres Geräts.',
+      'follow_your_device_theme_setting':
+          'Befolgen Sie die Designeinstellungen Ihres Geräts.',
       'getting_started': 'Erste Schritte',
       'helpful_savings_spotted_in_the_current_r':
           'Helpful savings spotted in the current results.',
       'hide_decimals': 'Dezimalstellen ausblenden',
       'items_translation': 'Artikelübersetzung',
-      'keep_this_image_and_try_later': 'Behalten Sie dieses Bild und versuchen Sie es später',
+      'keep_this_image_and_try_later':
+          'Behalten Sie dieses Bild und versuchen Sie es später',
       'larger_interface': 'Größere Schnittstelle',
       'no_category_insights_yet': 'Noch keine Einblicke in die Kategorie',
       'no_overview_yet': 'Noch keine Übersicht',
@@ -14499,9 +15018,11 @@ class AppLocalizations {
       'no_trend_data_yet': 'Noch keine Trenddaten',
       'open_review': 'Rezension öffnen',
       'organize_your_receipts': 'Organisieren Sie Ihre Quittungen',
-      'please_enter_a_category_name': 'Bitte geben Sie einen Kategorienamen ein.',
+      'please_enter_a_category_name':
+          'Bitte geben Sie einen Kategorienamen ein.',
       'please_enter_a_label_name': 'Bitte geben Sie einen Labelnamen ein.',
-      'please_enter_a_subcategory_name': 'Bitte geben Sie einen Unterkategorienamen ein.',
+      'please_enter_a_subcategory_name':
+          'Bitte geben Sie einen Unterkategorienamen ein.',
       'previous_comparison_is_unavailable_for_t':
           'Previous comparison is unavailable for this range.',
       'privacy_policy': 'Datenschutzrichtlinie',
@@ -14534,7 +15055,8 @@ class AppLocalizations {
       'upload_receipt': 'Quittung hochladen',
       'use_this_source_language': 'Verwenden Sie diese Ausgangssprache',
       'view_insights_and_trends': 'Sehen Sie sich Erkenntnisse und Trends an',
-      'where_the_most_spending_happened_in_this': 'Where the most spending happened in this period.'
+      'where_the_most_spending_happened_in_this':
+          'Where the most spending happened in this period.',
     },
     'ms': {
       'app_title': 'Penjejak Perbelanjaan',
@@ -14758,8 +15280,8 @@ class AppLocalizations {
       'taxonomy_vehicle_insurance': 'Insurans Kenderaan',
       'taxonomy_electricity': 'Elektrik',
       'taxonomy_water': 'air',
-      'taxonomy_gas': 'Gas',
-      'taxonomy_internet': 'Internet',
+      'taxonomy_gas': 'Гас',
+      'taxonomy_internet': 'Интернет',
       'taxonomy_mobile_phone': 'Telefon Bimbit',
       'taxonomy_tv_and_streaming': 'TV dan Penstriman',
       'taxonomy_waste_collection': 'Pengumpulan Sisa',
@@ -14829,7 +15351,8 @@ class AppLocalizations {
           'By continuing, you will sign in with your Google account.',
       'settings_subtitle': 'Verwalten Sie Ihre Präferenzen',
       'household_settings_title': 'Familienhaushalt',
-      'household_settings_subtitle': 'Teilen und verwalten Sie den Haushaltszugang',
+      'household_settings_subtitle':
+          'Teilen und verwalten Sie den Haushaltszugang',
       'settings_account_section': 'Konto',
       'settings_preferences_section': 'Präferenzen',
       'settings_support_section': 'Unterstützung',
@@ -14844,7 +15367,8 @@ class AppLocalizations {
       'settings_security': 'Sicherheit',
       'settings_security_subtitle': 'Passwort- und Kontosicherheit',
       'settings_appearance': 'Aussehen',
-      'settings_appearance_subtitle': 'Wählen Sie zwischen Hell- und Dunkelmodus',
+      'settings_appearance_subtitle':
+          'Wählen Sie zwischen Hell- und Dunkelmodus',
       'settings_theme': 'Thema',
       'settings_theme_light': 'Licht',
       'settings_theme_dark': 'Dunkel',
@@ -14865,25 +15389,29 @@ class AppLocalizations {
       'settings_font_large': 'Groß',
       'settings_display_options': 'Anzeigeoptionen',
       'settings_compact_mode': 'Kompaktmodus',
-      'settings_compact_mode_subtitle': 'Zeigen Sie mehr Inhalte auf dem Bildschirm an',
+      'settings_compact_mode_subtitle':
+          'Zeigen Sie mehr Inhalte auf dem Bildschirm an',
       'settings_animations': 'Animationen',
       'settings_animations_subtitle': 'Ermöglichen Sie reibungslose Übergänge',
       'settings_notifications_subtitle': 'Warnungen und Erinnerungen',
       'settings_notification_channels': 'Kanäle',
       'settings_push_notifications': 'Push-Benachrichtigungen',
-      'settings_push_notifications_subtitle': 'Benachrichtigungen auf Ihrem Gerät',
+      'settings_push_notifications_subtitle':
+          'Benachrichtigungen auf Ihrem Gerät',
       'settings_email_notifications': 'E-Mail-Benachrichtigungen',
       'settings_email_notifications_subtitle': 'Updates per E-Mail',
       'settings_notification_activity': 'Aktivität',
       'settings_spending_alerts': 'Ausgabenwarnungen',
-      'settings_spending_alerts_subtitle': 'Ungewöhnliche Ausgaben festgestellt',
+      'settings_spending_alerts_subtitle':
+          'Ungewöhnliche Ausgaben festgestellt',
       'settings_budget_alerts': 'Budgetwarnungen',
       'settings_budget_alerts_subtitle': 'Bei Annäherung an Budgetgrenzen',
       'settings_bill_reminders': 'Rechnungserinnerungen',
       'settings_bill_reminders_subtitle':
           'Monthly reminders for upcoming payments',
       'settings_receipt_reminders': 'Empfangserinnerungen',
-      'settings_receipt_reminders_subtitle': 'Erinnern Sie daran, Belege zu scannen',
+      'settings_receipt_reminders_subtitle':
+          'Erinnern Sie daran, Belege zu scannen',
       'settings_notification_summaries': 'Zusammenfassungen',
       'settings_weekly_summary': 'Wöchentliche Zusammenfassung',
       'settings_weekly_summary_subtitle': 'Jeden Montag um 9 Uhr',
@@ -14916,7 +15444,8 @@ class AppLocalizations {
           'Automatically translate receipt items',
       'settings_translate_to': 'Übersetzen nach',
       'settings_options': 'Optionen',
-      'settings_auto_detect_source_language': 'Quellsprache automatisch erkennen',
+      'settings_auto_detect_source_language':
+          'Quellsprache automatisch erkennen',
       'settings_auto_detect_source_language_subtitle':
           'Automatically detect original language',
       'settings_example': 'Beispiel',
@@ -14939,7 +15468,8 @@ class AppLocalizations {
           'Title must be between 3 and 120 characters.',
       'feature_request_description_length_error':
           'Description must be between 10 and 2000 characters.',
-      'feature_request_load_error_title': 'Funktionsanfragen konnten nicht geladen werden',
+      'feature_request_load_error_title':
+          'Funktionsanfragen konnten nicht geladen werden',
       'feature_request_your_ideas': 'Ihre Ideen',
       'feature_request_your_ideas_empty_title': 'Noch keine Ideen eingereicht',
       'feature_request_your_ideas_empty_subtitle':
@@ -14962,7 +15492,8 @@ class AppLocalizations {
       'feature_request_category_receipts_scanning': 'Quittungen und Scannen',
       'feature_request_category_budgets_planning': 'Budgets und Planung',
       'feature_request_category_household_sharing': 'Haushalt & Teilen',
-      'feature_request_category_design_accessibility': 'Design und Zugänglichkeit',
+      'feature_request_category_design_accessibility':
+          'Design und Zugänglichkeit',
       'feature_request_category_other': 'Andere',
       'settings_privacy_policy': 'Datenschutzrichtlinie',
       'settings_terms_of_service': 'Nutzungsbedingungen',
@@ -14995,7 +15526,8 @@ class AppLocalizations {
       'household_you_badge': 'Du',
       'household_members_title': 'Mitglieder',
       'household_remove_member_title': 'Mitglied entfernen',
-      'household_remove_member_confirm': '{Name} aus diesem Haushalt entfernen?',
+      'household_remove_member_confirm':
+          '{Name} aus diesem Haushalt entfernen?',
       'household_member_removed': 'Mitglied entfernt.',
       'household_leave_title': 'Verlassen Sie den Haushalt',
       'household_leave_confirm':
@@ -15036,7 +15568,8 @@ class AppLocalizations {
       'household_member_count': '{count} Mitglieder',
       'household_member_count_with_limit': '{count} von {limit} Mitgliedern',
       'household_shared_expenses': 'Geteilte Ausgaben',
-      'household_shared_expenses_subtitle': 'Erlauben Sie allen Mitgliedern, Ausgaben hinzuzufügen',
+      'household_shared_expenses_subtitle':
+          'Erlauben Sie allen Mitgliedern, Ausgaben hinzuzufügen',
       'household_budget_notifications': 'Budgetbenachrichtigungen',
       'household_budget_notifications_subtitle':
           'Notify when household budget limit is reached',
@@ -15116,7 +15649,8 @@ class AppLocalizations {
       'bill_reminders_due_date': 'Fälligkeitsdatum',
       'bill_reminders_pick_date': 'Fälligkeitsdatum auswählen',
       'bill_reminders_first_due_date': 'Erstes Fälligkeitsdatum',
-      'bill_reminders_pick_first_due_date': 'Wählen Sie das erste Fälligkeitsdatum aus',
+      'bill_reminders_pick_first_due_date':
+          'Wählen Sie das erste Fälligkeitsdatum aus',
       'bill_reminders_start_date': 'Beginnt am',
       'bill_reminders_pick_start_date': 'Wählen Sie das Startdatum',
       'bill_reminders_recurring': 'Wiederkehrend',
@@ -15143,7 +15677,8 @@ class AppLocalizations {
       'home_greeting_morning': 'Buongiorno',
       'home_greeting_afternoon': 'Buon pomeriggio',
       'home_greeting_evening': 'Buonasera',
-      'home_start_subtitle': 'Scansiona una ricevuta o aggiungi una spesa per iniziare.',
+      'home_start_subtitle':
+          'Scansiona una ricevuta o aggiungi una spesa per iniziare.',
       'home_all_reviewed': 'Tutte le ricevute vengono esaminate',
       'home_review_count_single': '1 ricevuta necessita di revisione',
       'home_review_count_plural': '{count} ricevute necessitano di revisione',
@@ -15159,9 +15694,12 @@ class AppLocalizations {
           'Top category is {category} at {percent}% of monthly spend.',
       'home_insight_top_subcategory':
           'Top subcategory is {subcategory} at {percent}% of item spend.',
-      'home_insight_review_count': '{count} ricevute devono ancora essere revisionate.',
-      'home_insight_all_caught_up': 'Siete tutti impegnati nella revisione delle ricevute.',
-      'home_scan_receipt_subtitle': 'Acquisizione istantanea basata sull\'intelligenza artificiale',
+      'home_insight_review_count':
+          '{count} ricevute devono ancora essere revisionate.',
+      'home_insight_all_caught_up':
+          'Siete tutti impegnati nella revisione delle ricevute.',
+      'home_scan_receipt_subtitle':
+          'Acquisizione istantanea basata sull\'intelligenza artificiale',
       'home_primary_action': 'Azione primaria',
       'home_spending_overview': 'Panoramica della spesa',
       'home_no_spending_data': 'Nessun dato di spesa per questo mese ancora.',
@@ -15182,7 +15720,8 @@ class AppLocalizations {
       'receipts_empty_body':
           'Scan your first receipt to start building a history you can review and filter.',
       'receipts_scan_first_action': 'Scansiona la tua prima ricevuta',
-      'receipts_no_filter_matches': 'Nessuna ricevuta corrisponde ai filtri attuali.',
+      'receipts_no_filter_matches':
+          'Nessuna ricevuta corrisponde ai filtri attuali.',
       'receipts_no_filter_matches_body':
           'Try another period, merchant search, or clear the active filters.',
       'receipts_history_total': 'Totale cronologia ricevute',
@@ -15226,26 +15765,34 @@ class AppLocalizations {
       'analytics_show_fewer_filters': 'Weniger Filter anzeigen',
       'analytics_categories_subtitle': 'Entdecken Sie, wohin Ihr Geld fließt',
       'analytics_overview_top_categories': 'Top-Kategorien',
-      'analytics_change_unavailable': 'Der vorherige Vergleich ist nicht verfügbar.',
-      'analytics_change_flat': 'Die Ausgaben sind im Vergleich zur Vorperiode unverändert.',
-      'analytics_change_more': 'Anstieg um {percent} % im Vergleich zum vorherigen Zeitraum.',
-      'analytics_change_less': 'Rückgang um {percent} % im Vergleich zum vorherigen Zeitraum.',
+      'analytics_change_unavailable':
+          'Der vorherige Vergleich ist nicht verfügbar.',
+      'analytics_change_flat':
+          'Die Ausgaben sind im Vergleich zur Vorperiode unverändert.',
+      'analytics_change_more':
+          'Anstieg um {percent} % im Vergleich zum vorherigen Zeitraum.',
+      'analytics_change_less':
+          'Rückgang um {percent} % im Vergleich zum vorherigen Zeitraum.',
       'analytics_compared_with_previous': 'Im Vergleich zur Vorperiode',
       'analytics_trends_period_label': 'Ausgewähltes Trendfenster',
       'analytics_trends_chart_title': 'Ausgabentrend',
       'analytics_trends_chart_subtitle':
           'Automatic daily, weekly, or monthly buckets for your selected period.',
-      'analytics_trends_no_data': 'Für diese Filter liegen keine Trenddaten vor.',
+      'analytics_trends_no_data':
+          'Für diese Filter liegen keine Trenddaten vor.',
       'analytics_trends_highest_bucket': 'Höchster Eimer',
       'analytics_trends_average_bucket': 'Durchschnittliche Bucket-Ausgaben',
       'analytics_household_empty_title': 'Noch keine Haushaltsanalyse',
       'analytics_household_empty_subtitle':
           'Create or open a household to compare spending across members.',
-      'analytics_household_no_data': 'Für diese Filter fallen keine Haushaltsausgaben an.',
+      'analytics_household_no_data':
+          'Für diese Filter fallen keine Haushaltsausgaben an.',
       'analytics_household_no_data_subtitle':
           'Try widening the date range or clearing a few filters.',
-      'analytics_household_preview_subtitle': 'Gemeinsame Ausgaben für diesen Zeitraum',
-      'analytics_household_total_transactions': '{count} geteilte Transaktionen',
+      'analytics_household_preview_subtitle':
+          'Gemeinsame Ausgaben für diesen Zeitraum',
+      'analytics_household_total_transactions':
+          '{count} geteilte Transaktionen',
       'analytics_household_member_transactions': '{count} Transaktionen',
       'analytics_household_top_category': 'Top-Kategorie: {category}',
       'analytics_household_top_category_unknown': 'Noch keine Kategorie',
@@ -15276,7 +15823,8 @@ class AppLocalizations {
           'Enter a valid amount greater than zero.',
       'manual_transaction_deleted': 'Manuelle Transaktion gelöscht.',
       'manual_transaction_delete_missing_id': 'Transaktions-ID fehlt.',
-      'transaction_amount_required': 'Inserisci un importo totale prima di salvare.',
+      'transaction_amount_required':
+          'Inserisci un importo totale prima di salvare.',
       'transaction_invalid_total': 'Inserisci un importo totale valido.',
       'transaction_save_before_labels':
           'Save the transaction before adding labels.',
@@ -15301,10 +15849,12 @@ class AppLocalizations {
       'transaction_receipt_photo_title': 'Foto della ricevuta',
       'transaction_receipt_photo_subtitle': 'Visualizza la foto originale',
       'transaction_warning_review_one_item': 'Recensisci 1 articolo in totale',
-      'transaction_warning_review_items': 'Controlla il totale di {count} articoli',
+      'transaction_warning_review_items':
+          'Controlla il totale di {count} articoli',
       'transaction_warning_review_total': 'Controlla il totale della ricevuta',
       'transaction_warning_check_one_detail': 'Controlla 1 dettaglio estratto',
-      'transaction_warning_check_details': 'Controlla {count} dettagli estratti',
+      'transaction_warning_check_details':
+          'Controlla {count} dettagli estratti',
       'transaction_warning_accepts_edits':
           'Take a quick final look before saving. {details}. Saving accepts your edits.',
       'transaction_was_amount': 'Era {importo}',
@@ -15320,7 +15870,8 @@ class AppLocalizations {
       'receipt_photo_invalid_url': 'Die URL des Belegfotos ist ungültig.',
       'receipt_photo_open_fallback':
           'Could not open the file automatically. The link was copied instead.',
-      'receipt_photo_load_failed': 'Dieses Belegbild konnte nicht geladen werden.',
+      'receipt_photo_load_failed':
+          'Dieses Belegbild konnte nicht geladen werden.',
       'receipt_photo_download': 'Herunterladen',
       'receipt_photo_downloaded': 'Quittung unter {Pfad} gespeichert',
       'receipt_photo_open_external': 'Von außen öffnen',
@@ -15365,8 +15916,10 @@ class AppLocalizations {
       'accentaware_colors': 'Akzentbewusste Farben',
       'activate_pro': 'Aktivieren Sie PRO',
       'after_the_amount': 'Nach dem Betrag',
-      'always_use_the_dark_interface': 'Verwenden Sie immer die dunkle Oberfläche.',
-      'always_use_the_light_interface': 'Benutzen Sie immer die Lichtschnittstelle.',
+      'always_use_the_dark_interface':
+          'Verwenden Sie immer die dunkle Oberfläche.',
+      'always_use_the_light_interface':
+          'Benutzen Sie immer die Lichtschnittstelle.',
       'autodetect_source_language': 'Quellsprache automatisch erkennen',
       'before_the_amount': 'Vor dem Betrag',
       'bill_due_soon': 'Rechnung bald fällig',
@@ -15380,21 +15933,25 @@ class AppLocalizations {
       'current_release': 'Aktuelle Veröffentlichung',
       'daily_avg': 'Täglicher Durchschn',
       'delete_reminder': 'Erinnerung löschen',
-      'discount_must_be_zero_or_higher': 'Der Rabatt muss Null oder höher sein.',
+      'discount_must_be_zero_or_higher':
+          'Der Rabatt muss Null oder höher sein.',
       'discount_percentage_must_stay_under_100':
           'Discount percentage must stay under 100%.',
       'display_name': 'Anzeigename',
       'email_support': 'E-Mail-Support',
-      'enable_notifications_in_the_app': 'Aktivieren Sie Benachrichtigungen in der App',
+      'enable_notifications_in_the_app':
+          'Aktivieren Sie Benachrichtigungen in der App',
       'extra_compact_text': 'Extra kompakter Text',
       'features_tools': 'Funktionen und Tools',
-      'follow_your_device_theme_setting': 'Befolgen Sie die Designeinstellungen Ihres Geräts.',
+      'follow_your_device_theme_setting':
+          'Befolgen Sie die Designeinstellungen Ihres Geräts.',
       'getting_started': 'Erste Schritte',
       'helpful_savings_spotted_in_the_current_r':
           'Helpful savings spotted in the current results.',
       'hide_decimals': 'Dezimalstellen ausblenden',
       'items_translation': 'Artikelübersetzung',
-      'keep_this_image_and_try_later': 'Behalten Sie dieses Bild und versuchen Sie es später',
+      'keep_this_image_and_try_later':
+          'Behalten Sie dieses Bild und versuchen Sie es später',
       'larger_interface': 'Größere Schnittstelle',
       'no_category_insights_yet': 'Noch keine Einblicke in die Kategorie',
       'no_overview_yet': 'Noch keine Übersicht',
@@ -15403,9 +15960,11 @@ class AppLocalizations {
       'no_trend_data_yet': 'Noch keine Trenddaten',
       'open_review': 'Rezension öffnen',
       'organize_your_receipts': 'Organisieren Sie Ihre Quittungen',
-      'please_enter_a_category_name': 'Bitte geben Sie einen Kategorienamen ein.',
+      'please_enter_a_category_name':
+          'Bitte geben Sie einen Kategorienamen ein.',
       'please_enter_a_label_name': 'Bitte geben Sie einen Labelnamen ein.',
-      'please_enter_a_subcategory_name': 'Bitte geben Sie einen Unterkategorienamen ein.',
+      'please_enter_a_subcategory_name':
+          'Bitte geben Sie einen Unterkategorienamen ein.',
       'previous_comparison_is_unavailable_for_t':
           'Previous comparison is unavailable for this range.',
       'privacy_policy': 'Datenschutzrichtlinie',
@@ -15438,7 +15997,8 @@ class AppLocalizations {
       'upload_receipt': 'Quittung hochladen',
       'use_this_source_language': 'Verwenden Sie diese Ausgangssprache',
       'view_insights_and_trends': 'Sehen Sie sich Erkenntnisse und Trends an',
-      'where_the_most_spending_happened_in_this': 'Where the most spending happened in this period.'
+      'where_the_most_spending_happened_in_this':
+          'Where the most spending happened in this period.',
     },
     'vi': {
       'app_title': 'Theo dõi chi phí',
@@ -15731,7 +16291,8 @@ class AppLocalizations {
           'By continuing, you will sign in with your Google account.',
       'settings_subtitle': 'Verwalten Sie Ihre Präferenzen',
       'household_settings_title': 'Familienhaushalt',
-      'household_settings_subtitle': 'Teilen und verwalten Sie den Haushaltszugang',
+      'household_settings_subtitle':
+          'Teilen und verwalten Sie den Haushaltszugang',
       'settings_account_section': 'Konto',
       'settings_preferences_section': 'Präferenzen',
       'settings_support_section': 'Unterstützung',
@@ -15746,7 +16307,8 @@ class AppLocalizations {
       'settings_security': 'Sicherheit',
       'settings_security_subtitle': 'Passwort- und Kontosicherheit',
       'settings_appearance': 'Aussehen',
-      'settings_appearance_subtitle': 'Wählen Sie zwischen Hell- und Dunkelmodus',
+      'settings_appearance_subtitle':
+          'Wählen Sie zwischen Hell- und Dunkelmodus',
       'settings_theme': 'Thema',
       'settings_theme_light': 'Licht',
       'settings_theme_dark': 'Dunkel',
@@ -15767,25 +16329,29 @@ class AppLocalizations {
       'settings_font_large': 'Groß',
       'settings_display_options': 'Anzeigeoptionen',
       'settings_compact_mode': 'Kompaktmodus',
-      'settings_compact_mode_subtitle': 'Zeigen Sie mehr Inhalte auf dem Bildschirm an',
+      'settings_compact_mode_subtitle':
+          'Zeigen Sie mehr Inhalte auf dem Bildschirm an',
       'settings_animations': 'Animationen',
       'settings_animations_subtitle': 'Ermöglichen Sie reibungslose Übergänge',
       'settings_notifications_subtitle': 'Warnungen und Erinnerungen',
       'settings_notification_channels': 'Kanäle',
       'settings_push_notifications': 'Push-Benachrichtigungen',
-      'settings_push_notifications_subtitle': 'Benachrichtigungen auf Ihrem Gerät',
+      'settings_push_notifications_subtitle':
+          'Benachrichtigungen auf Ihrem Gerät',
       'settings_email_notifications': 'E-Mail-Benachrichtigungen',
       'settings_email_notifications_subtitle': 'Updates per E-Mail',
       'settings_notification_activity': 'Aktivität',
       'settings_spending_alerts': 'Ausgabenwarnungen',
-      'settings_spending_alerts_subtitle': 'Ungewöhnliche Ausgaben festgestellt',
+      'settings_spending_alerts_subtitle':
+          'Ungewöhnliche Ausgaben festgestellt',
       'settings_budget_alerts': 'Budgetwarnungen',
       'settings_budget_alerts_subtitle': 'Bei Annäherung an Budgetgrenzen',
       'settings_bill_reminders': 'Rechnungserinnerungen',
       'settings_bill_reminders_subtitle':
           'Monthly reminders for upcoming payments',
       'settings_receipt_reminders': 'Empfangserinnerungen',
-      'settings_receipt_reminders_subtitle': 'Erinnern Sie daran, Belege zu scannen',
+      'settings_receipt_reminders_subtitle':
+          'Erinnern Sie daran, Belege zu scannen',
       'settings_notification_summaries': 'Zusammenfassungen',
       'settings_weekly_summary': 'Wöchentliche Zusammenfassung',
       'settings_weekly_summary_subtitle': 'Jeden Montag um 9 Uhr',
@@ -15818,7 +16384,8 @@ class AppLocalizations {
           'Automatically translate receipt items',
       'settings_translate_to': 'Übersetzen nach',
       'settings_options': 'Optionen',
-      'settings_auto_detect_source_language': 'Quellsprache automatisch erkennen',
+      'settings_auto_detect_source_language':
+          'Quellsprache automatisch erkennen',
       'settings_auto_detect_source_language_subtitle':
           'Automatically detect original language',
       'settings_example': 'Beispiel',
@@ -15841,7 +16408,8 @@ class AppLocalizations {
           'Title must be between 3 and 120 characters.',
       'feature_request_description_length_error':
           'Description must be between 10 and 2000 characters.',
-      'feature_request_load_error_title': 'Funktionsanfragen konnten nicht geladen werden',
+      'feature_request_load_error_title':
+          'Funktionsanfragen konnten nicht geladen werden',
       'feature_request_your_ideas': 'Ihre Ideen',
       'feature_request_your_ideas_empty_title': 'Noch keine Ideen eingereicht',
       'feature_request_your_ideas_empty_subtitle':
@@ -15864,7 +16432,8 @@ class AppLocalizations {
       'feature_request_category_receipts_scanning': 'Quittungen und Scannen',
       'feature_request_category_budgets_planning': 'Budgets und Planung',
       'feature_request_category_household_sharing': 'Haushalt & Teilen',
-      'feature_request_category_design_accessibility': 'Design und Zugänglichkeit',
+      'feature_request_category_design_accessibility':
+          'Design und Zugänglichkeit',
       'feature_request_category_other': 'Andere',
       'settings_privacy_policy': 'Datenschutzrichtlinie',
       'settings_terms_of_service': 'Nutzungsbedingungen',
@@ -15897,7 +16466,8 @@ class AppLocalizations {
       'household_you_badge': 'Du',
       'household_members_title': 'Mitglieder',
       'household_remove_member_title': 'Mitglied entfernen',
-      'household_remove_member_confirm': '{Name} aus diesem Haushalt entfernen?',
+      'household_remove_member_confirm':
+          '{Name} aus diesem Haushalt entfernen?',
       'household_member_removed': 'Mitglied entfernt.',
       'household_leave_title': 'Verlassen Sie den Haushalt',
       'household_leave_confirm':
@@ -15938,7 +16508,8 @@ class AppLocalizations {
       'household_member_count': '{count} Mitglieder',
       'household_member_count_with_limit': '{count} von {limit} Mitgliedern',
       'household_shared_expenses': 'Geteilte Ausgaben',
-      'household_shared_expenses_subtitle': 'Erlauben Sie allen Mitgliedern, Ausgaben hinzuzufügen',
+      'household_shared_expenses_subtitle':
+          'Erlauben Sie allen Mitgliedern, Ausgaben hinzuzufügen',
       'household_budget_notifications': 'Budgetbenachrichtigungen',
       'household_budget_notifications_subtitle':
           'Notify when household budget limit is reached',
@@ -16018,7 +16589,8 @@ class AppLocalizations {
       'bill_reminders_due_date': 'Fälligkeitsdatum',
       'bill_reminders_pick_date': 'Fälligkeitsdatum auswählen',
       'bill_reminders_first_due_date': 'Erstes Fälligkeitsdatum',
-      'bill_reminders_pick_first_due_date': 'Wählen Sie das erste Fälligkeitsdatum aus',
+      'bill_reminders_pick_first_due_date':
+          'Wählen Sie das erste Fälligkeitsdatum aus',
       'bill_reminders_start_date': 'Beginnt am',
       'bill_reminders_pick_start_date': 'Wählen Sie das Startdatum',
       'bill_reminders_recurring': 'Wiederkehrend',
@@ -16045,7 +16617,8 @@ class AppLocalizations {
       'home_greeting_morning': 'Buongiorno',
       'home_greeting_afternoon': 'Buon pomeriggio',
       'home_greeting_evening': 'Buonasera',
-      'home_start_subtitle': 'Scansiona una ricevuta o aggiungi una spesa per iniziare.',
+      'home_start_subtitle':
+          'Scansiona una ricevuta o aggiungi una spesa per iniziare.',
       'home_all_reviewed': 'Tutte le ricevute vengono esaminate',
       'home_review_count_single': '1 ricevuta necessita di revisione',
       'home_review_count_plural': '{count} ricevute necessitano di revisione',
@@ -16061,9 +16634,12 @@ class AppLocalizations {
           'Top category is {category} at {percent}% of monthly spend.',
       'home_insight_top_subcategory':
           'Top subcategory is {subcategory} at {percent}% of item spend.',
-      'home_insight_review_count': '{count} ricevute devono ancora essere revisionate.',
-      'home_insight_all_caught_up': 'Siete tutti impegnati nella revisione delle ricevute.',
-      'home_scan_receipt_subtitle': 'Acquisizione istantanea basata sull\'intelligenza artificiale',
+      'home_insight_review_count':
+          '{count} ricevute devono ancora essere revisionate.',
+      'home_insight_all_caught_up':
+          'Siete tutti impegnati nella revisione delle ricevute.',
+      'home_scan_receipt_subtitle':
+          'Acquisizione istantanea basata sull\'intelligenza artificiale',
       'home_primary_action': 'Azione primaria',
       'home_spending_overview': 'Panoramica della spesa',
       'home_no_spending_data': 'Nessun dato di spesa per questo mese ancora.',
@@ -16084,7 +16660,8 @@ class AppLocalizations {
       'receipts_empty_body':
           'Scan your first receipt to start building a history you can review and filter.',
       'receipts_scan_first_action': 'Scansiona la tua prima ricevuta',
-      'receipts_no_filter_matches': 'Nessuna ricevuta corrisponde ai filtri attuali.',
+      'receipts_no_filter_matches':
+          'Nessuna ricevuta corrisponde ai filtri attuali.',
       'receipts_no_filter_matches_body':
           'Try another period, merchant search, or clear the active filters.',
       'receipts_history_total': 'Totale cronologia ricevute',
@@ -16128,26 +16705,34 @@ class AppLocalizations {
       'analytics_show_fewer_filters': 'Weniger Filter anzeigen',
       'analytics_categories_subtitle': 'Entdecken Sie, wohin Ihr Geld fließt',
       'analytics_overview_top_categories': 'Top-Kategorien',
-      'analytics_change_unavailable': 'Der vorherige Vergleich ist nicht verfügbar.',
-      'analytics_change_flat': 'Die Ausgaben sind im Vergleich zur Vorperiode unverändert.',
-      'analytics_change_more': 'Anstieg um {percent} % im Vergleich zum vorherigen Zeitraum.',
-      'analytics_change_less': 'Rückgang um {percent} % im Vergleich zum vorherigen Zeitraum.',
+      'analytics_change_unavailable':
+          'Der vorherige Vergleich ist nicht verfügbar.',
+      'analytics_change_flat':
+          'Die Ausgaben sind im Vergleich zur Vorperiode unverändert.',
+      'analytics_change_more':
+          'Anstieg um {percent} % im Vergleich zum vorherigen Zeitraum.',
+      'analytics_change_less':
+          'Rückgang um {percent} % im Vergleich zum vorherigen Zeitraum.',
       'analytics_compared_with_previous': 'Im Vergleich zur Vorperiode',
       'analytics_trends_period_label': 'Ausgewähltes Trendfenster',
       'analytics_trends_chart_title': 'Ausgabentrend',
       'analytics_trends_chart_subtitle':
           'Automatic daily, weekly, or monthly buckets for your selected period.',
-      'analytics_trends_no_data': 'Für diese Filter liegen keine Trenddaten vor.',
+      'analytics_trends_no_data':
+          'Für diese Filter liegen keine Trenddaten vor.',
       'analytics_trends_highest_bucket': 'Höchster Eimer',
       'analytics_trends_average_bucket': 'Durchschnittliche Bucket-Ausgaben',
       'analytics_household_empty_title': 'Noch keine Haushaltsanalyse',
       'analytics_household_empty_subtitle':
           'Create or open a household to compare spending across members.',
-      'analytics_household_no_data': 'Für diese Filter fallen keine Haushaltsausgaben an.',
+      'analytics_household_no_data':
+          'Für diese Filter fallen keine Haushaltsausgaben an.',
       'analytics_household_no_data_subtitle':
           'Try widening the date range or clearing a few filters.',
-      'analytics_household_preview_subtitle': 'Gemeinsame Ausgaben für diesen Zeitraum',
-      'analytics_household_total_transactions': '{count} geteilte Transaktionen',
+      'analytics_household_preview_subtitle':
+          'Gemeinsame Ausgaben für diesen Zeitraum',
+      'analytics_household_total_transactions':
+          '{count} geteilte Transaktionen',
       'analytics_household_member_transactions': '{count} Transaktionen',
       'analytics_household_top_category': 'Top-Kategorie: {category}',
       'analytics_household_top_category_unknown': 'Noch keine Kategorie',
@@ -16178,7 +16763,8 @@ class AppLocalizations {
           'Enter a valid amount greater than zero.',
       'manual_transaction_deleted': 'Manuelle Transaktion gelöscht.',
       'manual_transaction_delete_missing_id': 'Transaktions-ID fehlt.',
-      'transaction_amount_required': 'Inserisci un importo totale prima di salvare.',
+      'transaction_amount_required':
+          'Inserisci un importo totale prima di salvare.',
       'transaction_invalid_total': 'Inserisci un importo totale valido.',
       'transaction_save_before_labels':
           'Save the transaction before adding labels.',
@@ -16203,10 +16789,12 @@ class AppLocalizations {
       'transaction_receipt_photo_title': 'Foto della ricevuta',
       'transaction_receipt_photo_subtitle': 'Visualizza la foto originale',
       'transaction_warning_review_one_item': 'Recensisci 1 articolo in totale',
-      'transaction_warning_review_items': 'Controlla il totale di {count} articoli',
+      'transaction_warning_review_items':
+          'Controlla il totale di {count} articoli',
       'transaction_warning_review_total': 'Controlla il totale della ricevuta',
       'transaction_warning_check_one_detail': 'Controlla 1 dettaglio estratto',
-      'transaction_warning_check_details': 'Controlla {count} dettagli estratti',
+      'transaction_warning_check_details':
+          'Controlla {count} dettagli estratti',
       'transaction_warning_accepts_edits':
           'Take a quick final look before saving. {details}. Saving accepts your edits.',
       'transaction_was_amount': 'Era {importo}',
@@ -16222,7 +16810,8 @@ class AppLocalizations {
       'receipt_photo_invalid_url': 'Die URL des Belegfotos ist ungültig.',
       'receipt_photo_open_fallback':
           'Could not open the file automatically. The link was copied instead.',
-      'receipt_photo_load_failed': 'Dieses Belegbild konnte nicht geladen werden.',
+      'receipt_photo_load_failed':
+          'Dieses Belegbild konnte nicht geladen werden.',
       'receipt_photo_download': 'Herunterladen',
       'receipt_photo_downloaded': 'Quittung unter {Pfad} gespeichert',
       'receipt_photo_open_external': 'Von außen öffnen',
@@ -16267,8 +16856,10 @@ class AppLocalizations {
       'accentaware_colors': 'Akzentbewusste Farben',
       'activate_pro': 'Aktivieren Sie PRO',
       'after_the_amount': 'Nach dem Betrag',
-      'always_use_the_dark_interface': 'Verwenden Sie immer die dunkle Oberfläche.',
-      'always_use_the_light_interface': 'Benutzen Sie immer die Lichtschnittstelle.',
+      'always_use_the_dark_interface':
+          'Verwenden Sie immer die dunkle Oberfläche.',
+      'always_use_the_light_interface':
+          'Benutzen Sie immer die Lichtschnittstelle.',
       'autodetect_source_language': 'Quellsprache automatisch erkennen',
       'before_the_amount': 'Vor dem Betrag',
       'bill_due_soon': 'Rechnung bald fällig',
@@ -16282,21 +16873,25 @@ class AppLocalizations {
       'current_release': 'Aktuelle Veröffentlichung',
       'daily_avg': 'Täglicher Durchschn',
       'delete_reminder': 'Erinnerung löschen',
-      'discount_must_be_zero_or_higher': 'Der Rabatt muss Null oder höher sein.',
+      'discount_must_be_zero_or_higher':
+          'Der Rabatt muss Null oder höher sein.',
       'discount_percentage_must_stay_under_100':
           'Discount percentage must stay under 100%.',
       'display_name': 'Anzeigename',
       'email_support': 'E-Mail-Support',
-      'enable_notifications_in_the_app': 'Aktivieren Sie Benachrichtigungen in der App',
+      'enable_notifications_in_the_app':
+          'Aktivieren Sie Benachrichtigungen in der App',
       'extra_compact_text': 'Extra kompakter Text',
       'features_tools': 'Funktionen und Tools',
-      'follow_your_device_theme_setting': 'Befolgen Sie die Designeinstellungen Ihres Geräts.',
+      'follow_your_device_theme_setting':
+          'Befolgen Sie die Designeinstellungen Ihres Geräts.',
       'getting_started': 'Erste Schritte',
       'helpful_savings_spotted_in_the_current_r':
           'Helpful savings spotted in the current results.',
       'hide_decimals': 'Dezimalstellen ausblenden',
       'items_translation': 'Artikelübersetzung',
-      'keep_this_image_and_try_later': 'Behalten Sie dieses Bild und versuchen Sie es später',
+      'keep_this_image_and_try_later':
+          'Behalten Sie dieses Bild und versuchen Sie es später',
       'larger_interface': 'Größere Schnittstelle',
       'no_category_insights_yet': 'Noch keine Einblicke in die Kategorie',
       'no_overview_yet': 'Noch keine Übersicht',
@@ -16305,9 +16900,11 @@ class AppLocalizations {
       'no_trend_data_yet': 'Noch keine Trenddaten',
       'open_review': 'Rezension öffnen',
       'organize_your_receipts': 'Organisieren Sie Ihre Quittungen',
-      'please_enter_a_category_name': 'Bitte geben Sie einen Kategorienamen ein.',
+      'please_enter_a_category_name':
+          'Bitte geben Sie einen Kategorienamen ein.',
       'please_enter_a_label_name': 'Bitte geben Sie einen Labelnamen ein.',
-      'please_enter_a_subcategory_name': 'Bitte geben Sie einen Unterkategorienamen ein.',
+      'please_enter_a_subcategory_name':
+          'Bitte geben Sie einen Unterkategorienamen ein.',
       'previous_comparison_is_unavailable_for_t':
           'Previous comparison is unavailable for this range.',
       'privacy_policy': 'Datenschutzrichtlinie',
@@ -16340,7 +16937,8 @@ class AppLocalizations {
       'upload_receipt': 'Quittung hochladen',
       'use_this_source_language': 'Verwenden Sie diese Ausgangssprache',
       'view_insights_and_trends': 'Sehen Sie sich Erkenntnisse und Trends an',
-      'where_the_most_spending_happened_in_this': 'Where the most spending happened in this period.'
+      'where_the_most_spending_happened_in_this':
+          'Where the most spending happened in this period.',
     },
     'zh': {
       'app_title': '费用跟踪器',
@@ -16619,7 +17217,8 @@ class AppLocalizations {
           'By continuing, you will sign in with your Google account.',
       'settings_subtitle': 'Verwalten Sie Ihre Präferenzen',
       'household_settings_title': 'Familienhaushalt',
-      'household_settings_subtitle': 'Teilen und verwalten Sie den Haushaltszugang',
+      'household_settings_subtitle':
+          'Teilen und verwalten Sie den Haushaltszugang',
       'settings_account_section': 'Konto',
       'settings_preferences_section': 'Präferenzen',
       'settings_support_section': 'Unterstützung',
@@ -16634,7 +17233,8 @@ class AppLocalizations {
       'settings_security': 'Sicherheit',
       'settings_security_subtitle': 'Passwort- und Kontosicherheit',
       'settings_appearance': 'Aussehen',
-      'settings_appearance_subtitle': 'Wählen Sie zwischen Hell- und Dunkelmodus',
+      'settings_appearance_subtitle':
+          'Wählen Sie zwischen Hell- und Dunkelmodus',
       'settings_theme': 'Thema',
       'settings_theme_light': 'Licht',
       'settings_theme_dark': 'Dunkel',
@@ -16655,25 +17255,29 @@ class AppLocalizations {
       'settings_font_large': 'Groß',
       'settings_display_options': 'Anzeigeoptionen',
       'settings_compact_mode': 'Kompaktmodus',
-      'settings_compact_mode_subtitle': 'Zeigen Sie mehr Inhalte auf dem Bildschirm an',
+      'settings_compact_mode_subtitle':
+          'Zeigen Sie mehr Inhalte auf dem Bildschirm an',
       'settings_animations': 'Animationen',
       'settings_animations_subtitle': 'Ermöglichen Sie reibungslose Übergänge',
       'settings_notifications_subtitle': 'Warnungen und Erinnerungen',
       'settings_notification_channels': 'Kanäle',
       'settings_push_notifications': 'Push-Benachrichtigungen',
-      'settings_push_notifications_subtitle': 'Benachrichtigungen auf Ihrem Gerät',
+      'settings_push_notifications_subtitle':
+          'Benachrichtigungen auf Ihrem Gerät',
       'settings_email_notifications': 'E-Mail-Benachrichtigungen',
       'settings_email_notifications_subtitle': 'Updates per E-Mail',
       'settings_notification_activity': 'Aktivität',
       'settings_spending_alerts': 'Ausgabenwarnungen',
-      'settings_spending_alerts_subtitle': 'Ungewöhnliche Ausgaben festgestellt',
+      'settings_spending_alerts_subtitle':
+          'Ungewöhnliche Ausgaben festgestellt',
       'settings_budget_alerts': 'Budgetwarnungen',
       'settings_budget_alerts_subtitle': 'Bei Annäherung an Budgetgrenzen',
       'settings_bill_reminders': 'Rechnungserinnerungen',
       'settings_bill_reminders_subtitle':
           'Monthly reminders for upcoming payments',
       'settings_receipt_reminders': 'Empfangserinnerungen',
-      'settings_receipt_reminders_subtitle': 'Erinnern Sie daran, Belege zu scannen',
+      'settings_receipt_reminders_subtitle':
+          'Erinnern Sie daran, Belege zu scannen',
       'settings_notification_summaries': 'Zusammenfassungen',
       'settings_weekly_summary': 'Wöchentliche Zusammenfassung',
       'settings_weekly_summary_subtitle': 'Jeden Montag um 9 Uhr',
@@ -16706,7 +17310,8 @@ class AppLocalizations {
           'Automatically translate receipt items',
       'settings_translate_to': 'Übersetzen nach',
       'settings_options': 'Optionen',
-      'settings_auto_detect_source_language': 'Quellsprache automatisch erkennen',
+      'settings_auto_detect_source_language':
+          'Quellsprache automatisch erkennen',
       'settings_auto_detect_source_language_subtitle':
           'Automatically detect original language',
       'settings_example': 'Beispiel',
@@ -16729,7 +17334,8 @@ class AppLocalizations {
           'Title must be between 3 and 120 characters.',
       'feature_request_description_length_error':
           'Description must be between 10 and 2000 characters.',
-      'feature_request_load_error_title': 'Funktionsanfragen konnten nicht geladen werden',
+      'feature_request_load_error_title':
+          'Funktionsanfragen konnten nicht geladen werden',
       'feature_request_your_ideas': 'Ihre Ideen',
       'feature_request_your_ideas_empty_title': 'Noch keine Ideen eingereicht',
       'feature_request_your_ideas_empty_subtitle':
@@ -16752,7 +17358,8 @@ class AppLocalizations {
       'feature_request_category_receipts_scanning': 'Quittungen und Scannen',
       'feature_request_category_budgets_planning': 'Budgets und Planung',
       'feature_request_category_household_sharing': 'Haushalt & Teilen',
-      'feature_request_category_design_accessibility': 'Design und Zugänglichkeit',
+      'feature_request_category_design_accessibility':
+          'Design und Zugänglichkeit',
       'feature_request_category_other': 'Andere',
       'settings_privacy_policy': 'Datenschutzrichtlinie',
       'settings_terms_of_service': 'Nutzungsbedingungen',
@@ -16785,7 +17392,8 @@ class AppLocalizations {
       'household_you_badge': 'Du',
       'household_members_title': 'Mitglieder',
       'household_remove_member_title': 'Mitglied entfernen',
-      'household_remove_member_confirm': '{Name} aus diesem Haushalt entfernen?',
+      'household_remove_member_confirm':
+          '{Name} aus diesem Haushalt entfernen?',
       'household_member_removed': 'Mitglied entfernt.',
       'household_leave_title': 'Verlassen Sie den Haushalt',
       'household_leave_confirm':
@@ -16826,7 +17434,8 @@ class AppLocalizations {
       'household_member_count': '{count} Mitglieder',
       'household_member_count_with_limit': '{count} von {limit} Mitgliedern',
       'household_shared_expenses': 'Geteilte Ausgaben',
-      'household_shared_expenses_subtitle': 'Erlauben Sie allen Mitgliedern, Ausgaben hinzuzufügen',
+      'household_shared_expenses_subtitle':
+          'Erlauben Sie allen Mitgliedern, Ausgaben hinzuzufügen',
       'household_budget_notifications': 'Budgetbenachrichtigungen',
       'household_budget_notifications_subtitle':
           'Notify when household budget limit is reached',
@@ -16906,7 +17515,8 @@ class AppLocalizations {
       'bill_reminders_due_date': 'Fälligkeitsdatum',
       'bill_reminders_pick_date': 'Fälligkeitsdatum auswählen',
       'bill_reminders_first_due_date': 'Erstes Fälligkeitsdatum',
-      'bill_reminders_pick_first_due_date': 'Wählen Sie das erste Fälligkeitsdatum aus',
+      'bill_reminders_pick_first_due_date':
+          'Wählen Sie das erste Fälligkeitsdatum aus',
       'bill_reminders_start_date': 'Beginnt am',
       'bill_reminders_pick_start_date': 'Wählen Sie das Startdatum',
       'bill_reminders_recurring': 'Wiederkehrend',
@@ -16933,7 +17543,8 @@ class AppLocalizations {
       'home_greeting_morning': 'Buongiorno',
       'home_greeting_afternoon': 'Buon pomeriggio',
       'home_greeting_evening': 'Buonasera',
-      'home_start_subtitle': 'Scansiona una ricevuta o aggiungi una spesa per iniziare.',
+      'home_start_subtitle':
+          'Scansiona una ricevuta o aggiungi una spesa per iniziare.',
       'home_all_reviewed': 'Tutte le ricevute vengono esaminate',
       'home_review_count_single': '1 ricevuta necessita di revisione',
       'home_review_count_plural': '{count} ricevute necessitano di revisione',
@@ -16949,9 +17560,12 @@ class AppLocalizations {
           'Top category is {category} at {percent}% of monthly spend.',
       'home_insight_top_subcategory':
           'Top subcategory is {subcategory} at {percent}% of item spend.',
-      'home_insight_review_count': '{count} ricevute devono ancora essere revisionate.',
-      'home_insight_all_caught_up': 'Siete tutti impegnati nella revisione delle ricevute.',
-      'home_scan_receipt_subtitle': 'Acquisizione istantanea basata sull\'intelligenza artificiale',
+      'home_insight_review_count':
+          '{count} ricevute devono ancora essere revisionate.',
+      'home_insight_all_caught_up':
+          'Siete tutti impegnati nella revisione delle ricevute.',
+      'home_scan_receipt_subtitle':
+          'Acquisizione istantanea basata sull\'intelligenza artificiale',
       'home_primary_action': 'Azione primaria',
       'home_spending_overview': 'Panoramica della spesa',
       'home_no_spending_data': 'Nessun dato di spesa per questo mese ancora.',
@@ -16972,7 +17586,8 @@ class AppLocalizations {
       'receipts_empty_body':
           'Scan your first receipt to start building a history you can review and filter.',
       'receipts_scan_first_action': 'Scansiona la tua prima ricevuta',
-      'receipts_no_filter_matches': 'Nessuna ricevuta corrisponde ai filtri attuali.',
+      'receipts_no_filter_matches':
+          'Nessuna ricevuta corrisponde ai filtri attuali.',
       'receipts_no_filter_matches_body':
           'Try another period, merchant search, or clear the active filters.',
       'receipts_history_total': 'Totale cronologia ricevute',
@@ -17016,26 +17631,34 @@ class AppLocalizations {
       'analytics_show_fewer_filters': 'Weniger Filter anzeigen',
       'analytics_categories_subtitle': 'Entdecken Sie, wohin Ihr Geld fließt',
       'analytics_overview_top_categories': 'Top-Kategorien',
-      'analytics_change_unavailable': 'Der vorherige Vergleich ist nicht verfügbar.',
-      'analytics_change_flat': 'Die Ausgaben sind im Vergleich zur Vorperiode unverändert.',
-      'analytics_change_more': 'Anstieg um {percent} % im Vergleich zum vorherigen Zeitraum.',
-      'analytics_change_less': 'Rückgang um {percent} % im Vergleich zum vorherigen Zeitraum.',
+      'analytics_change_unavailable':
+          'Der vorherige Vergleich ist nicht verfügbar.',
+      'analytics_change_flat':
+          'Die Ausgaben sind im Vergleich zur Vorperiode unverändert.',
+      'analytics_change_more':
+          'Anstieg um {percent} % im Vergleich zum vorherigen Zeitraum.',
+      'analytics_change_less':
+          'Rückgang um {percent} % im Vergleich zum vorherigen Zeitraum.',
       'analytics_compared_with_previous': 'Im Vergleich zur Vorperiode',
       'analytics_trends_period_label': 'Ausgewähltes Trendfenster',
       'analytics_trends_chart_title': 'Ausgabentrend',
       'analytics_trends_chart_subtitle':
           'Automatic daily, weekly, or monthly buckets for your selected period.',
-      'analytics_trends_no_data': 'Für diese Filter liegen keine Trenddaten vor.',
+      'analytics_trends_no_data':
+          'Für diese Filter liegen keine Trenddaten vor.',
       'analytics_trends_highest_bucket': 'Höchster Eimer',
       'analytics_trends_average_bucket': 'Durchschnittliche Bucket-Ausgaben',
       'analytics_household_empty_title': 'Noch keine Haushaltsanalyse',
       'analytics_household_empty_subtitle':
           'Create or open a household to compare spending across members.',
-      'analytics_household_no_data': 'Für diese Filter fallen keine Haushaltsausgaben an.',
+      'analytics_household_no_data':
+          'Für diese Filter fallen keine Haushaltsausgaben an.',
       'analytics_household_no_data_subtitle':
           'Try widening the date range or clearing a few filters.',
-      'analytics_household_preview_subtitle': 'Gemeinsame Ausgaben für diesen Zeitraum',
-      'analytics_household_total_transactions': '{count} geteilte Transaktionen',
+      'analytics_household_preview_subtitle':
+          'Gemeinsame Ausgaben für diesen Zeitraum',
+      'analytics_household_total_transactions':
+          '{count} geteilte Transaktionen',
       'analytics_household_member_transactions': '{count} Transaktionen',
       'analytics_household_top_category': 'Top-Kategorie: {category}',
       'analytics_household_top_category_unknown': 'Noch keine Kategorie',
@@ -17066,7 +17689,8 @@ class AppLocalizations {
           'Enter a valid amount greater than zero.',
       'manual_transaction_deleted': 'Manuelle Transaktion gelöscht.',
       'manual_transaction_delete_missing_id': 'Transaktions-ID fehlt.',
-      'transaction_amount_required': 'Inserisci un importo totale prima di salvare.',
+      'transaction_amount_required':
+          'Inserisci un importo totale prima di salvare.',
       'transaction_invalid_total': 'Inserisci un importo totale valido.',
       'transaction_save_before_labels':
           'Save the transaction before adding labels.',
@@ -17091,10 +17715,12 @@ class AppLocalizations {
       'transaction_receipt_photo_title': 'Foto della ricevuta',
       'transaction_receipt_photo_subtitle': 'Visualizza la foto originale',
       'transaction_warning_review_one_item': 'Recensisci 1 articolo in totale',
-      'transaction_warning_review_items': 'Controlla il totale di {count} articoli',
+      'transaction_warning_review_items':
+          'Controlla il totale di {count} articoli',
       'transaction_warning_review_total': 'Controlla il totale della ricevuta',
       'transaction_warning_check_one_detail': 'Controlla 1 dettaglio estratto',
-      'transaction_warning_check_details': 'Controlla {count} dettagli estratti',
+      'transaction_warning_check_details':
+          'Controlla {count} dettagli estratti',
       'transaction_warning_accepts_edits':
           'Take a quick final look before saving. {details}. Saving accepts your edits.',
       'transaction_was_amount': 'Era {importo}',
@@ -17110,7 +17736,8 @@ class AppLocalizations {
       'receipt_photo_invalid_url': 'Die URL des Belegfotos ist ungültig.',
       'receipt_photo_open_fallback':
           'Could not open the file automatically. The link was copied instead.',
-      'receipt_photo_load_failed': 'Dieses Belegbild konnte nicht geladen werden.',
+      'receipt_photo_load_failed':
+          'Dieses Belegbild konnte nicht geladen werden.',
       'receipt_photo_download': 'Herunterladen',
       'receipt_photo_downloaded': 'Quittung unter {Pfad} gespeichert',
       'receipt_photo_open_external': 'Von außen öffnen',
@@ -17155,8 +17782,10 @@ class AppLocalizations {
       'accentaware_colors': 'Akzentbewusste Farben',
       'activate_pro': 'Aktivieren Sie PRO',
       'after_the_amount': 'Nach dem Betrag',
-      'always_use_the_dark_interface': 'Verwenden Sie immer die dunkle Oberfläche.',
-      'always_use_the_light_interface': 'Benutzen Sie immer die Lichtschnittstelle.',
+      'always_use_the_dark_interface':
+          'Verwenden Sie immer die dunkle Oberfläche.',
+      'always_use_the_light_interface':
+          'Benutzen Sie immer die Lichtschnittstelle.',
       'autodetect_source_language': 'Quellsprache automatisch erkennen',
       'before_the_amount': 'Vor dem Betrag',
       'bill_due_soon': 'Rechnung bald fällig',
@@ -17170,21 +17799,25 @@ class AppLocalizations {
       'current_release': 'Aktuelle Veröffentlichung',
       'daily_avg': 'Täglicher Durchschn',
       'delete_reminder': 'Erinnerung löschen',
-      'discount_must_be_zero_or_higher': 'Der Rabatt muss Null oder höher sein.',
+      'discount_must_be_zero_or_higher':
+          'Der Rabatt muss Null oder höher sein.',
       'discount_percentage_must_stay_under_100':
           'Discount percentage must stay under 100%.',
       'display_name': 'Anzeigename',
       'email_support': 'E-Mail-Support',
-      'enable_notifications_in_the_app': 'Aktivieren Sie Benachrichtigungen in der App',
+      'enable_notifications_in_the_app':
+          'Aktivieren Sie Benachrichtigungen in der App',
       'extra_compact_text': 'Extra kompakter Text',
       'features_tools': 'Funktionen und Tools',
-      'follow_your_device_theme_setting': 'Befolgen Sie die Designeinstellungen Ihres Geräts.',
+      'follow_your_device_theme_setting':
+          'Befolgen Sie die Designeinstellungen Ihres Geräts.',
       'getting_started': 'Erste Schritte',
       'helpful_savings_spotted_in_the_current_r':
           'Helpful savings spotted in the current results.',
       'hide_decimals': 'Dezimalstellen ausblenden',
       'items_translation': 'Artikelübersetzung',
-      'keep_this_image_and_try_later': 'Behalten Sie dieses Bild und versuchen Sie es später',
+      'keep_this_image_and_try_later':
+          'Behalten Sie dieses Bild und versuchen Sie es später',
       'larger_interface': 'Größere Schnittstelle',
       'no_category_insights_yet': 'Noch keine Einblicke in die Kategorie',
       'no_overview_yet': 'Noch keine Übersicht',
@@ -17193,9 +17826,11 @@ class AppLocalizations {
       'no_trend_data_yet': 'Noch keine Trenddaten',
       'open_review': 'Rezension öffnen',
       'organize_your_receipts': 'Organisieren Sie Ihre Quittungen',
-      'please_enter_a_category_name': 'Bitte geben Sie einen Kategorienamen ein.',
+      'please_enter_a_category_name':
+          'Bitte geben Sie einen Kategorienamen ein.',
       'please_enter_a_label_name': 'Bitte geben Sie einen Labelnamen ein.',
-      'please_enter_a_subcategory_name': 'Bitte geben Sie einen Unterkategorienamen ein.',
+      'please_enter_a_subcategory_name':
+          'Bitte geben Sie einen Unterkategorienamen ein.',
       'previous_comparison_is_unavailable_for_t':
           'Previous comparison is unavailable for this range.',
       'privacy_policy': 'Datenschutzrichtlinie',
@@ -17228,7 +17863,8 @@ class AppLocalizations {
       'upload_receipt': 'Quittung hochladen',
       'use_this_source_language': 'Verwenden Sie diese Ausgangssprache',
       'view_insights_and_trends': 'Sehen Sie sich Erkenntnisse und Trends an',
-      'where_the_most_spending_happened_in_this': 'Where the most spending happened in this period.'
+      'where_the_most_spending_happened_in_this':
+          'Where the most spending happened in this period.',
     },
     'ja': {
       'app_title': '経費追跡ツール',
@@ -17510,7 +18146,8 @@ class AppLocalizations {
           'By continuing, you will sign in with your Google account.',
       'settings_subtitle': 'Verwalten Sie Ihre Präferenzen',
       'household_settings_title': 'Familienhaushalt',
-      'household_settings_subtitle': 'Teilen und verwalten Sie den Haushaltszugang',
+      'household_settings_subtitle':
+          'Teilen und verwalten Sie den Haushaltszugang',
       'settings_account_section': 'Konto',
       'settings_preferences_section': 'Präferenzen',
       'settings_support_section': 'Unterstützung',
@@ -17525,7 +18162,8 @@ class AppLocalizations {
       'settings_security': 'Sicherheit',
       'settings_security_subtitle': 'Passwort- und Kontosicherheit',
       'settings_appearance': 'Aussehen',
-      'settings_appearance_subtitle': 'Wählen Sie zwischen Hell- und Dunkelmodus',
+      'settings_appearance_subtitle':
+          'Wählen Sie zwischen Hell- und Dunkelmodus',
       'settings_theme': 'Thema',
       'settings_theme_light': 'Licht',
       'settings_theme_dark': 'Dunkel',
@@ -17546,25 +18184,29 @@ class AppLocalizations {
       'settings_font_large': 'Groß',
       'settings_display_options': 'Anzeigeoptionen',
       'settings_compact_mode': 'Kompaktmodus',
-      'settings_compact_mode_subtitle': 'Zeigen Sie mehr Inhalte auf dem Bildschirm an',
+      'settings_compact_mode_subtitle':
+          'Zeigen Sie mehr Inhalte auf dem Bildschirm an',
       'settings_animations': 'Animationen',
       'settings_animations_subtitle': 'Ermöglichen Sie reibungslose Übergänge',
       'settings_notifications_subtitle': 'Warnungen und Erinnerungen',
       'settings_notification_channels': 'Kanäle',
       'settings_push_notifications': 'Push-Benachrichtigungen',
-      'settings_push_notifications_subtitle': 'Benachrichtigungen auf Ihrem Gerät',
+      'settings_push_notifications_subtitle':
+          'Benachrichtigungen auf Ihrem Gerät',
       'settings_email_notifications': 'E-Mail-Benachrichtigungen',
       'settings_email_notifications_subtitle': 'Updates per E-Mail',
       'settings_notification_activity': 'Aktivität',
       'settings_spending_alerts': 'Ausgabenwarnungen',
-      'settings_spending_alerts_subtitle': 'Ungewöhnliche Ausgaben festgestellt',
+      'settings_spending_alerts_subtitle':
+          'Ungewöhnliche Ausgaben festgestellt',
       'settings_budget_alerts': 'Budgetwarnungen',
       'settings_budget_alerts_subtitle': 'Bei Annäherung an Budgetgrenzen',
       'settings_bill_reminders': 'Rechnungserinnerungen',
       'settings_bill_reminders_subtitle':
           'Monthly reminders for upcoming payments',
       'settings_receipt_reminders': 'Empfangserinnerungen',
-      'settings_receipt_reminders_subtitle': 'Erinnern Sie daran, Belege zu scannen',
+      'settings_receipt_reminders_subtitle':
+          'Erinnern Sie daran, Belege zu scannen',
       'settings_notification_summaries': 'Zusammenfassungen',
       'settings_weekly_summary': 'Wöchentliche Zusammenfassung',
       'settings_weekly_summary_subtitle': 'Jeden Montag um 9 Uhr',
@@ -17597,7 +18239,8 @@ class AppLocalizations {
           'Automatically translate receipt items',
       'settings_translate_to': 'Übersetzen nach',
       'settings_options': 'Optionen',
-      'settings_auto_detect_source_language': 'Quellsprache automatisch erkennen',
+      'settings_auto_detect_source_language':
+          'Quellsprache automatisch erkennen',
       'settings_auto_detect_source_language_subtitle':
           'Automatically detect original language',
       'settings_example': 'Beispiel',
@@ -17620,7 +18263,8 @@ class AppLocalizations {
           'Title must be between 3 and 120 characters.',
       'feature_request_description_length_error':
           'Description must be between 10 and 2000 characters.',
-      'feature_request_load_error_title': 'Funktionsanfragen konnten nicht geladen werden',
+      'feature_request_load_error_title':
+          'Funktionsanfragen konnten nicht geladen werden',
       'feature_request_your_ideas': 'Ihre Ideen',
       'feature_request_your_ideas_empty_title': 'Noch keine Ideen eingereicht',
       'feature_request_your_ideas_empty_subtitle':
@@ -17643,7 +18287,8 @@ class AppLocalizations {
       'feature_request_category_receipts_scanning': 'Quittungen und Scannen',
       'feature_request_category_budgets_planning': 'Budgets und Planung',
       'feature_request_category_household_sharing': 'Haushalt & Teilen',
-      'feature_request_category_design_accessibility': 'Design und Zugänglichkeit',
+      'feature_request_category_design_accessibility':
+          'Design und Zugänglichkeit',
       'feature_request_category_other': 'Andere',
       'settings_privacy_policy': 'Datenschutzrichtlinie',
       'settings_terms_of_service': 'Nutzungsbedingungen',
@@ -17676,7 +18321,8 @@ class AppLocalizations {
       'household_you_badge': 'Du',
       'household_members_title': 'Mitglieder',
       'household_remove_member_title': 'Mitglied entfernen',
-      'household_remove_member_confirm': '{Name} aus diesem Haushalt entfernen?',
+      'household_remove_member_confirm':
+          '{Name} aus diesem Haushalt entfernen?',
       'household_member_removed': 'Mitglied entfernt.',
       'household_leave_title': 'Verlassen Sie den Haushalt',
       'household_leave_confirm':
@@ -17717,7 +18363,8 @@ class AppLocalizations {
       'household_member_count': '{count} Mitglieder',
       'household_member_count_with_limit': '{count} von {limit} Mitgliedern',
       'household_shared_expenses': 'Geteilte Ausgaben',
-      'household_shared_expenses_subtitle': 'Erlauben Sie allen Mitgliedern, Ausgaben hinzuzufügen',
+      'household_shared_expenses_subtitle':
+          'Erlauben Sie allen Mitgliedern, Ausgaben hinzuzufügen',
       'household_budget_notifications': 'Budgetbenachrichtigungen',
       'household_budget_notifications_subtitle':
           'Notify when household budget limit is reached',
@@ -17797,7 +18444,8 @@ class AppLocalizations {
       'bill_reminders_due_date': 'Fälligkeitsdatum',
       'bill_reminders_pick_date': 'Fälligkeitsdatum auswählen',
       'bill_reminders_first_due_date': 'Erstes Fälligkeitsdatum',
-      'bill_reminders_pick_first_due_date': 'Wählen Sie das erste Fälligkeitsdatum aus',
+      'bill_reminders_pick_first_due_date':
+          'Wählen Sie das erste Fälligkeitsdatum aus',
       'bill_reminders_start_date': 'Beginnt am',
       'bill_reminders_pick_start_date': 'Wählen Sie das Startdatum',
       'bill_reminders_recurring': 'Wiederkehrend',
@@ -17824,7 +18472,8 @@ class AppLocalizations {
       'home_greeting_morning': 'Buongiorno',
       'home_greeting_afternoon': 'Buon pomeriggio',
       'home_greeting_evening': 'Buonasera',
-      'home_start_subtitle': 'Scansiona una ricevuta o aggiungi una spesa per iniziare.',
+      'home_start_subtitle':
+          'Scansiona una ricevuta o aggiungi una spesa per iniziare.',
       'home_all_reviewed': 'Tutte le ricevute vengono esaminate',
       'home_review_count_single': '1 ricevuta necessita di revisione',
       'home_review_count_plural': '{count} ricevute necessitano di revisione',
@@ -17840,9 +18489,12 @@ class AppLocalizations {
           'Top category is {category} at {percent}% of monthly spend.',
       'home_insight_top_subcategory':
           'Top subcategory is {subcategory} at {percent}% of item spend.',
-      'home_insight_review_count': '{count} ricevute devono ancora essere revisionate.',
-      'home_insight_all_caught_up': 'Siete tutti impegnati nella revisione delle ricevute.',
-      'home_scan_receipt_subtitle': 'Acquisizione istantanea basata sull\'intelligenza artificiale',
+      'home_insight_review_count':
+          '{count} ricevute devono ancora essere revisionate.',
+      'home_insight_all_caught_up':
+          'Siete tutti impegnati nella revisione delle ricevute.',
+      'home_scan_receipt_subtitle':
+          'Acquisizione istantanea basata sull\'intelligenza artificiale',
       'home_primary_action': 'Azione primaria',
       'home_spending_overview': 'Panoramica della spesa',
       'home_no_spending_data': 'Nessun dato di spesa per questo mese ancora.',
@@ -17863,7 +18515,8 @@ class AppLocalizations {
       'receipts_empty_body':
           'Scan your first receipt to start building a history you can review and filter.',
       'receipts_scan_first_action': 'Scansiona la tua prima ricevuta',
-      'receipts_no_filter_matches': 'Nessuna ricevuta corrisponde ai filtri attuali.',
+      'receipts_no_filter_matches':
+          'Nessuna ricevuta corrisponde ai filtri attuali.',
       'receipts_no_filter_matches_body':
           'Try another period, merchant search, or clear the active filters.',
       'receipts_history_total': 'Totale cronologia ricevute',
@@ -17907,26 +18560,34 @@ class AppLocalizations {
       'analytics_show_fewer_filters': 'Weniger Filter anzeigen',
       'analytics_categories_subtitle': 'Entdecken Sie, wohin Ihr Geld fließt',
       'analytics_overview_top_categories': 'Top-Kategorien',
-      'analytics_change_unavailable': 'Der vorherige Vergleich ist nicht verfügbar.',
-      'analytics_change_flat': 'Die Ausgaben sind im Vergleich zur Vorperiode unverändert.',
-      'analytics_change_more': 'Anstieg um {percent} % im Vergleich zum vorherigen Zeitraum.',
-      'analytics_change_less': 'Rückgang um {percent} % im Vergleich zum vorherigen Zeitraum.',
+      'analytics_change_unavailable':
+          'Der vorherige Vergleich ist nicht verfügbar.',
+      'analytics_change_flat':
+          'Die Ausgaben sind im Vergleich zur Vorperiode unverändert.',
+      'analytics_change_more':
+          'Anstieg um {percent} % im Vergleich zum vorherigen Zeitraum.',
+      'analytics_change_less':
+          'Rückgang um {percent} % im Vergleich zum vorherigen Zeitraum.',
       'analytics_compared_with_previous': 'Im Vergleich zur Vorperiode',
       'analytics_trends_period_label': 'Ausgewähltes Trendfenster',
       'analytics_trends_chart_title': 'Ausgabentrend',
       'analytics_trends_chart_subtitle':
           'Automatic daily, weekly, or monthly buckets for your selected period.',
-      'analytics_trends_no_data': 'Für diese Filter liegen keine Trenddaten vor.',
+      'analytics_trends_no_data':
+          'Für diese Filter liegen keine Trenddaten vor.',
       'analytics_trends_highest_bucket': 'Höchster Eimer',
       'analytics_trends_average_bucket': 'Durchschnittliche Bucket-Ausgaben',
       'analytics_household_empty_title': 'Noch keine Haushaltsanalyse',
       'analytics_household_empty_subtitle':
           'Create or open a household to compare spending across members.',
-      'analytics_household_no_data': 'Für diese Filter fallen keine Haushaltsausgaben an.',
+      'analytics_household_no_data':
+          'Für diese Filter fallen keine Haushaltsausgaben an.',
       'analytics_household_no_data_subtitle':
           'Try widening the date range or clearing a few filters.',
-      'analytics_household_preview_subtitle': 'Gemeinsame Ausgaben für diesen Zeitraum',
-      'analytics_household_total_transactions': '{count} geteilte Transaktionen',
+      'analytics_household_preview_subtitle':
+          'Gemeinsame Ausgaben für diesen Zeitraum',
+      'analytics_household_total_transactions':
+          '{count} geteilte Transaktionen',
       'analytics_household_member_transactions': '{count} Transaktionen',
       'analytics_household_top_category': 'Top-Kategorie: {category}',
       'analytics_household_top_category_unknown': 'Noch keine Kategorie',
@@ -17957,7 +18618,8 @@ class AppLocalizations {
           'Enter a valid amount greater than zero.',
       'manual_transaction_deleted': 'Manuelle Transaktion gelöscht.',
       'manual_transaction_delete_missing_id': 'Transaktions-ID fehlt.',
-      'transaction_amount_required': 'Inserisci un importo totale prima di salvare.',
+      'transaction_amount_required':
+          'Inserisci un importo totale prima di salvare.',
       'transaction_invalid_total': 'Inserisci un importo totale valido.',
       'transaction_save_before_labels':
           'Save the transaction before adding labels.',
@@ -17982,10 +18644,12 @@ class AppLocalizations {
       'transaction_receipt_photo_title': 'Foto della ricevuta',
       'transaction_receipt_photo_subtitle': 'Visualizza la foto originale',
       'transaction_warning_review_one_item': 'Recensisci 1 articolo in totale',
-      'transaction_warning_review_items': 'Controlla il totale di {count} articoli',
+      'transaction_warning_review_items':
+          'Controlla il totale di {count} articoli',
       'transaction_warning_review_total': 'Controlla il totale della ricevuta',
       'transaction_warning_check_one_detail': 'Controlla 1 dettaglio estratto',
-      'transaction_warning_check_details': 'Controlla {count} dettagli estratti',
+      'transaction_warning_check_details':
+          'Controlla {count} dettagli estratti',
       'transaction_warning_accepts_edits':
           'Take a quick final look before saving. {details}. Saving accepts your edits.',
       'transaction_was_amount': 'Era {importo}',
@@ -18001,7 +18665,8 @@ class AppLocalizations {
       'receipt_photo_invalid_url': 'Die URL des Belegfotos ist ungültig.',
       'receipt_photo_open_fallback':
           'Could not open the file automatically. The link was copied instead.',
-      'receipt_photo_load_failed': 'Dieses Belegbild konnte nicht geladen werden.',
+      'receipt_photo_load_failed':
+          'Dieses Belegbild konnte nicht geladen werden.',
       'receipt_photo_download': 'Herunterladen',
       'receipt_photo_downloaded': 'Quittung unter {Pfad} gespeichert',
       'receipt_photo_open_external': 'Von außen öffnen',
@@ -18046,8 +18711,10 @@ class AppLocalizations {
       'accentaware_colors': 'Akzentbewusste Farben',
       'activate_pro': 'Aktivieren Sie PRO',
       'after_the_amount': 'Nach dem Betrag',
-      'always_use_the_dark_interface': 'Verwenden Sie immer die dunkle Oberfläche.',
-      'always_use_the_light_interface': 'Benutzen Sie immer die Lichtschnittstelle.',
+      'always_use_the_dark_interface':
+          'Verwenden Sie immer die dunkle Oberfläche.',
+      'always_use_the_light_interface':
+          'Benutzen Sie immer die Lichtschnittstelle.',
       'autodetect_source_language': 'Quellsprache automatisch erkennen',
       'before_the_amount': 'Vor dem Betrag',
       'bill_due_soon': 'Rechnung bald fällig',
@@ -18061,21 +18728,25 @@ class AppLocalizations {
       'current_release': 'Aktuelle Veröffentlichung',
       'daily_avg': 'Täglicher Durchschn',
       'delete_reminder': 'Erinnerung löschen',
-      'discount_must_be_zero_or_higher': 'Der Rabatt muss Null oder höher sein.',
+      'discount_must_be_zero_or_higher':
+          'Der Rabatt muss Null oder höher sein.',
       'discount_percentage_must_stay_under_100':
           'Discount percentage must stay under 100%.',
       'display_name': 'Anzeigename',
       'email_support': 'E-Mail-Support',
-      'enable_notifications_in_the_app': 'Aktivieren Sie Benachrichtigungen in der App',
+      'enable_notifications_in_the_app':
+          'Aktivieren Sie Benachrichtigungen in der App',
       'extra_compact_text': 'Extra kompakter Text',
       'features_tools': 'Funktionen und Tools',
-      'follow_your_device_theme_setting': 'Befolgen Sie die Designeinstellungen Ihres Geräts.',
+      'follow_your_device_theme_setting':
+          'Befolgen Sie die Designeinstellungen Ihres Geräts.',
       'getting_started': 'Erste Schritte',
       'helpful_savings_spotted_in_the_current_r':
           'Helpful savings spotted in the current results.',
       'hide_decimals': 'Dezimalstellen ausblenden',
       'items_translation': 'Artikelübersetzung',
-      'keep_this_image_and_try_later': 'Behalten Sie dieses Bild und versuchen Sie es später',
+      'keep_this_image_and_try_later':
+          'Behalten Sie dieses Bild und versuchen Sie es später',
       'larger_interface': 'Größere Schnittstelle',
       'no_category_insights_yet': 'Noch keine Einblicke in die Kategorie',
       'no_overview_yet': 'Noch keine Übersicht',
@@ -18084,9 +18755,11 @@ class AppLocalizations {
       'no_trend_data_yet': 'Noch keine Trenddaten',
       'open_review': 'Rezension öffnen',
       'organize_your_receipts': 'Organisieren Sie Ihre Quittungen',
-      'please_enter_a_category_name': 'Bitte geben Sie einen Kategorienamen ein.',
+      'please_enter_a_category_name':
+          'Bitte geben Sie einen Kategorienamen ein.',
       'please_enter_a_label_name': 'Bitte geben Sie einen Labelnamen ein.',
-      'please_enter_a_subcategory_name': 'Bitte geben Sie einen Unterkategorienamen ein.',
+      'please_enter_a_subcategory_name':
+          'Bitte geben Sie einen Unterkategorienamen ein.',
       'previous_comparison_is_unavailable_for_t':
           'Previous comparison is unavailable for this range.',
       'privacy_policy': 'Datenschutzrichtlinie',
@@ -18119,7 +18792,8 @@ class AppLocalizations {
       'upload_receipt': 'Quittung hochladen',
       'use_this_source_language': 'Verwenden Sie diese Ausgangssprache',
       'view_insights_and_trends': 'Sehen Sie sich Erkenntnisse und Trends an',
-      'where_the_most_spending_happened_in_this': 'Where the most spending happened in this period.'
+      'where_the_most_spending_happened_in_this':
+          'Where the most spending happened in this period.',
     },
     'ko': {
       'app_title': '비용 추적기',
@@ -18402,7 +19076,8 @@ class AppLocalizations {
           'By continuing, you will sign in with your Google account.',
       'settings_subtitle': 'Verwalten Sie Ihre Präferenzen',
       'household_settings_title': 'Familienhaushalt',
-      'household_settings_subtitle': 'Teilen und verwalten Sie den Haushaltszugang',
+      'household_settings_subtitle':
+          'Teilen und verwalten Sie den Haushaltszugang',
       'settings_account_section': 'Konto',
       'settings_preferences_section': 'Präferenzen',
       'settings_support_section': 'Unterstützung',
@@ -18417,7 +19092,8 @@ class AppLocalizations {
       'settings_security': 'Sicherheit',
       'settings_security_subtitle': 'Passwort- und Kontosicherheit',
       'settings_appearance': 'Aussehen',
-      'settings_appearance_subtitle': 'Wählen Sie zwischen Hell- und Dunkelmodus',
+      'settings_appearance_subtitle':
+          'Wählen Sie zwischen Hell- und Dunkelmodus',
       'settings_theme': 'Thema',
       'settings_theme_light': 'Licht',
       'settings_theme_dark': 'Dunkel',
@@ -18438,25 +19114,29 @@ class AppLocalizations {
       'settings_font_large': 'Groß',
       'settings_display_options': 'Anzeigeoptionen',
       'settings_compact_mode': 'Kompaktmodus',
-      'settings_compact_mode_subtitle': 'Zeigen Sie mehr Inhalte auf dem Bildschirm an',
+      'settings_compact_mode_subtitle':
+          'Zeigen Sie mehr Inhalte auf dem Bildschirm an',
       'settings_animations': 'Animationen',
       'settings_animations_subtitle': 'Ermöglichen Sie reibungslose Übergänge',
       'settings_notifications_subtitle': 'Warnungen und Erinnerungen',
       'settings_notification_channels': 'Kanäle',
       'settings_push_notifications': 'Push-Benachrichtigungen',
-      'settings_push_notifications_subtitle': 'Benachrichtigungen auf Ihrem Gerät',
+      'settings_push_notifications_subtitle':
+          'Benachrichtigungen auf Ihrem Gerät',
       'settings_email_notifications': 'E-Mail-Benachrichtigungen',
       'settings_email_notifications_subtitle': 'Updates per E-Mail',
       'settings_notification_activity': 'Aktivität',
       'settings_spending_alerts': 'Ausgabenwarnungen',
-      'settings_spending_alerts_subtitle': 'Ungewöhnliche Ausgaben festgestellt',
+      'settings_spending_alerts_subtitle':
+          'Ungewöhnliche Ausgaben festgestellt',
       'settings_budget_alerts': 'Budgetwarnungen',
       'settings_budget_alerts_subtitle': 'Bei Annäherung an Budgetgrenzen',
       'settings_bill_reminders': 'Rechnungserinnerungen',
       'settings_bill_reminders_subtitle':
           'Monthly reminders for upcoming payments',
       'settings_receipt_reminders': 'Empfangserinnerungen',
-      'settings_receipt_reminders_subtitle': 'Erinnern Sie daran, Belege zu scannen',
+      'settings_receipt_reminders_subtitle':
+          'Erinnern Sie daran, Belege zu scannen',
       'settings_notification_summaries': 'Zusammenfassungen',
       'settings_weekly_summary': 'Wöchentliche Zusammenfassung',
       'settings_weekly_summary_subtitle': 'Jeden Montag um 9 Uhr',
@@ -18489,7 +19169,8 @@ class AppLocalizations {
           'Automatically translate receipt items',
       'settings_translate_to': 'Übersetzen nach',
       'settings_options': 'Optionen',
-      'settings_auto_detect_source_language': 'Quellsprache automatisch erkennen',
+      'settings_auto_detect_source_language':
+          'Quellsprache automatisch erkennen',
       'settings_auto_detect_source_language_subtitle':
           'Automatically detect original language',
       'settings_example': 'Beispiel',
@@ -18512,7 +19193,8 @@ class AppLocalizations {
           'Title must be between 3 and 120 characters.',
       'feature_request_description_length_error':
           'Description must be between 10 and 2000 characters.',
-      'feature_request_load_error_title': 'Funktionsanfragen konnten nicht geladen werden',
+      'feature_request_load_error_title':
+          'Funktionsanfragen konnten nicht geladen werden',
       'feature_request_your_ideas': 'Ihre Ideen',
       'feature_request_your_ideas_empty_title': 'Noch keine Ideen eingereicht',
       'feature_request_your_ideas_empty_subtitle':
@@ -18535,7 +19217,8 @@ class AppLocalizations {
       'feature_request_category_receipts_scanning': 'Quittungen und Scannen',
       'feature_request_category_budgets_planning': 'Budgets und Planung',
       'feature_request_category_household_sharing': 'Haushalt & Teilen',
-      'feature_request_category_design_accessibility': 'Design und Zugänglichkeit',
+      'feature_request_category_design_accessibility':
+          'Design und Zugänglichkeit',
       'feature_request_category_other': 'Andere',
       'settings_privacy_policy': 'Datenschutzrichtlinie',
       'settings_terms_of_service': 'Nutzungsbedingungen',
@@ -18568,7 +19251,8 @@ class AppLocalizations {
       'household_you_badge': 'Du',
       'household_members_title': 'Mitglieder',
       'household_remove_member_title': 'Mitglied entfernen',
-      'household_remove_member_confirm': '{Name} aus diesem Haushalt entfernen?',
+      'household_remove_member_confirm':
+          '{Name} aus diesem Haushalt entfernen?',
       'household_member_removed': 'Mitglied entfernt.',
       'household_leave_title': 'Verlassen Sie den Haushalt',
       'household_leave_confirm':
@@ -18609,7 +19293,8 @@ class AppLocalizations {
       'household_member_count': '{count} Mitglieder',
       'household_member_count_with_limit': '{count} von {limit} Mitgliedern',
       'household_shared_expenses': 'Geteilte Ausgaben',
-      'household_shared_expenses_subtitle': 'Erlauben Sie allen Mitgliedern, Ausgaben hinzuzufügen',
+      'household_shared_expenses_subtitle':
+          'Erlauben Sie allen Mitgliedern, Ausgaben hinzuzufügen',
       'household_budget_notifications': 'Budgetbenachrichtigungen',
       'household_budget_notifications_subtitle':
           'Notify when household budget limit is reached',
@@ -18689,7 +19374,8 @@ class AppLocalizations {
       'bill_reminders_due_date': 'Fälligkeitsdatum',
       'bill_reminders_pick_date': 'Fälligkeitsdatum auswählen',
       'bill_reminders_first_due_date': 'Erstes Fälligkeitsdatum',
-      'bill_reminders_pick_first_due_date': 'Wählen Sie das erste Fälligkeitsdatum aus',
+      'bill_reminders_pick_first_due_date':
+          'Wählen Sie das erste Fälligkeitsdatum aus',
       'bill_reminders_start_date': 'Beginnt am',
       'bill_reminders_pick_start_date': 'Wählen Sie das Startdatum',
       'bill_reminders_recurring': 'Wiederkehrend',
@@ -18716,7 +19402,8 @@ class AppLocalizations {
       'home_greeting_morning': 'Buongiorno',
       'home_greeting_afternoon': 'Buon pomeriggio',
       'home_greeting_evening': 'Buonasera',
-      'home_start_subtitle': 'Scansiona una ricevuta o aggiungi una spesa per iniziare.',
+      'home_start_subtitle':
+          'Scansiona una ricevuta o aggiungi una spesa per iniziare.',
       'home_all_reviewed': 'Tutte le ricevute vengono esaminate',
       'home_review_count_single': '1 ricevuta necessita di revisione',
       'home_review_count_plural': '{count} ricevute necessitano di revisione',
@@ -18732,9 +19419,12 @@ class AppLocalizations {
           'Top category is {category} at {percent}% of monthly spend.',
       'home_insight_top_subcategory':
           'Top subcategory is {subcategory} at {percent}% of item spend.',
-      'home_insight_review_count': '{count} ricevute devono ancora essere revisionate.',
-      'home_insight_all_caught_up': 'Siete tutti impegnati nella revisione delle ricevute.',
-      'home_scan_receipt_subtitle': 'Acquisizione istantanea basata sull\'intelligenza artificiale',
+      'home_insight_review_count':
+          '{count} ricevute devono ancora essere revisionate.',
+      'home_insight_all_caught_up':
+          'Siete tutti impegnati nella revisione delle ricevute.',
+      'home_scan_receipt_subtitle':
+          'Acquisizione istantanea basata sull\'intelligenza artificiale',
       'home_primary_action': 'Azione primaria',
       'home_spending_overview': 'Panoramica della spesa',
       'home_no_spending_data': 'Nessun dato di spesa per questo mese ancora.',
@@ -18755,7 +19445,8 @@ class AppLocalizations {
       'receipts_empty_body':
           'Scan your first receipt to start building a history you can review and filter.',
       'receipts_scan_first_action': 'Scansiona la tua prima ricevuta',
-      'receipts_no_filter_matches': 'Nessuna ricevuta corrisponde ai filtri attuali.',
+      'receipts_no_filter_matches':
+          'Nessuna ricevuta corrisponde ai filtri attuali.',
       'receipts_no_filter_matches_body':
           'Try another period, merchant search, or clear the active filters.',
       'receipts_history_total': 'Totale cronologia ricevute',
@@ -18799,26 +19490,34 @@ class AppLocalizations {
       'analytics_show_fewer_filters': 'Weniger Filter anzeigen',
       'analytics_categories_subtitle': 'Entdecken Sie, wohin Ihr Geld fließt',
       'analytics_overview_top_categories': 'Top-Kategorien',
-      'analytics_change_unavailable': 'Der vorherige Vergleich ist nicht verfügbar.',
-      'analytics_change_flat': 'Die Ausgaben sind im Vergleich zur Vorperiode unverändert.',
-      'analytics_change_more': 'Anstieg um {percent} % im Vergleich zum vorherigen Zeitraum.',
-      'analytics_change_less': 'Rückgang um {percent} % im Vergleich zum vorherigen Zeitraum.',
+      'analytics_change_unavailable':
+          'Der vorherige Vergleich ist nicht verfügbar.',
+      'analytics_change_flat':
+          'Die Ausgaben sind im Vergleich zur Vorperiode unverändert.',
+      'analytics_change_more':
+          'Anstieg um {percent} % im Vergleich zum vorherigen Zeitraum.',
+      'analytics_change_less':
+          'Rückgang um {percent} % im Vergleich zum vorherigen Zeitraum.',
       'analytics_compared_with_previous': 'Im Vergleich zur Vorperiode',
       'analytics_trends_period_label': 'Ausgewähltes Trendfenster',
       'analytics_trends_chart_title': 'Ausgabentrend',
       'analytics_trends_chart_subtitle':
           'Automatic daily, weekly, or monthly buckets for your selected period.',
-      'analytics_trends_no_data': 'Für diese Filter liegen keine Trenddaten vor.',
+      'analytics_trends_no_data':
+          'Für diese Filter liegen keine Trenddaten vor.',
       'analytics_trends_highest_bucket': 'Höchster Eimer',
       'analytics_trends_average_bucket': 'Durchschnittliche Bucket-Ausgaben',
       'analytics_household_empty_title': 'Noch keine Haushaltsanalyse',
       'analytics_household_empty_subtitle':
           'Create or open a household to compare spending across members.',
-      'analytics_household_no_data': 'Für diese Filter fallen keine Haushaltsausgaben an.',
+      'analytics_household_no_data':
+          'Für diese Filter fallen keine Haushaltsausgaben an.',
       'analytics_household_no_data_subtitle':
           'Try widening the date range or clearing a few filters.',
-      'analytics_household_preview_subtitle': 'Gemeinsame Ausgaben für diesen Zeitraum',
-      'analytics_household_total_transactions': '{count} geteilte Transaktionen',
+      'analytics_household_preview_subtitle':
+          'Gemeinsame Ausgaben für diesen Zeitraum',
+      'analytics_household_total_transactions':
+          '{count} geteilte Transaktionen',
       'analytics_household_member_transactions': '{count} Transaktionen',
       'analytics_household_top_category': 'Top-Kategorie: {category}',
       'analytics_household_top_category_unknown': 'Noch keine Kategorie',
@@ -18849,7 +19548,8 @@ class AppLocalizations {
           'Enter a valid amount greater than zero.',
       'manual_transaction_deleted': 'Manuelle Transaktion gelöscht.',
       'manual_transaction_delete_missing_id': 'Transaktions-ID fehlt.',
-      'transaction_amount_required': 'Inserisci un importo totale prima di salvare.',
+      'transaction_amount_required':
+          'Inserisci un importo totale prima di salvare.',
       'transaction_invalid_total': 'Inserisci un importo totale valido.',
       'transaction_save_before_labels':
           'Save the transaction before adding labels.',
@@ -18874,10 +19574,12 @@ class AppLocalizations {
       'transaction_receipt_photo_title': 'Foto della ricevuta',
       'transaction_receipt_photo_subtitle': 'Visualizza la foto originale',
       'transaction_warning_review_one_item': 'Recensisci 1 articolo in totale',
-      'transaction_warning_review_items': 'Controlla il totale di {count} articoli',
+      'transaction_warning_review_items':
+          'Controlla il totale di {count} articoli',
       'transaction_warning_review_total': 'Controlla il totale della ricevuta',
       'transaction_warning_check_one_detail': 'Controlla 1 dettaglio estratto',
-      'transaction_warning_check_details': 'Controlla {count} dettagli estratti',
+      'transaction_warning_check_details':
+          'Controlla {count} dettagli estratti',
       'transaction_warning_accepts_edits':
           'Take a quick final look before saving. {details}. Saving accepts your edits.',
       'transaction_was_amount': 'Era {importo}',
@@ -18893,7 +19595,8 @@ class AppLocalizations {
       'receipt_photo_invalid_url': 'Die URL des Belegfotos ist ungültig.',
       'receipt_photo_open_fallback':
           'Could not open the file automatically. The link was copied instead.',
-      'receipt_photo_load_failed': 'Dieses Belegbild konnte nicht geladen werden.',
+      'receipt_photo_load_failed':
+          'Dieses Belegbild konnte nicht geladen werden.',
       'receipt_photo_download': 'Herunterladen',
       'receipt_photo_downloaded': 'Quittung unter {Pfad} gespeichert',
       'receipt_photo_open_external': 'Von außen öffnen',
@@ -18938,8 +19641,10 @@ class AppLocalizations {
       'accentaware_colors': 'Akzentbewusste Farben',
       'activate_pro': 'Aktivieren Sie PRO',
       'after_the_amount': 'Nach dem Betrag',
-      'always_use_the_dark_interface': 'Verwenden Sie immer die dunkle Oberfläche.',
-      'always_use_the_light_interface': 'Benutzen Sie immer die Lichtschnittstelle.',
+      'always_use_the_dark_interface':
+          'Verwenden Sie immer die dunkle Oberfläche.',
+      'always_use_the_light_interface':
+          'Benutzen Sie immer die Lichtschnittstelle.',
       'autodetect_source_language': 'Quellsprache automatisch erkennen',
       'before_the_amount': 'Vor dem Betrag',
       'bill_due_soon': 'Rechnung bald fällig',
@@ -18953,21 +19658,25 @@ class AppLocalizations {
       'current_release': 'Aktuelle Veröffentlichung',
       'daily_avg': 'Täglicher Durchschn',
       'delete_reminder': 'Erinnerung löschen',
-      'discount_must_be_zero_or_higher': 'Der Rabatt muss Null oder höher sein.',
+      'discount_must_be_zero_or_higher':
+          'Der Rabatt muss Null oder höher sein.',
       'discount_percentage_must_stay_under_100':
           'Discount percentage must stay under 100%.',
       'display_name': 'Anzeigename',
       'email_support': 'E-Mail-Support',
-      'enable_notifications_in_the_app': 'Aktivieren Sie Benachrichtigungen in der App',
+      'enable_notifications_in_the_app':
+          'Aktivieren Sie Benachrichtigungen in der App',
       'extra_compact_text': 'Extra kompakter Text',
       'features_tools': 'Funktionen und Tools',
-      'follow_your_device_theme_setting': 'Befolgen Sie die Designeinstellungen Ihres Geräts.',
+      'follow_your_device_theme_setting':
+          'Befolgen Sie die Designeinstellungen Ihres Geräts.',
       'getting_started': 'Erste Schritte',
       'helpful_savings_spotted_in_the_current_r':
           'Helpful savings spotted in the current results.',
       'hide_decimals': 'Dezimalstellen ausblenden',
       'items_translation': 'Artikelübersetzung',
-      'keep_this_image_and_try_later': 'Behalten Sie dieses Bild und versuchen Sie es später',
+      'keep_this_image_and_try_later':
+          'Behalten Sie dieses Bild und versuchen Sie es später',
       'larger_interface': 'Größere Schnittstelle',
       'no_category_insights_yet': 'Noch keine Einblicke in die Kategorie',
       'no_overview_yet': 'Noch keine Übersicht',
@@ -18976,9 +19685,11 @@ class AppLocalizations {
       'no_trend_data_yet': 'Noch keine Trenddaten',
       'open_review': 'Rezension öffnen',
       'organize_your_receipts': 'Organisieren Sie Ihre Quittungen',
-      'please_enter_a_category_name': 'Bitte geben Sie einen Kategorienamen ein.',
+      'please_enter_a_category_name':
+          'Bitte geben Sie einen Kategorienamen ein.',
       'please_enter_a_label_name': 'Bitte geben Sie einen Labelnamen ein.',
-      'please_enter_a_subcategory_name': 'Bitte geben Sie einen Unterkategorienamen ein.',
+      'please_enter_a_subcategory_name':
+          'Bitte geben Sie einen Unterkategorienamen ein.',
       'previous_comparison_is_unavailable_for_t':
           'Previous comparison is unavailable for this range.',
       'privacy_policy': 'Datenschutzrichtlinie',
@@ -19011,7 +19722,8 @@ class AppLocalizations {
       'upload_receipt': 'Quittung hochladen',
       'use_this_source_language': 'Verwenden Sie diese Ausgangssprache',
       'view_insights_and_trends': 'Sehen Sie sich Erkenntnisse und Trends an',
-      'where_the_most_spending_happened_in_this': 'Where the most spending happened in this period.'
+      'where_the_most_spending_happened_in_this':
+          'Where the most spending happened in this period.',
     },
     'hi': {
       'app_title': 'व्यय ट्रैकर',
@@ -19302,7 +20014,8 @@ class AppLocalizations {
           'By continuing, you will sign in with your Google account.',
       'settings_subtitle': 'Verwalten Sie Ihre Präferenzen',
       'household_settings_title': 'Familienhaushalt',
-      'household_settings_subtitle': 'Teilen und verwalten Sie den Haushaltszugang',
+      'household_settings_subtitle':
+          'Teilen und verwalten Sie den Haushaltszugang',
       'settings_account_section': 'Konto',
       'settings_preferences_section': 'Präferenzen',
       'settings_support_section': 'Unterstützung',
@@ -19317,7 +20030,8 @@ class AppLocalizations {
       'settings_security': 'Sicherheit',
       'settings_security_subtitle': 'Passwort- und Kontosicherheit',
       'settings_appearance': 'Aussehen',
-      'settings_appearance_subtitle': 'Wählen Sie zwischen Hell- und Dunkelmodus',
+      'settings_appearance_subtitle':
+          'Wählen Sie zwischen Hell- und Dunkelmodus',
       'settings_theme': 'Thema',
       'settings_theme_light': 'Licht',
       'settings_theme_dark': 'Dunkel',
@@ -19338,25 +20052,29 @@ class AppLocalizations {
       'settings_font_large': 'Groß',
       'settings_display_options': 'Anzeigeoptionen',
       'settings_compact_mode': 'Kompaktmodus',
-      'settings_compact_mode_subtitle': 'Zeigen Sie mehr Inhalte auf dem Bildschirm an',
+      'settings_compact_mode_subtitle':
+          'Zeigen Sie mehr Inhalte auf dem Bildschirm an',
       'settings_animations': 'Animationen',
       'settings_animations_subtitle': 'Ermöglichen Sie reibungslose Übergänge',
       'settings_notifications_subtitle': 'Warnungen und Erinnerungen',
       'settings_notification_channels': 'Kanäle',
       'settings_push_notifications': 'Push-Benachrichtigungen',
-      'settings_push_notifications_subtitle': 'Benachrichtigungen auf Ihrem Gerät',
+      'settings_push_notifications_subtitle':
+          'Benachrichtigungen auf Ihrem Gerät',
       'settings_email_notifications': 'E-Mail-Benachrichtigungen',
       'settings_email_notifications_subtitle': 'Updates per E-Mail',
       'settings_notification_activity': 'Aktivität',
       'settings_spending_alerts': 'Ausgabenwarnungen',
-      'settings_spending_alerts_subtitle': 'Ungewöhnliche Ausgaben festgestellt',
+      'settings_spending_alerts_subtitle':
+          'Ungewöhnliche Ausgaben festgestellt',
       'settings_budget_alerts': 'Budgetwarnungen',
       'settings_budget_alerts_subtitle': 'Bei Annäherung an Budgetgrenzen',
       'settings_bill_reminders': 'Rechnungserinnerungen',
       'settings_bill_reminders_subtitle':
           'Monthly reminders for upcoming payments',
       'settings_receipt_reminders': 'Empfangserinnerungen',
-      'settings_receipt_reminders_subtitle': 'Erinnern Sie daran, Belege zu scannen',
+      'settings_receipt_reminders_subtitle':
+          'Erinnern Sie daran, Belege zu scannen',
       'settings_notification_summaries': 'Zusammenfassungen',
       'settings_weekly_summary': 'Wöchentliche Zusammenfassung',
       'settings_weekly_summary_subtitle': 'Jeden Montag um 9 Uhr',
@@ -19389,7 +20107,8 @@ class AppLocalizations {
           'Automatically translate receipt items',
       'settings_translate_to': 'Übersetzen nach',
       'settings_options': 'Optionen',
-      'settings_auto_detect_source_language': 'Quellsprache automatisch erkennen',
+      'settings_auto_detect_source_language':
+          'Quellsprache automatisch erkennen',
       'settings_auto_detect_source_language_subtitle':
           'Automatically detect original language',
       'settings_example': 'Beispiel',
@@ -19412,7 +20131,8 @@ class AppLocalizations {
           'Title must be between 3 and 120 characters.',
       'feature_request_description_length_error':
           'Description must be between 10 and 2000 characters.',
-      'feature_request_load_error_title': 'Funktionsanfragen konnten nicht geladen werden',
+      'feature_request_load_error_title':
+          'Funktionsanfragen konnten nicht geladen werden',
       'feature_request_your_ideas': 'Ihre Ideen',
       'feature_request_your_ideas_empty_title': 'Noch keine Ideen eingereicht',
       'feature_request_your_ideas_empty_subtitle':
@@ -19435,7 +20155,8 @@ class AppLocalizations {
       'feature_request_category_receipts_scanning': 'Quittungen und Scannen',
       'feature_request_category_budgets_planning': 'Budgets und Planung',
       'feature_request_category_household_sharing': 'Haushalt & Teilen',
-      'feature_request_category_design_accessibility': 'Design und Zugänglichkeit',
+      'feature_request_category_design_accessibility':
+          'Design und Zugänglichkeit',
       'feature_request_category_other': 'Andere',
       'settings_privacy_policy': 'Datenschutzrichtlinie',
       'settings_terms_of_service': 'Nutzungsbedingungen',
@@ -19468,7 +20189,8 @@ class AppLocalizations {
       'household_you_badge': 'Du',
       'household_members_title': 'Mitglieder',
       'household_remove_member_title': 'Mitglied entfernen',
-      'household_remove_member_confirm': '{Name} aus diesem Haushalt entfernen?',
+      'household_remove_member_confirm':
+          '{Name} aus diesem Haushalt entfernen?',
       'household_member_removed': 'Mitglied entfernt.',
       'household_leave_title': 'Verlassen Sie den Haushalt',
       'household_leave_confirm':
@@ -19509,7 +20231,8 @@ class AppLocalizations {
       'household_member_count': '{count} Mitglieder',
       'household_member_count_with_limit': '{count} von {limit} Mitgliedern',
       'household_shared_expenses': 'Geteilte Ausgaben',
-      'household_shared_expenses_subtitle': 'Erlauben Sie allen Mitgliedern, Ausgaben hinzuzufügen',
+      'household_shared_expenses_subtitle':
+          'Erlauben Sie allen Mitgliedern, Ausgaben hinzuzufügen',
       'household_budget_notifications': 'Budgetbenachrichtigungen',
       'household_budget_notifications_subtitle':
           'Notify when household budget limit is reached',
@@ -19589,7 +20312,8 @@ class AppLocalizations {
       'bill_reminders_due_date': 'Fälligkeitsdatum',
       'bill_reminders_pick_date': 'Fälligkeitsdatum auswählen',
       'bill_reminders_first_due_date': 'Erstes Fälligkeitsdatum',
-      'bill_reminders_pick_first_due_date': 'Wählen Sie das erste Fälligkeitsdatum aus',
+      'bill_reminders_pick_first_due_date':
+          'Wählen Sie das erste Fälligkeitsdatum aus',
       'bill_reminders_start_date': 'Beginnt am',
       'bill_reminders_pick_start_date': 'Wählen Sie das Startdatum',
       'bill_reminders_recurring': 'Wiederkehrend',
@@ -19616,7 +20340,8 @@ class AppLocalizations {
       'home_greeting_morning': 'Buongiorno',
       'home_greeting_afternoon': 'Buon pomeriggio',
       'home_greeting_evening': 'Buonasera',
-      'home_start_subtitle': 'Scansiona una ricevuta o aggiungi una spesa per iniziare.',
+      'home_start_subtitle':
+          'Scansiona una ricevuta o aggiungi una spesa per iniziare.',
       'home_all_reviewed': 'Tutte le ricevute vengono esaminate',
       'home_review_count_single': '1 ricevuta necessita di revisione',
       'home_review_count_plural': '{count} ricevute necessitano di revisione',
@@ -19632,9 +20357,12 @@ class AppLocalizations {
           'Top category is {category} at {percent}% of monthly spend.',
       'home_insight_top_subcategory':
           'Top subcategory is {subcategory} at {percent}% of item spend.',
-      'home_insight_review_count': '{count} ricevute devono ancora essere revisionate.',
-      'home_insight_all_caught_up': 'Siete tutti impegnati nella revisione delle ricevute.',
-      'home_scan_receipt_subtitle': 'Acquisizione istantanea basata sull\'intelligenza artificiale',
+      'home_insight_review_count':
+          '{count} ricevute devono ancora essere revisionate.',
+      'home_insight_all_caught_up':
+          'Siete tutti impegnati nella revisione delle ricevute.',
+      'home_scan_receipt_subtitle':
+          'Acquisizione istantanea basata sull\'intelligenza artificiale',
       'home_primary_action': 'Azione primaria',
       'home_spending_overview': 'Panoramica della spesa',
       'home_no_spending_data': 'Nessun dato di spesa per questo mese ancora.',
@@ -19655,7 +20383,8 @@ class AppLocalizations {
       'receipts_empty_body':
           'Scan your first receipt to start building a history you can review and filter.',
       'receipts_scan_first_action': 'Scansiona la tua prima ricevuta',
-      'receipts_no_filter_matches': 'Nessuna ricevuta corrisponde ai filtri attuali.',
+      'receipts_no_filter_matches':
+          'Nessuna ricevuta corrisponde ai filtri attuali.',
       'receipts_no_filter_matches_body':
           'Try another period, merchant search, or clear the active filters.',
       'receipts_history_total': 'Totale cronologia ricevute',
@@ -19699,26 +20428,34 @@ class AppLocalizations {
       'analytics_show_fewer_filters': 'Weniger Filter anzeigen',
       'analytics_categories_subtitle': 'Entdecken Sie, wohin Ihr Geld fließt',
       'analytics_overview_top_categories': 'Top-Kategorien',
-      'analytics_change_unavailable': 'Der vorherige Vergleich ist nicht verfügbar.',
-      'analytics_change_flat': 'Die Ausgaben sind im Vergleich zur Vorperiode unverändert.',
-      'analytics_change_more': 'Anstieg um {percent} % im Vergleich zum vorherigen Zeitraum.',
-      'analytics_change_less': 'Rückgang um {percent} % im Vergleich zum vorherigen Zeitraum.',
+      'analytics_change_unavailable':
+          'Der vorherige Vergleich ist nicht verfügbar.',
+      'analytics_change_flat':
+          'Die Ausgaben sind im Vergleich zur Vorperiode unverändert.',
+      'analytics_change_more':
+          'Anstieg um {percent} % im Vergleich zum vorherigen Zeitraum.',
+      'analytics_change_less':
+          'Rückgang um {percent} % im Vergleich zum vorherigen Zeitraum.',
       'analytics_compared_with_previous': 'Im Vergleich zur Vorperiode',
       'analytics_trends_period_label': 'Ausgewähltes Trendfenster',
       'analytics_trends_chart_title': 'Ausgabentrend',
       'analytics_trends_chart_subtitle':
           'Automatic daily, weekly, or monthly buckets for your selected period.',
-      'analytics_trends_no_data': 'Für diese Filter liegen keine Trenddaten vor.',
+      'analytics_trends_no_data':
+          'Für diese Filter liegen keine Trenddaten vor.',
       'analytics_trends_highest_bucket': 'Höchster Eimer',
       'analytics_trends_average_bucket': 'Durchschnittliche Bucket-Ausgaben',
       'analytics_household_empty_title': 'Noch keine Haushaltsanalyse',
       'analytics_household_empty_subtitle':
           'Create or open a household to compare spending across members.',
-      'analytics_household_no_data': 'Für diese Filter fallen keine Haushaltsausgaben an.',
+      'analytics_household_no_data':
+          'Für diese Filter fallen keine Haushaltsausgaben an.',
       'analytics_household_no_data_subtitle':
           'Try widening the date range or clearing a few filters.',
-      'analytics_household_preview_subtitle': 'Gemeinsame Ausgaben für diesen Zeitraum',
-      'analytics_household_total_transactions': '{count} geteilte Transaktionen',
+      'analytics_household_preview_subtitle':
+          'Gemeinsame Ausgaben für diesen Zeitraum',
+      'analytics_household_total_transactions':
+          '{count} geteilte Transaktionen',
       'analytics_household_member_transactions': '{count} Transaktionen',
       'analytics_household_top_category': 'Top-Kategorie: {category}',
       'analytics_household_top_category_unknown': 'Noch keine Kategorie',
@@ -19749,7 +20486,8 @@ class AppLocalizations {
           'Enter a valid amount greater than zero.',
       'manual_transaction_deleted': 'Manuelle Transaktion gelöscht.',
       'manual_transaction_delete_missing_id': 'Transaktions-ID fehlt.',
-      'transaction_amount_required': 'Inserisci un importo totale prima di salvare.',
+      'transaction_amount_required':
+          'Inserisci un importo totale prima di salvare.',
       'transaction_invalid_total': 'Inserisci un importo totale valido.',
       'transaction_save_before_labels':
           'Save the transaction before adding labels.',
@@ -19774,10 +20512,12 @@ class AppLocalizations {
       'transaction_receipt_photo_title': 'Foto della ricevuta',
       'transaction_receipt_photo_subtitle': 'Visualizza la foto originale',
       'transaction_warning_review_one_item': 'Recensisci 1 articolo in totale',
-      'transaction_warning_review_items': 'Controlla il totale di {count} articoli',
+      'transaction_warning_review_items':
+          'Controlla il totale di {count} articoli',
       'transaction_warning_review_total': 'Controlla il totale della ricevuta',
       'transaction_warning_check_one_detail': 'Controlla 1 dettaglio estratto',
-      'transaction_warning_check_details': 'Controlla {count} dettagli estratti',
+      'transaction_warning_check_details':
+          'Controlla {count} dettagli estratti',
       'transaction_warning_accepts_edits':
           'Take a quick final look before saving. {details}. Saving accepts your edits.',
       'transaction_was_amount': 'Era {importo}',
@@ -19793,7 +20533,8 @@ class AppLocalizations {
       'receipt_photo_invalid_url': 'Die URL des Belegfotos ist ungültig.',
       'receipt_photo_open_fallback':
           'Could not open the file automatically. The link was copied instead.',
-      'receipt_photo_load_failed': 'Dieses Belegbild konnte nicht geladen werden.',
+      'receipt_photo_load_failed':
+          'Dieses Belegbild konnte nicht geladen werden.',
       'receipt_photo_download': 'Herunterladen',
       'receipt_photo_downloaded': 'Quittung unter {Pfad} gespeichert',
       'receipt_photo_open_external': 'Von außen öffnen',
@@ -19838,8 +20579,10 @@ class AppLocalizations {
       'accentaware_colors': 'Akzentbewusste Farben',
       'activate_pro': 'Aktivieren Sie PRO',
       'after_the_amount': 'Nach dem Betrag',
-      'always_use_the_dark_interface': 'Verwenden Sie immer die dunkle Oberfläche.',
-      'always_use_the_light_interface': 'Benutzen Sie immer die Lichtschnittstelle.',
+      'always_use_the_dark_interface':
+          'Verwenden Sie immer die dunkle Oberfläche.',
+      'always_use_the_light_interface':
+          'Benutzen Sie immer die Lichtschnittstelle.',
       'autodetect_source_language': 'Quellsprache automatisch erkennen',
       'before_the_amount': 'Vor dem Betrag',
       'bill_due_soon': 'Rechnung bald fällig',
@@ -19853,21 +20596,25 @@ class AppLocalizations {
       'current_release': 'Aktuelle Veröffentlichung',
       'daily_avg': 'Täglicher Durchschn',
       'delete_reminder': 'Erinnerung löschen',
-      'discount_must_be_zero_or_higher': 'Der Rabatt muss Null oder höher sein.',
+      'discount_must_be_zero_or_higher':
+          'Der Rabatt muss Null oder höher sein.',
       'discount_percentage_must_stay_under_100':
           'Discount percentage must stay under 100%.',
       'display_name': 'Anzeigename',
       'email_support': 'E-Mail-Support',
-      'enable_notifications_in_the_app': 'Aktivieren Sie Benachrichtigungen in der App',
+      'enable_notifications_in_the_app':
+          'Aktivieren Sie Benachrichtigungen in der App',
       'extra_compact_text': 'Extra kompakter Text',
       'features_tools': 'Funktionen und Tools',
-      'follow_your_device_theme_setting': 'Befolgen Sie die Designeinstellungen Ihres Geräts.',
+      'follow_your_device_theme_setting':
+          'Befolgen Sie die Designeinstellungen Ihres Geräts.',
       'getting_started': 'Erste Schritte',
       'helpful_savings_spotted_in_the_current_r':
           'Helpful savings spotted in the current results.',
       'hide_decimals': 'Dezimalstellen ausblenden',
       'items_translation': 'Artikelübersetzung',
-      'keep_this_image_and_try_later': 'Behalten Sie dieses Bild und versuchen Sie es später',
+      'keep_this_image_and_try_later':
+          'Behalten Sie dieses Bild und versuchen Sie es später',
       'larger_interface': 'Größere Schnittstelle',
       'no_category_insights_yet': 'Noch keine Einblicke in die Kategorie',
       'no_overview_yet': 'Noch keine Übersicht',
@@ -19876,9 +20623,11 @@ class AppLocalizations {
       'no_trend_data_yet': 'Noch keine Trenddaten',
       'open_review': 'Rezension öffnen',
       'organize_your_receipts': 'Organisieren Sie Ihre Quittungen',
-      'please_enter_a_category_name': 'Bitte geben Sie einen Kategorienamen ein.',
+      'please_enter_a_category_name':
+          'Bitte geben Sie einen Kategorienamen ein.',
       'please_enter_a_label_name': 'Bitte geben Sie einen Labelnamen ein.',
-      'please_enter_a_subcategory_name': 'Bitte geben Sie einen Unterkategorienamen ein.',
+      'please_enter_a_subcategory_name':
+          'Bitte geben Sie einen Unterkategorienamen ein.',
       'previous_comparison_is_unavailable_for_t':
           'Previous comparison is unavailable for this range.',
       'privacy_policy': 'Datenschutzrichtlinie',
@@ -19911,7 +20660,8 @@ class AppLocalizations {
       'upload_receipt': 'Quittung hochladen',
       'use_this_source_language': 'Verwenden Sie diese Ausgangssprache',
       'view_insights_and_trends': 'Sehen Sie sich Erkenntnisse und Trends an',
-      'where_the_most_spending_happened_in_this': 'Where the most spending happened in this period.'
+      'where_the_most_spending_happened_in_this':
+          'Where the most spending happened in this period.',
     },
     'ar': {
       'app_title': 'تعقب النفقات',
@@ -20202,7 +20952,8 @@ class AppLocalizations {
           'By continuing, you will sign in with your Google account.',
       'settings_subtitle': 'Verwalten Sie Ihre Präferenzen',
       'household_settings_title': 'Familienhaushalt',
-      'household_settings_subtitle': 'Teilen und verwalten Sie den Haushaltszugang',
+      'household_settings_subtitle':
+          'Teilen und verwalten Sie den Haushaltszugang',
       'settings_account_section': 'Konto',
       'settings_preferences_section': 'Präferenzen',
       'settings_support_section': 'Unterstützung',
@@ -20217,7 +20968,8 @@ class AppLocalizations {
       'settings_security': 'Sicherheit',
       'settings_security_subtitle': 'Passwort- und Kontosicherheit',
       'settings_appearance': 'Aussehen',
-      'settings_appearance_subtitle': 'Wählen Sie zwischen Hell- und Dunkelmodus',
+      'settings_appearance_subtitle':
+          'Wählen Sie zwischen Hell- und Dunkelmodus',
       'settings_theme': 'Thema',
       'settings_theme_light': 'Licht',
       'settings_theme_dark': 'Dunkel',
@@ -20238,25 +20990,29 @@ class AppLocalizations {
       'settings_font_large': 'Groß',
       'settings_display_options': 'Anzeigeoptionen',
       'settings_compact_mode': 'Kompaktmodus',
-      'settings_compact_mode_subtitle': 'Zeigen Sie mehr Inhalte auf dem Bildschirm an',
+      'settings_compact_mode_subtitle':
+          'Zeigen Sie mehr Inhalte auf dem Bildschirm an',
       'settings_animations': 'Animationen',
       'settings_animations_subtitle': 'Ermöglichen Sie reibungslose Übergänge',
       'settings_notifications_subtitle': 'Warnungen und Erinnerungen',
       'settings_notification_channels': 'Kanäle',
       'settings_push_notifications': 'Push-Benachrichtigungen',
-      'settings_push_notifications_subtitle': 'Benachrichtigungen auf Ihrem Gerät',
+      'settings_push_notifications_subtitle':
+          'Benachrichtigungen auf Ihrem Gerät',
       'settings_email_notifications': 'E-Mail-Benachrichtigungen',
       'settings_email_notifications_subtitle': 'Updates per E-Mail',
       'settings_notification_activity': 'Aktivität',
       'settings_spending_alerts': 'Ausgabenwarnungen',
-      'settings_spending_alerts_subtitle': 'Ungewöhnliche Ausgaben festgestellt',
+      'settings_spending_alerts_subtitle':
+          'Ungewöhnliche Ausgaben festgestellt',
       'settings_budget_alerts': 'Budgetwarnungen',
       'settings_budget_alerts_subtitle': 'Bei Annäherung an Budgetgrenzen',
       'settings_bill_reminders': 'Rechnungserinnerungen',
       'settings_bill_reminders_subtitle':
           'Monthly reminders for upcoming payments',
       'settings_receipt_reminders': 'Empfangserinnerungen',
-      'settings_receipt_reminders_subtitle': 'Erinnern Sie daran, Belege zu scannen',
+      'settings_receipt_reminders_subtitle':
+          'Erinnern Sie daran, Belege zu scannen',
       'settings_notification_summaries': 'Zusammenfassungen',
       'settings_weekly_summary': 'Wöchentliche Zusammenfassung',
       'settings_weekly_summary_subtitle': 'Jeden Montag um 9 Uhr',
@@ -20289,7 +21045,8 @@ class AppLocalizations {
           'Automatically translate receipt items',
       'settings_translate_to': 'Übersetzen nach',
       'settings_options': 'Optionen',
-      'settings_auto_detect_source_language': 'Quellsprache automatisch erkennen',
+      'settings_auto_detect_source_language':
+          'Quellsprache automatisch erkennen',
       'settings_auto_detect_source_language_subtitle':
           'Automatically detect original language',
       'settings_example': 'Beispiel',
@@ -20312,7 +21069,8 @@ class AppLocalizations {
           'Title must be between 3 and 120 characters.',
       'feature_request_description_length_error':
           'Description must be between 10 and 2000 characters.',
-      'feature_request_load_error_title': 'Funktionsanfragen konnten nicht geladen werden',
+      'feature_request_load_error_title':
+          'Funktionsanfragen konnten nicht geladen werden',
       'feature_request_your_ideas': 'Ihre Ideen',
       'feature_request_your_ideas_empty_title': 'Noch keine Ideen eingereicht',
       'feature_request_your_ideas_empty_subtitle':
@@ -20335,7 +21093,8 @@ class AppLocalizations {
       'feature_request_category_receipts_scanning': 'Quittungen und Scannen',
       'feature_request_category_budgets_planning': 'Budgets und Planung',
       'feature_request_category_household_sharing': 'Haushalt & Teilen',
-      'feature_request_category_design_accessibility': 'Design und Zugänglichkeit',
+      'feature_request_category_design_accessibility':
+          'Design und Zugänglichkeit',
       'feature_request_category_other': 'Andere',
       'settings_privacy_policy': 'Datenschutzrichtlinie',
       'settings_terms_of_service': 'Nutzungsbedingungen',
@@ -20368,7 +21127,8 @@ class AppLocalizations {
       'household_you_badge': 'Du',
       'household_members_title': 'Mitglieder',
       'household_remove_member_title': 'Mitglied entfernen',
-      'household_remove_member_confirm': '{Name} aus diesem Haushalt entfernen?',
+      'household_remove_member_confirm':
+          '{Name} aus diesem Haushalt entfernen?',
       'household_member_removed': 'Mitglied entfernt.',
       'household_leave_title': 'Verlassen Sie den Haushalt',
       'household_leave_confirm':
@@ -20409,7 +21169,8 @@ class AppLocalizations {
       'household_member_count': '{count} Mitglieder',
       'household_member_count_with_limit': '{count} von {limit} Mitgliedern',
       'household_shared_expenses': 'Geteilte Ausgaben',
-      'household_shared_expenses_subtitle': 'Erlauben Sie allen Mitgliedern, Ausgaben hinzuzufügen',
+      'household_shared_expenses_subtitle':
+          'Erlauben Sie allen Mitgliedern, Ausgaben hinzuzufügen',
       'household_budget_notifications': 'Budgetbenachrichtigungen',
       'household_budget_notifications_subtitle':
           'Notify when household budget limit is reached',
@@ -20489,7 +21250,8 @@ class AppLocalizations {
       'bill_reminders_due_date': 'Fälligkeitsdatum',
       'bill_reminders_pick_date': 'Fälligkeitsdatum auswählen',
       'bill_reminders_first_due_date': 'Erstes Fälligkeitsdatum',
-      'bill_reminders_pick_first_due_date': 'Wählen Sie das erste Fälligkeitsdatum aus',
+      'bill_reminders_pick_first_due_date':
+          'Wählen Sie das erste Fälligkeitsdatum aus',
       'bill_reminders_start_date': 'Beginnt am',
       'bill_reminders_pick_start_date': 'Wählen Sie das Startdatum',
       'bill_reminders_recurring': 'Wiederkehrend',
@@ -20516,7 +21278,8 @@ class AppLocalizations {
       'home_greeting_morning': 'Buongiorno',
       'home_greeting_afternoon': 'Buon pomeriggio',
       'home_greeting_evening': 'Buonasera',
-      'home_start_subtitle': 'Scansiona una ricevuta o aggiungi una spesa per iniziare.',
+      'home_start_subtitle':
+          'Scansiona una ricevuta o aggiungi una spesa per iniziare.',
       'home_all_reviewed': 'Tutte le ricevute vengono esaminate',
       'home_review_count_single': '1 ricevuta necessita di revisione',
       'home_review_count_plural': '{count} ricevute necessitano di revisione',
@@ -20532,9 +21295,12 @@ class AppLocalizations {
           'Top category is {category} at {percent}% of monthly spend.',
       'home_insight_top_subcategory':
           'Top subcategory is {subcategory} at {percent}% of item spend.',
-      'home_insight_review_count': '{count} ricevute devono ancora essere revisionate.',
-      'home_insight_all_caught_up': 'Siete tutti impegnati nella revisione delle ricevute.',
-      'home_scan_receipt_subtitle': 'Acquisizione istantanea basata sull\'intelligenza artificiale',
+      'home_insight_review_count':
+          '{count} ricevute devono ancora essere revisionate.',
+      'home_insight_all_caught_up':
+          'Siete tutti impegnati nella revisione delle ricevute.',
+      'home_scan_receipt_subtitle':
+          'Acquisizione istantanea basata sull\'intelligenza artificiale',
       'home_primary_action': 'Azione primaria',
       'home_spending_overview': 'Panoramica della spesa',
       'home_no_spending_data': 'Nessun dato di spesa per questo mese ancora.',
@@ -20555,7 +21321,8 @@ class AppLocalizations {
       'receipts_empty_body':
           'Scan your first receipt to start building a history you can review and filter.',
       'receipts_scan_first_action': 'Scansiona la tua prima ricevuta',
-      'receipts_no_filter_matches': 'Nessuna ricevuta corrisponde ai filtri attuali.',
+      'receipts_no_filter_matches':
+          'Nessuna ricevuta corrisponde ai filtri attuali.',
       'receipts_no_filter_matches_body':
           'Try another period, merchant search, or clear the active filters.',
       'receipts_history_total': 'Totale cronologia ricevute',
@@ -20599,26 +21366,34 @@ class AppLocalizations {
       'analytics_show_fewer_filters': 'Weniger Filter anzeigen',
       'analytics_categories_subtitle': 'Entdecken Sie, wohin Ihr Geld fließt',
       'analytics_overview_top_categories': 'Top-Kategorien',
-      'analytics_change_unavailable': 'Der vorherige Vergleich ist nicht verfügbar.',
-      'analytics_change_flat': 'Die Ausgaben sind im Vergleich zur Vorperiode unverändert.',
-      'analytics_change_more': 'Anstieg um {percent} % im Vergleich zum vorherigen Zeitraum.',
-      'analytics_change_less': 'Rückgang um {percent} % im Vergleich zum vorherigen Zeitraum.',
+      'analytics_change_unavailable':
+          'Der vorherige Vergleich ist nicht verfügbar.',
+      'analytics_change_flat':
+          'Die Ausgaben sind im Vergleich zur Vorperiode unverändert.',
+      'analytics_change_more':
+          'Anstieg um {percent} % im Vergleich zum vorherigen Zeitraum.',
+      'analytics_change_less':
+          'Rückgang um {percent} % im Vergleich zum vorherigen Zeitraum.',
       'analytics_compared_with_previous': 'Im Vergleich zur Vorperiode',
       'analytics_trends_period_label': 'Ausgewähltes Trendfenster',
       'analytics_trends_chart_title': 'Ausgabentrend',
       'analytics_trends_chart_subtitle':
           'Automatic daily, weekly, or monthly buckets for your selected period.',
-      'analytics_trends_no_data': 'Für diese Filter liegen keine Trenddaten vor.',
+      'analytics_trends_no_data':
+          'Für diese Filter liegen keine Trenddaten vor.',
       'analytics_trends_highest_bucket': 'Höchster Eimer',
       'analytics_trends_average_bucket': 'Durchschnittliche Bucket-Ausgaben',
       'analytics_household_empty_title': 'Noch keine Haushaltsanalyse',
       'analytics_household_empty_subtitle':
           'Create or open a household to compare spending across members.',
-      'analytics_household_no_data': 'Für diese Filter fallen keine Haushaltsausgaben an.',
+      'analytics_household_no_data':
+          'Für diese Filter fallen keine Haushaltsausgaben an.',
       'analytics_household_no_data_subtitle':
           'Try widening the date range or clearing a few filters.',
-      'analytics_household_preview_subtitle': 'Gemeinsame Ausgaben für diesen Zeitraum',
-      'analytics_household_total_transactions': '{count} geteilte Transaktionen',
+      'analytics_household_preview_subtitle':
+          'Gemeinsame Ausgaben für diesen Zeitraum',
+      'analytics_household_total_transactions':
+          '{count} geteilte Transaktionen',
       'analytics_household_member_transactions': '{count} Transaktionen',
       'analytics_household_top_category': 'Top-Kategorie: {category}',
       'analytics_household_top_category_unknown': 'Noch keine Kategorie',
@@ -20649,7 +21424,8 @@ class AppLocalizations {
           'Enter a valid amount greater than zero.',
       'manual_transaction_deleted': 'Manuelle Transaktion gelöscht.',
       'manual_transaction_delete_missing_id': 'Transaktions-ID fehlt.',
-      'transaction_amount_required': 'Inserisci un importo totale prima di salvare.',
+      'transaction_amount_required':
+          'Inserisci un importo totale prima di salvare.',
       'transaction_invalid_total': 'Inserisci un importo totale valido.',
       'transaction_save_before_labels':
           'Save the transaction before adding labels.',
@@ -20674,10 +21450,12 @@ class AppLocalizations {
       'transaction_receipt_photo_title': 'Foto della ricevuta',
       'transaction_receipt_photo_subtitle': 'Visualizza la foto originale',
       'transaction_warning_review_one_item': 'Recensisci 1 articolo in totale',
-      'transaction_warning_review_items': 'Controlla il totale di {count} articoli',
+      'transaction_warning_review_items':
+          'Controlla il totale di {count} articoli',
       'transaction_warning_review_total': 'Controlla il totale della ricevuta',
       'transaction_warning_check_one_detail': 'Controlla 1 dettaglio estratto',
-      'transaction_warning_check_details': 'Controlla {count} dettagli estratti',
+      'transaction_warning_check_details':
+          'Controlla {count} dettagli estratti',
       'transaction_warning_accepts_edits':
           'Take a quick final look before saving. {details}. Saving accepts your edits.',
       'transaction_was_amount': 'Era {importo}',
@@ -20693,7 +21471,8 @@ class AppLocalizations {
       'receipt_photo_invalid_url': 'Die URL des Belegfotos ist ungültig.',
       'receipt_photo_open_fallback':
           'Could not open the file automatically. The link was copied instead.',
-      'receipt_photo_load_failed': 'Dieses Belegbild konnte nicht geladen werden.',
+      'receipt_photo_load_failed':
+          'Dieses Belegbild konnte nicht geladen werden.',
       'receipt_photo_download': 'Herunterladen',
       'receipt_photo_downloaded': 'Quittung unter {Pfad} gespeichert',
       'receipt_photo_open_external': 'Von außen öffnen',
@@ -20738,8 +21517,10 @@ class AppLocalizations {
       'accentaware_colors': 'Akzentbewusste Farben',
       'activate_pro': 'Aktivieren Sie PRO',
       'after_the_amount': 'Nach dem Betrag',
-      'always_use_the_dark_interface': 'Verwenden Sie immer die dunkle Oberfläche.',
-      'always_use_the_light_interface': 'Benutzen Sie immer die Lichtschnittstelle.',
+      'always_use_the_dark_interface':
+          'Verwenden Sie immer die dunkle Oberfläche.',
+      'always_use_the_light_interface':
+          'Benutzen Sie immer die Lichtschnittstelle.',
       'autodetect_source_language': 'Quellsprache automatisch erkennen',
       'before_the_amount': 'Vor dem Betrag',
       'bill_due_soon': 'Rechnung bald fällig',
@@ -20753,21 +21534,25 @@ class AppLocalizations {
       'current_release': 'Aktuelle Veröffentlichung',
       'daily_avg': 'Täglicher Durchschn',
       'delete_reminder': 'Erinnerung löschen',
-      'discount_must_be_zero_or_higher': 'Der Rabatt muss Null oder höher sein.',
+      'discount_must_be_zero_or_higher':
+          'Der Rabatt muss Null oder höher sein.',
       'discount_percentage_must_stay_under_100':
           'Discount percentage must stay under 100%.',
       'display_name': 'Anzeigename',
       'email_support': 'E-Mail-Support',
-      'enable_notifications_in_the_app': 'Aktivieren Sie Benachrichtigungen in der App',
+      'enable_notifications_in_the_app':
+          'Aktivieren Sie Benachrichtigungen in der App',
       'extra_compact_text': 'Extra kompakter Text',
       'features_tools': 'Funktionen und Tools',
-      'follow_your_device_theme_setting': 'Befolgen Sie die Designeinstellungen Ihres Geräts.',
+      'follow_your_device_theme_setting':
+          'Befolgen Sie die Designeinstellungen Ihres Geräts.',
       'getting_started': 'Erste Schritte',
       'helpful_savings_spotted_in_the_current_r':
           'Helpful savings spotted in the current results.',
       'hide_decimals': 'Dezimalstellen ausblenden',
       'items_translation': 'Artikelübersetzung',
-      'keep_this_image_and_try_later': 'Behalten Sie dieses Bild und versuchen Sie es später',
+      'keep_this_image_and_try_later':
+          'Behalten Sie dieses Bild und versuchen Sie es später',
       'larger_interface': 'Größere Schnittstelle',
       'no_category_insights_yet': 'Noch keine Einblicke in die Kategorie',
       'no_overview_yet': 'Noch keine Übersicht',
@@ -20776,9 +21561,11 @@ class AppLocalizations {
       'no_trend_data_yet': 'Noch keine Trenddaten',
       'open_review': 'Rezension öffnen',
       'organize_your_receipts': 'Organisieren Sie Ihre Quittungen',
-      'please_enter_a_category_name': 'Bitte geben Sie einen Kategorienamen ein.',
+      'please_enter_a_category_name':
+          'Bitte geben Sie einen Kategorienamen ein.',
       'please_enter_a_label_name': 'Bitte geben Sie einen Labelnamen ein.',
-      'please_enter_a_subcategory_name': 'Bitte geben Sie einen Unterkategorienamen ein.',
+      'please_enter_a_subcategory_name':
+          'Bitte geben Sie einen Unterkategorienamen ein.',
       'previous_comparison_is_unavailable_for_t':
           'Previous comparison is unavailable for this range.',
       'privacy_policy': 'Datenschutzrichtlinie',
@@ -20811,7 +21598,8 @@ class AppLocalizations {
       'upload_receipt': 'Quittung hochladen',
       'use_this_source_language': 'Verwenden Sie diese Ausgangssprache',
       'view_insights_and_trends': 'Sehen Sie sich Erkenntnisse und Trends an',
-      'where_the_most_spending_happened_in_this': 'Where the most spending happened in this period.'
+      'where_the_most_spending_happened_in_this':
+          'Where the most spending happened in this period.',
     },
     'es': {
       'app_title': 'Control de Gastos',
@@ -21034,8 +21822,8 @@ class AppLocalizations {
       'taxonomy_vehicle_insurance': 'Seguro de vehículo',
       'taxonomy_electricity': 'Electricidad',
       'taxonomy_water': 'Agua',
-      'taxonomy_gas': 'Gas',
-      'taxonomy_internet': 'Internet',
+      'taxonomy_gas': 'Гас',
+      'taxonomy_internet': 'Интернет',
       'taxonomy_mobile_phone': 'Teléfono móvil',
       'taxonomy_tv_and_streaming': 'Televisión y transmisión',
       'taxonomy_waste_collection': 'Recogida de residuos',
@@ -21196,7 +21984,8 @@ class AppLocalizations {
           'By continuing, you will sign in with your Google account.',
       'settings_subtitle': 'Verwalten Sie Ihre Präferenzen',
       'household_settings_title': 'Familienhaushalt',
-      'household_settings_subtitle': 'Teilen und verwalten Sie den Haushaltszugang',
+      'household_settings_subtitle':
+          'Teilen und verwalten Sie den Haushaltszugang',
       'settings_account_section': 'Konto',
       'settings_preferences_section': 'Präferenzen',
       'settings_support_section': 'Unterstützung',
@@ -21211,7 +22000,8 @@ class AppLocalizations {
       'settings_security': 'Sicherheit',
       'settings_security_subtitle': 'Passwort- und Kontosicherheit',
       'settings_appearance': 'Aussehen',
-      'settings_appearance_subtitle': 'Wählen Sie zwischen Hell- und Dunkelmodus',
+      'settings_appearance_subtitle':
+          'Wählen Sie zwischen Hell- und Dunkelmodus',
       'settings_theme': 'Thema',
       'settings_theme_light': 'Licht',
       'settings_theme_dark': 'Dunkel',
@@ -21232,25 +22022,29 @@ class AppLocalizations {
       'settings_font_large': 'Groß',
       'settings_display_options': 'Anzeigeoptionen',
       'settings_compact_mode': 'Kompaktmodus',
-      'settings_compact_mode_subtitle': 'Zeigen Sie mehr Inhalte auf dem Bildschirm an',
+      'settings_compact_mode_subtitle':
+          'Zeigen Sie mehr Inhalte auf dem Bildschirm an',
       'settings_animations': 'Animationen',
       'settings_animations_subtitle': 'Ermöglichen Sie reibungslose Übergänge',
       'settings_notifications_subtitle': 'Warnungen und Erinnerungen',
       'settings_notification_channels': 'Kanäle',
       'settings_push_notifications': 'Push-Benachrichtigungen',
-      'settings_push_notifications_subtitle': 'Benachrichtigungen auf Ihrem Gerät',
+      'settings_push_notifications_subtitle':
+          'Benachrichtigungen auf Ihrem Gerät',
       'settings_email_notifications': 'E-Mail-Benachrichtigungen',
       'settings_email_notifications_subtitle': 'Updates per E-Mail',
       'settings_notification_activity': 'Aktivität',
       'settings_spending_alerts': 'Ausgabenwarnungen',
-      'settings_spending_alerts_subtitle': 'Ungewöhnliche Ausgaben festgestellt',
+      'settings_spending_alerts_subtitle':
+          'Ungewöhnliche Ausgaben festgestellt',
       'settings_budget_alerts': 'Budgetwarnungen',
       'settings_budget_alerts_subtitle': 'Bei Annäherung an Budgetgrenzen',
       'settings_bill_reminders': 'Rechnungserinnerungen',
       'settings_bill_reminders_subtitle':
           'Monthly reminders for upcoming payments',
       'settings_receipt_reminders': 'Empfangserinnerungen',
-      'settings_receipt_reminders_subtitle': 'Erinnern Sie daran, Belege zu scannen',
+      'settings_receipt_reminders_subtitle':
+          'Erinnern Sie daran, Belege zu scannen',
       'settings_notification_summaries': 'Zusammenfassungen',
       'settings_weekly_summary': 'Wöchentliche Zusammenfassung',
       'settings_weekly_summary_subtitle': 'Jeden Montag um 9 Uhr',
@@ -21283,7 +22077,8 @@ class AppLocalizations {
           'Automatically translate receipt items',
       'settings_translate_to': 'Übersetzen nach',
       'settings_options': 'Optionen',
-      'settings_auto_detect_source_language': 'Quellsprache automatisch erkennen',
+      'settings_auto_detect_source_language':
+          'Quellsprache automatisch erkennen',
       'settings_auto_detect_source_language_subtitle':
           'Automatically detect original language',
       'settings_example': 'Beispiel',
@@ -21306,7 +22101,8 @@ class AppLocalizations {
           'Title must be between 3 and 120 characters.',
       'feature_request_description_length_error':
           'Description must be between 10 and 2000 characters.',
-      'feature_request_load_error_title': 'Funktionsanfragen konnten nicht geladen werden',
+      'feature_request_load_error_title':
+          'Funktionsanfragen konnten nicht geladen werden',
       'feature_request_your_ideas': 'Ihre Ideen',
       'feature_request_your_ideas_empty_title': 'Noch keine Ideen eingereicht',
       'feature_request_your_ideas_empty_subtitle':
@@ -21329,7 +22125,8 @@ class AppLocalizations {
       'feature_request_category_receipts_scanning': 'Quittungen und Scannen',
       'feature_request_category_budgets_planning': 'Budgets und Planung',
       'feature_request_category_household_sharing': 'Haushalt & Teilen',
-      'feature_request_category_design_accessibility': 'Design und Zugänglichkeit',
+      'feature_request_category_design_accessibility':
+          'Design und Zugänglichkeit',
       'feature_request_category_other': 'Andere',
       'settings_privacy_policy': 'Datenschutzrichtlinie',
       'settings_terms_of_service': 'Nutzungsbedingungen',
@@ -21362,7 +22159,8 @@ class AppLocalizations {
       'household_you_badge': 'Du',
       'household_members_title': 'Mitglieder',
       'household_remove_member_title': 'Mitglied entfernen',
-      'household_remove_member_confirm': '{Name} aus diesem Haushalt entfernen?',
+      'household_remove_member_confirm':
+          '{Name} aus diesem Haushalt entfernen?',
       'household_member_removed': 'Mitglied entfernt.',
       'household_leave_title': 'Verlassen Sie den Haushalt',
       'household_leave_confirm':
@@ -21403,7 +22201,8 @@ class AppLocalizations {
       'household_member_count': '{count} Mitglieder',
       'household_member_count_with_limit': '{count} von {limit} Mitgliedern',
       'household_shared_expenses': 'Geteilte Ausgaben',
-      'household_shared_expenses_subtitle': 'Erlauben Sie allen Mitgliedern, Ausgaben hinzuzufügen',
+      'household_shared_expenses_subtitle':
+          'Erlauben Sie allen Mitgliedern, Ausgaben hinzuzufügen',
       'household_budget_notifications': 'Budgetbenachrichtigungen',
       'household_budget_notifications_subtitle':
           'Notify when household budget limit is reached',
@@ -21482,7 +22281,8 @@ class AppLocalizations {
       'bill_reminders_due_date': 'Fälligkeitsdatum',
       'bill_reminders_pick_date': 'Fälligkeitsdatum auswählen',
       'bill_reminders_first_due_date': 'Erstes Fälligkeitsdatum',
-      'bill_reminders_pick_first_due_date': 'Wählen Sie das erste Fälligkeitsdatum aus',
+      'bill_reminders_pick_first_due_date':
+          'Wählen Sie das erste Fälligkeitsdatum aus',
       'bill_reminders_start_date': 'Beginnt am',
       'bill_reminders_pick_start_date': 'Wählen Sie das Startdatum',
       'bill_reminders_recurring': 'Wiederkehrend',
@@ -21548,26 +22348,34 @@ class AppLocalizations {
       'analytics_show_fewer_filters': 'Weniger Filter anzeigen',
       'analytics_categories_subtitle': 'Entdecken Sie, wohin Ihr Geld fließt',
       'analytics_overview_top_categories': 'Top-Kategorien',
-      'analytics_change_unavailable': 'Der vorherige Vergleich ist nicht verfügbar.',
-      'analytics_change_flat': 'Die Ausgaben sind im Vergleich zur Vorperiode unverändert.',
-      'analytics_change_more': 'Anstieg um {percent} % im Vergleich zum vorherigen Zeitraum.',
-      'analytics_change_less': 'Rückgang um {percent} % im Vergleich zum vorherigen Zeitraum.',
+      'analytics_change_unavailable':
+          'Der vorherige Vergleich ist nicht verfügbar.',
+      'analytics_change_flat':
+          'Die Ausgaben sind im Vergleich zur Vorperiode unverändert.',
+      'analytics_change_more':
+          'Anstieg um {percent} % im Vergleich zum vorherigen Zeitraum.',
+      'analytics_change_less':
+          'Rückgang um {percent} % im Vergleich zum vorherigen Zeitraum.',
       'analytics_compared_with_previous': 'Im Vergleich zur Vorperiode',
       'analytics_trends_period_label': 'Ausgewähltes Trendfenster',
       'analytics_trends_chart_title': 'Ausgabentrend',
       'analytics_trends_chart_subtitle':
           'Automatic daily, weekly, or monthly buckets for your selected period.',
-      'analytics_trends_no_data': 'Für diese Filter liegen keine Trenddaten vor.',
+      'analytics_trends_no_data':
+          'Für diese Filter liegen keine Trenddaten vor.',
       'analytics_trends_highest_bucket': 'Höchster Eimer',
       'analytics_trends_average_bucket': 'Durchschnittliche Bucket-Ausgaben',
       'analytics_household_empty_title': 'Noch keine Haushaltsanalyse',
       'analytics_household_empty_subtitle':
           'Create or open a household to compare spending across members.',
-      'analytics_household_no_data': 'Für diese Filter fallen keine Haushaltsausgaben an.',
+      'analytics_household_no_data':
+          'Für diese Filter fallen keine Haushaltsausgaben an.',
       'analytics_household_no_data_subtitle':
           'Try widening the date range or clearing a few filters.',
-      'analytics_household_preview_subtitle': 'Gemeinsame Ausgaben für diesen Zeitraum',
-      'analytics_household_total_transactions': '{count} geteilte Transaktionen',
+      'analytics_household_preview_subtitle':
+          'Gemeinsame Ausgaben für diesen Zeitraum',
+      'analytics_household_total_transactions':
+          '{count} geteilte Transaktionen',
       'analytics_household_member_transactions': '{count} Transaktionen',
       'analytics_household_top_category': 'Top-Kategorie: {category}',
       'analytics_household_top_category_unknown': 'Noch keine Kategorie',
@@ -21600,7 +22408,8 @@ class AppLocalizations {
       'receipt_photo_invalid_url': 'Die URL des Belegfotos ist ungültig.',
       'receipt_photo_open_fallback':
           'Could not open the file automatically. The link was copied instead.',
-      'receipt_photo_load_failed': 'Dieses Belegbild konnte nicht geladen werden.',
+      'receipt_photo_load_failed':
+          'Dieses Belegbild konnte nicht geladen werden.',
       'receipt_photo_download': 'Herunterladen',
       'receipt_photo_downloaded': 'Quittung unter {Pfad} gespeichert',
       'receipt_photo_open_external': 'Von außen öffnen',
@@ -21644,8 +22453,10 @@ class AppLocalizations {
       'accentaware_colors': 'Akzentbewusste Farben',
       'activate_pro': 'Aktivieren Sie PRO',
       'after_the_amount': 'Nach dem Betrag',
-      'always_use_the_dark_interface': 'Verwenden Sie immer die dunkle Oberfläche.',
-      'always_use_the_light_interface': 'Benutzen Sie immer die Lichtschnittstelle.',
+      'always_use_the_dark_interface':
+          'Verwenden Sie immer die dunkle Oberfläche.',
+      'always_use_the_light_interface':
+          'Benutzen Sie immer die Lichtschnittstelle.',
       'autodetect_source_language': 'Quellsprache automatisch erkennen',
       'before_the_amount': 'Vor dem Betrag',
       'bill_due_soon': 'Rechnung bald fällig',
@@ -21659,21 +22470,25 @@ class AppLocalizations {
       'current_release': 'Aktuelle Veröffentlichung',
       'daily_avg': 'Täglicher Durchschn',
       'delete_reminder': 'Erinnerung löschen',
-      'discount_must_be_zero_or_higher': 'Der Rabatt muss Null oder höher sein.',
+      'discount_must_be_zero_or_higher':
+          'Der Rabatt muss Null oder höher sein.',
       'discount_percentage_must_stay_under_100':
           'Discount percentage must stay under 100%.',
       'display_name': 'Anzeigename',
       'email_support': 'E-Mail-Support',
-      'enable_notifications_in_the_app': 'Aktivieren Sie Benachrichtigungen in der App',
+      'enable_notifications_in_the_app':
+          'Aktivieren Sie Benachrichtigungen in der App',
       'extra_compact_text': 'Extra kompakter Text',
       'features_tools': 'Funktionen und Tools',
-      'follow_your_device_theme_setting': 'Befolgen Sie die Designeinstellungen Ihres Geräts.',
+      'follow_your_device_theme_setting':
+          'Befolgen Sie die Designeinstellungen Ihres Geräts.',
       'getting_started': 'Erste Schritte',
       'helpful_savings_spotted_in_the_current_r':
           'Helpful savings spotted in the current results.',
       'hide_decimals': 'Dezimalstellen ausblenden',
       'items_translation': 'Artikelübersetzung',
-      'keep_this_image_and_try_later': 'Behalten Sie dieses Bild und versuchen Sie es später',
+      'keep_this_image_and_try_later':
+          'Behalten Sie dieses Bild und versuchen Sie es später',
       'larger_interface': 'Größere Schnittstelle',
       'no_category_insights_yet': 'Noch keine Einblicke in die Kategorie',
       'no_overview_yet': 'Noch keine Übersicht',
@@ -21682,9 +22497,11 @@ class AppLocalizations {
       'no_trend_data_yet': 'Noch keine Trenddaten',
       'open_review': 'Rezension öffnen',
       'organize_your_receipts': 'Organisieren Sie Ihre Quittungen',
-      'please_enter_a_category_name': 'Bitte geben Sie einen Kategorienamen ein.',
+      'please_enter_a_category_name':
+          'Bitte geben Sie einen Kategorienamen ein.',
       'please_enter_a_label_name': 'Bitte geben Sie einen Labelnamen ein.',
-      'please_enter_a_subcategory_name': 'Bitte geben Sie einen Unterkategorienamen ein.',
+      'please_enter_a_subcategory_name':
+          'Bitte geben Sie einen Unterkategorienamen ein.',
       'previous_comparison_is_unavailable_for_t':
           'Previous comparison is unavailable for this range.',
       'privacy_policy': 'Datenschutzrichtlinie',
@@ -21717,7 +22534,8 @@ class AppLocalizations {
       'upload_receipt': 'Quittung hochladen',
       'use_this_source_language': 'Verwenden Sie diese Ausgangssprache',
       'view_insights_and_trends': 'Sehen Sie sich Erkenntnisse und Trends an',
-      'where_the_most_spending_happened_in_this': 'Where the most spending happened in this period.'
+      'where_the_most_spending_happened_in_this':
+          'Where the most spending happened in this period.',
     },
   };
 }
