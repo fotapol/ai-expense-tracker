@@ -44,7 +44,10 @@ class _AboutScreenState extends State<AboutScreen> {
   String get _versionLabel {
     final packageInfo = _packageInfo;
     if (packageInfo == null) return context.tr('about_loading_version');
-    return context.tr('about_version_format', params: {'version': packageInfo.version});
+    return context.tr(
+      'about_version_format',
+      params: {'version': packageInfo.version},
+    );
   }
 
   Future<void> _openUrl(String rawUrl) async {
@@ -52,9 +55,9 @@ class _AboutScreenState extends State<AboutScreen> {
     if (uri == null) return;
     final opened = await launchUrl(uri, mode: LaunchMode.externalApplication);
     if (!mounted || opened) return;
-    ScaffoldMessenger.of(
-      context,
-    ).showSnackBar(SnackBar(content: Text(context.tr('could_not_open_that_link'))));
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text(context.tr('could_not_open_that_link'))),
+    );
   }
 
   Future<void> _openSupportEmail() async {
@@ -221,10 +224,13 @@ class _AboutScreenState extends State<AboutScreen> {
   @override
   Widget build(BuildContext context) {
     final packageInfo = _packageInfo;
-    final releaseNotes = releaseNotesForVersion(context, packageInfo?.version ?? '');
+    final releaseNotes = releaseNotesForVersion(
+      context,
+      packageInfo?.version ?? '',
+    );
 
     return SettingsDetailScaffold(
-      title: 'About',
+      title: context.tr('about_screen_title'),
       body: SafeArea(
         top: false,
         child: SingleChildScrollView(
@@ -234,15 +240,21 @@ class _AboutScreenState extends State<AboutScreen> {
             children: <Widget>[
               _buildHero(),
               const SizedBox(height: 16),
-              ShellStyles.sectionLabel(context, context.tr('about_whats_new_section')),
+              ShellStyles.sectionLabel(
+                context,
+                context.tr('about_whats_new_section'),
+              ),
               const SizedBox(height: 8),
               _buildWhatIsNewCard(releaseNotes),
               const SizedBox(height: 16),
-              ShellStyles.sectionLabel(context, context.tr('about_app_section')),
+              ShellStyles.sectionLabel(
+                context,
+                context.tr('about_app_section'),
+              ),
               const SizedBox(height: 8),
               SettingsDetailCard(
                 child: Text(
-                  appAboutIdentityCopy,
+                  appAboutIdentityCopy(context),
                   style: TextStyle(
                     color: ShellStyles.textMuted(context),
                     fontSize: 13,
@@ -251,7 +263,10 @@ class _AboutScreenState extends State<AboutScreen> {
                 ),
               ),
               const SizedBox(height: 16),
-              ShellStyles.sectionLabel(context, 'Links'),
+              ShellStyles.sectionLabel(
+                context,
+                context.tr('about_links_section'),
+              ),
               const SizedBox(height: 8),
               Container(
                 decoration: ShellStyles.cardDecoration(context, radius: 18),

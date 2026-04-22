@@ -38,5 +38,6 @@ AppReleaseNotes releaseNotesForVersion(BuildContext context, String version) {
       );
 }
 
-const String appAboutIdentityCopy =
-    context.tr('app_about_identity_copy');
+String appAboutIdentityCopy(BuildContext context) {
+  return context.tr('app_about_identity_copy');
+}

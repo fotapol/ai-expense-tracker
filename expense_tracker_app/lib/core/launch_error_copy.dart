@@ -1,5 +1,5 @@
-import 'app_localizations.dart';
 import 'auth_session.dart';
+import '../l10n/app_localizations.dart';
 
 String friendlyLaunchErrorMessage(
   Object error, {
@@ -10,7 +10,10 @@ String friendlyLaunchErrorMessage(
   if (raw.isEmpty) return fallback;
 
   if (isExpiredSessionError(error)) {
-    return AppLocalizations.lookup('error_session_expired', languageCode: languageCode);
+    return AppLocalizations.lookup(
+      'error_session_expired',
+      languageCode: languageCode,
+    );
   }
 
   final normalized = raw.toLowerCase();
@@ -22,7 +25,10 @@ String friendlyLaunchErrorMessage(
         'connection closed before full header was received',
       ) ||
       normalized.contains('offline')) {
-    return AppLocalizations.lookup('error_network_offline', languageCode: languageCode);
+    return AppLocalizations.lookup(
+      'error_network_offline',
+      languageCode: languageCode,
+    );
   }
 
   if (normalized.contains('timed out') || normalized.contains('timeout')) {
@@ -30,11 +36,17 @@ String friendlyLaunchErrorMessage(
   }
 
   if (normalized.contains(' 403') || normalized.contains(': 403')) {
-    return AppLocalizations.lookup('error_forbidden', languageCode: languageCode);
+    return AppLocalizations.lookup(
+      'error_forbidden',
+      languageCode: languageCode,
+    );
   }
 
   if (normalized.contains(' 404') || normalized.contains(': 404')) {
-    return AppLocalizations.lookup('error_not_found', languageCode: languageCode);
+    return AppLocalizations.lookup(
+      'error_not_found',
+      languageCode: languageCode,
+    );
   }
 
   if (normalized.contains('unsupported receipt file type') ||
@@ -45,21 +57,33 @@ String friendlyLaunchErrorMessage(
 
   if (normalized.contains('one or more categories are invalid') ||
       normalized.contains('category') && normalized.contains('invalid')) {
-    return AppLocalizations.lookup('error_invalid_categories', languageCode: languageCode);
+    return AppLocalizations.lookup(
+      'error_invalid_categories',
+      languageCode: languageCode,
+    );
   }
 
   if (normalized.contains(
     'purchase completed, but premium access was not confirmed',
   )) {
-    return AppLocalizations.lookup('error_purchase_syncing', languageCode: languageCode);
+    return AppLocalizations.lookup(
+      'error_purchase_syncing',
+      languageCode: languageCode,
+    );
   }
 
   if (normalized.contains('purchase canceled')) {
-    return AppLocalizations.lookup('error_purchase_canceled', languageCode: languageCode);
+    return AppLocalizations.lookup(
+      'error_purchase_canceled',
+      languageCode: languageCode,
+    );
   }
 
   if (normalized.contains('operationalreadyinprogresserror')) {
-    return AppLocalizations.lookup('error_purchase_in_progress', languageCode: languageCode);
+    return AppLocalizations.lookup(
+      'error_purchase_in_progress',
+      languageCode: languageCode,
+    );
   }
 
   if (normalized.contains(
@@ -67,9 +91,11 @@ String friendlyLaunchErrorMessage(
       ) ||
       normalized.contains('extraction failed') ||
       normalized.contains('receipt could not be found')) {
-    return AppLocalizations.lookup('error_receipt_extraction_failed', languageCode: languageCode);
+    return AppLocalizations.lookup(
+      'error_receipt_extraction_failed',
+      languageCode: languageCode,
+    );
   }
 
   return fallback;
 }
-
