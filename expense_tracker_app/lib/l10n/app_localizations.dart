@@ -5786,7 +5786,7 @@ class AppLocalizations {
           'Całkowite niedopasowanie: oczekiwano {expected}, ale wyodrębniono {actual}',
       'taxonomy_food': 'Żywność',
       'taxonomy_clothing': 'Odzież',
-      'taxonomy_transport': 'Транспорт',
+      'taxonomy_transport': 'Transport',
       'taxonomy_utilities': 'Narzędzia',
       'taxonomy_health': 'Zdrowie',
       'taxonomy_entertainment': 'Rozrywka',
@@ -5818,7 +5818,7 @@ class AppLocalizations {
       'taxonomy_fuel': 'Paliwo',
       'taxonomy_public_transport': 'Transport publiczny',
       'taxonomy_taxi_ride_hailing': 'Taksówka i przejazd',
-      'taxonomy_parking': 'Паркинг',
+      'taxonomy_parking': 'Parking',
       'taxonomy_tolls': 'Opłaty',
       'taxonomy_car_maintenance': 'Konserwacja samochodu',
       'taxonomy_car_wash': 'Myjnia samochodowa',
@@ -5826,7 +5826,7 @@ class AppLocalizations {
       'taxonomy_electricity': 'Elektryczność',
       'taxonomy_water': 'Woda',
       'taxonomy_gas': 'Gaz',
-      'taxonomy_internet': 'Интернет',
+      'taxonomy_internet': 'Internet',
       'taxonomy_mobile_phone': 'Telefon komórkowy',
       'taxonomy_tv_and_streaming': 'Telewizja i streaming',
       'taxonomy_waste_collection': 'Zbiórka odpadów',
@@ -5888,12 +5888,9 @@ class AppLocalizations {
       'nav_tools': 'Werkzeuge',
       'nav_settings': 'Einstellungen',
       'login_welcome_title': 'Willkommen zurück',
-      'login_welcome_description':
-          'Track expenses your way, review receipts, and keep your spending history in one place.',
-      'login_feature_highlight':
-          'Google sign-in keeps your receipts, categories, and subscription status synced.',
-      'login_footer_note':
-          'By continuing, you will sign in with your Google account.',
+      'login_welcome_description': 'Śledź wydatki po swojemu, przeglądaj paragony i przechowuj historię wydatków w jednym miejscu.',
+      'login_feature_highlight': 'Logowanie przez Google synchronizuje paragony, kategorie i status subskrypcji.',
+      'login_footer_note': 'Kontynuując, zalogujesz się za pomocą swojego konta Google.',
       'settings_subtitle': 'Verwalten Sie Ihre Präferenzen',
       'household_settings_title': 'Familienhaushalt',
       'household_settings_subtitle':
@@ -5905,7 +5902,7 @@ class AppLocalizations {
       'settings_session_section': 'Sitzung',
       'settings_subscription': 'Abonnement',
       'settings_subscription_loading': 'Abonnementstatus wird geladen',
-      'settings_subscription_active_until': 'Aktiv bis {Datum}',
+      'settings_subscription_active_until': 'Aktywny do {date}',
       'settings_subscription_inactive': 'Kein aktiver Plan',
       'settings_household': 'Haushalt',
       'settings_profile': 'Profil',
@@ -5919,7 +5916,7 @@ class AppLocalizations {
       'settings_theme_dark': 'Dunkel',
       'settings_theme_light_subtitle': 'Klassische Lichtoptik',
       'settings_theme_dark_subtitle': 'Schont die Augen',
-      'settings_theme_auto': 'Авто',
+      'settings_theme_auto': 'Automatyczny',
       'settings_theme_auto_subtitle': 'Entspricht den Systemeinstellungen',
       'settings_accent_color': 'Akzentfarbe',
       'settings_accent_neutral': 'Neutre',
@@ -5952,8 +5949,7 @@ class AppLocalizations {
       'settings_budget_alerts': 'Budgetwarnungen',
       'settings_budget_alerts_subtitle': 'Bei Annäherung an Budgetgrenzen',
       'settings_bill_reminders': 'Rechnungserinnerungen',
-      'settings_bill_reminders_subtitle':
-          'Monthly reminders for upcoming payments',
+      'settings_bill_reminders_subtitle': 'Miesięczne przypomnienia o nadchodzących płatnościach.',
       'settings_receipt_reminders': 'Empfangserinnerungen',
       'settings_receipt_reminders_subtitle':
           'Erinnern Sie daran, Belege zu scannen',
@@ -5982,19 +5978,16 @@ class AppLocalizations {
       'settings_currency_search': 'Währungen suchen...',
       'settings_items_translation_title': 'Artikelübersetzung',
       'settings_beta_feature': 'Beta-Funktion',
-      'settings_items_translation_beta_hint':
-          'This feature is in beta. Translation accuracy may vary.',
+      'settings_items_translation_beta_hint': 'Ta funkcja jest w fazie beta. Dokładność tłumaczenia może się różnić.',
       'settings_enable_translation': 'Übersetzung aktivieren',
-      'settings_enable_translation_subtitle':
-          'Automatically translate receipt items',
+      'settings_enable_translation_subtitle': 'Automatycznie tłumacz pozycje z paragonów.',
       'settings_translate_to': 'Übersetzen nach',
       'settings_options': 'Optionen',
       'settings_auto_detect_source_language':
           'Quellsprache automatisch erkennen',
-      'settings_auto_detect_source_language_subtitle':
-          'Automatically detect original language',
+      'settings_auto_detect_source_language_subtitle': 'Automatycznie wykrywaj język oryginału.',
       'settings_example': 'Beispiel',
-      'settings_original_text': 'Оригінал',
+      'settings_original_text': 'Oryginał',
       'settings_translated_text': 'Übersetzt',
       'settings_help_center': 'Hilfecenter',
       'settings_feature_request': 'Funktionsanfrage',
@@ -6005,25 +5998,19 @@ class AppLocalizations {
       'feature_request_title_hint': 'Kurze Beschreibung Ihrer Idee...',
       'feature_request_category_label': 'Kategorie',
       'feature_request_description_label': 'Beschreibung',
-      'feature_request_description_hint':
-          'Describe your feature request in detail...',
+      'feature_request_description_hint': 'Opisz szczegółowo swoją propozycję funkcji...',
       'feature_request_submit_action': 'Anfrage senden',
       'feature_request_submit_success': 'Funktionsanfrage eingereicht.',
-      'feature_request_title_length_error':
-          'Title must be between 3 and 120 characters.',
-      'feature_request_description_length_error':
-          'Description must be between 10 and 2000 characters.',
+      'feature_request_title_length_error': 'Tytuł musi mieć od 3 do 120 znaków.',
+      'feature_request_description_length_error': 'Opis musi mieć od 10 do 2000 znaków.',
       'feature_request_load_error_title':
           'Funktionsanfragen konnten nicht geladen werden',
       'feature_request_your_ideas': 'Ihre Ideen',
       'feature_request_your_ideas_empty_title': 'Noch keine Ideen eingereicht',
-      'feature_request_your_ideas_empty_subtitle':
-          'Your submitted ideas will appear here while they wait for review or move into the public board.',
+      'feature_request_your_ideas_empty_subtitle': 'Twoje przesłane pomysły pojawią się tutaj, gdy będą czekać na recenzję lub zostaną przeniesione na publiczną tablicę.',
       'feature_request_popular_requests': 'Beliebte Anfragen',
-      'feature_request_popular_requests_empty_title':
-          'No public feature requests yet',
-      'feature_request_popular_requests_empty_subtitle':
-          'Approved ideas will appear here once they are curated for the public board.',
+      'feature_request_popular_requests_empty_title': 'Brak jeszcze publicznych propozycji funkcji.',
+      'feature_request_popular_requests_empty_subtitle': 'Zatwierdzone pomysły pojawią się tutaj po wybraniu ich na publiczną tablicę.',
       'feature_request_group_pending': 'Ausstehend',
       'feature_request_group_approved': 'Genehmigt',
       'feature_request_group_rejected': 'Abgelehnt',
@@ -6045,10 +6032,8 @@ class AppLocalizations {
       'settings_about': 'Um',
       'settings_banner_active_title': 'Pro ist aktiv',
       'settings_banner_upgrade_title': 'Upgrade auf Pro',
-      'settings_banner_active_subtitle':
-          'AI tools, unlimited receipts, and advanced analytics are active on your account.',
-      'settings_banner_upgrade_subtitle':
-          'Unlock AI insights, unlimited receipts, and advanced analytics.',
+      'settings_banner_active_subtitle': 'Narzędzia AI, nielimitowane paragony i zaawansowana analityka są aktywne na Twoim koncie.',
+      'settings_banner_upgrade_subtitle': 'Odblokuj analizy AI, nielimitowane paragony i zaawansowaną analitykę.',
       'settings_see_plan': 'Siehe Pläne',
       'settings_manage_subscription': 'Abonnement verwalten',
       'household_title': 'Haushalt',
@@ -6059,11 +6044,9 @@ class AppLocalizations {
       'household_edit_name_title': 'Bearbeiten Sie den Haushaltsnamen',
       'household_updated_success': 'Haushalt aktualisiert.',
       'household_empty_title': 'Noch kein Haushalt',
-      'household_empty_subtitle':
-          'Create a household to manage members and invite access.',
+      'household_empty_subtitle': 'Utwórz gospodarstwo domowe, aby zarządzać członkami i zapraszać do dostępu.',
       'household_create_cta': 'Haushalt erstellen',
-      'household_join_via_link_only':
-          'Join is handled by opening an invite link directly.',
+      'household_join_via_link_only': 'Dołączenie odbywa się poprzez bezpośrednie otwarcie linku z zaproszeniem.',
       'household_role_label': 'Ihre Rolle: {role}',
       'household_role_owner': 'Eigentümer',
       'household_role_admin': 'Administrateur',
@@ -6071,17 +6054,14 @@ class AppLocalizations {
       'household_you_badge': 'Du',
       'household_members_title': 'Mitglieder',
       'household_remove_member_title': 'Mitglied entfernen',
-      'household_remove_member_confirm':
-          '{Name} aus diesem Haushalt entfernen?',
+      'household_remove_member_confirm': 'Usunąć członka {name} z tego gospodarstwa domowego?',
       'household_member_removed': 'Mitglied entfernt.',
       'household_leave_title': 'Verlassen Sie den Haushalt',
-      'household_leave_confirm':
-          'Leave this household and remove shared access from your account?',
+      'household_leave_confirm': 'Opuścić to gospodarstwo domowe i usunąć współdzielony dostęp ze swojego konta?',
       'household_leave_action': 'Verlassen Sie den Haushalt',
       'household_left_success': 'Sie haben den Haushalt verlassen.',
       'household_delete_title': 'Familiengruppe entfernen',
-      'household_delete_confirm':
-          'Remove this household for everyone? Shared transactions will be detached and invites will be revoked.',
+      'household_delete_confirm': 'Usunąć to gospodarstwo domowe dla wszystkich? Współdzielone transakcje zostaną odłączone, a zaproszenia cofnięte.',
       'household_delete_action': 'Familiengruppe entfernen',
       'household_deleted_success': 'Familiengruppe entfernt.',
       'household_invites_title': 'Lädt ein',
@@ -6098,17 +6078,15 @@ class AppLocalizations {
       'household_invite_link_copied': 'Einladungslink kopiert.',
       'household_invite_revoke': 'Widerrufen',
       'household_invite_revoke_title': 'Einladung widerrufen',
-      'household_invite_revoke_confirm':
-          'This invite can no longer be accepted. Continue?',
+      'household_invite_revoke_confirm': 'To zaproszenie nie może już zostać zaakceptowane. Kontynuować?',
       'household_invite_revoked': 'Einladung widerrufen.',
-      'household_invite_expires_at': 'Läuft ab am: {Datum}',
+      'household_invite_expires_at': 'Wygasa dnia: {date}',
       'household_invite_state_pending': 'Ausstehend',
       'household_invite_state_accepted': 'Akzeptiert',
       'household_invite_state_revoked': 'Widerrufen',
       'household_invite_state_expired': 'Abgelaufen',
       'household_locked_title': 'Die Haushaltsverwaltung ist gesperrt',
-      'household_locked_subtitle':
-          'An active family plan is required for create/invite/remove actions.',
+      'household_locked_subtitle': 'Aktywny plan rodzinny jest wymagany do akcji tworzenia/zapraszania/usuwania.',
       'household_family_plan_required': 'Familienplan erforderlich',
       'household_member_count': '{count} Mitglieder',
       'household_member_count_with_limit': '{count} von {limit} Mitgliedern',
@@ -6116,8 +6094,7 @@ class AppLocalizations {
       'household_shared_expenses_subtitle':
           'Erlauben Sie allen Mitgliedern, Ausgaben hinzuzufügen',
       'household_budget_notifications': 'Budgetbenachrichtigungen',
-      'household_budget_notifications_subtitle':
-          'Notify when household budget limit is reached',
+      'household_budget_notifications_subtitle': 'Powiadamiaj o osiągnięciu limitu budżetu domowego.',
       'household_upgrade_cta': 'Pläne ansehen',
       'billing_period_title': 'Abrechnungszeitraum',
       'billing_period_monthly': 'Monatlich',
@@ -6128,16 +6105,14 @@ class AppLocalizations {
       'billing_restore_failed': 'Wiederherstellung fehlgeschlagen: {message}',
       'billing_current_plan': 'Aktueller Plan',
       'billing_subscribe_to_plan': 'Abonnieren Sie {plan} – {price}{unit}',
-      'billing_subscribe_unavailable':
-          'No purchasable package available right now.',
+      'billing_subscribe_unavailable': 'Obecnie brak dostępnych pakietów do zakupu.',
       'billing_plan_free': 'Kostenloser Plan',
       'billing_free_plan_subtitle': 'Begrenzt auf {limit} Belege pro Monat',
-      'billing_active_until_compact': 'Aktiv bis {Datum}',
-      'billing_resets_on': 'Wird am {Datum} zurückgesetzt',
+      'billing_active_until_compact': 'Aktywny do {date}',
+      'billing_resets_on': 'Resetuje się dnia {date}',
       'household_invite_title': 'Haushaltseinladung',
       'household_invite_accepting': 'Einladung annehmen...',
-      'household_invite_accept_success':
-          'Invite accepted. You are now in this household.',
+      'household_invite_accept_success': 'Zaproszenie zaakceptowane. Jesteś teraz w tym gospodarstwie domowym.',
       'household_open_screen': 'Offener Haushalt',
       'household_continue_app': 'Weitermachen',
       'receipts_delete_missing_id': 'Die Beleg-ID fehlt.',
@@ -6169,21 +6144,17 @@ class AppLocalizations {
       'budget_add_category': 'Kategorie hinzufügen',
       'budget_remove_category': 'Kategorie entfernen',
       'budget_limit_label': 'Bilancio',
-      'budget_empty_state':
-          'Add category limits to start tracking your monthly budget.',
+      'budget_empty_state': 'Dodaj limity kategorii, aby zacząć śledzić swój miesięczny budżet.',
       'budget_status_over_title': 'Budget überschritten',
-      'budget_status_over_body':
-          'You are over plan by {amount}. Adjust your category limits or slow spending this month.',
+      'budget_status_over_body': 'Przekroczyłeś plan o {amount}. Dostosuj limity kategorii lub ogranicz wydatki w tym miesiącu.',
       'budget_status_on_track_title': 'Tolle Arbeit!',
-      'budget_status_on_track_body':
-          'You are on track to save {amount} this month. Keep up the good work.',
+      'budget_status_on_track_body': 'Jesteś na dobrej drodze, aby zaoszczędzić {amount} w tym miesiącu. Tak trzymaj!',
       'budget_category_exceeded': '{amount} über dem Limit',
-      'budget_category_remaining': '{Betrag} übrig',
+      'budget_category_remaining': 'Pozostało {amount}',
       'budget_invalid_amount': 'Geben Sie einen gültigen Betrag ein.',
       'budget_saved': 'Budget aktualisiert.',
       'budget_save_action': 'Budget sparen',
-      'budget_all_categories_added':
-          'All available categories are already added.',
+      'budget_all_categories_added': 'Wszystkie dostępne kategorie zostały już dodane.',
       'bill_reminders_subtitle_single': '1 bevorstehende Rechnung',
       'bill_reminders_subtitle_plural': '{count} anstehende Rechnungen',
       'bill_reminders_total_upcoming': 'Total bevorstehend',
@@ -6207,12 +6178,10 @@ class AppLocalizations {
       'bill_reminders_upcoming': 'Demnächst',
       'bill_reminders_due_soon': 'Bald fällig',
       'bill_reminders_overdue': 'Überfällig',
-      'bill_reminders_invalid_form':
-          'Fill in the bill name, amount, and due date.',
+      'bill_reminders_invalid_form': 'Wypełnij nazwę rachunku, kwotę i datę płatności.',
       'bill_reminders_saved': 'Rechnungserinnerung hinzugefügt.',
       'bill_reminders_paid': 'Rechnung als bezahlt markiert.',
-      'bill_reminders_empty':
-          'No bills are due right now. Add a reminder to stay ahead of upcoming payments.',
+      'bill_reminders_empty': 'Obecnie nie ma żadnych zaległych rachunków. Dodaj przypomnienie, aby być na bieżąco z nadchodzącymi płatnościami.',
       'tools_data': 'Daten',
       'tools_export_data': 'Daten exportieren',
       'tools_export_data_subtitle': 'Laden Sie Ihre Finanzdaten herunter',
@@ -6231,14 +6200,10 @@ class AppLocalizations {
       'home_change_flat': 'Nessun cambiamento',
       'home_change_less': '{percent}% in meno',
       'home_change_more': '{percent}% in più',
-      'home_insight_less_than_last_month':
-          'Spending is {percent}% lower than {month}.',
-      'home_insight_more_than_last_month':
-          'Spending is {percent}% higher than {month}.',
-      'home_insight_top_category':
-          'Top category is {category} at {percent}% of monthly spend.',
-      'home_insight_top_subcategory':
-          'Top subcategory is {subcategory} at {percent}% of item spend.',
+      'home_insight_less_than_last_month': 'Wydatki są o {percent}% niższe niż w miesiącu {month}.',
+      'home_insight_more_than_last_month': 'Wydatki są o {percent}% wyższe niż w miesiącu {month}.',
+      'home_insight_top_category': 'Główna kategoria to {category}, stanowiąca {percent}% miesięcznych wydatków.',
+      'home_insight_top_subcategory': 'Główna podkategoria to {subcategory}, stanowiąca {percent}% wydatków na pozycje.',
       'home_insight_review_count':
           '{count} ricevute devono ancora essere revisionate.',
       'home_insight_all_caught_up':
@@ -6253,37 +6218,29 @@ class AppLocalizations {
       'home_quick_actions': 'Schnelle Aktionen',
       'home_add_expense': 'Aggiungi spesa',
       'home_categories': 'Kategorien',
-      'home_refresh_error':
-          'Home could not refresh just now. Please try again.',
+      'home_refresh_error': 'Nie udało się odświeżyć strony głównej. Spróbuj ponownie.',
       'receipts_filter_needs_review': 'Necessita di revisione',
       'receipts_needs_review': 'Necessita di revisione',
       'receipts_check_extraction': 'Controllare l\'estrazione',
       'receipts_draft': 'Ha bisogno di essere salvato',
       'receipts_review_empty_title': 'Nessuna ricevuta necessita di revisione.',
-      'receipts_review_empty_body':
-          'Everything in this period looks confirmed and warning-free.',
-      'receipts_empty_body':
-          'Scan your first receipt to start building a history you can review and filter.',
+      'receipts_review_empty_body': 'Wszystko w tym okresie wygląda na zatwierdzone i bez ostrzeżeń.',
+      'receipts_empty_body': 'Zeskanuj swój pierwszy paragon, aby zacząć budować historię, którą możesz przeglądać i filtrować.',
       'receipts_scan_first_action': 'Scansiona la tua prima ricevuta',
       'receipts_no_filter_matches':
           'Nessuna ricevuta corrisponde ai filtri attuali.',
-      'receipts_no_filter_matches_body':
-          'Try another period, merchant search, or clear the active filters.',
+      'receipts_no_filter_matches_body': 'Spróbuj innego okresu, wyszukaj sprzedawcę lub wyczyść aktywne filtry.',
       'receipts_history_total': 'Totale cronologia ricevute',
-      'receipts_history_load_error':
-          'Your history could not load right now. Please try again.',
-      'receipts_remove_error':
-          'We could not remove that entry. Please try again.',
+      'receipts_history_load_error': 'Nie udało się teraz załadować historii. Spróbuj ponownie.',
+      'receipts_remove_error': 'Nie udało się usunąć tego wpisu. Spróbuj ponownie.',
       'common_save': 'Speichern',
       'categories_add_action': 'Hinzufügen',
       'categories_add_category': 'Kategorie hinzufügen',
       'categories_new_category': 'Neue Kategorie',
       'categories_category_hint': 'Kategoriename (z. B. Reisen)',
-      'categories_no_parent_categories':
-          'Create or restore a top-level category first.',
+      'categories_no_parent_categories': 'Najpierw utwórz lub przywróć kategorię nadrzędną.',
       'categories_disable_title': 'Kategorie deaktivieren',
-      'categories_disable_confirm':
-          'Disable "{name}" for future categorization and hide it from pickers?',
+      'categories_disable_confirm': 'Wyłączyć "{name}" dla przyszłych kategoryzacji i ukryć ją w selektorach?',
       'categories_disable_action': 'Deaktivieren',
       'categories_disabled': '„{name}“ deaktiviert.',
       'categories_restored': '„{name}“ wiederhergestellt.',
@@ -6293,8 +6250,7 @@ class AppLocalizations {
       'categories_disabled_section': 'Deaktivierte Kategorien',
       'categories_category_created': 'Kategorie „{name}“ erstellt!',
       'subcategories_disable_title': 'Unterkategorie deaktivieren',
-      'subcategories_disable_confirm':
-          'Disable "{name}" for future categorization and hide it from pickers?',
+      'subcategories_disable_confirm': 'Wyłączyć "{name}" dla przyszłych kategoryzacji i ukryć ją w selektorach?',
       'subcategories_disabled': '„{name}“ deaktiviert.',
       'subcategories_restored': '„{name}“ wiederhergestellt.',
       'subcategories_active_state': 'Aktiv',
@@ -6305,8 +6261,7 @@ class AppLocalizations {
       'analytics_tab_households': 'Haushalte',
       'analytics_active_filters': 'Aktive Filter',
       'analytics_clear_all_filters': 'Alle Filter löschen',
-      'analytics_view_all_active_filters':
-          'View all active filters ({count} more)',
+      'analytics_view_all_active_filters': 'Zobacz wszystkie aktywne filtry (jeszcze {count})',
       'analytics_show_fewer_filters': 'Weniger Filter anzeigen',
       'analytics_categories_subtitle': 'Entdecken Sie, wohin Ihr Geld fließt',
       'analytics_overview_top_categories': 'Top-Kategorien',
@@ -6321,19 +6276,16 @@ class AppLocalizations {
       'analytics_compared_with_previous': 'Im Vergleich zur Vorperiode',
       'analytics_trends_period_label': 'Ausgewähltes Trendfenster',
       'analytics_trends_chart_title': 'Ausgabentrend',
-      'analytics_trends_chart_subtitle':
-          'Automatic daily, weekly, or monthly buckets for your selected period.',
+      'analytics_trends_chart_subtitle': 'Automatyczne grupowanie dzienne, tygodniowe lub miesięczne dla wybranego okresu.',
       'analytics_trends_no_data':
           'Für diese Filter liegen keine Trenddaten vor.',
       'analytics_trends_highest_bucket': 'Höchster Eimer',
       'analytics_trends_average_bucket': 'Durchschnittliche Bucket-Ausgaben',
       'analytics_household_empty_title': 'Noch keine Haushaltsanalyse',
-      'analytics_household_empty_subtitle':
-          'Create or open a household to compare spending across members.',
+      'analytics_household_empty_subtitle': 'Utwórz lub otwórz gospodarstwo domowe, aby porównać wydatki między członkami.',
       'analytics_household_no_data':
           'Für diese Filter fallen keine Haushaltsausgaben an.',
-      'analytics_household_no_data_subtitle':
-          'Try widening the date range or clearing a few filters.',
+      'analytics_household_no_data_subtitle': 'Spróbuj zwiększyć zakres dat lub wyczyść kilka filtrów.',
       'analytics_household_preview_subtitle':
           'Gemeinsame Ausgaben für diesen Zeitraum',
       'analytics_household_total_transactions':
@@ -6351,8 +6303,7 @@ class AppLocalizations {
       'transaction_created_successfully': 'Transazione creata con successo',
       'manual_transaction_title': 'Transaktion hinzufügen',
       'manual_transaction_heading': 'Fügen Sie eine Transaktion manuell hinzu',
-      'manual_transaction_subtitle':
-          'Create a transaction without scanning a receipt, then fine-tune the details on the next screen.',
+      'manual_transaction_subtitle': 'Utwórz transakcję bez skanowania paragonu, a następnie doprecyzuj szczegóły na następnym ekranie.',
       'manual_transaction_merchant_label': 'Händler',
       'manual_transaction_merchant_hint': 'z.B. Eckmarkt',
       'manual_transaction_amount_label': 'Menge',
@@ -6361,36 +6312,28 @@ class AppLocalizations {
       'manual_transaction_time_label': 'Zeit',
       'manual_transaction_category_label': 'Kategorie',
       'manual_transaction_category_none': 'Keine Kategorie',
-      'manual_transaction_unlimited_note':
-          'Manual transactions are unlimited on the free plan.',
+      'manual_transaction_unlimited_note': 'Ręczne transakcje są nieograniczone w darmowym planie.',
       'manual_transaction_create_action': 'Erstellen und fortfahren',
-      'manual_transaction_amount_invalid':
-          'Enter a valid amount greater than zero.',
+      'manual_transaction_amount_invalid': 'Wprowadź prawidłową kwotę większą niż zero.',
       'manual_transaction_deleted': 'Manuelle Transaktion gelöscht.',
       'manual_transaction_delete_missing_id': 'Transaktions-ID fehlt.',
       'transaction_amount_required':
           'Inserisci un importo totale prima di salvare.',
       'transaction_invalid_total': 'Inserisci un importo totale valido.',
-      'transaction_save_before_labels':
-          'Save the transaction before adding labels.',
+      'transaction_save_before_labels': 'Zapisz transakcję przed dodaniem etykiet.',
       'transaction_new_expense': 'Nuova spesa',
       'transaction_review_receipt': 'Esaminare la ricevuta',
       'transaction_merchant_dialog_title': 'Mercante',
       'transaction_merchant_hint': 'Nome del negozio o del commerciante',
       'transaction_unsaved_changes_title': 'Modifiche non salvate',
-      'transaction_unsaved_changes_body':
-          'Your edits are not saved yet. Save them before leaving, or discard the changes.',
+      'transaction_unsaved_changes_body': 'Twoje zmiany nie zostały jeszcze zapisane. Zapisz je przed wyjściem lub odrzuć zmiany.',
       'transaction_keep_editing': 'Continua a modificare',
       'transaction_discard_changes': 'Scartare',
-      'transaction_line_review_message':
-          'Review this line item: it should be {expected} and currently shows {actual}.',
-      'transaction_total_review_message':
-          'Review the total before saving: items add up to {expected} while the receipt total is {actual}.',
+      'transaction_line_review_message': 'Sprawdź tę pozycję: powinna wynosić {expected}, a obecnie pokazuje {actual}.',
+      'transaction_total_review_message': 'Sprawdź sumę przed zapisaniem: pozycje sumują się do {expected}, podczas gdy suma na paragonie to {actual}.',
       'transaction_items_heading': 'Elementi',
-      'transaction_empty_items':
-          'No line items yet. Add your first item to finish this receipt.',
-      'transaction_read_only_owner':
-          'You can review this receipt, but only the owner can edit it.',
+      'transaction_empty_items': 'Brak jeszcze pozycji. Dodaj pierwszą pozycję, aby ukończyć ten paragon.',
+      'transaction_read_only_owner': 'Możesz przeglądać ten paragon, ale tylko właściciel może go edytować.',
       'transaction_receipt_photo_title': 'Foto della ricevuta',
       'transaction_receipt_photo_subtitle': 'Visualizza la foto originale',
       'transaction_warning_review_one_item': 'Recensisci 1 articolo in totale',
@@ -6400,36 +6343,26 @@ class AppLocalizations {
       'transaction_warning_check_one_detail': 'Controlla 1 dettaglio estratto',
       'transaction_warning_check_details':
           'Controlla {count} dettagli estratti',
-      'transaction_warning_accepts_edits':
-          'Take a quick final look before saving. {details}. Saving accepts your edits.',
-      'transaction_was_amount': 'Era {importo}',
-      'transaction_saved_amount': '{importo} risparmiato',
+      'transaction_warning_accepts_edits': 'Rzuć okiem przed zapisaniem. {details}. Zapisanie oznacza zaakceptowanie zmian.',
+      'transaction_was_amount': 'Wynosiło {amount}',
+      'transaction_saved_amount': 'Zaoszczędzono {amount}',
       'transaction_missing_quantity_price': 'Aggiungi quantità, unità e prezzo',
       'transaction_receipt_total_label': 'Totale scontrino',
-      'transaction_open_receipt_error':
-          'We could not open this receipt right now. Please try again.',
-      'transaction_save_error':
-          'We could not save your changes. Please review the receipt and try again.',
-      'transaction_receipt_preview_error':
-          'We could not open the receipt preview right now.',
+      'transaction_open_receipt_error': 'Nie udało się teraz otworzyć tego paragonu. Spróbuj ponownie.',
+      'transaction_save_error': 'Nie udało się zapisać zmian. Przejrzyj paragon i spróbuj ponownie.',
+      'transaction_receipt_preview_error': 'Nie udało się teraz otworzyć podglądu paragonu.',
       'receipt_photo_invalid_url': 'Die URL des Belegfotos ist ungültig.',
-      'receipt_photo_open_fallback':
-          'Could not open the file automatically. The link was copied instead.',
+      'receipt_photo_open_fallback': 'Nie udało se automatycznie otworzyć pliku. Link został skopiowany.',
       'receipt_photo_load_failed':
           'Dieses Belegbild konnte nicht geladen werden.',
       'receipt_photo_download': 'Herunterladen',
-      'receipt_photo_downloaded': 'Quittung unter {Pfad} gespeichert',
+      'receipt_photo_downloaded': 'Paragon zapisany w {path}',
       'receipt_photo_open_external': 'Von außen öffnen',
-      'receipt_photo_non_image_hint':
-          'This receipt file is not an image. Open it in another app.',
-      'billing_household_purchase_block_title':
-          'Leave the household before switching plans',
-      'billing_household_purchase_block_owner':
-          'You currently own a family household. Remove the family group before buying an individual plan.',
-      'billing_household_purchase_block_member':
-          'You currently belong to a family household. Leave the household before buying an individual plan.',
-      'billing_purchase_not_confirmed':
-          'Purchase completed, but premium access was not confirmed yet. Please restore purchases or try syncing again.',
+      'receipt_photo_non_image_hint': 'Ten plik paragonu nie jest obrazem. Otwórz go w innej aplikacji.',
+      'billing_household_purchase_block_title': 'Opuść gospodarstwo domowe przed zmianą planu',
+      'billing_household_purchase_block_owner': 'Obecnie posiadasz gospodarstwo domowe. Usuń grupę rodzinną przed zakupem planu indywidualnego.',
+      'billing_household_purchase_block_member': 'Obecnie należysz do gospodarstwa domowego. Opuść je przed zakupem planu indywidualnego.',
+      'billing_purchase_not_confirmed': 'Zakup zakończony, ale dostęp premium nie został jeszcze potwierdzony. Przywróć zakupy lub spróbuj ponownie zsynchronizować.',
       'billing_purchase_confirmed': 'Premium-Zugang bestätigt.',
       'billing_purchase_failed': 'Kauf fehlgeschlagen: {message}',
       'transaction_total_savings': 'Risparmio totale:',
@@ -6500,8 +6433,7 @@ class AppLocalizations {
       'larger_interface': 'Größere Schnittstelle',
       'no_category_insights_yet': 'Noch keine Einblicke in die Kategorie',
       'no_overview_yet': 'Noch keine Übersicht',
-      'no_spend_was_recorded_in_the_matching_pr':
-          'No spend was recorded in the matching previous period.',
+      'no_spend_was_recorded_in_the_matching_pr': 'W odpowiadającym okresie nie odnotowano żadnych wydatków.',
       'no_trend_data_yet': 'Noch keine Trenddaten',
       'open_review': 'Rezension öffnen',
       'organize_your_receipts': 'Organisieren Sie Ihre Quittungen',
@@ -6521,16 +6453,14 @@ class AppLocalizations {
       'remove_all_in_series': 'Alles nacheinander entfernen',
       'remove_reminder': 'Erinnerung entfernen',
       'remove_this_reminder': 'Entfernen Sie diese Erinnerung',
-      'revenuecat_is_not_configured_in_this_bui':
-          'RevenueCat is not configured in this build.',
+      'revenuecat_is_not_configured_in_this_bui': 'RevenueCat nie jest skonfigurowany w tej kompilacji.',
       'save_changes': 'Änderungen speichern',
       'settings_and_account_polish': 'Einstellungen und Kontopolitur',
       'show_decimals': 'Dezimalstellen anzeigen',
       'smaller_interface': 'Kleinere Schnittstelle',
       'subscription_billing': 'Abonnement und Abrechnung',
       'terms_of_service': 'Nutzungsbedingungen',
-      'the_biggest_spending_groups_in_this_peri':
-          'The biggest spending groups in this period.',
+      'the_biggest_spending_groups_in_this_peri': 'Największe grupy wydatków w tym okresie.',
       'the_donut_shows_each_groups_share_of_tot':
           'The donut shows each group’s share of total spend.',
       'top_categories': 'Top-Kategorien',
@@ -6542,8 +6472,7 @@ class AppLocalizations {
       'upload_receipt': 'Quittung hochladen',
       'use_this_source_language': 'Verwenden Sie diese Ausgangssprache',
       'view_insights_and_trends': 'Sehen Sie sich Erkenntnisse und Trends an',
-      'where_the_most_spending_happened_in_this':
-          'Where the most spending happened in this period.',
+      'where_the_most_spending_happened_in_this': 'Gdzie miały miejsce największe wydatki w tym okresie.',
     
       'analytics_comparison_subtitle': 'W porównaniu z analogicznym poprzednim okresem.',
       'analytics_empty_categories_message': 'Wyróżnienia kategorii pojawią się po zarejestrowaniu większej liczby wydatków.',
@@ -6913,7 +6842,7 @@ class AppLocalizations {
       'taxonomy_other': 'Ostalo',
       'taxonomy_bakery_products': 'Pekarski proizvodi',
       'taxonomy_beverages': 'Pica',
-      'taxonomy_coffee_and_tea': 'kafa i caj',
+      'taxonomy_coffee_and_tea': 'Kafa i čaj',
       'taxonomy_dairy_products': 'Mlecni proizvodi',
       'taxonomy_fast_food': 'Brza hrana',
       'taxonomy_frozen_products': 'Zamrznuti proizvodi',
@@ -6953,7 +6882,7 @@ class AppLocalizations {
       'taxonomy_vision': 'Vid',
       'taxonomy_lab_tests': 'Laboratorijske analize',
       'taxonomy_health_insurance': 'Zdravstveno osiguranje',
-      'taxonomy_fitness': 'fitnes',
+      'taxonomy_fitness': 'Fitnes',
       'taxonomy_supplements': 'Dodaci ishrani',
       'taxonomy_cinema': 'Bioskop',
       'taxonomy_music': 'Muzika',
@@ -7004,12 +6933,9 @@ class AppLocalizations {
       'nav_tools': 'Werkzeuge',
       'nav_settings': 'Einstellungen',
       'login_welcome_title': 'Willkommen zurück',
-      'login_welcome_description':
-          'Track expenses your way, review receipts, and keep your spending history in one place.',
-      'login_feature_highlight':
-          'Google sign-in keeps your receipts, categories, and subscription status synced.',
-      'login_footer_note':
-          'By continuing, you will sign in with your Google account.',
+      'login_welcome_description': 'Pratite troškove na svoj način, pregledajte račune i čuvajte istoriju potrošnje na jednom mestu.',
+      'login_feature_highlight': 'Prijava putem Google-a sinhronizuje vaše račune, kategorije i status pretplate.',
+      'login_footer_note': 'Nastavljanjem ćete se prijaviti putem svog Google naloga.',
       'settings_subtitle': 'Verwalten Sie Ihre Präferenzen',
       'household_settings_title': 'Familienhaushalt',
       'household_settings_subtitle':
@@ -7021,7 +6947,7 @@ class AppLocalizations {
       'settings_session_section': 'Sitzung',
       'settings_subscription': 'Abonnement',
       'settings_subscription_loading': 'Abonnementstatus wird geladen',
-      'settings_subscription_active_until': 'Aktiv bis {Datum}',
+      'settings_subscription_active_until': 'Aktivno do {date}',
       'settings_subscription_inactive': 'Kein aktiver Plan',
       'settings_household': 'Haushalt',
       'settings_profile': 'Profil',
@@ -7068,8 +6994,7 @@ class AppLocalizations {
       'settings_budget_alerts': 'Budgetwarnungen',
       'settings_budget_alerts_subtitle': 'Bei Annäherung an Budgetgrenzen',
       'settings_bill_reminders': 'Rechnungserinnerungen',
-      'settings_bill_reminders_subtitle':
-          'Monthly reminders for upcoming payments',
+      'settings_bill_reminders_subtitle': 'Mesečni podsetnici za predstojeća plaćanja.',
       'settings_receipt_reminders': 'Empfangserinnerungen',
       'settings_receipt_reminders_subtitle':
           'Erinnern Sie daran, Belege zu scannen',
@@ -7098,17 +7023,14 @@ class AppLocalizations {
       'settings_currency_search': 'Währungen suchen...',
       'settings_items_translation_title': 'Artikelübersetzung',
       'settings_beta_feature': 'Beta-Funktion',
-      'settings_items_translation_beta_hint':
-          'This feature is in beta. Translation accuracy may vary.',
+      'settings_items_translation_beta_hint': 'Ova funkcija je u beta fazi. Preciznost prevoda može varirati.',
       'settings_enable_translation': 'Übersetzung aktivieren',
-      'settings_enable_translation_subtitle':
-          'Automatically translate receipt items',
+      'settings_enable_translation_subtitle': 'Automatski prevodi stavke sa računa.',
       'settings_translate_to': 'Übersetzen nach',
       'settings_options': 'Optionen',
       'settings_auto_detect_source_language':
           'Quellsprache automatisch erkennen',
-      'settings_auto_detect_source_language_subtitle':
-          'Automatically detect original language',
+      'settings_auto_detect_source_language_subtitle': 'Automatski detektuj izvorni jezik.',
       'settings_example': 'Beispiel',
       'settings_original_text': 'Оригінал',
       'settings_translated_text': 'Übersetzt',
@@ -7121,25 +7043,19 @@ class AppLocalizations {
       'feature_request_title_hint': 'Kurze Beschreibung Ihrer Idee...',
       'feature_request_category_label': 'Kategorie',
       'feature_request_description_label': 'Beschreibung',
-      'feature_request_description_hint':
-          'Describe your feature request in detail...',
+      'feature_request_description_hint': 'Detaljno opišite svoj zahtev za funkciju...',
       'feature_request_submit_action': 'Anfrage senden',
       'feature_request_submit_success': 'Funktionsanfrage eingereicht.',
-      'feature_request_title_length_error':
-          'Title must be between 3 and 120 characters.',
-      'feature_request_description_length_error':
-          'Description must be between 10 and 2000 characters.',
+      'feature_request_title_length_error': 'Naslov mora imati između 3 i 120 karaktera.',
+      'feature_request_description_length_error': 'Opis mora imati između 10 i 2000 karaktera.',
       'feature_request_load_error_title':
           'Funktionsanfragen konnten nicht geladen werden',
       'feature_request_your_ideas': 'Ihre Ideen',
       'feature_request_your_ideas_empty_title': 'Noch keine Ideen eingereicht',
-      'feature_request_your_ideas_empty_subtitle':
-          'Your submitted ideas will appear here while they wait for review or move into the public board.',
+      'feature_request_your_ideas_empty_subtitle': 'Vaše poslate ideje će se pojaviti ovde dok čekaju na pregled ili se prebace na javnu tablu.',
       'feature_request_popular_requests': 'Beliebte Anfragen',
-      'feature_request_popular_requests_empty_title':
-          'No public feature requests yet',
-      'feature_request_popular_requests_empty_subtitle':
-          'Approved ideas will appear here once they are curated for the public board.',
+      'feature_request_popular_requests_empty_title': 'Još uvek nema javnih zahteva za funkcije.',
+      'feature_request_popular_requests_empty_subtitle': 'Odobrene ideje će se pojaviti ovde nakon što budu izabrane za javnu tablu.',
       'feature_request_group_pending': 'Ausstehend',
       'feature_request_group_approved': 'Genehmigt',
       'feature_request_group_rejected': 'Abgelehnt',
@@ -7161,10 +7077,8 @@ class AppLocalizations {
       'settings_about': 'Um',
       'settings_banner_active_title': 'Pro ist aktiv',
       'settings_banner_upgrade_title': 'Upgrade auf Pro',
-      'settings_banner_active_subtitle':
-          'AI tools, unlimited receipts, and advanced analytics are active on your account.',
-      'settings_banner_upgrade_subtitle':
-          'Unlock AI insights, unlimited receipts, and advanced analytics.',
+      'settings_banner_active_subtitle': 'AI alati, neograničeni računi i napredna analitika su aktivni na vašem nalogu.',
+      'settings_banner_upgrade_subtitle': 'Otključajte AI uvide, neograničene račune i naprednu analitiku.',
       'settings_see_plan': 'Siehe Pläne',
       'settings_manage_subscription': 'Abonnement verwalten',
       'household_title': 'Haushalt',
@@ -7175,11 +7089,9 @@ class AppLocalizations {
       'household_edit_name_title': 'Bearbeiten Sie den Haushaltsnamen',
       'household_updated_success': 'Haushalt aktualisiert.',
       'household_empty_title': 'Noch kein Haushalt',
-      'household_empty_subtitle':
-          'Create a household to manage members and invite access.',
+      'household_empty_subtitle': 'Kreirajte domaćinstvo da biste upravljali članovima i pozvali ih.',
       'household_create_cta': 'Haushalt erstellen',
-      'household_join_via_link_only':
-          'Join is handled by opening an invite link directly.',
+      'household_join_via_link_only': 'Pridruživanje se vrši direktnim otvaranjem linka za pozivnicu.',
       'household_role_label': 'Ihre Rolle: {role}',
       'household_role_owner': 'Eigentümer',
       'household_role_admin': 'Administrateur',
@@ -7187,17 +7099,14 @@ class AppLocalizations {
       'household_you_badge': 'Du',
       'household_members_title': 'Mitglieder',
       'household_remove_member_title': 'Mitglied entfernen',
-      'household_remove_member_confirm':
-          '{Name} aus diesem Haushalt entfernen?',
+      'household_remove_member_confirm': 'Ukloniti člana {name} iz ovog domaćinstva?',
       'household_member_removed': 'Mitglied entfernt.',
       'household_leave_title': 'Verlassen Sie den Haushalt',
-      'household_leave_confirm':
-          'Leave this household and remove shared access from your account?',
+      'household_leave_confirm': 'Napustiti ovo domaćinstvo i ukloniti deljeni pristup sa vašeg naloga?',
       'household_leave_action': 'Verlassen Sie den Haushalt',
       'household_left_success': 'Sie haben den Haushalt verlassen.',
       'household_delete_title': 'Familiengruppe entfernen',
-      'household_delete_confirm':
-          'Remove this household for everyone? Shared transactions will be detached and invites will be revoked.',
+      'household_delete_confirm': 'Ukloniti ovo domaćinstvo za sve? Deljene transakcije će biti odvojene, a pozivnice povučene.',
       'household_delete_action': 'Familiengruppe entfernen',
       'household_deleted_success': 'Familiengruppe entfernt.',
       'household_invites_title': 'Lädt ein',
@@ -7214,17 +7123,15 @@ class AppLocalizations {
       'household_invite_link_copied': 'Einladungslink kopiert.',
       'household_invite_revoke': 'Widerrufen',
       'household_invite_revoke_title': 'Einladung widerrufen',
-      'household_invite_revoke_confirm':
-          'This invite can no longer be accepted. Continue?',
+      'household_invite_revoke_confirm': 'Ova pozivnica više ne može biti prihvaćena. Nastaviti?',
       'household_invite_revoked': 'Einladung widerrufen.',
-      'household_invite_expires_at': 'Läuft ab am: {Datum}',
+      'household_invite_expires_at': 'Ističe dana: {date}',
       'household_invite_state_pending': 'Ausstehend',
       'household_invite_state_accepted': 'Akzeptiert',
       'household_invite_state_revoked': 'Widerrufen',
       'household_invite_state_expired': 'Abgelaufen',
       'household_locked_title': 'Die Haushaltsverwaltung ist gesperrt',
-      'household_locked_subtitle':
-          'An active family plan is required for create/invite/remove actions.',
+      'household_locked_subtitle': 'Aktivni porodični plan je neophodan za kreiranje/pozivanje/uklanjanje.',
       'household_family_plan_required': 'Familienplan erforderlich',
       'household_member_count': '{count} Mitglieder',
       'household_member_count_with_limit': '{count} von {limit} Mitgliedern',
@@ -7232,8 +7139,7 @@ class AppLocalizations {
       'household_shared_expenses_subtitle':
           'Erlauben Sie allen Mitgliedern, Ausgaben hinzuzufügen',
       'household_budget_notifications': 'Budgetbenachrichtigungen',
-      'household_budget_notifications_subtitle':
-          'Notify when household budget limit is reached',
+      'household_budget_notifications_subtitle': 'Obavesti kada se dostigne limit budžeta domaćinstva.',
       'household_upgrade_cta': 'Pläne ansehen',
       'billing_period_title': 'Abrechnungszeitraum',
       'billing_period_monthly': 'Monatlich',
@@ -7244,16 +7150,14 @@ class AppLocalizations {
       'billing_restore_failed': 'Wiederherstellung fehlgeschlagen: {message}',
       'billing_current_plan': 'Aktueller Plan',
       'billing_subscribe_to_plan': 'Abonnieren Sie {plan} – {price}{unit}',
-      'billing_subscribe_unavailable':
-          'No purchasable package available right now.',
+      'billing_subscribe_unavailable': 'Trenutno nema dostupnih paketa za kupovinu.',
       'billing_plan_free': 'Kostenloser Plan',
       'billing_free_plan_subtitle': 'Begrenzt auf {limit} Belege pro Monat',
-      'billing_active_until_compact': 'Aktiv bis {Datum}',
-      'billing_resets_on': 'Wird am {Datum} zurückgesetzt',
+      'billing_active_until_compact': 'Aktivno do {date}',
+      'billing_resets_on': 'Resetuje se dana {date}',
       'household_invite_title': 'Haushaltseinladung',
       'household_invite_accepting': 'Einladung annehmen...',
-      'household_invite_accept_success':
-          'Invite accepted. You are now in this household.',
+      'household_invite_accept_success': 'Pozivnica prihvaćena. Sada ste u ovom domaćinstvu.',
       'household_open_screen': 'Offener Haushalt',
       'household_continue_app': 'Weitermachen',
       'receipts_delete_missing_id': 'Die Beleg-ID fehlt.',
@@ -7285,21 +7189,17 @@ class AppLocalizations {
       'budget_add_category': 'Kategorie hinzufügen',
       'budget_remove_category': 'Kategorie entfernen',
       'budget_limit_label': 'Bilancio',
-      'budget_empty_state':
-          'Add category limits to start tracking your monthly budget.',
+      'budget_empty_state': 'Dodajte limite kategorija da biste počeli da pratite svoj mesečni budžet.',
       'budget_status_over_title': 'Budget überschritten',
-      'budget_status_over_body':
-          'You are over plan by {amount}. Adjust your category limits or slow spending this month.',
+      'budget_status_over_body': 'Prekoračili ste plan za {amount}. Prilagodite limite kategorija ili smanjite potrošnju ovog meseca.',
       'budget_status_on_track_title': 'Tolle Arbeit!',
-      'budget_status_on_track_body':
-          'You are on track to save {amount} this month. Keep up the good work.',
+      'budget_status_on_track_body': 'Na dobrom ste putu da uštedite {amount} ovog meseca. Samo tako nastavite!',
       'budget_category_exceeded': '{amount} über dem Limit',
-      'budget_category_remaining': '{Betrag} übrig',
+      'budget_category_remaining': 'Preostalo {amount}',
       'budget_invalid_amount': 'Geben Sie einen gültigen Betrag ein.',
       'budget_saved': 'Budget aktualisiert.',
       'budget_save_action': 'Budget sparen',
-      'budget_all_categories_added':
-          'All available categories are already added.',
+      'budget_all_categories_added': 'Sve dostupne kategorije su već dodate.',
       'bill_reminders_subtitle_single': '1 bevorstehende Rechnung',
       'bill_reminders_subtitle_plural': '{count} anstehende Rechnungen',
       'bill_reminders_total_upcoming': 'Total bevorstehend',
@@ -7323,12 +7223,10 @@ class AppLocalizations {
       'bill_reminders_upcoming': 'Demnächst',
       'bill_reminders_due_soon': 'Bald fällig',
       'bill_reminders_overdue': 'Überfällig',
-      'bill_reminders_invalid_form':
-          'Fill in the bill name, amount, and due date.',
+      'bill_reminders_invalid_form': 'Popunite naziv računa, iznos i datum dospeća.',
       'bill_reminders_saved': 'Rechnungserinnerung hinzugefügt.',
       'bill_reminders_paid': 'Rechnung als bezahlt markiert.',
-      'bill_reminders_empty':
-          'No bills are due right now. Add a reminder to stay ahead of upcoming payments.',
+      'bill_reminders_empty': 'Trenutno nema računa za plaćanje. Dodajte podsetnik da biste bili u toku sa predstojećim plaćanjima.',
       'tools_data': 'Daten',
       'tools_export_data': 'Daten exportieren',
       'tools_export_data_subtitle': 'Laden Sie Ihre Finanzdaten herunter',
@@ -7347,14 +7245,10 @@ class AppLocalizations {
       'home_change_flat': 'Nessun cambiamento',
       'home_change_less': '{percent}% in meno',
       'home_change_more': '{percent}% in più',
-      'home_insight_less_than_last_month':
-          'Spending is {percent}% lower than {month}.',
-      'home_insight_more_than_last_month':
-          'Spending is {percent}% higher than {month}.',
-      'home_insight_top_category':
-          'Top category is {category} at {percent}% of monthly spend.',
-      'home_insight_top_subcategory':
-          'Top subcategory is {subcategory} at {percent}% of item spend.',
+      'home_insight_less_than_last_month': 'Potrošnja je za {percent}% manja nego u mesecu {month}.',
+      'home_insight_more_than_last_month': 'Potrošnja je za {percent}% veća nego u mesecu {month}.',
+      'home_insight_top_category': 'Glavna kategorija je {category}, sa {percent}% mesečne potrošnje.',
+      'home_insight_top_subcategory': 'Glavna podkategorija je {subcategory}, sa {percent}% potrošnje na stavke.',
       'home_insight_review_count':
           '{count} ricevute devono ancora essere revisionate.',
       'home_insight_all_caught_up':
@@ -7369,37 +7263,29 @@ class AppLocalizations {
       'home_quick_actions': 'Schnelle Aktionen',
       'home_add_expense': 'Aggiungi spesa',
       'home_categories': 'Kategorien',
-      'home_refresh_error':
-          'Home could not refresh just now. Please try again.',
+      'home_refresh_error': 'Početna stranica se trenutno ne može osvežiti. Molimo pokušajte ponovo.',
       'receipts_filter_needs_review': 'Necessita di revisione',
       'receipts_needs_review': 'Necessita di revisione',
       'receipts_check_extraction': 'Controllare l\'estrazione',
       'receipts_draft': 'Ha bisogno di essere salvato',
       'receipts_review_empty_title': 'Nessuna ricevuta necessita di revisione.',
-      'receipts_review_empty_body':
-          'Everything in this period looks confirmed and warning-free.',
-      'receipts_empty_body':
-          'Scan your first receipt to start building a history you can review and filter.',
+      'receipts_review_empty_body': 'Sve u ovom periodu izgleda potvrđeno i bez upozorenja.',
+      'receipts_empty_body': 'Skenirajte svoj prvi račun da biste počeli da gradite istoriju koju možete pregledati i filtrirati.',
       'receipts_scan_first_action': 'Scansiona la tua prima ricevuta',
       'receipts_no_filter_matches':
           'Nessuna ricevuta corrisponde ai filtri attuali.',
-      'receipts_no_filter_matches_body':
-          'Try another period, merchant search, or clear the active filters.',
+      'receipts_no_filter_matches_body': 'Pokušajte sa drugim periodom, pretražite trgovca ili obrišite aktivne filtere.',
       'receipts_history_total': 'Totale cronologia ricevute',
-      'receipts_history_load_error':
-          'Your history could not load right now. Please try again.',
-      'receipts_remove_error':
-          'We could not remove that entry. Please try again.',
+      'receipts_history_load_error': 'Vaša istorija se trenutno ne može učitati. Molimo pokušajte ponovo.',
+      'receipts_remove_error': 'Nismo mogli da uklonimo taj unos. Molimo pokušajte ponovo.',
       'common_save': 'Speichern',
       'categories_add_action': 'Hinzufügen',
       'categories_add_category': 'Kategorie hinzufügen',
       'categories_new_category': 'Neue Kategorie',
       'categories_category_hint': 'Kategoriename (z. B. Reisen)',
-      'categories_no_parent_categories':
-          'Create or restore a top-level category first.',
+      'categories_no_parent_categories': 'Prvo kreirajte ili vratite roditeljsku kategoriju.',
       'categories_disable_title': 'Kategorie deaktivieren',
-      'categories_disable_confirm':
-          'Disable "{name}" for future categorization and hide it from pickers?',
+      'categories_disable_confirm': 'Onemogućiti „{name}“ za buduće kategorizacije i sakriti je iz selektora?',
       'categories_disable_action': 'Deaktivieren',
       'categories_disabled': '„{name}“ deaktiviert.',
       'categories_restored': '„{name}“ wiederhergestellt.',
@@ -7409,8 +7295,7 @@ class AppLocalizations {
       'categories_disabled_section': 'Deaktivierte Kategorien',
       'categories_category_created': 'Kategorie „{name}“ erstellt!',
       'subcategories_disable_title': 'Unterkategorie deaktivieren',
-      'subcategories_disable_confirm':
-          'Disable "{name}" for future categorization and hide it from pickers?',
+      'subcategories_disable_confirm': 'Onemogućiti „{name}“ za buduće kategorizacije i sakriti je iz selektora?',
       'subcategories_disabled': '„{name}“ deaktiviert.',
       'subcategories_restored': '„{name}“ wiederhergestellt.',
       'subcategories_active_state': 'Aktiv',
@@ -7421,8 +7306,7 @@ class AppLocalizations {
       'analytics_tab_households': 'Haushalte',
       'analytics_active_filters': 'Aktive Filter',
       'analytics_clear_all_filters': 'Alle Filter löschen',
-      'analytics_view_all_active_filters':
-          'View all active filters ({count} more)',
+      'analytics_view_all_active_filters': 'Vidi sve aktivne filtere (još {count})',
       'analytics_show_fewer_filters': 'Weniger Filter anzeigen',
       'analytics_categories_subtitle': 'Entdecken Sie, wohin Ihr Geld fließt',
       'analytics_overview_top_categories': 'Top-Kategorien',
@@ -7437,19 +7321,16 @@ class AppLocalizations {
       'analytics_compared_with_previous': 'Im Vergleich zur Vorperiode',
       'analytics_trends_period_label': 'Ausgewähltes Trendfenster',
       'analytics_trends_chart_title': 'Ausgabentrend',
-      'analytics_trends_chart_subtitle':
-          'Automatic daily, weekly, or monthly buckets for your selected period.',
+      'analytics_trends_chart_subtitle': 'Automatsko dnevno, nedeljno ili mesečno grupisanje za izabrani period.',
       'analytics_trends_no_data':
           'Für diese Filter liegen keine Trenddaten vor.',
       'analytics_trends_highest_bucket': 'Höchster Eimer',
       'analytics_trends_average_bucket': 'Durchschnittliche Bucket-Ausgaben',
       'analytics_household_empty_title': 'Noch keine Haushaltsanalyse',
-      'analytics_household_empty_subtitle':
-          'Create or open a household to compare spending across members.',
+      'analytics_household_empty_subtitle': 'Kreirajte ili otvorite domaćinstvo da biste uporedili potrošnju između članova.',
       'analytics_household_no_data':
           'Für diese Filter fallen keine Haushaltsausgaben an.',
-      'analytics_household_no_data_subtitle':
-          'Try widening the date range or clearing a few filters.',
+      'analytics_household_no_data_subtitle': 'Pokušajte da proširite opseg datuma ili obrišete nekoliko filtera.',
       'analytics_household_preview_subtitle':
           'Gemeinsame Ausgaben für diesen Zeitraum',
       'analytics_household_total_transactions':
@@ -7467,8 +7348,7 @@ class AppLocalizations {
       'transaction_created_successfully': 'Transazione creata con successo',
       'manual_transaction_title': 'Transaktion hinzufügen',
       'manual_transaction_heading': 'Fügen Sie eine Transaktion manuell hinzu',
-      'manual_transaction_subtitle':
-          'Create a transaction without scanning a receipt, then fine-tune the details on the next screen.',
+      'manual_transaction_subtitle': 'Kreirajte transakciju bez skeniranja računa, a zatim precizirajte detalje na sledećem ekranu.',
       'manual_transaction_merchant_label': 'Händler',
       'manual_transaction_merchant_hint': 'z.B. Eckmarkt',
       'manual_transaction_amount_label': 'Menge',
@@ -7477,36 +7357,28 @@ class AppLocalizations {
       'manual_transaction_time_label': 'Zeit',
       'manual_transaction_category_label': 'Kategorie',
       'manual_transaction_category_none': 'Keine Kategorie',
-      'manual_transaction_unlimited_note':
-          'Manual transactions are unlimited on the free plan.',
+      'manual_transaction_unlimited_note': 'Ručne transakcije su neograničene u besplatnom planu.',
       'manual_transaction_create_action': 'Erstellen und fortfahren',
-      'manual_transaction_amount_invalid':
-          'Enter a valid amount greater than zero.',
+      'manual_transaction_amount_invalid': 'Unesite važeći iznos veći od nule.',
       'manual_transaction_deleted': 'Manuelle Transaktion gelöscht.',
       'manual_transaction_delete_missing_id': 'Transaktions-ID fehlt.',
       'transaction_amount_required':
           'Inserisci un importo totale prima di salvare.',
       'transaction_invalid_total': 'Inserisci un importo totale valido.',
-      'transaction_save_before_labels':
-          'Save the transaction before adding labels.',
+      'transaction_save_before_labels': 'Sačuvajte transakciju pre dodavanja oznaka.',
       'transaction_new_expense': 'Nuova spesa',
       'transaction_review_receipt': 'Esaminare la ricevuta',
       'transaction_merchant_dialog_title': 'Mercante',
       'transaction_merchant_hint': 'Nome del negozio o del commerciante',
       'transaction_unsaved_changes_title': 'Modifiche non salvate',
-      'transaction_unsaved_changes_body':
-          'Your edits are not saved yet. Save them before leaving, or discard the changes.',
+      'transaction_unsaved_changes_body': 'Vaše izmene još nisu sačuvane. Sačuvajte ih pre odlaska ili odbacite izmene.',
       'transaction_keep_editing': 'Continua a modificare',
       'transaction_discard_changes': 'Scartare',
-      'transaction_line_review_message':
-          'Review this line item: it should be {expected} and currently shows {actual}.',
-      'transaction_total_review_message':
-          'Review the total before saving: items add up to {expected} while the receipt total is {actual}.',
+      'transaction_line_review_message': 'Pregledajte ovu stavku: trebalo bi da bude {expected}, a trenutno prikazuje {actual}.',
+      'transaction_total_review_message': 'Pregledajte ukupnu vrednost pre čuvanja: stavke iznose {expected}, dok je ukupna vrednost na računu {actual}.',
       'transaction_items_heading': 'Elementi',
-      'transaction_empty_items':
-          'No line items yet. Add your first item to finish this receipt.',
-      'transaction_read_only_owner':
-          'You can review this receipt, but only the owner can edit it.',
+      'transaction_empty_items': 'Još uvek nema stavki. Dodajte prvu stavku da biste završili ovaj račun.',
+      'transaction_read_only_owner': 'Možete pregledati ovaj račun, ali samo vlasnik može da ga menja.',
       'transaction_receipt_photo_title': 'Foto della ricevuta',
       'transaction_receipt_photo_subtitle': 'Visualizza la foto originale',
       'transaction_warning_review_one_item': 'Recensisci 1 articolo in totale',
@@ -7516,36 +7388,26 @@ class AppLocalizations {
       'transaction_warning_check_one_detail': 'Controlla 1 dettaglio estratto',
       'transaction_warning_check_details':
           'Controlla {count} dettagli estratti',
-      'transaction_warning_accepts_edits':
-          'Take a quick final look before saving. {details}. Saving accepts your edits.',
-      'transaction_was_amount': 'Era {importo}',
-      'transaction_saved_amount': '{importo} risparmiato',
+      'transaction_warning_accepts_edits': 'Bacite brzi poslednji pogled pre čuvanja. {details}. Čuvanjem prihvatate svoje izmene.',
+      'transaction_was_amount': 'Bilo je {amount}',
+      'transaction_saved_amount': 'Ušteđeno {amount}',
       'transaction_missing_quantity_price': 'Aggiungi quantità, unità e prezzo',
       'transaction_receipt_total_label': 'Totale scontrino',
-      'transaction_open_receipt_error':
-          'We could not open this receipt right now. Please try again.',
-      'transaction_save_error':
-          'We could not save your changes. Please review the receipt and try again.',
-      'transaction_receipt_preview_error':
-          'We could not open the receipt preview right now.',
+      'transaction_open_receipt_error': 'Nismo mogli da otvorimo ovaj račun. Molimo pokušajte ponovo.',
+      'transaction_save_error': 'Nismo mogli da sačuvamo vaše izmene. Molimo pregledajte račun i pokušajte ponovo.',
+      'transaction_receipt_preview_error': 'Nismo mogli da otvorimo pregled računa.',
       'receipt_photo_invalid_url': 'Die URL des Belegfotos ist ungültig.',
-      'receipt_photo_open_fallback':
-          'Could not open the file automatically. The link was copied instead.',
+      'receipt_photo_open_fallback': 'Nismo mogli automatski da otvorimo datoteku. Link je umesto toga kopiran.',
       'receipt_photo_load_failed':
           'Dieses Belegbild konnte nicht geladen werden.',
       'receipt_photo_download': 'Herunterladen',
-      'receipt_photo_downloaded': 'Quittung unter {Pfad} gespeichert',
+      'receipt_photo_downloaded': 'Račun sačuvan u {path}',
       'receipt_photo_open_external': 'Von außen öffnen',
-      'receipt_photo_non_image_hint':
-          'This receipt file is not an image. Open it in another app.',
-      'billing_household_purchase_block_title':
-          'Leave the household before switching plans',
-      'billing_household_purchase_block_owner':
-          'You currently own a family household. Remove the family group before buying an individual plan.',
-      'billing_household_purchase_block_member':
-          'You currently belong to a family household. Leave the household before buying an individual plan.',
-      'billing_purchase_not_confirmed':
-          'Purchase completed, but premium access was not confirmed yet. Please restore purchases or try syncing again.',
+      'receipt_photo_non_image_hint': 'Ova datoteka računa nije slika. Otvorite je u drugoj aplikaciji.',
+      'billing_household_purchase_block_title': 'Napustite domaćinstvo pre promene plana',
+      'billing_household_purchase_block_owner': 'Trenutno posedujete porodično domaćinstvo. Uklonite porodičnu grupu pre kupovine individualnog plana.',
+      'billing_household_purchase_block_member': 'Trenutno pripadate porodičnom domaćinstvu. Napustite domaćinstvo pre kupovine individualnog plana.',
+      'billing_purchase_not_confirmed': 'Kupovina je završena, ali premium pristup još uvek nije potvrđen. Molimo vratite kupovine ili pokušajte ponovo sinhronizaciju.',
       'billing_purchase_confirmed': 'Premium-Zugang bestätigt.',
       'billing_purchase_failed': 'Kauf fehlgeschlagen: {message}',
       'transaction_total_savings': 'Risparmio totale:',
@@ -7616,8 +7478,7 @@ class AppLocalizations {
       'larger_interface': 'Größere Schnittstelle',
       'no_category_insights_yet': 'Noch keine Einblicke in die Kategorie',
       'no_overview_yet': 'Noch keine Übersicht',
-      'no_spend_was_recorded_in_the_matching_pr':
-          'No spend was recorded in the matching previous period.',
+      'no_spend_was_recorded_in_the_matching_pr': 'Nije zabeležena potrošnja u odgovarajućem periodu.',
       'no_trend_data_yet': 'Noch keine Trenddaten',
       'open_review': 'Rezension öffnen',
       'organize_your_receipts': 'Organisieren Sie Ihre Quittungen',
@@ -7637,16 +7498,14 @@ class AppLocalizations {
       'remove_all_in_series': 'Alles nacheinander entfernen',
       'remove_reminder': 'Erinnerung entfernen',
       'remove_this_reminder': 'Entfernen Sie diese Erinnerung',
-      'revenuecat_is_not_configured_in_this_bui':
-          'RevenueCat is not configured in this build.',
+      'revenuecat_is_not_configured_in_this_bui': 'RevenueCat nije konfigurisan u ovom buildu.',
       'save_changes': 'Änderungen speichern',
       'settings_and_account_polish': 'Einstellungen und Kontopolitur',
       'show_decimals': 'Dezimalstellen anzeigen',
       'smaller_interface': 'Kleinere Schnittstelle',
       'subscription_billing': 'Abonnement und Abrechnung',
       'terms_of_service': 'Nutzungsbedingungen',
-      'the_biggest_spending_groups_in_this_peri':
-          'The biggest spending groups in this period.',
+      'the_biggest_spending_groups_in_this_peri': 'Najveće grupe potrošnje u ovom periodu.',
       'the_donut_shows_each_groups_share_of_tot':
           'The donut shows each group’s share of total spend.',
       'top_categories': 'Top-Kategorien',
@@ -7658,8 +7517,7 @@ class AppLocalizations {
       'upload_receipt': 'Quittung hochladen',
       'use_this_source_language': 'Verwenden Sie diese Ausgangssprache',
       'view_insights_and_trends': 'Sehen Sie sich Erkenntnisse und Trends an',
-      'where_the_most_spending_happened_in_this':
-          'Where the most spending happened in this period.',
+      'where_the_most_spending_happened_in_this': 'Gde se dogodilo najviše potrošnje u ovom periodu.',
       'analytics_comparison_subtitle': 'U poređenju sa odgovarajućim prethodnim periodom.',
       'analytics_empty_categories_message': 'Glavne kategorije će se pojaviti nakon što zabeležite više troškova.',
       'analytics_empty_merchants_message': 'Analitika po prodavnicama će se pojaviti nakon što skenirate više računa.',
@@ -8119,21 +7977,16 @@ class AppLocalizations {
           'Отсканируйте чек или добавьте расход, чтобы начать.',
       'home_review_count_plural': '{count} чеков требуют проверки',
       'home_smart_insights': 'Умные подсказки',
-      'receipts_empty_body':
-          'Отсканируйте первый чек, чтобы начать собирать историю, которую можно просматривать и фильтровать.',
+      'receipts_empty_body': 'Отсканируйте свой первый чек, чтобы начать формировать историю, которую можно просматривать и фильтровать.',
       'receipts_no_filter_matches':
           'Нет чеков, соответствующих текущим фильтрам.',
-      'receipts_history_load_error':
-          'Сейчас не удалось загрузить историю. Попробуйте еще раз.',
+      'receipts_history_load_error': 'Не удалось загрузить историю. Пожалуйста, попробуйте снова.',
       'transaction_unsaved_changes_title': 'Несохраненные изменения',
-      'transaction_unsaved_changes_body':
-          'Ваши правки еще не сохранены. Сохраните их перед выходом или отмените изменения.',
+      'transaction_unsaved_changes_body': 'Ваши изменения еще не сохранены. Сохраните их перед выходом или отмените изменения.',
       'transaction_receipt_photo_title': 'Фото чека',
       'transaction_receipt_photo_subtitle': 'Посмотреть исходное фото',
-      'transaction_warning_accepts_edits':
-          'Быстро проверьте перед сохранением. {details}. Сохранение подтвердит ваши правки.',
-      'transaction_open_receipt_error':
-          'Сейчас не удалось открыть этот чек. Попробуйте еще раз.',
+      'transaction_warning_accepts_edits': 'Проверьте все в последний раз перед сохранением. {details}. Сохранение подтверждает ваши изменения.',
+      'transaction_open_receipt_error': 'Не удалось открыть чек. Пожалуйста, попробуйте снова.',
       'home_add_expense': 'Добавить расход',
       'home_all_reviewed': 'Все чеки проверены',
       'home_change_flat': 'Без изменений',
@@ -8144,14 +7997,11 @@ class AppLocalizations {
       'home_greeting_morning': 'Доброе утро',
       'home_insight_all_caught_up': 'Все чеки уже проверены.',
       'home_insight_review_count': '{count} чеков еще требуют проверки.',
-      'home_insight_top_category':
-          'Главная категория: {category}, {percent}% месячных расходов.',
-      'home_insight_top_subcategory':
-          'Главная подкатегория: {subcategory}, {percent}% расходов по товарам.',
+      'home_insight_top_category': 'Основная категория — {category}, на нее приходится {percent}% месячных трат.',
+      'home_insight_top_subcategory': 'Основная подкатегория — {subcategory}, на нее приходится {percent}% трат по позициям.',
       'home_no_spending_data': 'За этот месяц пока нет данных о расходах.',
       'home_primary_action': 'Основное действие',
-      'home_refresh_error':
-          'Главную страницу сейчас не удалось обновить. Попробуйте еще раз.',
+      'home_refresh_error': 'Не удалось обновить главную страницу. Пожалуйста, попробуйте снова.',
       'home_review_count_single': '1 чек требует проверки',
       'home_scan_receipt_subtitle': 'Мгновенное распознавание с помощью AI',
       'home_spending_overview': 'Обзор расходов',
@@ -8163,42 +8013,32 @@ class AppLocalizations {
       'receipts_history_total': 'Общая история чеков',
       'receipts_needs_review': 'Требует проверки',
       'receipts_no_discounts': 'За этот период нет скидок',
-      'receipts_no_filter_matches_body':
-          'Попробуйте другой период, поиск по магазину или очистите активные фильтры.',
-      'receipts_remove_error':
-          'Не удалось удалить эту запись. Попробуйте еще раз.',
-      'receipts_review_empty_body':
-          'Все за этот период подтверждено и без предупреждений.',
+      'receipts_no_filter_matches_body': 'Попробуйте выбрать другой период, найти продавца или очистить активные фильтры.',
+      'receipts_remove_error': 'Не удалось удалить эту запись. Пожалуйста, попробуйте снова.',
+      'receipts_review_empty_body': 'За этот период все подтверждено, предупреждений нет.',
       'receipts_review_empty_title': 'Нет чеков для проверки.',
       'receipts_scan_first_action': 'Отсканируйте первый чек',
       'transaction_amount_required': 'Введите общую сумму перед сохранением.',
       'transaction_created_successfully': 'Транзакция успешно создана',
       'transaction_discard_changes': 'Отменить',
-      'transaction_empty_items':
-          'Позиций пока нет. Добавьте первую позицию, чтобы завершить чек.',
+      'transaction_empty_items': 'Позиций пока нет. Добавьте первую позицию, чтобы завершить этот чек.',
       'transaction_invalid_total': 'Введите корректную общую сумму.',
       'transaction_items_heading': 'Позиции',
       'transaction_keep_editing': 'Продолжить редактирование',
-      'transaction_line_review_message':
-          'Проверьте эту позицию: должно быть {expected}, а сейчас показано {actual}.',
+      'transaction_line_review_message': 'Проверьте эту позицию: должно быть {expected}, а сейчас — {actual}.',
       'transaction_merchant_dialog_title': 'Продавец',
       'transaction_merchant_hint': 'Название магазина или продавца',
       'transaction_missing_quantity_price':
           'Добавьте количество, единицу и цену',
       'transaction_new_expense': 'Новый расход',
-      'transaction_read_only_owner':
-          'Вы можете просмотреть этот чек, но редактировать его может только владелец.',
-      'transaction_receipt_preview_error':
-          'Сейчас не удалось открыть предпросмотр чека.',
+      'transaction_read_only_owner': 'Вы можете просматривать этот чек, но редактировать его может только владелец.',
+      'transaction_receipt_preview_error': 'Не удалось открыть предпросмотр чека.',
       'transaction_receipt_total_label': 'Итог чека',
       'transaction_review_receipt': 'Проверить чек',
-      'transaction_save_before_labels':
-          'Сохраните транзакцию перед добавлением меток.',
-      'transaction_save_error':
-          'Не удалось сохранить изменения. Проверьте чек и попробуйте еще раз.',
+      'transaction_save_before_labels': 'Сохраните транзакцию перед добавлением тегов.',
+      'transaction_save_error': 'Не удалось сохранить изменения. Пожалуйста, проверьте чек и попробуйте снова.',
       'transaction_saved_amount': 'Сэкономлено {amount}',
-      'transaction_total_review_message':
-          'Проверьте итог перед сохранением: позиции дают {expected}, а итог чека — {actual}.',
+      'transaction_total_review_message': 'Проверьте сумму перед сохранением: сумма позиций {expected}, а итог по чеку — {actual}.',
       'transaction_total_savings': 'Общая экономия:',
       'transaction_warning_check_details':
           'Проверьте {count} распознанных деталей',
@@ -8212,12 +8052,9 @@ class AppLocalizations {
       'nav_tools': 'Werkzeuge',
       'nav_settings': 'Einstellungen',
       'login_welcome_title': 'Willkommen zurück',
-      'login_welcome_description':
-          'Track expenses your way, review receipts, and keep your spending history in one place.',
-      'login_feature_highlight':
-          'Google sign-in keeps your receipts, categories, and subscription status synced.',
-      'login_footer_note':
-          'By continuing, you will sign in with your Google account.',
+      'login_welcome_description': 'Отслеживайте расходы по-своему, проверяйте чеки и храните историю трат в одном месте.',
+      'login_feature_highlight': 'Вход через Google синхронизирует ваши чеки, категории и статус подписки.',
+      'login_footer_note': 'Продолжая, вы войдете в систему с помощью своего аккаунта Google.',
       'settings_subtitle': 'Verwalten Sie Ihre Präferenzen',
       'household_settings_title': 'Familienhaushalt',
       'household_settings_subtitle':
@@ -8229,7 +8066,7 @@ class AppLocalizations {
       'settings_session_section': 'Sitzung',
       'settings_subscription': 'Abonnement',
       'settings_subscription_loading': 'Abonnementstatus wird geladen',
-      'settings_subscription_active_until': 'Aktiv bis {Datum}',
+      'settings_subscription_active_until': 'Активен до {date}',
       'settings_subscription_inactive': 'Kein aktiver Plan',
       'settings_household': 'Haushalt',
       'settings_profile': 'Profil',
@@ -8276,8 +8113,7 @@ class AppLocalizations {
       'settings_budget_alerts': 'Budgetwarnungen',
       'settings_budget_alerts_subtitle': 'Bei Annäherung an Budgetgrenzen',
       'settings_bill_reminders': 'Rechnungserinnerungen',
-      'settings_bill_reminders_subtitle':
-          'Monthly reminders for upcoming payments',
+      'settings_bill_reminders_subtitle': 'Ежемесячные напоминания о предстоящих платежах.',
       'settings_receipt_reminders': 'Empfangserinnerungen',
       'settings_receipt_reminders_subtitle':
           'Erinnern Sie daran, Belege zu scannen',
@@ -8306,17 +8142,14 @@ class AppLocalizations {
       'settings_currency_search': 'Währungen suchen...',
       'settings_items_translation_title': 'Artikelübersetzung',
       'settings_beta_feature': 'Beta-Funktion',
-      'settings_items_translation_beta_hint':
-          'This feature is in beta. Translation accuracy may vary.',
+      'settings_items_translation_beta_hint': 'Эта функция находится в режиме бета-тестирования. Точность перевода может варьироваться.',
       'settings_enable_translation': 'Übersetzung aktivieren',
-      'settings_enable_translation_subtitle':
-          'Automatically translate receipt items',
+      'settings_enable_translation_subtitle': 'Автоматически переводить позиции в чеках.',
       'settings_translate_to': 'Übersetzen nach',
       'settings_options': 'Optionen',
       'settings_auto_detect_source_language':
           'Quellsprache automatisch erkennen',
-      'settings_auto_detect_source_language_subtitle':
-          'Automatically detect original language',
+      'settings_auto_detect_source_language_subtitle': 'Автоматически определять исходный язык.',
       'settings_example': 'Beispiel',
       'settings_original_text': 'Оригінал',
       'settings_translated_text': 'Übersetzt',
@@ -8329,25 +8162,19 @@ class AppLocalizations {
       'feature_request_title_hint': 'Kurze Beschreibung Ihrer Idee...',
       'feature_request_category_label': 'Kategorie',
       'feature_request_description_label': 'Beschreibung',
-      'feature_request_description_hint':
-          'Describe your feature request in detail...',
+      'feature_request_description_hint': 'Подробно опишите ваше предложение...',
       'feature_request_submit_action': 'Anfrage senden',
       'feature_request_submit_success': 'Funktionsanfrage eingereicht.',
-      'feature_request_title_length_error':
-          'Title must be between 3 and 120 characters.',
-      'feature_request_description_length_error':
-          'Description must be between 10 and 2000 characters.',
+      'feature_request_title_length_error': 'Заголовок должен содержать от 3 до 120 символов.',
+      'feature_request_description_length_error': 'Описание должно содержать от 10 до 2000 символов.',
       'feature_request_load_error_title':
           'Funktionsanfragen konnten nicht geladen werden',
       'feature_request_your_ideas': 'Ihre Ideen',
       'feature_request_your_ideas_empty_title': 'Noch keine Ideen eingereicht',
-      'feature_request_your_ideas_empty_subtitle':
-          'Your submitted ideas will appear here while they wait for review or move into the public board.',
+      'feature_request_your_ideas_empty_subtitle': 'Ваши идеи появятся здесь, пока они ожидают проверки или переносятся на общедоступную доску.',
       'feature_request_popular_requests': 'Beliebte Anfragen',
-      'feature_request_popular_requests_empty_title':
-          'No public feature requests yet',
-      'feature_request_popular_requests_empty_subtitle':
-          'Approved ideas will appear here once they are curated for the public board.',
+      'feature_request_popular_requests_empty_title': 'Публичных предложений пока нет.',
+      'feature_request_popular_requests_empty_subtitle': 'Одобренные идеи появятся здесь после модерации.',
       'feature_request_group_pending': 'Ausstehend',
       'feature_request_group_approved': 'Genehmigt',
       'feature_request_group_rejected': 'Abgelehnt',
@@ -8369,10 +8196,8 @@ class AppLocalizations {
       'settings_about': 'Um',
       'settings_banner_active_title': 'Pro ist aktiv',
       'settings_banner_upgrade_title': 'Upgrade auf Pro',
-      'settings_banner_active_subtitle':
-          'AI tools, unlimited receipts, and advanced analytics are active on your account.',
-      'settings_banner_upgrade_subtitle':
-          'Unlock AI insights, unlimited receipts, and advanced analytics.',
+      'settings_banner_active_subtitle': 'Инструменты ИИ, неограниченное количество чеков и расширенная аналитика активны в вашем аккаунте.',
+      'settings_banner_upgrade_subtitle': 'Разблокируйте ИИ-инсайты, неограниченное количество чеков и расширенную аналитику.',
       'settings_see_plan': 'Siehe Pläne',
       'settings_manage_subscription': 'Abonnement verwalten',
       'household_title': 'Haushalt',
@@ -8383,11 +8208,9 @@ class AppLocalizations {
       'household_edit_name_title': 'Bearbeiten Sie den Haushaltsnamen',
       'household_updated_success': 'Haushalt aktualisiert.',
       'household_empty_title': 'Noch kein Haushalt',
-      'household_empty_subtitle':
-          'Create a household to manage members and invite access.',
+      'household_empty_subtitle': 'Создайте семью, чтобы управлять участниками и приглашать их к доступу.',
       'household_create_cta': 'Haushalt erstellen',
-      'household_join_via_link_only':
-          'Join is handled by opening an invite link directly.',
+      'household_join_via_link_only': 'Присоединение осуществляется путем открытия ссылки-приглашения напрямую.',
       'household_role_label': 'Ihre Rolle: {role}',
       'household_role_owner': 'Eigentümer',
       'household_role_admin': 'Administrateur',
@@ -8395,17 +8218,14 @@ class AppLocalizations {
       'household_you_badge': 'Du',
       'household_members_title': 'Mitglieder',
       'household_remove_member_title': 'Mitglied entfernen',
-      'household_remove_member_confirm':
-          '{Name} aus diesem Haushalt entfernen?',
+      'household_remove_member_confirm': 'Удалить пользователя {name} из этой семьи?',
       'household_member_removed': 'Mitglied entfernt.',
       'household_leave_title': 'Verlassen Sie den Haushalt',
-      'household_leave_confirm':
-          'Leave this household and remove shared access from your account?',
+      'household_leave_confirm': 'Выйти из этой семьи и удалить общий доступ из своего аккаунта?',
       'household_leave_action': 'Verlassen Sie den Haushalt',
       'household_left_success': 'Sie haben den Haushalt verlassen.',
       'household_delete_title': 'Familiengruppe entfernen',
-      'household_delete_confirm':
-          'Remove this household for everyone? Shared transactions will be detached and invites will be revoked.',
+      'household_delete_confirm': 'Удалить эту семью для всех? Общие транзакции будут отсоединены, а приглашения аннулированы.',
       'household_delete_action': 'Familiengruppe entfernen',
       'household_deleted_success': 'Familiengruppe entfernt.',
       'household_invites_title': 'Lädt ein',
@@ -8422,17 +8242,15 @@ class AppLocalizations {
       'household_invite_link_copied': 'Einladungslink kopiert.',
       'household_invite_revoke': 'Widerrufen',
       'household_invite_revoke_title': 'Einladung widerrufen',
-      'household_invite_revoke_confirm':
-          'This invite can no longer be accepted. Continue?',
+      'household_invite_revoke_confirm': 'Это приглашение больше нельзя принять. Продолжить?',
       'household_invite_revoked': 'Einladung widerrufen.',
-      'household_invite_expires_at': 'Läuft ab am: {Datum}',
+      'household_invite_expires_at': 'Истекает: {date}',
       'household_invite_state_pending': 'Ausstehend',
       'household_invite_state_accepted': 'Akzeptiert',
       'household_invite_state_revoked': 'Widerrufen',
       'household_invite_state_expired': 'Abgelaufen',
       'household_locked_title': 'Die Haushaltsverwaltung ist gesperrt',
-      'household_locked_subtitle':
-          'An active family plan is required for create/invite/remove actions.',
+      'household_locked_subtitle': 'Для создания/приглашения/удаления требуется активный семейный план.',
       'household_family_plan_required': 'Familienplan erforderlich',
       'household_member_count': '{count} Mitglieder',
       'household_member_count_with_limit': '{count} von {limit} Mitgliedern',
@@ -8440,8 +8258,7 @@ class AppLocalizations {
       'household_shared_expenses_subtitle':
           'Erlauben Sie allen Mitgliedern, Ausgaben hinzuzufügen',
       'household_budget_notifications': 'Budgetbenachrichtigungen',
-      'household_budget_notifications_subtitle':
-          'Notify when household budget limit is reached',
+      'household_budget_notifications_subtitle': 'Уведомлять при достижении лимита семейного бюджета.',
       'household_upgrade_cta': 'Pläne ansehen',
       'billing_period_title': 'Abrechnungszeitraum',
       'billing_period_monthly': 'Monatlich',
@@ -8452,16 +8269,14 @@ class AppLocalizations {
       'billing_restore_failed': 'Wiederherstellung fehlgeschlagen: {message}',
       'billing_current_plan': 'Aktueller Plan',
       'billing_subscribe_to_plan': 'Abonnieren Sie {plan} – {price}{unit}',
-      'billing_subscribe_unavailable':
-          'No purchasable package available right now.',
+      'billing_subscribe_unavailable': 'В данный момент нет доступных пакетов для покупки.',
       'billing_plan_free': 'Kostenloser Plan',
       'billing_free_plan_subtitle': 'Begrenzt auf {limit} Belege pro Monat',
-      'billing_active_until_compact': 'Aktiv bis {Datum}',
-      'billing_resets_on': 'Wird am {Datum} zurückgesetzt',
+      'billing_active_until_compact': 'Активен до {date}',
+      'billing_resets_on': 'Обновится {date}',
       'household_invite_title': 'Haushaltseinladung',
       'household_invite_accepting': 'Einladung annehmen...',
-      'household_invite_accept_success':
-          'Invite accepted. You are now in this household.',
+      'household_invite_accept_success': 'Приглашение принято. Теперь вы состоите в этой семье.',
       'household_open_screen': 'Offener Haushalt',
       'household_continue_app': 'Weitermachen',
       'receipts_delete_missing_id': 'Die Beleg-ID fehlt.',
@@ -8492,21 +8307,17 @@ class AppLocalizations {
       'budget_add_category': 'Kategorie hinzufügen',
       'budget_remove_category': 'Kategorie entfernen',
       'budget_limit_label': 'Bilancio',
-      'budget_empty_state':
-          'Add category limits to start tracking your monthly budget.',
+      'budget_empty_state': 'Добавьте лимиты по категориям, чтобы начать отслеживать свой ежемесячный бюджет.',
       'budget_status_over_title': 'Budget überschritten',
-      'budget_status_over_body':
-          'You are over plan by {amount}. Adjust your category limits or slow spending this month.',
+      'budget_status_over_body': 'Вы превысили план на {amount}. Отрегулируйте лимиты категорий или сократите расходы в этом месяце.',
       'budget_status_on_track_title': 'Tolle Arbeit!',
-      'budget_status_on_track_body':
-          'You are on track to save {amount} this month. Keep up the good work.',
+      'budget_status_on_track_body': 'Вы на правильном пути, чтобы сэкономить {amount} в этом месяце. Так держать!',
       'budget_category_exceeded': '{amount} über dem Limit',
-      'budget_category_remaining': '{Betrag} übrig',
+      'budget_category_remaining': 'Осталось {amount}',
       'budget_invalid_amount': 'Geben Sie einen gültigen Betrag ein.',
       'budget_saved': 'Budget aktualisiert.',
       'budget_save_action': 'Budget sparen',
-      'budget_all_categories_added':
-          'All available categories are already added.',
+      'budget_all_categories_added': 'Все доступные категории уже добавлены.',
       'bill_reminders_subtitle_single': '1 bevorstehende Rechnung',
       'bill_reminders_subtitle_plural': '{count} anstehende Rechnungen',
       'bill_reminders_total_upcoming': 'Total bevorstehend',
@@ -8530,22 +8341,18 @@ class AppLocalizations {
       'bill_reminders_upcoming': 'Demnächst',
       'bill_reminders_due_soon': 'Bald fällig',
       'bill_reminders_overdue': 'Überfällig',
-      'bill_reminders_invalid_form':
-          'Fill in the bill name, amount, and due date.',
+      'bill_reminders_invalid_form': 'Заполните название счета, сумму и дату оплаты.',
       'bill_reminders_saved': 'Rechnungserinnerung hinzugefügt.',
       'bill_reminders_paid': 'Rechnung als bezahlt markiert.',
-      'bill_reminders_empty':
-          'No bills are due right now. Add a reminder to stay ahead of upcoming payments.',
+      'bill_reminders_empty': 'На данный момент счетов к оплате нет. Добавьте напоминание, чтобы не пропустить предстоящие платежи.',
       'tools_data': 'Daten',
       'tools_export_data': 'Daten exportieren',
       'tools_export_data_subtitle': 'Laden Sie Ihre Finanzdaten herunter',
       'tools_import_data': 'Daten importieren',
       'tools_import_data_subtitle': 'Importieren Sie Transaktionen aus Dateien',
       'tools_import_success': 'Daten erfolgreich importiert.',
-      'home_insight_less_than_last_month':
-          'Spending is {percent}% lower than {month}.',
-      'home_insight_more_than_last_month':
-          'Spending is {percent}% higher than {month}.',
+      'home_insight_less_than_last_month': 'Расходы на {percent}% ниже, чем в месяце {month}.',
+      'home_insight_more_than_last_month': 'Расходы на {percent}% выше, чем в месяце {month}.',
       'home_quick_actions': 'Schnelle Aktionen',
       'home_categories': 'Kategorien',
       'common_save': 'Speichern',
@@ -8553,11 +8360,9 @@ class AppLocalizations {
       'categories_add_category': 'Kategorie hinzufügen',
       'categories_new_category': 'Neue Kategorie',
       'categories_category_hint': 'Kategoriename (z. B. Reisen)',
-      'categories_no_parent_categories':
-          'Create or restore a top-level category first.',
+      'categories_no_parent_categories': 'Сначала создайте или восстановите родительскую категорию.',
       'categories_disable_title': 'Kategorie deaktivieren',
-      'categories_disable_confirm':
-          'Disable "{name}" for future categorization and hide it from pickers?',
+      'categories_disable_confirm': 'Деактивировать «{name}» для будущей категоризации и скрыть из списков выбора?',
       'categories_disable_action': 'Deaktivieren',
       'categories_disabled': '„{name}“ deaktiviert.',
       'categories_restored': '„{name}“ wiederhergestellt.',
@@ -8567,8 +8372,7 @@ class AppLocalizations {
       'categories_disabled_section': 'Deaktivierte Kategorien',
       'categories_category_created': 'Kategorie „{name}“ erstellt!',
       'subcategories_disable_title': 'Unterkategorie deaktivieren',
-      'subcategories_disable_confirm':
-          'Disable "{name}" for future categorization and hide it from pickers?',
+      'subcategories_disable_confirm': 'Деактивировать «{name}» для будущей категоризации и скрыть из списков выбора?',
       'subcategories_disabled': '„{name}“ deaktiviert.',
       'subcategories_restored': '„{name}“ wiederhergestellt.',
       'subcategories_active_state': 'Aktiv',
@@ -8579,8 +8383,7 @@ class AppLocalizations {
       'analytics_tab_households': 'Haushalte',
       'analytics_active_filters': 'Aktive Filter',
       'analytics_clear_all_filters': 'Alle Filter löschen',
-      'analytics_view_all_active_filters':
-          'View all active filters ({count} more)',
+      'analytics_view_all_active_filters': 'Показать все активные фильтры (еще {count})',
       'analytics_show_fewer_filters': 'Weniger Filter anzeigen',
       'analytics_categories_subtitle': 'Entdecken Sie, wohin Ihr Geld fließt',
       'analytics_overview_top_categories': 'Top-Kategorien',
@@ -8595,19 +8398,16 @@ class AppLocalizations {
       'analytics_compared_with_previous': 'Im Vergleich zur Vorperiode',
       'analytics_trends_period_label': 'Ausgewähltes Trendfenster',
       'analytics_trends_chart_title': 'Ausgabentrend',
-      'analytics_trends_chart_subtitle':
-          'Automatic daily, weekly, or monthly buckets for your selected period.',
+      'analytics_trends_chart_subtitle': 'Автоматическая ежедневная, еженедельная или ежемесячная группировка за выбранный период.',
       'analytics_trends_no_data':
           'Für diese Filter liegen keine Trenddaten vor.',
       'analytics_trends_highest_bucket': 'Höchster Eimer',
       'analytics_trends_average_bucket': 'Durchschnittliche Bucket-Ausgaben',
       'analytics_household_empty_title': 'Noch keine Haushaltsanalyse',
-      'analytics_household_empty_subtitle':
-          'Create or open a household to compare spending across members.',
+      'analytics_household_empty_subtitle': 'Создайте или откройте семью, чтобы сравнить расходы между участниками.',
       'analytics_household_no_data':
           'Für diese Filter fallen keine Haushaltsausgaben an.',
-      'analytics_household_no_data_subtitle':
-          'Try widening the date range or clearing a few filters.',
+      'analytics_household_no_data_subtitle': 'Попробуйте увеличить диапазон дат или очистить фильтры.',
       'analytics_household_preview_subtitle':
           'Gemeinsame Ausgaben für diesen Zeitraum',
       'analytics_household_total_transactions':
@@ -8624,8 +8424,7 @@ class AppLocalizations {
       'analytics_no_discounts': 'Haben Sie keine Quittungen mit Rabatten',
       'manual_transaction_title': 'Transaktion hinzufügen',
       'manual_transaction_heading': 'Fügen Sie eine Transaktion manuell hinzu',
-      'manual_transaction_subtitle':
-          'Create a transaction without scanning a receipt, then fine-tune the details on the next screen.',
+      'manual_transaction_subtitle': 'Создайте транзакцию без сканирования чека, а затем уточните детали на следующем экране.',
       'manual_transaction_merchant_label': 'Händler',
       'manual_transaction_merchant_hint': 'z.B. Eckmarkt',
       'manual_transaction_amount_label': 'Menge',
@@ -8634,31 +8433,23 @@ class AppLocalizations {
       'manual_transaction_time_label': 'Zeit',
       'manual_transaction_category_label': 'Kategorie',
       'manual_transaction_category_none': 'Keine Kategorie',
-      'manual_transaction_unlimited_note':
-          'Manual transactions are unlimited on the free plan.',
+      'manual_transaction_unlimited_note': 'Ручные транзакции не ограничены в бесплатном плане.',
       'manual_transaction_create_action': 'Erstellen und fortfahren',
-      'manual_transaction_amount_invalid':
-          'Enter a valid amount greater than zero.',
+      'manual_transaction_amount_invalid': 'Пожалуйста, введите корректную сумму больше нуля.',
       'manual_transaction_deleted': 'Manuelle Transaktion gelöscht.',
       'manual_transaction_delete_missing_id': 'Transaktions-ID fehlt.',
       'receipt_photo_invalid_url': 'Die URL des Belegfotos ist ungültig.',
-      'receipt_photo_open_fallback':
-          'Could not open the file automatically. The link was copied instead.',
+      'receipt_photo_open_fallback': 'Не удалось открыть файл автоматически. Ссылка была скопирована.',
       'receipt_photo_load_failed':
           'Dieses Belegbild konnte nicht geladen werden.',
       'receipt_photo_download': 'Herunterladen',
-      'receipt_photo_downloaded': 'Quittung unter {Pfad} gespeichert',
+      'receipt_photo_downloaded': 'Чек сохранен в {path}',
       'receipt_photo_open_external': 'Von außen öffnen',
-      'receipt_photo_non_image_hint':
-          'This receipt file is not an image. Open it in another app.',
-      'billing_household_purchase_block_title':
-          'Leave the household before switching plans',
-      'billing_household_purchase_block_owner':
-          'You currently own a family household. Remove the family group before buying an individual plan.',
-      'billing_household_purchase_block_member':
-          'You currently belong to a family household. Leave the household before buying an individual plan.',
-      'billing_purchase_not_confirmed':
-          'Purchase completed, but premium access was not confirmed yet. Please restore purchases or try syncing again.',
+      'receipt_photo_non_image_hint': 'Этот файл чека не является изображением. Откройте его в другом приложении.',
+      'billing_household_purchase_block_title': 'Выйдите из семьи перед сменой плана',
+      'billing_household_purchase_block_owner': 'Вы являетесь владельцем семьи. Удалите семейную группу перед покупкой индивидуального плана.',
+      'billing_household_purchase_block_member': 'Вы состоите в семье. Выйдите из нее перед покупкой индивидуального плана.',
+      'billing_purchase_not_confirmed': 'Покупка завершена, но премиум-доступ еще не подтвержден. Пожалуйста, восстановите покупки или попробуйте синхронизировать снова.',
       'billing_purchase_confirmed': 'Premium-Zugang bestätigt.',
       'billing_purchase_failed': 'Kauf fehlgeschlagen: {message}',
       'transaction_attribution_title': 'Namensnennung',
@@ -8728,8 +8519,7 @@ class AppLocalizations {
       'larger_interface': 'Größere Schnittstelle',
       'no_category_insights_yet': 'Noch keine Einblicke in die Kategorie',
       'no_overview_yet': 'Noch keine Übersicht',
-      'no_spend_was_recorded_in_the_matching_pr':
-          'No spend was recorded in the matching previous period.',
+      'no_spend_was_recorded_in_the_matching_pr': 'За соответствующий период расходы не зафиксированы.',
       'no_trend_data_yet': 'Noch keine Trenddaten',
       'open_review': 'Rezension öffnen',
       'organize_your_receipts': 'Organisieren Sie Ihre Quittungen',
@@ -8749,16 +8539,14 @@ class AppLocalizations {
       'remove_all_in_series': 'Alles nacheinander entfernen',
       'remove_reminder': 'Erinnerung entfernen',
       'remove_this_reminder': 'Entfernen Sie diese Erinnerung',
-      'revenuecat_is_not_configured_in_this_bui':
-          'RevenueCat is not configured in this build.',
+      'revenuecat_is_not_configured_in_this_bui': 'RevenueCat не настроен в этой сборке.',
       'save_changes': 'Änderungen speichern',
       'settings_and_account_polish': 'Einstellungen und Kontopolitur',
       'show_decimals': 'Dezimalstellen anzeigen',
       'smaller_interface': 'Kleinere Schnittstelle',
       'subscription_billing': 'Abonnement und Abrechnung',
       'terms_of_service': 'Nutzungsbedingungen',
-      'the_biggest_spending_groups_in_this_peri':
-          'The biggest spending groups in this period.',
+      'the_biggest_spending_groups_in_this_peri': 'Самые большие группы расходов за этот период.',
       'the_donut_shows_each_groups_share_of_tot':
           'The donut shows each group’s share of total spend.',
       'top_categories': 'Top-Kategorien',
@@ -8770,8 +8558,7 @@ class AppLocalizations {
       'upload_receipt': 'Quittung hochladen',
       'use_this_source_language': 'Verwenden Sie diese Ausgangssprache',
       'view_insights_and_trends': 'Sehen Sie sich Erkenntnisse und Trends an',
-      'where_the_most_spending_happened_in_this':
-          'Where the most spending happened in this period.',
+      'where_the_most_spending_happened_in_this': 'Где произошло больше всего трат в этом периоде.',
       'analytics_comparison_subtitle': 'По сравнению с аналогичным предыдущим периодом.',
       'analytics_empty_categories_message': 'Основные категории появятся после добавления новых расходов.',
       'analytics_empty_merchants_message': 'Аналитика по магазинам появится после сканирования чеков.',
@@ -9173,7 +8960,7 @@ class AppLocalizations {
       'taxonomy_electricity': 'Eletricidade',
       'taxonomy_water': 'Água',
       'taxonomy_gas': 'Gás',
-      'taxonomy_internet': 'Интернет',
+      'taxonomy_internet': 'Internet',
       'taxonomy_mobile_phone': 'Celular',
       'taxonomy_tv_and_streaming': 'TV e streaming',
       'taxonomy_waste_collection': 'Coleta de Resíduos',
@@ -9235,12 +9022,9 @@ class AppLocalizations {
       'nav_tools': 'Werkzeuge',
       'nav_settings': 'Einstellungen',
       'login_welcome_title': 'Willkommen zurück',
-      'login_welcome_description':
-          'Track expenses your way, review receipts, and keep your spending history in one place.',
-      'login_feature_highlight':
-          'Google sign-in keeps your receipts, categories, and subscription status synced.',
-      'login_footer_note':
-          'By continuing, you will sign in with your Google account.',
+      'login_welcome_description': 'Acompanhe as despesas à sua maneira, reveja recibos e mantenha o seu histórico de gastos num só lugar.',
+      'login_feature_highlight': 'O login com o Google mantém os seus recibos, categorias e o estado da subscrição sincronizados.',
+      'login_footer_note': 'Ao continuar, irá iniciar sessão com a sua conta Google.',
       'settings_subtitle': 'Verwalten Sie Ihre Präferenzen',
       'household_settings_title': 'Familienhaushalt',
       'household_settings_subtitle':
@@ -9252,7 +9036,7 @@ class AppLocalizations {
       'settings_session_section': 'Sitzung',
       'settings_subscription': 'Abonnement',
       'settings_subscription_loading': 'Abonnementstatus wird geladen',
-      'settings_subscription_active_until': 'Aktiv bis {Datum}',
+      'settings_subscription_active_until': 'Ativo até {date}',
       'settings_subscription_inactive': 'Kein aktiver Plan',
       'settings_household': 'Haushalt',
       'settings_profile': 'Profil',
@@ -9266,7 +9050,7 @@ class AppLocalizations {
       'settings_theme_dark': 'Dunkel',
       'settings_theme_light_subtitle': 'Klassische Lichtoptik',
       'settings_theme_dark_subtitle': 'Schont die Augen',
-      'settings_theme_auto': 'Авто',
+      'settings_theme_auto': 'Automático',
       'settings_theme_auto_subtitle': 'Entspricht den Systemeinstellungen',
       'settings_accent_color': 'Akzentfarbe',
       'settings_accent_neutral': 'Neutre',
@@ -9299,8 +9083,7 @@ class AppLocalizations {
       'settings_budget_alerts': 'Budgetwarnungen',
       'settings_budget_alerts_subtitle': 'Bei Annäherung an Budgetgrenzen',
       'settings_bill_reminders': 'Rechnungserinnerungen',
-      'settings_bill_reminders_subtitle':
-          'Monthly reminders for upcoming payments',
+      'settings_bill_reminders_subtitle': 'Lembretes mensais para os próximos pagamentos.',
       'settings_receipt_reminders': 'Empfangserinnerungen',
       'settings_receipt_reminders_subtitle':
           'Erinnern Sie daran, Belege zu scannen',
@@ -9329,19 +9112,16 @@ class AppLocalizations {
       'settings_currency_search': 'Währungen suchen...',
       'settings_items_translation_title': 'Artikelübersetzung',
       'settings_beta_feature': 'Beta-Funktion',
-      'settings_items_translation_beta_hint':
-          'This feature is in beta. Translation accuracy may vary.',
+      'settings_items_translation_beta_hint': 'Esta funcionalidade está em beta. A precisão da tradução pode variar.',
       'settings_enable_translation': 'Übersetzung aktivieren',
-      'settings_enable_translation_subtitle':
-          'Automatically translate receipt items',
+      'settings_enable_translation_subtitle': 'Traduzir automaticamente itens de recibos.',
       'settings_translate_to': 'Übersetzen nach',
       'settings_options': 'Optionen',
       'settings_auto_detect_source_language':
           'Quellsprache automatisch erkennen',
-      'settings_auto_detect_source_language_subtitle':
-          'Automatically detect original language',
+      'settings_auto_detect_source_language_subtitle': 'Detetar automaticamente o idioma original.',
       'settings_example': 'Beispiel',
-      'settings_original_text': 'Оригінал',
+      'settings_original_text': 'Original',
       'settings_translated_text': 'Übersetzt',
       'settings_help_center': 'Hilfecenter',
       'settings_feature_request': 'Funktionsanfrage',
@@ -9352,25 +9132,19 @@ class AppLocalizations {
       'feature_request_title_hint': 'Kurze Beschreibung Ihrer Idee...',
       'feature_request_category_label': 'Kategorie',
       'feature_request_description_label': 'Beschreibung',
-      'feature_request_description_hint':
-          'Describe your feature request in detail...',
+      'feature_request_description_hint': 'Descreva o seu pedido de funcionalidade em detalhe...',
       'feature_request_submit_action': 'Anfrage senden',
       'feature_request_submit_success': 'Funktionsanfrage eingereicht.',
-      'feature_request_title_length_error':
-          'Title must be between 3 and 120 characters.',
-      'feature_request_description_length_error':
-          'Description must be between 10 and 2000 characters.',
+      'feature_request_title_length_error': 'O título deve ter entre 3 e 120 caracteres.',
+      'feature_request_description_length_error': 'A descrição deve ter entre 10 e 2000 caracteres.',
       'feature_request_load_error_title':
           'Funktionsanfragen konnten nicht geladen werden',
       'feature_request_your_ideas': 'Ihre Ideen',
       'feature_request_your_ideas_empty_title': 'Noch keine Ideen eingereicht',
-      'feature_request_your_ideas_empty_subtitle':
-          'Your submitted ideas will appear here while they wait for review or move into the public board.',
+      'feature_request_your_ideas_empty_subtitle': 'As suas ideias submetidas aparecerão aqui enquanto aguardam revisão ou passam para o quadro público.',
       'feature_request_popular_requests': 'Beliebte Anfragen',
-      'feature_request_popular_requests_empty_title':
-          'No public feature requests yet',
-      'feature_request_popular_requests_empty_subtitle':
-          'Approved ideas will appear here once they are curated for the public board.',
+      'feature_request_popular_requests_empty_title': 'Ainda não existem pedidos de funcionalidades públicas.',
+      'feature_request_popular_requests_empty_subtitle': 'As ideias aprovadas aparecerão aqui assim que forem selecionadas para o quadro público.',
       'feature_request_group_pending': 'Ausstehend',
       'feature_request_group_approved': 'Genehmigt',
       'feature_request_group_rejected': 'Abgelehnt',
@@ -9392,10 +9166,8 @@ class AppLocalizations {
       'settings_about': 'Um',
       'settings_banner_active_title': 'Pro ist aktiv',
       'settings_banner_upgrade_title': 'Upgrade auf Pro',
-      'settings_banner_active_subtitle':
-          'AI tools, unlimited receipts, and advanced analytics are active on your account.',
-      'settings_banner_upgrade_subtitle':
-          'Unlock AI insights, unlimited receipts, and advanced analytics.',
+      'settings_banner_active_subtitle': 'Ferramentas de IA, recibos ilimitados e análises avançadas estão ativos na sua conta.',
+      'settings_banner_upgrade_subtitle': 'Desbloqueie insights de IA, recibos ilimitados e análises avançadas.',
       'settings_see_plan': 'Siehe Pläne',
       'settings_manage_subscription': 'Abonnement verwalten',
       'household_title': 'Haushalt',
@@ -9406,11 +9178,9 @@ class AppLocalizations {
       'household_edit_name_title': 'Bearbeiten Sie den Haushaltsnamen',
       'household_updated_success': 'Haushalt aktualisiert.',
       'household_empty_title': 'Noch kein Haushalt',
-      'household_empty_subtitle':
-          'Create a household to manage members and invite access.',
+      'household_empty_subtitle': 'Crie um agregado familiar para gerir membros e convidar acessos.',
       'household_create_cta': 'Haushalt erstellen',
-      'household_join_via_link_only':
-          'Join is handled by opening an invite link directly.',
+      'household_join_via_link_only': 'A adesão é feita abrindo diretamente um link de convite.',
       'household_role_label': 'Ihre Rolle: {role}',
       'household_role_owner': 'Eigentümer',
       'household_role_admin': 'Administrateur',
@@ -9418,17 +9188,14 @@ class AppLocalizations {
       'household_you_badge': 'Du',
       'household_members_title': 'Mitglieder',
       'household_remove_member_title': 'Mitglied entfernen',
-      'household_remove_member_confirm':
-          '{Name} aus diesem Haushalt entfernen?',
+      'household_remove_member_confirm': 'Remover o membro {name} deste agregado familiar?',
       'household_member_removed': 'Mitglied entfernt.',
       'household_leave_title': 'Verlassen Sie den Haushalt',
-      'household_leave_confirm':
-          'Leave this household and remove shared access from your account?',
+      'household_leave_confirm': 'Sair deste agregado familiar e remover o acesso partilhado da sua conta?',
       'household_leave_action': 'Verlassen Sie den Haushalt',
       'household_left_success': 'Sie haben den Haushalt verlassen.',
       'household_delete_title': 'Familiengruppe entfernen',
-      'household_delete_confirm':
-          'Remove this household for everyone? Shared transactions will be detached and invites will be revoked.',
+      'household_delete_confirm': 'Remover este agregado familiar para todos? As transações partilhadas serão desvinculadas e os convites revogados.',
       'household_delete_action': 'Familiengruppe entfernen',
       'household_deleted_success': 'Familiengruppe entfernt.',
       'household_invites_title': 'Lädt ein',
@@ -9445,17 +9212,15 @@ class AppLocalizations {
       'household_invite_link_copied': 'Einladungslink kopiert.',
       'household_invite_revoke': 'Widerrufen',
       'household_invite_revoke_title': 'Einladung widerrufen',
-      'household_invite_revoke_confirm':
-          'This invite can no longer be accepted. Continue?',
+      'household_invite_revoke_confirm': 'Este convite já não pode ser aceite. Continuar?',
       'household_invite_revoked': 'Einladung widerrufen.',
-      'household_invite_expires_at': 'Läuft ab am: {Datum}',
+      'household_invite_expires_at': 'Expira em: {date}',
       'household_invite_state_pending': 'Ausstehend',
       'household_invite_state_accepted': 'Akzeptiert',
       'household_invite_state_revoked': 'Widerrufen',
       'household_invite_state_expired': 'Abgelaufen',
       'household_locked_title': 'Die Haushaltsverwaltung ist gesperrt',
-      'household_locked_subtitle':
-          'An active family plan is required for create/invite/remove actions.',
+      'household_locked_subtitle': 'É necessário um plano familiar ativo para ações de criação/convite/remoção.',
       'household_family_plan_required': 'Familienplan erforderlich',
       'household_member_count': '{count} Mitglieder',
       'household_member_count_with_limit': '{count} von {limit} Mitgliedern',
@@ -9463,8 +9228,7 @@ class AppLocalizations {
       'household_shared_expenses_subtitle':
           'Erlauben Sie allen Mitgliedern, Ausgaben hinzuzufügen',
       'household_budget_notifications': 'Budgetbenachrichtigungen',
-      'household_budget_notifications_subtitle':
-          'Notify when household budget limit is reached',
+      'household_budget_notifications_subtitle': 'Notificar quando o limite do orçamento familiar for atingido.',
       'household_upgrade_cta': 'Pläne ansehen',
       'billing_period_title': 'Abrechnungszeitraum',
       'billing_period_monthly': 'Monatlich',
@@ -9475,16 +9239,14 @@ class AppLocalizations {
       'billing_restore_failed': 'Wiederherstellung fehlgeschlagen: {message}',
       'billing_current_plan': 'Aktueller Plan',
       'billing_subscribe_to_plan': 'Abonnieren Sie {plan} – {price}{unit}',
-      'billing_subscribe_unavailable':
-          'No purchasable package available right now.',
+      'billing_subscribe_unavailable': 'Não existem pacotes disponíveis para compra no momento.',
       'billing_plan_free': 'Kostenloser Plan',
       'billing_free_plan_subtitle': 'Begrenzt auf {limit} Belege pro Monat',
-      'billing_active_until_compact': 'Aktiv bis {Datum}',
-      'billing_resets_on': 'Wird am {Datum} zurückgesetzt',
+      'billing_active_until_compact': 'Ativo até {date}',
+      'billing_resets_on': 'Redefine em {date}',
       'household_invite_title': 'Haushaltseinladung',
       'household_invite_accepting': 'Einladung annehmen...',
-      'household_invite_accept_success':
-          'Invite accepted. You are now in this household.',
+      'household_invite_accept_success': 'Convite aceite. Agora faz parte deste agregado familiar.',
       'household_open_screen': 'Offener Haushalt',
       'household_continue_app': 'Weitermachen',
       'receipts_delete_missing_id': 'Die Beleg-ID fehlt.',
@@ -9516,21 +9278,17 @@ class AppLocalizations {
       'budget_add_category': 'Kategorie hinzufügen',
       'budget_remove_category': 'Kategorie entfernen',
       'budget_limit_label': 'Bilancio',
-      'budget_empty_state':
-          'Add category limits to start tracking your monthly budget.',
+      'budget_empty_state': 'Adicione limites de categoria para começar a acompanhar o seu orçamento mensal.',
       'budget_status_over_title': 'Budget überschritten',
-      'budget_status_over_body':
-          'You are over plan by {amount}. Adjust your category limits or slow spending this month.',
+      'budget_status_over_body': 'Ultrapassou o plano em {amount}. Ajuste os seus limites de categoria ou reduza os gastos este mês.',
       'budget_status_on_track_title': 'Tolle Arbeit!',
-      'budget_status_on_track_body':
-          'You are on track to save {amount} this month. Keep up the good work.',
+      'budget_status_on_track_body': 'Está no caminho certo para economizar {amount} este mês. Continue assim!',
       'budget_category_exceeded': '{amount} über dem Limit',
-      'budget_category_remaining': '{Betrag} übrig',
+      'budget_category_remaining': '{amount} restantes',
       'budget_invalid_amount': 'Geben Sie einen gültigen Betrag ein.',
       'budget_saved': 'Budget aktualisiert.',
       'budget_save_action': 'Budget sparen',
-      'budget_all_categories_added':
-          'All available categories are already added.',
+      'budget_all_categories_added': 'Todas as categorias disponíveis já foram adicionadas.',
       'bill_reminders_subtitle_single': '1 bevorstehende Rechnung',
       'bill_reminders_subtitle_plural': '{count} anstehende Rechnungen',
       'bill_reminders_total_upcoming': 'Total bevorstehend',
@@ -9554,12 +9312,10 @@ class AppLocalizations {
       'bill_reminders_upcoming': 'Demnächst',
       'bill_reminders_due_soon': 'Bald fällig',
       'bill_reminders_overdue': 'Überfällig',
-      'bill_reminders_invalid_form':
-          'Fill in the bill name, amount, and due date.',
+      'bill_reminders_invalid_form': 'Preencha o nome da fatura, o valor e a data de vencimento.',
       'bill_reminders_saved': 'Rechnungserinnerung hinzugefügt.',
       'bill_reminders_paid': 'Rechnung als bezahlt markiert.',
-      'bill_reminders_empty':
-          'No bills are due right now. Add a reminder to stay ahead of upcoming payments.',
+      'bill_reminders_empty': 'Não existem faturas a pagamento no momento. Adicione um lembrete para se manter a par dos próximos pagamentos.',
       'tools_data': 'Daten',
       'tools_export_data': 'Daten exportieren',
       'tools_export_data_subtitle': 'Laden Sie Ihre Finanzdaten herunter',
@@ -9578,14 +9334,10 @@ class AppLocalizations {
       'home_change_flat': 'Nessun cambiamento',
       'home_change_less': '{percent}% in meno',
       'home_change_more': '{percent}% in più',
-      'home_insight_less_than_last_month':
-          'Spending is {percent}% lower than {month}.',
-      'home_insight_more_than_last_month':
-          'Spending is {percent}% higher than {month}.',
-      'home_insight_top_category':
-          'Top category is {category} at {percent}% of monthly spend.',
-      'home_insight_top_subcategory':
-          'Top subcategory is {subcategory} at {percent}% of item spend.',
+      'home_insight_less_than_last_month': 'Os gastos são {percent}% inferiores aos do mês de {month}.',
+      'home_insight_more_than_last_month': 'Os gastos são {percent}% superiores aos do mês de {month}.',
+      'home_insight_top_category': 'A categoria principal é {category}, com {percent}% dos gastos mensais.',
+      'home_insight_top_subcategory': 'A subcategoria principal é {subcategory}, com {percent}% dos gastos em itens.',
       'home_insight_review_count':
           '{count} ricevute devono ancora essere revisionate.',
       'home_insight_all_caught_up':
@@ -9600,37 +9352,29 @@ class AppLocalizations {
       'home_quick_actions': 'Schnelle Aktionen',
       'home_add_expense': 'Aggiungi spesa',
       'home_categories': 'Kategorien',
-      'home_refresh_error':
-          'Home could not refresh just now. Please try again.',
+      'home_refresh_error': 'Não foi possível atualizar a página inicial agora. Por favor, tente novamente.',
       'receipts_filter_needs_review': 'Necessita di revisione',
       'receipts_needs_review': 'Necessita di revisione',
       'receipts_check_extraction': 'Controllare l\'estrazione',
       'receipts_draft': 'Ha bisogno di essere salvato',
       'receipts_review_empty_title': 'Nessuna ricevuta necessita di revisione.',
-      'receipts_review_empty_body':
-          'Everything in this period looks confirmed and warning-free.',
-      'receipts_empty_body':
-          'Scan your first receipt to start building a history you can review and filter.',
+      'receipts_review_empty_body': 'Tudo neste período parece confirmado e sem avisos.',
+      'receipts_empty_body': 'Digitalize o seu primeiro recibo para começar a construir um histórico que possa rever e filtrar.',
       'receipts_scan_first_action': 'Scansiona la tua prima ricevuta',
       'receipts_no_filter_matches':
           'Nessuna ricevuta corrisponde ai filtri attuali.',
-      'receipts_no_filter_matches_body':
-          'Try another period, merchant search, or clear the active filters.',
+      'receipts_no_filter_matches_body': 'Tente outro período, pesquise por comerciante ou limpe os filtros ativos.',
       'receipts_history_total': 'Totale cronologia ricevute',
-      'receipts_history_load_error':
-          'Your history could not load right now. Please try again.',
-      'receipts_remove_error':
-          'We could not remove that entry. Please try again.',
+      'receipts_history_load_error': 'Não foi possível carregar o seu histórico agora. Por favor, tente novamente.',
+      'receipts_remove_error': 'Não foi possível remover essa entrada. Por favor, tente novamente.',
       'common_save': 'Speichern',
       'categories_add_action': 'Hinzufügen',
       'categories_add_category': 'Kategorie hinzufügen',
       'categories_new_category': 'Neue Kategorie',
       'categories_category_hint': 'Kategoriename (z. B. Reisen)',
-      'categories_no_parent_categories':
-          'Create or restore a top-level category first.',
+      'categories_no_parent_categories': 'Primeiro, crie ou restaure uma categoria principal.',
       'categories_disable_title': 'Kategorie deaktivieren',
-      'categories_disable_confirm':
-          'Disable "{name}" for future categorization and hide it from pickers?',
+      'categories_disable_confirm': 'Desativar "{name}" para categorizações futuras e ocultá-la dos seletores?',
       'categories_disable_action': 'Deaktivieren',
       'categories_disabled': '„{name}“ deaktiviert.',
       'categories_restored': '„{name}“ wiederhergestellt.',
@@ -9640,8 +9384,7 @@ class AppLocalizations {
       'categories_disabled_section': 'Deaktivierte Kategorien',
       'categories_category_created': 'Kategorie „{name}“ erstellt!',
       'subcategories_disable_title': 'Unterkategorie deaktivieren',
-      'subcategories_disable_confirm':
-          'Disable "{name}" for future categorization and hide it from pickers?',
+      'subcategories_disable_confirm': 'Desativar "{name}" para categorizações futuras e ocultá-la dos seletores?',
       'subcategories_disabled': '„{name}“ deaktiviert.',
       'subcategories_restored': '„{name}“ wiederhergestellt.',
       'subcategories_active_state': 'Aktiv',
@@ -9652,8 +9395,7 @@ class AppLocalizations {
       'analytics_tab_households': 'Haushalte',
       'analytics_active_filters': 'Aktive Filter',
       'analytics_clear_all_filters': 'Alle Filter löschen',
-      'analytics_view_all_active_filters':
-          'View all active filters ({count} more)',
+      'analytics_view_all_active_filters': 'Ver todos os filtros ativos (mais {count})',
       'analytics_show_fewer_filters': 'Weniger Filter anzeigen',
       'analytics_categories_subtitle': 'Entdecken Sie, wohin Ihr Geld fließt',
       'analytics_overview_top_categories': 'Top-Kategorien',
@@ -9668,19 +9410,16 @@ class AppLocalizations {
       'analytics_compared_with_previous': 'Im Vergleich zur Vorperiode',
       'analytics_trends_period_label': 'Ausgewähltes Trendfenster',
       'analytics_trends_chart_title': 'Ausgabentrend',
-      'analytics_trends_chart_subtitle':
-          'Automatic daily, weekly, or monthly buckets for your selected period.',
+      'analytics_trends_chart_subtitle': 'Agrupamentos automáticos diários, semanais ou mensais para o período selecionado.',
       'analytics_trends_no_data':
           'Für diese Filter liegen keine Trenddaten vor.',
       'analytics_trends_highest_bucket': 'Höchster Eimer',
       'analytics_trends_average_bucket': 'Durchschnittliche Bucket-Ausgaben',
       'analytics_household_empty_title': 'Noch keine Haushaltsanalyse',
-      'analytics_household_empty_subtitle':
-          'Create or open a household to compare spending across members.',
+      'analytics_household_empty_subtitle': 'Crie ou abra um agregado familiar para comparar os gastos entre os membros.',
       'analytics_household_no_data':
           'Für diese Filter fallen keine Haushaltsausgaben an.',
-      'analytics_household_no_data_subtitle':
-          'Try widening the date range or clearing a few filters.',
+      'analytics_household_no_data_subtitle': 'Tente aumentar o intervalo de datas ou limpar alguns filtros.',
       'analytics_household_preview_subtitle':
           'Gemeinsame Ausgaben für diesen Zeitraum',
       'analytics_household_total_transactions':
@@ -9698,8 +9437,7 @@ class AppLocalizations {
       'transaction_created_successfully': 'Transazione creata con successo',
       'manual_transaction_title': 'Transaktion hinzufügen',
       'manual_transaction_heading': 'Fügen Sie eine Transaktion manuell hinzu',
-      'manual_transaction_subtitle':
-          'Create a transaction without scanning a receipt, then fine-tune the details on the next screen.',
+      'manual_transaction_subtitle': 'Crie uma transação sem digitalizar um recibo e, em seguida, ajuste os detalhes no ecrã seguinte.',
       'manual_transaction_merchant_label': 'Händler',
       'manual_transaction_merchant_hint': 'z.B. Eckmarkt',
       'manual_transaction_amount_label': 'Menge',
@@ -9708,36 +9446,28 @@ class AppLocalizations {
       'manual_transaction_time_label': 'Zeit',
       'manual_transaction_category_label': 'Kategorie',
       'manual_transaction_category_none': 'Keine Kategorie',
-      'manual_transaction_unlimited_note':
-          'Manual transactions are unlimited on the free plan.',
+      'manual_transaction_unlimited_note': 'As transações manuais são ilimitadas no plano gratuito.',
       'manual_transaction_create_action': 'Erstellen und fortfahren',
-      'manual_transaction_amount_invalid':
-          'Enter a valid amount greater than zero.',
+      'manual_transaction_amount_invalid': 'Introduza um valor válido superior a zero.',
       'manual_transaction_deleted': 'Manuelle Transaktion gelöscht.',
       'manual_transaction_delete_missing_id': 'Transaktions-ID fehlt.',
       'transaction_amount_required':
           'Inserisci un importo totale prima di salvare.',
       'transaction_invalid_total': 'Inserisci un importo totale valido.',
-      'transaction_save_before_labels':
-          'Save the transaction before adding labels.',
+      'transaction_save_before_labels': 'Guarde a transação antes de adicionar etiquetas.',
       'transaction_new_expense': 'Nuova spesa',
       'transaction_review_receipt': 'Esaminare la ricevuta',
       'transaction_merchant_dialog_title': 'Mercante',
       'transaction_merchant_hint': 'Nome del negozio o del commerciante',
       'transaction_unsaved_changes_title': 'Modifiche non salvate',
-      'transaction_unsaved_changes_body':
-          'Your edits are not saved yet. Save them before leaving, or discard the changes.',
+      'transaction_unsaved_changes_body': 'As suas edições ainda não foram guardadas. Guarde-as antes de sair ou descarte as alterações.',
       'transaction_keep_editing': 'Continua a modificare',
       'transaction_discard_changes': 'Scartare',
-      'transaction_line_review_message':
-          'Review this line item: it should be {expected} and currently shows {actual}.',
-      'transaction_total_review_message':
-          'Review the total before saving: items add up to {expected} while the receipt total is {actual}.',
+      'transaction_line_review_message': 'Reveja este item: deveria ser {expected} e atualmente mostra {actual}.',
+      'transaction_total_review_message': 'Reveja o total antes de guardar: os itens somam {expected}, enquanto o total do recibo é {actual}.',
       'transaction_items_heading': 'Elementi',
-      'transaction_empty_items':
-          'No line items yet. Add your first item to finish this receipt.',
-      'transaction_read_only_owner':
-          'You can review this receipt, but only the owner can edit it.',
+      'transaction_empty_items': 'Ainda não existem itens. Adicione o seu primeiro item para terminar este recibo.',
+      'transaction_read_only_owner': 'Pode rever este recibo, mas apenas o proprietário o pode editar.',
       'transaction_receipt_photo_title': 'Foto della ricevuta',
       'transaction_receipt_photo_subtitle': 'Visualizza la foto originale',
       'transaction_warning_review_one_item': 'Recensisci 1 articolo in totale',
@@ -9747,36 +9477,26 @@ class AppLocalizations {
       'transaction_warning_check_one_detail': 'Controlla 1 dettaglio estratto',
       'transaction_warning_check_details':
           'Controlla {count} dettagli estratti',
-      'transaction_warning_accepts_edits':
-          'Take a quick final look before saving. {details}. Saving accepts your edits.',
-      'transaction_was_amount': 'Era {importo}',
-      'transaction_saved_amount': '{importo} risparmiato',
+      'transaction_warning_accepts_edits': 'Dê uma olhadela final rápida antes de guardar. {details}. Ao guardar, aceita as suas edições.',
+      'transaction_was_amount': 'Era {amount}',
+      'transaction_saved_amount': '{amount} economizados',
       'transaction_missing_quantity_price': 'Aggiungi quantità, unità e prezzo',
       'transaction_receipt_total_label': 'Totale scontrino',
-      'transaction_open_receipt_error':
-          'We could not open this receipt right now. Please try again.',
-      'transaction_save_error':
-          'We could not save your changes. Please review the receipt and try again.',
-      'transaction_receipt_preview_error':
-          'We could not open the receipt preview right now.',
+      'transaction_open_receipt_error': 'Não foi possível abrir este recibo agora. Por favor, tente novamente.',
+      'transaction_save_error': 'Não foi possível guardar as suas alterações. Por favor, reveja o recibo e tente novamente.',
+      'transaction_receipt_preview_error': 'Não foi possível abrir a pré-visualização do recibo agora.',
       'receipt_photo_invalid_url': 'Die URL des Belegfotos ist ungültig.',
-      'receipt_photo_open_fallback':
-          'Could not open the file automatically. The link was copied instead.',
+      'receipt_photo_open_fallback': 'Não foi possível abrir o ficheiro automaticamente. O link foi copiado em vez disso.',
       'receipt_photo_load_failed':
           'Dieses Belegbild konnte nicht geladen werden.',
       'receipt_photo_download': 'Herunterladen',
-      'receipt_photo_downloaded': 'Quittung unter {Pfad} gespeichert',
+      'receipt_photo_downloaded': 'Recibo guardado em {path}',
       'receipt_photo_open_external': 'Von außen öffnen',
-      'receipt_photo_non_image_hint':
-          'This receipt file is not an image. Open it in another app.',
-      'billing_household_purchase_block_title':
-          'Leave the household before switching plans',
-      'billing_household_purchase_block_owner':
-          'You currently own a family household. Remove the family group before buying an individual plan.',
-      'billing_household_purchase_block_member':
-          'You currently belong to a family household. Leave the household before buying an individual plan.',
-      'billing_purchase_not_confirmed':
-          'Purchase completed, but premium access was not confirmed yet. Please restore purchases or try syncing again.',
+      'receipt_photo_non_image_hint': 'Este ficheiro de recibo não é uma imagem. Abra-o noutra aplicação.',
+      'billing_household_purchase_block_title': 'Saia do agregado familiar antes de mudar de plano',
+      'billing_household_purchase_block_owner': 'Atualmente possui um agregado familiar. Remova o grupo familiar antes de comprar um plano individual.',
+      'billing_household_purchase_block_member': 'Atualmente pertence a um agregado familiar. Saia do agregado familiar antes de comprar um plano individual.',
+      'billing_purchase_not_confirmed': 'Compra concluída, mas o acesso premium ainda não foi confirmado. Por favor, restaure as compras ou tente sincronizar novamente.',
       'billing_purchase_confirmed': 'Premium-Zugang bestätigt.',
       'billing_purchase_failed': 'Kauf fehlgeschlagen: {message}',
       'transaction_total_savings': 'Risparmio totale:',
@@ -9847,8 +9567,7 @@ class AppLocalizations {
       'larger_interface': 'Größere Schnittstelle',
       'no_category_insights_yet': 'Noch keine Einblicke in die Kategorie',
       'no_overview_yet': 'Noch keine Übersicht',
-      'no_spend_was_recorded_in_the_matching_pr':
-          'No spend was recorded in the matching previous period.',
+      'no_spend_was_recorded_in_the_matching_pr': 'Não foram registados gastos no período correspondente.',
       'no_trend_data_yet': 'Noch keine Trenddaten',
       'open_review': 'Rezension öffnen',
       'organize_your_receipts': 'Organisieren Sie Ihre Quittungen',
@@ -9868,16 +9587,14 @@ class AppLocalizations {
       'remove_all_in_series': 'Alles nacheinander entfernen',
       'remove_reminder': 'Erinnerung entfernen',
       'remove_this_reminder': 'Entfernen Sie diese Erinnerung',
-      'revenuecat_is_not_configured_in_this_bui':
-          'RevenueCat is not configured in this build.',
+      'revenuecat_is_not_configured_in_this_bui': 'O RevenueCat não está configurado nesta build.',
       'save_changes': 'Änderungen speichern',
       'settings_and_account_polish': 'Einstellungen und Kontopolitur',
       'show_decimals': 'Dezimalstellen anzeigen',
       'smaller_interface': 'Kleinere Schnittstelle',
       'subscription_billing': 'Abonnement und Abrechnung',
       'terms_of_service': 'Nutzungsbedingungen',
-      'the_biggest_spending_groups_in_this_peri':
-          'The biggest spending groups in this period.',
+      'the_biggest_spending_groups_in_this_peri': 'Os maiores grupos de gastos neste período.',
       'the_donut_shows_each_groups_share_of_tot':
           'The donut shows each group’s share of total spend.',
       'top_categories': 'Top-Kategorien',
@@ -9889,8 +9606,7 @@ class AppLocalizations {
       'upload_receipt': 'Quittung hochladen',
       'use_this_source_language': 'Verwenden Sie diese Ausgangssprache',
       'view_insights_and_trends': 'Sehen Sie sich Erkenntnisse und Trends an',
-      'where_the_most_spending_happened_in_this':
-          'Where the most spending happened in this period.',
+      'where_the_most_spending_happened_in_this': 'Onde ocorreu a maior parte dos gastos neste período.',
       'analytics_comparison_subtitle': 'Comparado com o período anterior correspondente.',
       'analytics_empty_categories_message': 'Os destaques por categoria aparecerão após o registo de mais despesas.',
       'analytics_empty_merchants_message': 'As informações sobre comerciantes aparecerão após a digitalização de mais recibos.',
@@ -10287,9 +10003,9 @@ class AppLocalizations {
       'taxonomy_car_wash': 'Araba Yıkama',
       'taxonomy_vehicle_insurance': 'Araç Sigortası',
       'taxonomy_electricity': 'Elektrik',
-      'taxonomy_water': 'su',
+      'taxonomy_water': 'Su',
       'taxonomy_gas': 'Gaz',
-      'taxonomy_internet': 'internet',
+      'taxonomy_internet': 'İnternet',
       'taxonomy_mobile_phone': 'Cep Telefonu',
       'taxonomy_tv_and_streaming': 'TV ve Yayın',
       'taxonomy_waste_collection': 'Atık Toplama',
@@ -10351,12 +10067,9 @@ class AppLocalizations {
       'nav_tools': 'Werkzeuge',
       'nav_settings': 'Einstellungen',
       'login_welcome_title': 'Willkommen zurück',
-      'login_welcome_description':
-          'Track expenses your way, review receipts, and keep your spending history in one place.',
-      'login_feature_highlight':
-          'Google sign-in keeps your receipts, categories, and subscription status synced.',
-      'login_footer_note':
-          'By continuing, you will sign in with your Google account.',
+      'login_welcome_description': 'Harcamalarınızı kendi yönteminizle takip edin, fişlerinizi inceleyin ve harcama geçmişinizi tek bir yerde tutun.',
+      'login_feature_highlight': 'Google ile giriş yapmak fişlerinizi, kategorilerinizi ve abonelik durumunuzu senkronize tutar.',
+      'login_footer_note': 'Devam ederek Google hesabınızla giriş yapmış olursunuz.',
       'settings_subtitle': 'Verwalten Sie Ihre Präferenzen',
       'household_settings_title': 'Familienhaushalt',
       'household_settings_subtitle':
@@ -10368,7 +10081,7 @@ class AppLocalizations {
       'settings_session_section': 'Sitzung',
       'settings_subscription': 'Abonnement',
       'settings_subscription_loading': 'Abonnementstatus wird geladen',
-      'settings_subscription_active_until': 'Aktiv bis {Datum}',
+      'settings_subscription_active_until': '{date} tarihine kadar aktif',
       'settings_subscription_inactive': 'Kein aktiver Plan',
       'settings_household': 'Haushalt',
       'settings_profile': 'Profil',
@@ -10382,7 +10095,7 @@ class AppLocalizations {
       'settings_theme_dark': 'Dunkel',
       'settings_theme_light_subtitle': 'Klassische Lichtoptik',
       'settings_theme_dark_subtitle': 'Schont die Augen',
-      'settings_theme_auto': 'Авто',
+      'settings_theme_auto': 'Otomatik',
       'settings_theme_auto_subtitle': 'Entspricht den Systemeinstellungen',
       'settings_accent_color': 'Akzentfarbe',
       'settings_accent_neutral': 'Neutre',
@@ -10415,8 +10128,7 @@ class AppLocalizations {
       'settings_budget_alerts': 'Budgetwarnungen',
       'settings_budget_alerts_subtitle': 'Bei Annäherung an Budgetgrenzen',
       'settings_bill_reminders': 'Rechnungserinnerungen',
-      'settings_bill_reminders_subtitle':
-          'Monthly reminders for upcoming payments',
+      'settings_bill_reminders_subtitle': 'Gelecek ödemeler için aylık hatırlatıcılar.',
       'settings_receipt_reminders': 'Empfangserinnerungen',
       'settings_receipt_reminders_subtitle':
           'Erinnern Sie daran, Belege zu scannen',
@@ -10445,19 +10157,16 @@ class AppLocalizations {
       'settings_currency_search': 'Währungen suchen...',
       'settings_items_translation_title': 'Artikelübersetzung',
       'settings_beta_feature': 'Beta-Funktion',
-      'settings_items_translation_beta_hint':
-          'This feature is in beta. Translation accuracy may vary.',
+      'settings_items_translation_beta_hint': 'Bu özellik beta aşamasındadır. Çeviri doğruluğu değişebilir.',
       'settings_enable_translation': 'Übersetzung aktivieren',
-      'settings_enable_translation_subtitle':
-          'Automatically translate receipt items',
+      'settings_enable_translation_subtitle': 'Fiş kalemlerini otomatik olarak çevir.',
       'settings_translate_to': 'Übersetzen nach',
       'settings_options': 'Optionen',
       'settings_auto_detect_source_language':
           'Quellsprache automatisch erkennen',
-      'settings_auto_detect_source_language_subtitle':
-          'Automatically detect original language',
+      'settings_auto_detect_source_language_subtitle': 'Kaynak dili otomatik olarak algıla.',
       'settings_example': 'Beispiel',
-      'settings_original_text': 'Оригінал',
+      'settings_original_text': 'Orijinal',
       'settings_translated_text': 'Übersetzt',
       'settings_help_center': 'Hilfecenter',
       'settings_feature_request': 'Funktionsanfrage',
@@ -10468,25 +10177,19 @@ class AppLocalizations {
       'feature_request_title_hint': 'Kurze Beschreibung Ihrer Idee...',
       'feature_request_category_label': 'Kategorie',
       'feature_request_description_label': 'Beschreibung',
-      'feature_request_description_hint':
-          'Describe your feature request in detail...',
+      'feature_request_description_hint': 'Özellik isteğinizi ayrıntılı olarak açıklayın...',
       'feature_request_submit_action': 'Anfrage senden',
       'feature_request_submit_success': 'Funktionsanfrage eingereicht.',
-      'feature_request_title_length_error':
-          'Title must be between 3 and 120 characters.',
-      'feature_request_description_length_error':
-          'Description must be between 10 and 2000 characters.',
+      'feature_request_title_length_error': 'Başlık 3 ile 120 karakter arasında olmalıdır.',
+      'feature_request_description_length_error': 'Açıklama 10 ile 2000 karakter arasında olmalıdır.',
       'feature_request_load_error_title':
           'Funktionsanfragen konnten nicht geladen werden',
       'feature_request_your_ideas': 'Ihre Ideen',
       'feature_request_your_ideas_empty_title': 'Noch keine Ideen eingereicht',
-      'feature_request_your_ideas_empty_subtitle':
-          'Your submitted ideas will appear here while they wait for review or move into the public board.',
+      'feature_request_your_ideas_empty_subtitle': 'Gönderdiğiniz fikirler, incelenmeyi beklerken veya genel panoya taşınırken burada görünecektir.',
       'feature_request_popular_requests': 'Beliebte Anfragen',
-      'feature_request_popular_requests_empty_title':
-          'No public feature requests yet',
-      'feature_request_popular_requests_empty_subtitle':
-          'Approved ideas will appear here once they are curated for the public board.',
+      'feature_request_popular_requests_empty_title': 'Henüz genel bir özellik isteği yok.',
+      'feature_request_popular_requests_empty_subtitle': 'Onaylanan fikirler, genel pano için seçildikten sonra burada görünecektir.',
       'feature_request_group_pending': 'Ausstehend',
       'feature_request_group_approved': 'Genehmigt',
       'feature_request_group_rejected': 'Abgelehnt',
@@ -10508,10 +10211,8 @@ class AppLocalizations {
       'settings_about': 'Um',
       'settings_banner_active_title': 'Pro ist aktiv',
       'settings_banner_upgrade_title': 'Upgrade auf Pro',
-      'settings_banner_active_subtitle':
-          'AI tools, unlimited receipts, and advanced analytics are active on your account.',
-      'settings_banner_upgrade_subtitle':
-          'Unlock AI insights, unlimited receipts, and advanced analytics.',
+      'settings_banner_active_subtitle': 'Yapay zeka araçları, sınırsız fiş ve gelişmiş analizler hesabınızda aktif.',
+      'settings_banner_upgrade_subtitle': 'Yapay zeka içgörülerini, sınırsız fişi ve gelişmiş analizleri açın.',
       'settings_see_plan': 'Siehe Pläne',
       'settings_manage_subscription': 'Abonnement verwalten',
       'household_title': 'Haushalt',
@@ -10522,11 +10223,9 @@ class AppLocalizations {
       'household_edit_name_title': 'Bearbeiten Sie den Haushaltsnamen',
       'household_updated_success': 'Haushalt aktualisiert.',
       'household_empty_title': 'Noch kein Haushalt',
-      'household_empty_subtitle':
-          'Create a household to manage members and invite access.',
+      'household_empty_subtitle': 'Üyeleri yönetmek ve erişim davet etmek için bir ev grubu oluşturun.',
       'household_create_cta': 'Haushalt erstellen',
-      'household_join_via_link_only':
-          'Join is handled by opening an invite link directly.',
+      'household_join_via_link_only': 'Katılım, doğrudan bir davet bağlantısı açılarak gerçekleştirilir.',
       'household_role_label': 'Ihre Rolle: {role}',
       'household_role_owner': 'Eigentümer',
       'household_role_admin': 'Administrateur',
@@ -10534,17 +10233,14 @@ class AppLocalizations {
       'household_you_badge': 'Du',
       'household_members_title': 'Mitglieder',
       'household_remove_member_title': 'Mitglied entfernen',
-      'household_remove_member_confirm':
-          '{Name} aus diesem Haushalt entfernen?',
+      'household_remove_member_confirm': '{name} adlı üyeyi bu ev grubundan çıkarmak istiyor musunuz?',
       'household_member_removed': 'Mitglied entfernt.',
       'household_leave_title': 'Verlassen Sie den Haushalt',
-      'household_leave_confirm':
-          'Leave this household and remove shared access from your account?',
+      'household_leave_confirm': 'Bu ev grubundan ayrılmak ve paylaşılan erişimi hesabınızdan kaldırmak istiyor musunuz?',
       'household_leave_action': 'Verlassen Sie den Haushalt',
       'household_left_success': 'Sie haben den Haushalt verlassen.',
       'household_delete_title': 'Familiengruppe entfernen',
-      'household_delete_confirm':
-          'Remove this household for everyone? Shared transactions will be detached and invites will be revoked.',
+      'household_delete_confirm': 'Bu ev grubunu herkes için kaldırmak istiyor musunuz? Paylaşılan işlemler ayrılacak ve davetler iptal edilecektir.',
       'household_delete_action': 'Familiengruppe entfernen',
       'household_deleted_success': 'Familiengruppe entfernt.',
       'household_invites_title': 'Lädt ein',
@@ -10561,17 +10257,15 @@ class AppLocalizations {
       'household_invite_link_copied': 'Einladungslink kopiert.',
       'household_invite_revoke': 'Widerrufen',
       'household_invite_revoke_title': 'Einladung widerrufen',
-      'household_invite_revoke_confirm':
-          'This invite can no longer be accepted. Continue?',
+      'household_invite_revoke_confirm': 'Bu davet artık kabul edilemez. Devam edilsin mi?',
       'household_invite_revoked': 'Einladung widerrufen.',
-      'household_invite_expires_at': 'Läuft ab am: {Datum}',
+      'household_invite_expires_at': 'Son geçerlilik: {date}',
       'household_invite_state_pending': 'Ausstehend',
       'household_invite_state_accepted': 'Akzeptiert',
       'household_invite_state_revoked': 'Widerrufen',
       'household_invite_state_expired': 'Abgelaufen',
       'household_locked_title': 'Die Haushaltsverwaltung ist gesperrt',
-      'household_locked_subtitle':
-          'An active family plan is required for create/invite/remove actions.',
+      'household_locked_subtitle': 'Oluşturma/davet etme/kaldırma işlemleri için aktif bir aile planı gereklidir.',
       'household_family_plan_required': 'Familienplan erforderlich',
       'household_member_count': '{count} Mitglieder',
       'household_member_count_with_limit': '{count} von {limit} Mitgliedern',
@@ -10579,8 +10273,7 @@ class AppLocalizations {
       'household_shared_expenses_subtitle':
           'Erlauben Sie allen Mitgliedern, Ausgaben hinzuzufügen',
       'household_budget_notifications': 'Budgetbenachrichtigungen',
-      'household_budget_notifications_subtitle':
-          'Notify when household budget limit is reached',
+      'household_budget_notifications_subtitle': 'Ev bütçesi sınırına ulaşıldığında bildir.',
       'household_upgrade_cta': 'Pläne ansehen',
       'billing_period_title': 'Abrechnungszeitraum',
       'billing_period_monthly': 'Monatlich',
@@ -10591,16 +10284,14 @@ class AppLocalizations {
       'billing_restore_failed': 'Wiederherstellung fehlgeschlagen: {message}',
       'billing_current_plan': 'Aktueller Plan',
       'billing_subscribe_to_plan': 'Abonnieren Sie {plan} – {price}{unit}',
-      'billing_subscribe_unavailable':
-          'No purchasable package available right now.',
+      'billing_subscribe_unavailable': 'Şu anda satın alınabilir bir paket bulunmamaktadır.',
       'billing_plan_free': 'Kostenloser Plan',
       'billing_free_plan_subtitle': 'Begrenzt auf {limit} Belege pro Monat',
-      'billing_active_until_compact': 'Aktiv bis {Datum}',
-      'billing_resets_on': 'Wird am {Datum} zurückgesetzt',
+      'billing_active_until_compact': '{date} tarihine kadar aktif',
+      'billing_resets_on': '{date} tarihinde yenilenir',
       'household_invite_title': 'Haushaltseinladung',
       'household_invite_accepting': 'Einladung annehmen...',
-      'household_invite_accept_success':
-          'Invite accepted. You are now in this household.',
+      'household_invite_accept_success': 'Davet kabul edildi. Artık bu ev grubundasınız.',
       'household_open_screen': 'Offener Haushalt',
       'household_continue_app': 'Weitermachen',
       'receipts_delete_missing_id': 'Die Beleg-ID fehlt.',
@@ -10632,21 +10323,17 @@ class AppLocalizations {
       'budget_add_category': 'Kategorie hinzufügen',
       'budget_remove_category': 'Kategorie entfernen',
       'budget_limit_label': 'Bilancio',
-      'budget_empty_state':
-          'Add category limits to start tracking your monthly budget.',
+      'budget_empty_state': 'Aylık bütçenizi takip etmeye başlamak için kategori limitleri ekleyin.',
       'budget_status_over_title': 'Budget überschritten',
-      'budget_status_over_body':
-          'You are over plan by {amount}. Adjust your category limits or slow spending this month.',
+      'budget_status_over_body': 'Planı {amount} kadar aştınız. Kategori limitlerinizi ayarlayın veya bu ay harcamalarınızı yavaşlatın.',
       'budget_status_on_track_title': 'Tolle Arbeit!',
-      'budget_status_on_track_body':
-          'You are on track to save {amount} this month. Keep up the good work.',
+      'budget_status_on_track_body': 'Bu ay {amount} tasarruf etme yolundasınız. İyi iş!',
       'budget_category_exceeded': '{amount} über dem Limit',
-      'budget_category_remaining': '{Betrag} übrig',
+      'budget_category_remaining': '{amount} kaldı',
       'budget_invalid_amount': 'Geben Sie einen gültigen Betrag ein.',
       'budget_saved': 'Budget aktualisiert.',
       'budget_save_action': 'Budget sparen',
-      'budget_all_categories_added':
-          'All available categories are already added.',
+      'budget_all_categories_added': 'Mevcut tüm kategoriler zaten eklenmiş.',
       'bill_reminders_subtitle_single': '1 bevorstehende Rechnung',
       'bill_reminders_subtitle_plural': '{count} anstehende Rechnungen',
       'bill_reminders_total_upcoming': 'Total bevorstehend',
@@ -10670,12 +10357,10 @@ class AppLocalizations {
       'bill_reminders_upcoming': 'Demnächst',
       'bill_reminders_due_soon': 'Bald fällig',
       'bill_reminders_overdue': 'Überfällig',
-      'bill_reminders_invalid_form':
-          'Fill in the bill name, amount, and due date.',
+      'bill_reminders_invalid_form': 'Fatura adını, tutarını ve son ödeme tarihini girin.',
       'bill_reminders_saved': 'Rechnungserinnerung hinzugefügt.',
       'bill_reminders_paid': 'Rechnung als bezahlt markiert.',
-      'bill_reminders_empty':
-          'No bills are due right now. Add a reminder to stay ahead of upcoming payments.',
+      'bill_reminders_empty': 'Şu anda ödenecek fatura yok. Gelecek ödemelerden haberdar olmak için bir hatırlatıcı ekleyin.',
       'tools_data': 'Daten',
       'tools_export_data': 'Daten exportieren',
       'tools_export_data_subtitle': 'Laden Sie Ihre Finanzdaten herunter',
@@ -10694,14 +10379,10 @@ class AppLocalizations {
       'home_change_flat': 'Nessun cambiamento',
       'home_change_less': '{percent}% in meno',
       'home_change_more': '{percent}% in più',
-      'home_insight_less_than_last_month':
-          'Spending is {percent}% lower than {month}.',
-      'home_insight_more_than_last_month':
-          'Spending is {percent}% higher than {month}.',
-      'home_insight_top_category':
-          'Top category is {category} at {percent}% of monthly spend.',
-      'home_insight_top_subcategory':
-          'Top subcategory is {subcategory} at {percent}% of item spend.',
+      'home_insight_less_than_last_month': 'Harcamalar {month} ayına göre %{percent} daha düşük.',
+      'home_insight_more_than_last_month': 'Harcamalar {month} ayına göre %{percent} daha yüksek.',
+      'home_insight_top_category': 'En çok harcanan kategori %{percent} ile {category}.',
+      'home_insight_top_subcategory': 'En çok harcanan alt kategori %{percent} ile {subcategory}.',
       'home_insight_review_count':
           '{count} ricevute devono ancora essere revisionate.',
       'home_insight_all_caught_up':
@@ -10716,37 +10397,29 @@ class AppLocalizations {
       'home_quick_actions': 'Schnelle Aktionen',
       'home_add_expense': 'Aggiungi spesa',
       'home_categories': 'Kategorien',
-      'home_refresh_error':
-          'Home could not refresh just now. Please try again.',
+      'home_refresh_error': 'Ana sayfa şu anda yenilenemedi. Lütfen tekrar deneyin.',
       'receipts_filter_needs_review': 'Necessita di revisione',
       'receipts_needs_review': 'Necessita di revisione',
       'receipts_check_extraction': 'Controllare l\'estrazione',
       'receipts_draft': 'Ha bisogno di essere salvato',
       'receipts_review_empty_title': 'Nessuna ricevuta necessita di revisione.',
-      'receipts_review_empty_body':
-          'Everything in this period looks confirmed and warning-free.',
-      'receipts_empty_body':
-          'Scan your first receipt to start building a history you can review and filter.',
+      'receipts_review_empty_body': 'Bu dönemdeki her şey onaylanmış ve uyarısız görünüyor.',
+      'receipts_empty_body': 'İnceleyebileceğiniz ve filtreleyebileceğiniz bir geçmiş oluşturmaya başlamak için ilk fişinizi tarayın.',
       'receipts_scan_first_action': 'Scansiona la tua prima ricevuta',
       'receipts_no_filter_matches':
           'Nessuna ricevuta corrisponde ai filtri attuali.',
-      'receipts_no_filter_matches_body':
-          'Try another period, merchant search, or clear the active filters.',
+      'receipts_no_filter_matches_body': 'Başka bir dönem deneyin, satıcı arayın veya aktif filtreleri temizleyin.',
       'receipts_history_total': 'Totale cronologia ricevute',
-      'receipts_history_load_error':
-          'Your history could not load right now. Please try again.',
-      'receipts_remove_error':
-          'We could not remove that entry. Please try again.',
+      'receipts_history_load_error': 'Geçmişiniz şu anda yüklenemedi. Lütfen tekrar deneyin.',
+      'receipts_remove_error': 'Bu giriş kaldırılamadı. Lütfen tekrar deneyin.',
       'common_save': 'Speichern',
       'categories_add_action': 'Hinzufügen',
       'categories_add_category': 'Kategorie hinzufügen',
       'categories_new_category': 'Neue Kategorie',
       'categories_category_hint': 'Kategoriename (z. B. Reisen)',
-      'categories_no_parent_categories':
-          'Create or restore a top-level category first.',
+      'categories_no_parent_categories': 'Önce bir üst kategori oluşturun veya geri yükleyin.',
       'categories_disable_title': 'Kategorie deaktivieren',
-      'categories_disable_confirm':
-          'Disable "{name}" for future categorization and hide it from pickers?',
+      'categories_disable_confirm': 'Gelecekteki kategorizasyonlar için "{name}" kategorisini devre dışı bırakmak ve seçicilerde gizlemek istiyor musunuz?',
       'categories_disable_action': 'Deaktivieren',
       'categories_disabled': '„{name}“ deaktiviert.',
       'categories_restored': '„{name}“ wiederhergestellt.',
@@ -10756,8 +10429,7 @@ class AppLocalizations {
       'categories_disabled_section': 'Deaktivierte Kategorien',
       'categories_category_created': 'Kategorie „{name}“ erstellt!',
       'subcategories_disable_title': 'Unterkategorie deaktivieren',
-      'subcategories_disable_confirm':
-          'Disable "{name}" for future categorization and hide it from pickers?',
+      'subcategories_disable_confirm': 'Gelecekteki kategorizasyonlar için "{name}" alt kategorisini devre dışı bırakmak ve seçicilerde gizlemek istiyor musunuz?',
       'subcategories_disabled': '„{name}“ deaktiviert.',
       'subcategories_restored': '„{name}“ wiederhergestellt.',
       'subcategories_active_state': 'Aktiv',
@@ -10768,8 +10440,7 @@ class AppLocalizations {
       'analytics_tab_households': 'Haushalte',
       'analytics_active_filters': 'Aktive Filter',
       'analytics_clear_all_filters': 'Alle Filter löschen',
-      'analytics_view_all_active_filters':
-          'View all active filters ({count} more)',
+      'analytics_view_all_active_filters': 'Tüm aktif filtreleri gör ({count} tane daha)',
       'analytics_show_fewer_filters': 'Weniger Filter anzeigen',
       'analytics_categories_subtitle': 'Entdecken Sie, wohin Ihr Geld fließt',
       'analytics_overview_top_categories': 'Top-Kategorien',
@@ -10784,19 +10455,16 @@ class AppLocalizations {
       'analytics_compared_with_previous': 'Im Vergleich zur Vorperiode',
       'analytics_trends_period_label': 'Ausgewähltes Trendfenster',
       'analytics_trends_chart_title': 'Ausgabentrend',
-      'analytics_trends_chart_subtitle':
-          'Automatic daily, weekly, or monthly buckets for your selected period.',
+      'analytics_trends_chart_subtitle': 'Seçilen dönem için otomatik günlük, haftalık veya aylık gruplandırmalar.',
       'analytics_trends_no_data':
           'Für diese Filter liegen keine Trenddaten vor.',
       'analytics_trends_highest_bucket': 'Höchster Eimer',
       'analytics_trends_average_bucket': 'Durchschnittliche Bucket-Ausgaben',
       'analytics_household_empty_title': 'Noch keine Haushaltsanalyse',
-      'analytics_household_empty_subtitle':
-          'Create or open a household to compare spending across members.',
+      'analytics_household_empty_subtitle': 'Üyeler arasındaki harcamaları karşılaştırmak için bir ev grubu oluşturun veya açın.',
       'analytics_household_no_data':
           'Für diese Filter fallen keine Haushaltsausgaben an.',
-      'analytics_household_no_data_subtitle':
-          'Try widening the date range or clearing a few filters.',
+      'analytics_household_no_data_subtitle': 'Tarih aralığını artırmayı deneyin veya birkaç filtreyi temizleyin.',
       'analytics_household_preview_subtitle':
           'Gemeinsame Ausgaben für diesen Zeitraum',
       'analytics_household_total_transactions':
@@ -10814,8 +10482,7 @@ class AppLocalizations {
       'transaction_created_successfully': 'Transazione creata con successo',
       'manual_transaction_title': 'Transaktion hinzufügen',
       'manual_transaction_heading': 'Fügen Sie eine Transaktion manuell hinzu',
-      'manual_transaction_subtitle':
-          'Create a transaction without scanning a receipt, then fine-tune the details on the next screen.',
+      'manual_transaction_subtitle': 'Fiş taramadan bir işlem oluşturun ve ardından sonraki ekranda ayrıntıları düzenleyin.',
       'manual_transaction_merchant_label': 'Händler',
       'manual_transaction_merchant_hint': 'z.B. Eckmarkt',
       'manual_transaction_amount_label': 'Menge',
@@ -10824,36 +10491,28 @@ class AppLocalizations {
       'manual_transaction_time_label': 'Zeit',
       'manual_transaction_category_label': 'Kategorie',
       'manual_transaction_category_none': 'Keine Kategorie',
-      'manual_transaction_unlimited_note':
-          'Manual transactions are unlimited on the free plan.',
+      'manual_transaction_unlimited_note': 'Ücretsiz planda manuel işlemler sınırsızdır.',
       'manual_transaction_create_action': 'Erstellen und fortfahren',
-      'manual_transaction_amount_invalid':
-          'Enter a valid amount greater than zero.',
+      'manual_transaction_amount_invalid': 'Lütfen sıfırdan büyük geçerli bir tutar girin.',
       'manual_transaction_deleted': 'Manuelle Transaktion gelöscht.',
       'manual_transaction_delete_missing_id': 'Transaktions-ID fehlt.',
       'transaction_amount_required':
           'Inserisci un importo totale prima di salvare.',
       'transaction_invalid_total': 'Inserisci un importo totale valido.',
-      'transaction_save_before_labels':
-          'Save the transaction before adding labels.',
+      'transaction_save_before_labels': 'Etiket eklemeden önce işlemi kaydedin.',
       'transaction_new_expense': 'Nuova spesa',
       'transaction_review_receipt': 'Esaminare la ricevuta',
       'transaction_merchant_dialog_title': 'Mercante',
       'transaction_merchant_hint': 'Nome del negozio o del commerciante',
       'transaction_unsaved_changes_title': 'Modifiche non salvate',
-      'transaction_unsaved_changes_body':
-          'Your edits are not saved yet. Save them before leaving, or discard the changes.',
+      'transaction_unsaved_changes_body': 'Değişiklikleriniz henüz kaydedilmedi. Ayrılmadan önce kaydedin veya değişiklikleri atın.',
       'transaction_keep_editing': 'Continua a modificare',
       'transaction_discard_changes': 'Scartare',
-      'transaction_line_review_message':
-          'Review this line item: it should be {expected} and currently shows {actual}.',
-      'transaction_total_review_message':
-          'Review the total before saving: items add up to {expected} while the receipt total is {actual}.',
+      'transaction_line_review_message': 'Bu kalemi inceleyin: {expected} olmalıydı ancak şu anda {actual} görünüyor.',
+      'transaction_total_review_message': 'Kaydetmeden önce toplamı inceleyin: kalemlerin toplamı {expected} iken fiş toplamı {actual}.',
       'transaction_items_heading': 'Elementi',
-      'transaction_empty_items':
-          'No line items yet. Add your first item to finish this receipt.',
-      'transaction_read_only_owner':
-          'You can review this receipt, but only the owner can edit it.',
+      'transaction_empty_items': 'Henüz kalem yok. Bu fişi bitirmek için ilk kalemi ekleyin.',
+      'transaction_read_only_owner': 'Bu fişi inceleyebilirsiniz ancak sadece sahibi düzenleyebilir.',
       'transaction_receipt_photo_title': 'Foto della ricevuta',
       'transaction_receipt_photo_subtitle': 'Visualizza la foto originale',
       'transaction_warning_review_one_item': 'Recensisci 1 articolo in totale',
@@ -10863,36 +10522,26 @@ class AppLocalizations {
       'transaction_warning_check_one_detail': 'Controlla 1 dettaglio estratto',
       'transaction_warning_check_details':
           'Controlla {count} dettagli estratti',
-      'transaction_warning_accepts_edits':
-          'Take a quick final look before saving. {details}. Saving accepts your edits.',
-      'transaction_was_amount': 'Era {importo}',
-      'transaction_saved_amount': '{importo} risparmiato',
+      'transaction_warning_accepts_edits': 'Kaydetmeden önce hızlıca son bir kez göz atın. {details}. Kaydetmek, değişikliklerinizi kabul eder.',
+      'transaction_was_amount': '{amount} idi',
+      'transaction_saved_amount': '{amount} tasarruf edildi',
       'transaction_missing_quantity_price': 'Aggiungi quantità, unità e prezzo',
       'transaction_receipt_total_label': 'Totale scontrino',
-      'transaction_open_receipt_error':
-          'We could not open this receipt right now. Please try again.',
-      'transaction_save_error':
-          'We could not save your changes. Please review the receipt and try again.',
-      'transaction_receipt_preview_error':
-          'We could not open the receipt preview right now.',
+      'transaction_open_receipt_error': 'Bu fiş şu anda açılamadı. Lütfen tekrar deneyin.',
+      'transaction_save_error': 'Değişiklikleriniz kaydedilemedi. Lütfen fişi inceleyin ve tekrar deneyin.',
+      'transaction_receipt_preview_error': 'Fiş önizlemesi şu anda açılamadı.',
       'receipt_photo_invalid_url': 'Die URL des Belegfotos ist ungültig.',
-      'receipt_photo_open_fallback':
-          'Could not open the file automatically. The link was copied instead.',
+      'receipt_photo_open_fallback': 'Dosya otomatik olarak açılamadı. Bağlantı bunun yerine kopyalandı.',
       'receipt_photo_load_failed':
           'Dieses Belegbild konnte nicht geladen werden.',
       'receipt_photo_download': 'Herunterladen',
-      'receipt_photo_downloaded': 'Quittung unter {Pfad} gespeichert',
+      'receipt_photo_downloaded': 'Fiş {path} konumuna kaydedildi',
       'receipt_photo_open_external': 'Von außen öffnen',
-      'receipt_photo_non_image_hint':
-          'This receipt file is not an image. Open it in another app.',
-      'billing_household_purchase_block_title':
-          'Leave the household before switching plans',
-      'billing_household_purchase_block_owner':
-          'You currently own a family household. Remove the family group before buying an individual plan.',
-      'billing_household_purchase_block_member':
-          'You currently belong to a family household. Leave the household before buying an individual plan.',
-      'billing_purchase_not_confirmed':
-          'Purchase completed, but premium access was not confirmed yet. Please restore purchases or try syncing again.',
+      'receipt_photo_non_image_hint': 'Bu fiş dosyası bir resim değil. Başka bir uygulamada açın.',
+      'billing_household_purchase_block_title': 'Plan değiştirmeden önce ev grubundan ayrılın',
+      'billing_household_purchase_block_owner': 'Şu anda bir aile grubunun sahibisiniz. Bireysel plan satın almadan önce aile grubunu kaldırın.',
+      'billing_household_purchase_block_member': 'Şu anda bir aile grubuna dahilsiniz. Bireysel plan satın almadan önce ev grubundan ayrılın.',
+      'billing_purchase_not_confirmed': 'Satın alma tamamlandı ancak premium erişim henüz onaylanmadı. Lütfen satın almaları geri yükleyin veya tekrar senkronize etmeyi deneyin.',
       'billing_purchase_confirmed': 'Premium-Zugang bestätigt.',
       'billing_purchase_failed': 'Kauf fehlgeschlagen: {message}',
       'transaction_total_savings': 'Risparmio totale:',
@@ -10963,8 +10612,7 @@ class AppLocalizations {
       'larger_interface': 'Größere Schnittstelle',
       'no_category_insights_yet': 'Noch keine Einblicke in die Kategorie',
       'no_overview_yet': 'Noch keine Übersicht',
-      'no_spend_was_recorded_in_the_matching_pr':
-          'No spend was recorded in the matching previous period.',
+      'no_spend_was_recorded_in_the_matching_pr': 'Eşleşen dönemde herhangi bir harcama kaydedilmedi.',
       'no_trend_data_yet': 'Noch keine Trenddaten',
       'open_review': 'Rezension öffnen',
       'organize_your_receipts': 'Organisieren Sie Ihre Quittungen',
@@ -10984,16 +10632,14 @@ class AppLocalizations {
       'remove_all_in_series': 'Alles nacheinander entfernen',
       'remove_reminder': 'Erinnerung entfernen',
       'remove_this_reminder': 'Entfernen Sie diese Erinnerung',
-      'revenuecat_is_not_configured_in_this_bui':
-          'RevenueCat is not configured in this build.',
+      'revenuecat_is_not_configured_in_this_bui': 'RevenueCat bu derlemede yapılandırılmamış.',
       'save_changes': 'Änderungen speichern',
       'settings_and_account_polish': 'Einstellungen und Kontopolitur',
       'show_decimals': 'Dezimalstellen anzeigen',
       'smaller_interface': 'Kleinere Schnittstelle',
       'subscription_billing': 'Abonnement und Abrechnung',
       'terms_of_service': 'Nutzungsbedingungen',
-      'the_biggest_spending_groups_in_this_peri':
-          'The biggest spending groups in this period.',
+      'the_biggest_spending_groups_in_this_peri': 'Bu dönemdeki en büyük harcama grupları.',
       'the_donut_shows_each_groups_share_of_tot':
           'The donut shows each group’s share of total spend.',
       'top_categories': 'Top-Kategorien',
@@ -11005,8 +10651,7 @@ class AppLocalizations {
       'upload_receipt': 'Quittung hochladen',
       'use_this_source_language': 'Verwenden Sie diese Ausgangssprache',
       'view_insights_and_trends': 'Sehen Sie sich Erkenntnisse und Trends an',
-      'where_the_most_spending_happened_in_this':
-          'Where the most spending happened in this period.',
+      'where_the_most_spending_happened_in_this': 'Bu dönemde harcamaların en çok yapıldığı yer.',
       'analytics_comparison_subtitle': 'Eşleşen önceki dönemle karşılaştırıldığında.',
       'analytics_empty_categories_message': 'Kategori detayları, daha fazla harcama kaydedildikten sonra görünecektir.',
       'analytics_empty_merchants_message': 'Mağaza analizleri, daha fazla fiş tarandıktan sonra görünecektir.',
@@ -15588,7 +15233,7 @@ class AppLocalizations {
       'taxonomy_electricity': 'Villany',
       'taxonomy_water': 'Víz',
       'taxonomy_gas': 'Gáz',
-      'taxonomy_internet': 'Интернет',
+      'taxonomy_internet': 'Internet',
       'taxonomy_mobile_phone': 'Mobiltelefon',
       'taxonomy_tv_and_streaming': 'TV és Streaming',
       'taxonomy_waste_collection': 'Hulladékgyűjtés',
@@ -15650,12 +15295,9 @@ class AppLocalizations {
       'nav_tools': 'Werkzeuge',
       'nav_settings': 'Einstellungen',
       'login_welcome_title': 'Willkommen zurück',
-      'login_welcome_description':
-          'Track expenses your way, review receipts, and keep your spending history in one place.',
-      'login_feature_highlight':
-          'Google sign-in keeps your receipts, categories, and subscription status synced.',
-      'login_footer_note':
-          'By continuing, you will sign in with your Google account.',
+      'login_welcome_description': 'Kövesse kiadásait a saját módján, ellenőrizze a nyugtákat, és tartsa egy helyen költési előzményeit.',
+      'login_feature_highlight': 'A Google-bejelentkezés szinkronizálva tartja nyugtáit, kategóriáit és előfizetési állapotát.',
+      'login_footer_note': 'A folytatással bejelentkezik Google-fiókjával.',
       'settings_subtitle': 'Verwalten Sie Ihre Präferenzen',
       'household_settings_title': 'Familienhaushalt',
       'household_settings_subtitle':
@@ -15667,7 +15309,7 @@ class AppLocalizations {
       'settings_session_section': 'Sitzung',
       'settings_subscription': 'Abonnement',
       'settings_subscription_loading': 'Abonnementstatus wird geladen',
-      'settings_subscription_active_until': 'Aktiv bis {Datum}',
+      'settings_subscription_active_until': 'Aktív eddig: {date}',
       'settings_subscription_inactive': 'Kein aktiver Plan',
       'settings_household': 'Haushalt',
       'settings_profile': 'Profil',
@@ -15681,7 +15323,7 @@ class AppLocalizations {
       'settings_theme_dark': 'Dunkel',
       'settings_theme_light_subtitle': 'Klassische Lichtoptik',
       'settings_theme_dark_subtitle': 'Schont die Augen',
-      'settings_theme_auto': 'Авто',
+      'settings_theme_auto': 'Automatikus',
       'settings_theme_auto_subtitle': 'Entspricht den Systemeinstellungen',
       'settings_accent_color': 'Akzentfarbe',
       'settings_accent_neutral': 'Neutre',
@@ -15714,8 +15356,7 @@ class AppLocalizations {
       'settings_budget_alerts': 'Budgetwarnungen',
       'settings_budget_alerts_subtitle': 'Bei Annäherung an Budgetgrenzen',
       'settings_bill_reminders': 'Rechnungserinnerungen',
-      'settings_bill_reminders_subtitle':
-          'Monthly reminders for upcoming payments',
+      'settings_bill_reminders_subtitle': 'Havi emlékeztetők a közelgő kifizetésekről.',
       'settings_receipt_reminders': 'Empfangserinnerungen',
       'settings_receipt_reminders_subtitle':
           'Erinnern Sie daran, Belege zu scannen',
@@ -15744,19 +15385,16 @@ class AppLocalizations {
       'settings_currency_search': 'Währungen suchen...',
       'settings_items_translation_title': 'Artikelübersetzung',
       'settings_beta_feature': 'Beta-Funktion',
-      'settings_items_translation_beta_hint':
-          'This feature is in beta. Translation accuracy may vary.',
+      'settings_items_translation_beta_hint': 'Ez a funkció béta állapotban van. A fordítás pontossága változhat.',
       'settings_enable_translation': 'Übersetzung aktivieren',
-      'settings_enable_translation_subtitle':
-          'Automatically translate receipt items',
+      'settings_enable_translation_subtitle': 'Nyugta tételeinek automatikus fordítása.',
       'settings_translate_to': 'Übersetzen nach',
       'settings_options': 'Optionen',
       'settings_auto_detect_source_language':
           'Quellsprache automatisch erkennen',
-      'settings_auto_detect_source_language_subtitle':
-          'Automatically detect original language',
+      'settings_auto_detect_source_language_subtitle': 'Eredeti nyelv automatikus felismerése.',
       'settings_example': 'Beispiel',
-      'settings_original_text': 'Оригінал',
+      'settings_original_text': 'Eredeti',
       'settings_translated_text': 'Übersetzt',
       'settings_help_center': 'Hilfecenter',
       'settings_feature_request': 'Funktionsanfrage',
@@ -15767,25 +15405,19 @@ class AppLocalizations {
       'feature_request_title_hint': 'Kurze Beschreibung Ihrer Idee...',
       'feature_request_category_label': 'Kategorie',
       'feature_request_description_label': 'Beschreibung',
-      'feature_request_description_hint':
-          'Describe your feature request in detail...',
+      'feature_request_description_hint': 'Írja le részletesen funkcióigényét...',
       'feature_request_submit_action': 'Anfrage senden',
       'feature_request_submit_success': 'Funktionsanfrage eingereicht.',
-      'feature_request_title_length_error':
-          'Title must be between 3 and 120 characters.',
-      'feature_request_description_length_error':
-          'Description must be between 10 and 2000 characters.',
+      'feature_request_title_length_error': 'A címnek 3 és 120 karakter között kell lennie.',
+      'feature_request_description_length_error': 'A leírásnak 10 és 2000 karakter között kell lennie.',
       'feature_request_load_error_title':
           'Funktionsanfragen konnten nicht geladen werden',
       'feature_request_your_ideas': 'Ihre Ideen',
       'feature_request_your_ideas_empty_title': 'Noch keine Ideen eingereicht',
-      'feature_request_your_ideas_empty_subtitle':
-          'Your submitted ideas will appear here while they wait for review or move into the public board.',
+      'feature_request_your_ideas_empty_subtitle': 'A benyújtott ötletei itt fognak megjelenni, amíg felülvizsgálatra várnak, vagy átkerülnek a nyilvános táblára.',
       'feature_request_popular_requests': 'Beliebte Anfragen',
-      'feature_request_popular_requests_empty_title':
-          'No public feature requests yet',
-      'feature_request_popular_requests_empty_subtitle':
-          'Approved ideas will appear here once they are curated for the public board.',
+      'feature_request_popular_requests_empty_title': 'Még nincsenek nyilvános funkcióigények.',
+      'feature_request_popular_requests_empty_subtitle': 'A jóváhagyott ötletek itt fognak megjelenni, miután kiválasztották őket a nyilvános táblára.',
       'feature_request_group_pending': 'Ausstehend',
       'feature_request_group_approved': 'Genehmigt',
       'feature_request_group_rejected': 'Abgelehnt',
@@ -15807,10 +15439,8 @@ class AppLocalizations {
       'settings_about': 'Um',
       'settings_banner_active_title': 'Pro ist aktiv',
       'settings_banner_upgrade_title': 'Upgrade auf Pro',
-      'settings_banner_active_subtitle':
-          'AI tools, unlimited receipts, and advanced analytics are active on your account.',
-      'settings_banner_upgrade_subtitle':
-          'Unlock AI insights, unlimited receipts, and advanced analytics.',
+      'settings_banner_active_subtitle': 'Az AI eszközök, a korlátlan nyugták és a speciális elemzések aktívak a fiókjában.',
+      'settings_banner_upgrade_subtitle': 'Oldja fel az AI-betekintéseket, a korlátlan nyugtákat és a speciális elemzéseket.',
       'settings_see_plan': 'Siehe Pläne',
       'settings_manage_subscription': 'Abonnement verwalten',
       'household_title': 'Haushalt',
@@ -15821,11 +15451,9 @@ class AppLocalizations {
       'household_edit_name_title': 'Bearbeiten Sie den Haushaltsnamen',
       'household_updated_success': 'Haushalt aktualisiert.',
       'household_empty_title': 'Noch kein Haushalt',
-      'household_empty_subtitle':
-          'Create a household to manage members and invite access.',
+      'household_empty_subtitle': 'Hozzon létre egy háztartást a tagok kezeléséhez és a hozzáférés meghívásához.',
       'household_create_cta': 'Haushalt erstellen',
-      'household_join_via_link_only':
-          'Join is handled by opening an invite link directly.',
+      'household_join_via_link_only': 'A csatlakozás közvetlenül egy meghívó link megnyitásával történik.',
       'household_role_label': 'Ihre Rolle: {role}',
       'household_role_owner': 'Eigentümer',
       'household_role_admin': 'Administrateur',
@@ -15833,17 +15461,14 @@ class AppLocalizations {
       'household_you_badge': 'Du',
       'household_members_title': 'Mitglieder',
       'household_remove_member_title': 'Mitglied entfernen',
-      'household_remove_member_confirm':
-          '{Name} aus diesem Haushalt entfernen?',
+      'household_remove_member_confirm': 'Eltávolítja {name} nevű tagot ebből a háztartásból?',
       'household_member_removed': 'Mitglied entfernt.',
       'household_leave_title': 'Verlassen Sie den Haushalt',
-      'household_leave_confirm':
-          'Leave this household and remove shared access from your account?',
+      'household_leave_confirm': 'Kilép ebből a háztartásból, és eltávolítja a megosztott hozzáférést a fiókjából?',
       'household_leave_action': 'Verlassen Sie den Haushalt',
       'household_left_success': 'Sie haben den Haushalt verlassen.',
       'household_delete_title': 'Familiengruppe entfernen',
-      'household_delete_confirm':
-          'Remove this household for everyone? Shared transactions will be detached and invites will be revoked.',
+      'household_delete_confirm': 'Eltávolítja ezt a háztartást mindenki számára? A megosztott tranzakciók leválasztásra kerülnek, a meghívók pedig visszavonásra kerülnek.',
       'household_delete_action': 'Familiengruppe entfernen',
       'household_deleted_success': 'Familiengruppe entfernt.',
       'household_invites_title': 'Lädt ein',
@@ -15860,17 +15485,15 @@ class AppLocalizations {
       'household_invite_link_copied': 'Einladungslink kopiert.',
       'household_invite_revoke': 'Widerrufen',
       'household_invite_revoke_title': 'Einladung widerrufen',
-      'household_invite_revoke_confirm':
-          'This invite can no longer be accepted. Continue?',
+      'household_invite_revoke_confirm': 'Ez a meghívó már nem fogadható el. Folytatja?',
       'household_invite_revoked': 'Einladung widerrufen.',
-      'household_invite_expires_at': 'Läuft ab am: {Datum}',
+      'household_invite_expires_at': 'Lejár ekkor: {date}',
       'household_invite_state_pending': 'Ausstehend',
       'household_invite_state_accepted': 'Akzeptiert',
       'household_invite_state_revoked': 'Widerrufen',
       'household_invite_state_expired': 'Abgelaufen',
       'household_locked_title': 'Die Haushaltsverwaltung ist gesperrt',
-      'household_locked_subtitle':
-          'An active family plan is required for create/invite/remove actions.',
+      'household_locked_subtitle': 'A létrehozási/meghívási/eltávolítási műveletekhez aktív családi csomag szükséges.',
       'household_family_plan_required': 'Familienplan erforderlich',
       'household_member_count': '{count} Mitglieder',
       'household_member_count_with_limit': '{count} von {limit} Mitgliedern',
@@ -15878,8 +15501,7 @@ class AppLocalizations {
       'household_shared_expenses_subtitle':
           'Erlauben Sie allen Mitgliedern, Ausgaben hinzuzufügen',
       'household_budget_notifications': 'Budgetbenachrichtigungen',
-      'household_budget_notifications_subtitle':
-          'Notify when household budget limit is reached',
+      'household_budget_notifications_subtitle': 'Értesítés, ha a háztartási költségvetési keret eléri a limitet.',
       'household_upgrade_cta': 'Pläne ansehen',
       'billing_period_title': 'Abrechnungszeitraum',
       'billing_period_monthly': 'Monatlich',
@@ -15890,16 +15512,14 @@ class AppLocalizations {
       'billing_restore_failed': 'Wiederherstellung fehlgeschlagen: {message}',
       'billing_current_plan': 'Aktueller Plan',
       'billing_subscribe_to_plan': 'Abonnieren Sie {plan} – {price}{unit}',
-      'billing_subscribe_unavailable':
-          'No purchasable package available right now.',
+      'billing_subscribe_unavailable': 'Jelenleg nem érhető el megvásárolható csomag.',
       'billing_plan_free': 'Kostenloser Plan',
       'billing_free_plan_subtitle': 'Begrenzt auf {limit} Belege pro Monat',
-      'billing_active_until_compact': 'Aktiv bis {Datum}',
-      'billing_resets_on': 'Wird am {Datum} zurückgesetzt',
+      'billing_active_until_compact': 'Aktív eddig: {date}',
+      'billing_resets_on': 'Megújul ekkor: {date}',
       'household_invite_title': 'Haushaltseinladung',
       'household_invite_accepting': 'Einladung annehmen...',
-      'household_invite_accept_success':
-          'Invite accepted. You are now in this household.',
+      'household_invite_accept_success': 'Meghívó elfogadva. Most már tagja ennek a háztartásnak.',
       'household_open_screen': 'Offener Haushalt',
       'household_continue_app': 'Weitermachen',
       'receipts_delete_missing_id': 'Die Beleg-ID fehlt.',
@@ -15931,21 +15551,17 @@ class AppLocalizations {
       'budget_add_category': 'Kategorie hinzufügen',
       'budget_remove_category': 'Kategorie entfernen',
       'budget_limit_label': 'Bilancio',
-      'budget_empty_state':
-          'Add category limits to start tracking your monthly budget.',
+      'budget_empty_state': 'Adjon meg kategórialimiteket a havi költségvetés követésének megkezdéséhez.',
       'budget_status_over_title': 'Budget überschritten',
-      'budget_status_over_body':
-          'You are over plan by {amount}. Adjust your category limits or slow spending this month.',
+      'budget_status_over_body': 'Túllépte a tervet {amount} összeggel. Módosítsa kategórialimitjeit, vagy fogja vissza a költést ebben a hónapban.',
       'budget_status_on_track_title': 'Tolle Arbeit!',
-      'budget_status_on_track_body':
-          'You are on track to save {amount} this month. Keep up the good work.',
+      'budget_status_on_track_body': 'Jó úton halad, hogy {amount} összeget takarítson meg ebben a hónapban. Csak így tovább!',
       'budget_category_exceeded': '{amount} über dem Limit',
-      'budget_category_remaining': '{Betrag} übrig',
+      'budget_category_remaining': '{amount} maradt',
       'budget_invalid_amount': 'Geben Sie einen gültigen Betrag ein.',
       'budget_saved': 'Budget aktualisiert.',
       'budget_save_action': 'Budget sparen',
-      'budget_all_categories_added':
-          'All available categories are already added.',
+      'budget_all_categories_added': 'Minden elérhető kategória hozzáadva.',
       'bill_reminders_subtitle_single': '1 bevorstehende Rechnung',
       'bill_reminders_subtitle_plural': '{count} anstehende Rechnungen',
       'bill_reminders_total_upcoming': 'Total bevorstehend',
@@ -15969,12 +15585,10 @@ class AppLocalizations {
       'bill_reminders_upcoming': 'Demnächst',
       'bill_reminders_due_soon': 'Bald fällig',
       'bill_reminders_overdue': 'Überfällig',
-      'bill_reminders_invalid_form':
-          'Fill in the bill name, amount, and due date.',
+      'bill_reminders_invalid_form': 'Töltse ki a számla nevét, összegét és esedékességét.',
       'bill_reminders_saved': 'Rechnungserinnerung hinzugefügt.',
       'bill_reminders_paid': 'Rechnung als bezahlt markiert.',
-      'bill_reminders_empty':
-          'No bills are due right now. Add a reminder to stay ahead of upcoming payments.',
+      'bill_reminders_empty': 'Jelenleg nincs esedékes számla. Adjon hozzá emlékeztetőt, hogy képben maradjon a közelgő kifizetésekkel.',
       'tools_data': 'Daten',
       'tools_export_data': 'Daten exportieren',
       'tools_export_data_subtitle': 'Laden Sie Ihre Finanzdaten herunter',
@@ -15993,14 +15607,10 @@ class AppLocalizations {
       'home_change_flat': 'Nessun cambiamento',
       'home_change_less': '{percent}% in meno',
       'home_change_more': '{percent}% in più',
-      'home_insight_less_than_last_month':
-          'Spending is {percent}% lower than {month}.',
-      'home_insight_more_than_last_month':
-          'Spending is {percent}% higher than {month}.',
-      'home_insight_top_category':
-          'Top category is {category} at {percent}% of monthly spend.',
-      'home_insight_top_subcategory':
-          'Top subcategory is {subcategory} at {percent}% of item spend.',
+      'home_insight_less_than_last_month': 'A költés {percent}%-kal alacsonyabb, mint {month} hónapban.',
+      'home_insight_more_than_last_month': 'A költés {percent}%-kal magasabb, mint {month} hónapban.',
+      'home_insight_top_category': 'A legnépszerűbb kategória a(z) {category}, a havi költés {percent}%-ával.',
+      'home_insight_top_subcategory': 'A legnépszerűbb alkategória a(z) {subcategory}, a tételek költésének {percent}%-ával.',
       'home_insight_review_count':
           '{count} ricevute devono ancora essere revisionate.',
       'home_insight_all_caught_up':
@@ -16015,37 +15625,29 @@ class AppLocalizations {
       'home_quick_actions': 'Schnelle Aktionen',
       'home_add_expense': 'Aggiungi spesa',
       'home_categories': 'Kategorien',
-      'home_refresh_error':
-          'Home could not refresh just now. Please try again.',
+      'home_refresh_error': 'A Kezdőlap nem frissíthető. Kérjük, próbálja újra.',
       'receipts_filter_needs_review': 'Necessita di revisione',
       'receipts_needs_review': 'Necessita di revisione',
       'receipts_check_extraction': 'Controllare l\'estrazione',
       'receipts_draft': 'Ha bisogno di essere salvato',
       'receipts_review_empty_title': 'Nessuna ricevuta necessita di revisione.',
-      'receipts_review_empty_body':
-          'Everything in this period looks confirmed and warning-free.',
-      'receipts_empty_body':
-          'Scan your first receipt to start building a history you can review and filter.',
+      'receipts_review_empty_body': 'Ebben az időszakban minden megerősítettnek és figyelmeztetésmentesnek tűnik.',
+      'receipts_empty_body': 'Szkennelje be első nyugtáját, hogy elkezdhesse felépíteni az áttekinthető és szűrhető előzményeket.',
       'receipts_scan_first_action': 'Scansiona la tua prima ricevuta',
       'receipts_no_filter_matches':
           'Nessuna ricevuta corrisponde ai filtri attuali.',
-      'receipts_no_filter_matches_body':
-          'Try another period, merchant search, or clear the active filters.',
+      'receipts_no_filter_matches_body': 'Próbálkozzon másik időszakkal, keressen kereskedőre, vagy törölje az aktív szűrőket.',
       'receipts_history_total': 'Totale cronologia ricevute',
-      'receipts_history_load_error':
-          'Your history could not load right now. Please try again.',
-      'receipts_remove_error':
-          'We could not remove that entry. Please try again.',
+      'receipts_history_load_error': 'Az előzmények jelenleg nem tölthetők be. Kérjük, próbálja újra.',
+      'receipts_remove_error': 'Nem sikerült eltávolítani a bejegyzést. Kérjük, próbálja újra.',
       'common_save': 'Speichern',
       'categories_add_action': 'Hinzufügen',
       'categories_add_category': 'Kategorie hinzufügen',
       'categories_new_category': 'Neue Kategorie',
       'categories_category_hint': 'Kategoriename (z. B. Reisen)',
-      'categories_no_parent_categories':
-          'Create or restore a top-level category first.',
+      'categories_no_parent_categories': 'Először hozzon létre vagy állítson vissza egy szülő kategóriát.',
       'categories_disable_title': 'Kategorie deaktivieren',
-      'categories_disable_confirm':
-          'Disable "{name}" for future categorization and hide it from pickers?',
+      'categories_disable_confirm': 'Letiltja a(z) "{name}" kategóriát a jövőbeli kategorizáláshoz, és elrejti a választókból?',
       'categories_disable_action': 'Deaktivieren',
       'categories_disabled': '„{name}“ deaktiviert.',
       'categories_restored': '„{name}“ wiederhergestellt.',
@@ -16055,8 +15657,7 @@ class AppLocalizations {
       'categories_disabled_section': 'Deaktivierte Kategorien',
       'categories_category_created': 'Kategorie „{name}“ erstellt!',
       'subcategories_disable_title': 'Unterkategorie deaktivieren',
-      'subcategories_disable_confirm':
-          'Disable "{name}" for future categorization and hide it from pickers?',
+      'subcategories_disable_confirm': 'Letiltja a(z) "{name}" alkategóriát a jövőbeli kategorizáláshoz, és elrejti a választókból?',
       'subcategories_disabled': '„{name}“ deaktiviert.',
       'subcategories_restored': '„{name}“ wiederhergestellt.',
       'subcategories_active_state': 'Aktiv',
@@ -16067,8 +15668,7 @@ class AppLocalizations {
       'analytics_tab_households': 'Haushalte',
       'analytics_active_filters': 'Aktive Filter',
       'analytics_clear_all_filters': 'Alle Filter löschen',
-      'analytics_view_all_active_filters':
-          'View all active filters ({count} more)',
+      'analytics_view_all_active_filters': 'Az összes aktív szűrő megtekintése (még {count})',
       'analytics_show_fewer_filters': 'Weniger Filter anzeigen',
       'analytics_categories_subtitle': 'Entdecken Sie, wohin Ihr Geld fließt',
       'analytics_overview_top_categories': 'Top-Kategorien',
@@ -16083,19 +15683,16 @@ class AppLocalizations {
       'analytics_compared_with_previous': 'Im Vergleich zur Vorperiode',
       'analytics_trends_period_label': 'Ausgewähltes Trendfenster',
       'analytics_trends_chart_title': 'Ausgabentrend',
-      'analytics_trends_chart_subtitle':
-          'Automatic daily, weekly, or monthly buckets for your selected period.',
+      'analytics_trends_chart_subtitle': 'Automatikus napi, heti vagy havi csoportosítás a kiválasztott időszakra.',
       'analytics_trends_no_data':
           'Für diese Filter liegen keine Trenddaten vor.',
       'analytics_trends_highest_bucket': 'Höchster Eimer',
       'analytics_trends_average_bucket': 'Durchschnittliche Bucket-Ausgaben',
       'analytics_household_empty_title': 'Noch keine Haushaltsanalyse',
-      'analytics_household_empty_subtitle':
-          'Create or open a household to compare spending across members.',
+      'analytics_household_empty_subtitle': 'Hozzon létre vagy nyisson meg egy háztartást a tagok közötti költések összehasonlításához.',
       'analytics_household_no_data':
           'Für diese Filter fallen keine Haushaltsausgaben an.',
-      'analytics_household_no_data_subtitle':
-          'Try widening the date range or clearing a few filters.',
+      'analytics_household_no_data_subtitle': 'Próbálja meg növelni a dátumtartományt, vagy töröljön néhány szűrőt.',
       'analytics_household_preview_subtitle':
           'Gemeinsame Ausgaben für diesen Zeitraum',
       'analytics_household_total_transactions':
@@ -16113,8 +15710,7 @@ class AppLocalizations {
       'transaction_created_successfully': 'Transazione creata con successo',
       'manual_transaction_title': 'Transaktion hinzufügen',
       'manual_transaction_heading': 'Fügen Sie eine Transaktion manuell hinzu',
-      'manual_transaction_subtitle':
-          'Create a transaction without scanning a receipt, then fine-tune the details on the next screen.',
+      'manual_transaction_subtitle': 'Hozzon létre egy tranzakciót nyugta szkennelése nélkül, majd finomítsa a részleteket a következő képernyőn.',
       'manual_transaction_merchant_label': 'Händler',
       'manual_transaction_merchant_hint': 'z.B. Eckmarkt',
       'manual_transaction_amount_label': 'Menge',
@@ -16123,36 +15719,28 @@ class AppLocalizations {
       'manual_transaction_time_label': 'Zeit',
       'manual_transaction_category_label': 'Kategorie',
       'manual_transaction_category_none': 'Keine Kategorie',
-      'manual_transaction_unlimited_note':
-          'Manual transactions are unlimited on the free plan.',
+      'manual_transaction_unlimited_note': 'A manuális tranzakciók száma korlátlan az ingyenes csomagban.',
       'manual_transaction_create_action': 'Erstellen und fortfahren',
-      'manual_transaction_amount_invalid':
-          'Enter a valid amount greater than zero.',
+      'manual_transaction_amount_invalid': 'Kérjük, adjon meg egy érvényes, nullánál nagyobb összeget.',
       'manual_transaction_deleted': 'Manuelle Transaktion gelöscht.',
       'manual_transaction_delete_missing_id': 'Transaktions-ID fehlt.',
       'transaction_amount_required':
           'Inserisci un importo totale prima di salvare.',
       'transaction_invalid_total': 'Inserisci un importo totale valido.',
-      'transaction_save_before_labels':
-          'Save the transaction before adding labels.',
+      'transaction_save_before_labels': 'Mentse el a tranzakciót a címkék hozzáadása előtt.',
       'transaction_new_expense': 'Nuova spesa',
       'transaction_review_receipt': 'Esaminare la ricevuta',
       'transaction_merchant_dialog_title': 'Mercante',
       'transaction_merchant_hint': 'Nome del negozio o del commerciante',
       'transaction_unsaved_changes_title': 'Modifiche non salvate',
-      'transaction_unsaved_changes_body':
-          'Your edits are not saved yet. Save them before leaving, or discard the changes.',
+      'transaction_unsaved_changes_body': 'A módosítások még nincsenek elmentve. Mentse el őket kilépés előtt, vagy vesse el a módosításokat.',
       'transaction_keep_editing': 'Continua a modificare',
       'transaction_discard_changes': 'Scartare',
-      'transaction_line_review_message':
-          'Review this line item: it should be {expected} and currently shows {actual}.',
-      'transaction_total_review_message':
-          'Review the total before saving: items add up to {expected} while the receipt total is {actual}.',
+      'transaction_line_review_message': 'Ellenőrizze ezt a tételt: {expected} értéknek kellene lennie, de jelenleg {actual} látható.',
+      'transaction_total_review_message': 'Mentés előtt ellenőrizze az összeget: a tételek összege {expected}, míg a nyugta végösszege {actual}.',
       'transaction_items_heading': 'Elementi',
-      'transaction_empty_items':
-          'No line items yet. Add your first item to finish this receipt.',
-      'transaction_read_only_owner':
-          'You can review this receipt, but only the owner can edit it.',
+      'transaction_empty_items': 'Még nincsenek tételek. Adja hozzá az első tételt a nyugta befejezéséhez.',
+      'transaction_read_only_owner': 'Megtekintheti ezt a nyugtát, de csak a tulajdonos szerkesztheti.',
       'transaction_receipt_photo_title': 'Foto della ricevuta',
       'transaction_receipt_photo_subtitle': 'Visualizza la foto originale',
       'transaction_warning_review_one_item': 'Recensisci 1 articolo in totale',
@@ -16162,36 +15750,26 @@ class AppLocalizations {
       'transaction_warning_check_one_detail': 'Controlla 1 dettaglio estratto',
       'transaction_warning_check_details':
           'Controlla {count} dettagli estratti',
-      'transaction_warning_accepts_edits':
-          'Take a quick final look before saving. {details}. Saving accepts your edits.',
-      'transaction_was_amount': 'Era {importo}',
-      'transaction_saved_amount': '{importo} risparmiato',
+      'transaction_warning_accepts_edits': 'Mentés előtt vessen egy gyors utolsó pillantást. {details}. A mentéssel elfogadja a módosításokat.',
+      'transaction_was_amount': '{amount} volt',
+      'transaction_saved_amount': '{amount} megtakarítva',
       'transaction_missing_quantity_price': 'Aggiungi quantità, unità e prezzo',
       'transaction_receipt_total_label': 'Totale scontrino',
-      'transaction_open_receipt_error':
-          'We could not open this receipt right now. Please try again.',
-      'transaction_save_error':
-          'We could not save your changes. Please review the receipt and try again.',
-      'transaction_receipt_preview_error':
-          'We could not open the receipt preview right now.',
+      'transaction_open_receipt_error': 'Nem sikerült megnyitni a nyugtát. Kérjük, próbálja újra.',
+      'transaction_save_error': 'Nem sikerült elmenteni a módosításokat. Kérjük, ellenőrizze a nyugtát, és próbálja újra.',
+      'transaction_receipt_preview_error': 'Jelenleg nem sikerült megnyitni a nyugta előnézetét.',
       'receipt_photo_invalid_url': 'Die URL des Belegfotos ist ungültig.',
-      'receipt_photo_open_fallback':
-          'Could not open the file automatically. The link was copied instead.',
+      'receipt_photo_open_fallback': 'Nem sikerült automatikusan megnyitni a fájlt. A link helyette másolásra került.',
       'receipt_photo_load_failed':
           'Dieses Belegbild konnte nicht geladen werden.',
       'receipt_photo_download': 'Herunterladen',
-      'receipt_photo_downloaded': 'Quittung unter {Pfad} gespeichert',
+      'receipt_photo_downloaded': 'Nyugta elmentve ide: {path}',
       'receipt_photo_open_external': 'Von außen öffnen',
-      'receipt_photo_non_image_hint':
-          'This receipt file is not an image. Open it in another app.',
-      'billing_household_purchase_block_title':
-          'Leave the household before switching plans',
-      'billing_household_purchase_block_owner':
-          'You currently own a family household. Remove the family group before buying an individual plan.',
-      'billing_household_purchase_block_member':
-          'You currently belong to a family household. Leave the household before buying an individual plan.',
-      'billing_purchase_not_confirmed':
-          'Purchase completed, but premium access was not confirmed yet. Please restore purchases or try syncing again.',
+      'receipt_photo_non_image_hint': 'Ez a nyugtafájl nem kép. Nyissa meg egy másik alkalmazásban.',
+      'billing_household_purchase_block_title': 'Hagyja el a háztartást a csomagváltás előtt',
+      'billing_household_purchase_block_owner': 'Jelenleg egy családi háztartás tulajdonosa. Egyéni csomag vásárlása előtt távolítsa el a családi csoportot.',
+      'billing_household_purchase_block_member': 'Jelenleg egy családi háztartáshoz tartozik. Egyéni csomag vásárlása előtt hagyja el a háztartást.',
+      'billing_purchase_not_confirmed': 'Vásárlás befejezve, de a prémium hozzáférés még nincs megerősítve. Kérjük, állítsa vissza a vásárlásokat, vagy próbálja meg újra a szinkronizálást.',
       'billing_purchase_confirmed': 'Premium-Zugang bestätigt.',
       'billing_purchase_failed': 'Kauf fehlgeschlagen: {message}',
       'transaction_total_savings': 'Risparmio totale:',
@@ -16262,8 +15840,7 @@ class AppLocalizations {
       'larger_interface': 'Größere Schnittstelle',
       'no_category_insights_yet': 'Noch keine Einblicke in die Kategorie',
       'no_overview_yet': 'Noch keine Übersicht',
-      'no_spend_was_recorded_in_the_matching_pr':
-          'No spend was recorded in the matching previous period.',
+      'no_spend_was_recorded_in_the_matching_pr': 'Nem rögzítettek költést a megfelelő időszakban.',
       'no_trend_data_yet': 'Noch keine Trenddaten',
       'open_review': 'Rezension öffnen',
       'organize_your_receipts': 'Organisieren Sie Ihre Quittungen',
@@ -16283,16 +15860,14 @@ class AppLocalizations {
       'remove_all_in_series': 'Alles nacheinander entfernen',
       'remove_reminder': 'Erinnerung entfernen',
       'remove_this_reminder': 'Entfernen Sie diese Erinnerung',
-      'revenuecat_is_not_configured_in_this_bui':
-          'RevenueCat is not configured in this build.',
+      'revenuecat_is_not_configured_in_this_bui': 'A RevenueCat nincs konfigurálva ebben a buildben.',
       'save_changes': 'Änderungen speichern',
       'settings_and_account_polish': 'Einstellungen und Kontopolitur',
       'show_decimals': 'Dezimalstellen anzeigen',
       'smaller_interface': 'Kleinere Schnittstelle',
       'subscription_billing': 'Abonnement und Abrechnung',
       'terms_of_service': 'Nutzungsbedingungen',
-      'the_biggest_spending_groups_in_this_peri':
-          'The biggest spending groups in this period.',
+      'the_biggest_spending_groups_in_this_peri': 'A legnagyobb költési csoportok ebben az időszakban.',
       'the_donut_shows_each_groups_share_of_tot':
           'The donut shows each group’s share of total spend.',
       'top_categories': 'Top-Kategorien',
@@ -16304,8 +15879,7 @@ class AppLocalizations {
       'upload_receipt': 'Quittung hochladen',
       'use_this_source_language': 'Verwenden Sie diese Ausgangssprache',
       'view_insights_and_trends': 'Sehen Sie sich Erkenntnisse und Trends an',
-      'where_the_most_spending_happened_in_this':
-          'Where the most spending happened in this period.',
+      'where_the_most_spending_happened_in_this': 'Ahol a legtöbb költés történt ebben az időszakban.',
       'analytics_comparison_subtitle': 'Az előző év azonos időszakához képest.',
       'analytics_empty_categories_message': 'A kategória-összesítők több kiadás rögzítése után jelennek meg.',
       'analytics_empty_merchants_message': 'A boltok szerinti elemzések több nyugta beolvasása után lesznek láthatóak.',
