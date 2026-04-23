@@ -762,7 +762,7 @@ class AppLocalizations {
       'transaction_review_extraction': 'Review extraction: {details}',
       'transaction_line_mismatch':
           'Mismatch: expected {expected} but extracted {actual}',
-      'transaction_add_item': '+ Add item',
+      'transaction_add_item': 'Add item',
       'transaction_total_amount': 'Total Amount:',
       'transaction_total_savings': 'Total Savings:',
       'transaction_attribution_title': 'Attribution',
@@ -1222,6 +1222,83 @@ class AppLocalizations {
       'login_legal_prefix': 'By signing in, you agree to our ',
       'login_subtitle':
           'AI-powered expense tracking. Scan receipts and gain insights.',
+      'analytics_category_overview': 'Category overview',
+      'analytics_spend_share': '{percent}% of spend',
+      'analytics_transactions_count_plural': '{count} transactions',
+      'analytics_transactions_count_single': '1 transaction',
+      'analytics_trends_day_label': 'Day {number}',
+      'analytics_trends_no_prior': 'No prior',
+      'analytics_trends_period_fallback': 'Period {number}',
+      'analytics_trends_spent_tooltip': '{label}\nSpent: {amount}',
+      'analytics_trends_week_label': 'Week {number}',
+      'bill_reminders_paid_status': 'Paid',
+      'currency_decimals': 'Decimals',
+      'currency_format_options_note':
+          'Format options are saved on this device and update supported amount displays, including Home and history.',
+      'currency_show_less': 'Show less',
+      'currency_view_all': 'View all currencies',
+      'labels_name_label': 'Label name',
+      'profile_google_managed': 'Your email and photo are managed by Google.',
+      'profile_load_error':
+          'Your profile could not load right now. Please try again.',
+      'profile_save_error':
+          'We could not save your profile right now. Please try again.',
+      'profile_scans_count': '{count} scans',
+      'profile_scans_used': '{count} scans used',
+      'upload_hint_full_receipt': 'Full receipt in frame',
+      'upload_hint_good_lighting': 'Good lighting',
+      'upload_hint_size_limit': 'Up to 10 MB',
+      'upload_preview_empty_body':
+          'Your selected photo will appear here before extraction starts.',
+      'upload_preview_selected_body':
+          'You can review this image, switch to another one, or start extraction now.',
+      'help_support_email_copied': 'Support email copied: {email}',
+      'billing_dev_expire': 'Expire',
+      'common_icon': 'Icon',
+      'common_color': 'Color',
+      'settings_accent_mix': 'Mix',
+      'appearance_label_colors_title': 'Category and label colors',
+      'categories_active_count': '{count} active categories',
+      'analytics_category_details_title': 'Category details',
+      'analytics_category_details_subtitle':
+          'Open a category to see the underlying subcategories.',
+      'analytics_subcategory_details_title': 'Subcategory details',
+      'analytics_subcategory_details_subtitle':
+          'Open a subcategory to review the matching items.',
+      'billing_load_error':
+          'We could not load your subscription details right now. Please try again.',
+      'billing_operation_in_progress':
+          'Another billing action is still in progress. Please wait a few seconds and try again.',
+      'billing_purchase_cancelled': 'Purchase canceled.',
+      'billing_network_error':
+          'Network error while contacting the store. Please try again.',
+      'billing_update_error':
+          'We could not update Premium access right now. Please try again.',
+      'billing_current_plan_free_subtitle':
+          'You are currently on the Free plan for this account.',
+      'billing_current_plan_premium_subtitle':
+          'Premium is active for this account.',
+      'billing_access_list_premium':
+          'Unlimited receipt scans\nAdvanced analytics breakdowns\nFull data export history',
+      'billing_access_list_free':
+          '{limit} receipt scans in each rolling 30-day window\nCore tools stay available: labels, categories, budgets, and bill reminders\nData export includes your last 30 days on the Free plan',
+      'billing_free_upgrade_note':
+          'Upgrade only if you need more scans, deeper analytics, or the full export range.',
+      'billing_restore_sync_note':
+          'Use Restore Purchases if Premium does not appear on this device yet.',
+      'billing_badge_active': 'Active',
+      'billing_badge_free': 'Free',
+      'billing_usage_unlimited': 'Unlimited',
+      'billing_usage_left': '{count} left',
+      'billing_included_with_premium': 'Included with Premium',
+      'billing_premium_applied_note':
+          'Premium limits are already applied to this account.',
+      'billing_free_limits_note':
+          'Free plan limits stay active until you upgrade.',
+      'billing_managed_by_store_note':
+          'Premium stays managed by your app store for this account.',
+      'billing_free_limits_expand_note':
+          'Free keeps the core tools available. Premium expands scan limits, analytics, and exports.',
       'delete_reminder_name_confirm': 'Delete "{name}"?',
     },
     'de': {
@@ -1281,7 +1358,7 @@ class AppLocalizations {
       'settings_account_section': 'Konto',
       'settings_preferences_section': 'Präferenzen',
       'settings_support_section': 'Unterstützung',
-      'settings_legal_section': 'Légal',
+      'settings_legal_section': 'Rechtliches',
       'settings_session_section': 'Sitzung',
       'settings_subscription': 'Abonnement',
       'settings_subscription_loading': 'Abonnementstatus wird geladen',
@@ -1302,7 +1379,7 @@ class AppLocalizations {
       'settings_theme_auto': 'Automatisch',
       'settings_theme_auto_subtitle': 'Entspricht den Systemeinstellungen',
       'settings_accent_color': 'Akzentfarbe',
-      'settings_accent_neutral': 'Neutre',
+      'settings_accent_neutral': 'Neutral',
       'settings_accent_blue': 'Blau',
       'settings_accent_violet': 'Lila',
       'settings_accent_green': 'Grün',
@@ -1422,7 +1499,7 @@ class AppLocalizations {
       'feature_request_category_other': 'Andere',
       'settings_privacy_policy': 'Datenschutzrichtlinie',
       'settings_terms_of_service': 'Nutzungsbedingungen',
-      'settings_about': 'Um',
+      'settings_about': 'Über die App',
       'settings_banner_active_title': 'Pro ist aktiv',
       'settings_banner_upgrade_title': 'Upgrade auf Pro',
       'settings_banner_active_subtitle':
@@ -1576,7 +1653,7 @@ class AppLocalizations {
       'budget_category_budgets': 'Kategoriebudgets',
       'budget_add_category': 'Kategorie hinzufügen',
       'budget_remove_category': 'Kategorie entfernen',
-      'budget_limit_label': 'Budget',
+      'budget_limit_label': 'Budgetlimit',
       'budget_empty_state':
           'Fügen Sie Kategorielimits hinzu, um mit der Verfolgung Ihres Monatsbudgets zu beginnen.',
       'budget_status_over_title': 'Budget überschritten',
@@ -1952,7 +2029,7 @@ class AppLocalizations {
       'transaction_review_extraction': 'Rezensionsextraktion: {details}',
       'transaction_line_mismatch':
           'Nichtübereinstimmung: {expected} erwartet, aber {actual} extrahiert',
-      'transaction_add_item': '+ Artikel hinzufügen',
+      'transaction_add_item': 'Artikel hinzufügen',
       'transaction_total_amount': 'Gesamtbetrag:',
       'transaction_total_savings': 'Gesamtersparnis:',
       'transaction_attribution_title': 'Namensnennung',
@@ -2034,7 +2111,7 @@ class AppLocalizations {
       'taxonomy_garden': 'Garten',
       'taxonomy_phones': 'Telefone',
       'taxonomy_computers': 'Computer',
-      'taxonomy_tablets': 'Tablets',
+      'taxonomy_tablets': 'Tablet-Computer',
       'taxonomy_software': 'Software-Tools',
       'taxonomy_gaming_hardware': 'Gaming-Hardware',
       'taxonomy_smart_home': 'Smart-Home',
@@ -2440,6 +2517,83 @@ class AppLocalizations {
       'login_legal_prefix': 'Mit Ihrer Anmeldung stimmen Sie unserem zu',
       'login_subtitle':
           'KI-gestützte Ausgabenverfolgung. Scannen Sie Belege und gewinnen Sie Einblicke.',
+      'analytics_category_overview': 'Kategorieübersicht',
+      'analytics_spend_share': '{percent}% der Ausgaben',
+      'analytics_transactions_count_plural': '{count} Transaktionen',
+      'analytics_transactions_count_single': '1 Transaktion',
+      'analytics_trends_day_label': 'Tag {number}',
+      'analytics_trends_no_prior': 'Kein Vorwert',
+      'analytics_trends_period_fallback': 'Zeitraum {number}',
+      'analytics_trends_spent_tooltip': '{label}\nAusgegeben: {amount}',
+      'analytics_trends_week_label': 'Woche {number}',
+      'bill_reminders_paid_status': 'Bezahlt',
+      'currency_decimals': 'Dezimalstellen',
+      'currency_format_options_note':
+          'Formatoptionen werden auf diesem Gerät gespeichert und aktualisieren unterstützte Betragsanzeigen, einschließlich Startseite und Verlauf.',
+      'currency_show_less': 'Weniger anzeigen',
+      'currency_view_all': 'Alle Währungen anzeigen',
+      'labels_name_label': 'Labelname',
+      'profile_google_managed': 'E-Mail und Foto werden von Google verwaltet.',
+      'profile_load_error':
+          'Dein Profil konnte gerade nicht geladen werden. Bitte versuche es erneut.',
+      'profile_save_error':
+          'Wir konnten dein Profil gerade nicht speichern. Bitte versuche es erneut.',
+      'profile_scans_count': '{count} Scans',
+      'profile_scans_used': '{count} Scans verwendet',
+      'upload_hint_full_receipt': 'Gesamter Beleg im Bild',
+      'upload_hint_good_lighting': 'Gute Beleuchtung',
+      'upload_hint_size_limit': 'Bis zu 10 MB',
+      'upload_preview_empty_body':
+          'Dein ausgewähltes Foto wird hier angezeigt, bevor die Erkennung startet.',
+      'upload_preview_selected_body':
+          'Du kannst dieses Bild prüfen, ein anderes wählen oder die Erkennung jetzt starten.',
+      'help_support_email_copied': 'Support-E-Mail kopiert: {email}',
+      'billing_dev_expire': 'Ablaufen lassen',
+      'common_icon': 'Symbol',
+      'common_color': 'Farbe',
+      'settings_accent_mix': 'Gemischt',
+      'appearance_label_colors_title': 'Farben für Kategorien und Labels',
+      'categories_active_count': '{count} aktive Kategorien',
+      'analytics_category_details_title': 'Kategoriedetails',
+      'analytics_category_details_subtitle':
+          'Öffne eine Kategorie, um die zugehörigen Unterkategorien anzuzeigen.',
+      'analytics_subcategory_details_title': 'Unterkategoriedetails',
+      'analytics_subcategory_details_subtitle':
+          'Öffne eine Unterkategorie, um die passenden Positionen zu prüfen.',
+      'billing_load_error':
+          'Deine Abonnementdetails konnten gerade nicht geladen werden. Bitte versuche es noch einmal.',
+      'billing_operation_in_progress':
+          'Eine andere Abrechnungsaktion läuft noch. Warte ein paar Sekunden und versuche es erneut.',
+      'billing_purchase_cancelled': 'Kauf abgebrochen.',
+      'billing_network_error':
+          'Netzwerkfehler beim Verbinden mit dem Store. Bitte versuche es erneut.',
+      'billing_update_error':
+          'Premium-Zugriff konnte gerade nicht aktualisiert werden. Bitte versuche es erneut.',
+      'billing_current_plan_free_subtitle':
+          'Für dieses Konto nutzt du derzeit den Gratisplan.',
+      'billing_current_plan_premium_subtitle':
+          'Premium ist für dieses Konto aktiv.',
+      'billing_access_list_premium':
+          'Unbegrenzte Quittungsscans\nErweiterte Analyseaufschlüsselungen\nVollständiger Datenexport-Verlauf',
+      'billing_access_list_free':
+          '{limit} Quittungsscans pro gleitendem 30-Tage-Zeitraum\nDie wichtigsten Tools bleiben verfügbar: Labels, Kategorien, Budgets und Rechnungserinnerungen\nDer Datenexport umfasst im Gratisplan die letzten 30 Tage',
+      'billing_free_upgrade_note':
+          'Wechsle nur dann zu Premium, wenn du mehr Scans, tiefere Analysen oder den vollständigen Exportbereich brauchst.',
+      'billing_restore_sync_note':
+          'Nutze „Einkäufe wiederherstellen“, wenn Premium auf diesem Gerät noch nicht angezeigt wird.',
+      'billing_badge_active': 'Aktiv',
+      'billing_badge_free': 'Gratis',
+      'billing_usage_unlimited': 'Unbegrenzt',
+      'billing_usage_left': 'Noch {count}',
+      'billing_included_with_premium': 'In Premium enthalten',
+      'billing_premium_applied_note':
+          'Für dieses Konto gelten die Premium-Limits bereits.',
+      'billing_free_limits_note':
+          'Die Limits des Gratisplans gelten weiter, bis du ein Upgrade vornimmst.',
+      'billing_managed_by_store_note':
+          'Premium wird für dieses Konto weiterhin über deinen App-Store verwaltet.',
+      'billing_free_limits_expand_note':
+          'Gratis hält die wichtigsten Tools verfügbar. Premium erweitert Scan-Limits, Analysen und Exporte.',
       'delete_reminder_name_confirm': '„{name}“ löschen?',
     },
     'fr': {
@@ -2482,8 +2636,7 @@ class AppLocalizations {
       'settings_labels': 'Étiquettes',
       'settings_manage_labels': 'Gérer les étiquettes',
       'household_settings_title': 'Ménage familial',
-      'household_settings_subtitle':
-          'Teilen und verwalten Sie den Haushaltszugang',
+      'household_settings_subtitle': 'Partagez et gérez l\'accès au foyer',
       'settings_notifications': 'Alertes',
       'settings_dark_mode': 'Mode sombre',
       'settings_signed_in_as': 'Connecté en tant que',
@@ -2495,33 +2648,32 @@ class AppLocalizations {
           'Échec de la mise à jour de la devise : {error}',
       'settings_language_updated': 'Langue mise à jour en {language}',
       'settings_failed_load_profile': 'Échec du chargement du profil : {error}',
-      'settings_account_section': 'Konto',
-      'settings_preferences_section': 'Präferenzen',
-      'settings_support_section': 'Unterstützung',
-      'settings_legal_section': 'Légal',
-      'settings_session_section': 'Sitzung',
+      'settings_account_section': 'Compte',
+      'settings_preferences_section': 'Préférences',
+      'settings_support_section': 'Assistance',
+      'settings_legal_section': 'Juridique',
+      'settings_session_section': 'Connexion',
       'settings_subscription': 'Abonnement',
-      'settings_subscription_loading': 'Abonnementstatus wird geladen',
+      'settings_subscription_loading': 'Chargement du statut de l\'abonnement',
       'settings_subscription_active_until': 'Actif jusqu\'à {date}',
-      'settings_subscription_inactive': 'Kein aktiver Plan',
+      'settings_subscription_inactive': 'Aucun forfait actif',
       'settings_household': 'Ménage',
       'settings_profile': 'Profil',
       'settings_security': 'Sécurité',
-      'settings_security_subtitle': 'Passwort- und Kontosicherheit',
+      'settings_security_subtitle': 'Mot de passe et sécurité du compte',
       'settings_appearance': 'Apparence',
-      'settings_appearance_subtitle':
-          'Wählen Sie zwischen Hell- und Dunkelmodus',
+      'settings_appearance_subtitle': 'Choisissez le mode clair ou sombre',
       'settings_theme': 'Thème',
       'settings_theme_light': 'Lumière',
       'settings_theme_dark': 'Sombre',
       'settings_theme_light_subtitle': 'Aspect lumineux classique',
       'settings_theme_dark_subtitle': 'Agréable pour les yeux',
       'settings_theme_auto': 'Automatique',
-      'settings_theme_auto_subtitle': 'Entspricht den Systemeinstellungen',
+      'settings_theme_auto_subtitle': 'Suit les réglages du système',
       'settings_accent_color': 'Couleur d\'accentuation',
       'settings_accent_neutral': 'Neutre',
       'settings_accent_blue': 'Bleu',
-      'settings_accent_violet': 'Lila',
+      'settings_accent_violet': 'Violet',
       'settings_accent_green': 'Vert',
       'settings_accent_amber': 'Ambre',
       'settings_accent_red': 'Rouge',
@@ -2531,40 +2683,37 @@ class AppLocalizations {
       'settings_font_large': 'Grand',
       'settings_display_options': 'Options d\'affichage',
       'settings_compact_mode': 'Mode compact',
-      'settings_compact_mode_subtitle':
-          'Zeigen Sie mehr Inhalte auf dem Bildschirm an',
+      'settings_compact_mode_subtitle': 'Affichez plus de contenu à l\'écran',
       'settings_animations': 'Effets animés',
-      'settings_animations_subtitle': 'Ermöglichen Sie reibungslose Übergänge',
+      'settings_animations_subtitle': 'Active les transitions fluides',
       'settings_notifications_subtitle': 'Alertes et rappels',
       'settings_notification_channels': 'Canaux',
       'settings_push_notifications': 'Notifications poussées',
-      'settings_push_notifications_subtitle':
-          'Benachrichtigungen auf Ihrem Gerät',
+      'settings_push_notifications_subtitle': 'Alertes sur votre appareil',
       'settings_email_notifications': 'Notifications par courrier électronique',
       'settings_email_notifications_subtitle': 'Mises à jour par e-mail',
       'settings_notification_activity': 'Activité',
       'settings_spending_alerts': 'Alertes de dépenses',
-      'settings_spending_alerts_subtitle':
-          'Ungewöhnliche Ausgaben festgestellt',
+      'settings_spending_alerts_subtitle': 'Dépenses inhabituelles détectées',
       'settings_budget_alerts': 'Alertes budgétaires',
-      'settings_budget_alerts_subtitle': 'Bei Annäherung an Budgetgrenzen',
+      'settings_budget_alerts_subtitle': 'À l\'approche des limites de budget',
       'settings_bill_reminders': 'Rappels de factures',
       'settings_bill_reminders_subtitle':
           'Rappels mensuels pour les paiements à venir',
       'settings_receipt_reminders': 'Rappels de reçus',
-      'settings_receipt_reminders_subtitle':
-          'Erinnern Sie daran, Belege zu scannen',
+      'settings_receipt_reminders_subtitle': 'Rappel pour scanner les reçus',
       'settings_notification_summaries': 'Résumés',
-      'settings_weekly_summary': 'Wöchentliche Zusammenfassung',
-      'settings_weekly_summary_subtitle': 'Jeden Montag um 9 Uhr',
+      'settings_weekly_summary': 'Résumé hebdomadaire',
+      'settings_weekly_summary_subtitle': 'Chaque lundi à 9 h',
       'settings_ai_insights': 'AI Informations',
-      'settings_ai_insights_subtitle': 'Personalisierte Ausgabentipps',
+      'settings_ai_insights_subtitle': 'Conseils de dépenses personnalisés',
       'settings_notification_marketing': 'Commercialisation',
       'settings_promotions_updates': 'Promotions et mises à jour',
-      'settings_promotions_updates_subtitle': 'Neue Funktionen und Angebote',
-      'settings_profile_saved': 'Profil aktualisiert.',
+      'settings_promotions_updates_subtitle':
+          'Nouvelles fonctionnalités et offres',
+      'settings_profile_saved': 'Profil mis à jour.',
       'settings_profile_photo': 'Photo de profil',
-      'settings_profile_photo_subtitle': 'JPG, PNG oder GIF. Maximal 5 MB',
+      'settings_profile_photo_subtitle': 'JPG, PNG ou GIF. 5 Mo max.',
       'settings_personal_information': 'Informations personnelles',
       'settings_full_name': 'Nom complet',
       'settings_email': 'Courriel',
@@ -2574,7 +2723,7 @@ class AppLocalizations {
       'settings_account_type_family': 'Famille',
       'settings_account_type_pro': 'Pro',
       'settings_account_type_free': 'Gratuit',
-      'settings_receipt_usage_this_month': 'Belegverwendung in diesem Monat',
+      'settings_receipt_usage_this_month': 'Utilisation des reçus ce mois-ci',
       'settings_language_search': 'Rechercher des langues...',
       'settings_currency_search': 'Rechercher des devises...',
       'settings_items_translation_title': 'Traduction des articles',
@@ -2587,7 +2736,7 @@ class AppLocalizations {
       'settings_translate_to': 'Traduire en',
       'settings_options': 'Possibilités',
       'settings_auto_detect_source_language':
-          'Quellsprache automatisch erkennen',
+          'Détection automatique de la langue source',
       'settings_auto_detect_source_language_subtitle':
           'Détecter automatiquement la langue d\'origine',
       'settings_example': 'Exemple',
@@ -2595,25 +2744,26 @@ class AppLocalizations {
       'settings_translated_text': 'Traduit',
       'settings_help_center': 'Centre d\'aide',
       'settings_feature_request': 'Demande de fonctionnalité',
-      'feature_request_subtitle': 'Teilen Sie Ihre Ideen mit uns',
+      'feature_request_subtitle': 'Partagez vos idées avec nous',
       'feature_request_new_idea': 'Nouvelle idée',
       'feature_request_submit_title': 'Soumettez votre idée',
       'feature_request_title_label': 'Titre',
-      'feature_request_title_hint': 'Kurze Beschreibung Ihrer Idee...',
-      'feature_request_category_label': 'Kategorie',
+      'feature_request_title_hint': 'Brève description de votre idée...',
+      'feature_request_category_label': 'Catégorie',
       'feature_request_description_label': 'Descriptif',
       'feature_request_description_hint':
           'Décrivez votre demande de fonctionnalité en détail...',
       'feature_request_submit_action': 'Soumettre la demande',
-      'feature_request_submit_success': 'Funktionsanfrage eingereicht.',
+      'feature_request_submit_success': 'Demande de fonctionnalité envoyée.',
       'feature_request_title_length_error':
           'Le titre doit comporter entre 3 et 120 caractères.',
       'feature_request_description_length_error':
           'La description doit comporter entre 10 et 2 000 caractères.',
       'feature_request_load_error_title':
-          'Funktionsanfragen konnten nicht geladen werden',
+          'Impossible de charger les demandes de fonctionnalités',
       'feature_request_your_ideas': 'Vos idées',
-      'feature_request_your_ideas_empty_title': 'Noch keine Ideen eingereicht',
+      'feature_request_your_ideas_empty_title':
+          'Aucune idée envoyée pour le moment',
       'feature_request_your_ideas_empty_subtitle':
           'Vos idées soumises apparaîtront ici en attendant d\'être examinées ou d\'être intégrées au tableau public.',
       'feature_request_popular_requests': 'Demandes populaires',
@@ -2650,92 +2800,92 @@ class AppLocalizations {
       'settings_manage_subscription': 'Gérer l\'abonnement',
       'household_title': 'Ménage',
       'household_create_title': 'Créer un foyer',
-      'household_name_label': 'Haushaltsname',
-      'household_name_hint': 'z.B. Familie Smith',
-      'household_created_success': 'Haushalt erstellt.',
-      'household_edit_name_title': 'Bearbeiten Sie den Haushaltsnamen',
-      'household_updated_success': 'Haushalt aktualisiert.',
-      'household_empty_title': 'Noch kein Haushalt',
+      'household_name_label': 'Nom du foyer',
+      'household_name_hint': 'ex. Famille Martin',
+      'household_created_success': 'Foyer créé.',
+      'household_edit_name_title': 'Modifier le nom du foyer',
+      'household_updated_success': 'Foyer mis à jour.',
+      'household_empty_title': 'Aucun foyer pour le moment',
       'household_empty_subtitle':
           'Créez un foyer pour gérer les membres et inviter l’accès.',
       'household_create_cta': 'Créer un foyer',
       'household_join_via_link_only':
           'L\'adhésion est gérée en ouvrant directement un lien d\'invitation.',
-      'household_role_label': 'Ihre Rolle: {role}',
-      'household_role_owner': 'Eigentümer',
+      'household_role_label': 'Votre rôle : {role}',
+      'household_role_owner': 'Propriétaire',
       'household_role_admin': 'Administrateur',
-      'household_role_member': 'Mitglied',
-      'household_you_badge': 'Du',
-      'household_members_title': 'Mitglieder',
-      'household_remove_member_title': 'Mitglied entfernen',
-      'household_remove_member_confirm': 'Supprimer {name}de ce foyer?',
-      'household_member_removed': 'Mitglied entfernt.',
-      'household_leave_title': 'Verlassen Sie den Haushalt',
+      'household_role_member': 'Membre',
+      'household_you_badge': 'Vous',
+      'household_members_title': 'Membres',
+      'household_remove_member_title': 'Supprimer un membre',
+      'household_remove_member_confirm': 'Supprimer {name} de ce foyer ?',
+      'household_member_removed': 'Membre supprimé.',
+      'household_leave_title': 'Quitter le foyer',
       'household_leave_confirm':
           'Quitter ce foyer et supprimer l\'accès partagé de votre compte?',
-      'household_leave_action': 'Verlassen Sie den Haushalt',
-      'household_left_success': 'Sie haben den Haushalt verlassen.',
-      'household_delete_title': 'Familiengruppe entfernen',
+      'household_leave_action': 'Quitter le foyer',
+      'household_left_success': 'Vous avez quitté le foyer.',
+      'household_delete_title': 'Supprimer le groupe familial',
       'household_delete_confirm':
           'Supprimer ce foyer pour tout le monde? Les transactions partagées seront détachées et les invitations seront révoquées.',
-      'household_delete_action': 'Familiengruppe entfernen',
-      'household_deleted_success': 'Familiengruppe entfernt.',
-      'household_invites_title': 'Lädt ein',
-      'household_invite_add': 'Einladen',
-      'household_invites_empty': 'Noch keine Einladungen.',
-      'household_invite_create_title': 'Einladung erstellen',
+      'household_delete_action': 'Supprimer le groupe familial',
+      'household_deleted_success': 'Groupe familial supprimé.',
+      'household_invites_title': 'Invitations',
+      'household_invite_add': 'Inviter',
+      'household_invites_empty': 'Aucune invitation pour le moment.',
+      'household_invite_create_title': 'Créer une invitation',
       'household_invite_email_label': 'Courriel',
       'household_invite_email_hint': 'name@example.com',
-      'household_invite_send': 'Einladung senden',
-      'household_invite_created': 'Einladung erstellt.',
-      'household_invite_share_title': 'Einladungslink teilen',
-      'household_invite_copy_link': 'Link kopieren',
-      'household_invite_share_link': 'Link teilen',
-      'household_invite_link_copied': 'Einladungslink kopiert.',
-      'household_invite_revoke': 'Widerrufen',
-      'household_invite_revoke_title': 'Einladung widerrufen',
+      'household_invite_send': 'Envoyer l\'invitation',
+      'household_invite_created': 'Invitation créée.',
+      'household_invite_share_title': 'Partager le lien d\'invitation',
+      'household_invite_copy_link': 'Copier le lien',
+      'household_invite_share_link': 'Partager le lien',
+      'household_invite_link_copied': 'Lien d\'invitation copié.',
+      'household_invite_revoke': 'Révoquer',
+      'household_invite_revoke_title': 'Révoquer l\'invitation',
       'household_invite_revoke_confirm':
           'Cette invitation ne peut plus être acceptée. Continuer?',
-      'household_invite_revoked': 'Einladung widerrufen.',
-      'household_invite_expires_at': 'Expire à: {date}',
+      'household_invite_revoked': 'Invitation révoquée.',
+      'household_invite_expires_at': 'Expire le : {date}',
       'household_invite_state_pending': 'En attente',
-      'household_invite_state_accepted': 'Akzeptiert',
-      'household_invite_state_revoked': 'Widerrufen',
-      'household_invite_state_expired': 'Abgelaufen',
-      'household_locked_title': 'Die Haushaltsverwaltung ist gesperrt',
+      'household_invite_state_accepted': 'Acceptée',
+      'household_invite_state_revoked': 'Révoquée',
+      'household_invite_state_expired': 'Expirée',
+      'household_locked_title': 'La gestion du foyer est verrouillée',
       'household_locked_subtitle':
           'Un plan familial actif est requis pour les actions de création/invitation/suppression.',
-      'household_family_plan_required': 'Familienplan erforderlich',
-      'household_member_count': '{count} Mitglieder',
-      'household_member_count_with_limit': '{count} von {limit} Mitgliedern',
-      'household_shared_expenses': 'Geteilte Ausgaben',
+      'household_family_plan_required': 'Forfait Famille requis',
+      'household_member_count': '{count} membres',
+      'household_member_count_with_limit': '{count} sur {limit} membres',
+      'household_shared_expenses': 'Dépenses partagées',
       'household_shared_expenses_subtitle':
-          'Erlauben Sie allen Mitgliedern, Ausgaben hinzuzufügen',
-      'household_budget_notifications': 'Budgetbenachrichtigungen',
+          'Autoriser tous les membres à ajouter des dépenses',
+      'household_budget_notifications': 'Notifications de budget',
       'household_budget_notifications_subtitle':
           'Avertir lorsque la limite du budget du ménage est atteinte',
-      'household_upgrade_cta': 'Pläne ansehen',
-      'billing_period_title': 'Abrechnungszeitraum',
-      'billing_period_monthly': 'Monatlich',
-      'billing_period_yearly': 'Jährlich',
-      'billing_best_value': 'Das beste Preis-Leistungs-Verhältnis',
-      'billing_restore_purchases': 'Einkäufe wiederherstellen',
-      'billing_restore_success': 'Einkäufe wiederhergestellt.',
-      'billing_restore_failed': 'Wiederherstellung fehlgeschlagen: {message}',
-      'billing_current_plan': 'Aktueller Plan',
-      'billing_subscribe_to_plan': 'Abonnieren Sie {plan} – {price}{unit}',
+      'household_upgrade_cta': 'Voir les forfaits',
+      'billing_period_title': 'Période de facturation',
+      'billing_period_monthly': 'Mensuel',
+      'billing_period_yearly': 'Annuel',
+      'billing_best_value': 'MEILLEURE OFFRE',
+      'billing_restore_purchases': 'Restaurer les achats',
+      'billing_restore_success': 'Achats restaurés.',
+      'billing_restore_failed': 'Échec de la restauration : {message}',
+      'billing_current_plan': 'Forfait actuel',
+      'billing_subscribe_to_plan': 'S\'abonner à {plan} - {price}{unit}',
       'billing_subscribe_unavailable':
           'Aucun forfait achetable n’est disponible pour le moment.',
-      'billing_plan_free': 'Kostenloser Plan',
-      'billing_free_plan_subtitle': 'Begrenzt auf {limit} Belege pro Monat',
+      'billing_plan_free': 'Forfait gratuit',
+      'billing_free_plan_subtitle': 'Limité à {limit} reçus par mois',
       'billing_active_until_compact': 'Actif jusqu\'à {date}',
       'billing_resets_on': 'Réinitialisation sur {date}',
-      'household_invite_title': 'Haushaltseinladung',
-      'household_invite_accepting': 'Einladung annehmen...',
+      'household_invite_title': 'Invitation au foyer',
+      'household_invite_accepting': 'Acceptation de l\'invitation...',
       'household_invite_accept_success':
           'Invitation acceptée. Vous êtes maintenant dans ce foyer.',
-      'household_open_screen': 'Offener Haushalt',
-      'household_continue_app': 'Weitermachen',
+      'household_open_screen': 'Ouvrir le foyer',
+      'household_continue_app': 'Continuer',
       'language_picker_title': 'Sélectionnez la langue',
       'lang_english': 'Anglais',
       'lang_serbian': 'serbe',
@@ -2745,11 +2895,11 @@ class AppLocalizations {
       'receipts_delete_title': 'Supprimer le reçu',
       'receipts_delete_confirm':
           'Cela supprimera définitivement le reçu et tous ses éléments. Es-tu sûr?',
-      'receipts_delete_missing_id': 'Die Beleg-ID fehlt.',
+      'receipts_delete_missing_id': 'L\'ID du reçu est manquant.',
       'receipts_deleted': 'Reçu supprimé.',
       'receipts_no_data': 'Aucun reçu trouvé',
       'receipts_no_discounts': 'Aucune remise sur cette période',
-      'transaction_no_discounts': 'Auf diese Quittung gibt es keinen Rabatt',
+      'transaction_no_discounts': 'Aucune remise sur ce reçu',
       'receipts_total_for_period': 'Total pour la période',
       'receipts_count': '{count} reçus',
       'receipts_unknown_store': 'Magasin inconnu',
@@ -2767,82 +2917,83 @@ class AppLocalizations {
       'upload_pick_failed': 'Échec de la sélection de l\'image : {error}',
       'upload_extraction_failed': 'Échec de l\'extraction',
       'upload_timed_out': 'L\'extraction a expiré après 2 minutes.',
-      'tools_subtitle': 'KI-gestützte Finanztools',
-      'tools_most_used': 'Am häufigsten verwendet',
-      'tools_scan_receipt': 'Quittung scannen',
-      'tools_scan_receipt_subtitle': 'Schneller Scan mit KI-Erkennung',
+      'tools_subtitle': 'Outils financiers propulsés par l\'IA',
+      'tools_most_used': 'Les plus utilisés',
+      'tools_scan_receipt': 'Scanner un reçu',
+      'tools_scan_receipt_subtitle': 'Scan rapide avec reconnaissance IA',
       'tools_analytics': 'Analyse',
-      'tools_analytics_subtitle': 'Sehen Sie sich Erkenntnisse und Trends an',
-      'tools_receipt_manager': 'Empfangsmanager',
-      'tools_receipt_manager_subtitle': 'Organisieren Sie Ihre Quittungen',
-      'tools_all_tools': 'Alle Werkzeuge',
-      'tools_core': 'Kern',
-      'tools_categories': 'Kategorien und Unterkategorien',
-      'tools_categories_subtitle': 'Organisieren Sie Ihre Ausgaben',
-      'tools_planning': 'Planung',
-      'tools_budget_calculator': 'Budgetrechner',
-      'tools_budget_calculator_subtitle': 'Planen Sie Ihr Monatsbudget',
+      'tools_analytics_subtitle': 'Voir les analyses et tendances',
+      'tools_receipt_manager': 'Gestionnaire de reçus',
+      'tools_receipt_manager_subtitle': 'Organisez vos reçus',
+      'tools_all_tools': 'Tous les outils',
+      'tools_core': 'Principal',
+      'tools_categories': 'Catégories et sous-catégories',
+      'tools_categories_subtitle': 'Organisez vos dépenses',
+      'tools_planning': 'Planification',
+      'tools_budget_calculator': 'Calculateur de budget',
+      'tools_budget_calculator_subtitle': 'Planifiez votre budget mensuel',
       'tools_bill_reminders': 'Rappels de factures',
-      'tools_bill_reminders_subtitle': 'Verpassen Sie nie wieder eine Zahlung',
-      'budget_income_label': 'Monatliches Einkommen',
-      'budget_total_budget': 'Gesamtbudget',
-      'budget_total_spent': 'Gesamtausgaben',
-      'budget_remaining': 'Übrig',
-      'budget_savings_goal': 'Sparziel',
-      'budget_category_budgets': 'Kategoriebudgets',
-      'budget_add_category': 'Kategorie hinzufügen',
-      'budget_remove_category': 'Kategorie entfernen',
-      'budget_limit_label': 'Budget',
+      'tools_bill_reminders_subtitle': 'Ne manquez plus aucun paiement',
+      'budget_income_label': 'Revenu mensuel',
+      'budget_total_budget': 'Budget total',
+      'budget_total_spent': 'Total dépensé',
+      'budget_remaining': 'Restant',
+      'budget_savings_goal': 'Objectif d\'épargne',
+      'budget_category_budgets': 'Budgets par catégorie',
+      'budget_add_category': 'Ajouter une catégorie',
+      'budget_remove_category': 'Supprimer la catégorie',
+      'budget_limit_label': 'Limite',
       'budget_empty_state':
           'Ajoutez des limites de catégories pour commencer à suivre votre budget mensuel.',
-      'budget_status_over_title': 'Budget überschritten',
+      'budget_status_over_title': 'Budget dépassé',
       'budget_status_over_body':
           'Vous avez dépassé le plan prévu par {amount}. Ajustez les limites de vos catégories ou ralentissez vos dépenses ce mois-ci.',
-      'budget_status_on_track_title': 'Tolle Arbeit!',
+      'budget_status_on_track_title': 'Bravo !',
       'budget_status_on_track_body':
           'Vous êtes sur la bonne voie pour sauver {amount}ce mois-ci. Continuez votre bon travail.',
-      'budget_category_exceeded': '{amount} über dem Limit',
+      'budget_category_exceeded': '{amount} au-dessus de la limite',
       'budget_category_remaining': '{amount}gauche',
-      'budget_invalid_amount': 'Geben Sie einen gültigen Betrag ein.',
-      'budget_saved': 'Budget aktualisiert.',
-      'budget_save_action': 'Budget sparen',
+      'budget_invalid_amount': 'Saisissez un montant valide.',
+      'budget_saved': 'Budget mis à jour.',
+      'budget_save_action': 'Enregistrer le budget',
       'budget_all_categories_added':
           'Toutes les catégories disponibles sont déjà ajoutées.',
-      'bill_reminders_subtitle_single': '1 bevorstehende Rechnung',
-      'bill_reminders_subtitle_plural': '{count} anstehende Rechnungen',
-      'bill_reminders_total_upcoming': 'Total bevorstehend',
-      'bill_reminders_add_title': 'Neue Rechnungserinnerung hinzufügen',
-      'bill_reminders_name': 'Rechnungsname',
-      'bill_reminders_name_hint': 'z. B. Stromrechnung',
-      'bill_reminders_amount': 'Menge',
-      'bill_reminders_due_date': 'Fälligkeitsdatum',
-      'bill_reminders_pick_date': 'Fälligkeitsdatum auswählen',
-      'bill_reminders_first_due_date': 'Erstes Fälligkeitsdatum',
+      'bill_reminders_subtitle_single': '1 facture à venir',
+      'bill_reminders_subtitle_plural': '{count} factures à venir',
+      'bill_reminders_total_upcoming': 'Total à venir',
+      'bill_reminders_add_title': 'Ajouter un nouveau rappel de facture',
+      'bill_reminders_name': 'Nom de la facture',
+      'bill_reminders_name_hint': 'ex. Facture d\'électricité',
+      'bill_reminders_amount': 'Montant',
+      'bill_reminders_due_date': 'Date d\'échéance',
+      'bill_reminders_pick_date': 'Sélectionner la date d\'échéance',
+      'bill_reminders_first_due_date': 'Première date d\'échéance',
       'bill_reminders_pick_first_due_date':
-          'Wählen Sie das erste Fälligkeitsdatum aus',
-      'bill_reminders_start_date': 'Beginnt am',
-      'bill_reminders_pick_start_date': 'Wählen Sie das Startdatum',
-      'bill_reminders_recurring': 'Wiederkehrend',
-      'bill_reminders_recurring_daily': 'Täglich',
-      'bill_reminders_recurring_monthly': 'Monatlich',
-      'bill_reminders_recurring_yearly': 'Jährlich',
-      'bill_reminders_add_action': 'Erinnerung hinzufügen',
-      'bill_reminders_mark_paid': 'Als bezahlt markieren',
-      'bill_reminders_upcoming': 'Demnächst',
-      'bill_reminders_due_soon': 'Bald fällig',
-      'bill_reminders_overdue': 'Überfällig',
+          'Sélectionner la première date d\'échéance',
+      'bill_reminders_start_date': 'Commence le',
+      'bill_reminders_pick_start_date': 'Sélectionner la date de début',
+      'bill_reminders_recurring': 'Récurrent',
+      'bill_reminders_recurring_daily': 'Quotidien',
+      'bill_reminders_recurring_monthly': 'Mensuel',
+      'bill_reminders_recurring_yearly': 'Annuel',
+      'bill_reminders_add_action': 'Ajouter un rappel',
+      'bill_reminders_mark_paid': 'Marquer comme payé',
+      'bill_reminders_upcoming': 'À venir',
+      'bill_reminders_due_soon': 'Bientôt dû',
+      'bill_reminders_overdue': 'En retard',
       'bill_reminders_invalid_form':
           'Remplissez le nom de la facture, le montant et la date d\'échéance.',
-      'bill_reminders_saved': 'Rechnungserinnerung hinzugefügt.',
-      'bill_reminders_paid': 'Rechnung als bezahlt markiert.',
+      'bill_reminders_saved': 'Rappel de facture ajouté.',
+      'bill_reminders_paid': 'Facture marquée comme payée.',
       'bill_reminders_empty':
           'Aucune facture n’est due pour le moment. Ajoutez un rappel pour rester en avance sur les paiements à venir.',
       'tools_data': 'Données',
-      'tools_export_data': 'Daten exportieren',
-      'tools_export_data_subtitle': 'Laden Sie Ihre Finanzdaten herunter',
-      'tools_import_data': 'Daten importieren',
-      'tools_import_data_subtitle': 'Importieren Sie Transaktionen aus Dateien',
-      'tools_import_success': 'Daten erfolgreich importiert.',
+      'tools_export_data': 'Exporter les données',
+      'tools_export_data_subtitle': 'Téléchargez vos données financières',
+      'tools_import_data': 'Importer des données',
+      'tools_import_data_subtitle':
+          'Importez des transactions depuis des fichiers',
+      'tools_import_success': 'Données importées avec succès.',
       'home_greeting_morning': 'Bonjour',
       'home_greeting_afternoon': 'Bon après-midi',
       'home_greeting_evening': 'Bonsoir',
@@ -2878,9 +3029,9 @@ class AppLocalizations {
           'Aucune donnée de dépense pour ce mois pour le moment.',
       'home_view_all': 'Tout voir',
       'home_smart_insights': 'Insights intelligents',
-      'home_quick_actions': 'Schnelle Aktionen',
+      'home_quick_actions': 'Actions rapides',
       'home_add_expense': 'Ajouter une dépense',
-      'home_categories': 'Kategorien',
+      'home_categories': 'Catégories',
       'home_refresh_error':
           'L’accueil n’a pas pu être actualisé pour le moment. Réessayez.',
       'receipts_filter_needs_review': 'À vérifier',
@@ -2904,7 +3055,7 @@ class AppLocalizations {
           'Impossible de supprimer cette entrée. Réessayez.',
       'common_apply': 'Appliquer',
       'common_create': 'Créer',
-      'common_save': 'Speichern',
+      'common_save': 'Enregistrer',
       'common_new': 'Nouveau',
       'common_unknown': 'Inconnu',
       'period_last_7_days': '7 derniers jours',
@@ -2935,11 +3086,11 @@ class AppLocalizations {
       'filters_selected_count': '{count} sélectionné',
       'language_picker_search': 'Recherche...',
       'categories_title': 'Catégories',
-      'categories_add_action': 'Hinzufügen',
-      'categories_add_category': 'Kategorie hinzufügen',
+      'categories_add_action': 'Ajouter',
+      'categories_add_category': 'Ajouter une catégorie',
       'categories_new_subcategory': 'Nouvelle sous-catégorie',
-      'categories_new_category': 'Neue Kategorie',
-      'categories_category_hint': 'Kategoriename (z. B. Reisen)',
+      'categories_new_category': 'Nouvelle catégorie',
+      'categories_category_hint': 'Nom de la catégorie (ex. Voyage)',
       'categories_parent_category': 'Catégorie parente',
       'categories_subcategory_hint':
           'Nom de la sous-catégorie (par exemple, Café)',
@@ -2950,20 +3101,20 @@ class AppLocalizations {
       'categories_delete_title': 'Supprimer la catégorie',
       'categories_delete_confirm':
           'Êtes-vous sûr de vouloir supprimer « {name} » ?',
-      'categories_disable_title': 'Kategorie deaktivieren',
+      'categories_disable_title': 'Désactiver la catégorie',
       'categories_disable_confirm':
           'Désactiver « {name}» pour une catégorisation future et le masquer aux sélecteurs?',
-      'categories_disable_action': 'Deaktivieren',
+      'categories_disable_action': 'Désactiver',
       'categories_deleted': '"{name}" supprimé.',
-      'categories_disabled': '„{name}“ deaktiviert.',
-      'categories_restored': '„{name}“ wiederhergestellt.',
+      'categories_disabled': '"{name}" désactivé.',
+      'categories_restored': '"{name}" restauré.',
       'categories_built_in': 'Intégré',
       'categories_custom': 'Personnalisé',
-      'categories_restore_action': 'Wiederherstellen',
-      'categories_disabled_state': 'Deaktiviert',
-      'categories_active_section': 'Aktive Kategorien',
-      'categories_disabled_section': 'Deaktivierte Kategorien',
-      'categories_category_created': 'Kategorie „{name}“ erstellt!',
+      'categories_restore_action': 'Restaurer',
+      'categories_disabled_state': 'Désactivé',
+      'categories_active_section': 'Catégories actives',
+      'categories_disabled_section': 'Catégories désactivées',
+      'categories_category_created': 'Catégorie "{name}" créée !',
       'categories_subcategory_created': 'Sous-catégorie "{name}" créée !',
       'subcategories_new_for_parent': 'Nouvelle sous-catégorie pour {name}',
       'subcategories_name_hint': 'Nom de la sous-catégorie',
@@ -2971,13 +3122,13 @@ class AppLocalizations {
       'subcategories_delete_title': 'Supprimer la sous-catégorie',
       'subcategories_delete_confirm':
           'Êtes-vous sûr de vouloir supprimer « {name} » ?',
-      'subcategories_disable_title': 'Unterkategorie deaktivieren',
+      'subcategories_disable_title': 'Désactiver la sous-catégorie',
       'subcategories_disable_confirm':
           'Désactiver « {name}» pour une catégorisation future et le masquer aux sélecteurs?',
       'subcategories_deleted': '"{name}" supprimé.',
-      'subcategories_disabled': '„{name}“ deaktiviert.',
-      'subcategories_restored': '„{name}“ wiederhergestellt.',
-      'subcategories_active_state': 'Aktiv',
+      'subcategories_disabled': '"{name}" désactivée.',
+      'subcategories_restored': '"{name}" restaurée.',
+      'subcategories_active_state': 'Actif',
       'subcategories_title_for_parent': '{name} Sous-catégories',
       'subcategories_not_found_for_parent':
           'Aucune sous-catégorie trouvée pour {name}.',
@@ -2992,51 +3143,52 @@ class AppLocalizations {
       'labels_empty_title': 'Pas encore d\'étiquettes',
       'labels_empty_subtitle': 'Créez des étiquettes pour étiqueter vos reçus',
       'analytics_expense_categories': 'Catégories de dépenses',
-      'analytics_expense_subcategories': 'Ausgaben-Unterkategorien',
-      'analytics_tab_overview': 'Überblick',
+      'analytics_expense_subcategories': 'Sous-catégories de dépenses',
+      'analytics_tab_overview': 'Aperçu',
       'analytics_tab_trends': 'Tendances',
-      'analytics_tab_categories': 'Kategorien',
-      'analytics_tab_households': 'Haushalte',
-      'analytics_active_filters': 'Aktive Filter',
-      'analytics_clear_all_filters': 'Alle Filter löschen',
+      'analytics_tab_categories': 'Catégories',
+      'analytics_tab_households': 'Foyers',
+      'analytics_active_filters': 'Filtres actifs',
+      'analytics_clear_all_filters': 'Effacer tous les filtres',
       'analytics_view_all_active_filters':
           'Afficher tous les filtres actifs ({count}plus)',
-      'analytics_show_fewer_filters': 'Weniger Filter anzeigen',
-      'analytics_categories_subtitle': 'Entdecken Sie, wohin Ihr Geld fließt',
-      'analytics_overview_top_categories': 'Top-Kategorien',
+      'analytics_show_fewer_filters': 'Afficher moins de filtres',
+      'analytics_categories_subtitle': 'Explorez où va votre argent',
+      'analytics_overview_top_categories': 'Principales catégories',
       'analytics_change_unavailable':
-          'Der vorherige Vergleich ist nicht verfügbar.',
+          'La comparaison précédente n\'est pas disponible.',
       'analytics_change_flat':
-          'Die Ausgaben sind im Vergleich zur Vorperiode unverändert.',
+          'Les dépenses sont stables par rapport à la période précédente.',
       'analytics_change_more':
-          'Anstieg um {percent} % im Vergleich zum vorherigen Zeitraum.',
+          'Hausse de {percent} % par rapport à la période précédente.',
       'analytics_change_less':
-          'Rückgang um {percent} % im Vergleich zum vorherigen Zeitraum.',
-      'analytics_compared_with_previous': 'Im Vergleich zur Vorperiode',
-      'analytics_trends_period_label': 'Ausgewähltes Trendfenster',
-      'analytics_trends_chart_title': 'Ausgabentrend',
+          'Baisse de {percent} % par rapport à la période précédente.',
+      'analytics_compared_with_previous': 'Par rapport à la période précédente',
+      'analytics_trends_period_label': 'Fenêtre de tendance sélectionnée',
+      'analytics_trends_chart_title': 'Tendance des dépenses',
       'analytics_trends_chart_subtitle':
           'Tranches quotidiennes, hebdomadaires ou mensuelles automatiques pour la période sélectionnée.',
-      'analytics_trends_no_data':
-          'Für diese Filter liegen keine Trenddaten vor.',
-      'analytics_trends_highest_bucket': 'Höchster Eimer',
-      'analytics_trends_average_bucket': 'Durchschnittliche Bucket-Ausgaben',
-      'analytics_household_empty_title': 'Noch keine Haushaltsanalyse',
+      'analytics_trends_no_data': 'Aucune donnée de tendance pour ces filtres.',
+      'analytics_trends_highest_bucket': 'Période la plus élevée',
+      'analytics_trends_average_bucket': 'Dépense moyenne par période',
+      'analytics_household_empty_title':
+          'Aucune analyse de foyer pour le moment',
       'analytics_household_empty_subtitle':
           'Créez ou ouvrez un foyer pour comparer les dépenses des membres.',
       'analytics_household_no_data':
-          'Für diese Filter fallen keine Haushaltsausgaben an.',
+          'Aucune dépense de foyer pour ces filtres.',
       'analytics_household_no_data_subtitle':
           'Essayez d\'élargir la plage de dates ou de supprimer quelques filtres.',
       'analytics_household_preview_subtitle':
-          'Gemeinsame Ausgaben für diesen Zeitraum',
+          'Dépenses partagées pour cette période',
       'analytics_household_total_transactions':
-          '{count} geteilte Transaktionen',
-      'analytics_household_member_transactions': '{count} Transaktionen',
-      'analytics_household_top_category': 'Top-Kategorie: {category}',
-      'analytics_household_top_category_unknown': 'Noch keine Kategorie',
-      'analytics_breakdown_categories': 'Kategorien',
-      'analytics_breakdown_subcategories': 'Unterkategorien',
+          '{count} transactions partagées',
+      'analytics_household_member_transactions': '{count} opérations',
+      'analytics_household_top_category': 'Catégorie principale : {category}',
+      'analytics_household_top_category_unknown':
+          'Aucune catégorie pour le moment',
+      'analytics_breakdown_categories': 'Catégories',
+      'analytics_breakdown_subcategories': 'Sous-catégories',
       'analytics_average_per_day': 'Moyenne par jour',
       'analytics_total_transactions': 'Total des transactions',
       'analytics_total_spent': 'Total dépensé',
@@ -3051,36 +3203,37 @@ class AppLocalizations {
       'analytics_bought_times': 'Acheté {count} fois',
       'analytics_total_quantity': 'Quantité totale {qty} {unit}',
       'analytics_purchased_items': 'Articles achetés',
-      'analytics_discounts_title': 'Rabatte',
-      'analytics_total_savings': 'Gesamteinsparungen',
-      'analytics_items_with_discount': 'Artikel mit Rabatt',
-      'analytics_biggest_discount': 'Größter Rabatt',
-      'analytics_no_discounts': 'Haben Sie keine Quittungen mit Rabatten',
+      'analytics_discounts_title': 'Remises',
+      'analytics_total_savings': 'Économies totales',
+      'analytics_items_with_discount': 'Articles avec remise',
+      'analytics_biggest_discount': 'Plus grande remise',
+      'analytics_no_discounts': 'Aucun reçu avec remise',
       'analytics_no_items_for_subcategory':
           'Aucun article trouvé pour cette sous-catégorie.',
       'analytics_unknown_item': 'Objet inconnu',
       'analytics_purchases_count': '{count} achats',
       'transaction_saved_successfully': 'Enregistré avec succès',
       'transaction_created_successfully': 'Transaction créée avec succès',
-      'manual_transaction_title': 'Transaktion hinzufügen',
-      'manual_transaction_heading': 'Fügen Sie eine Transaktion manuell hinzu',
+      'manual_transaction_title': 'Ajouter une transaction',
+      'manual_transaction_heading': 'Ajouter une transaction manuellement',
       'manual_transaction_subtitle':
           'Créez une transaction sans scanner de reçu, puis affinez les détails sur l\'écran suivant.',
-      'manual_transaction_merchant_label': 'Händler',
-      'manual_transaction_merchant_hint': 'z.B. Eckmarkt',
-      'manual_transaction_amount_label': 'Menge',
-      'manual_transaction_currency_label': 'Währung',
-      'manual_transaction_date_label': 'Datum',
-      'manual_transaction_time_label': 'Zeit',
-      'manual_transaction_category_label': 'Kategorie',
-      'manual_transaction_category_none': 'Keine Kategorie',
+      'manual_transaction_merchant_label': 'Commerçant',
+      'manual_transaction_merchant_hint': 'ex. Marché du coin',
+      'manual_transaction_amount_label': 'Montant',
+      'manual_transaction_currency_label': 'Devise',
+      'manual_transaction_date_label': 'Date de transaction',
+      'manual_transaction_time_label': 'Heure',
+      'manual_transaction_category_label': 'Catégorie',
+      'manual_transaction_category_none': 'Aucune catégorie',
       'manual_transaction_unlimited_note':
           'Les transactions manuelles sont illimitées sur le forfait gratuit.',
-      'manual_transaction_create_action': 'Erstellen und fortfahren',
+      'manual_transaction_create_action': 'Créer et continuer',
       'manual_transaction_amount_invalid':
           'Saisissez un montant valide supérieur à zéro.',
-      'manual_transaction_deleted': 'Manuelle Transaktion gelöscht.',
-      'manual_transaction_delete_missing_id': 'Transaktions-ID fehlt.',
+      'manual_transaction_deleted': 'Transaction manuelle supprimée.',
+      'manual_transaction_delete_missing_id':
+          'L\'ID de la transaction est manquant.',
       'transaction_amount_required':
           'Saisissez un montant total avant d’enregistrer.',
       'transaction_invalid_total': 'Saisissez un montant total valide.',
@@ -3130,14 +3283,13 @@ class AppLocalizations {
       'transaction_set_time': 'Régler l\'heure',
       'transaction_translate': 'Traduire',
       'transaction_photo': 'Photos',
-      'receipt_photo_invalid_url': 'Die URL des Belegfotos ist ungültig.',
+      'receipt_photo_invalid_url': 'L\'URL de la photo du reçu est invalide.',
       'receipt_photo_open_fallback':
           'Impossible d\'ouvrir le fichier automatiquement. Le lien a été copié à la place.',
-      'receipt_photo_load_failed':
-          'Dieses Belegbild konnte nicht geladen werden.',
-      'receipt_photo_download': 'Herunterladen',
+      'receipt_photo_load_failed': 'Impossible de charger cette image de reçu.',
+      'receipt_photo_download': 'Télécharger',
       'receipt_photo_downloaded': 'Reçu enregistré dans {path}',
-      'receipt_photo_open_external': 'Von außen öffnen',
+      'receipt_photo_open_external': 'Ouvrir en externe',
       'receipt_photo_non_image_hint':
           'Ce fichier de reçu n’est pas une image. Ouvrez-le dans une autre application.',
       'billing_household_purchase_block_title':
@@ -3148,8 +3300,8 @@ class AppLocalizations {
           'Vous appartenez actuellement à un foyer familial. Quittez le foyer avant d’acheter un forfait individuel.',
       'billing_purchase_not_confirmed':
           'Achat terminé, mais l\'accès premium n\'a pas encore été confirmé. Veuillez restaurer vos achats ou réessayer la synchronisation.',
-      'billing_purchase_confirmed': 'Premium-Zugang bestätigt.',
-      'billing_purchase_failed': 'Kauf fehlgeschlagen: {message}',
+      'billing_purchase_confirmed': 'Accès Premium confirmé.',
+      'billing_purchase_failed': 'Échec de l\'achat : {message}',
       'transaction_item_name': 'Nom de l\'article',
       'transaction_select_category': 'Sélectionnez une catégorie',
       'transaction_merchant_name': 'Nom du commerçant',
@@ -3166,13 +3318,13 @@ class AppLocalizations {
       'transaction_review_extraction': 'Extraction des avis : {details}',
       'transaction_line_mismatch':
           'Incohérence : {expected} attendu mais extrait {actual}',
-      'transaction_add_item': '+ Ajouter un article',
+      'transaction_add_item': 'Ajouter un article',
       'transaction_total_amount': 'Montant total:',
       'transaction_total_savings': 'Économies totales :',
-      'transaction_attribution_title': 'Namensnennung',
+      'transaction_attribution_title': 'Origine',
       'transaction_attribution_household': 'Ménage',
-      'transaction_attribution_created_by': 'Erstellt von',
-      'transaction_attribution_owner': 'Ausgabeneigentümer',
+      'transaction_attribution_created_by': 'Créé par',
+      'transaction_attribution_owner': 'Propriétaire de la dépense',
       'transaction_total_mismatch':
           'Inadéquation totale : {expected} attendu mais extrait {actual}',
       'taxonomy_food': 'Nourriture',
@@ -3274,110 +3426,105 @@ class AppLocalizations {
       'taxonomy_fees_and_charges': 'Frais et charges',
       'taxonomy_unknown_item': 'Objet inconnu',
       'taxonomy_uncategorized': 'Non classé',
-      '10_changes_to_terms': '10. Änderungen der Bedingungen',
-      '11_governing_law': '11. Anwendbares Recht',
-      '12_contact': '12. Kontakt',
-      '1_acceptance_of_terms': '1. Annahme der Bedingungen',
-      '1_information_we_collect': '1. Informationen, die wir sammeln',
-      '2_description_of_service': '2. Beschreibung des Dienstes',
-      '2_how_we_use_your_information': '2. Wie wir Ihre Daten verwenden',
-      '3_data_security': '3. Datensicherheit',
-      '3_user_accounts': '3. Benutzerkonten',
-      '4_data_sharing': '4. Datenaustausch',
-      '4_subscription_and_billing': '4. Abonnement und Abrechnung',
-      '5_prohibited_uses': '5. Verbotene Verwendungen',
-      '5_your_rights': '5. Ihre Rechte',
-      '6_cookies_and_tracking': '6. Cookies und Tracking',
-      '6_intellectual_property': '6. Geistiges Eigentum',
-      '7_service_availability': '7. Serviceverfügbarkeit',
-      '8_changes_to_this_policy': '8. Änderungen dieser Richtlinie',
-      '8_limitation_of_liability': '8. Haftungsbeschränkung',
-      '9_contact_us': '9. Kontaktieren Sie uns',
-      '9_termination': '9. Kündigung',
-      'accentaware_colors': 'Akzentbewusste Farben',
-      'activate_pro': 'Aktivieren Sie PRO',
-      'after_the_amount': 'Nach dem Betrag',
-      'always_use_the_dark_interface':
-          'Verwenden Sie immer die dunkle Oberfläche.',
-      'always_use_the_light_interface':
-          'Benutzen Sie immer die Lichtschnittstelle.',
-      'autodetect_source_language': 'Quellsprache automatisch erkennen',
-      'before_the_amount': 'Vor dem Betrag',
-      'billing_date': 'Rechnungsdatum',
-      'choose_source_language': 'Wählen Sie die Ausgangssprache',
-      'could_not_open_that_link': 'Dieser Link konnte nicht geöffnet werden.',
-      'create_category': 'Kategorie erstellen',
-      'create_label': 'Etikett erstellen',
-      'create_subcategory': 'Unterkategorie erstellen',
-      'daily_avg': 'Täglicher Durchschn',
-      'delete_reminder': 'Erinnerung löschen',
-      'discount_must_be_zero_or_higher':
-          'Der Rabatt muss Null oder höher sein.',
+      '10_changes_to_terms': '10. Modifications des conditions',
+      '11_governing_law': '11. Droit applicable',
+      '12_contact': '12. Nous contacter',
+      '1_acceptance_of_terms': '1. Acceptation des conditions',
+      '1_information_we_collect': '1. Informations collectées',
+      '2_description_of_service': '2. Description du service',
+      '2_how_we_use_your_information': '2. Utilisation de vos informations',
+      '3_data_security': '3. Sécurité des données',
+      '3_user_accounts': '3. Comptes utilisateur',
+      '4_data_sharing': '4. Partage des données',
+      '4_subscription_and_billing': '4. Abonnement et facturation',
+      '5_prohibited_uses': '5. Usages interdits',
+      '5_your_rights': '5. Vos droits',
+      '6_cookies_and_tracking': '6. Cookies et suivi',
+      '6_intellectual_property': '6. Propriété intellectuelle',
+      '7_service_availability': '7. Disponibilité du service',
+      '8_changes_to_this_policy': '8. Modifications de cette politique',
+      '8_limitation_of_liability': '8. Limitation de responsabilité',
+      '9_contact_us': '9. Nous contacter',
+      '9_termination': '9. Résiliation',
+      'accentaware_colors': 'Couleurs adaptées à l\'accent',
+      'activate_pro': 'Activer Pro',
+      'after_the_amount': 'Après le montant',
+      'always_use_the_dark_interface': 'Toujours utiliser l\'interface sombre',
+      'always_use_the_light_interface': 'Toujours utiliser l\'interface claire',
+      'autodetect_source_language': 'Détecter automatiquement la langue source',
+      'before_the_amount': 'Avant le montant',
+      'billing_date': 'Date de facturation',
+      'choose_source_language': 'Choisir la langue source',
+      'could_not_open_that_link': 'Impossible d\'ouvrir ce lien.',
+      'create_category': 'Créer une catégorie',
+      'create_label': 'Créer une étiquette',
+      'create_subcategory': 'Créer une sous-catégorie',
+      'daily_avg': 'Moy. quotidienne',
+      'delete_reminder': 'Supprimer le rappel',
+      'discount_must_be_zero_or_higher': 'La remise doit être de 0 ou plus.',
       'discount_percentage_must_stay_under_100':
-          'Discount percentage must stay under 100%.',
-      'display_name': 'Anzeigename',
-      'email_support': 'E-Mail-Support',
+          'Le pourcentage de remise doit rester inférieur à 100 %.',
+      'display_name': 'Nom d\'affichage',
+      'email_support': 'Assistance par e-mail',
       'enable_notifications_in_the_app':
-          'Aktivieren Sie Benachrichtigungen in der App',
-      'extra_compact_text': 'Extra kompakter Text',
-      'features_tools': 'Funktionen und Tools',
-      'follow_your_device_theme_setting':
-          'Befolgen Sie die Designeinstellungen Ihres Geräts.',
-      'getting_started': 'Erste Schritte',
+          'Activer les notifications dans l\'application',
+      'extra_compact_text': 'Texte très compact',
+      'features_tools': 'Fonctionnalités et outils',
+      'follow_your_device_theme_setting': 'Suivre le thème de votre appareil',
+      'getting_started': 'Premiers pas',
       'helpful_savings_spotted_in_the_current_r':
-          'Helpful savings spotted in the current results.',
-      'hide_decimals': 'Dezimalstellen ausblenden',
+          'Économies utiles repérées dans le reçu actuel.',
+      'hide_decimals': 'Masquer les décimales',
       'items_translation': 'Traduction des éléments',
       'keep_this_image_and_try_later':
-          'Behalten Sie dieses Bild und versuchen Sie es später',
-      'larger_interface': 'Größere Schnittstelle',
-      'no_category_insights_yet': 'Noch keine Einblicke in die Kategorie',
-      'no_overview_yet': 'Noch keine Übersicht',
+          'Conserver cette image et réessayer plus tard',
+      'larger_interface': 'Interface plus grande',
+      'no_category_insights_yet': 'Aucune analyse de catégorie pour le moment',
+      'no_overview_yet': 'Aucun aperçu pour le moment',
       'no_spend_was_recorded_in_the_matching_pr':
           'Aucune dépense n\'a été enregistrée au cours de la période précédente correspondante.',
-      'no_trend_data_yet': 'Noch keine Trenddaten',
-      'open_review': 'Rezension öffnen',
-      'organize_your_receipts': 'Organisieren Sie Ihre Quittungen',
-      'please_enter_a_category_name':
-          'Bitte geben Sie einen Kategorienamen ein.',
-      'please_enter_a_label_name': 'Bitte geben Sie einen Labelnamen ein.',
+      'no_trend_data_yet': 'Aucune donnée de tendance pour le moment',
+      'open_review': 'Ouvrir la vérification',
+      'organize_your_receipts': 'Organisez vos reçus',
+      'please_enter_a_category_name': 'Veuillez saisir un nom de catégorie.',
+      'please_enter_a_label_name': 'Veuillez saisir un nom d\'étiquette.',
       'please_enter_a_subcategory_name':
-          'Bitte geben Sie einen Unterkategorienamen ein.',
+          'Veuillez saisir un nom de sous-catégorie.',
       'previous_comparison_is_unavailable_for_t':
-          'Previous comparison is unavailable for this range.',
+          'La comparaison précédente n\'est pas disponible pour cette période.',
       'privacy_policy': 'Politique de confidentialité',
-      'privacy_security': 'Datenschutz und Sicherheit',
-      'quick_scan_with_ai_review': 'Schneller Scan mit KI-Überprüfung',
+      'privacy_security': 'Confidentialité et sécurité',
+      'quick_scan_with_ai_review': 'Scan rapide avec vérification IA',
       'raw_colors': 'Couleurs brutes',
-      'read_totals_and_items': 'Summen und Posten lesen',
-      'receipt_scans': 'Quittungsscans',
-      'remove_all_in_series': 'Alles nacheinander entfernen',
-      'remove_reminder': 'Erinnerung entfernen',
-      'remove_this_reminder': 'Entfernen Sie diese Erinnerung',
+      'read_totals_and_items': 'Lire les totaux et les articles',
+      'receipt_scans': 'Scans de reçus',
+      'remove_all_in_series': 'Supprimer toute la série',
+      'remove_reminder': 'Supprimer le rappel',
+      'remove_this_reminder': 'Supprimer ce rappel',
       'revenuecat_is_not_configured_in_this_bui':
           'RevenueCatn\'est pas configuré dans cette version.',
-      'save_changes': 'Änderungen speichern',
-      'show_decimals': 'Dezimalstellen anzeigen',
-      'smaller_interface': 'Kleinere Schnittstelle',
-      'subscription_billing': 'Abonnement und Abrechnung',
+      'save_changes': 'Enregistrer les modifications',
+      'show_decimals': 'Afficher les décimales',
+      'smaller_interface': 'Interface plus petite',
+      'subscription_billing': 'Abonnement et facturation',
       'terms_of_service': 'Conditions d\'utilisation',
       'the_biggest_spending_groups_in_this_peri':
           'Les groupes les plus dépensiers au cours de cette période.',
       'the_donut_shows_each_groups_share_of_tot':
-          'The donut shows each group’s share of total spend.',
-      'top_categories': 'Top-Kategorien',
+          'Le graphique en anneau montre la part de chaque groupe dans les dépenses totales.',
+      'top_categories': 'Principales catégories',
       'top_merchants': 'Meilleurs marchands',
-      'total_spent': 'Gesamtausgaben',
-      'translate_items_into': 'Übersetzen Sie Elemente in',
-      'translate_items_to': 'Elemente übersetzen in',
-      'upcoming_and_due_reminders': 'Anstehende und fällige Erinnerungen',
-      'upload_receipt': 'Quittung hochladen',
-      'use_this_source_language': 'Verwenden Sie diese Ausgangssprache',
-      'view_insights_and_trends': 'Sehen Sie sich Erkenntnisse und Trends an',
+      'total_spent': 'Total dépensé',
+      'translate_items_into': 'Traduire les articles en',
+      'translate_items_to': 'Traduire les articles vers',
+      'upcoming_and_due_reminders': 'Rappels à venir et dus',
+      'upload_receipt': 'Importer un reçu',
+      'use_this_source_language': 'Utiliser cette langue source',
+      'view_insights_and_trends': 'Voir les analyses et tendances',
       'where_the_most_spending_happened_in_this':
           'Où le plus de dépenses ont eu lieu au cours de cette période.',
-      'bill_due_soon': 'Rechnung bald fällig',
-      'bill_due_today': 'Rechnung heute fällig',
+      'bill_due_soon': 'Facture bientôt due',
+      'bill_due_today': 'Facture due aujourd\'hui',
       'current_release': 'Version actuelle',
       'settings_and_account_polish': 'Mises à jour des paramètres et du compte',
       'analytics_comparison_subtitle':
@@ -3657,6 +3804,85 @@ class AppLocalizations {
       'login_legal_prefix': 'En vous connectant, vous acceptez notre',
       'login_subtitle':
           'Suivi des dépenses alimenté par l\'IA. Scannez les reçus et obtenez des informations.',
+      'analytics_category_overview': 'Vue d’ensemble de la catégorie',
+      'analytics_spend_share': '{percent} % des dépenses',
+      'analytics_transactions_count_plural': '{count} opérations',
+      'analytics_transactions_count_single': '1 opération',
+      'analytics_trends_day_label': 'Jour {number}',
+      'analytics_trends_no_prior': 'Aucune donnée précédente',
+      'analytics_trends_period_fallback': 'Période {number}',
+      'analytics_trends_spent_tooltip': '{label}\nDépensé : {amount}',
+      'analytics_trends_week_label': 'Semaine {number}',
+      'bill_reminders_paid_status': 'Payé',
+      'currency_decimals': 'Décimales',
+      'currency_format_options_note':
+          'Les options de format sont enregistrées sur cet appareil et mettent à jour les montants pris en charge, notamment l’accueil et l’historique.',
+      'currency_show_less': 'Afficher moins',
+      'currency_view_all': 'Voir toutes les devises',
+      'labels_name_label': 'Nom de l’étiquette',
+      'profile_google_managed':
+          'Votre e-mail et votre photo sont gérés par Google.',
+      'profile_load_error':
+          'Votre profil ne peut pas être chargé pour le moment. Veuillez réessayer.',
+      'profile_save_error':
+          'Nous n’avons pas pu enregistrer votre profil pour le moment. Veuillez réessayer.',
+      'profile_scans_count': '{count} numérisations',
+      'profile_scans_used': '{count} scans utilisés',
+      'upload_hint_full_receipt': 'Reçu entier dans le cadre',
+      'upload_hint_good_lighting': 'Bon éclairage',
+      'upload_hint_size_limit': 'Jusqu’à 10 Mo',
+      'upload_preview_empty_body':
+          'La photo sélectionnée apparaîtra ici avant le début de l’extraction.',
+      'upload_preview_selected_body':
+          'Vous pouvez vérifier cette image, en choisir une autre ou lancer l’extraction maintenant.',
+      'help_support_email_copied': 'E-mail d\'assistance copié : {email}',
+      'billing_dev_expire': 'Expirer',
+      'common_icon': 'Icône',
+      'common_color': 'Couleur',
+      'settings_accent_mix': 'Mixte',
+      'appearance_label_colors_title':
+          'Couleurs des catégories et des étiquettes',
+      'categories_active_count': '{count} catégories actives',
+      'analytics_category_details_title': 'Détails des catégories',
+      'analytics_category_details_subtitle':
+          'Ouvrez une catégorie pour voir les sous-catégories correspondantes.',
+      'analytics_subcategory_details_title': 'Détails des sous-catégories',
+      'analytics_subcategory_details_subtitle':
+          'Ouvrez une sous-catégorie pour consulter les articles correspondants.',
+      'billing_load_error':
+          'Impossible de charger les détails de votre abonnement pour le moment. Veuillez réessayer.',
+      'billing_operation_in_progress':
+          'Une autre action de facturation est encore en cours. Attendez quelques secondes puis réessayez.',
+      'billing_purchase_cancelled': 'Achat annulé.',
+      'billing_network_error':
+          'Erreur réseau lors de la connexion à la boutique. Veuillez réessayer.',
+      'billing_update_error':
+          'Impossible de mettre à jour l\'accès Premium pour le moment. Veuillez réessayer.',
+      'billing_current_plan_free_subtitle':
+          'Vous utilisez actuellement le forfait Gratuit pour ce compte.',
+      'billing_current_plan_premium_subtitle':
+          'Premium est actif pour ce compte.',
+      'billing_access_list_premium':
+          'Scans de reçus illimités\nAnalyses détaillées avancées\nHistorique complet des exportations de données',
+      'billing_access_list_free':
+          '{limit} scans de reçus par période glissante de 30 jours\nLes outils essentiels restent disponibles : étiquettes, catégories, budgets et rappels de factures\nL\'exportation des données couvre les 30 derniers jours avec le forfait Gratuit',
+      'billing_free_upgrade_note':
+          'Passez à Premium seulement si vous avez besoin de plus de scans, d\'analyses plus poussées ou de tout l\'historique d\'exportation.',
+      'billing_restore_sync_note':
+          'Utilisez « Restaurer les achats » si Premium n\'apparaît pas encore sur cet appareil.',
+      'billing_badge_active': 'Actif',
+      'billing_badge_free': 'Gratuit',
+      'billing_usage_unlimited': 'Illimité',
+      'billing_usage_left': 'Il en reste {count}',
+      'billing_included_with_premium': 'Inclus avec Premium',
+      'billing_premium_applied_note':
+          'Les limites Premium sont déjà appliquées à ce compte.',
+      'billing_free_limits_note':
+          'Les limites du forfait Gratuit restent actives jusqu\'à la mise à niveau.',
+      'billing_managed_by_store_note':
+          'Premium reste géré par votre boutique d\'applications pour ce compte.',
+      'billing_free_limits_expand_note':
+          'Le forfait Gratuit conserve les outils essentiels. Premium augmente les limites de scan, l\'analytique et les exportations.',
       'delete_reminder_name_confirm': 'Supprimer "{name}" ?',
     },
     'uk': {
@@ -4361,7 +4587,7 @@ class AppLocalizations {
       'transaction_review_extraction': 'Огляд вилучення: {details}',
       'transaction_line_mismatch':
           'Невідповідність: очікується {expected}, але видобуто {actual}',
-      'transaction_add_item': '+ Додати товар',
+      'transaction_add_item': 'Додати товар',
       'transaction_total_amount': 'Загальна сума:',
       'transaction_total_savings': 'Загальна економія:',
       'transaction_attribution_title': 'Атрибуція',
@@ -4735,7 +4961,7 @@ class AppLocalizations {
       'about_app_section': 'Про додаток',
       'about_links_section': 'Посилання',
       'about_loading_version': 'Завантаження версії...',
-      'about_screen_title': 'про',
+      'about_screen_title': 'Про застосунок',
       'about_version_error': 'Деталі версії недоступні на цьому пристрої.',
       'about_website_label': 'Веб-сайт',
       'about_whats_new_section': 'Що нового',
@@ -4836,6 +5062,82 @@ class AppLocalizations {
       'login_legal_prefix': 'Увійшовши, ви погоджуєтеся з нашими',
       'login_subtitle':
           'Відстеження витрат за допомогою AI. Скануйте квитанції та отримуйте інформацію.',
+      'analytics_category_overview': 'Огляд категорії',
+      'analytics_spend_share': '{percent}% витрат',
+      'analytics_transactions_count_plural': '{count} транзакцій',
+      'analytics_transactions_count_single': '1 транзакція',
+      'analytics_trends_day_label': 'День {number}',
+      'analytics_trends_no_prior': 'Немає попередніх даних',
+      'analytics_trends_period_fallback': 'Період {number}',
+      'analytics_trends_spent_tooltip': '{label}\nВитрачено: {amount}',
+      'analytics_trends_week_label': 'Тиждень {number}',
+      'bill_reminders_paid_status': 'Оплачено',
+      'currency_decimals': 'Десяткові знаки',
+      'currency_format_options_note':
+          'Параметри формату зберігаються на цьому пристрої та оновлюють підтримуване відображення сум, зокрема на головній сторінці й в історії.',
+      'currency_show_less': 'Показати менше',
+      'currency_view_all': 'Показати всі валюти',
+      'labels_name_label': 'Назва мітки',
+      'profile_google_managed': 'Вашу електронну пошту та фото керує Google.',
+      'profile_load_error': 'Не вдалося завантажити профіль. Спробуйте ще раз.',
+      'profile_save_error': 'Не вдалося зберегти профіль. Спробуйте ще раз.',
+      'profile_scans_count': '{count} сканувань',
+      'profile_scans_used': 'Використано сканувань: {count}',
+      'upload_hint_full_receipt': 'Увесь чек у кадрі',
+      'upload_hint_good_lighting': 'Добре освітлення',
+      'upload_hint_size_limit': 'До 10 МБ',
+      'upload_preview_empty_body':
+          'Вибране фото з’явиться тут перед початком розпізнавання.',
+      'upload_preview_selected_body':
+          'Можна переглянути це зображення, вибрати інше або почати розпізнавання.',
+      'help_support_email_copied':
+          'Електронну адресу підтримки скопійовано: {email}',
+      'billing_dev_expire': 'Завершити',
+      'common_icon': 'Значок',
+      'common_color': 'Колір',
+      'settings_accent_mix': 'Мікс',
+      'appearance_label_colors_title': 'Кольори категорій і міток',
+      'categories_active_count': '{count} активних категорій',
+      'analytics_category_details_title': 'Деталі категорій',
+      'analytics_category_details_subtitle':
+          'Відкрийте категорію, щоб переглянути пов’язані підкатегорії.',
+      'analytics_subcategory_details_title': 'Деталі підкатегорій',
+      'analytics_subcategory_details_subtitle':
+          'Відкрийте підкатегорію, щоб переглянути відповідні позиції.',
+      'billing_load_error':
+          'Зараз не вдалося завантажити дані підписки. Спробуйте ще раз.',
+      'billing_operation_in_progress':
+          'Інша платіжна дія ще виконується. Зачекайте кілька секунд і спробуйте ще раз.',
+      'billing_purchase_cancelled': 'Покупку скасовано.',
+      'billing_network_error':
+          'Помилка мережі під час звернення до магазину. Спробуйте ще раз.',
+      'billing_update_error':
+          'Зараз не вдалося оновити доступ Premium. Спробуйте ще раз.',
+      'billing_current_plan_free_subtitle':
+          'Зараз для цього облікового запису активний безкоштовний план.',
+      'billing_current_plan_premium_subtitle':
+          'Premium активний для цього облікового запису.',
+      'billing_access_list_premium':
+          'Необмежене сканування чеків\nРозширені детальні аналітичні зрізи\nПовна історія експорту даних',
+      'billing_access_list_free':
+          '{limit} сканувань чеків у кожному ковзному 30-денному періоді\nБазові інструменти залишаються доступними: мітки, категорії, бюджети й нагадування про рахунки\nЕкспорт даних у безкоштовному плані охоплює останні 30 днів',
+      'billing_free_upgrade_note':
+          'Оновлюйтесь лише якщо вам потрібно більше сканувань, глибша аналітика або повний діапазон експорту.',
+      'billing_restore_sync_note':
+          'Скористайтеся «Відновити покупки», якщо Premium ще не відображається на цьому пристрої.',
+      'billing_badge_active': 'Активно',
+      'billing_badge_free': 'Безкоштовно',
+      'billing_usage_unlimited': 'Без обмежень',
+      'billing_usage_left': 'Залишилось {count}',
+      'billing_included_with_premium': 'Входить у Premium',
+      'billing_premium_applied_note':
+          'Ліміти Premium уже застосовано до цього облікового запису.',
+      'billing_free_limits_note':
+          'Обмеження безкоштовного плану діють, доки ви не оновитеся.',
+      'billing_managed_by_store_note':
+          'Premium для цього облікового запису й надалі керується через магазин застосунків.',
+      'billing_free_limits_expand_note':
+          'Безкоштовний план зберігає доступ до основних інструментів. Premium розширює ліміти сканування, аналітику й експорт.',
       'delete_reminder_name_confirm': 'Видалити "{name}"?',
     },
     'it': {
@@ -5036,7 +5338,7 @@ class AppLocalizations {
       'feature_request_category_other': 'Altro',
       'settings_privacy_policy': 'Informativa sulla privacy',
       'settings_terms_of_service': 'Termini di servizio',
-      'settings_about': 'Circa',
+      'settings_about': 'Informazioni sull\'app',
       'settings_banner_active_title': 'Pro è attivo',
       'settings_banner_upgrade_title': 'Aggiorna a Pro',
       'settings_banner_active_subtitle':
@@ -5190,7 +5492,7 @@ class AppLocalizations {
       'budget_category_budgets': 'Budget di categoria',
       'budget_add_category': 'Aggiungi categoria',
       'budget_remove_category': 'Rimuovi categoria',
-      'budget_limit_label': 'Budget',
+      'budget_limit_label': 'Limite',
       'budget_empty_state':
           'Aggiungi limiti di categoria per iniziare a monitorare il tuo budget mensile.',
       'budget_status_over_title': 'Budget superato',
@@ -5567,7 +5869,7 @@ class AppLocalizations {
       'transaction_review_extraction': 'Estrazione recensione: {details}',
       'transaction_line_mismatch':
           'Mancata corrispondenza: prevista {expected} ma estratta {actual}',
-      'transaction_add_item': '+ Aggiungi elemento',
+      'transaction_add_item': 'Aggiungi elemento',
       'transaction_total_amount': 'Importo totale:',
       'transaction_total_savings': 'Risparmio totale:',
       'transaction_attribution_title': 'Attribuzione',
@@ -5949,7 +6251,7 @@ class AppLocalizations {
       'about_app_section': 'Informazioni sull\'app',
       'about_links_section': 'Collegamenti',
       'about_loading_version': 'Caricamento versione...',
-      'about_screen_title': 'Circa',
+      'about_screen_title': 'Informazioni sull\'app',
       'about_version_error':
           'I dettagli della versione non sono disponibili su questo dispositivo.',
       'about_website_label': 'Sito web',
@@ -6056,6 +6358,81 @@ class AppLocalizations {
       'login_legal_prefix': 'Effettuando l\'accesso accetti i ns',
       'login_subtitle':
           'Monitoraggio delle spese basato sull\'intelligenza artificiale. Scansiona le ricevute e ottieni informazioni dettagliate.',
+      'analytics_category_overview': 'Panoramica categoria',
+      'analytics_spend_share': '{percent}% della spesa',
+      'analytics_transactions_count_plural': '{count} transazioni',
+      'analytics_transactions_count_single': '1 transazione',
+      'analytics_trends_day_label': 'Giorno {number}',
+      'analytics_trends_no_prior': 'Nessun dato precedente',
+      'analytics_trends_period_fallback': 'Periodo {number}',
+      'analytics_trends_spent_tooltip': '{label}\nSpeso: {amount}',
+      'analytics_trends_week_label': 'Settimana {number}',
+      'bill_reminders_paid_status': 'Pagato',
+      'currency_decimals': 'Decimali',
+      'currency_format_options_note':
+          'Le opzioni di formato vengono salvate su questo dispositivo e aggiornano gli importi supportati, inclusi Home e cronologia.',
+      'currency_show_less': 'Mostra meno',
+      'currency_view_all': 'Vedi tutte le valute',
+      'labels_name_label': 'Nome etichetta',
+      'profile_google_managed': 'Email e foto sono gestite da Google.',
+      'profile_load_error': 'Il profilo non può essere caricato ora. Riprova.',
+      'profile_save_error': 'Non siamo riusciti a salvare il profilo. Riprova.',
+      'profile_scans_count': '{count} scansioni',
+      'profile_scans_used': '{count} scansioni usate',
+      'upload_hint_full_receipt': 'Scontrino intero nell’inquadratura',
+      'upload_hint_good_lighting': 'Buona illuminazione',
+      'upload_hint_size_limit': 'Fino a 10 MB',
+      'upload_preview_empty_body':
+          'La foto selezionata apparirà qui prima dell’estrazione.',
+      'upload_preview_selected_body':
+          'Puoi rivedere questa immagine, sceglierne un’altra o avviare l’estrazione.',
+      'help_support_email_copied': 'Email di supporto copiata: {email}',
+      'billing_dev_expire': 'Fai scadere',
+      'common_icon': 'Icona',
+      'common_color': 'Colore',
+      'settings_accent_mix': 'Misto',
+      'appearance_label_colors_title': 'Colori di categorie ed etichette',
+      'categories_active_count': '{count} categorie attive',
+      'analytics_category_details_title': 'Dettagli categorie',
+      'analytics_category_details_subtitle':
+          'Apri una categoria per vedere le relative sottocategorie.',
+      'analytics_subcategory_details_title': 'Dettagli sottocategorie',
+      'analytics_subcategory_details_subtitle':
+          'Apri una sottocategoria per controllare gli elementi corrispondenti.',
+      'billing_load_error':
+          'Impossibile caricare i dettagli dell\'abbonamento in questo momento. Riprova.',
+      'billing_operation_in_progress':
+          'È ancora in corso un\'altra operazione di fatturazione. Attendi qualche secondo e riprova.',
+      'billing_purchase_cancelled': 'Acquisto annullato.',
+      'billing_network_error':
+          'Errore di rete durante il contatto con lo store. Riprova.',
+      'billing_update_error':
+          'Impossibile aggiornare l\'accesso Premium in questo momento. Riprova.',
+      'billing_current_plan_free_subtitle':
+          'Al momento stai usando il piano Gratuito per questo account.',
+      'billing_current_plan_premium_subtitle':
+          'Premium è attivo per questo account.',
+      'billing_access_list_premium':
+          'Scansioni ricevute illimitate\nAnalisi avanzate dettagliate\nCronologia completa delle esportazioni dei dati',
+      'billing_access_list_free':
+          '{limit} scansioni ricevute per ogni finestra mobile di 30 giorni\nGli strumenti essenziali restano disponibili: etichette, categorie, budget e promemoria bollette\nL\'esportazione dei dati include gli ultimi 30 giorni nel piano Gratuito',
+      'billing_free_upgrade_note':
+          'Passa a Premium solo se ti servono più scansioni, analisi più approfondite o l\'intera cronologia di esportazione.',
+      'billing_restore_sync_note':
+          'Usa "Ripristina acquisti" se Premium non compare ancora su questo dispositivo.',
+      'billing_badge_active': 'Attivo',
+      'billing_badge_free': 'Gratis',
+      'billing_usage_unlimited': 'Illimitato',
+      'billing_usage_left': '{count} rimasti',
+      'billing_included_with_premium': 'Incluso con Premium',
+      'billing_premium_applied_note':
+          'I limiti Premium sono già applicati a questo account.',
+      'billing_free_limits_note':
+          'I limiti del piano Gratuito restano attivi finché non fai l\'upgrade.',
+      'billing_managed_by_store_note':
+          'Premium continua a essere gestito dallo store per questo account.',
+      'billing_free_limits_expand_note':
+          'Il piano Gratuito mantiene disponibili gli strumenti essenziali. Premium amplia limiti di scansione, analisi ed esportazioni.',
       'delete_reminder_name_confirm': 'Eliminare "{name}"?',
     },
     'pl': {
@@ -6257,7 +6634,7 @@ class AppLocalizations {
       'feature_request_category_other': 'Inne',
       'settings_privacy_policy': 'Polityka prywatności',
       'settings_terms_of_service': 'Warunki świadczenia usług',
-      'settings_about': 'O',
+      'settings_about': 'O aplikacji',
       'settings_banner_active_title': 'Pro jest aktywne',
       'settings_banner_upgrade_title': 'Uaktualnij do Pro',
       'settings_banner_active_subtitle':
@@ -6782,7 +7159,7 @@ class AppLocalizations {
       'transaction_review_extraction': 'Ekstrakcja recenzji: {details}',
       'transaction_line_mismatch':
           'Niezgodność: oczekiwano {expected}, ale wyodrębniono {actual}',
-      'transaction_add_item': '+ Dodaj element',
+      'transaction_add_item': 'Dodaj element',
       'transaction_total_amount': 'Całkowita kwota:',
       'transaction_total_savings': 'Risparmio totale:',
       'transaction_attribution_title': 'Atrybucja',
@@ -7156,7 +7533,7 @@ class AppLocalizations {
       'about_app_section': 'O aplikacji',
       'about_links_section': 'Linki',
       'about_loading_version': 'Ładowanie wersji...',
-      'about_screen_title': 'O',
+      'about_screen_title': 'O aplikacji',
       'about_version_error':
           'Szczegóły wersji są niedostępne na tym urządzeniu.',
       'about_website_label': 'Strona internetowa',
@@ -7258,6 +7635,84 @@ class AppLocalizations {
       'login_legal_prefix': 'Logując się, akceptujesz nasze ',
       'login_subtitle':
           'Śledzenie wydatków oparte na AI. Skanuj paragony i zyskuj wgląd w swoje finanse.',
+      'analytics_category_overview': 'Przegląd kategorii',
+      'analytics_spend_share': '{percent}% wydatków',
+      'analytics_transactions_count_plural': '{count} transakcji',
+      'analytics_transactions_count_single': '1 transakcja',
+      'analytics_trends_day_label': 'Dzień {number}',
+      'analytics_trends_no_prior': 'Brak wcześniejszych danych',
+      'analytics_trends_period_fallback': 'Okres {number}',
+      'analytics_trends_spent_tooltip': '{label}\nWydano: {amount}',
+      'analytics_trends_week_label': 'Tydzień {number}',
+      'bill_reminders_paid_status': 'Opłacone',
+      'currency_decimals': 'Miejsca dziesiętne',
+      'currency_format_options_note':
+          'Opcje formatu są zapisywane na tym urządzeniu i aktualizują obsługiwane widoki kwot, w tym ekran główny i historię.',
+      'currency_show_less': 'Pokaż mniej',
+      'currency_view_all': 'Pokaż wszystkie waluty',
+      'labels_name_label': 'Nazwa etykiety',
+      'profile_google_managed':
+          'Adres e-mail i zdjęcie są zarządzane przez Google.',
+      'profile_load_error':
+          'Nie udało się teraz załadować profilu. Spróbuj ponownie.',
+      'profile_save_error':
+          'Nie udało się teraz zapisać profilu. Spróbuj ponownie.',
+      'profile_scans_count': '{count} skanów',
+      'profile_scans_used': 'Wykorzystano skanów: {count}',
+      'upload_hint_full_receipt': 'Cały paragon w kadrze',
+      'upload_hint_good_lighting': 'Dobre oświetlenie',
+      'upload_hint_size_limit': 'Do 10 MB',
+      'upload_preview_empty_body':
+          'Wybrane zdjęcie pojawi się tutaj przed rozpoczęciem rozpoznawania.',
+      'upload_preview_selected_body':
+          'Możesz sprawdzić to zdjęcie, wybrać inne albo rozpocząć rozpoznawanie.',
+      'help_support_email_copied': 'Skopiowano e-mail pomocy: {email}',
+      'billing_dev_expire': 'Wygasz',
+      'common_icon': 'Ikona',
+      'common_color': 'Kolor',
+      'settings_accent_mix': 'Miks',
+      'appearance_label_colors_title': 'Kolory kategorii i etykiet',
+      'categories_active_count': '{count} aktywnych kategorii',
+      'analytics_category_details_title': 'Szczegóły kategorii',
+      'analytics_category_details_subtitle':
+          'Otwórz kategorię, aby zobaczyć powiązane podkategorie.',
+      'analytics_subcategory_details_title': 'Szczegóły podkategorii',
+      'analytics_subcategory_details_subtitle':
+          'Otwórz podkategorię, aby przejrzeć pasujące pozycje.',
+      'billing_load_error':
+          'Nie udało się teraz wczytać szczegółów subskrypcji. Spróbuj ponownie.',
+      'billing_operation_in_progress':
+          'Inne działanie rozliczeniowe nadal trwa. Odczekaj kilka sekund i spróbuj ponownie.',
+      'billing_purchase_cancelled': 'Zakup anulowany.',
+      'billing_network_error':
+          'Błąd sieci podczas łączenia ze sklepem. Spróbuj ponownie.',
+      'billing_update_error':
+          'Nie udało się teraz zaktualizować dostępu Premium. Spróbuj ponownie.',
+      'billing_current_plan_free_subtitle':
+          'Obecnie dla tego konta aktywny jest plan Darmowy.',
+      'billing_current_plan_premium_subtitle':
+          'Premium jest aktywny dla tego konta.',
+      'billing_access_list_premium':
+          'Nielimitowane skanowanie paragonów\nRozszerzone szczegóły analityki\nPełna historia eksportu danych',
+      'billing_access_list_free':
+          '{limit} skanów paragonów w każdym ruchomym okresie 30 dni\nPodstawowe narzędzia pozostają dostępne: etykiety, kategorie, budżety i przypomnienia o rachunkach\nEksport danych w planie Darmowym obejmuje ostatnie 30 dni',
+      'billing_free_upgrade_note':
+          'Przejdź na Premium tylko wtedy, gdy potrzebujesz większej liczby skanów, głębszej analityki lub pełnego zakresu eksportu.',
+      'billing_restore_sync_note':
+          'Użyj „Przywróć zakupy”, jeśli Premium nie pojawia się jeszcze na tym urządzeniu.',
+      'billing_badge_active': 'Aktywny',
+      'billing_badge_free': 'Darmowy',
+      'billing_usage_unlimited': 'Bez limitu',
+      'billing_usage_left': 'Pozostało {count}',
+      'billing_included_with_premium': 'W ramach Premium',
+      'billing_premium_applied_note':
+          'Limity Premium są już zastosowane do tego konta.',
+      'billing_free_limits_note':
+          'Ograniczenia planu Darmowego obowiązują, dopóki nie przejdziesz na wyższy plan.',
+      'billing_managed_by_store_note':
+          'Premium dla tego konta nadal jest zarządzany przez sklep z aplikacjami.',
+      'billing_free_limits_expand_note':
+          'Plan Darmowy pozostawia dostęp do podstawowych narzędzi. Premium zwiększa limity skanów, analitykę i eksporty.',
       'delete_reminder_name_confirm': 'Usunąć "{name}"?',
     },
     'sr': {
@@ -7333,7 +7788,7 @@ class AppLocalizations {
       'settings_theme_dark': 'Tamna tema',
       'settings_theme_light_subtitle': 'Klasičan svetli izgled',
       'settings_theme_dark_subtitle': 'Lako za oči',
-      'settings_theme_auto': 'Auto',
+      'settings_theme_auto': 'Automatski',
       'settings_theme_auto_subtitle': 'Odgovara sistemskim podešavanjima',
       'settings_accent_color': 'Boja akcenta',
       'settings_accent_neutral': 'Neutralno',
@@ -7972,7 +8427,7 @@ class AppLocalizations {
       'transaction_review_extraction': 'Pregled ekstrakcije: {details}',
       'transaction_line_mismatch':
           'Neslaganje: ocekivano {expected}, izvuceno {actual}',
-      'transaction_add_item': '+ Dodaj stavku',
+      'transaction_add_item': 'Dodaj stavku',
       'transaction_total_amount': 'Ukupan iznos:',
       'transaction_total_savings': 'Risparmio totale:',
       'transaction_attribution_title': 'Pripisivanje',
@@ -8446,6 +8901,83 @@ class AppLocalizations {
       'login_legal_prefix': 'Prijavljivanjem prihvatate naše ',
       'login_subtitle':
           'Praćenje troškova zasnovano na VI (AI). Skenirajte račune i steknite uvid.',
+      'analytics_category_overview': 'Pregled kategorije',
+      'analytics_spend_share': '{percent}% potrošnje',
+      'analytics_transactions_count_plural': '{count} transakcija',
+      'analytics_transactions_count_single': '1 transakcija',
+      'analytics_trends_day_label': 'Dan {number}',
+      'analytics_trends_no_prior': 'Nema prethodnih podataka',
+      'analytics_trends_period_fallback': 'Razdoblje {number}',
+      'analytics_trends_spent_tooltip': '{label}\nPotrošeno: {amount}',
+      'analytics_trends_week_label': 'Nedelja {number}',
+      'bill_reminders_paid_status': 'Plaćeno',
+      'currency_decimals': 'Decimale',
+      'currency_format_options_note':
+          'Opcije formata se čuvaju na ovom uređaju i ažuriraju podržane prikaze iznosa, uključujući početnu stranicu i istoriju.',
+      'currency_show_less': 'Prikaži manje',
+      'currency_view_all': 'Prikaži sve valute',
+      'labels_name_label': 'Naziv oznake',
+      'profile_google_managed': 'E-poštom i fotografijom upravlja Google.',
+      'profile_load_error':
+          'Profil trenutno ne može da se učita. Pokušaj ponovo.',
+      'profile_save_error':
+          'Profil trenutno ne može da se sačuva. Pokušaj ponovo.',
+      'profile_scans_count': '{count} skeniranja',
+      'profile_scans_used': 'Iskorišćeno skeniranja: {count}',
+      'upload_hint_full_receipt': 'Ceo račun u kadru',
+      'upload_hint_good_lighting': 'Dobro osvetljenje',
+      'upload_hint_size_limit': 'Do 10 MB',
+      'upload_preview_empty_body':
+          'Izabrana fotografija će se pojaviti ovde pre početka prepoznavanja.',
+      'upload_preview_selected_body':
+          'Možeš pregledati sliku, izabrati drugu ili pokrenuti prepoznavanje.',
+      'help_support_email_copied': 'E-pošta podrške je kopirana: {email}',
+      'billing_dev_expire': 'Isteci',
+      'common_icon': 'Ikona',
+      'common_color': 'Boja',
+      'settings_accent_mix': 'Miks',
+      'appearance_label_colors_title': 'Boje kategorija i oznaka',
+      'categories_active_count': '{count} aktivnih kategorija',
+      'analytics_category_details_title': 'Detalji kategorija',
+      'analytics_category_details_subtitle':
+          'Otvorite kategoriju da vidite povezane potkategorije.',
+      'analytics_subcategory_details_title': 'Detalji potkategorija',
+      'analytics_subcategory_details_subtitle':
+          'Otvorite potkategoriju da pregledate odgovarajuće stavke.',
+      'billing_load_error':
+          'Trenutno ne možemo da učitamo detalje pretplate. Pokušajte ponovo.',
+      'billing_operation_in_progress':
+          'Druga naplata je još u toku. Sačekajte nekoliko sekundi i pokušajte ponovo.',
+      'billing_purchase_cancelled': 'Kupovina je otkazana.',
+      'billing_network_error':
+          'Mrežna greška pri povezivanju sa prodavnicom. Pokušajte ponovo.',
+      'billing_update_error':
+          'Trenutno ne možemo da ažuriramo Premium pristup. Pokušajte ponovo.',
+      'billing_current_plan_free_subtitle':
+          'Trenutno koristite besplatan plan za ovaj nalog.',
+      'billing_current_plan_premium_subtitle':
+          'Premium je aktivan za ovaj nalog.',
+      'billing_access_list_premium':
+          'Neograničeno skeniranje računa\nNapredni detaljni analitički pregledi\nPuna istorija izvoza podataka',
+      'billing_access_list_free':
+          '{limit} skeniranja računa u svakom pokretnom periodu od 30 dana\nOsnovni alati ostaju dostupni: oznake, kategorije, budžeti i podsetnici za račune\nIzvoz podataka u besplatnom planu obuhvata poslednjih 30 dana',
+      'billing_free_upgrade_note':
+          'Nadogradite samo ako su vam potrebni dodatni skenovi, dublja analitika ili pun opseg izvoza.',
+      'billing_restore_sync_note':
+          'Koristite „Vrati kupovine“ ako se Premium još ne prikazuje na ovom uređaju.',
+      'billing_badge_active': 'Aktivno',
+      'billing_badge_free': 'Besplatno',
+      'billing_usage_unlimited': 'Neograničeno',
+      'billing_usage_left': 'Preostalo {count}',
+      'billing_included_with_premium': 'Uključeno u Premium',
+      'billing_premium_applied_note':
+          'Premium ograničenja su već primenjena na ovaj nalog.',
+      'billing_free_limits_note':
+          'Ograničenja besplatnog plana ostaju aktivna dok ne izvršite nadogradnju.',
+      'billing_managed_by_store_note':
+          'Premium za ovaj nalog i dalje upravlja prodavnica aplikacija.',
+      'billing_free_limits_expand_note':
+          'Besplatan plan zadržava osnovne alate dostupnim. Premium proširuje limite skeniranja, analitiku i izvoz.',
       'delete_reminder_name_confirm': 'Obriši "{name}"?',
     },
     'ru': {
@@ -8641,7 +9173,7 @@ class AppLocalizations {
       'feature_request_category_other': 'Другое',
       'settings_privacy_policy': 'Политика конфиденциальности',
       'settings_terms_of_service': 'Условия использования',
-      'settings_about': 'О',
+      'settings_about': 'О приложении',
       'settings_banner_active_title': 'Pro активен',
       'settings_banner_upgrade_title': 'Обновите до Pro',
       'settings_banner_active_subtitle':
@@ -8771,15 +9303,15 @@ class AppLocalizations {
       'upload_extraction_failed': 'Не удалось распознать чек',
       'upload_timed_out': 'Время распознавания истекло через 2 минуты.',
       'tools_subtitle': 'Финансовые инструменты на базе AI',
-      'tools_most_used': 'Наиболее часто используемый',
+      'tools_most_used': 'Наиболее часто используемые',
       'tools_scan_receipt': 'Сканировать квитанцию',
       'tools_scan_receipt_subtitle': 'Быстрое сканирование с распознаванием AI',
       'tools_analytics': 'Аналитика',
       'tools_analytics_subtitle': 'Просмотр статистики и тенденций',
-      'tools_receipt_manager': 'Менеджер по приему',
+      'tools_receipt_manager': 'Менеджер чеков',
       'tools_receipt_manager_subtitle': 'Организуйте свои квитанции',
       'tools_all_tools': 'Все инструменты',
-      'tools_core': 'Ядро',
+      'tools_core': 'Основные',
       'tools_categories': 'Категории и подкатегории',
       'tools_categories_subtitle': 'Организуйте свои расходы',
       'tools_planning': 'Планирование',
@@ -8919,7 +9451,7 @@ class AppLocalizations {
       'filters_period': 'Период',
       'filters_category': 'Категория',
       'filters_subcategory': 'Подкатегория',
-      'filters_labels': 'Этикетки',
+      'filters_labels': 'Метки',
       'filters_clear_all': 'Очистить все фильтры',
       'filters_no_categories': 'Нет доступных категорий',
       'filters_no_labels': 'Нет доступных ярлыков',
@@ -8978,7 +9510,7 @@ class AppLocalizations {
       'subcategories_title_for_parent': '{name} Подкатегории',
       'subcategories_not_found_for_parent':
           'Для {name} подкатегорий не найдено.',
-      'labels_title': 'Этикетки',
+      'labels_title': 'Метки',
       'labels_add_label': 'Добавить ярлык',
       'labels_new_label': 'Новый лейбл',
       'labels_name_hint': 'Название ярлыка (например, «Бизнес»)',
@@ -8987,8 +9519,7 @@ class AppLocalizations {
       'labels_delete_confirm': 'Удалить "{name}"?',
       'labels_deleted': '"{name}" удален.',
       'labels_empty_title': 'Ярлыков пока нет',
-      'labels_empty_subtitle':
-          'Создавайте этикетки для пометки своих квитанций',
+      'labels_empty_subtitle': 'Создавайте метки для пометки своих квитанций',
       'analytics_expense_categories': 'Категории расходов',
       'analytics_expense_subcategories': 'Подкатегории расходов',
       'analytics_tab_overview': 'Обзор',
@@ -9161,7 +9692,7 @@ class AppLocalizations {
       'transaction_review_extraction': 'Извлечение отзыва: {details}',
       'transaction_line_mismatch':
           'Несоответствие: ожидалось {expected}, но извлечено {actual}.',
-      'transaction_add_item': '+ Добавить товар',
+      'transaction_add_item': 'Добавить товар',
       'transaction_total_amount': 'Общая сумма:',
       'transaction_total_savings': 'Общая экономия:',
       'transaction_attribution_title': 'Атрибуция',
@@ -9355,7 +9886,7 @@ class AppLocalizations {
       'the_biggest_spending_groups_in_this_peri':
           'Самые большие группы расходов за этот период.',
       'the_donut_shows_each_groups_share_of_tot':
-          'Пончик показывает долю каждой группы в общих расходах.',
+          'График показывает долю каждой группы в общих расходах.',
       'top_categories': 'Лучшие категории',
       'top_merchants': 'Лучшие торговцы',
       'total_spent': 'Всего потрачено',
@@ -9534,7 +10065,7 @@ class AppLocalizations {
       'about_app_section': 'О приложении',
       'about_links_section': 'Ссылки',
       'about_loading_version': 'Загрузка версии...',
-      'about_screen_title': 'О',
+      'about_screen_title': 'О приложении',
       'about_version_error':
           'Информация о версии недоступна на этом устройстве.',
       'about_website_label': 'Сайт',
@@ -9635,6 +10166,81 @@ class AppLocalizations {
       'login_legal_prefix': 'Входя в систему, вы соглашаетесь с нашими ',
       'login_subtitle':
           'Учет расходов на базе ИИ. Сканируйте чеки и контролируйте финансы.',
+      'analytics_category_overview': 'Обзор категории',
+      'analytics_spend_share': '{percent}% расходов',
+      'analytics_transactions_count_plural': '{count} транзакций',
+      'analytics_transactions_count_single': '1 транзакция',
+      'analytics_trends_day_label': 'День {number}',
+      'analytics_trends_no_prior': 'Нет предыдущих данных',
+      'analytics_trends_period_fallback': 'Период {number}',
+      'analytics_trends_spent_tooltip': '{label}\nПотрачено: {amount}',
+      'analytics_trends_week_label': 'Неделя {number}',
+      'bill_reminders_paid_status': 'Оплачено',
+      'currency_decimals': 'Десятичные знаки',
+      'currency_format_options_note':
+          'Параметры формата сохраняются на этом устройстве и обновляют поддерживаемое отображение сумм, включая главный экран и историю.',
+      'currency_show_less': 'Показать меньше',
+      'currency_view_all': 'Показать все валюты',
+      'labels_name_label': 'Название метки',
+      'profile_google_managed': 'Электронная почта и фото управляются Google.',
+      'profile_load_error': 'Не удалось загрузить профиль. Повторите попытку.',
+      'profile_save_error': 'Не удалось сохранить профиль. Повторите попытку.',
+      'profile_scans_count': '{count} сканирований',
+      'profile_scans_used': 'Использовано сканирований: {count}',
+      'upload_hint_full_receipt': 'Весь чек в кадре',
+      'upload_hint_good_lighting': 'Хорошее освещение',
+      'upload_hint_size_limit': 'До 10 МБ',
+      'upload_preview_empty_body':
+          'Выбранное фото появится здесь перед началом распознавания.',
+      'upload_preview_selected_body':
+          'Можно проверить это изображение, выбрать другое или начать распознавание.',
+      'help_support_email_copied': 'Адрес поддержки скопирован: {email}',
+      'billing_dev_expire': 'Завершить',
+      'common_icon': 'Иконка',
+      'common_color': 'Цвет',
+      'settings_accent_mix': 'Микс',
+      'appearance_label_colors_title': 'Цвета категорий и меток',
+      'categories_active_count': '{count} активных категорий',
+      'analytics_category_details_title': 'Детали категорий',
+      'analytics_category_details_subtitle':
+          'Откройте категорию, чтобы увидеть связанные подкатегории.',
+      'analytics_subcategory_details_title': 'Детали подкатегорий',
+      'analytics_subcategory_details_subtitle':
+          'Откройте подкатегорию, чтобы посмотреть подходящие позиции.',
+      'billing_load_error':
+          'Сейчас не удалось загрузить данные подписки. Попробуйте еще раз.',
+      'billing_operation_in_progress':
+          'Другая платежная операция еще выполняется. Подождите несколько секунд и попробуйте снова.',
+      'billing_purchase_cancelled': 'Покупка отменена.',
+      'billing_network_error':
+          'Ошибка сети при обращении к магазину. Попробуйте еще раз.',
+      'billing_update_error':
+          'Сейчас не удалось обновить доступ Premium. Попробуйте еще раз.',
+      'billing_current_plan_free_subtitle':
+          'Сейчас для этого аккаунта активен бесплатный план.',
+      'billing_current_plan_premium_subtitle':
+          'Premium активен для этого аккаунта.',
+      'billing_access_list_premium':
+          'Безлимитное сканирование чеков\nРасширенная детализация аналитики\nПолная история экспорта данных',
+      'billing_access_list_free':
+          '{limit} сканирований чеков в каждом скользящем 30-дневном периоде\nОсновные инструменты остаются доступными: метки, категории, бюджеты и напоминания о счетах\nЭкспорт данных в бесплатном плане включает последние 30 дней',
+      'billing_free_upgrade_note':
+          'Обновляйтесь только если вам нужны дополнительные сканирования, более глубокая аналитика или полный экспорт.',
+      'billing_restore_sync_note':
+          'Используйте «Восстановить покупки», если Premium еще не отображается на этом устройстве.',
+      'billing_badge_active': 'Активно',
+      'billing_badge_free': 'Бесплатно',
+      'billing_usage_unlimited': 'Без ограничений',
+      'billing_usage_left': 'Осталось {count}',
+      'billing_included_with_premium': 'Входит в Premium',
+      'billing_premium_applied_note':
+          'Лимиты Premium уже применены к этому аккаунту.',
+      'billing_free_limits_note':
+          'Ограничения бесплатного плана действуют, пока вы не обновитесь.',
+      'billing_managed_by_store_note':
+          'Premium для этого аккаунта по-прежнему управляется через магазин приложений.',
+      'billing_free_limits_expand_note':
+          'Бесплатный план оставляет доступ к основным инструментам. Premium расширяет лимиты сканирования, аналитику и экспорт.',
       'delete_reminder_name_confirm': 'Удалить "{name}"?',
     },
     'pt': {
@@ -10363,7 +10969,7 @@ class AppLocalizations {
       'transaction_review_extraction': 'Extração de revisão: {details}',
       'transaction_line_mismatch':
           'Incompatibilidade: esperado {expected} mas extraído {actual}',
-      'transaction_add_item': '+ Adicionar item',
+      'transaction_add_item': 'Adicionar item',
       'transaction_total_amount': 'Montante total:',
       'transaction_total_savings': 'Risparmio totale:',
       'transaction_attribution_title': 'Atribuição',
@@ -10843,6 +11449,83 @@ class AppLocalizations {
       'login_legal_prefix': 'Ao iniciar sessão, concorda com os nossos ',
       'login_subtitle':
           'Acompanhamento de despesas com IA. Digitalize recibos e obtenha informações.',
+      'analytics_category_overview': 'Visão geral da categoria',
+      'analytics_spend_share': '{percent}% dos gastos',
+      'analytics_transactions_count_plural': '{count} transações',
+      'analytics_transactions_count_single': '1 transação',
+      'analytics_trends_day_label': 'Dia {number}',
+      'analytics_trends_no_prior': 'Sem dados anteriores',
+      'analytics_trends_period_fallback': 'Período {number}',
+      'analytics_trends_spent_tooltip': '{label}\nGasto: {amount}',
+      'analytics_trends_week_label': 'Semana {number}',
+      'bill_reminders_paid_status': 'Pago',
+      'currency_decimals': 'Decimais',
+      'currency_format_options_note':
+          'As opções de formato são guardadas neste dispositivo e atualizam os valores suportados, incluindo Início e histórico.',
+      'currency_show_less': 'Mostrar menos',
+      'currency_view_all': 'Ver todas as moedas',
+      'labels_name_label': 'Nome da etiqueta',
+      'profile_google_managed': 'O seu e-mail e foto são geridos pelo Google.',
+      'profile_load_error':
+          'Não foi possível carregar o seu perfil agora. Tente novamente.',
+      'profile_save_error':
+          'Não foi possível guardar o seu perfil agora. Tente novamente.',
+      'profile_scans_count': '{count} digitalizações',
+      'profile_scans_used': '{count} digitalizações usadas',
+      'upload_hint_full_receipt': 'Recibo inteiro no enquadramento',
+      'upload_hint_good_lighting': 'Boa iluminação',
+      'upload_hint_size_limit': 'Até 10 MB',
+      'upload_preview_empty_body':
+          'A foto selecionada aparecerá aqui antes de a extração começar.',
+      'upload_preview_selected_body':
+          'Pode rever esta imagem, escolher outra ou iniciar a extração agora.',
+      'help_support_email_copied': 'E-mail de suporte copiado: {email}',
+      'billing_dev_expire': 'Expirar',
+      'common_icon': 'Ícone',
+      'common_color': 'Cor',
+      'settings_accent_mix': 'Misto',
+      'appearance_label_colors_title': 'Cores de categorias e etiquetas',
+      'categories_active_count': '{count} categorias ativas',
+      'analytics_category_details_title': 'Detalhes das categorias',
+      'analytics_category_details_subtitle':
+          'Abra uma categoria para ver as subcategorias correspondentes.',
+      'analytics_subcategory_details_title': 'Detalhes das subcategorias',
+      'analytics_subcategory_details_subtitle':
+          'Abra uma subcategoria para rever os itens correspondentes.',
+      'billing_load_error':
+          'Não foi possível carregar os detalhes da sua subscrição agora. Tente novamente.',
+      'billing_operation_in_progress':
+          'Outra ação de faturação ainda está em curso. Aguarde alguns segundos e tente novamente.',
+      'billing_purchase_cancelled': 'Compra cancelada.',
+      'billing_network_error':
+          'Erro de rede ao contactar a loja. Tente novamente.',
+      'billing_update_error':
+          'Não foi possível atualizar o acesso Premium agora. Tente novamente.',
+      'billing_current_plan_free_subtitle':
+          'Está atualmente no plano Gratuito desta conta.',
+      'billing_current_plan_premium_subtitle':
+          'O Premium está ativo para esta conta.',
+      'billing_access_list_premium':
+          'Digitalizações de recibos ilimitadas\nAnálises detalhadas avançadas\nHistórico completo de exportação de dados',
+      'billing_access_list_free':
+          '{limit} digitalizações de recibos em cada janela móvel de 30 dias\nAs ferramentas principais continuam disponíveis: etiquetas, categorias, orçamentos e lembretes de contas\nA exportação de dados inclui os últimos 30 dias no plano Gratuito',
+      'billing_free_upgrade_note':
+          'Faça upgrade apenas se precisar de mais digitalizações, análises mais profundas ou de todo o histórico de exportação.',
+      'billing_restore_sync_note':
+          'Use "Restaurar compras" se o Premium ainda não aparecer neste dispositivo.',
+      'billing_badge_active': 'Ativo',
+      'billing_badge_free': 'Gratuito',
+      'billing_usage_unlimited': 'Ilimitado',
+      'billing_usage_left': 'Restam {count}',
+      'billing_included_with_premium': 'Incluído no Premium',
+      'billing_premium_applied_note':
+          'Os limites do Premium já estão aplicados a esta conta.',
+      'billing_free_limits_note':
+          'Os limites do plano Gratuito permanecem ativos até fazer upgrade.',
+      'billing_managed_by_store_note':
+          'O Premium continua a ser gerido pela sua loja de aplicações para esta conta.',
+      'billing_free_limits_expand_note':
+          'O plano Gratuito mantém as ferramentas principais disponíveis. O Premium amplia os limites de digitalização, a análise e as exportações.',
       'delete_reminder_name_confirm': 'Eliminar "{name}"?',
     },
     'tr': {
@@ -11552,7 +12235,7 @@ class AppLocalizations {
       'transaction_review_extraction': 'İnceleme çıkarma: {details}',
       'transaction_line_mismatch':
           'Uyuşmazlık: {expected} bekleniyordu ancak {actual} çıkarıldı',
-      'transaction_add_item': '+ Öğe ekle',
+      'transaction_add_item': 'Öğe ekle',
       'transaction_total_amount': 'Toplam Tutar:',
       'transaction_total_savings': 'Risparmio totale:',
       'transaction_attribution_title': 'İlişkilendirme',
@@ -12019,6 +12702,83 @@ class AppLocalizations {
       'login_legal_prefix': 'Giriş yaparak şunları kabul etmiş olursunuz: ',
       'login_subtitle':
           'Yapay zeka destekli gider takibi. Fişleri tarayın ve analiz edin.',
+      'analytics_category_overview': 'Kategori özeti',
+      'analytics_spend_share': 'Harcamaların %{percent} kadarı',
+      'analytics_transactions_count_plural': '{count} işlem',
+      'analytics_transactions_count_single': '1 işlem',
+      'analytics_trends_day_label': 'Gün {number}',
+      'analytics_trends_no_prior': 'Önceki veri yok',
+      'analytics_trends_period_fallback': 'Dönem {number}',
+      'analytics_trends_spent_tooltip': '{label}\nHarcanan: {amount}',
+      'analytics_trends_week_label': 'Hafta {number}',
+      'bill_reminders_paid_status': 'Ödendi',
+      'currency_decimals': 'Ondalıklar',
+      'currency_format_options_note':
+          'Biçim seçenekleri bu cihazda kaydedilir ve Ana sayfa ile geçmiş dahil desteklenen tutar görünümlerini günceller.',
+      'currency_show_less': 'Daha az göster',
+      'currency_view_all': 'Tüm para birimlerini göster',
+      'labels_name_label': 'Etiket adı',
+      'profile_google_managed':
+          'E-posta adresiniz ve fotoğrafınız Google tarafından yönetilir.',
+      'profile_load_error':
+          'Profiliniz şu anda yüklenemedi. Lütfen tekrar deneyin.',
+      'profile_save_error':
+          'Profiliniz şu anda kaydedilemedi. Lütfen tekrar deneyin.',
+      'profile_scans_count': '{count} tarama',
+      'profile_scans_used': '{count} tarama kullanıldı',
+      'upload_hint_full_receipt': 'Fiş tamamen kadrajda',
+      'upload_hint_good_lighting': 'İyi ışık',
+      'upload_hint_size_limit': 'En fazla 10 MB',
+      'upload_preview_empty_body':
+          'Seçilen fotoğraf, çıkarma başlamadan önce burada görünecek.',
+      'upload_preview_selected_body':
+          'Bu görüntüyü inceleyebilir, başka birini seçebilir veya çıkarmayı başlatabilirsiniz.',
+      'help_support_email_copied': 'Destek e-postası kopyalandı: {email}',
+      'billing_dev_expire': 'Süresini bitir',
+      'common_icon': 'Simge',
+      'common_color': 'Renk',
+      'settings_accent_mix': 'Karışık',
+      'appearance_label_colors_title': 'Kategori ve etiket renkleri',
+      'categories_active_count': '{count} etkin kategori',
+      'analytics_category_details_title': 'Kategori ayrıntıları',
+      'analytics_category_details_subtitle':
+          'İlgili alt kategorileri görmek için bir kategori açın.',
+      'analytics_subcategory_details_title': 'Alt kategori ayrıntıları',
+      'analytics_subcategory_details_subtitle':
+          'Eşleşen öğeleri incelemek için bir alt kategori açın.',
+      'billing_load_error':
+          'Abonelik ayrıntılarınız şu anda yüklenemedi. Lütfen tekrar deneyin.',
+      'billing_operation_in_progress':
+          'Başka bir faturalandırma işlemi hâlâ sürüyor. Birkaç saniye bekleyip tekrar deneyin.',
+      'billing_purchase_cancelled': 'Satın alma iptal edildi.',
+      'billing_network_error':
+          'Mağazayla bağlantı kurulurken ağ hatası oluştu. Lütfen tekrar deneyin.',
+      'billing_update_error':
+          'Premium erişimi şu anda güncellenemedi. Lütfen tekrar deneyin.',
+      'billing_current_plan_free_subtitle':
+          'Bu hesapta şu anda Ücretsiz plan kullanılıyor.',
+      'billing_current_plan_premium_subtitle': 'Bu hesap için Premium etkin.',
+      'billing_access_list_premium':
+          'Sınırsız fiş tarama\nGelişmiş ayrıntılı analizler\nTam veri dışa aktarma geçmişi',
+      'billing_access_list_free':
+          'Her 30 günlük kayan dönemde {limit} fiş taraması\nTemel araçlar kullanılabilir kalır: etiketler, kategoriler, bütçeler ve fatura hatırlatıcıları\nÜcretsiz planda veri dışa aktarma son 30 günü içerir',
+      'billing_free_upgrade_note':
+          'Yalnızca daha fazla tarama, daha derin analizler veya tam dışa aktarma kapsamına ihtiyacınız varsa yükseltin.',
+      'billing_restore_sync_note':
+          'Premium bu cihazda henüz görünmüyorsa "Satın Alınanları Geri Yükle" seçeneğini kullanın.',
+      'billing_badge_active': 'Aktif',
+      'billing_badge_free': 'Ücretsiz',
+      'billing_usage_unlimited': 'Sınırsız',
+      'billing_usage_left': '{count} kaldı',
+      'billing_included_with_premium': 'Premium ile sunulanlar',
+      'billing_premium_applied_note':
+          'Premium limitleri bu hesaba zaten uygulanıyor.',
+      'billing_free_limits_note':
+          'Ücretsiz plan limitleri siz yükseltme yapana kadar geçerli kalır.',
+      'billing_managed_by_store_note':
+          'Bu hesap için Premium, uygulama mağazanız üzerinden yönetilmeye devam eder.',
+      'billing_free_limits_expand_note':
+          'Ücretsiz plan temel araçları kullanılabilir tutar. Premium tarama limitlerini, analizleri ve dışa aktarmaları genişletir.',
       'delete_reminder_name_confirm': '"{name}" silinsin mi?',
     },
     'nl': {
@@ -12740,7 +13500,7 @@ class AppLocalizations {
       'transaction_review_extraction': 'Recensie-extractie: {details}',
       'transaction_line_mismatch':
           'Komt niet overeen: verwacht {expected} maar geëxtraheerd {actual}',
-      'transaction_add_item': '+ Artikel toevoegen',
+      'transaction_add_item': 'Artikel toevoegen',
       'transaction_total_amount': 'Totaal bedrag:',
       'transaction_total_savings': 'Risparmio totale:',
       'transaction_attribution_title': 'Toeschrijving',
@@ -12822,7 +13582,7 @@ class AppLocalizations {
       'taxonomy_garden': 'Tuin',
       'taxonomy_phones': 'Telefoons',
       'taxonomy_computers': 'Computers en apparatuur',
-      'taxonomy_tablets': 'Tablets',
+      'taxonomy_tablets': 'Tabletcomputers',
       'taxonomy_software': 'Software en apps',
       'taxonomy_gaming_hardware': 'Gamehardware',
       'taxonomy_smart_home': 'Slim huis',
@@ -13217,6 +13977,83 @@ class AppLocalizations {
       'login_legal_prefix': 'Door in te loggen gaat u akkoord met onze ',
       'login_subtitle':
           'AI-gestuurde uitgavenregistratie. Scan bonnen en krijg inzicht.',
+      'analytics_category_overview': 'Categorieoverzicht',
+      'analytics_spend_share': '{percent}% van uitgaven',
+      'analytics_transactions_count_plural': '{count} transacties',
+      'analytics_transactions_count_single': '1 transactie',
+      'analytics_trends_day_label': 'Dag {number}',
+      'analytics_trends_no_prior': 'Geen eerdere gegevens',
+      'analytics_trends_period_fallback': 'Periode {number}',
+      'analytics_trends_spent_tooltip': '{label}\nUitgegeven: {amount}',
+      'analytics_trends_week_label': 'Week nr. {number}',
+      'bill_reminders_paid_status': 'Betaald',
+      'currency_decimals': 'Decimalen',
+      'currency_format_options_note':
+          'Opmaakopties worden op dit apparaat opgeslagen en werken ondersteunde bedragweergaven bij, waaronder Home en geschiedenis.',
+      'currency_show_less': 'Minder tonen',
+      'currency_view_all': 'Alle valuta bekijken',
+      'labels_name_label': 'Labelnaam',
+      'profile_google_managed': 'Je e-mail en foto worden beheerd door Google.',
+      'profile_load_error':
+          'Je profiel kan nu niet worden geladen. Probeer het opnieuw.',
+      'profile_save_error':
+          'Je profiel kan nu niet worden opgeslagen. Probeer het opnieuw.',
+      'profile_scans_count': '{count} scans gemaakt',
+      'profile_scans_used': '{count} scans gebruikt',
+      'upload_hint_full_receipt': 'Volledige bon in beeld',
+      'upload_hint_good_lighting': 'Goede belichting',
+      'upload_hint_size_limit': 'Tot 10 MB',
+      'upload_preview_empty_body':
+          'De geselecteerde foto verschijnt hier voordat de extractie start.',
+      'upload_preview_selected_body':
+          'Je kunt deze afbeelding bekijken, een andere kiezen of de extractie starten.',
+      'help_support_email_copied': 'Supportmail gekopieerd: {email}',
+      'billing_dev_expire': 'Laten verlopen',
+      'common_icon': 'Icoon',
+      'common_color': 'Kleur',
+      'settings_accent_mix': 'Gemengd',
+      'appearance_label_colors_title': 'Kleuren van categorieën en labels',
+      'categories_active_count': '{count} actieve categorieën',
+      'analytics_category_details_title': 'Categoriedetails',
+      'analytics_category_details_subtitle':
+          'Open een categorie om de bijbehorende subcategorieën te bekijken.',
+      'analytics_subcategory_details_title': 'Subcategoriedetails',
+      'analytics_subcategory_details_subtitle':
+          'Open een subcategorie om de bijbehorende items te bekijken.',
+      'billing_load_error':
+          'We konden je abonnementsgegevens nu niet laden. Probeer het opnieuw.',
+      'billing_operation_in_progress':
+          'Er is nog een andere factureringsactie bezig. Wacht een paar seconden en probeer het opnieuw.',
+      'billing_purchase_cancelled': 'Aankoop geannuleerd.',
+      'billing_network_error':
+          'Netwerkfout bij het verbinden met de winkel. Probeer het opnieuw.',
+      'billing_update_error':
+          'We konden Premium-toegang nu niet bijwerken. Probeer het opnieuw.',
+      'billing_current_plan_free_subtitle':
+          'Je gebruikt momenteel het Gratis-abonnement voor dit account.',
+      'billing_current_plan_premium_subtitle':
+          'Premium is actief voor dit account.',
+      'billing_access_list_premium':
+          'Onbeperkt bonnetjes scannen\nGeavanceerde gedetailleerde analyses\nVolledige geschiedenis van gegevensexport',
+      'billing_access_list_free':
+          '{limit} bonnetjesscans in elke voortschrijdende periode van 30 dagen\nKernfuncties blijven beschikbaar: labels, categorieën, budgetten en rekeningherinneringen\nGegevensexport bevat in het Gratis-abonnement je laatste 30 dagen',
+      'billing_free_upgrade_note':
+          'Upgrade alleen als je meer scans, diepere analyses of het volledige exportbereik nodig hebt.',
+      'billing_restore_sync_note':
+          'Gebruik "Aankopen herstellen" als Premium nog niet op dit apparaat verschijnt.',
+      'billing_badge_active': 'Actief',
+      'billing_badge_free': 'Gratis',
+      'billing_usage_unlimited': 'Onbeperkt',
+      'billing_usage_left': 'Nog {count}',
+      'billing_included_with_premium': 'Inbegrepen bij Premium',
+      'billing_premium_applied_note':
+          'De Premium-limieten zijn al op dit account toegepast.',
+      'billing_free_limits_note':
+          'De limieten van het Gratis-abonnement blijven actief totdat je upgradet.',
+      'billing_managed_by_store_note':
+          'Premium blijft voor dit account beheerd via je app store.',
+      'billing_free_limits_expand_note':
+          'Gratis houdt de kernfuncties beschikbaar. Premium verruimt scanlimieten, analyses en exportmogelijkheden.',
       'delete_reminder_name_confirm': '"{name}" verwijderen?',
     },
     'sv': {
@@ -13362,7 +14199,7 @@ class AppLocalizations {
       'settings_auto_detect_source_language_subtitle':
           'Identifiera ursprungsspråket automatiskt.',
       'settings_example': 'Exempel',
-      'settings_original_text': 'Original',
+      'settings_original_text': 'Ursprunglig',
       'settings_translated_text': 'Översatt',
       'settings_help_center': 'Hjälpcenter',
       'settings_feature_request': 'Funktionsbegäran',
@@ -13930,7 +14767,7 @@ class AppLocalizations {
       'transaction_review_extraction': 'Recensionsutdrag: {details}',
       'transaction_line_mismatch':
           'Missmatch: förväntad {expected} men extraherad {actual}',
-      'transaction_add_item': '+ Lägg till objekt',
+      'transaction_add_item': 'Lägg till objekt',
       'transaction_total_amount': 'Totalt belopp:',
       'transaction_total_savings': 'Risparmio totale:',
       'transaction_attribution_title': 'Tillskrivning',
@@ -14399,6 +15236,83 @@ class AppLocalizations {
       'login_legal_prefix': 'Genom att logga in godkänner du våra ',
       'login_subtitle':
           'AI-driven utgiftsspårning. Skanna kvitton och få insikter.',
+      'analytics_category_overview': 'Kategoriöversikt',
+      'analytics_spend_share': '{percent}% av utgifter',
+      'analytics_transactions_count_plural': '{count} transaktioner',
+      'analytics_transactions_count_single': '1 transaktion',
+      'analytics_trends_day_label': 'Dag {number}',
+      'analytics_trends_no_prior': 'Inga tidigare data',
+      'analytics_trends_period_fallback': 'Period nr. {number}',
+      'analytics_trends_spent_tooltip': '{label}\nSpenderat: {amount}',
+      'analytics_trends_week_label': 'Vecka {number}',
+      'bill_reminders_paid_status': 'Betald',
+      'currency_decimals': 'Decimaler',
+      'currency_format_options_note':
+          'Formatinställningar sparas på den här enheten och uppdaterar stödda beloppsvisningar, inklusive Hem och historik.',
+      'currency_show_less': 'Visa mindre',
+      'currency_view_all': 'Visa alla valutor',
+      'labels_name_label': 'Etikettnamn',
+      'profile_google_managed': 'Din e-post och bild hanteras av Google.',
+      'profile_load_error':
+          'Din profil kunde inte laddas just nu. Försök igen.',
+      'profile_save_error':
+          'Din profil kunde inte sparas just nu. Försök igen.',
+      'profile_scans_count': '{count} skanningar',
+      'profile_scans_used': '{count} skanningar använda',
+      'upload_hint_full_receipt': 'Hela kvittot i bild',
+      'upload_hint_good_lighting': 'Bra ljus',
+      'upload_hint_size_limit': 'Upp till 10 MB',
+      'upload_preview_empty_body':
+          'Det valda fotot visas här innan extraheringen startar.',
+      'upload_preview_selected_body':
+          'Du kan granska bilden, välja en annan eller starta extraheringen.',
+      'help_support_email_copied': 'Supportmejl kopierat: {email}',
+      'billing_dev_expire': 'Låt löpa ut',
+      'common_icon': 'Ikon',
+      'common_color': 'Färg',
+      'settings_accent_mix': 'Blandad',
+      'appearance_label_colors_title': 'Färger för kategorier och etiketter',
+      'categories_active_count': '{count} aktiva kategorier',
+      'analytics_category_details_title': 'Kategoridetaljer',
+      'analytics_category_details_subtitle':
+          'Öppna en kategori för att se de tillhörande underkategorierna.',
+      'analytics_subcategory_details_title': 'Underkategoridetaljer',
+      'analytics_subcategory_details_subtitle':
+          'Öppna en underkategori för att granska matchande poster.',
+      'billing_load_error':
+          'Vi kunde inte läsa in dina prenumerationsuppgifter just nu. Försök igen.',
+      'billing_operation_in_progress':
+          'En annan betalningsåtgärd pågår fortfarande. Vänta några sekunder och försök igen.',
+      'billing_purchase_cancelled': 'Köpet avbröts.',
+      'billing_network_error':
+          'Nätverksfel vid kontakt med butiken. Försök igen.',
+      'billing_update_error':
+          'Vi kunde inte uppdatera Premium-åtkomsten just nu. Försök igen.',
+      'billing_current_plan_free_subtitle':
+          'Du använder för närvarande gratisplanen för detta konto.',
+      'billing_current_plan_premium_subtitle':
+          'Premium är aktivt för detta konto.',
+      'billing_access_list_premium':
+          'Obegränsade kvittoskanningar\nFördjupade analysdetaljer\nFullständig exporthistorik för data',
+      'billing_access_list_free':
+          '{limit} kvittoskanningar under varje rullande 30-dagarsperiod\nKärnverktygen finns kvar: etiketter, kategorier, budgetar och betalningspåminnelser\nDataexport i gratisplanen omfattar dina senaste 30 dagar',
+      'billing_free_upgrade_note':
+          'Uppgradera bara om du behöver fler skanningar, djupare analyser eller hela exporthistoriken.',
+      'billing_restore_sync_note':
+          'Använd "Återställ inköp" om Premium ännu inte visas på den här enheten.',
+      'billing_badge_active': 'Aktiv',
+      'billing_badge_free': 'Gratis',
+      'billing_usage_unlimited': 'Obegränsat',
+      'billing_usage_left': '{count} kvar',
+      'billing_included_with_premium': 'Ingår i Premium',
+      'billing_premium_applied_note':
+          'Premiumgränserna gäller redan för detta konto.',
+      'billing_free_limits_note':
+          'Gratisplanens begränsningar gäller tills du uppgraderar.',
+      'billing_managed_by_store_note':
+          'Premium fortsätter att hanteras via din appbutik för detta konto.',
+      'billing_free_limits_expand_note':
+          'Gratis håller kärnverktygen tillgängliga. Premium utökar skanningsgränser, analys och exporter.',
       'delete_reminder_name_confirm': 'Radera "{name}"?',
     },
     'cs': {
@@ -14591,7 +15505,7 @@ class AppLocalizations {
       'feature_request_category_other': 'Jiné',
       'settings_privacy_policy': 'Zásady ochrany osobních údajů',
       'settings_terms_of_service': 'Podmínky služby',
-      'settings_about': 'O',
+      'settings_about': 'O aplikaci',
       'settings_banner_active_title': 'Pro je aktivní',
       'settings_banner_upgrade_title': 'Upgradovat na Pro',
       'settings_banner_active_subtitle':
@@ -15106,7 +16020,7 @@ class AppLocalizations {
       'transaction_review_extraction': 'Extrakce recenze: {details}',
       'transaction_line_mismatch':
           'Neshoda: očekáváno {expected}, ale extrahováno {actual}',
-      'transaction_add_item': '+ Přidat položku',
+      'transaction_add_item': 'Přidat položku',
       'transaction_total_amount': 'Celková částka:',
       'transaction_total_savings': 'Risparmio totale:',
       'transaction_attribution_title': 'Atribuce',
@@ -15472,7 +16386,7 @@ class AppLocalizations {
       'about_app_section': 'O aplikaci',
       'about_links_section': 'Odkazy',
       'about_loading_version': 'Načítání verze...',
-      'about_screen_title': 'O',
+      'about_screen_title': 'O aplikaci',
       'about_version_error':
           'Podrobnosti o verzi nejsou na tomto zařízení k dispozici.',
       'about_website_label': 'Webové stránky',
@@ -15575,6 +16489,83 @@ class AppLocalizations {
       'login_legal_prefix': 'Přihlášením souhlasíte s našimi ',
       'login_subtitle':
           'Sledování výdajů pomocí AI. Skenujte účtenky a získejte přehled.',
+      'analytics_category_overview': 'Přehled kategorie',
+      'analytics_spend_share': '{percent}% výdajů',
+      'analytics_transactions_count_plural': '{count} transakcí',
+      'analytics_transactions_count_single': '1 transakce',
+      'analytics_trends_day_label': 'Den {number}',
+      'analytics_trends_no_prior': 'Žádná předchozí data',
+      'analytics_trends_period_fallback': 'Období {number}',
+      'analytics_trends_spent_tooltip': '{label}\nUtraceno: {amount}',
+      'analytics_trends_week_label': 'Týden {number}',
+      'bill_reminders_paid_status': 'Zaplaceno',
+      'currency_decimals': 'Desetinná místa',
+      'currency_format_options_note':
+          'Možnosti formátu se ukládají v tomto zařízení a aktualizují podporovaná zobrazení částek včetně domovské obrazovky a historie.',
+      'currency_show_less': 'Zobrazit méně',
+      'currency_view_all': 'Zobrazit všechny měny',
+      'labels_name_label': 'Název štítku',
+      'profile_google_managed': 'E-mail a fotku spravuje Google.',
+      'profile_load_error':
+          'Profil se nyní nepodařilo načíst. Zkuste to znovu.',
+      'profile_save_error':
+          'Profil se nyní nepodařilo uložit. Zkuste to znovu.',
+      'profile_scans_count': '{count} skenů',
+      'profile_scans_used': 'Použito skenů: {count}',
+      'upload_hint_full_receipt': 'Celá účtenka v záběru',
+      'upload_hint_good_lighting': 'Dobré osvětlení',
+      'upload_hint_size_limit': 'Až 10 MB',
+      'upload_preview_empty_body':
+          'Vybraná fotka se zobrazí zde před zahájením rozpoznání.',
+      'upload_preview_selected_body':
+          'Můžete obrázek zkontrolovat, vybrat jiný nebo spustit rozpoznání.',
+      'help_support_email_copied': 'E-mail podpory zkopírován: {email}',
+      'billing_dev_expire': 'Ukončit platnost',
+      'common_icon': 'Ikona',
+      'common_color': 'Barva',
+      'settings_accent_mix': 'Směs',
+      'appearance_label_colors_title': 'Barvy kategorií a štítků',
+      'categories_active_count': '{count} aktivních kategorií',
+      'analytics_category_details_title': 'Podrobnosti kategorií',
+      'analytics_category_details_subtitle':
+          'Otevřete kategorii a zobrazte související podkategorie.',
+      'analytics_subcategory_details_title': 'Podrobnosti podkategorií',
+      'analytics_subcategory_details_subtitle':
+          'Otevřete podkategorii a zkontrolujte odpovídající položky.',
+      'billing_load_error':
+          'Podrobnosti o předplatném se teď nepodařilo načíst. Zkuste to prosím znovu.',
+      'billing_operation_in_progress':
+          'Probíhá ještě jiná platební akce. Počkejte pár sekund a zkuste to znovu.',
+      'billing_purchase_cancelled': 'Nákup byl zrušen.',
+      'billing_network_error':
+          'Při komunikaci s obchodem došlo k chybě sítě. Zkuste to znovu.',
+      'billing_update_error':
+          'Přístup k Premium se teď nepodařilo aktualizovat. Zkuste to znovu.',
+      'billing_current_plan_free_subtitle':
+          'U tohoto účtu právě používáte bezplatný plán.',
+      'billing_current_plan_premium_subtitle':
+          'Premium je pro tento účet aktivní.',
+      'billing_access_list_premium':
+          'Neomezené skenování účtenek\nPokročilé podrobné analýzy\nÚplná historie exportu dat',
+      'billing_access_list_free':
+          '{limit} skenování účtenek v každém klouzavém 30denním období\nZákladní nástroje zůstávají dostupné: štítky, kategorie, rozpočty a připomínky plateb\nExport dat v bezplatném plánu zahrnuje posledních 30 dní',
+      'billing_free_upgrade_note':
+          'Upgradujte jen pokud potřebujete více skenů, podrobnější analýzy nebo plný rozsah exportu.',
+      'billing_restore_sync_note':
+          'Pokud se Premium na tomto zařízení ještě nezobrazuje, použijte „Obnovit nákupy“.',
+      'billing_badge_active': 'Aktivní',
+      'billing_badge_free': 'Zdarma',
+      'billing_usage_unlimited': 'Neomezeně',
+      'billing_usage_left': 'Zbývá {count}',
+      'billing_included_with_premium': 'Součást Premium',
+      'billing_premium_applied_note':
+          'Limity Premium jsou už pro tento účet použity.',
+      'billing_free_limits_note':
+          'Limity bezplatného plánu zůstávají aktivní, dokud neupgradujete.',
+      'billing_managed_by_store_note':
+          'Premium pro tento účet zůstává spravováno přes obchod s aplikacemi.',
+      'billing_free_limits_expand_note':
+          'Bezplatný plán zachovává základní nástroje. Premium rozšiřuje limity skenování, analytiku a exporty.',
       'delete_reminder_name_confirm': 'Smazat "{name}"?',
     },
     'ro': {
@@ -16298,7 +17289,7 @@ class AppLocalizations {
       'transaction_review_extraction': 'Extragere recenzii: {details}',
       'transaction_line_mismatch':
           'Nepotrivire: așteptat {expected}, dar extras {actual}',
-      'transaction_add_item': '+ Adăugați articol',
+      'transaction_add_item': 'Adăugați articol',
       'transaction_total_amount': 'Valoare totală:',
       'transaction_total_savings': 'Risparmio totale:',
       'transaction_attribution_title': 'Atribuire',
@@ -16783,6 +17774,85 @@ class AppLocalizations {
       'login_legal_prefix': 'Prin autentificare, sunteți de acord cu ',
       'login_subtitle':
           'Urmărirea cheltuielilor prin IA. Scanați bonuri și obțineți analize.',
+      'analytics_category_overview': 'Prezentare categorie',
+      'analytics_spend_share': '{percent}% din cheltuieli',
+      'analytics_transactions_count_plural': '{count} tranzacții',
+      'analytics_transactions_count_single': '1 tranzacție',
+      'analytics_trends_day_label': 'Ziua {number}',
+      'analytics_trends_no_prior': 'Nu există date anterioare',
+      'analytics_trends_period_fallback': 'Perioada {number}',
+      'analytics_trends_spent_tooltip': '{label}\nCheltuit: {amount}',
+      'analytics_trends_week_label': 'Săptămâna {number}',
+      'bill_reminders_paid_status': 'Plătit',
+      'currency_decimals': 'Zecimale',
+      'currency_format_options_note':
+          'Opțiunile de format sunt salvate pe acest dispozitiv și actualizează afișările de sume acceptate, inclusiv Acasă și istoricul.',
+      'currency_show_less': 'Afișați mai puțin',
+      'currency_view_all': 'Vedeți toate monedele',
+      'labels_name_label': 'Numele etichetei',
+      'profile_google_managed':
+          'E-mailul și fotografia sunt gestionate de Google.',
+      'profile_load_error':
+          'Profilul nu poate fi încărcat acum. Încercați din nou.',
+      'profile_save_error':
+          'Nu am putut salva profilul acum. Încercați din nou.',
+      'profile_scans_count': '{count} scanări',
+      'profile_scans_used': '{count} scanări utilizate',
+      'upload_hint_full_receipt': 'Chitanța întreagă în cadru',
+      'upload_hint_good_lighting': 'Iluminare bună',
+      'upload_hint_size_limit': 'Până la 10 MB',
+      'upload_preview_empty_body':
+          'Fotografia selectată va apărea aici înainte de începerea extragerii.',
+      'upload_preview_selected_body':
+          'Puteți verifica imaginea, alege alta sau porni extragerea acum.',
+      'help_support_email_copied':
+          'E-mailul de asistență a fost copiat: {email}',
+      'billing_dev_expire': 'Expiră',
+      'common_icon': 'Pictogramă',
+      'common_color': 'Culoare',
+      'settings_accent_mix': 'Mixt',
+      'appearance_label_colors_title': 'Culorile categoriilor și etichetelor',
+      'categories_active_count': '{count} categorii active',
+      'analytics_category_details_title': 'Detalii categorii',
+      'analytics_category_details_subtitle':
+          'Deschideți o categorie pentru a vedea subcategoriile aferente.',
+      'analytics_subcategory_details_title': 'Detalii subcategorii',
+      'analytics_subcategory_details_subtitle':
+          'Deschideți o subcategorie pentru a verifica articolele corespunzătoare.',
+      'billing_load_error':
+          'Nu am putut încărca acum detaliile abonamentului. Încercați din nou.',
+      'billing_operation_in_progress':
+          'O altă acțiune de facturare este încă în desfășurare. Așteptați câteva secunde și încercați din nou.',
+      'billing_purchase_cancelled': 'Achiziție anulată.',
+      'billing_network_error':
+          'Eroare de rețea la conectarea la magazin. Încercați din nou.',
+      'billing_update_error':
+          'Nu am putut actualiza acum accesul Premium. Încercați din nou.',
+      'billing_current_plan_free_subtitle':
+          'În prezent folosiți planul Gratuit pentru acest cont.',
+      'billing_current_plan_premium_subtitle':
+          'Premium este activ pentru acest cont.',
+      'billing_access_list_premium':
+          'Scanări nelimitate ale bonurilor\nAnalize detaliate avansate\nIstoric complet al exporturilor de date',
+      'billing_access_list_free':
+          '{limit} scanări de bonuri în fiecare fereastră mobilă de 30 de zile\nInstrumentele de bază rămân disponibile: etichete, categorii, bugete și mementouri pentru facturi\nExportul de date include ultimele 30 de zile în planul Gratuit',
+      'billing_free_upgrade_note':
+          'Faceți upgrade doar dacă aveți nevoie de mai multe scanări, analize mai detaliate sau de tot istoricul de export.',
+      'billing_restore_sync_note':
+          'Folosiți „Restabiliți achizițiile” dacă Premium nu apare încă pe acest dispozitiv.',
+      'billing_badge_active': 'Activ',
+      'billing_badge_free': 'Gratuit',
+      'billing_usage_unlimited': 'Nelimitat',
+      'billing_usage_left': 'Au rămas {count}',
+      'billing_included_with_premium': 'Inclus în Premium',
+      'billing_premium_applied_note':
+          'Limitele Premium sunt deja aplicate acestui cont.',
+      'billing_free_limits_note':
+          'Limitele planului Gratuit rămân active până faceți upgrade.',
+      'billing_managed_by_store_note':
+          'Premium rămâne gestionat prin magazinul de aplicații pentru acest cont.',
+      'billing_free_limits_expand_note':
+          'Planul Gratuit păstrează disponibile instrumentele de bază. Premium extinde limitele de scanare, analizele și exporturile.',
       'delete_reminder_name_confirm': 'Ștergeți "{name}"?',
     },
     'hu': {
@@ -16983,7 +18053,7 @@ class AppLocalizations {
       'feature_request_category_other': 'Egyéb',
       'settings_privacy_policy': 'Adatvédelmi szabályzat',
       'settings_terms_of_service': 'Szolgáltatási feltételek',
-      'settings_about': 'Körülbelül',
+      'settings_about': 'Az alkalmazásról',
       'settings_banner_active_title': 'Pro aktív',
       'settings_banner_upgrade_title': 'Frissítés Pro-ra',
       'settings_banner_active_subtitle':
@@ -17506,7 +18576,7 @@ class AppLocalizations {
       'transaction_review_extraction': 'Véleménykivonat: {details}',
       'transaction_line_mismatch':
           'Nem egyezik: várt {expected}, de kicsomagolva {actual}',
-      'transaction_add_item': '+ Elem hozzáadása',
+      'transaction_add_item': 'Elem hozzáadása',
       'transaction_total_amount': 'Teljes összeg:',
       'transaction_total_savings': 'Risparmio totale:',
       'transaction_attribution_title': 'Attribútum',
@@ -17875,7 +18945,7 @@ class AppLocalizations {
       'about_app_section': 'Az alkalmazásról',
       'about_links_section': 'Linkek',
       'about_loading_version': 'Verzió betöltése...',
-      'about_screen_title': 'Körülbelül',
+      'about_screen_title': 'Az alkalmazásról',
       'about_version_error':
           'A verzió részletei nem érhetők el ezen az eszközön.',
       'about_website_label': 'Weboldal',
@@ -17979,6 +19049,82 @@ class AppLocalizations {
       'login_legal_prefix': 'A bejelentkezéssel elfogadja a ',
       'login_subtitle':
           'AI-alapú kiadáskövetés. Olvasson be nyugtákat és nyerjen betekintést.',
+      'analytics_category_overview': 'Kategória áttekintése',
+      'analytics_spend_share': 'A kiadások {percent}%-a',
+      'analytics_transactions_count_plural': '{count} tranzakció',
+      'analytics_transactions_count_single': '1 tranzakció',
+      'analytics_trends_day_label': '{number}. nap',
+      'analytics_trends_no_prior': 'Nincs korábbi adat',
+      'analytics_trends_period_fallback': '{number}. időszak',
+      'analytics_trends_spent_tooltip': '{label}\nElköltve: {amount}',
+      'analytics_trends_week_label': '{number}. hét',
+      'bill_reminders_paid_status': 'Fizetve',
+      'currency_decimals': 'Tizedesjegyek',
+      'currency_format_options_note':
+          'A formátumbeállítások ezen az eszközön mentődnek, és frissítik a támogatott összegmegjelenítéseket, beleértve a kezdőlapot és az előzményeket.',
+      'currency_show_less': 'Kevesebb mutatása',
+      'currency_view_all': 'Összes pénznem megtekintése',
+      'labels_name_label': 'Címke neve',
+      'profile_google_managed': 'Az e-mail-címet és a fotót a Google kezeli.',
+      'profile_load_error': 'A profil most nem tölthető be. Próbáld újra.',
+      'profile_save_error':
+          'A profilt most nem sikerült menteni. Próbáld újra.',
+      'profile_scans_count': '{count} beolvasás',
+      'profile_scans_used': '{count} beolvasás felhasználva',
+      'upload_hint_full_receipt': 'Teljes blokk a képen',
+      'upload_hint_good_lighting': 'Jó megvilágítás',
+      'upload_hint_size_limit': 'Legfeljebb 10 MB',
+      'upload_preview_empty_body':
+          'A kiválasztott fotó itt jelenik meg a feldolgozás előtt.',
+      'upload_preview_selected_body':
+          'Ellenőrizheted a képet, választhatsz másikat, vagy elindíthatod a feldolgozást.',
+      'help_support_email_copied': 'Támogatási e-mail kimásolva: {email}',
+      'billing_dev_expire': 'Lejáratás',
+      'common_icon': 'Ikon',
+      'common_color': 'Szín',
+      'settings_accent_mix': 'Kevert',
+      'appearance_label_colors_title': 'Kategória- és címkeszínek',
+      'categories_active_count': '{count} aktív kategória',
+      'analytics_category_details_title': 'Kategóriarészletek',
+      'analytics_category_details_subtitle':
+          'Nyisson meg egy kategóriát a kapcsolódó alkategóriák megtekintéséhez.',
+      'analytics_subcategory_details_title': 'Alkategória-részletek',
+      'analytics_subcategory_details_subtitle':
+          'Nyisson meg egy alkategóriát a kapcsolódó tételek áttekintéséhez.',
+      'billing_load_error':
+          'Az előfizetés részleteit most nem sikerült betölteni. Próbálja újra.',
+      'billing_operation_in_progress':
+          'Egy másik számlázási művelet még folyamatban van. Várjon néhány másodpercet, és próbálja újra.',
+      'billing_purchase_cancelled': 'A vásárlás megszakadt.',
+      'billing_network_error':
+          'Hálózati hiba történt az áruház elérésekor. Próbálja újra.',
+      'billing_update_error':
+          'A Premium-hozzáférést most nem sikerült frissíteni. Próbálja újra.',
+      'billing_current_plan_free_subtitle':
+          'Jelenleg az Ingyenes csomagot használja ehhez a fiókhoz.',
+      'billing_current_plan_premium_subtitle':
+          'A Premium aktív ennél a fióknál.',
+      'billing_access_list_premium':
+          'Korlátlan nyugtaszkennelés\nRészletesebb fejlett elemzések\nAdatexportok teljes előzménye',
+      'billing_access_list_free':
+          '{limit} nyugtaszkennelés minden gördülő 30 napos időszakban\nAz alapvető eszközök továbbra is elérhetők: címkék, kategóriák, költségkeretek és számlaemlékeztetők\nAz adatexport az Ingyenes csomagban az elmúlt 30 napot tartalmazza',
+      'billing_free_upgrade_note':
+          'Csak akkor váltson magasabb csomagra, ha több szkennelésre, mélyebb elemzésekre vagy a teljes exporttartományra van szüksége.',
+      'billing_restore_sync_note':
+          'Használja a „Vásárlások visszaállítása” lehetőséget, ha a Premium még nem jelenik meg ezen az eszközön.',
+      'billing_badge_active': 'Aktív',
+      'billing_badge_free': 'Ingyenes',
+      'billing_usage_unlimited': 'Korlátlan',
+      'billing_usage_left': '{count} maradt',
+      'billing_included_with_premium': 'A Premium csomag része',
+      'billing_premium_applied_note':
+          'A Premium korlátai már érvényben vannak ennél a fióknál.',
+      'billing_free_limits_note':
+          'Az Ingyenes csomag korlátai addig maradnak érvényben, amíg nem vált magasabb csomagra.',
+      'billing_managed_by_store_note':
+          'A Premium ennél a fióknál továbbra is az alkalmazásboltban kezelhető.',
+      'billing_free_limits_expand_note':
+          'Az Ingyenes csomag elérhetővé teszi az alapvető eszközöket. A Premium bővíti a szkennelési korlátokat, az elemzéseket és az exportokat.',
       'delete_reminder_name_confirm': 'Törli a következőt: "{name}"?',
     },
     'id': {
@@ -18698,7 +19844,7 @@ class AppLocalizations {
       'transaction_review_extraction': 'Ekstraksi ulasan: {details}',
       'transaction_line_mismatch':
           'Ketidakcocokan: diharapkan {expected} tetapi diekstraksi {actual}',
-      'transaction_add_item': '+ Tambahkan barang',
+      'transaction_add_item': 'Tambahkan barang',
       'transaction_total_amount': 'Jumlah Total:',
       'transaction_total_savings': 'Risparmio totale:',
       'transaction_attribution_title': 'Atribusi',
@@ -19170,6 +20316,82 @@ class AppLocalizations {
       'login_legal_prefix': 'Dengan masuk, Anda menyetujui ',
       'login_subtitle':
           'Pelacakan pengeluaran bertenaga AI. Pindai struk dan dapatkan wawasan.',
+      'analytics_category_overview': 'Ringkasan kategori',
+      'analytics_spend_share': '{percent}% dari pengeluaran',
+      'analytics_transactions_count_plural': '{count} transaksi',
+      'analytics_transactions_count_single': '1 transaksi',
+      'analytics_trends_day_label': 'Hari {number}',
+      'analytics_trends_no_prior': 'Tidak ada data sebelumnya',
+      'analytics_trends_period_fallback': 'Periode {number}',
+      'analytics_trends_spent_tooltip': '{label}\nDibelanjakan: {amount}',
+      'analytics_trends_week_label': 'Minggu {number}',
+      'bill_reminders_paid_status': 'Dibayar',
+      'currency_decimals': 'Desimal',
+      'currency_format_options_note':
+          'Opsi format disimpan di perangkat ini dan memperbarui tampilan jumlah yang didukung, termasuk Beranda dan riwayat.',
+      'currency_show_less': 'Tampilkan lebih sedikit',
+      'currency_view_all': 'Lihat semua mata uang',
+      'labels_name_label': 'Nama label',
+      'profile_google_managed': 'Email dan foto Anda dikelola oleh Google.',
+      'profile_load_error':
+          'Profil Anda tidak dapat dimuat saat ini. Coba lagi.',
+      'profile_save_error':
+          'Profil Anda tidak dapat disimpan saat ini. Coba lagi.',
+      'profile_scans_count': '{count} pemindaian',
+      'profile_scans_used': '{count} pemindaian digunakan',
+      'upload_hint_full_receipt': 'Struk penuh dalam bingkai',
+      'upload_hint_good_lighting': 'Pencahayaan baik',
+      'upload_hint_size_limit': 'Hingga 10 MB',
+      'upload_preview_empty_body':
+          'Foto yang dipilih akan muncul di sini sebelum ekstraksi dimulai.',
+      'upload_preview_selected_body':
+          'Anda dapat meninjau gambar ini, memilih yang lain, atau memulai ekstraksi sekarang.',
+      'help_support_email_copied': 'Email dukungan disalin: {email}',
+      'billing_dev_expire': 'Kedaluwarsakan',
+      'common_icon': 'Ikon',
+      'common_color': 'Warna',
+      'settings_accent_mix': 'Campuran',
+      'appearance_label_colors_title': 'Warna kategori dan label',
+      'categories_active_count': '{count} kategori aktif',
+      'analytics_category_details_title': 'Detail kategori',
+      'analytics_category_details_subtitle':
+          'Buka kategori untuk melihat subkategori terkait.',
+      'analytics_subcategory_details_title': 'Detail subkategori',
+      'analytics_subcategory_details_subtitle':
+          'Buka subkategori untuk meninjau item yang cocok.',
+      'billing_load_error':
+          'Kami tidak dapat memuat detail langganan Anda saat ini. Coba lagi.',
+      'billing_operation_in_progress':
+          'Tindakan penagihan lain masih berlangsung. Tunggu beberapa detik lalu coba lagi.',
+      'billing_purchase_cancelled': 'Pembelian dibatalkan.',
+      'billing_network_error':
+          'Terjadi kesalahan jaringan saat menghubungi toko. Coba lagi.',
+      'billing_update_error':
+          'Kami tidak dapat memperbarui akses Premium saat ini. Coba lagi.',
+      'billing_current_plan_free_subtitle':
+          'Saat ini Anda menggunakan paket Gratis untuk akun ini.',
+      'billing_current_plan_premium_subtitle': 'Premium aktif untuk akun ini.',
+      'billing_access_list_premium':
+          'Pemindaian struk tanpa batas\nRincian analitik lanjutan\nRiwayat ekspor data lengkap',
+      'billing_access_list_free':
+          '{limit} pemindaian struk dalam setiap periode berjalan 30 hari\nAlat inti tetap tersedia: label, kategori, anggaran, dan pengingat tagihan\nEkspor data dalam paket Gratis mencakup 30 hari terakhir',
+      'billing_free_upgrade_note':
+          'Upgrade hanya jika Anda memerlukan lebih banyak pemindaian, analitik lebih mendalam, atau seluruh riwayat ekspor.',
+      'billing_restore_sync_note':
+          'Gunakan "Pulihkan Pembelian" jika Premium belum muncul di perangkat ini.',
+      'billing_badge_active': 'Aktif',
+      'billing_badge_free': 'Gratis',
+      'billing_usage_unlimited': 'Tanpa batas',
+      'billing_usage_left': 'Tersisa {count}',
+      'billing_included_with_premium': 'Termasuk dalam Premium',
+      'billing_premium_applied_note':
+          'Batas Premium sudah diterapkan ke akun ini.',
+      'billing_free_limits_note':
+          'Batas paket Gratis tetap berlaku sampai Anda upgrade.',
+      'billing_managed_by_store_note':
+          'Premium untuk akun ini tetap dikelola melalui toko aplikasi Anda.',
+      'billing_free_limits_expand_note':
+          'Paket Gratis menjaga alat inti tetap tersedia. Premium memperluas batas pemindaian, analitik, dan ekspor.',
       'delete_reminder_name_confirm': 'Hapus "{name}"?',
     },
     'ms': {
@@ -19884,7 +21106,7 @@ class AppLocalizations {
       'transaction_review_extraction': 'Pengekstrakan ulasan: {details}',
       'transaction_line_mismatch':
           'Tidak padan: dijangka {expected} tetapi diekstrak {actual}',
-      'transaction_add_item': '+ Tambah item',
+      'transaction_add_item': 'Tambah item',
       'transaction_total_amount': 'Jumlah Jumlah:',
       'transaction_total_savings': 'Risparmio totale:',
       'transaction_attribution_title': 'Atribusi',
@@ -20356,6 +21578,82 @@ class AppLocalizations {
       'login_legal_prefix': 'Dengan log masuk, anda bersetuju dengan ',
       'login_subtitle':
           'Penjejakan perbelanjaan berkuasa AI. Imbas resit dan dapatkan wawasan.',
+      'analytics_category_overview': 'Gambaran kategori',
+      'analytics_spend_share': '{percent}% daripada perbelanjaan',
+      'analytics_transactions_count_plural': '{count} transaksi',
+      'analytics_transactions_count_single': '1 transaksi',
+      'analytics_trends_day_label': 'Hari {number}',
+      'analytics_trends_no_prior': 'Tiada data terdahulu',
+      'analytics_trends_period_fallback': 'Tempoh {number}',
+      'analytics_trends_spent_tooltip': '{label}\nDibelanjakan: {amount}',
+      'analytics_trends_week_label': 'Minggu {number}',
+      'bill_reminders_paid_status': 'Dibayar',
+      'currency_decimals': 'Perpuluhan',
+      'currency_format_options_note':
+          'Pilihan format disimpan pada peranti ini dan mengemas kini paparan jumlah yang disokong, termasuk Laman utama dan sejarah.',
+      'currency_show_less': 'Tunjukkan kurang',
+      'currency_view_all': 'Lihat semua mata wang',
+      'labels_name_label': 'Nama label',
+      'profile_google_managed': 'E-mel dan foto anda diurus oleh Google.',
+      'profile_load_error':
+          'Profil anda tidak dapat dimuatkan sekarang. Cuba lagi.',
+      'profile_save_error':
+          'Profil anda tidak dapat disimpan sekarang. Cuba lagi.',
+      'profile_scans_count': '{count} imbasan',
+      'profile_scans_used': '{count} imbasan digunakan',
+      'upload_hint_full_receipt': 'Resit penuh dalam bingkai',
+      'upload_hint_good_lighting': 'Pencahayaan baik',
+      'upload_hint_size_limit': 'Sehingga 10 MB',
+      'upload_preview_empty_body':
+          'Foto yang dipilih akan muncul di sini sebelum pengekstrakan bermula.',
+      'upload_preview_selected_body':
+          'Anda boleh menyemak imej ini, memilih yang lain atau memulakan pengekstrakan sekarang.',
+      'help_support_email_copied': 'E-mel sokongan disalin: {email}',
+      'billing_dev_expire': 'Luputkan',
+      'common_icon': 'Ikon',
+      'common_color': 'Warna',
+      'settings_accent_mix': 'Campuran',
+      'appearance_label_colors_title': 'Warna kategori dan label',
+      'categories_active_count': '{count} kategori aktif',
+      'analytics_category_details_title': 'Butiran kategori',
+      'analytics_category_details_subtitle':
+          'Buka kategori untuk melihat subkategori berkaitan.',
+      'analytics_subcategory_details_title': 'Butiran subkategori',
+      'analytics_subcategory_details_subtitle':
+          'Buka subkategori untuk menyemak item yang sepadan.',
+      'billing_load_error':
+          'Kami tidak dapat memuat butiran langganan anda sekarang. Cuba lagi.',
+      'billing_operation_in_progress':
+          'Tindakan pengebilan lain masih berjalan. Tunggu beberapa saat dan cuba lagi.',
+      'billing_purchase_cancelled': 'Pembelian dibatalkan.',
+      'billing_network_error':
+          'Ralat rangkaian semasa menghubungi gedung. Cuba lagi.',
+      'billing_update_error':
+          'Kami tidak dapat mengemas kini akses Premium sekarang. Cuba lagi.',
+      'billing_current_plan_free_subtitle':
+          'Anda kini menggunakan pelan Percuma untuk akaun ini.',
+      'billing_current_plan_premium_subtitle': 'Premium aktif untuk akaun ini.',
+      'billing_access_list_premium':
+          'Imbasan resit tanpa had\nPecahan analitik lanjutan\nSejarah eksport data penuh',
+      'billing_access_list_free':
+          '{limit} imbasan resit dalam setiap tempoh bergulir 30 hari\nAlat teras kekal tersedia: label, kategori, bajet dan peringatan bil\nEksport data dalam pelan Percuma merangkumi 30 hari terakhir anda',
+      'billing_free_upgrade_note':
+          'Naik taraf hanya jika anda perlukan lebih banyak imbasan, analitik yang lebih mendalam atau julat eksport penuh.',
+      'billing_restore_sync_note':
+          'Gunakan "Pulihkan Pembelian" jika Premium belum muncul pada peranti ini.',
+      'billing_badge_active': 'Aktif',
+      'billing_badge_free': 'Percuma',
+      'billing_usage_unlimited': 'Tanpa had',
+      'billing_usage_left': 'Baki {count}',
+      'billing_included_with_premium': 'Termasuk dengan Premium',
+      'billing_premium_applied_note':
+          'Had Premium sudah digunakan pada akaun ini.',
+      'billing_free_limits_note':
+          'Had pelan Percuma kekal aktif sehingga anda naik taraf.',
+      'billing_managed_by_store_note':
+          'Premium untuk akaun ini terus diurus melalui gedung aplikasi anda.',
+      'billing_free_limits_expand_note':
+          'Pelan Percuma mengekalkan alat teras tersedia. Premium memperluas had imbasan, analitik dan eksport.',
       'delete_reminder_name_confirm': 'Padam "{name}"?',
     },
     'vi': {
@@ -21070,7 +22368,7 @@ class AppLocalizations {
       'transaction_review_extraction': 'Trích xuất đánh giá: {details}',
       'transaction_line_mismatch':
           'Không khớp: dự kiến ​​{expected} nhưng đã trích xuất {actual}',
-      'transaction_add_item': '+ Thêm mục',
+      'transaction_add_item': 'Thêm mục',
       'transaction_total_amount': 'Tổng số tiền:',
       'transaction_total_savings': 'Risparmio totale:',
       'transaction_attribution_title': 'Ghi công',
@@ -21544,6 +22842,83 @@ class AppLocalizations {
       'login_legal_prefix': 'Bằng cách đăng nhập, bạn đồng ý với ',
       'login_subtitle':
           'Theo dõi chi tiêu bằng AI. Quét hóa đơn và nhận thông tin chi tiết.',
+      'analytics_category_overview': 'Tổng quan danh mục',
+      'analytics_spend_share': '{percent}% chi tiêu',
+      'analytics_transactions_count_plural': '{count} giao dịch',
+      'analytics_transactions_count_single': '1 giao dịch',
+      'analytics_trends_day_label': 'Ngày {number}',
+      'analytics_trends_no_prior': 'Không có dữ liệu trước đó',
+      'analytics_trends_period_fallback': 'Kỳ {number}',
+      'analytics_trends_spent_tooltip': '{label}\nĐã chi: {amount}',
+      'analytics_trends_week_label': 'Tuần {number}',
+      'bill_reminders_paid_status': 'Đã thanh toán',
+      'currency_decimals': 'Số thập phân',
+      'currency_format_options_note':
+          'Tùy chọn định dạng được lưu trên thiết bị này và cập nhật các hiển thị số tiền được hỗ trợ, gồm Trang chủ và lịch sử.',
+      'currency_show_less': 'Hiển thị ít hơn',
+      'currency_view_all': 'Xem tất cả tiền tệ',
+      'labels_name_label': 'Tên nhãn',
+      'profile_google_managed': 'Email và ảnh của bạn do Google quản lý.',
+      'profile_load_error':
+          'Không thể tải hồ sơ ngay bây giờ. Vui lòng thử lại.',
+      'profile_save_error':
+          'Không thể lưu hồ sơ ngay bây giờ. Vui lòng thử lại.',
+      'profile_scans_count': '{count} lần quét',
+      'profile_scans_used': 'Đã dùng {count} lần quét',
+      'upload_hint_full_receipt': 'Toàn bộ hóa đơn trong khung',
+      'upload_hint_good_lighting': 'Ánh sáng tốt',
+      'upload_hint_size_limit': 'Tối đa 10 MB',
+      'upload_preview_empty_body':
+          'Ảnh đã chọn sẽ xuất hiện ở đây trước khi bắt đầu trích xuất.',
+      'upload_preview_selected_body':
+          'Bạn có thể xem lại ảnh này, chọn ảnh khác hoặc bắt đầu trích xuất ngay.',
+      'help_support_email_copied': 'Đã sao chép email hỗ trợ: {email}',
+      'billing_dev_expire': 'Cho hết hạn',
+      'common_icon': 'Biểu tượng',
+      'common_color': 'Màu',
+      'settings_accent_mix': 'Phối màu',
+      'appearance_label_colors_title': 'Màu danh mục và nhãn',
+      'categories_active_count': '{count} danh mục đang hoạt động',
+      'analytics_category_details_title': 'Chi tiết danh mục',
+      'analytics_category_details_subtitle':
+          'Mở một danh mục để xem các danh mục con tương ứng.',
+      'analytics_subcategory_details_title': 'Chi tiết danh mục con',
+      'analytics_subcategory_details_subtitle':
+          'Mở một danh mục con để xem các mục tương ứng.',
+      'billing_load_error':
+          'Không thể tải chi tiết gói đăng ký lúc này. Vui lòng thử lại.',
+      'billing_operation_in_progress':
+          'Một thao tác thanh toán khác vẫn đang diễn ra. Hãy đợi vài giây rồi thử lại.',
+      'billing_purchase_cancelled': 'Đã hủy giao dịch mua.',
+      'billing_network_error':
+          'Lỗi mạng khi kết nối với cửa hàng. Vui lòng thử lại.',
+      'billing_update_error':
+          'Không thể cập nhật quyền Premium lúc này. Vui lòng thử lại.',
+      'billing_current_plan_free_subtitle':
+          'Hiện bạn đang dùng gói Miễn phí cho tài khoản này.',
+      'billing_current_plan_premium_subtitle':
+          'Premium đang hoạt động cho tài khoản này.',
+      'billing_access_list_premium':
+          'Quét hóa đơn không giới hạn\nPhân tích chi tiết nâng cao\nToàn bộ lịch sử xuất dữ liệu',
+      'billing_access_list_free':
+          '{limit} lượt quét hóa đơn trong mỗi chu kỳ 30 ngày luân phiên\nCác công cụ cốt lõi vẫn có sẵn: nhãn, danh mục, ngân sách và nhắc hóa đơn\nXuất dữ liệu trong gói Miễn phí bao gồm 30 ngày gần nhất',
+      'billing_free_upgrade_note':
+          'Chỉ nâng cấp nếu bạn cần nhiều lượt quét hơn, phân tích sâu hơn hoặc toàn bộ phạm vi xuất dữ liệu.',
+      'billing_restore_sync_note':
+          'Hãy dùng "Khôi phục mua hàng" nếu Premium vẫn chưa hiển thị trên thiết bị này.',
+      'billing_badge_active': 'Đang hoạt động',
+      'billing_badge_free': 'Miễn phí',
+      'billing_usage_unlimited': 'Không giới hạn',
+      'billing_usage_left': 'Còn {count}',
+      'billing_included_with_premium': 'Bao gồm trong Premium',
+      'billing_premium_applied_note':
+          'Các giới hạn Premium đã được áp dụng cho tài khoản này.',
+      'billing_free_limits_note':
+          'Các giới hạn của gói Miễn phí vẫn áp dụng cho đến khi bạn nâng cấp.',
+      'billing_managed_by_store_note':
+          'Premium cho tài khoản này tiếp tục được quản lý qua cửa hàng ứng dụng.',
+      'billing_free_limits_expand_note':
+          'Gói Miễn phí vẫn giữ các công cụ cốt lõi. Premium mở rộng giới hạn quét, phân tích và xuất dữ liệu.',
       'delete_reminder_name_confirm': 'Xóa "{name}"?',
     },
     'zh': {
@@ -22166,7 +23541,7 @@ class AppLocalizations {
       'transaction_extraction_warnings': '{count} 提取警告',
       'transaction_review_extraction': '评论提取：{details}',
       'transaction_line_mismatch': '不匹配：预期为 {expected} 但提取了 {actual}',
-      'transaction_add_item': '+ 添加项目',
+      'transaction_add_item': '添加项目',
       'transaction_total_amount': '总金额：',
       'transaction_total_savings': '总节省额：',
       'transaction_attribution_title': '归属信息',
@@ -22546,6 +23921,64 @@ class AppLocalizations {
       'login_legal_and': ' 和 ',
       'login_legal_prefix': '登录即表示您同意我们的 ',
       'login_subtitle': 'AI 驱动的支出追踪。扫描收据，获取见解。',
+      'analytics_category_overview': '类别概览',
+      'analytics_spend_share': '支出的 {percent}%',
+      'analytics_transactions_count_plural': '{count} 笔交易',
+      'analytics_transactions_count_single': '1 笔交易',
+      'analytics_trends_day_label': '第 {number} 天',
+      'analytics_trends_no_prior': '没有上一期数据',
+      'analytics_trends_period_fallback': '周期 {number}',
+      'analytics_trends_spent_tooltip': '{label}\n已花费：{amount}',
+      'analytics_trends_week_label': '第 {number} 周',
+      'bill_reminders_paid_status': '已支付',
+      'currency_decimals': '小数位',
+      'currency_format_options_note': '格式选项会保存在此设备上，并更新支持的金额显示，包括首页和历史记录。',
+      'currency_show_less': '收起',
+      'currency_view_all': '查看所有货币',
+      'labels_name_label': '标签名称',
+      'profile_google_managed': '你的邮箱和照片由 Google 管理。',
+      'profile_load_error': '目前无法加载个人资料。请重试。',
+      'profile_save_error': '目前无法保存个人资料。请重试。',
+      'profile_scans_count': '{count} 次扫描',
+      'profile_scans_used': '已使用 {count} 次扫描',
+      'upload_hint_full_receipt': '完整收据在画面内',
+      'upload_hint_good_lighting': '光线良好',
+      'upload_hint_size_limit': '最大 10 MB',
+      'upload_preview_empty_body': '所选照片会在开始识别前显示在这里。',
+      'upload_preview_selected_body': '你可以查看这张图片、选择另一张，或立即开始识别。',
+      'help_support_email_copied': '已复制支持邮箱：{email}',
+      'billing_dev_expire': '设为过期',
+      'common_icon': '图标',
+      'common_color': '颜色',
+      'settings_accent_mix': '混合',
+      'appearance_label_colors_title': '类别和标签颜色',
+      'categories_active_count': '{count} 个启用类别',
+      'analytics_category_details_title': '类别详情',
+      'analytics_category_details_subtitle': '打开一个类别以查看其下的子类别。',
+      'analytics_subcategory_details_title': '子类别详情',
+      'analytics_subcategory_details_subtitle': '打开一个子类别以查看对应的项目。',
+      'billing_load_error': '目前无法加载你的订阅详情。请重试。',
+      'billing_operation_in_progress': '另一项计费操作仍在进行中。请稍等几秒后再试。',
+      'billing_purchase_cancelled': '购买已取消。',
+      'billing_network_error': '与商店通信时发生网络错误。请重试。',
+      'billing_update_error': '目前无法更新 Premium 权限。请重试。',
+      'billing_current_plan_free_subtitle': '当前此账号使用的是免费计划。',
+      'billing_current_plan_premium_subtitle': '此账号的 Premium 已激活。',
+      'billing_access_list_premium': '无限收据扫描\n高级分析明细\n完整的数据导出历史',
+      'billing_access_list_free':
+          '每个滚动 30 天周期可扫描 {limit} 张收据\n核心工具仍可使用：标签、类别、预算和账单提醒\n免费计划中的数据导出包含最近 30 天',
+      'billing_free_upgrade_note': '只有在你需要更多扫描、更深入的分析或完整导出范围时，再升级即可。',
+      'billing_restore_sync_note': '如果此设备上还未显示 Premium，请使用“恢复购买”。',
+      'billing_badge_active': '已启用',
+      'billing_badge_free': '免费',
+      'billing_usage_unlimited': '不限',
+      'billing_usage_left': '剩余 {count}',
+      'billing_included_with_premium': 'Premium 包含内容',
+      'billing_premium_applied_note': '此账号已应用 Premium 限制。',
+      'billing_free_limits_note': '在你升级之前，免费计划的限制会一直生效。',
+      'billing_managed_by_store_note': '此账号的 Premium 仍由你的应用商店管理。',
+      'billing_free_limits_expand_note':
+          '免费计划保留核心工具可用。Premium 会扩展扫描限额、分析能力和导出范围。',
       'delete_reminder_name_confirm': '删除 "{name}"？',
     },
     'ja': {
@@ -22724,7 +24157,7 @@ class AppLocalizations {
       'feature_request_category_other': 'その他',
       'settings_privacy_policy': 'プライバシーポリシー',
       'settings_terms_of_service': '利用規約',
-      'settings_about': 'について',
+      'settings_about': 'アプリについて',
       'settings_banner_active_title': 'Pro はアクティブです',
       'settings_banner_upgrade_title': 'Pro にアップグレード',
       'settings_banner_active_subtitle': 'AIツール、無制限の領収書、高度な分析がアカウントで有効になっています。',
@@ -23180,7 +24613,7 @@ class AppLocalizations {
       'transaction_review_extraction': 'レビューの抽出: {details}',
       'transaction_line_mismatch':
           '不一致: {expected} が予期されましたが、{actual} が抽出されました',
-      'transaction_add_item': '+ アイテムを追加',
+      'transaction_add_item': 'アイテムを追加',
       'transaction_total_amount': '合計金額：',
       'transaction_total_savings': '総節約額:',
       'transaction_attribution_title': '帰属',
@@ -23509,7 +24942,7 @@ class AppLocalizations {
       'about_app_section': 'アプリについて',
       'about_links_section': 'リンク',
       'about_loading_version': 'バージョンを読み込み中...',
-      'about_screen_title': 'について',
+      'about_screen_title': 'アプリについて',
       'about_version_error': 'このデバイスではバージョンの詳細を確認できません。',
       'about_website_label': 'ウェブサイト',
       'about_whats_new_section': '新機能',
@@ -23584,6 +25017,67 @@ class AppLocalizations {
       'login_legal_and': ' および ',
       'login_legal_prefix': 'ログインすることにより、当社の',
       'login_subtitle': 'AIによる支出追跡。レシートをスキャンしてインサイトを得ましょう。',
+      'analytics_category_overview': 'カテゴリ概要',
+      'analytics_spend_share': '支出の {percent}%',
+      'analytics_transactions_count_plural': '{count} 件の取引',
+      'analytics_transactions_count_single': '1 件の取引',
+      'analytics_trends_day_label': '{number} 日目',
+      'analytics_trends_no_prior': '前回データなし',
+      'analytics_trends_period_fallback': '期間 {number}',
+      'analytics_trends_spent_tooltip': '{label}\n支出: {amount}',
+      'analytics_trends_week_label': '{number} 週目',
+      'bill_reminders_paid_status': '支払い済み',
+      'currency_decimals': '小数桁',
+      'currency_format_options_note':
+          '表示形式の設定はこの端末に保存され、ホームや履歴など対応する金額表示に反映されます。',
+      'currency_show_less': '少なく表示',
+      'currency_view_all': 'すべての通貨を表示',
+      'labels_name_label': 'ラベル名',
+      'profile_google_managed': 'メールアドレスと写真は Google で管理されています。',
+      'profile_load_error': '現在プロフィールを読み込めません。もう一度お試しください。',
+      'profile_save_error': '現在プロフィールを保存できません。もう一度お試しください。',
+      'profile_scans_count': '{count} 回のスキャン',
+      'profile_scans_used': '{count} 回のスキャンを使用',
+      'upload_hint_full_receipt': 'レシート全体を入れる',
+      'upload_hint_good_lighting': '明るい場所',
+      'upload_hint_size_limit': '最大 10 MB',
+      'upload_preview_empty_body': '選択した写真は抽出開始前にここに表示されます。',
+      'upload_preview_selected_body': 'この画像を確認し、別の画像を選ぶか、抽出を開始できます。',
+      'help_support_email_copied': 'サポートメールをコピーしました: {email}',
+      'billing_dev_expire': '期限切れにする',
+      'common_icon': 'アイコン',
+      'common_color': '色',
+      'settings_accent_mix': 'ミックス',
+      'appearance_label_colors_title': 'カテゴリとラベルの色',
+      'categories_active_count': '{count} 個の有効なカテゴリ',
+      'analytics_category_details_title': 'カテゴリの詳細',
+      'analytics_category_details_subtitle': 'カテゴリを開くと、その下のサブカテゴリを確認できます。',
+      'analytics_subcategory_details_title': 'サブカテゴリの詳細',
+      'analytics_subcategory_details_subtitle': 'サブカテゴリを開くと、該当する項目を確認できます。',
+      'billing_load_error': '現在、サブスクリプションの詳細を読み込めません。もう一度お試しください。',
+      'billing_operation_in_progress': '別の課金処理がまだ進行中です。数秒待ってからもう一度お試しください。',
+      'billing_purchase_cancelled': '購入がキャンセルされました。',
+      'billing_network_error': 'ストアとの通信中にネットワークエラーが発生しました。もう一度お試しください。',
+      'billing_update_error': '現在、Premium アクセスを更新できません。もう一度お試しください。',
+      'billing_current_plan_free_subtitle': 'このアカウントでは現在 Free プランを利用しています。',
+      'billing_current_plan_premium_subtitle': 'このアカウントでは Premium が有効です。',
+      'billing_access_list_premium': 'レシートのスキャン無制限\n高度な分析の内訳\nデータ書き出し履歴の全期間',
+      'billing_access_list_free':
+          '30 日間のローリング期間ごとに {limit} 回のレシートスキャン\nラベル、カテゴリ、予算、請求リマインダーなどの基本ツールは引き続き利用できます\nFree プランのデータ書き出しには直近 30 日分が含まれます',
+      'billing_free_upgrade_note':
+          'より多くのスキャン、より深い分析、または全期間の書き出しが必要な場合にのみアップグレードしてください。',
+      'billing_restore_sync_note':
+          'この端末で Premium がまだ表示されない場合は、「購入を復元」をご利用ください。',
+      'billing_badge_active': '有効',
+      'billing_badge_free': '無料',
+      'billing_usage_unlimited': '無制限',
+      'billing_usage_left': '残り {count}',
+      'billing_included_with_premium': 'Premium に含まれる内容',
+      'billing_premium_applied_note': 'このアカウントにはすでに Premium の上限が適用されています。',
+      'billing_free_limits_note': 'アップグレードするまで、Free プランの上限が適用されます。',
+      'billing_managed_by_store_note': 'このアカウントの Premium は引き続きストア側で管理されます。',
+      'billing_free_limits_expand_note':
+          'Free プランでも基本ツールは利用できます。Premium ではスキャン上限、分析、書き出し範囲が広がります。',
       'delete_reminder_name_confirm': '「{name}」を削除しますか？',
     },
     'ko': {
@@ -24226,7 +25720,7 @@ class AppLocalizations {
       'transaction_review_extraction': '리뷰 추출: {details}',
       'transaction_line_mismatch':
           '불일치: {expected}이(가) 예상되었지만 {actual}이(가) 추출되었습니다.',
-      'transaction_add_item': '+ 항목 추가',
+      'transaction_add_item': '항목 추가',
       'transaction_total_amount': '총액:',
       'transaction_total_savings': '총 절감액:',
       'transaction_attribution_title': '기여',
@@ -24638,6 +26132,68 @@ class AppLocalizations {
       'login_legal_and': ' 및 ',
       'login_legal_prefix': '로그인함으로써 당사의 ',
       'login_subtitle': 'AI 기반 지출 추적. 영수증을 스캔하고 인사이트를 얻으세요.',
+      'analytics_category_overview': '카테고리 개요',
+      'analytics_spend_share': '지출의 {percent}%',
+      'analytics_transactions_count_plural': '{count}건의 거래',
+      'analytics_transactions_count_single': '거래 1건',
+      'analytics_trends_day_label': '{number}일차',
+      'analytics_trends_no_prior': '이전 데이터 없음',
+      'analytics_trends_period_fallback': '기간 {number}',
+      'analytics_trends_spent_tooltip': '{label}\n지출: {amount}',
+      'analytics_trends_week_label': '{number}주차',
+      'bill_reminders_paid_status': '결제됨',
+      'currency_decimals': '소수 자릿수',
+      'currency_format_options_note':
+          '형식 옵션은 이 기기에 저장되며 홈과 기록을 포함한 지원 금액 표시를 업데이트합니다.',
+      'currency_show_less': '적게 보기',
+      'currency_view_all': '모든 통화 보기',
+      'labels_name_label': '라벨 이름',
+      'profile_google_managed': '이메일과 사진은 Google에서 관리됩니다.',
+      'profile_load_error': '지금 프로필을 불러올 수 없습니다. 다시 시도하세요.',
+      'profile_save_error': '지금 프로필을 저장할 수 없습니다. 다시 시도하세요.',
+      'profile_scans_count': '스캔 {count}회',
+      'profile_scans_used': '스캔 {count}회 사용',
+      'upload_hint_full_receipt': '영수증 전체가 화면 안에',
+      'upload_hint_good_lighting': '밝은 조명',
+      'upload_hint_size_limit': '최대 10 MB',
+      'upload_preview_empty_body': '선택한 사진은 추출이 시작되기 전에 여기에 표시됩니다.',
+      'upload_preview_selected_body':
+          '이 이미지를 확인하거나 다른 이미지를 선택하거나 지금 추출을 시작할 수 있습니다.',
+      'help_support_email_copied': '지원 이메일을 복사했습니다: {email}',
+      'billing_dev_expire': '만료 처리',
+      'common_icon': '아이콘',
+      'common_color': '색상',
+      'settings_accent_mix': '믹스',
+      'appearance_label_colors_title': '카테고리 및 라벨 색상',
+      'categories_active_count': '{count}개의 활성 카테고리',
+      'analytics_category_details_title': '카테고리 세부정보',
+      'analytics_category_details_subtitle': '카테고리를 열어 연결된 하위 카테고리를 확인하세요.',
+      'analytics_subcategory_details_title': '하위 카테고리 세부정보',
+      'analytics_subcategory_details_subtitle': '하위 카테고리를 열어 해당 항목을 검토하세요.',
+      'billing_load_error': '지금 구독 세부정보를 불러올 수 없습니다. 다시 시도해 주세요.',
+      'billing_operation_in_progress':
+          '다른 결제 작업이 아직 진행 중입니다. 몇 초 후 다시 시도해 주세요.',
+      'billing_purchase_cancelled': '구매가 취소되었습니다.',
+      'billing_network_error': '스토어에 연결하는 중 네트워크 오류가 발생했습니다. 다시 시도해 주세요.',
+      'billing_update_error': '지금 Premium 이용 권한을 업데이트할 수 없습니다. 다시 시도해 주세요.',
+      'billing_current_plan_free_subtitle': '현재 이 계정은 Free 플랜을 사용 중입니다.',
+      'billing_current_plan_premium_subtitle': '이 계정에서 Premium이 활성화되어 있습니다.',
+      'billing_access_list_premium': '무제한 영수증 스캔\n고급 분석 세부 내역\n전체 데이터 내보내기 기록',
+      'billing_access_list_free':
+          '30일 단위로 매번 {limit}회의 영수증 스캔\n라벨, 카테고리, 예산, 청구서 알림 등 핵심 도구는 계속 사용할 수 있습니다\nFree 플랜의 데이터 내보내기에는 최근 30일이 포함됩니다',
+      'billing_free_upgrade_note':
+          '더 많은 스캔, 더 깊은 분석, 또는 전체 내보내기 범위가 필요할 때만 업그레이드하세요.',
+      'billing_restore_sync_note': '이 기기에서 Premium이 아직 보이지 않으면 "구매 복원"을 사용하세요.',
+      'billing_badge_active': '사용 중',
+      'billing_badge_free': '무료',
+      'billing_usage_unlimited': '무제한',
+      'billing_usage_left': '{count}개 남음',
+      'billing_included_with_premium': 'Premium 포함 항목',
+      'billing_premium_applied_note': '이 계정에는 이미 Premium 한도가 적용되어 있습니다.',
+      'billing_free_limits_note': '업그레이드하기 전까지는 Free 플랜 제한이 유지됩니다.',
+      'billing_managed_by_store_note': '이 계정의 Premium은 계속 앱 스토어에서 관리됩니다.',
+      'billing_free_limits_expand_note':
+          'Free 플랜에서도 핵심 도구는 계속 사용할 수 있습니다. Premium은 스캔 한도, 분석, 내보내기 범위를 확장합니다.',
       'delete_reminder_name_confirm': '"{name}" 내역을 삭제하시겠습니까?',
     },
     'hi': {
@@ -24827,7 +26383,7 @@ class AppLocalizations {
       'feature_request_category_other': 'अन्य',
       'settings_privacy_policy': 'गोपनीयता नीति',
       'settings_terms_of_service': 'सेवा की शर्तें',
-      'settings_about': 'के बारे में',
+      'settings_about': 'ऐप के बारे में',
       'settings_banner_active_title': 'Pro सक्रिय है',
       'settings_banner_upgrade_title': 'Pro पर अपग्रेड करें',
       'settings_banner_active_subtitle':
@@ -25333,7 +26889,7 @@ class AppLocalizations {
       'transaction_review_extraction': 'समीक्षा निष्कर्षण: {details}',
       'transaction_line_mismatch':
           'बेमेल: अपेक्षित {expected} लेकिन निकाला गया {actual}',
-      'transaction_add_item': '+ आइटम जोड़ें',
+      'transaction_add_item': 'आइटम जोड़ें',
       'transaction_total_amount': 'कुल राशि:',
       'transaction_total_savings': 'कुल बचत:',
       'transaction_attribution_title': 'श्रेय',
@@ -25699,7 +27255,7 @@ class AppLocalizations {
       'about_app_section': 'ऐप के बारे में',
       'about_links_section': 'कड़ियाँ',
       'about_loading_version': 'वर्जन लोड हो रहा है...',
-      'about_screen_title': 'के बारे में',
+      'about_screen_title': 'ऐप के बारे में',
       'about_version_error': 'इस डिवाइस पर वर्जन विवरण उपलब्ध नहीं हैं।',
       'about_website_label': 'वेबसाइट',
       'about_whats_new_section': 'नया क्या है',
@@ -25799,6 +27355,84 @@ class AppLocalizations {
       'login_legal_prefix': 'लॉग इन करके, आप हमारी ',
       'login_subtitle':
           'AI-संचालित खर्च ट्रैकिंग। रसीदें स्कैन करें और जानकारी प्राप्त करें।',
+      'analytics_category_overview': 'श्रेणी सारांश',
+      'analytics_spend_share': 'खर्च का {percent}%',
+      'analytics_transactions_count_plural': '{count} लेन-देन',
+      'analytics_transactions_count_single': '1 लेन-देन',
+      'analytics_trends_day_label': 'दिन {number}',
+      'analytics_trends_no_prior': 'पिछला डेटा नहीं',
+      'analytics_trends_period_fallback': 'अवधि {number}',
+      'analytics_trends_spent_tooltip': '{label}\nखर्च: {amount}',
+      'analytics_trends_week_label': 'सप्ताह {number}',
+      'bill_reminders_paid_status': 'भुगतान किया गया',
+      'currency_decimals': 'दशमलव',
+      'currency_format_options_note':
+          'फ़ॉर्मैट विकल्प इस डिवाइस पर सहेजे जाते हैं और होम व इतिहास सहित समर्थित राशि प्रदर्शन अपडेट करते हैं।',
+      'currency_show_less': 'कम दिखाएँ',
+      'currency_view_all': 'सभी मुद्राएँ देखें',
+      'labels_name_label': 'लेबल का नाम',
+      'profile_google_managed':
+          'आपका ईमेल और फ़ोटो Google द्वारा प्रबंधित हैं।',
+      'profile_load_error':
+          'अभी आपका प्रोफ़ाइल लोड नहीं हो सका। कृपया फिर कोशिश करें।',
+      'profile_save_error':
+          'अभी आपका प्रोफ़ाइल सहेजा नहीं जा सका। कृपया फिर कोशिश करें।',
+      'profile_scans_count': '{count} स्कैन',
+      'profile_scans_used': '{count} स्कैन उपयोग किए गए',
+      'upload_hint_full_receipt': 'पूरी रसीद फ्रेम में',
+      'upload_hint_good_lighting': 'अच्छी रोशनी',
+      'upload_hint_size_limit': '10 MB तक',
+      'upload_preview_empty_body':
+          'चयनित फ़ोटो निष्कर्षण शुरू होने से पहले यहाँ दिखाई देगी।',
+      'upload_preview_selected_body':
+          'आप इस चित्र की समीक्षा कर सकते हैं, दूसरा चुन सकते हैं या अभी निष्कर्षण शुरू कर सकते हैं।',
+      'help_support_email_copied': 'सहायता ईमेल कॉपी किया गया: {email}',
+      'billing_dev_expire': 'समाप्त करें',
+      'common_icon': 'आइकन',
+      'common_color': 'रंग',
+      'settings_accent_mix': 'मिक्स',
+      'appearance_label_colors_title': 'श्रेणी और लेबल के रंग',
+      'categories_active_count': '{count} सक्रिय श्रेणियां',
+      'analytics_category_details_title': 'श्रेणी विवरण',
+      'analytics_category_details_subtitle':
+          'संबंधित उपश्रेणियां देखने के लिए किसी श्रेणी को खोलें।',
+      'analytics_subcategory_details_title': 'उपश्रेणी विवरण',
+      'analytics_subcategory_details_subtitle':
+          'मिलान वाले आइटम देखने के लिए किसी उपश्रेणी को खोलें।',
+      'billing_load_error':
+          'अभी आपकी सदस्यता का विवरण लोड नहीं हो सका। कृपया फिर से कोशिश करें।',
+      'billing_operation_in_progress':
+          'कोई अन्य बिलिंग कार्रवाई अभी भी चल रही है। कुछ सेकंड रुककर फिर से कोशिश करें।',
+      'billing_purchase_cancelled': 'खरीद रद्द कर दी गई।',
+      'billing_network_error':
+          'स्टोर से संपर्क करते समय नेटवर्क त्रुटि हुई। कृपया फिर से कोशिश करें।',
+      'billing_update_error':
+          'अभी Premium एक्सेस अपडेट नहीं किया जा सका। कृपया फिर से कोशिश करें।',
+      'billing_current_plan_free_subtitle':
+          'इस खाते पर अभी Free प्लान सक्रिय है।',
+      'billing_current_plan_premium_subtitle':
+          'इस खाते के लिए Premium सक्रिय है।',
+      'billing_access_list_premium':
+          'असीमित रसीद स्कैन\nउन्नत विश्लेषण विवरण\nपूरा डेटा निर्यात इतिहास',
+      'billing_access_list_free':
+          'हर रोलिंग 30-दिन की अवधि में {limit} रसीद स्कैन\nमुख्य टूल उपलब्ध रहते हैं: लेबल, श्रेणियां, बजट और बिल रिमाइंडर\nFree प्लान में डेटा निर्यात में पिछले 30 दिन शामिल होते हैं',
+      'billing_free_upgrade_note':
+          'केवल तभी अपग्रेड करें जब आपको अधिक स्कैन, गहरी विश्लेषण जानकारी या पूरा निर्यात दायरा चाहिए।',
+      'billing_restore_sync_note':
+          'अगर इस डिवाइस पर Premium अभी नहीं दिख रहा है, तो "खरीद पुनर्स्थापित करें" का उपयोग करें।',
+      'billing_badge_active': 'सक्रिय',
+      'billing_badge_free': 'मुफ़्त',
+      'billing_usage_unlimited': 'असीमित',
+      'billing_usage_left': '{count} शेष',
+      'billing_included_with_premium': 'Premium में शामिल',
+      'billing_premium_applied_note':
+          'इस खाते पर Premium सीमाएं पहले से लागू हैं।',
+      'billing_free_limits_note':
+          'जब तक आप अपग्रेड नहीं करते, Free प्लान की सीमाएं लागू रहती हैं।',
+      'billing_managed_by_store_note':
+          'इस खाते के लिए Premium का प्रबंधन आपके app store के जरिए ही होता रहेगा।',
+      'billing_free_limits_expand_note':
+          'Free प्लान में मुख्य टूल उपलब्ध रहते हैं। Premium स्कैन सीमा, विश्लेषण और निर्यात दायरा बढ़ाता है।',
       'delete_reminder_name_confirm': 'क्या "{name}" को हटाना चाहते हैं?',
     },
     'ar': {
@@ -26489,7 +28123,7 @@ class AppLocalizations {
       'transaction_review_extraction': 'استخراج المراجعة: {details}',
       'transaction_line_mismatch':
           'عدم التطابق: متوقع {expected} ولكن تم استخراجه {actual}',
-      'transaction_add_item': '+ إضافة عنصر',
+      'transaction_add_item': 'إضافة عنصر',
       'transaction_total_amount': 'المبلغ الإجمالي:',
       'transaction_total_savings': 'إجمالي المدخرات:',
       'transaction_attribution_title': 'الإسناد',
@@ -26940,6 +28574,83 @@ class AppLocalizations {
       'login_legal_prefix': 'بتسجيل الدخول، فإنك توافق على ',
       'login_subtitle':
           'تتبع المصروفات بالذكاء الاصطناعي. امسح الإيصالات واحصل على رؤى.',
+      'analytics_category_overview': 'نظرة عامة على الفئة',
+      'analytics_spend_share': '{percent}% من الإنفاق',
+      'analytics_transactions_count_plural': '{count} معاملات',
+      'analytics_transactions_count_single': 'معاملة واحدة',
+      'analytics_trends_day_label': 'اليوم {number}',
+      'analytics_trends_no_prior': 'لا توجد بيانات سابقة',
+      'analytics_trends_period_fallback': 'الفترة {number}',
+      'analytics_trends_spent_tooltip': '{label}\nالمصروف: {amount}',
+      'analytics_trends_week_label': 'الأسبوع {number}',
+      'bill_reminders_paid_status': 'مدفوع',
+      'currency_decimals': 'الأرقام العشرية',
+      'currency_format_options_note':
+          'يتم حفظ خيارات التنسيق على هذا الجهاز وتحديث عروض المبالغ المدعومة، بما في ذلك الصفحة الرئيسية والسجل.',
+      'currency_show_less': 'عرض أقل',
+      'currency_view_all': 'عرض كل العملات',
+      'labels_name_label': 'اسم التصنيف',
+      'profile_google_managed':
+          'تتم إدارة بريدك الإلكتروني وصورتك بواسطة Google.',
+      'profile_load_error':
+          'تعذر تحميل ملفك الشخصي الآن. يرجى المحاولة مرة أخرى.',
+      'profile_save_error':
+          'تعذر حفظ ملفك الشخصي الآن. يرجى المحاولة مرة أخرى.',
+      'profile_scans_count': '{count} عمليات مسح',
+      'profile_scans_used': 'تم استخدام {count} عمليات مسح',
+      'upload_hint_full_receipt': 'الإيصال كامل داخل الإطار',
+      'upload_hint_good_lighting': 'إضاءة جيدة',
+      'upload_hint_size_limit': 'حتى 10 MB',
+      'upload_preview_empty_body':
+          'ستظهر الصورة المحددة هنا قبل بدء الاستخراج.',
+      'upload_preview_selected_body':
+          'يمكنك مراجعة هذه الصورة أو اختيار صورة أخرى أو بدء الاستخراج الآن.',
+      'help_support_email_copied': 'تم نسخ بريد الدعم: {email}',
+      'billing_dev_expire': 'إنهاء الصلاحية',
+      'common_icon': 'الأيقونة',
+      'common_color': 'اللون',
+      'settings_accent_mix': 'مختلط',
+      'appearance_label_colors_title': 'ألوان الفئات والعلامات',
+      'categories_active_count': '{count} فئات نشطة',
+      'analytics_category_details_title': 'تفاصيل الفئات',
+      'analytics_category_details_subtitle':
+          'افتح فئة لعرض الفئات الفرعية المرتبطة بها.',
+      'analytics_subcategory_details_title': 'تفاصيل الفئات الفرعية',
+      'analytics_subcategory_details_subtitle':
+          'افتح فئة فرعية لمراجعة العناصر المطابقة.',
+      'billing_load_error':
+          'تعذر تحميل تفاصيل اشتراكك الآن. يرجى المحاولة مرة أخرى.',
+      'billing_operation_in_progress':
+          'لا تزال هناك عملية فوترة أخرى قيد التنفيذ. انتظر بضع ثوانٍ ثم حاول مرة أخرى.',
+      'billing_purchase_cancelled': 'تم إلغاء الشراء.',
+      'billing_network_error':
+          'حدث خطأ في الشبكة أثناء الاتصال بالمتجر. يرجى المحاولة مرة أخرى.',
+      'billing_update_error':
+          'تعذر تحديث وصول Premium الآن. يرجى المحاولة مرة أخرى.',
+      'billing_current_plan_free_subtitle':
+          'أنت تستخدم حاليًا الخطة المجانية لهذا الحساب.',
+      'billing_current_plan_premium_subtitle': 'Premium نشط لهذا الحساب.',
+      'billing_access_list_premium':
+          'مسح غير محدود للإيصالات\nتفصيلات تحليلية متقدمة\nالسجل الكامل لتصدير البيانات',
+      'billing_access_list_free':
+          '{limit} عملية مسح للإيصالات في كل فترة متحركة مدتها 30 يومًا\nتظل الأدوات الأساسية متاحة: العلامات والفئات والميزانيات وتذكيرات الفواتير\nيتضمن تصدير البيانات في الخطة المجانية آخر 30 يومًا',
+      'billing_free_upgrade_note':
+          'قم بالترقية فقط إذا كنت بحاجة إلى مزيد من عمليات المسح أو تحليلات أعمق أو نطاق التصدير الكامل.',
+      'billing_restore_sync_note':
+          'استخدم "استعادة المشتريات" إذا لم يظهر Premium على هذا الجهاز بعد.',
+      'billing_badge_active': 'نشط',
+      'billing_badge_free': 'مجاني',
+      'billing_usage_unlimited': 'غير محدود',
+      'billing_usage_left': 'المتبقي {count}',
+      'billing_included_with_premium': 'مشمول في Premium',
+      'billing_premium_applied_note':
+          'تم تطبيق حدود Premium بالفعل على هذا الحساب.',
+      'billing_free_limits_note':
+          'تظل حدود الخطة المجانية سارية حتى تقوم بالترقية.',
+      'billing_managed_by_store_note':
+          'يظل Premium لهذا الحساب مُدارًا من خلال متجر التطبيقات الخاص بك.',
+      'billing_free_limits_expand_note':
+          'تُبقي الخطة المجانية الأدوات الأساسية متاحة. ويوسّع Premium حدود المسح والتحليلات والتصدير.',
       'delete_reminder_name_confirm': 'هل تريد حذف "{name}"؟',
     },
     'es': {
@@ -27657,7 +29368,7 @@ class AppLocalizations {
       'transaction_review_extraction': 'Extracción de reseñas: {details}',
       'transaction_line_mismatch':
           'Falta de coincidencia: se esperaba {expected} pero se extrajo {actual}',
-      'transaction_add_item': '+ Agregar artículo',
+      'transaction_add_item': 'Agregar artículo',
       'transaction_total_amount': 'Monto total:',
       'transaction_total_savings': 'Ahorro total:',
       'transaction_attribution_title': 'Atribución',
@@ -28143,6 +29854,84 @@ class AppLocalizations {
       'login_legal_prefix': 'Al iniciar sesión, usted acepta nuestros ',
       'login_subtitle':
           'Seguimiento de gastos impulsado por IA. Escanee recibos y obtenga información.',
+      'analytics_category_overview': 'Resumen de categoría',
+      'analytics_spend_share': '{percent}% del gasto',
+      'analytics_transactions_count_plural': '{count} transacciones',
+      'analytics_transactions_count_single': '1 transacción',
+      'analytics_trends_day_label': 'Día {number}',
+      'analytics_trends_no_prior': 'Sin datos previos',
+      'analytics_trends_period_fallback': 'Periodo {number}',
+      'analytics_trends_spent_tooltip': '{label}\nGastado: {amount}',
+      'analytics_trends_week_label': 'Semana {number}',
+      'bill_reminders_paid_status': 'Pagado',
+      'currency_decimals': 'Decimales',
+      'currency_format_options_note':
+          'Las opciones de formato se guardan en este dispositivo y actualizan las vistas de importes compatibles, incluidas Inicio e historial.',
+      'currency_show_less': 'Mostrar menos',
+      'currency_view_all': 'Ver todas las divisas',
+      'labels_name_label': 'Nombre de etiqueta',
+      'profile_google_managed':
+          'Tu correo electrónico y foto los gestiona Google.',
+      'profile_load_error':
+          'No se pudo cargar tu perfil ahora. Inténtalo de nuevo.',
+      'profile_save_error':
+          'No se pudo guardar tu perfil ahora. Inténtalo de nuevo.',
+      'profile_scans_count': '{count} escaneos',
+      'profile_scans_used': '{count} escaneos usados',
+      'upload_hint_full_receipt': 'Recibo completo en el encuadre',
+      'upload_hint_good_lighting': 'Buena iluminación',
+      'upload_hint_size_limit': 'Hasta 10 MB',
+      'upload_preview_empty_body':
+          'La foto seleccionada aparecerá aquí antes de iniciar la extracción.',
+      'upload_preview_selected_body':
+          'Puedes revisar esta imagen, elegir otra o iniciar la extracción ahora.',
+      'help_support_email_copied': 'Correo de soporte copiado: {email}',
+      'billing_dev_expire': 'Caducar',
+      'common_icon': 'Icono',
+      'common_color': 'Tono',
+      'settings_accent_mix': 'Mezcla',
+      'appearance_label_colors_title': 'Colores de categorías y etiquetas',
+      'categories_active_count': '{count} categorías activas',
+      'analytics_category_details_title': 'Detalles de categorías',
+      'analytics_category_details_subtitle':
+          'Abre una categoría para ver las subcategorías correspondientes.',
+      'analytics_subcategory_details_title': 'Detalles de subcategorías',
+      'analytics_subcategory_details_subtitle':
+          'Abre una subcategoría para revisar los elementos correspondientes.',
+      'billing_load_error':
+          'No pudimos cargar los detalles de tu suscripción ahora mismo. Inténtalo de nuevo.',
+      'billing_operation_in_progress':
+          'Otra acción de facturación sigue en curso. Espera unos segundos y vuelve a intentarlo.',
+      'billing_purchase_cancelled': 'Compra cancelada.',
+      'billing_network_error':
+          'Error de red al contactar con la tienda. Inténtalo de nuevo.',
+      'billing_update_error':
+          'No pudimos actualizar el acceso Premium ahora mismo. Inténtalo de nuevo.',
+      'billing_current_plan_free_subtitle':
+          'Ahora mismo estás en el plan Gratuito de esta cuenta.',
+      'billing_current_plan_premium_subtitle':
+          'Premium está activo para esta cuenta.',
+      'billing_access_list_premium':
+          'Escaneos de recibos ilimitados\nDesgloses analíticos avanzados\nHistorial completo de exportación de datos',
+      'billing_access_list_free':
+          '{limit} escaneos de recibos en cada periodo móvil de 30 días\nLas herramientas principales siguen disponibles: etiquetas, categorías, presupuestos y recordatorios de facturas\nLa exportación de datos en el plan Gratuito incluye tus últimos 30 días',
+      'billing_free_upgrade_note':
+          'Actualiza solo si necesitas más escaneos, análisis más profundos o todo el historial de exportación.',
+      'billing_restore_sync_note':
+          'Usa "Restaurar compras" si Premium todavía no aparece en este dispositivo.',
+      'billing_badge_active': 'Activo',
+      'billing_badge_free': 'Gratis',
+      'billing_usage_unlimited': 'Ilimitado',
+      'billing_usage_left': 'Quedan {count}',
+      'billing_included_with_premium': 'Incluido con Premium',
+      'billing_premium_applied_note':
+          'Los límites de Premium ya están aplicados a esta cuenta.',
+      'billing_free_limits_note':
+          'Los límites del plan Gratuito siguen activos hasta que actualices.',
+      'billing_managed_by_store_note':
+          'Premium seguirá gestionándose para esta cuenta desde tu tienda de aplicaciones.',
+      'billing_free_limits_expand_note':
+          'El plan Gratuito mantiene disponibles las herramientas principales. Premium amplía los límites de escaneo, los análisis y las exportaciones.',
       'delete_reminder_name_confirm': '¿Eliminar "{name}"?',
     },
   };
