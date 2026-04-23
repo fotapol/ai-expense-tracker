@@ -13292,7 +13292,7 @@ class AppLocalizations {
       'settings_theme_dark': 'Mörkt',
       'settings_theme_light_subtitle': 'Klassiskt ljust utseende',
       'settings_theme_dark_subtitle': 'Lätt för ögonen',
-      'settings_theme_auto': 'Auto',
+      'settings_theme_auto': 'Automatiskt',
       'settings_theme_auto_subtitle': 'Matchar systeminställningar',
       'settings_accent_color': 'Accentfärg',
       'settings_accent_neutral': 'Neutral',
