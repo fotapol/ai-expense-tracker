@@ -45,7 +45,10 @@ class _ItemsTranslationSettingsScreenState
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(
-            'Item translation language set to ${language.englishName}.',
+            context.tr(
+              'settings_language_updated',
+              params: {'language': language.englishName},
+            ),
           ),
         ),
       );
@@ -53,7 +56,12 @@ class _ItemsTranslationSettingsScreenState
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('Could not update translation language: $error'),
+          content: Text(
+            context.tr(
+              'common_error_with_message',
+              params: {'message': error.toString()},
+            ),
+          ),
           backgroundColor: Colors.red,
         ),
       );
@@ -156,7 +164,7 @@ class _ItemsTranslationSettingsScreenState
         crossAxisAlignment: CrossAxisAlignment.start,
         children: <Widget>[
           Text(
-            'How item translation works',
+            context.tr('settings_items_translation_title'),
             style: TextStyle(
               color: ShellStyles.textPrimary(context),
               fontSize: 16,
@@ -165,7 +173,7 @@ class _ItemsTranslationSettingsScreenState
           ),
           const SizedBox(height: 6),
           Text(
-            'Receipt item names can be translated into your chosen target language. When Auto-detect is on, the app first tries to identify the original language from the item text.',
+            context.tr('settings_enable_translation_subtitle'),
             style: TextStyle(
               color: ShellStyles.textMuted(context),
               fontSize: 12.5,
@@ -174,7 +182,7 @@ class _ItemsTranslationSettingsScreenState
           ),
           const SizedBox(height: 10),
           Text(
-            'If very similar languages are detected incorrectly, turn Auto-detect off and choose the source language manually.',
+            context.tr('settings_items_translation_beta_hint'),
             style: const TextStyle(
               color: ShellColors.softBlue,
               fontSize: 12.5,
@@ -270,13 +278,15 @@ class _ItemsTranslationSettingsScreenState
                 children: <Widget>[
                   _buildInfoCard(),
                   const SizedBox(height: 16),
-                  ShellStyles.sectionLabel(context, 'Target language'),
+                  ShellStyles.sectionLabel(
+                    context,
+                    context.tr('settings_translate_to'),
+                  ),
                   const SizedBox(height: 8),
                   _buildSelectorField(
                     label: context.tr('translate_items_into'),
                     title: targetLanguage.englishName,
-                    subtitle:
-                        '${targetLanguage.nativeName} - Translated item names will appear in this language.',
+                    subtitle: targetLanguage.nativeName,
                     onTap: () async {
                       final picked = await _showLanguagePicker(
                         title: context.tr('translate_items_to'),
@@ -288,7 +298,10 @@ class _ItemsTranslationSettingsScreenState
                     },
                   ),
                   const SizedBox(height: 20),
-                  ShellStyles.sectionLabel(context, 'Source language'),
+                  ShellStyles.sectionLabel(
+                    context,
+                    context.tr('settings_auto_detect_source_language'),
+                  ),
                   const SizedBox(height: 8),
                   SettingsDetailCard(
                     padding: EdgeInsets.zero,
@@ -297,8 +310,9 @@ class _ItemsTranslationSettingsScreenState
                       children: <Widget>[
                         SettingsToggleRow(
                           title: context.tr('autodetect_source_language'),
-                          subtitle:
-                              'Use the item text to guess the original language before translation.',
+                          subtitle: context.tr(
+                            'settings_auto_detect_source_language_subtitle',
+                          ),
                           value: _autoDetect,
                           onChanged: _setAutoDetect,
                         ),
@@ -317,7 +331,9 @@ class _ItemsTranslationSettingsScreenState
                                     ),
                                   ),
                                   child: Text(
-                                    'The app will detect the original language from each receipt item before translating it.',
+                                    context.tr(
+                                      'settings_auto_detect_source_language_subtitle',
+                                    ),
                                     style: TextStyle(
                                       color: ShellStyles.textMuted(context),
                                       fontSize: 12.5,
@@ -328,11 +344,12 @@ class _ItemsTranslationSettingsScreenState
                               : _buildSelectorField(
                                   label: context.tr('use_this_source_language'),
                                   title: sourceLanguage.englishName,
-                                  subtitle:
-                                      '${sourceLanguage.nativeName} - The app will use this as the original language before translation.',
+                                  subtitle: sourceLanguage.nativeName,
                                   onTap: () async {
                                     final picked = await _showLanguagePicker(
-                                      title: context.tr('choose_source_language'),
+                                      title: context.tr(
+                                        'choose_source_language',
+                                      ),
                                       currentCode: _manualSourceCode,
                                     );
                                     if (picked != null) {

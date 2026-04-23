@@ -1036,7 +1036,11 @@ class _ReceiptItemEditScreenState extends State<ReceiptItemEditScreen> {
                                 runSpacing: 8,
                                 children: [
                                   ChoiceChip(
-                                    label: Text('Amount'),
+                                    label: Text(
+                                      context.tr(
+                                        'manual_transaction_amount_label',
+                                      ),
+                                    ),
                                     showCheckmark: false,
                                     backgroundColor: _surfaceColor,
                                     selectedColor: _accentChipColor,
@@ -1058,7 +1062,7 @@ class _ReceiptItemEditScreenState extends State<ReceiptItemEditScreen> {
                                           }),
                                   ),
                                   ChoiceChip(
-                                    label: Text('Percent'),
+                                    label: const Text('%'),
                                     showCheckmark: false,
                                     backgroundColor: _surfaceColor,
                                     selectedColor: _accentChipColor,

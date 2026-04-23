@@ -91,7 +91,7 @@ class _ProfileSettingsScreenState extends State<ProfileSettingsScreen> {
       setState(() {
         _error = friendlyLaunchErrorMessage(
           error,
-          fallback: 'Your profile could not load right now. Please try again.',
+          fallback: context.tr('profile_load_error'),
         );
         _isLoading = false;
       });
@@ -135,13 +135,16 @@ class _ProfileSettingsScreenState extends State<ProfileSettingsScreen> {
 
   String _accountTypeLabel() {
     if ((_subscriptionPayload?['has_active_subscription'] as bool?) == true) {
-      return 'Premium';
+      return context.tr('settings_account_type_pro');
     }
-    return 'Free';
+    return context.tr('settings_account_type_free');
   }
 
   String _receiptUsageLabel() {
-    return '$_allTimeReceiptScans scans';
+    return context.tr(
+      'profile_scans_count',
+      params: {'count': _allTimeReceiptScans.toString()},
+    );
   }
 
   Map<String, dynamic>? get _receiptScanUsage {
@@ -167,7 +170,12 @@ class _ProfileSettingsScreenState extends State<ProfileSettingsScreen> {
   String _receiptUsageThisMonthLabel() {
     if (_receiptScanUsage == null) return '--';
     final used = _receiptUsageThisMonthUsed;
-    if (_receiptUsageThisMonthUnlimited) return '$used scans used';
+    if (_receiptUsageThisMonthUnlimited) {
+      return context.tr(
+        'profile_scans_used',
+        params: {'count': used.toString()},
+      );
+    }
     final limit = _receiptUsageThisMonthLimit;
     return '$used / $limit';
   }
@@ -195,8 +203,7 @@ class _ProfileSettingsScreenState extends State<ProfileSettingsScreen> {
           content: Text(
             friendlyLaunchErrorMessage(
               error,
-              fallback:
-                  'We could not save your profile right now. Please try again.',
+              fallback: context.tr('profile_save_error'),
             ),
           ),
           backgroundColor: Colors.red,
@@ -291,7 +298,7 @@ class _ProfileSettingsScreenState extends State<ProfileSettingsScreen> {
                 children: [
                   Expanded(
                     child: Text(
-                      'Scans this month',
+                      context.tr('settings_receipt_usage_this_month'),
                       style: TextStyle(
                         color: ShellStyles.textMuted(context),
                         fontSize: 12,
@@ -334,7 +341,7 @@ class _ProfileSettingsScreenState extends State<ProfileSettingsScreen> {
   @override
   Widget build(BuildContext context) {
     return SettingsDetailScaffold(
-      title: 'Profile',
+      title: context.tr('settings_profile'),
       body: _isLoading
           ? const Center(child: CircularProgressIndicator())
           : _error != null
@@ -360,7 +367,9 @@ class _ProfileSettingsScreenState extends State<ProfileSettingsScreen> {
                                 Text(
                                   _nameController.text.trim().isEmpty
                                       ? (_email.isEmpty
-                                            ? 'Your account'
+                                            ? context.tr(
+                                                'settings_account_section',
+                                              )
                                             : _email)
                                       : _nameController.text.trim(),
                                   style: TextStyle(
@@ -371,7 +380,7 @@ class _ProfileSettingsScreenState extends State<ProfileSettingsScreen> {
                                 ),
                                 const SizedBox(height: 4),
                                 Text(
-                                  'Your email and photo are managed by Google.',
+                                  context.tr('profile_google_managed'),
                                   style: TextStyle(
                                     color: ShellStyles.textMuted(context),
                                     fontSize: 12.5,
@@ -393,15 +402,18 @@ class _ProfileSettingsScreenState extends State<ProfileSettingsScreen> {
                           TextField(
                             controller: _nameController,
                             textCapitalization: TextCapitalization.words,
-                            decoration: const InputDecoration(
-                              hintText: 'Enter display name',
+                            decoration: InputDecoration(
+                              hintText: context.tr('display_name'),
                             ),
                           ),
                         ],
                       ),
                     ),
                     const SizedBox(height: 16),
-                    ShellStyles.sectionLabel(context, 'Account'),
+                    ShellStyles.sectionLabel(
+                      context,
+                      context.tr('settings_account_section'),
+                    ),
                     const SizedBox(height: 8),
                     Container(
                       decoration: ShellStyles.cardDecoration(
@@ -410,9 +422,12 @@ class _ProfileSettingsScreenState extends State<ProfileSettingsScreen> {
                       ),
                       child: Column(
                         children: [
-                          _buildStatRow('Joined', _memberSinceLabel()),
                           _buildStatRow(
-                            'Plan',
+                            context.tr('settings_member_since'),
+                            _memberSinceLabel(),
+                          ),
+                          _buildStatRow(
+                            context.tr('settings_account_type'),
                             _accountTypeLabel(),
                             hasDivider: false,
                           ),
@@ -420,7 +435,10 @@ class _ProfileSettingsScreenState extends State<ProfileSettingsScreen> {
                       ),
                     ),
                     const SizedBox(height: 16),
-                    ShellStyles.sectionLabel(context, 'Usage'),
+                    ShellStyles.sectionLabel(
+                      context,
+                      context.tr('receipt_scans'),
+                    ),
                     const SizedBox(height: 8),
                     Container(
                       decoration: ShellStyles.cardDecoration(
@@ -429,7 +447,10 @@ class _ProfileSettingsScreenState extends State<ProfileSettingsScreen> {
                       ),
                       child: Column(
                         children: [
-                          _buildStatRow('Total scans', _receiptUsageLabel()),
+                          _buildStatRow(
+                            context.tr('receipt_scans'),
+                            _receiptUsageLabel(),
+                          ),
                           _buildMonthlyScanProgress(hasDivider: false),
                         ],
                       ),
@@ -507,7 +528,10 @@ class _DetailErrorView extends StatelessWidget {
               style: TextStyle(color: ShellStyles.textPrimary(context)),
             ),
             const SizedBox(height: 12),
-            FilledButton(onPressed: onRetry, child: const Text('Retry')),
+            FilledButton(
+              onPressed: onRetry,
+              child: Text(context.tr('common_retry')),
+            ),
           ],
         ),
       ),

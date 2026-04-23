@@ -234,7 +234,7 @@ class _NotificationsSettingsScreenState
     // insights, and marketing notification controls when each category has a
     // real end-to-end notification pipeline.
     return SettingsDetailScaffold(
-      title: 'Notifications',
+      title: context.tr('settings_notifications'),
       body: _isLoading
           ? const Center(child: CircularProgressIndicator())
           : SafeArea(
@@ -260,7 +260,10 @@ class _NotificationsSettingsScreenState
                       enabled: _notificationsAvailableOnPlatform,
                     ),
                     const SizedBox(height: 16),
-                    ShellStyles.sectionLabel(context, 'Bill reminders'),
+                    ShellStyles.sectionLabel(
+                      context,
+                      context.tr('settings_bill_reminders'),
+                    ),
                     const SizedBox(height: 8),
                     _buildToggleCard(
                       title: context.tr('upcoming_and_due_reminders'),

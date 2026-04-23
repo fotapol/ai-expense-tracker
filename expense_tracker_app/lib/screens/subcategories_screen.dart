@@ -506,7 +506,7 @@ class _SubcategoriesScreenState extends State<SubcategoriesScreen> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            'Create Subcategory',
+            context.tr('create_subcategory'),
             style: TextStyle(
               color: ShellStyles.textPrimary(context),
               fontSize: 16,
@@ -514,16 +514,20 @@ class _SubcategoriesScreenState extends State<SubcategoriesScreen> {
             ),
           ),
           const SizedBox(height: 16),
-          _fieldLabel('Subcategory Name'),
+          _fieldLabel(context.tr('subcategories_name_hint')),
           const SizedBox(height: 8),
           TextField(
             controller: _nameController,
             focusNode: _nameFocusNode,
             textCapitalization: TextCapitalization.words,
-            decoration: _inputDecoration(context, hintText: 'e.g., Pet Food'),
+            decoration: _inputDecoration(
+              context,
+              labelText: context.tr('subcategories_name_hint'),
+              hintText: context.tr('taxonomy_pet_food'),
+            ),
           ),
           const SizedBox(height: 16),
-          _fieldLabel('Icon'),
+          _fieldLabel(context.tr('common_icon')),
           const SizedBox(height: 10),
           Wrap(
             spacing: 10,
@@ -555,7 +559,7 @@ class _SubcategoriesScreenState extends State<SubcategoriesScreen> {
             }).toList(),
           ),
           const SizedBox(height: 16),
-          _fieldLabel('Color'),
+          _fieldLabel(context.tr('common_color')),
           const SizedBox(height: 10),
           _buildColorPicker(),
           const SizedBox(height: 18),
@@ -678,9 +682,11 @@ class _SubcategoriesScreenState extends State<SubcategoriesScreen> {
 
   InputDecoration _inputDecoration(
     BuildContext context, {
+    String? labelText,
     required String hintText,
   }) {
     return InputDecoration(
+      labelText: labelText,
       hintText: hintText,
       hintStyle: TextStyle(color: ShellStyles.textMuted(context)),
       filled: true,

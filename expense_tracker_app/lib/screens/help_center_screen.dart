@@ -19,65 +19,28 @@ class _HelpCenterScreenState extends State<HelpCenterScreen> {
     _FaqSection(
       title: context.tr('getting_started'),
       items: [
-        _FaqItem(
-          question: context.tr('faq_q1'),
-          answer:
-              context.tr('faq_a1'),
-        ),
-        _FaqItem(
-          question: context.tr('faq_q2'),
-          answer:
-              context.tr('faq_a2'),
-        ),
-        _FaqItem(
-          question: context.tr('faq_q3'),
-          answer:
-              context.tr('faq_a3'),
-        ),
+        _FaqItem(question: context.tr('faq_q1'), answer: context.tr('faq_a1')),
+        _FaqItem(question: context.tr('faq_q2'), answer: context.tr('faq_a2')),
+        _FaqItem(question: context.tr('faq_q3'), answer: context.tr('faq_a3')),
       ],
     ),
     _FaqSection(
       title: context.tr('subscription_billing'),
       items: [
-        _FaqItem(
-          question: 'What\'s included in the Free plan?',
-          answer:
-              context.tr('faq_a4'),
-        ),
-        _FaqItem(
-          question: context.tr('faq_q5'),
-          answer:
-              context.tr('faq_a5'),
-        ),
-        _FaqItem(
-          question: context.tr('faq_q6'),
-          answer:
-              context.tr('faq_a6'),
-        ),
-        _FaqItem(
-          question: context.tr('faq_q7'),
-          answer:
-              context.tr('faq_a7'),
-        ),
+        _FaqItem(question: context.tr('faq_q4'), answer: context.tr('faq_a4')),
+        _FaqItem(question: context.tr('faq_q5'), answer: context.tr('faq_a5')),
+        _FaqItem(question: context.tr('faq_q6'), answer: context.tr('faq_a6')),
+        _FaqItem(question: context.tr('faq_q7'), answer: context.tr('faq_a7')),
       ],
     ),
     _FaqSection(
       title: context.tr('features_tools'),
       items: [
-        _FaqItem(
-          question: context.tr('faq_q8'),
-          answer:
-              context.tr('faq_a8'),
-        ),
-        _FaqItem(
-          question: context.tr('faq_q9'),
-          answer:
-              context.tr('faq_a9'),
-        ),
+        _FaqItem(question: context.tr('faq_q8'), answer: context.tr('faq_a8')),
+        _FaqItem(question: context.tr('faq_q9'), answer: context.tr('faq_a9')),
         _FaqItem(
           question: context.tr('faq_q10'),
-          answer:
-              context.tr('faq_a10'),
+          answer: context.tr('faq_a10'),
         ),
       ],
     ),
@@ -86,18 +49,15 @@ class _HelpCenterScreenState extends State<HelpCenterScreen> {
       items: [
         _FaqItem(
           question: context.tr('faq_q11'),
-          answer:
-              context.tr('faq_a11'),
+          answer: context.tr('faq_a11'),
         ),
         _FaqItem(
           question: context.tr('faq_q12'),
-          answer:
-              context.tr('faq_a12'),
+          answer: context.tr('faq_a12'),
         ),
         _FaqItem(
           question: context.tr('faq_q13'),
-          answer:
-              context.tr('faq_a13'),
+          answer: context.tr('faq_a13'),
         ),
       ],
     ),
@@ -133,7 +93,14 @@ class _HelpCenterScreenState extends State<HelpCenterScreen> {
     await Clipboard.setData(ClipboardData(text: supportEmail));
     if (!mounted) return;
     ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text('Support email copied: $supportEmail')),
+      SnackBar(
+        content: Text(
+          context.tr(
+            'help_support_email_copied',
+            params: {'email': supportEmail},
+          ),
+        ),
+      ),
     );
   }
 

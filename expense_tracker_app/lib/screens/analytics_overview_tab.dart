@@ -110,8 +110,7 @@ class _AnalyticsOverviewTabState extends State<AnalyticsOverviewTab> {
       setState(() {
         _error = friendlyLaunchErrorMessage(
           error,
-          fallback:
-              context.tr('analytics_error_message'),
+          fallback: context.tr('analytics_error_message'),
         );
         _isLoading = false;
       });
@@ -263,8 +262,7 @@ class _AnalyticsOverviewTabState extends State<AnalyticsOverviewTab> {
             AnalyticsEmptyCard(
               icon: Icons.insights_outlined,
               title: context.tr('no_overview_yet'),
-              message:
-                  context.tr('analytics_empty_overview_message'),
+              message: context.tr('analytics_empty_overview_message'),
             )
           else ...[
             _buildSummaryCard(
@@ -635,8 +633,11 @@ class _AnalyticsOverviewTabState extends State<AnalyticsOverviewTab> {
               const SizedBox(height: 3),
               Text(
                 merchant.count == 1
-                    ? '1 transaction'
-                    : '${merchant.count} transactions',
+                    ? context.tr('analytics_transactions_count_single')
+                    : context.tr(
+                        'analytics_transactions_count_plural',
+                        params: {'count': merchant.count.toString()},
+                      ),
                 style: TextStyle(
                   color: ShellStyles.textMuted(context),
                   fontSize: 12,
@@ -659,7 +660,10 @@ class _AnalyticsOverviewTabState extends State<AnalyticsOverviewTab> {
             ),
             const SizedBox(height: 3),
             Text(
-              '${(merchant.share * 100).round()}% of spend',
+              context.tr(
+                'analytics_spend_share',
+                params: {'percent': (merchant.share * 100).round().toString()},
+              ),
               style: TextStyle(
                 color: ShellStyles.textMuted(context),
                 fontSize: 11,
@@ -745,7 +749,10 @@ class _AnalyticsOverviewTabState extends State<AnalyticsOverviewTab> {
             ),
             const SizedBox(height: 3),
             Text(
-              '${(category.share * 100).round()}% of spend',
+              context.tr(
+                'analytics_spend_share',
+                params: {'percent': (category.share * 100).round().toString()},
+              ),
               style: TextStyle(
                 color: ShellStyles.textMuted(context),
                 fontSize: 11,

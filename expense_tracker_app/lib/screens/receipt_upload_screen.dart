@@ -39,29 +39,29 @@ class _ReceiptUploadScreenState extends State<ReceiptUploadScreen> {
   String _friendlyUploadError(Object error) {
     return friendlyLaunchErrorMessage(
       error,
-      fallback: 'We could not finish the receipt upload. Please try again.',
+      fallback: context.tr('error_receipt_extraction_failed'),
     );
   }
 
   String _processingHeadline() {
     switch (_status) {
       case 'uploading':
-        return 'Uploading your receipt...';
+        return context.tr('upload_status_uploading');
       case 'processing':
-        return 'Extracting receipt details...';
+        return context.tr('upload_status_processing');
       default:
-        return 'Ready to scan';
+        return context.tr('quick_scan_with_ai_review');
     }
   }
 
   String _processingBody() {
     switch (_status) {
       case 'uploading':
-        return 'We are sending the file to your account now. This usually only takes a moment.';
+        return context.tr('upload_status_uploading');
       case 'processing':
-        return 'We will open the review screen with the merchant, total, and items before anything is saved.';
+        return context.tr('upload_status_processing');
       default:
-        return 'Take a clear photo or choose a file, then review the extracted details before saving.';
+        return context.tr('home_start_subtitle');
     }
   }
 
@@ -246,10 +246,10 @@ class _ReceiptUploadScreenState extends State<ReceiptUploadScreen> {
         if (!mounted) return;
         final decision = interpretReceiptPollingPayload(
           data,
-          missingTransactionMessage:
-              'Receipt processing finished, but no transaction was returned.',
-          extractionFailedFallback:
-              'We couldn\'t recognize a receipt or extract usable data. Try a clearer photo with the full receipt visible.',
+          missingTransactionMessage: context.tr('upload_extraction_failed'),
+          extractionFailedFallback: context.tr(
+            'error_receipt_extraction_failed',
+          ),
         );
 
         if (decision.action == ReceiptPollingAction.completed) {
@@ -292,8 +292,7 @@ class _ReceiptUploadScreenState extends State<ReceiptUploadScreen> {
     if (mounted) {
       setState(() {
         _status = 'failed';
-        _error =
-            'We couldn\'t finish extracting usable receipt details in time. Try again or choose another image.';
+        _error = context.tr('upload_timed_out');
       });
     }
   }
@@ -326,7 +325,7 @@ class _ReceiptUploadScreenState extends State<ReceiptUploadScreen> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            'Scan and review before saving',
+            context.tr('quick_scan_with_ai_review'),
             style: TextStyle(
               color: ShellStyles.textPrimary(context),
               fontSize: ShellStyles.scaled(context, 18, min: 16, max: 20),
@@ -335,7 +334,7 @@ class _ReceiptUploadScreenState extends State<ReceiptUploadScreen> {
           ),
           const SizedBox(height: 8),
           Text(
-            'Use a clear, flat photo with the full receipt visible. We only save after you review the extracted details.',
+            context.tr('receipts_empty_body'),
             style: TextStyle(
               color: ShellStyles.textMuted(context),
               fontSize: ShellStyles.scaled(context, 13, min: 12, max: 14),
@@ -343,13 +342,13 @@ class _ReceiptUploadScreenState extends State<ReceiptUploadScreen> {
             ),
           ),
           SizedBox(height: ShellStyles.scaled(context, 14, min: 12, max: 16)),
-          Row(
+          Wrap(
+            spacing: 8,
+            runSpacing: 8,
             children: [
-              _buildHintPill('Full receipt in frame'),
-              const SizedBox(width: 8),
-              _buildHintPill('Good lighting'),
-              const SizedBox(width: 8),
-              _buildHintPill('Up to 10 MB'),
+              _buildHintPill(context.tr('upload_hint_full_receipt')),
+              _buildHintPill(context.tr('upload_hint_good_lighting')),
+              _buildHintPill(context.tr('upload_hint_size_limit')),
             ],
           ),
         ],
@@ -453,7 +452,7 @@ class _ReceiptUploadScreenState extends State<ReceiptUploadScreen> {
                             ),
                           ),
                           Text(
-                            'Camera is the fastest way to scan',
+                            context.tr('tools_scan_receipt'),
                             textAlign: TextAlign.center,
                             style: TextStyle(
                               color: ShellStyles.textPrimary(context),
@@ -468,7 +467,7 @@ class _ReceiptUploadScreenState extends State<ReceiptUploadScreen> {
                           ),
                           const SizedBox(height: 8),
                           Text(
-                            'Take a photo now or import a receipt image from your gallery.',
+                            context.tr('receipts_empty_body'),
                             textAlign: TextAlign.center,
                             style: TextStyle(
                               color: ShellStyles.textMuted(context),
@@ -495,7 +494,9 @@ class _ReceiptUploadScreenState extends State<ReceiptUploadScreen> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  _pickedFile == null ? 'Receipt preview' : _pickedFile!.name,
+                  _pickedFile == null
+                      ? context.tr('transaction_receipt_photo_title')
+                      : _pickedFile!.name,
                   style: TextStyle(
                     color: ShellStyles.textPrimary(context),
                     fontSize: ShellStyles.scaled(context, 15, min: 14, max: 16),
@@ -505,8 +506,8 @@ class _ReceiptUploadScreenState extends State<ReceiptUploadScreen> {
                 const SizedBox(height: 4),
                 Text(
                   _pickedFile == null
-                      ? 'Your selected photo will appear here before extraction starts.'
-                      : 'You can review this image, switch to another one, or start extraction now.',
+                      ? context.tr('upload_preview_empty_body')
+                      : context.tr('upload_preview_selected_body'),
                   style: TextStyle(
                     color: ShellStyles.textMuted(context),
                     fontSize: ShellStyles.scaled(context, 12, min: 11, max: 13),
@@ -587,19 +588,19 @@ class _ReceiptUploadScreenState extends State<ReceiptUploadScreen> {
           _buildProcessingStep(
             stepIndex: 0,
             title: context.tr('upload_receipt'),
-            body: 'Store the file securely in your account.',
+            body: context.tr('upload_status_uploading'),
           ),
           const SizedBox(height: 12),
           _buildProcessingStep(
             stepIndex: 1,
             title: context.tr('read_totals_and_items'),
-            body: 'Extract the merchant, totals, and line items.',
+            body: context.tr('read_totals_and_items'),
           ),
           const SizedBox(height: 12),
           _buildProcessingStep(
             stepIndex: 2,
             title: context.tr('open_review'),
-            body: 'Prepare the editable review screen before saving.',
+            body: context.tr('open_review'),
           ),
           const SizedBox(height: 16),
           LinearProgressIndicator(
@@ -633,7 +634,7 @@ class _ReceiptUploadScreenState extends State<ReceiptUploadScreen> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  'Try another scan',
+                  context.tr('upload_try_again'),
                   style: TextStyle(
                     color: ShellStyles.textPrimary(context),
                     fontSize: ShellStyles.scaled(context, 15, min: 14, max: 16),
@@ -642,7 +643,7 @@ class _ReceiptUploadScreenState extends State<ReceiptUploadScreen> {
                 ),
                 const SizedBox(height: 6),
                 Text(
-                  _error ?? 'We couldn\'t finish reading this receipt.',
+                  _error ?? context.tr('error_receipt_extraction_failed'),
                   style: TextStyle(
                     color: ShellStyles.textPrimary(context),
                     fontSize: ShellStyles.scaled(
@@ -740,8 +741,8 @@ class _ReceiptUploadScreenState extends State<ReceiptUploadScreen> {
                       icon: const Icon(Icons.photo_camera_outlined),
                       label: Text(
                         _lastPickSource == _ReceiptPickSource.camera
-                            ? 'Retake photo'
-                            : 'Use camera',
+                            ? context.tr('upload_camera')
+                            : context.tr('upload_camera'),
                       ),
                     ),
                   ),
@@ -757,8 +758,8 @@ class _ReceiptUploadScreenState extends State<ReceiptUploadScreen> {
                       icon: const Icon(Icons.photo_library_outlined),
                       label: Text(
                         _status == 'failed'
-                            ? 'Choose another image'
-                            : 'Choose from gallery',
+                            ? context.tr('upload_gallery')
+                            : context.tr('upload_gallery'),
                       ),
                     ),
                   ),

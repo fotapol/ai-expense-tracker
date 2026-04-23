@@ -199,7 +199,7 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
       setState(() {
         _error = friendlyLaunchErrorMessage(
           error,
-          fallback: 'Analytics could not load right now. Please try again.',
+          fallback: context.tr('analytics_error_message'),
         );
         _isLoading = false;
       });

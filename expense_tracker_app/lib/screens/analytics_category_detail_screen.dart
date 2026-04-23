@@ -173,7 +173,7 @@ class _AnalyticsCategoryDetailScreenState
                     border: Border.all(color: headerTone.border),
                   ),
                   child: Text(
-                    'Category overview',
+                    context.tr('analytics_category_overview'),
                     style: TextStyle(
                       color: headerTone.foreground,
                       fontSize: 12,

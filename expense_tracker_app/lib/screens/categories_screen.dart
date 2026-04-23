@@ -122,22 +122,19 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
   List<Map<String, dynamic>> get _topLevelCategories =>
       _categories.where((category) => category['parent_id'] == null).toList();
 
-  List<Map<String, dynamic>> get _builtInCategories => _sorted(
-    _topLevelCategories.where((category) => category['is_default'] == true),
+  List<Map<String, dynamic>> get _activeCategories => _sorted(
+    _topLevelCategories.where((category) => category['is_disabled'] != true),
   );
 
-  List<Map<String, dynamic>> get _customCategories => _sorted(
-    _topLevelCategories.where(
-      (category) =>
-          category['is_default'] != true && category['is_disabled'] != true,
-    ),
+  List<Map<String, dynamic>> get _disabledCategories => _sorted(
+    _topLevelCategories.where((category) => category['is_disabled'] == true),
   );
 
   String _countLabel() {
-    final count = _topLevelCategories
-        .where((category) => category['is_disabled'] != true)
-        .length;
-    return '$count active categories';
+    return context.tr(
+      'categories_active_count',
+      params: {'count': _activeCategories.length.toString()},
+    );
   }
 
   void _openCreateForm() {
@@ -461,10 +458,10 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
             ),
             _buildActionPill(
               label: disabled
-                  ? 'Enable'
+                  ? context.tr('categories_restore_action')
                   : isBuiltIn
-                  ? 'Disable'
-                  : 'Delete',
+                  ? context.tr('categories_disable_action')
+                  : context.tr('common_delete'),
               onTap: disabled
                   ? () => _restoreCategory(category)
                   : () => _deleteOrDisableCategory(category),
@@ -525,7 +522,7 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            'Could not load categories',
+            context.tr('common_error'),
             style: TextStyle(
               color: ShellStyles.textPrimary(context),
               fontSize: 15,
@@ -564,7 +561,7 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            'Create Custom Category',
+            context.tr('create_category'),
             style: TextStyle(
               color: ShellStyles.textPrimary(context),
               fontSize: 16,
@@ -572,16 +569,18 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
             ),
           ),
           const SizedBox(height: 16),
-          _fieldLabel('Category Name'),
-          const SizedBox(height: 8),
           TextField(
             controller: _nameController,
             focusNode: _nameFocusNode,
             textCapitalization: TextCapitalization.words,
-            decoration: _inputDecoration(context, hintText: 'e.g., Pet Care'),
+            decoration: _inputDecoration(
+              context,
+              labelText: context.tr('manual_transaction_category_label'),
+              hintText: context.tr('taxonomy_personal_care'),
+            ),
           ),
           const SizedBox(height: 16),
-          _fieldLabel('Icon'),
+          _fieldLabel(context.tr('common_icon')),
           const SizedBox(height: 10),
           Wrap(
             spacing: 10,
@@ -617,7 +616,7 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
             }).toList(),
           ),
           const SizedBox(height: 16),
-          _fieldLabel('Color'),
+          _fieldLabel(context.tr('common_color')),
           const SizedBox(height: 10),
           _buildColorPicker(),
           const SizedBox(height: 18),
@@ -673,26 +672,6 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
     );
   }
 
-  Widget _buildInfoCard() {
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: ShellStyles.cardDecoration(
-        context,
-        radius: 18,
-        color: ShellStyles.surfaceAlt(context),
-        withShadow: false,
-      ),
-      child: Text(
-        'Tip: Disabled categories won\'t appear when categorizing expenses. You can re-enable them anytime.',
-        style: TextStyle(
-          color: ShellStyles.textMuted(context),
-          fontSize: 13,
-          height: 1.55,
-        ),
-      ),
-    );
-  }
-
   Widget _fieldLabel(String text) {
     return Text(
       text,
@@ -706,9 +685,11 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
 
   InputDecoration _inputDecoration(
     BuildContext context, {
+    String? labelText,
     required String hintText,
   }) {
     return InputDecoration(
+      labelText: labelText,
       hintText: hintText,
       hintStyle: TextStyle(color: ShellStyles.textMuted(context)),
       filled: true,
@@ -822,23 +803,27 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
                               key: ValueKey('create-form-hidden'),
                             ),
                     ),
-                    ShellStyles.sectionLabel(context, 'Default Categories'),
+                    ShellStyles.sectionLabel(
+                      context,
+                      context.tr('categories_active_section'),
+                    ),
                     const SizedBox(height: 12),
                     _buildCardList(
-                      _builtInCategories,
+                      _activeCategories,
                       emptyText: context.tr('categories_not_found'),
                     ),
-                    if (_customCategories.isNotEmpty) ...[
+                    if (_disabledCategories.isNotEmpty) ...[
                       const SizedBox(height: 22),
-                      ShellStyles.sectionLabel(context, 'Custom Categories'),
+                      ShellStyles.sectionLabel(
+                        context,
+                        context.tr('categories_disabled_section'),
+                      ),
                       const SizedBox(height: 12),
                       _buildCardList(
-                        _customCategories,
-                        emptyText: 'No custom categories yet.',
+                        _disabledCategories,
+                        emptyText: context.tr('categories_not_found'),
                       ),
                     ],
-                    const SizedBox(height: 22),
-                    _buildInfoCard(),
                   ],
                 ),
               ),

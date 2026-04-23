@@ -198,7 +198,10 @@ class _LabelsScreenState extends State<LabelsScreen> {
 
   String _countLabel() {
     final count = _labels.length;
-    return '$count custom label${count == 1 ? '' : 's'}';
+    return context.tr(
+      'filters_labels_count',
+      params: {'count': count.toString()},
+    );
   }
 
   List<AppColorPickerOption> _labelColorOptions() {
@@ -302,7 +305,10 @@ class _LabelsScreenState extends State<LabelsScreen> {
                               key: ValueKey('create-form-hidden'),
                             ),
                     ),
-                    ShellStyles.sectionLabel(context, 'Your Labels'),
+                    ShellStyles.sectionLabel(
+                      context,
+                      context.tr('labels_title'),
+                    ),
                     const SizedBox(height: 12),
                     _buildLabelsList(),
                   ],
@@ -329,7 +335,7 @@ class _LabelsScreenState extends State<LabelsScreen> {
               const SizedBox(width: 10),
               Expanded(
                 child: Text(
-                  'Could not load labels',
+                  context.tr('common_error'),
                   style: TextStyle(
                     color: ShellStyles.textPrimary(context),
                     fontSize: 15,
@@ -371,7 +377,7 @@ class _LabelsScreenState extends State<LabelsScreen> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            'Create Custom Label',
+            context.tr('labels_add_label'),
             style: TextStyle(
               color: ShellStyles.textPrimary(context),
               fontSize: 16,
@@ -379,7 +385,7 @@ class _LabelsScreenState extends State<LabelsScreen> {
             ),
           ),
           const SizedBox(height: 16),
-          _fieldLabel('Label Name'),
+          _fieldLabel(context.tr('labels_name_label')),
           const SizedBox(height: 8),
           TextField(
             controller: _nameController,
@@ -387,11 +393,11 @@ class _LabelsScreenState extends State<LabelsScreen> {
             textCapitalization: TextCapitalization.words,
             decoration: _inputDecoration(
               context,
-              hintText: 'e.g., Business Expense',
+              hintText: context.tr('labels_name_hint'),
             ),
           ),
           const SizedBox(height: 16),
-          _fieldLabel('Color'),
+          _fieldLabel(context.tr('settings_accent_color')),
           const SizedBox(height: 10),
           Wrap(
             spacing: 12,

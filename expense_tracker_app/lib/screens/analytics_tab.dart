@@ -150,8 +150,7 @@ class _AnalyticsTabState extends State<AnalyticsTab>
         setState(() {
           _error = friendlyLaunchErrorMessage(
             error,
-            fallback:
-                'Analytics could not refresh right now. Please try again.',
+            fallback: context.tr('analytics_error_message'),
           );
           _isLoading = false;
         });
@@ -285,8 +284,7 @@ class _AnalyticsTabState extends State<AnalyticsTab>
             AnalyticsEmptyCard(
               icon: Icons.pie_chart_outline,
               title: context.tr('no_category_insights_yet'),
-              message:
-                  'Scan receipts to see your spending share by category and drill into the biggest areas.',
+              message: context.tr('analytics_empty_categories_message'),
             )
           else ...[
             _buildDonutCard(
@@ -602,11 +600,11 @@ class _AnalyticsTabState extends State<AnalyticsTab>
         children: [
           AnalyticsSectionHeader(
             title: isSubcategoryMode
-                ? 'Subcategory details'
-                : 'Category details',
+                ? context.tr('analytics_subcategory_details_title')
+                : context.tr('analytics_category_details_title'),
             subtitle: isSubcategoryMode
-                ? 'Open a subcategory to review the matching items.'
-                : 'Open a category to see the underlying subcategories.',
+                ? context.tr('analytics_subcategory_details_subtitle')
+                : context.tr('analytics_category_details_subtitle'),
           ),
           const SizedBox(height: 14),
           if (categories.isEmpty)
@@ -767,7 +765,7 @@ class _AnalyticsTabState extends State<AnalyticsTab>
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           AnalyticsSectionHeader(
-            title: 'Discounts',
+            title: context.tr('analytics_discounts_title'),
             subtitle: context.tr('helpful_savings_spotted_in_the_current_r'),
             trailing: Container(
               width: 38,

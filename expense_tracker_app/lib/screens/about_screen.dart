@@ -69,7 +69,7 @@ class _AboutScreenState extends State<AboutScreen> {
     final opened = await launchUrl(uri);
     if (!mounted || opened) return;
     ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text('Could not open ${AppEnv.supportEmail}.')),
+      SnackBar(content: Text(context.tr('could_not_open_that_link'))),
     );
   }
 
@@ -273,7 +273,7 @@ class _AboutScreenState extends State<AboutScreen> {
                 child: Column(
                   children: <Widget>[
                     _buildLinkRow(
-                      title: 'Website',
+                      title: context.tr('about_website_label'),
                       subtitle: AppEnv.websiteUrl,
                       onTap: () => _openUrl(AppEnv.websiteUrl),
                     ),

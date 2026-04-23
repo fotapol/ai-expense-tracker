@@ -120,8 +120,7 @@ class _AnalyticsTrendsTabState extends State<AnalyticsTrendsTab> {
       setState(() {
         _error = friendlyLaunchErrorMessage(
           error,
-          fallback:
-              context.tr('analytics_trends_load_error'),
+          fallback: context.tr('analytics_trends_load_error'),
         );
         _isLoading = false;
       });
@@ -224,8 +223,7 @@ class _AnalyticsTrendsTabState extends State<AnalyticsTrendsTab> {
             AnalyticsEmptyCard(
               icon: Icons.show_chart,
               title: context.tr('no_trend_data_yet'),
-              message:
-                  context.tr('analytics_trends_empty_subtitle'),
+              message: context.tr('analytics_trends_empty_subtitle'),
             )
           else ...[
             _buildMetricsRow(
@@ -323,7 +321,7 @@ class _AnalyticsTrendsTabState extends State<AnalyticsTrendsTab> {
             SizedBox(
               width: tileWidth,
               child: _TrendMetricCard(
-                label: 'Transactions',
+                label: context.tr('analytics_trends_transactions'),
                 value: '$totalTransactions',
                 change: _buildMetricChange(
                   current: totalTransactions.toDouble(),
@@ -414,7 +412,7 @@ class _AnalyticsTrendsTabState extends State<AnalyticsTrendsTab> {
             children: [
               Expanded(
                 child: _RangeInsightTile(
-                  label: 'Lowest',
+                  label: context.tr('analytics_trends_lowest'),
                   value: lowestPoint == null
                       ? context.tr('analytics_no_data')
                       : '${formatMoney(currency, lowestPoint.amount)} - ${lowestPoint.label}',
@@ -426,7 +424,7 @@ class _AnalyticsTrendsTabState extends State<AnalyticsTrendsTab> {
               const SizedBox(width: 12),
               Expanded(
                 child: _RangeInsightTile(
-                  label: 'Highest',
+                  label: context.tr('analytics_trends_highest'),
                   value: highestPoint == null
                       ? context.tr('analytics_no_data')
                       : '${formatMoney(currency, highestPoint.amount)} - ${highestPoint.label}',
@@ -589,7 +587,13 @@ class _AnalyticsTrendsTabState extends State<AnalyticsTrendsTab> {
             final index = spot.x.round();
             final point = trendSeries[index];
             return LineTooltipItem(
-              '${point.tooltipLabel}\nSpent: ${formatMoney(currency, point.amount)}',
+              context.tr(
+                'analytics_trends_spent_tooltip',
+                params: {
+                  'label': point.tooltipLabel,
+                  'amount': formatMoney(currency, point.amount),
+                },
+              ),
               TextStyle(
                 color: ShellStyles.tooltipText(context),
                 fontWeight: FontWeight.w700,
@@ -708,7 +712,13 @@ class _AnalyticsTrendsTabState extends State<AnalyticsTrendsTab> {
           getTooltipItem: (group, groupIndex, rod, rodIndex) {
             final point = bars[groupIndex];
             return BarTooltipItem(
-              '${point.tooltipLabel}\nSpent: ${formatMoney(currency, point.amount)}',
+              context.tr(
+                'analytics_trends_spent_tooltip',
+                params: {
+                  'label': point.tooltipLabel,
+                  'amount': formatMoney(currency, point.amount),
+                },
+              ),
               TextStyle(
                 color: ShellStyles.tooltipText(context),
                 fontWeight: FontWeight.w700,
@@ -851,10 +861,16 @@ class _AnalyticsTrendsTabState extends State<AnalyticsTrendsTab> {
       for (var index = 0; index < rawValues.length; index++)
         _TrendPoint(
           label: start == null
-              ? 'Day ${index + 1}'
+              ? context.tr(
+                  'analytics_trends_day_label',
+                  params: {'number': (index + 1).toString()},
+                )
               : DateFormat('EEE').format(start.add(Duration(days: index))),
           tooltipLabel: start == null
-              ? 'Day ${index + 1}'
+              ? context.tr(
+                  'analytics_trends_day_label',
+                  params: {'number': (index + 1).toString()},
+                )
               : DateFormat('EEE').format(start.add(Duration(days: index))),
           amount: rawValues[index],
         ),
@@ -883,7 +899,10 @@ class _AnalyticsTrendsTabState extends State<AnalyticsTrendsTab> {
       final total = rawValues
           .sublist(start, end)
           .fold<double>(0, (sum, value) => sum + value);
-      final label = 'Week ${bucketIndex + 1}';
+      final label = context.tr(
+        'analytics_trends_week_label',
+        params: {'number': (bucketIndex + 1).toString()},
+      );
       series.add(_TrendPoint(label: label, tooltipLabel: label, amount: total));
     }
     return series;
@@ -905,10 +924,18 @@ class _AnalyticsTrendsTabState extends State<AnalyticsTrendsTab> {
         rawLabel: rawBuckets[index]['label']?.toString() ?? '',
       );
       final key = bucketDate == null
-          ? rawBuckets[index]['label']?.toString() ?? 'Period ${index + 1}'
+          ? rawBuckets[index]['label']?.toString() ??
+                context.tr(
+                  'analytics_trends_period_fallback',
+                  params: {'number': (index + 1).toString()},
+                )
           : '${bucketDate.year}-${bucketDate.month}';
       final label = bucketDate == null
-          ? rawBuckets[index]['label']?.toString() ?? 'Period ${index + 1}'
+          ? rawBuckets[index]['label']?.toString() ??
+                context.tr(
+                  'analytics_trends_period_fallback',
+                  params: {'number': (index + 1).toString()},
+                )
           : DateFormat('MMM').format(bucketDate);
       final point = grouped.putIfAbsent(
         key,
@@ -1057,7 +1084,7 @@ class _TrendMetricCard extends StatelessWidget {
           const SizedBox(height: 8),
           if (change == null)
             Text(
-              'No prior',
+              context.tr('analytics_trends_no_prior'),
               style: TextStyle(
                 color: ShellStyles.textMuted(context),
                 fontSize: 10.5,

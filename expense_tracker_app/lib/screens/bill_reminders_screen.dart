@@ -78,8 +78,7 @@ class _BillRemindersScreenState extends State<BillRemindersScreen> {
       setState(() {
         _error = friendlyLaunchErrorMessage(
           error,
-          fallback:
-              context.tr('bill_reminders_load_error'),
+          fallback: context.tr('bill_reminders_load_error'),
         );
         _isLoading = false;
       });
@@ -175,7 +174,7 @@ class _BillRemindersScreenState extends State<BillRemindersScreen> {
       case billReminderRecurrenceDaily:
         return context.tr('bill_reminders_recurring_daily');
       case billReminderRecurrenceWeekly:
-        return 'Weekly';
+        return context.tr('bill_reminders_recurrence_weekly');
       case billReminderRecurrenceYearly:
         return context.tr('bill_reminders_recurring_yearly');
       case billReminderRecurrenceMonthly:
@@ -397,7 +396,10 @@ class _BillRemindersScreenState extends State<BillRemindersScreen> {
           AlertDialog(
             title: Text(context.tr('delete_reminder')),
             content: Text(
-              context.tr('delete_reminder_name_confirm', params: {'name': reminder.name}),
+              context.tr(
+                'delete_reminder_name_confirm',
+                params: {'name': reminder.name},
+              ),
               style: TextStyle(
                 color: ShellStyles.textPrimary(dialogContext),
                 height: 1.35,
@@ -594,7 +596,12 @@ class _BillRemindersScreenState extends State<BillRemindersScreen> {
               Text(
                 items.isEmpty
                     ? context.tr('bill_reminders_empty_upcoming')
-                    : '${items.length} upcoming reminder${items.length == 1 ? '' : 's'}',
+                    : items.length == 1
+                    ? context.tr('bill_reminders_subtitle_single')
+                    : context.tr(
+                        'bill_reminders_subtitle_plural',
+                        params: {'count': items.length.toString()},
+                      ),
                 style: TextStyle(
                   color: ShellStyles.heroTextSecondary(context),
                   fontSize: 12,
@@ -687,7 +694,7 @@ class _BillRemindersScreenState extends State<BillRemindersScreen> {
           const SizedBox(height: 12),
           InputDecorator(
             decoration: InputDecoration(
-              labelText: 'Recurrence',
+              labelText: context.tr('bill_reminders_recurrence_label'),
               floatingLabelBehavior: FloatingLabelBehavior.always,
             ),
             child: Wrap(
@@ -783,7 +790,9 @@ class _BillRemindersScreenState extends State<BillRemindersScreen> {
         : occurrence.isOverdue
         ? ShellColors.softRed.withAlpha(90)
         : ShellStyles.border(context);
-    final statusLabel = isHistory ? 'Paid' : _statusLabel(occurrence.status);
+    final statusLabel = isHistory
+        ? context.tr('bill_reminders_paid_status')
+        : _statusLabel(occurrence.status);
 
     return Container(
       padding: const EdgeInsets.all(14),
@@ -830,7 +839,7 @@ class _BillRemindersScreenState extends State<BillRemindersScreen> {
                   onPressed: isBusy
                       ? null
                       : () => _handleDeleteAction(occurrence),
-                  tooltip: 'Remove reminder',
+                  tooltip: context.tr('remove_reminder'),
                   icon: isDeleting
                       ? SizedBox(
                           width: 18,
@@ -887,7 +896,14 @@ class _BillRemindersScreenState extends State<BillRemindersScreen> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      '${isHistory ? 'Paid for due' : 'Next due'}: ${DateFormat.yMMMd().format(occurrence.dueDate)}',
+                      context.tr(
+                        isHistory
+                            ? 'bill_reminders_paid_due_label'
+                            : 'bill_reminders_next_due_on',
+                        params: {
+                          'date': DateFormat.yMMMd().format(occurrence.dueDate),
+                        },
+                      ),
                       style: TextStyle(
                         color: ShellStyles.textPrimary(context),
                         fontSize: 13,
@@ -897,7 +913,14 @@ class _BillRemindersScreenState extends State<BillRemindersScreen> {
                         occurrence.reminder.lastPaidAt != null) ...[
                       const SizedBox(height: 4),
                       Text(
-                        context.tr('bill_reminders_marked_paid_at', params: {'date': DateFormat.yMMMd().add_Hm().format(occurrence.reminder.lastPaidAt!)}),
+                        context.tr(
+                          'bill_reminders_marked_paid_at',
+                          params: {
+                            'date': DateFormat.yMMMd().add_Hm().format(
+                              occurrence.reminder.lastPaidAt!,
+                            ),
+                          },
+                        ),
                         style: TextStyle(
                           color: ShellStyles.textMuted(context),
                           fontSize: 11.5,
@@ -1128,10 +1151,14 @@ class _BillRemindersScreenState extends State<BillRemindersScreen> {
                         children: [
                           Expanded(
                             child: _buildSectionHeader(
-                              isShowingHistory ? context.tr('bill_reminders_tab_history') : 'Upcoming',
+                              isShowingHistory
+                                  ? context.tr('bill_reminders_tab_history')
+                                  : context.tr('bill_reminders_tab_upcoming'),
                               subtitle: isShowingHistory
                                   ? _historySubtitle()
-                                  : context.tr('bill_reminders_upcoming_sort_desc'),
+                                  : context.tr(
+                                      'bill_reminders_upcoming_sort_desc',
+                                    ),
                             ),
                           ),
                           if (isShowingHistory && paidItems.isNotEmpty) ...[
