@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
-import 'package:intl/intl.dart';
 import '../core/auto_refresh_state_mixin.dart';
 import '../core/api_client.dart';
 import '../core/category_style.dart';
 import '../core/launch_error_copy.dart';
+import '../core/localized_dates.dart';
 import '../core/money_formatter.dart';
 import '../core/redesign_system.dart';
 import '../core/session_invalidation.dart';
@@ -798,14 +798,13 @@ class _ReceiptsTabState extends State<ReceiptsTab>
     }
 
     // Group transactions by month
-    final localeTag = Localizations.localeOf(context).toString();
     final groupedTransactions = <String, List<dynamic>>{};
     for (var tx in visibleTransactions) {
       final occurredAtStr = tx['occurred_at'] as String?;
       if (occurredAtStr == null) continue;
       final date = DateTime.tryParse(occurredAtStr);
       if (date == null) continue;
-      final monthKey = DateFormat('MMMM yyyy', localeTag).format(date);
+      final monthKey = formatLocalizedMonthYear(context, date);
       groupedTransactions.putIfAbsent(monthKey, () => []).add(tx);
     }
 
@@ -895,12 +894,11 @@ class _ReceiptsTabState extends State<ReceiptsTab>
         (displayCurrency != sourceCurrency ||
             (displayAmount - sourceAmount).abs() > 0.00001);
     String formattedTime = '';
-    final localeTag = Localizations.localeOf(context).toString();
     final occurredAtStr = tx['occurred_at'] as String?;
     if (occurredAtStr != null) {
       final date = DateTime.tryParse(occurredAtStr);
       if (date != null) {
-        formattedTime = DateFormat('d MMM, HH:mm', localeTag).format(date);
+        formattedTime = formatLocalizedDayMonthTime(context, date);
       }
     }
 

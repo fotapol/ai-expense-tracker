@@ -4,12 +4,12 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:intl/intl.dart';
 
 import '../core/app_navigation.dart';
 import '../core/api_client.dart';
 import '../core/auto_refresh_state_mixin.dart';
 import '../core/launch_error_copy.dart';
+import '../core/localized_dates.dart';
 import '../core/money_formatter.dart';
 import '../core/money_format_preferences.dart';
 import '../core/redesign_system.dart';
@@ -438,7 +438,10 @@ class _HomeTabState extends State<HomeTab>
   String? _buildMonthChangeInsight(BuildContext context) {
     final ratio = _changeRatio;
     if (ratio != null) {
-      final previousMonthLabel = DateFormat('MMMM').format(_previousMonthStart);
+      final previousMonthLabel = formatLocalizedFullMonth(
+        context,
+        _previousMonthStart,
+      );
       final percent = (ratio.abs() * 100).round();
       if (percent > 0) {
         return context.tr(
@@ -665,7 +668,7 @@ class _HomeTabState extends State<HomeTab>
   }
 
   Widget _buildMonthlySummaryCard(BuildContext context) {
-    final monthLabel = DateFormat('MMMM yyyy').format(_currentMonthStart);
+    final monthLabel = formatLocalizedMonthYear(context, _currentMonthStart);
     final ratio = _changeRatio;
     final positiveDelta = ratio != null && ratio < 0;
     final transactionCount = _currentMonthTransactions.length;

@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
-import 'package:intl/intl.dart';
 
 import '../core/api_client.dart';
 import '../core/bill_reminder_notification_service.dart';
 import '../core/launch_error_copy.dart';
+import '../core/localized_dates.dart';
 import '../core/planning_logic.dart';
 import '../core/redesign_system.dart';
 import '../core/session_invalidation.dart';
@@ -618,7 +618,7 @@ class _BillRemindersScreenState extends State<BillRemindersScreen> {
   Widget _buildComposerCard() {
     final dateText = _selectedDueDate == null
         ? _dueDateFieldHint()
-        : DateFormat.yMMMd().format(_selectedDueDate!);
+        : formatLocalizedDayMonthYear(context, _selectedDueDate!);
     final accentTone = ShellStyles.accentTone(context);
 
     return SettingsDetailCard(
@@ -901,7 +901,10 @@ class _BillRemindersScreenState extends State<BillRemindersScreen> {
                             ? 'bill_reminders_paid_due_label'
                             : 'bill_reminders_next_due_on',
                         params: {
-                          'date': DateFormat.yMMMd().format(occurrence.dueDate),
+                          'date': formatLocalizedDayMonthYear(
+                            context,
+                            occurrence.dueDate,
+                          ),
                         },
                       ),
                       style: TextStyle(
@@ -916,7 +919,8 @@ class _BillRemindersScreenState extends State<BillRemindersScreen> {
                         context.tr(
                           'bill_reminders_marked_paid_at',
                           params: {
-                            'date': DateFormat.yMMMd().add_Hm().format(
+                            'date': formatLocalizedDayMonthYearTime(
+                              context,
                               occurrence.reminder.lastPaidAt!,
                             ),
                           },

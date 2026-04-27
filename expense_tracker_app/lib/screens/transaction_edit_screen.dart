@@ -2,13 +2,13 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:currency_picker/currency_picker.dart';
-import 'package:intl/intl.dart';
 import '../core/api_client.dart';
 import '../core/app_color_semantics.dart';
 import '../core/auth_session.dart';
 import '../core/item_translation_preferences.dart';
 import '../core/item_translation_service.dart';
 import '../core/launch_error_copy.dart';
+import '../core/localized_dates.dart';
 import '../core/money_formatter.dart';
 import '../core/redesign_system.dart';
 import '../core/session_invalidation.dart';
@@ -1927,7 +1927,7 @@ class _TransactionEditScreenState extends State<TransactionEditScreen> {
   Widget _buildTopControlRow() {
     final occurred = _occurredAt;
     final dateLabel = occurred != null
-        ? DateFormat('MMM d, HH:mm').format(occurred)
+        ? formatLocalizedDayMonthTime(context, occurred)
         : context.tr('transaction_set_date');
     final translationEnabled =
         _effectiveItemsLanguage.isNotEmpty && _showTranslatedItems;

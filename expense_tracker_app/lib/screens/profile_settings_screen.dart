@@ -1,9 +1,9 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import 'package:intl/intl.dart';
 
 import '../core/api_client.dart';
 import '../core/launch_error_copy.dart';
+import '../core/localized_dates.dart';
 import '../core/redesign_system.dart';
 import '../core/session_invalidation.dart';
 import 'settings_detail_scaffold.dart';
@@ -130,7 +130,7 @@ class _ProfileSettingsScreenState extends State<ProfileSettingsScreen> {
     if (raw == null || raw.isEmpty) return '--';
     final parsed = DateTime.tryParse(raw)?.toLocal();
     if (parsed == null) return '--';
-    return DateFormat.yMMMMd().format(parsed);
+    return formatLocalizedDayMonthYear(context, parsed);
   }
 
   String _accountTypeLabel() {

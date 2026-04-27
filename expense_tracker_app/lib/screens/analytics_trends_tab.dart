@@ -7,6 +7,7 @@ import 'package:intl/intl.dart';
 import '../core/analytics_filters.dart';
 import '../core/api_client.dart';
 import '../core/launch_error_copy.dart';
+import '../core/localized_dates.dart';
 import '../core/money_formatter.dart';
 import '../core/money_format_preferences.dart';
 import '../core/period_filter.dart';
@@ -936,7 +937,7 @@ class _AnalyticsTrendsTabState extends State<AnalyticsTrendsTab> {
                   'analytics_trends_period_fallback',
                   params: {'number': (index + 1).toString()},
                 )
-          : DateFormat('MMM').format(bucketDate);
+          : formatLocalizedShortMonth(context, bucketDate);
       final point = grouped.putIfAbsent(
         key,
         () => _TrendPointAccumulator(label: label),
