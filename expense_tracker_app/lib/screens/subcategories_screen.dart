@@ -7,16 +7,19 @@ import '../core/category_icon_registry.dart';
 import '../core/redesign_system.dart';
 import '../core/taxonomy_localization.dart';
 import '../l10n/app_localizations.dart';
+import 'subscription_screen.dart';
 
 class SubcategoriesScreen extends StatefulWidget {
   const SubcategoriesScreen({
     super.key,
     required this.parentId,
     required this.parentName,
+    required this.parentIsDefault,
   });
 
   final String parentId;
   final String parentName;
+  final bool parentIsDefault;
 
   @override
   State<SubcategoriesScreen> createState() => _SubcategoriesScreenState();
@@ -32,6 +35,7 @@ class _SubcategoriesScreenState extends State<SubcategoriesScreen> {
   bool _showCreateForm = false;
   String? _error;
   List<Map<String, dynamic>> _subcategories = [];
+  Map<String, dynamic> _categoryUsage = const <String, dynamic>{};
   String _selectedIconKey = CategoryIconRegistry.options.first.key;
   String _selectedColorHex = AppSemanticColors.defaultCategoryColorHex;
 
@@ -66,10 +70,19 @@ class _SubcategoriesScreenState extends State<SubcategoriesScreen> {
               )
               .toList()
             ..sort((a, b) => _localizedName(a).compareTo(_localizedName(b)));
+      Map<String, dynamic> categoryUsage = _categoryUsage;
+      try {
+        final subscription = await ApiClient.getMeSubscription();
+        final usage = subscription['category_usage'];
+        if (usage is Map<String, dynamic>) {
+          categoryUsage = usage;
+        }
+      } catch (_) {}
       await _pruneSavedFilterSelections(subcategories);
       if (!mounted) return;
       setState(() {
         _subcategories = subcategories;
+        _categoryUsage = categoryUsage;
         _isLoading = false;
         _error = null;
       });
@@ -126,14 +139,63 @@ class _SubcategoriesScreenState extends State<SubcategoriesScreen> {
     ),
   );
 
+  bool get _customSubcategoriesUnlimited =>
+      _categoryUsage['is_unlimited'] == true;
+
+  int get _customSubcategoryLimit =>
+      int.tryParse((_categoryUsage['subcategories_limit'] ?? 10).toString()) ??
+      10;
+
+  int get _customSubcategoryUsed => _maxInt(
+    int.tryParse((_categoryUsage['subcategories_used'] ?? '').toString()),
+    _customSubcategories.length,
+  );
+
+  int get _customSubcategoryRemaining =>
+      (_customSubcategoryLimit - _customSubcategoryUsed)
+          .clamp(0, _customSubcategoryLimit)
+          .toInt();
+
+  bool get _customSubcategoryLimitReached =>
+      !_customSubcategoriesUnlimited &&
+      _customSubcategoryUsed >= _customSubcategoryLimit;
+
+  int _maxInt(int? first, int second) {
+    if (first == null) return second;
+    return first > second ? first : second;
+  }
+
+  Map<String, dynamic> _incrementSubcategoryUsage() {
+    if (_customSubcategoriesUnlimited || _categoryUsage.isEmpty) {
+      return _categoryUsage;
+    }
+    final next = Map<String, dynamic>.from(_categoryUsage);
+    final used = int.tryParse((next['subcategories_used'] ?? '').toString());
+    final remaining = int.tryParse(
+      (next['subcategories_remaining'] ?? '').toString(),
+    );
+    if (used != null) next['subcategories_used'] = used + 1;
+    if (remaining != null) {
+      next['subcategories_remaining'] = remaining > 0 ? remaining - 1 : 0;
+    }
+    return next;
+  }
+
   String _countLabel() {
     final count = _subcategories
         .where((category) => category['is_disabled'] != true)
         .length;
-    return '$count active subcategories';
+    return context.tr(
+      'subcategories_active_count',
+      params: {'count': count.toString()},
+    );
   }
 
   void _openCreateForm() {
+    if (_customSubcategoryLimitReached) {
+      _showLimitWarning();
+      return;
+    }
     if (!_showCreateForm) {
       setState(() {
         _showCreateForm = true;
@@ -186,6 +248,7 @@ class _SubcategoriesScreenState extends State<SubcategoriesScreen> {
       setState(() {
         _subcategories = [..._subcategories, created]
           ..sort((a, b) => _localizedName(a).compareTo(_localizedName(b)));
+        _categoryUsage = _incrementSubcategoryUsage();
         _showCreateForm = false;
         _isSubmitting = false;
         _nameController.clear();
@@ -290,17 +353,52 @@ class _SubcategoriesScreenState extends State<SubcategoriesScreen> {
   }
 
   void _showError(Object error) {
+    final message = _localizedErrorMessage(error);
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text(message), backgroundColor: ShellColors.softRed),
+    );
+  }
+
+  void _showLimitWarning() {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text(
           context.tr(
-            'common_error_with_message',
-            params: {'message': error.toString()},
+            'subcategories_free_limit_reached',
+            params: {'limit': _customSubcategoryLimit.toString()},
           ),
         ),
-        backgroundColor: ShellColors.softRed,
+        backgroundColor: ShellStyles.warningPremium(context),
       ),
     );
+  }
+
+  String _localizedErrorMessage(Object error) {
+    if (error is ApiCategoryLimitException) {
+      final key = error.code == 'free_plan_category_limit_reached'
+          ? 'categories_free_limit_reached'
+          : 'subcategories_free_limit_reached';
+      final fallbackLimit = error.code == 'free_plan_category_limit_reached'
+          ? 3
+          : _customSubcategoryLimit;
+      return context.tr(
+        key,
+        params: {'limit': (error.limit ?? fallbackLimit).toString()},
+      );
+    }
+    return context.tr(
+      'common_error_with_message',
+      params: {'message': error.toString()},
+    );
+  }
+
+  Future<void> _openSubscription() async {
+    await Navigator.push(
+      context,
+      MaterialPageRoute(builder: (_) => const SubscriptionScreen()),
+    );
+    if (!mounted) return;
+    await _fetchSubcategories(showLoading: false);
   }
 
   List<AppColorPickerOption> _categoryColorOptions() {
@@ -448,10 +546,10 @@ class _SubcategoriesScreenState extends State<SubcategoriesScreen> {
           ),
           _buildActionPill(
             label: disabled
-                ? 'Enable'
+                ? context.tr('categories_restore_action')
                 : isBuiltIn
-                ? 'Disable'
-                : 'Delete',
+                ? context.tr('categories_disable_action')
+                : context.tr('common_delete'),
             onTap: disabled
                 ? () => _restore(category)
                 : () => _deleteOrDisable(category),
@@ -619,7 +717,7 @@ class _SubcategoriesScreenState extends State<SubcategoriesScreen> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            'Could not load subcategories',
+            context.tr('subcategories_load_error_title'),
             style: TextStyle(
               color: ShellStyles.textPrimary(context),
               fontSize: 15,
@@ -649,6 +747,72 @@ class _SubcategoriesScreenState extends State<SubcategoriesScreen> {
     );
   }
 
+  Widget _buildLimitHintCard() {
+    if (_customSubcategoriesUnlimited) return const SizedBox.shrink();
+    final reached = _customSubcategoryLimitReached;
+    return Container(
+      padding: const EdgeInsets.all(14),
+      decoration: ShellStyles.cardDecoration(
+        context,
+        radius: 18,
+        color: reached
+            ? ShellStyles.warningPremium(context).withAlpha(18)
+            : ShellStyles.surfaceAlt(context),
+        withShadow: false,
+      ),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Icon(
+            reached ? AppIcons.info : AppIcons.category,
+            color: reached
+                ? ShellStyles.warningPremium(context)
+                : ShellStyles.textMuted(context),
+            size: 18,
+          ),
+          const SizedBox(width: 10),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  reached
+                      ? context.tr(
+                          'subcategories_free_limit_reached',
+                          params: {'limit': _customSubcategoryLimit.toString()},
+                        )
+                      : context.tr(
+                          'subcategories_free_limit_hint',
+                          params: {
+                            'remaining': _customSubcategoryRemaining.toString(),
+                            'limit': _customSubcategoryLimit.toString(),
+                          },
+                        ),
+                  style: TextStyle(
+                    color: ShellStyles.textPrimary(context),
+                    fontSize: 13,
+                    height: 1.4,
+                    fontWeight: reached ? FontWeight.w700 : FontWeight.w500,
+                  ),
+                ),
+                TextButton(
+                  onPressed: _openSubscription,
+                  style: TextButton.styleFrom(
+                    foregroundColor: ShellStyles.warningPremium(context),
+                    padding: EdgeInsets.zero,
+                    tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                    alignment: Alignment.centerLeft,
+                  ),
+                  child: Text(context.tr('categories_view_premium')),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
   Widget _buildInfoCard() {
     return Container(
       padding: const EdgeInsets.all(16),
@@ -659,7 +823,7 @@ class _SubcategoriesScreenState extends State<SubcategoriesScreen> {
         withShadow: false,
       ),
       child: Text(
-        'Tip: Disabled subcategories won\'t appear when categorizing items. You can re-enable them anytime.',
+        context.tr('subcategories_disabled_tip'),
         style: TextStyle(
           color: ShellStyles.textMuted(context),
           fontSize: 13,
@@ -786,6 +950,10 @@ class _SubcategoriesScreenState extends State<SubcategoriesScreen> {
                       _buildErrorCard(),
                       const SizedBox(height: 18),
                     ],
+                    if (!_customSubcategoriesUnlimited) ...[
+                      _buildLimitHintCard(),
+                      const SizedBox(height: 18),
+                    ],
                     AnimatedSwitcher(
                       duration: const Duration(milliseconds: 220),
                       child: _showCreateForm
@@ -800,22 +968,31 @@ class _SubcategoriesScreenState extends State<SubcategoriesScreen> {
                               key: ValueKey('create-form-hidden'),
                             ),
                     ),
-                    ShellStyles.sectionLabel(context, 'Default Subcategories'),
-                    const SizedBox(height: 12),
-                    _buildCardList(
-                      _builtInSubcategories,
-                      emptyText: context.tr(
-                        'subcategories_not_found_for_parent',
-                        params: {'name': widget.parentName},
+                    if (widget.parentIsDefault) ...[
+                      ShellStyles.sectionLabel(
+                        context,
+                        context.tr('subcategories_default_section'),
                       ),
-                    ),
-                    if (_customSubcategories.isNotEmpty) ...[
+                      const SizedBox(height: 12),
+                      _buildCardList(
+                        _builtInSubcategories,
+                        emptyText: context.tr(
+                          'subcategories_default_empty_for_parent',
+                          params: {'name': widget.parentName},
+                        ),
+                      ),
+                    ],
+                    if (!widget.parentIsDefault ||
+                        _customSubcategories.isNotEmpty) ...[
                       const SizedBox(height: 22),
-                      ShellStyles.sectionLabel(context, 'Custom Subcategories'),
+                      ShellStyles.sectionLabel(
+                        context,
+                        context.tr('subcategories_custom_section'),
+                      ),
                       const SizedBox(height: 12),
                       _buildCardList(
                         _customSubcategories,
-                        emptyText: 'No custom subcategories yet.',
+                        emptyText: context.tr('subcategories_custom_empty'),
                       ),
                     ],
                     const SizedBox(height: 22),

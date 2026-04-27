@@ -8,6 +8,7 @@ import '../core/redesign_system.dart';
 import '../core/taxonomy_localization.dart';
 import '../l10n/app_localizations.dart';
 import 'subcategories_screen.dart';
+import 'subscription_screen.dart';
 
 class CategoriesScreen extends StatefulWidget {
   const CategoriesScreen({super.key});
@@ -25,6 +26,7 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
   bool _isSubmitting = false;
   bool _showCreateForm = false;
   List<Map<String, dynamic>> _categories = [];
+  Map<String, dynamic> _categoryUsage = const <String, dynamic>{};
   String? _error;
   String _selectedIconKey = CategoryIconRegistry.options.first.key;
   String _selectedColorHex = AppSemanticColors.defaultCategoryColorHex;
@@ -52,10 +54,19 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
     try {
       final data = await ApiClient.listCategories(includeDisabled: true);
       final categories = data.whereType<Map<String, dynamic>>().toList();
+      Map<String, dynamic> categoryUsage = _categoryUsage;
+      try {
+        final subscription = await ApiClient.getMeSubscription();
+        final usage = subscription['category_usage'];
+        if (usage is Map<String, dynamic>) {
+          categoryUsage = usage;
+        }
+      } catch (_) {}
       await _pruneSavedFilterSelections(categories);
       if (!mounted) return;
       setState(() {
         _categories = categories;
+        _categoryUsage = categoryUsage;
         _isLoading = false;
         _error = null;
       });
@@ -126,9 +137,53 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
     _topLevelCategories.where((category) => category['is_disabled'] != true),
   );
 
+  List<Map<String, dynamic>> get _activeCustomCategories => _activeCategories
+      .where((category) => category['is_default'] != true)
+      .toList();
+
   List<Map<String, dynamic>> get _disabledCategories => _sorted(
     _topLevelCategories.where((category) => category['is_disabled'] == true),
   );
+
+  bool get _customCategoriesUnlimited => _categoryUsage['is_unlimited'] == true;
+
+  int get _customCategoryLimit =>
+      int.tryParse((_categoryUsage['categories_limit'] ?? 3).toString()) ?? 3;
+
+  int get _customCategoryUsed => _maxInt(
+    int.tryParse((_categoryUsage['categories_used'] ?? '').toString()),
+    _activeCustomCategories.length,
+  );
+
+  int get _customCategoryRemaining =>
+      (_customCategoryLimit - _customCategoryUsed)
+          .clamp(0, _customCategoryLimit)
+          .toInt();
+
+  bool get _customCategoryLimitReached =>
+      !_customCategoriesUnlimited &&
+      _customCategoryUsed >= _customCategoryLimit;
+
+  int _maxInt(int? first, int second) {
+    if (first == null) return second;
+    return first > second ? first : second;
+  }
+
+  Map<String, dynamic> _incrementCategoryUsage() {
+    if (_customCategoriesUnlimited || _categoryUsage.isEmpty) {
+      return _categoryUsage;
+    }
+    final next = Map<String, dynamic>.from(_categoryUsage);
+    final used = int.tryParse((next['categories_used'] ?? '').toString());
+    final remaining = int.tryParse(
+      (next['categories_remaining'] ?? '').toString(),
+    );
+    if (used != null) next['categories_used'] = used + 1;
+    if (remaining != null) {
+      next['categories_remaining'] = remaining > 0 ? remaining - 1 : 0;
+    }
+    return next;
+  }
 
   String _countLabel() {
     return context.tr(
@@ -138,6 +193,10 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
   }
 
   void _openCreateForm() {
+    if (_customCategoryLimitReached) {
+      _showLimitWarning();
+      return;
+    }
     if (!_showCreateForm) {
       setState(() {
         _showCreateForm = true;
@@ -188,6 +247,7 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
       if (!mounted) return;
       setState(() {
         _categories = [..._categories, created];
+        _categoryUsage = _incrementCategoryUsage();
         _showCreateForm = false;
         _isSubmitting = false;
         _nameController.clear();
@@ -290,6 +350,7 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
         builder: (_) => SubcategoriesScreen(
           parentId: category['id']!.toString(),
           parentName: _localizedName(category),
+          parentIsDefault: category['is_default'] == true,
         ),
       ),
     );
@@ -298,17 +359,49 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
   }
 
   void _showError(Object error) {
+    final message = _localizedErrorMessage(error);
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text(message), backgroundColor: ShellColors.softRed),
+    );
+  }
+
+  void _showLimitWarning() {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text(
           context.tr(
-            'common_error_with_message',
-            params: {'message': error.toString()},
+            'categories_free_limit_reached',
+            params: {'limit': _customCategoryLimit.toString()},
           ),
         ),
-        backgroundColor: ShellColors.softRed,
+        backgroundColor: ShellStyles.warningPremium(context),
       ),
     );
+  }
+
+  String _localizedErrorMessage(Object error) {
+    if (error is ApiCategoryLimitException) {
+      final key = error.code == 'free_plan_subcategory_limit_reached'
+          ? 'subcategories_free_limit_reached'
+          : 'categories_free_limit_reached';
+      return context.tr(
+        key,
+        params: {'limit': (error.limit ?? _customCategoryLimit).toString()},
+      );
+    }
+    return context.tr(
+      'common_error_with_message',
+      params: {'message': error.toString()},
+    );
+  }
+
+  Future<void> _openSubscription() async {
+    await Navigator.push(
+      context,
+      MaterialPageRoute(builder: (_) => const SubscriptionScreen()),
+    );
+    if (!mounted) return;
+    await _fetchCategories(showLoading: false);
   }
 
   List<AppColorPickerOption> _categoryColorOptions() {
@@ -552,6 +645,72 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
     );
   }
 
+  Widget _buildLimitHintCard() {
+    if (_customCategoriesUnlimited) return const SizedBox.shrink();
+    final reached = _customCategoryLimitReached;
+    return Container(
+      padding: const EdgeInsets.all(14),
+      decoration: ShellStyles.cardDecoration(
+        context,
+        radius: 18,
+        color: reached
+            ? ShellStyles.warningPremium(context).withAlpha(18)
+            : ShellStyles.surfaceAlt(context),
+        withShadow: false,
+      ),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Icon(
+            reached ? AppIcons.info : AppIcons.category,
+            color: reached
+                ? ShellStyles.warningPremium(context)
+                : ShellStyles.textMuted(context),
+            size: 18,
+          ),
+          const SizedBox(width: 10),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  reached
+                      ? context.tr(
+                          'categories_free_limit_reached',
+                          params: {'limit': _customCategoryLimit.toString()},
+                        )
+                      : context.tr(
+                          'categories_free_limit_hint',
+                          params: {
+                            'remaining': _customCategoryRemaining.toString(),
+                            'limit': _customCategoryLimit.toString(),
+                          },
+                        ),
+                  style: TextStyle(
+                    color: ShellStyles.textPrimary(context),
+                    fontSize: 13,
+                    height: 1.4,
+                    fontWeight: reached ? FontWeight.w700 : FontWeight.w500,
+                  ),
+                ),
+                TextButton(
+                  onPressed: _openSubscription,
+                  style: TextButton.styleFrom(
+                    foregroundColor: ShellStyles.warningPremium(context),
+                    padding: EdgeInsets.zero,
+                    tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                    alignment: Alignment.centerLeft,
+                  ),
+                  child: Text(context.tr('categories_view_premium')),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
   Widget _buildCreateCard() {
     return Container(
       key: _createFormKey,
@@ -787,6 +946,10 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
                   children: [
                     if (_error != null) ...[
                       _buildErrorCard(),
+                      const SizedBox(height: 18),
+                    ],
+                    if (!_customCategoriesUnlimited) ...[
+                      _buildLimitHintCard(),
                       const SizedBox(height: 18),
                     ],
                     AnimatedSwitcher(

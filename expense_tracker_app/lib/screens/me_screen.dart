@@ -144,6 +144,7 @@ class _MeScreenState extends State<MeScreen> {
             'has_active_subscription': syncPayload['has_active_subscription'],
             'subscription': syncPayload['subscription'],
             'receipt_scan_usage': syncPayload['receipt_scan_usage'],
+            'category_usage': syncPayload['category_usage'],
           };
         } catch (_) {
           subscriptionPayload = await ApiClient.getMeSubscription();

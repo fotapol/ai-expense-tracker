@@ -4,6 +4,7 @@ const Set<String> _personalPremiumFeatureCodes = <String>{
   'premium.receipt_scans.unlimited',
   'premium.analytics.advanced',
   'premium.exports',
+  'premium.categories.unlimited',
 };
 const String _optimisticPremiumStoredAtKey =
     'optimistic_premium_access_stored_at';

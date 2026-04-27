@@ -42,6 +42,8 @@ class _SubscriptionScreenState extends State<SubscriptionScreen> {
   int _receiptScanLimit = 10;
   int? _receiptScanRemaining;
   bool _receiptScanUnlimited = false;
+  int _customCategoryLimit = 3;
+  int _customSubcategoryLimit = 10;
   DateTime? _receiptScanResetAtUtc;
   bool _didChangeBillingState = false;
 
@@ -78,6 +80,7 @@ class _SubscriptionScreenState extends State<SubscriptionScreen> {
   }) {
     final currentSubscription = currentPayload?['subscription'];
     final currentUsage = currentPayload?['receipt_scan_usage'];
+    final currentCategoryUsage = currentPayload?['category_usage'];
     return <String, dynamic>{
       ...?currentPayload,
       'has_active_subscription': true,
@@ -97,6 +100,16 @@ class _SubscriptionScreenState extends State<SubscriptionScreen> {
         ...?(expiration == null
             ? null
             : <String, dynamic>{'period_end_at': expiration}),
+      },
+      'category_usage': <String, dynamic>{
+        ...?(currentCategoryUsage is Map<String, dynamic>
+            ? currentCategoryUsage
+            : null),
+        'categories_limit': null,
+        'categories_remaining': null,
+        'subcategories_limit': null,
+        'subcategories_remaining': null,
+        'is_unlimited': true,
       },
     };
   }
@@ -134,6 +147,7 @@ class _SubscriptionScreenState extends State<SubscriptionScreen> {
             'has_active_subscription': syncPayload['has_active_subscription'],
             'subscription': syncPayload['subscription'],
             'receipt_scan_usage': syncPayload['receipt_scan_usage'],
+            'category_usage': syncPayload['category_usage'],
           };
         } catch (_) {
           subscriptionPayload = await ApiClient.getMeSubscription();
@@ -162,6 +176,10 @@ class _SubscriptionScreenState extends State<SubscriptionScreen> {
       final usage = usageRaw is Map<String, dynamic>
           ? usageRaw
           : const <String, dynamic>{};
+      final categoryUsageRaw = subscriptionPayload['category_usage'];
+      final categoryUsage = categoryUsageRaw is Map<String, dynamic>
+          ? categoryUsageRaw
+          : const <String, dynamic>{};
       final packages = RevenueCatService.flattenAvailablePackages(offerings);
 
       if (!mounted) return;
@@ -174,6 +192,14 @@ class _SubscriptionScreenState extends State<SubscriptionScreen> {
           (usage['remaining'] ?? 0).toString(),
         );
         _receiptScanUnlimited = usage['is_unlimited'] == true;
+        _customCategoryLimit =
+            int.tryParse((categoryUsage['categories_limit'] ?? 3).toString()) ??
+            3;
+        _customSubcategoryLimit =
+            int.tryParse(
+              (categoryUsage['subcategories_limit'] ?? 10).toString(),
+            ) ??
+            10;
         final periodEndRaw = usage['period_end_at']?.toString();
         _receiptScanResetAtUtc = periodEndRaw == null
             ? null
@@ -587,7 +613,11 @@ class _SubscriptionScreenState extends State<SubscriptionScreen> {
         ? context.tr('billing_access_list_premium')
         : context.tr(
             'billing_access_list_free',
-            params: {'limit': _receiptScanLimit.toString()},
+            params: {
+              'limit': _receiptScanLimit.toString(),
+              'categoryLimit': _customCategoryLimit.toString(),
+              'subcategoryLimit': _customSubcategoryLimit.toString(),
+            },
           );
     return localized
         .split('\n')
