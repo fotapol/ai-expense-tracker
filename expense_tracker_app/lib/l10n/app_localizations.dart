@@ -5368,9 +5368,9 @@ class AppLocalizations {
       'household_members_title': 'Membri',
       'household_remove_member_title': 'Rimuovi membro',
       'household_remove_member_confirm':
-          'Rimuovere {name}da questo nucleo familiare?',
+          'Rimuovere {name} da questo nucleo familiare?',
       'household_member_removed': 'Membro rimosso.',
-      'household_leave_title': 'Lasciare la casa',
+      'household_leave_title': 'Lascia famiglia',
       'household_leave_confirm':
           'Lasciare questo nucleo familiare e rimuovere l\'accesso condiviso dal tuo account?',
       'household_leave_action': 'Lasciare la casa',
@@ -10653,14 +10653,14 @@ class AppLocalizations {
       'home_no_receipts_for_day':
           'Você não adicionou nenhum recibo para este dia',
       'home_start_subtitle':
-          'Scansiona una ricevuta o aggiungi una spesa per iniziare.',
-      'home_all_reviewed': 'Tutte le ricevute vengono esaminate',
-      'home_review_count_single': '1 ricevuta necessita di revisione',
-      'home_review_count_plural': '{count} ricevute necessitano di revisione',
-      'home_total_spending_month': 'Spesa totale questo mese',
-      'home_change_flat': 'Nessun cambiamento',
-      'home_change_less': '{percent}% in meno',
-      'home_change_more': '{percent}% in più',
+          'Digitalize um recibo ou adicione uma despesa para começar.',
+      'home_all_reviewed': 'Todos os recibos foram revisados',
+      'home_review_count_single': '1 recibo precisa de revisão',
+      'home_review_count_plural': '{count} recibos precisam de revisão',
+      'home_total_spending_month': 'Gasto total este mês',
+      'home_change_flat': 'Sem alterações',
+      'home_change_less': '{percent}% a menos',
+      'home_change_more': '{percent}% a mais',
       'home_insight_less_than_last_month':
           'Os gastos são {percent}% inferiores aos do mês de {month}.',
       'home_insight_more_than_last_month':
@@ -10670,33 +10670,31 @@ class AppLocalizations {
       'home_insight_top_subcategory':
           'A subcategoria principal é {subcategory}, com {percent}% dos gastos em itens.',
       'home_insight_review_count':
-          '{count} ricevute devono ancora essere revisionate.',
-      'home_insight_all_caught_up':
-          'Siete tutti impegnati nella revisione delle ricevute.',
-      'home_scan_receipt_subtitle':
-          'Acquisizione istantanea basata sull\'intelligenza artificiale',
-      'home_primary_action': 'Azione primaria',
-      'home_spending_overview': 'Panoramica della spesa',
-      'home_no_spending_data': 'Nessun dato di spesa per questo mese ancora.',
-      'home_view_all': 'Visualizza tutto',
-      'home_smart_insights': 'Approfondimenti intelligenti',
+          '{count} recibos ainda precisam ser revisados.',
+      'home_insight_all_caught_up': 'Todos os recibos foram revisados.',
+      'home_scan_receipt_subtitle': 'Captura instantânea com IA',
+      'home_primary_action': 'Ação principal',
+      'home_spending_overview': 'Visão geral dos gastos',
+      'home_no_spending_data': 'Ainda não há dados de gastos para este mês.',
+      'home_view_all': 'Ver tudo',
+      'home_smart_insights': 'Insights inteligentes',
       'home_quick_actions': 'Ações rápidas',
-      'home_add_expense': 'Aggiungi spesa',
+      'home_add_expense': 'Adicionar despesa',
       'home_categories': 'Categorias',
       'home_refresh_error':
           'Não foi possível atualizar a página inicial agora. Por favor, tente novamente.',
-      'receipts_filter_needs_review': 'Necessita di revisione',
-      'receipts_needs_review': 'Necessita di revisione',
-      'receipts_check_extraction': 'Controllare l\'estrazione',
-      'receipts_draft': 'Ha bisogno di essere salvato',
-      'receipts_review_empty_title': 'Nessuna ricevuta necessita di revisione.',
+      'receipts_filter_needs_review': 'Precisa de revisão',
+      'receipts_needs_review': 'Precisa de revisão',
+      'receipts_check_extraction': 'Verificar extração',
+      'receipts_draft': 'Precisa ser salvo',
+      'receipts_review_empty_title': 'Nenhum recibo precisa de revisão.',
       'receipts_review_empty_body':
           'Tudo neste período parece confirmado e sem avisos.',
       'receipts_empty_body':
           'Digitalize o seu primeiro recibo para começar a construir um histórico que possa rever e filtrar.',
-      'receipts_scan_first_action': 'Scansiona la tua prima ricevuta',
+      'receipts_scan_first_action': 'Digitalize seu primeiro recibo',
       'receipts_no_filter_matches':
-          'Nessuna ricevuta corrisponde ai filtri attuali.',
+          'Nenhum recibo corresponde aos filtros atuais.',
       'receipts_no_filter_matches_body':
           'Tente outro período, pesquise por comerciante ou limpe os filtros ativos.',
       'receipts_history_total': 'Totale cronologia ricevute',
@@ -19697,8 +19695,8 @@ class AppLocalizations {
       'analytics_trends_chart_subtitle':
           'Pengelompokan harian, mingguan, atau bulanan otomatis untuk periode yang Anda pilih.',
       'analytics_trends_no_data': 'Tidak ada data tren untuk filter ini.',
-      'analytics_trends_highest_bucket': 'Ember tertinggi',
-      'analytics_trends_average_bucket': 'Pembelanjaan keranjang rata-rata',
+      'analytics_trends_highest_bucket': 'Periode tertinggi',
+      'analytics_trends_average_bucket': 'Rata-rata pengeluaran per periode',
       'analytics_household_empty_title': 'Belum ada analisis rumah tangga',
       'analytics_household_empty_subtitle':
           'Buat atau buka rumah tangga untuk membandingkan pengeluaran antar anggota.',
@@ -19738,7 +19736,7 @@ class AppLocalizations {
       'analytics_unknown_item': 'Barang tidak diketahui',
       'analytics_purchases_count': '{count} pembelian',
       'transaction_saved_successfully': 'Berhasil disimpan',
-      'transaction_created_successfully': 'Transazione creata con successo',
+      'transaction_created_successfully': 'Transaksi berhasil dibuat',
       'manual_transaction_title': 'Tambahkan Transaksi',
       'manual_transaction_heading': 'Tambahkan transaksi secara manual',
       'manual_transaction_subtitle':
