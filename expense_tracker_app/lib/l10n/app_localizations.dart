@@ -1279,11 +1279,11 @@ class AppLocalizations {
       'billing_current_plan_premium_subtitle':
           'Premium is active for this account.',
       'billing_access_list_premium':
-          'Unlimited receipt scans\nAdvanced analytics breakdowns\nFull data export history',
+          'Unlimited receipt scans\nAdvanced analytics breakdowns\nUnlimited custom categories and subcategories\nFull data export history',
       'billing_access_list_free':
-          '{limit} receipt scans in each rolling 30-day window\nCore tools stay available: labels, categories, budgets, and bill reminders\nData export includes your last 30 days on the Free plan',
+          '{limit} receipt scans in each rolling 30-day window\n{categoryLimit} custom categories and {subcategoryLimit} custom subcategories on the Free plan\nData export includes your last 30 days on the Free plan',
       'billing_free_upgrade_note':
-          'Upgrade only if you need more scans, deeper analytics, or the full export range.',
+          'Go Premium when you are ready for unlimited scans, unlimited categories, deeper analytics, and full export history.',
       'billing_restore_sync_note':
           'Use Restore Purchases if Premium does not appear on this device yet.',
       'billing_badge_active': 'Active',
@@ -1294,11 +1294,52 @@ class AppLocalizations {
       'billing_premium_applied_note':
           'Premium limits are already applied to this account.',
       'billing_free_limits_note':
-          'Free plan limits stay active until you upgrade.',
+          'Free plan limits stay active until you upgrade to Premium.',
       'billing_managed_by_store_note':
           'Premium stays managed by your app store for this account.',
       'billing_free_limits_expand_note':
-          'Free keeps the core tools available. Premium expands scan limits, analytics, and exports.',
+          'Free keeps the essentials available. Premium unlocks unlimited scans and categories, deeper analytics, and full export history.',
+      'notifications_still_blocked_snackbar':
+          'Notifications are still blocked in your device settings.',
+      'notifications_status_unavailable': 'Notifications are unavailable',
+      'notifications_status_on': 'Notifications are on',
+      'notifications_status_off': 'Notifications are off',
+      'notifications_web_unavailable_detail':
+          'This web build does not support local reminder notifications yet.',
+      'notifications_device_blocking_detail':
+          'Your device is currently blocking notifications for the app.',
+      'notifications_app_off_detail':
+          'Notifications are allowed by the device, but turned off inside the app.',
+      'notifications_bill_reminders_available_detail':
+          'Bill reminders can be delivered on this device.',
+      'notifications_device_section': 'Device',
+      'notifications_unavailable_web_short': 'Unavailable in this web build.',
+      'notifications_schedule_app_alerts':
+          'Lets the app schedule bill reminder alerts.',
+      'notifications_enable_device_settings_first':
+          'Turn on notifications for this app in your device settings first.',
+      'notifications_schedule_bill_reminders':
+          'Schedules reminder notifications for your active bills.',
+      'notifications_enable_above_for_bill_reminders':
+          'Enable notifications above before bill reminders can run.',
+      'categories_free_limit_hint':
+          'Free plan: {remaining} of {limit} custom categories left. Premium unlocks unlimited categories and subcategories.',
+      'categories_free_limit_reached':
+          'Free plan includes up to {limit} active custom categories. Upgrade to Premium for unlimited categories and subcategories.',
+      'categories_view_premium': 'View Premium',
+      'subcategories_active_count': '{count} active subcategories',
+      'subcategories_free_limit_hint':
+          'Free plan: {remaining} of {limit} custom subcategories left across your account. Premium unlocks unlimited categories and subcategories.',
+      'subcategories_free_limit_reached':
+          'Free plan includes up to {limit} active custom subcategories. Upgrade to Premium for unlimited categories and subcategories.',
+      'subcategories_load_error_title': 'Could not load subcategories',
+      'subcategories_disabled_tip':
+          'Tip: Disabled subcategories won\'t appear when categorizing items. You can re-enable them anytime.',
+      'subcategories_default_section': 'Default subcategories',
+      'subcategories_custom_section': 'Custom subcategories',
+      'subcategories_custom_empty': 'No custom subcategories yet.',
+      'subcategories_default_empty_for_parent':
+          'No default subcategories found for {name}.',
       'delete_reminder_name_confirm': 'Delete "{name}"?',
     },
     'de': {
@@ -2574,11 +2615,11 @@ class AppLocalizations {
       'billing_current_plan_premium_subtitle':
           'Premium ist für dieses Konto aktiv.',
       'billing_access_list_premium':
-          'Unbegrenzte Quittungsscans\nErweiterte Analyseaufschlüsselungen\nVollständiger Datenexport-Verlauf',
+          'Unbegrenzte Belegscans\nErweiterte Analyseaufschlüsselungen\nUnbegrenzte eigene Kategorien und Unterkategorien\nVollständiger Datenexport-Verlauf',
       'billing_access_list_free':
-          '{limit} Quittungsscans pro gleitendem 30-Tage-Zeitraum\nDie wichtigsten Tools bleiben verfügbar: Labels, Kategorien, Budgets und Rechnungserinnerungen\nDer Datenexport umfasst im Gratisplan die letzten 30 Tage',
+          '{limit} Belegscans in jedem gleitenden 30-Tage-Zeitraum\n{categoryLimit} eigene Kategorien und {subcategoryLimit} eigene Unterkategorien im Gratisplan\nDer Datenexport umfasst im Gratisplan die letzten 30 Tage',
       'billing_free_upgrade_note':
-          'Wechsle nur dann zu Premium, wenn du mehr Scans, tiefere Analysen oder den vollständigen Exportbereich brauchst.',
+          'Wechsle zu Premium, wenn du unbegrenzte Scans, unbegrenzte Kategorien, tiefere Analysen und den vollständigen Exportverlauf nutzen möchtest.',
       'billing_restore_sync_note':
           'Nutze „Einkäufe wiederherstellen“, wenn Premium auf diesem Gerät noch nicht angezeigt wird.',
       'billing_badge_active': 'Aktiv',
@@ -2589,11 +2630,53 @@ class AppLocalizations {
       'billing_premium_applied_note':
           'Für dieses Konto gelten die Premium-Limits bereits.',
       'billing_free_limits_note':
-          'Die Limits des Gratisplans gelten weiter, bis du ein Upgrade vornimmst.',
+          'Die Limits des Gratisplans gelten weiter, bis du auf Premium wechselst.',
       'billing_managed_by_store_note':
           'Premium wird für dieses Konto weiterhin über deinen App-Store verwaltet.',
       'billing_free_limits_expand_note':
-          'Gratis hält die wichtigsten Tools verfügbar. Premium erweitert Scan-Limits, Analysen und Exporte.',
+          'Gratis hält die wichtigsten Funktionen bereit. Premium schaltet unbegrenzte Scans und Kategorien, tiefere Analysen und den vollständigen Exportverlauf frei.',
+      'notifications_still_blocked_snackbar':
+          'Benachrichtigungen sind in den Geräteeinstellungen weiterhin blockiert.',
+      'notifications_status_unavailable': 'Benachrichtigungen nicht verfügbar',
+      'notifications_status_on': 'Benachrichtigungen sind aktiviert',
+      'notifications_status_off': 'Benachrichtigungen sind deaktiviert',
+      'notifications_web_unavailable_detail':
+          'Rechnungserinnerungen sind auf Mobilgeräten verfügbar.',
+      'notifications_device_blocking_detail':
+          'Die Geräteeinstellungen blockieren Benachrichtigungen.',
+      'notifications_app_off_detail':
+          'Aktiviere unten Benachrichtigungen, um Rechnungserinnerungen zu erhalten.',
+      'notifications_bill_reminders_available_detail':
+          'Rechnungserinnerungen können auf diesem Gerät zugestellt werden.',
+      'notifications_device_section': 'Gerät',
+      'notifications_unavailable_web_short': 'Im Web nicht verfügbar',
+      'notifications_schedule_app_alerts':
+          'Erlaubt der App, Warnungen für Rechnungserinnerungen zu planen.',
+      'notifications_enable_device_settings_first':
+          'Aktiviere zuerst Benachrichtigungen in den Geräteeinstellungen.',
+      'notifications_schedule_bill_reminders':
+          'Plant Erinnerungsbenachrichtigungen für deine aktiven Rechnungen.',
+      'notifications_enable_above_for_bill_reminders':
+          'Aktiviere oben App-Benachrichtigungen, um Rechnungserinnerungen zu nutzen.',
+      'categories_free_limit_hint':
+          'Gratisplan: {remaining} von {limit} eigenen Kategorien übrig. Premium schaltet unbegrenzte Kategorien und Unterkategorien frei.',
+      'categories_free_limit_reached':
+          'Der Gratisplan enthält {limit} eigene Kategorien. Wechsle zu Premium für unbegrenzte Kategorien und Unterkategorien.',
+      'categories_view_premium': 'Premium ansehen',
+      'subcategories_active_count': '{count} aktive Unterkategorien',
+      'subcategories_free_limit_hint':
+          'Gratisplan: {remaining} von {limit} eigenen Unterkategorien in deinem Konto übrig. Premium schaltet unbegrenzte Kategorien und Unterkategorien frei.',
+      'subcategories_free_limit_reached':
+          'Der Gratisplan enthält {limit} eigene Unterkategorien. Wechsle zu Premium für unbegrenzte Kategorien und Unterkategorien.',
+      'subcategories_load_error_title':
+          'Unterkategorien konnten nicht geladen werden',
+      'subcategories_disabled_tip':
+          'Tipp: Deaktivierte Unterkategorien erscheinen beim Kategorisieren von Artikeln nicht. Du kannst sie jederzeit wieder aktivieren.',
+      'subcategories_default_section': 'Standard-Unterkategorien',
+      'subcategories_custom_section': 'Eigene Unterkategorien',
+      'subcategories_custom_empty': 'Noch keine eigenen Unterkategorien.',
+      'subcategories_default_empty_for_parent':
+          'Für {name} wurden keine Standard-Unterkategorien gefunden.',
       'delete_reminder_name_confirm': '„{name}“ löschen?',
     },
     'fr': {
@@ -3863,11 +3946,11 @@ class AppLocalizations {
       'billing_current_plan_premium_subtitle':
           'Premium est actif pour ce compte.',
       'billing_access_list_premium':
-          'Scans de reçus illimités\nAnalyses détaillées avancées\nHistorique complet des exportations de données',
+          'Scans de reçus illimités\nAnalyses détaillées avancées\nCatégories et sous-catégories personnalisées illimitées\nHistorique complet des exportations de données',
       'billing_access_list_free':
-          '{limit} scans de reçus par période glissante de 30 jours\nLes outils essentiels restent disponibles : étiquettes, catégories, budgets et rappels de factures\nL\'exportation des données couvre les 30 derniers jours avec le forfait Gratuit',
+          '{limit} scans de reçus par période glissante de 30 jours\n{categoryLimit} catégories personnalisées et {subcategoryLimit} sous-catégories personnalisées avec le forfait Gratuit\nL\'exportation des données couvre les 30 derniers jours avec le forfait Gratuit',
       'billing_free_upgrade_note':
-          'Passez à Premium seulement si vous avez besoin de plus de scans, d\'analyses plus poussées ou de tout l\'historique d\'exportation.',
+          'Passez à Premium quand vous voulez des scans illimités, des catégories illimitées, des analyses plus poussées et tout l\'historique d\'exportation.',
       'billing_restore_sync_note':
           'Utilisez « Restaurer les achats » si Premium n\'apparaît pas encore sur cet appareil.',
       'billing_badge_active': 'Actif',
@@ -3878,11 +3961,54 @@ class AppLocalizations {
       'billing_premium_applied_note':
           'Les limites Premium sont déjà appliquées à ce compte.',
       'billing_free_limits_note':
-          'Les limites du forfait Gratuit restent actives jusqu\'à la mise à niveau.',
+          'Les limites du forfait Gratuit restent actives jusqu\'au passage à Premium.',
       'billing_managed_by_store_note':
           'Premium reste géré par votre boutique d\'applications pour ce compte.',
       'billing_free_limits_expand_note':
-          'Le forfait Gratuit conserve les outils essentiels. Premium augmente les limites de scan, l\'analytique et les exportations.',
+          'Le forfait Gratuit garde l\'essentiel disponible. Premium débloque scans et catégories illimités, analyses plus poussées et historique complet d\'exportation.',
+      'notifications_still_blocked_snackbar':
+          'Les notifications sont toujours bloquées dans les réglages de l\'appareil.',
+      'notifications_status_unavailable': 'Notifications indisponibles',
+      'notifications_status_on': 'Les notifications sont activées',
+      'notifications_status_off': 'Les notifications sont désactivées',
+      'notifications_web_unavailable_detail':
+          'Les rappels de factures sont disponibles sur les appareils mobiles.',
+      'notifications_device_blocking_detail':
+          'Les réglages de l\'appareil bloquent les notifications.',
+      'notifications_app_off_detail':
+          'Activez les notifications ci-dessous pour recevoir les rappels de factures.',
+      'notifications_bill_reminders_available_detail':
+          'Les rappels de factures peuvent être envoyés sur cet appareil.',
+      'notifications_device_section': 'Appareil',
+      'notifications_unavailable_web_short': 'Indisponible sur le Web',
+      'notifications_schedule_app_alerts':
+          'Autorise l\'app à planifier les alertes de rappel de factures.',
+      'notifications_enable_device_settings_first':
+          'Activez d\'abord les notifications dans les réglages de l\'appareil.',
+      'notifications_schedule_bill_reminders':
+          'Planifie des notifications de rappel pour vos factures actives.',
+      'notifications_enable_above_for_bill_reminders':
+          'Activez les notifications de l\'app ci-dessus pour utiliser les rappels de factures.',
+      'categories_free_limit_hint':
+          'Forfait Gratuit : {remaining} catégories personnalisées restantes sur {limit}. Premium débloque les catégories et sous-catégories illimitées.',
+      'categories_free_limit_reached':
+          'Le forfait Gratuit inclut {limit} catégories personnalisées. Passez à Premium pour des catégories et sous-catégories illimitées.',
+      'categories_view_premium': 'Voir Premium',
+      'subcategories_active_count': '{count} sous-catégories actives',
+      'subcategories_free_limit_hint':
+          'Forfait Gratuit : {remaining} sous-catégories personnalisées restantes sur {limit} pour votre compte. Premium débloque les catégories et sous-catégories illimitées.',
+      'subcategories_free_limit_reached':
+          'Le forfait Gratuit inclut {limit} sous-catégories personnalisées. Passez à Premium pour des catégories et sous-catégories illimitées.',
+      'subcategories_load_error_title':
+          'Impossible de charger les sous-catégories',
+      'subcategories_disabled_tip':
+          'Astuce : les sous-catégories désactivées n\'apparaissent pas lors de la catégorisation des articles. Vous pouvez les réactiver à tout moment.',
+      'subcategories_default_section': 'Sous-catégories par défaut',
+      'subcategories_custom_section': 'Sous-catégories personnalisées',
+      'subcategories_custom_empty':
+          'Aucune sous-catégorie personnalisée pour le moment.',
+      'subcategories_default_empty_for_parent':
+          'Aucune sous-catégorie par défaut trouvée pour {name}.',
       'delete_reminder_name_confirm': 'Supprimer "{name}" ?',
     },
     'uk': {
@@ -5118,11 +5244,11 @@ class AppLocalizations {
       'billing_current_plan_premium_subtitle':
           'Premium активний для цього облікового запису.',
       'billing_access_list_premium':
-          'Необмежене сканування чеків\nРозширені детальні аналітичні зрізи\nПовна історія експорту даних',
+          'Необмежене сканування чеків\nРозширені детальні аналітичні зрізи\nНеобмежені власні категорії та підкатегорії\nПовна історія експорту даних',
       'billing_access_list_free':
-          '{limit} сканувань чеків у кожному ковзному 30-денному періоді\nБазові інструменти залишаються доступними: мітки, категорії, бюджети й нагадування про рахунки\nЕкспорт даних у безкоштовному плані охоплює останні 30 днів',
+          '{limit} сканувань чеків у кожному ковзному 30-денному періоді\n{categoryLimit} власні категорії та {subcategoryLimit} власних підкатегорій у безкоштовному плані\nЕкспорт даних у безкоштовному плані охоплює останні 30 днів',
       'billing_free_upgrade_note':
-          'Оновлюйтесь лише якщо вам потрібно більше сканувань, глибша аналітика або повний діапазон експорту.',
+          'Переходьте на Premium, коли захочете необмежені сканування, необмежені категорії, глибшу аналітику й повну історію експорту.',
       'billing_restore_sync_note':
           'Скористайтеся «Відновити покупки», якщо Premium ще не відображається на цьому пристрої.',
       'billing_badge_active': 'Активно',
@@ -5133,11 +5259,52 @@ class AppLocalizations {
       'billing_premium_applied_note':
           'Ліміти Premium уже застосовано до цього облікового запису.',
       'billing_free_limits_note':
-          'Обмеження безкоштовного плану діють, доки ви не оновитеся.',
+          'Обмеження безкоштовного плану діють, доки ви не перейдете на Premium.',
       'billing_managed_by_store_note':
           'Premium для цього облікового запису й надалі керується через магазин застосунків.',
       'billing_free_limits_expand_note':
-          'Безкоштовний план зберігає доступ до основних інструментів. Premium розширює ліміти сканування, аналітику й експорт.',
+          'Безкоштовний план зберігає основні можливості. Premium відкриває необмежені сканування й категорії, глибшу аналітику та повну історію експорту.',
+      'notifications_still_blocked_snackbar':
+          'Сповіщення все ще заблоковані в налаштуваннях пристрою.',
+      'notifications_status_unavailable': 'Сповіщення недоступні',
+      'notifications_status_on': 'Сповіщення ввімкнені',
+      'notifications_status_off': 'Сповіщення вимкнені',
+      'notifications_web_unavailable_detail':
+          'Нагадування про рахунки доступні на мобільних пристроях.',
+      'notifications_device_blocking_detail':
+          'Налаштування пристрою блокують сповіщення.',
+      'notifications_app_off_detail':
+          'Увімкніть сповіщення нижче, щоб отримувати нагадування про рахунки.',
+      'notifications_bill_reminders_available_detail':
+          'Нагадування про рахунки можуть надходити на цей пристрій.',
+      'notifications_device_section': 'Пристрій',
+      'notifications_unavailable_web_short': 'Недоступно у вебверсії',
+      'notifications_schedule_app_alerts':
+          'Дозволяє застосунку планувати сповіщення-нагадування про рахунки.',
+      'notifications_enable_device_settings_first':
+          'Спочатку ввімкніть сповіщення в налаштуваннях пристрою.',
+      'notifications_schedule_bill_reminders':
+          'Планує сповіщення-нагадування для ваших активних рахунків.',
+      'notifications_enable_above_for_bill_reminders':
+          'Увімкніть сповіщення застосунку вище, щоб користуватися нагадуваннями про рахунки.',
+      'categories_free_limit_hint':
+          'Безкоштовний план: залишилося {remaining} із {limit} власних категорій. Premium відкриває необмежені категорії та підкатегорії.',
+      'categories_free_limit_reached':
+          'Безкоштовний план містить {limit} власні категорії. Перейдіть на Premium для необмежених категорій і підкатегорій.',
+      'categories_view_premium': 'Переглянути Premium',
+      'subcategories_active_count': '{count} активних підкатегорій',
+      'subcategories_free_limit_hint':
+          'Безкоштовний план: залишилося {remaining} із {limit} власних підкатегорій для вашого акаунта. Premium відкриває необмежені категорії та підкатегорії.',
+      'subcategories_free_limit_reached':
+          'Безкоштовний план містить {limit} власних підкатегорій. Перейдіть на Premium для необмежених категорій і підкатегорій.',
+      'subcategories_load_error_title': 'Не вдалося завантажити підкатегорії',
+      'subcategories_disabled_tip':
+          'Порада: вимкнені підкатегорії не зʼявлятимуться під час категоризації позицій. Їх можна будь-коли ввімкнути знову.',
+      'subcategories_default_section': 'Стандартні підкатегорії',
+      'subcategories_custom_section': 'Власні підкатегорії',
+      'subcategories_custom_empty': 'Власних підкатегорій поки немає.',
+      'subcategories_default_empty_for_parent':
+          'Для {name} не знайдено стандартних підкатегорій.',
       'delete_reminder_name_confirm': 'Видалити "{name}"?',
     },
     'it': {
@@ -6413,11 +6580,11 @@ class AppLocalizations {
       'billing_current_plan_premium_subtitle':
           'Premium è attivo per questo account.',
       'billing_access_list_premium':
-          'Scansioni ricevute illimitate\nAnalisi avanzate dettagliate\nCronologia completa delle esportazioni dei dati',
+          'Scansioni ricevute illimitate\nAnalisi avanzate dettagliate\nCategorie e sottocategorie personalizzate illimitate\nCronologia completa delle esportazioni dei dati',
       'billing_access_list_free':
-          '{limit} scansioni ricevute per ogni finestra mobile di 30 giorni\nGli strumenti essenziali restano disponibili: etichette, categorie, budget e promemoria bollette\nL\'esportazione dei dati include gli ultimi 30 giorni nel piano Gratuito',
+          '{limit} scansioni ricevute per ogni finestra mobile di 30 giorni\n{categoryLimit} categorie personalizzate e {subcategoryLimit} sottocategorie personalizzate nel piano Gratuito\nL\'esportazione dei dati include gli ultimi 30 giorni nel piano Gratuito',
       'billing_free_upgrade_note':
-          'Passa a Premium solo se ti servono più scansioni, analisi più approfondite o l\'intera cronologia di esportazione.',
+          'Passa a Premium quando vuoi scansioni illimitate, categorie illimitate, analisi più approfondite e tutta la cronologia di esportazione.',
       'billing_restore_sync_note':
           'Usa "Ripristina acquisti" se Premium non compare ancora su questo dispositivo.',
       'billing_badge_active': 'Attivo',
@@ -6428,11 +6595,54 @@ class AppLocalizations {
       'billing_premium_applied_note':
           'I limiti Premium sono già applicati a questo account.',
       'billing_free_limits_note':
-          'I limiti del piano Gratuito restano attivi finché non fai l\'upgrade.',
+          'I limiti del piano Gratuito restano attivi finché non passi a Premium.',
       'billing_managed_by_store_note':
           'Premium continua a essere gestito dallo store per questo account.',
       'billing_free_limits_expand_note':
-          'Il piano Gratuito mantiene disponibili gli strumenti essenziali. Premium amplia limiti di scansione, analisi ed esportazioni.',
+          'Il piano Gratuito mantiene disponibili gli strumenti essenziali. Premium sblocca scansioni e categorie illimitate, analisi più approfondite e tutta la cronologia di esportazione.',
+      'notifications_still_blocked_snackbar':
+          'Le notifiche sono ancora bloccate nelle impostazioni del dispositivo.',
+      'notifications_status_unavailable': 'Notifiche non disponibili',
+      'notifications_status_on': 'Le notifiche sono attive',
+      'notifications_status_off': 'Le notifiche sono disattivate',
+      'notifications_web_unavailable_detail':
+          'I promemoria bollette sono disponibili sui dispositivi mobili.',
+      'notifications_device_blocking_detail':
+          'Le impostazioni del dispositivo stanno bloccando le notifiche.',
+      'notifications_app_off_detail':
+          'Attiva le notifiche qui sotto per ricevere i promemoria bollette.',
+      'notifications_bill_reminders_available_detail':
+          'I promemoria bollette possono essere inviati su questo dispositivo.',
+      'notifications_device_section': 'Dispositivo',
+      'notifications_unavailable_web_short': 'Non disponibile sul Web',
+      'notifications_schedule_app_alerts':
+          'Consente all\'app di pianificare avvisi per i promemoria bollette.',
+      'notifications_enable_device_settings_first':
+          'Attiva prima le notifiche nelle impostazioni del dispositivo.',
+      'notifications_schedule_bill_reminders':
+          'Pianifica notifiche di promemoria per le tue bollette attive.',
+      'notifications_enable_above_for_bill_reminders':
+          'Attiva le notifiche dell\'app sopra per usare i promemoria bollette.',
+      'categories_free_limit_hint':
+          'Piano Gratuito: restano {remaining} categorie personalizzate su {limit}. Premium sblocca categorie e sottocategorie illimitate.',
+      'categories_free_limit_reached':
+          'Il piano Gratuito include {limit} categorie personalizzate. Passa a Premium per categorie e sottocategorie illimitate.',
+      'categories_view_premium': 'Vedi Premium',
+      'subcategories_active_count': '{count} sottocategorie attive',
+      'subcategories_free_limit_hint':
+          'Piano Gratuito: restano {remaining} sottocategorie personalizzate su {limit} in tutto l\'account. Premium sblocca categorie e sottocategorie illimitate.',
+      'subcategories_free_limit_reached':
+          'Il piano Gratuito include {limit} sottocategorie personalizzate. Passa a Premium per categorie e sottocategorie illimitate.',
+      'subcategories_load_error_title':
+          'Impossibile caricare le sottocategorie',
+      'subcategories_disabled_tip':
+          'Suggerimento: le sottocategorie disattivate non appariranno durante la categorizzazione degli articoli. Puoi riattivarle in qualsiasi momento.',
+      'subcategories_default_section': 'Sottocategorie predefinite',
+      'subcategories_custom_section': 'Sottocategorie personalizzate',
+      'subcategories_custom_empty':
+          'Ancora nessuna sottocategoria personalizzata.',
+      'subcategories_default_empty_for_parent':
+          'Nessuna sottocategoria predefinita trovata per {name}.',
       'delete_reminder_name_confirm': 'Eliminare "{name}"?',
     },
     'pl': {
@@ -7693,11 +7903,11 @@ class AppLocalizations {
       'billing_current_plan_premium_subtitle':
           'Premium jest aktywny dla tego konta.',
       'billing_access_list_premium':
-          'Nielimitowane skanowanie paragonów\nRozszerzone szczegóły analityki\nPełna historia eksportu danych',
+          'Nielimitowane skanowanie paragonów\nRozszerzone szczegóły analityki\nNielimitowane własne kategorie i podkategorie\nPełna historia eksportu danych',
       'billing_access_list_free':
-          '{limit} skanów paragonów w każdym ruchomym okresie 30 dni\nPodstawowe narzędzia pozostają dostępne: etykiety, kategorie, budżety i przypomnienia o rachunkach\nEksport danych w planie Darmowym obejmuje ostatnie 30 dni',
+          '{limit} skanów paragonów w każdym ruchomym okresie 30 dni\n{categoryLimit} własne kategorie i {subcategoryLimit} własnych podkategorii w planie Darmowym\nEksport danych w planie Darmowym obejmuje ostatnie 30 dni',
       'billing_free_upgrade_note':
-          'Przejdź na Premium tylko wtedy, gdy potrzebujesz większej liczby skanów, głębszej analityki lub pełnego zakresu eksportu.',
+          'Przejdź na Premium, gdy chcesz mieć nielimitowane skany, nielimitowane kategorie, głębszą analitykę i pełną historię eksportu.',
       'billing_restore_sync_note':
           'Użyj „Przywróć zakupy”, jeśli Premium nie pojawia się jeszcze na tym urządzeniu.',
       'billing_badge_active': 'Aktywny',
@@ -7708,11 +7918,52 @@ class AppLocalizations {
       'billing_premium_applied_note':
           'Limity Premium są już zastosowane do tego konta.',
       'billing_free_limits_note':
-          'Ograniczenia planu Darmowego obowiązują, dopóki nie przejdziesz na wyższy plan.',
+          'Limity planu Darmowego obowiązują, dopóki nie przejdziesz na Premium.',
       'billing_managed_by_store_note':
           'Premium dla tego konta nadal jest zarządzany przez sklep z aplikacjami.',
       'billing_free_limits_expand_note':
-          'Plan Darmowy pozostawia dostęp do podstawowych narzędzi. Premium zwiększa limity skanów, analitykę i eksporty.',
+          'Plan Darmowy zapewnia podstawowe funkcje. Premium odblokowuje nielimitowane skany i kategorie, głębszą analitykę oraz pełną historię eksportu.',
+      'notifications_still_blocked_snackbar':
+          'Powiadomienia nadal są zablokowane w ustawieniach urządzenia.',
+      'notifications_status_unavailable': 'Powiadomienia niedostępne',
+      'notifications_status_on': 'Powiadomienia są włączone',
+      'notifications_status_off': 'Powiadomienia są wyłączone',
+      'notifications_web_unavailable_detail':
+          'Przypomnienia o rachunkach są dostępne na urządzeniach mobilnych.',
+      'notifications_device_blocking_detail':
+          'Ustawienia urządzenia blokują powiadomienia.',
+      'notifications_app_off_detail':
+          'Włącz powiadomienia poniżej, aby otrzymywać przypomnienia o rachunkach.',
+      'notifications_bill_reminders_available_detail':
+          'Przypomnienia o rachunkach mogą być dostarczane na tym urządzeniu.',
+      'notifications_device_section': 'Urządzenie',
+      'notifications_unavailable_web_short': 'Niedostępne w sieci',
+      'notifications_schedule_app_alerts':
+          'Pozwala aplikacji planować alerty przypomnień o rachunkach.',
+      'notifications_enable_device_settings_first':
+          'Najpierw włącz powiadomienia w ustawieniach urządzenia.',
+      'notifications_schedule_bill_reminders':
+          'Planuje powiadomienia-przypomnienia dla aktywnych rachunków.',
+      'notifications_enable_above_for_bill_reminders':
+          'Włącz powiadomienia aplikacji powyżej, aby używać przypomnień o rachunkach.',
+      'categories_free_limit_hint':
+          'Plan Darmowy: pozostało {remaining} z {limit} własnych kategorii. Premium odblokowuje nielimitowane kategorie i podkategorie.',
+      'categories_free_limit_reached':
+          'Plan Darmowy obejmuje {limit} własne kategorie. Przejdź na Premium, aby mieć nielimitowane kategorie i podkategorie.',
+      'categories_view_premium': 'Zobacz Premium',
+      'subcategories_active_count': '{count} aktywnych podkategorii',
+      'subcategories_free_limit_hint':
+          'Plan Darmowy: pozostało {remaining} z {limit} własnych podkategorii na całym koncie. Premium odblokowuje nielimitowane kategorie i podkategorie.',
+      'subcategories_free_limit_reached':
+          'Plan Darmowy obejmuje {limit} własnych podkategorii. Przejdź na Premium, aby mieć nielimitowane kategorie i podkategorie.',
+      'subcategories_load_error_title': 'Nie udało się załadować podkategorii',
+      'subcategories_disabled_tip':
+          'Wskazówka: wyłączone podkategorie nie pojawią się podczas kategoryzowania pozycji. Możesz je włączyć ponownie w dowolnym momencie.',
+      'subcategories_default_section': 'Domyślne podkategorie',
+      'subcategories_custom_section': 'Własne podkategorie',
+      'subcategories_custom_empty': 'Nie ma jeszcze własnych podkategorii.',
+      'subcategories_default_empty_for_parent':
+          'Nie znaleziono domyślnych podkategorii dla {name}.',
       'delete_reminder_name_confirm': 'Usunąć "{name}"?',
     },
     'sr': {
@@ -8958,11 +9209,11 @@ class AppLocalizations {
       'billing_current_plan_premium_subtitle':
           'Premium je aktivan za ovaj nalog.',
       'billing_access_list_premium':
-          'Neograničeno skeniranje računa\nNapredni detaljni analitički pregledi\nPuna istorija izvoza podataka',
+          'Neograničeno skeniranje računa\nNapredni detaljni analitički pregledi\nNeograničene prilagođene kategorije i potkategorije\nPuna istorija izvoza podataka',
       'billing_access_list_free':
-          '{limit} skeniranja računa u svakom pokretnom periodu od 30 dana\nOsnovni alati ostaju dostupni: oznake, kategorije, budžeti i podsetnici za račune\nIzvoz podataka u besplatnom planu obuhvata poslednjih 30 dana',
+          '{limit} skeniranja računa u svakom pokretnom periodu od 30 dana\n{categoryLimit} prilagođene kategorije i {subcategoryLimit} prilagođenih potkategorija u besplatnom planu\nIzvoz podataka u besplatnom planu obuhvata poslednjih 30 dana',
       'billing_free_upgrade_note':
-          'Nadogradite samo ako su vam potrebni dodatni skenovi, dublja analitika ili pun opseg izvoza.',
+          'Pređite na Premium kada želite neograničena skeniranja, neograničene kategorije, dublju analitiku i punu istoriju izvoza.',
       'billing_restore_sync_note':
           'Koristite „Vrati kupovine“ ako se Premium još ne prikazuje na ovom uređaju.',
       'billing_badge_active': 'Aktivno',
@@ -8973,11 +9224,52 @@ class AppLocalizations {
       'billing_premium_applied_note':
           'Premium ograničenja su već primenjena na ovaj nalog.',
       'billing_free_limits_note':
-          'Ograničenja besplatnog plana ostaju aktivna dok ne izvršite nadogradnju.',
+          'Ograničenja besplatnog plana važe dok ne pređete na Premium.',
       'billing_managed_by_store_note':
           'Premium za ovaj nalog i dalje upravlja prodavnica aplikacija.',
       'billing_free_limits_expand_note':
-          'Besplatan plan zadržava osnovne alate dostupnim. Premium proširuje limite skeniranja, analitiku i izvoz.',
+          'Besplatan plan čuva osnovne funkcije. Premium otključava neograničena skeniranja i kategorije, dublju analitiku i punu istoriju izvoza.',
+      'notifications_still_blocked_snackbar':
+          'Obaveštenja su i dalje blokirana u podešavanjima uređaja.',
+      'notifications_status_unavailable': 'Obaveštenja nisu dostupna',
+      'notifications_status_on': 'Obaveštenja su uključena',
+      'notifications_status_off': 'Obaveštenja su isključena',
+      'notifications_web_unavailable_detail':
+          'Podsetnici za račune dostupni su na mobilnim uređajima.',
+      'notifications_device_blocking_detail':
+          'Podešavanja uređaja blokiraju obaveštenja.',
+      'notifications_app_off_detail':
+          'Uključite obaveštenja ispod da biste dobijali podsetnike za račune.',
+      'notifications_bill_reminders_available_detail':
+          'Podsetnici za račune mogu da stižu na ovaj uređaj.',
+      'notifications_device_section': 'Uređaj',
+      'notifications_unavailable_web_short': 'Nije dostupno na vebu',
+      'notifications_schedule_app_alerts':
+          'Omogućava aplikaciji da zakazuje upozorenja za podsetnike računa.',
+      'notifications_enable_device_settings_first':
+          'Prvo uključite obaveštenja u podešavanjima uređaja.',
+      'notifications_schedule_bill_reminders':
+          'Zakazuje obaveštenja-podsetnike za vaše aktivne račune.',
+      'notifications_enable_above_for_bill_reminders':
+          'Uključite obaveštenja aplikacije iznad da biste koristili podsetnike za račune.',
+      'categories_free_limit_hint':
+          'Besplatan plan: preostalo je {remaining} od {limit} prilagođenih kategorija. Premium otključava neograničene kategorije i potkategorije.',
+      'categories_free_limit_reached':
+          'Besplatan plan uključuje {limit} prilagođene kategorije. Pređite na Premium za neograničene kategorije i potkategorije.',
+      'categories_view_premium': 'Pogledajte Premium',
+      'subcategories_active_count': '{count} aktivnih potkategorija',
+      'subcategories_free_limit_hint':
+          'Besplatan plan: preostalo je {remaining} od {limit} prilagođenih potkategorija na nalogu. Premium otključava neograničene kategorije i potkategorije.',
+      'subcategories_free_limit_reached':
+          'Besplatan plan uključuje {limit} prilagođenih potkategorija. Pređite na Premium za neograničene kategorije i potkategorije.',
+      'subcategories_load_error_title': 'Nije moguće učitati potkategorije',
+      'subcategories_disabled_tip':
+          'Savet: isključene potkategorije se neće prikazivati pri kategorizaciji stavki. Možete ih ponovo uključiti bilo kada.',
+      'subcategories_default_section': 'Podrazumevane potkategorije',
+      'subcategories_custom_section': 'Prilagođene potkategorije',
+      'subcategories_custom_empty': 'Još nema prilagođenih potkategorija.',
+      'subcategories_default_empty_for_parent':
+          'Nisu pronađene podrazumevane potkategorije za {name}.',
       'delete_reminder_name_confirm': 'Obriši "{name}"?',
     },
     'ru': {
@@ -10221,11 +10513,11 @@ class AppLocalizations {
       'billing_current_plan_premium_subtitle':
           'Premium активен для этого аккаунта.',
       'billing_access_list_premium':
-          'Безлимитное сканирование чеков\nРасширенная детализация аналитики\nПолная история экспорта данных',
+          'Безлимитное сканирование чеков\nРасширенная детализация аналитики\nБезлимитные пользовательские категории и подкатегории\nПолная история экспорта данных',
       'billing_access_list_free':
-          '{limit} сканирований чеков в каждом скользящем 30-дневном периоде\nОсновные инструменты остаются доступными: метки, категории, бюджеты и напоминания о счетах\nЭкспорт данных в бесплатном плане включает последние 30 дней',
+          '{limit} сканирований чеков в каждом скользящем 30-дневном периоде\n{categoryLimit} пользовательские категории и {subcategoryLimit} пользовательских подкатегорий в бесплатном плане\nЭкспорт данных в бесплатном плане включает последние 30 дней',
       'billing_free_upgrade_note':
-          'Обновляйтесь только если вам нужны дополнительные сканирования, более глубокая аналитика или полный экспорт.',
+          'Переходите на Premium, когда захотите безлимитные сканы, безлимитные категории, более глубокую аналитику и полную историю экспорта.',
       'billing_restore_sync_note':
           'Используйте «Восстановить покупки», если Premium еще не отображается на этом устройстве.',
       'billing_badge_active': 'Активно',
@@ -10236,11 +10528,52 @@ class AppLocalizations {
       'billing_premium_applied_note':
           'Лимиты Premium уже применены к этому аккаунту.',
       'billing_free_limits_note':
-          'Ограничения бесплатного плана действуют, пока вы не обновитесь.',
+          'Ограничения бесплатного плана действуют до перехода на Premium.',
       'billing_managed_by_store_note':
           'Premium для этого аккаунта по-прежнему управляется через магазин приложений.',
       'billing_free_limits_expand_note':
-          'Бесплатный план оставляет доступ к основным инструментам. Premium расширяет лимиты сканирования, аналитику и экспорт.',
+          'Бесплатный план сохраняет основные возможности. Premium открывает безлимитные сканы и категории, более глубокую аналитику и полную историю экспорта.',
+      'notifications_still_blocked_snackbar':
+          'Уведомления все еще заблокированы в настройках устройства.',
+      'notifications_status_unavailable': 'Уведомления недоступны',
+      'notifications_status_on': 'Уведомления включены',
+      'notifications_status_off': 'Уведомления выключены',
+      'notifications_web_unavailable_detail':
+          'В веб-версии локальные напоминания пока не поддерживаются.',
+      'notifications_device_blocking_detail':
+          'Устройство сейчас блокирует уведомления для приложения.',
+      'notifications_app_off_detail':
+          'Устройство разрешает уведомления, но они выключены в приложении.',
+      'notifications_bill_reminders_available_detail':
+          'Напоминания о счетах можно доставлять на это устройство.',
+      'notifications_device_section': 'Устройство',
+      'notifications_unavailable_web_short': 'Недоступно в этой веб-версии.',
+      'notifications_schedule_app_alerts':
+          'Позволяет приложению планировать напоминания о счетах.',
+      'notifications_enable_device_settings_first':
+          'Сначала включите уведомления для приложения в настройках устройства.',
+      'notifications_schedule_bill_reminders':
+          'Планирует уведомления-напоминания для активных счетов.',
+      'notifications_enable_above_for_bill_reminders':
+          'Включите уведомления выше, чтобы напоминания о счетах работали.',
+      'categories_free_limit_hint':
+          'Бесплатный план: осталось {remaining} из {limit} пользовательских категорий. Premium открывает безлимитные категории и подкатегории.',
+      'categories_free_limit_reached':
+          'В бесплатном плане доступно до {limit} активных пользовательских категорий. Перейдите на Premium для безлимитных категорий и подкатегорий.',
+      'categories_view_premium': 'Посмотреть Premium',
+      'subcategories_active_count': '{count} активных подкатегорий',
+      'subcategories_free_limit_hint':
+          'Бесплатный план: осталось {remaining} из {limit} пользовательских подкатегорий для аккаунта. Premium открывает безлимитные категории и подкатегории.',
+      'subcategories_free_limit_reached':
+          'В бесплатном плане доступно до {limit} активных пользовательских подкатегорий. Перейдите на Premium для безлимитных категорий и подкатегорий.',
+      'subcategories_load_error_title': 'Не удалось загрузить подкатегории',
+      'subcategories_disabled_tip':
+          'Совет: отключенные подкатегории не появятся при категоризации товаров. Их можно включить снова в любое время.',
+      'subcategories_default_section': 'Стандартные подкатегории',
+      'subcategories_custom_section': 'Пользовательские подкатегории',
+      'subcategories_custom_empty': 'Пользовательских подкатегорий пока нет.',
+      'subcategories_default_empty_for_parent':
+          'Для «{name}» стандартных подкатегорий нет.',
       'delete_reminder_name_confirm': 'Удалить "{name}"?',
     },
     'pt': {
@@ -11504,11 +11837,11 @@ class AppLocalizations {
       'billing_current_plan_premium_subtitle':
           'O Premium está ativo para esta conta.',
       'billing_access_list_premium':
-          'Digitalizações de recibos ilimitadas\nAnálises detalhadas avançadas\nHistórico completo de exportação de dados',
+          'Digitalizações de recibos ilimitadas\nAnálises detalhadas avançadas\nCategorias e subcategorias personalizadas ilimitadas\nHistórico completo de exportação de dados',
       'billing_access_list_free':
-          '{limit} digitalizações de recibos em cada janela móvel de 30 dias\nAs ferramentas principais continuam disponíveis: etiquetas, categorias, orçamentos e lembretes de contas\nA exportação de dados inclui os últimos 30 dias no plano Gratuito',
+          '{limit} digitalizações de recibos em cada janela móvel de 30 dias\n{categoryLimit} categorias personalizadas e {subcategoryLimit} subcategorias personalizadas no plano Gratuito\nA exportação de dados inclui os últimos 30 dias no plano Gratuito',
       'billing_free_upgrade_note':
-          'Faça upgrade apenas se precisar de mais digitalizações, análises mais profundas ou de todo o histórico de exportação.',
+          'Faça upgrade para Premium quando quiser digitalizações ilimitadas, categorias ilimitadas, análises mais profundas e todo o histórico de exportação.',
       'billing_restore_sync_note':
           'Use "Restaurar compras" se o Premium ainda não aparecer neste dispositivo.',
       'billing_badge_active': 'Ativo',
@@ -11519,11 +11852,54 @@ class AppLocalizations {
       'billing_premium_applied_note':
           'Os limites do Premium já estão aplicados a esta conta.',
       'billing_free_limits_note':
-          'Os limites do plano Gratuito permanecem ativos até fazer upgrade.',
+          'Os limites do plano Gratuito permanecem ativos até você fazer upgrade para Premium.',
       'billing_managed_by_store_note':
           'O Premium continua a ser gerido pela sua loja de aplicações para esta conta.',
       'billing_free_limits_expand_note':
-          'O plano Gratuito mantém as ferramentas principais disponíveis. O Premium amplia os limites de digitalização, a análise e as exportações.',
+          'O plano Gratuito mantém o essencial disponível. O Premium desbloqueia digitalizações e categorias ilimitadas, análises mais profundas e todo o histórico de exportação.',
+      'notifications_still_blocked_snackbar':
+          'As notificações ainda estão bloqueadas nas configurações do dispositivo.',
+      'notifications_status_unavailable': 'Notificações indisponíveis',
+      'notifications_status_on': 'As notificações estão ativadas',
+      'notifications_status_off': 'As notificações estão desativadas',
+      'notifications_web_unavailable_detail':
+          'Lembretes de contas estão disponíveis em dispositivos móveis.',
+      'notifications_device_blocking_detail':
+          'As configurações do dispositivo estão bloqueando notificações.',
+      'notifications_app_off_detail':
+          'Ative as notificações abaixo para receber lembretes de contas.',
+      'notifications_bill_reminders_available_detail':
+          'Lembretes de contas podem ser enviados para este dispositivo.',
+      'notifications_device_section': 'Dispositivo',
+      'notifications_unavailable_web_short': 'Indisponível na Web',
+      'notifications_schedule_app_alerts':
+          'Permite que o app agende alertas de lembretes de contas.',
+      'notifications_enable_device_settings_first':
+          'Ative primeiro as notificações nas configurações do dispositivo.',
+      'notifications_schedule_bill_reminders':
+          'Agenda notificações de lembrete para suas contas ativas.',
+      'notifications_enable_above_for_bill_reminders':
+          'Ative as notificações do app acima para usar lembretes de contas.',
+      'categories_free_limit_hint':
+          'Plano Gratuito: restam {remaining} de {limit} categorias personalizadas. O Premium desbloqueia categorias e subcategorias ilimitadas.',
+      'categories_free_limit_reached':
+          'O plano Gratuito inclui {limit} categorias personalizadas. Faça upgrade para Premium para categorias e subcategorias ilimitadas.',
+      'categories_view_premium': 'Ver Premium',
+      'subcategories_active_count': '{count} subcategorias ativas',
+      'subcategories_free_limit_hint':
+          'Plano Gratuito: restam {remaining} de {limit} subcategorias personalizadas em toda a sua conta. O Premium desbloqueia categorias e subcategorias ilimitadas.',
+      'subcategories_free_limit_reached':
+          'O plano Gratuito inclui {limit} subcategorias personalizadas. Faça upgrade para Premium para categorias e subcategorias ilimitadas.',
+      'subcategories_load_error_title':
+          'Não foi possível carregar subcategorias',
+      'subcategories_disabled_tip':
+          'Dica: subcategorias desativadas não aparecerão ao categorizar itens. Você pode reativá-las a qualquer momento.',
+      'subcategories_default_section': 'Subcategorias padrão',
+      'subcategories_custom_section': 'Subcategorias personalizadas',
+      'subcategories_custom_empty':
+          'Ainda não há subcategorias personalizadas.',
+      'subcategories_default_empty_for_parent':
+          'Nenhuma subcategoria padrão encontrada para {name}.',
       'delete_reminder_name_confirm': 'Eliminar "{name}"?',
     },
     'tr': {
@@ -12757,11 +13133,11 @@ class AppLocalizations {
           'Bu hesapta şu anda Ücretsiz plan kullanılıyor.',
       'billing_current_plan_premium_subtitle': 'Bu hesap için Premium etkin.',
       'billing_access_list_premium':
-          'Sınırsız fiş tarama\nGelişmiş ayrıntılı analizler\nTam veri dışa aktarma geçmişi',
+          'Sınırsız fiş tarama\nGelişmiş ayrıntılı analizler\nSınırsız özel kategoriler ve alt kategoriler\nTam veri dışa aktarma geçmişi',
       'billing_access_list_free':
-          'Her 30 günlük kayan dönemde {limit} fiş taraması\nTemel araçlar kullanılabilir kalır: etiketler, kategoriler, bütçeler ve fatura hatırlatıcıları\nÜcretsiz planda veri dışa aktarma son 30 günü içerir',
+          'Her 30 günlük kayan dönemde {limit} fiş taraması\nÜcretsiz planda {categoryLimit} özel kategori ve {subcategoryLimit} özel alt kategori\nÜcretsiz planda veri dışa aktarma son 30 günü içerir',
       'billing_free_upgrade_note':
-          'Yalnızca daha fazla tarama, daha derin analizler veya tam dışa aktarma kapsamına ihtiyacınız varsa yükseltin.',
+          'Sınırsız tarama, sınırsız kategori, daha derin analizler ve tam dışa aktarma geçmişi istediğinizde Premium\'a geçin.',
       'billing_restore_sync_note':
           'Premium bu cihazda henüz görünmüyorsa "Satın Alınanları Geri Yükle" seçeneğini kullanın.',
       'billing_badge_active': 'Aktif',
@@ -12772,11 +13148,52 @@ class AppLocalizations {
       'billing_premium_applied_note':
           'Premium limitleri bu hesaba zaten uygulanıyor.',
       'billing_free_limits_note':
-          'Ücretsiz plan limitleri siz yükseltme yapana kadar geçerli kalır.',
+          'Ücretsiz plan limitleri Premium\'a geçene kadar aktif kalır.',
       'billing_managed_by_store_note':
           'Bu hesap için Premium, uygulama mağazanız üzerinden yönetilmeye devam eder.',
       'billing_free_limits_expand_note':
-          'Ücretsiz plan temel araçları kullanılabilir tutar. Premium tarama limitlerini, analizleri ve dışa aktarmaları genişletir.',
+          'Ücretsiz plan temel özellikleri sunmaya devam eder. Premium sınırsız tarama ve kategori, daha derin analizler ve tam dışa aktarma geçmişi açar.',
+      'notifications_still_blocked_snackbar':
+          'Bildirimler cihaz ayarlarında hâlâ engelleniyor.',
+      'notifications_status_unavailable': 'Bildirimler kullanılamıyor',
+      'notifications_status_on': 'Bildirimler açık',
+      'notifications_status_off': 'Bildirimler kapalı',
+      'notifications_web_unavailable_detail':
+          'Fatura hatırlatıcıları mobil cihazlarda kullanılabilir.',
+      'notifications_device_blocking_detail':
+          'Cihaz ayarları bildirimleri engelliyor.',
+      'notifications_app_off_detail':
+          'Fatura hatırlatıcıları almak için aşağıdan bildirimleri açın.',
+      'notifications_bill_reminders_available_detail':
+          'Fatura hatırlatıcıları bu cihaza gönderilebilir.',
+      'notifications_device_section': 'Cihaz',
+      'notifications_unavailable_web_short': 'Webde kullanılamaz',
+      'notifications_schedule_app_alerts':
+          'Uygulamanın fatura hatırlatma uyarıları planlamasına izin verir.',
+      'notifications_enable_device_settings_first':
+          'Önce cihaz ayarlarında bildirimleri açın.',
+      'notifications_schedule_bill_reminders':
+          'Aktif faturalarınız için hatırlatma bildirimleri planlar.',
+      'notifications_enable_above_for_bill_reminders':
+          'Fatura hatırlatıcılarını kullanmak için yukarıda uygulama bildirimlerini açın.',
+      'categories_free_limit_hint':
+          'Ücretsiz plan: {limit} özel kategoriden {remaining} kaldı. Premium sınırsız kategori ve alt kategori açar.',
+      'categories_free_limit_reached':
+          'Ücretsiz plan {limit} özel kategori içerir. Sınırsız kategori ve alt kategori için Premium\'a geçin.',
+      'categories_view_premium': 'Premium\'u görüntüle',
+      'subcategories_active_count': '{count} aktif alt kategori',
+      'subcategories_free_limit_hint':
+          'Ücretsiz plan: hesabınızda {limit} özel alt kategoriden {remaining} kaldı. Premium sınırsız kategori ve alt kategori açar.',
+      'subcategories_free_limit_reached':
+          'Ücretsiz plan {limit} özel alt kategori içerir. Sınırsız kategori ve alt kategori için Premium\'a geçin.',
+      'subcategories_load_error_title': 'Alt kategoriler yüklenemedi',
+      'subcategories_disabled_tip':
+          'İpucu: Devre dışı alt kategoriler öğeleri kategorize ederken görünmez. İstediğiniz zaman tekrar etkinleştirebilirsiniz.',
+      'subcategories_default_section': 'Varsayılan alt kategoriler',
+      'subcategories_custom_section': 'Özel alt kategoriler',
+      'subcategories_custom_empty': 'Henüz özel alt kategori yok.',
+      'subcategories_default_empty_for_parent':
+          '{name} için varsayılan alt kategori bulunamadı.',
       'delete_reminder_name_confirm': '"{name}" silinsin mi?',
     },
     'nl': {
@@ -14032,11 +14449,11 @@ class AppLocalizations {
       'billing_current_plan_premium_subtitle':
           'Premium is actief voor dit account.',
       'billing_access_list_premium':
-          'Onbeperkt bonnetjes scannen\nGeavanceerde gedetailleerde analyses\nVolledige geschiedenis van gegevensexport',
+          'Onbeperkt bonnetjes scannen\nGeavanceerde gedetailleerde analyses\nOnbeperkte eigen categorieën en subcategorieën\nVolledige geschiedenis van gegevensexport',
       'billing_access_list_free':
-          '{limit} bonnetjesscans in elke voortschrijdende periode van 30 dagen\nKernfuncties blijven beschikbaar: labels, categorieën, budgetten en rekeningherinneringen\nGegevensexport bevat in het Gratis-abonnement je laatste 30 dagen',
+          '{limit} bonnetjesscans in elke voortschrijdende periode van 30 dagen\n{categoryLimit} eigen categorieën en {subcategoryLimit} eigen subcategorieën in het Gratis-abonnement\nGegevensexport bevat in het Gratis-abonnement je laatste 30 dagen',
       'billing_free_upgrade_note':
-          'Upgrade alleen als je meer scans, diepere analyses of het volledige exportbereik nodig hebt.',
+          'Stap over op Premium wanneer je onbeperkte scans, onbeperkte categorieën, diepere analyses en de volledige exportgeschiedenis wilt.',
       'billing_restore_sync_note':
           'Gebruik "Aankopen herstellen" als Premium nog niet op dit apparaat verschijnt.',
       'billing_badge_active': 'Actief',
@@ -14047,11 +14464,53 @@ class AppLocalizations {
       'billing_premium_applied_note':
           'De Premium-limieten zijn al op dit account toegepast.',
       'billing_free_limits_note':
-          'De limieten van het Gratis-abonnement blijven actief totdat je upgradet.',
+          'De limieten van het Gratis-abonnement blijven actief totdat je naar Premium overstapt.',
       'billing_managed_by_store_note':
           'Premium blijft voor dit account beheerd via je app store.',
       'billing_free_limits_expand_note':
-          'Gratis houdt de kernfuncties beschikbaar. Premium verruimt scanlimieten, analyses en exportmogelijkheden.',
+          'Gratis houdt de belangrijkste functies beschikbaar. Premium ontgrendelt onbeperkte scans en categorieën, diepere analyses en de volledige exportgeschiedenis.',
+      'notifications_still_blocked_snackbar':
+          'Meldingen zijn nog steeds geblokkeerd in de apparaatinstellingen.',
+      'notifications_status_unavailable': 'Meldingen niet beschikbaar',
+      'notifications_status_on': 'Meldingen staan aan',
+      'notifications_status_off': 'Meldingen staan uit',
+      'notifications_web_unavailable_detail':
+          'Rekeningherinneringen zijn beschikbaar op mobiele apparaten.',
+      'notifications_device_blocking_detail':
+          'Apparaatinstellingen blokkeren meldingen.',
+      'notifications_app_off_detail':
+          'Schakel hieronder meldingen in om rekeningherinneringen te ontvangen.',
+      'notifications_bill_reminders_available_detail':
+          'Rekeningherinneringen kunnen op dit apparaat worden bezorgd.',
+      'notifications_device_section': 'Apparaat',
+      'notifications_unavailable_web_short': 'Niet beschikbaar op web',
+      'notifications_schedule_app_alerts':
+          'Laat de app waarschuwingen voor rekeningherinneringen plannen.',
+      'notifications_enable_device_settings_first':
+          'Schakel eerst meldingen in de apparaatinstellingen in.',
+      'notifications_schedule_bill_reminders':
+          'Plant herinneringsmeldingen voor je actieve rekeningen.',
+      'notifications_enable_above_for_bill_reminders':
+          'Schakel hierboven appmeldingen in om rekeningherinneringen te gebruiken.',
+      'categories_free_limit_hint':
+          'Gratis-abonnement: {remaining} van {limit} eigen categorieën over. Premium ontgrendelt onbeperkte categorieën en subcategorieën.',
+      'categories_free_limit_reached':
+          'Het Gratis-abonnement bevat {limit} eigen categorieën. Stap over op Premium voor onbeperkte categorieën en subcategorieën.',
+      'categories_view_premium': 'Premium bekijken',
+      'subcategories_active_count': '{count} actieve subcategorieën',
+      'subcategories_free_limit_hint':
+          'Gratis-abonnement: {remaining} van {limit} eigen subcategorieën over in je account. Premium ontgrendelt onbeperkte categorieën en subcategorieën.',
+      'subcategories_free_limit_reached':
+          'Het Gratis-abonnement bevat {limit} eigen subcategorieën. Stap over op Premium voor onbeperkte categorieën en subcategorieën.',
+      'subcategories_load_error_title':
+          'Subcategorieën konden niet worden geladen',
+      'subcategories_disabled_tip':
+          'Tip: uitgeschakelde subcategorieën verschijnen niet bij het categoriseren van items. Je kunt ze op elk moment weer inschakelen.',
+      'subcategories_default_section': 'Standaard subcategorieën',
+      'subcategories_custom_section': 'Eigen subcategorieën',
+      'subcategories_custom_empty': 'Nog geen eigen subcategorieën.',
+      'subcategories_default_empty_for_parent':
+          'Geen standaard subcategorieën gevonden voor {name}.',
       'delete_reminder_name_confirm': '"{name}" verwijderen?',
     },
     'sv': {
@@ -15291,11 +15750,11 @@ class AppLocalizations {
       'billing_current_plan_premium_subtitle':
           'Premium är aktivt för detta konto.',
       'billing_access_list_premium':
-          'Obegränsade kvittoskanningar\nFördjupade analysdetaljer\nFullständig exporthistorik för data',
+          'Obegränsade kvittoskanningar\nFördjupade analysdetaljer\nObegränsade egna kategorier och underkategorier\nFullständig exporthistorik för data',
       'billing_access_list_free':
-          '{limit} kvittoskanningar under varje rullande 30-dagarsperiod\nKärnverktygen finns kvar: etiketter, kategorier, budgetar och betalningspåminnelser\nDataexport i gratisplanen omfattar dina senaste 30 dagar',
+          '{limit} kvittoskanningar under varje rullande 30-dagarsperiod\n{categoryLimit} egna kategorier och {subcategoryLimit} egna underkategorier i gratisplanen\nDataexport i gratisplanen omfattar dina senaste 30 dagar',
       'billing_free_upgrade_note':
-          'Uppgradera bara om du behöver fler skanningar, djupare analyser eller hela exporthistoriken.',
+          'Gå över till Premium när du vill ha obegränsade skanningar, obegränsade kategorier, djupare analyser och full exporthistorik.',
       'billing_restore_sync_note':
           'Använd "Återställ inköp" om Premium ännu inte visas på den här enheten.',
       'billing_badge_active': 'Aktiv',
@@ -15306,11 +15765,52 @@ class AppLocalizations {
       'billing_premium_applied_note':
           'Premiumgränserna gäller redan för detta konto.',
       'billing_free_limits_note':
-          'Gratisplanens begränsningar gäller tills du uppgraderar.',
+          'Gratisplanens begränsningar gäller tills du uppgraderar till Premium.',
       'billing_managed_by_store_note':
           'Premium fortsätter att hanteras via din appbutik för detta konto.',
       'billing_free_limits_expand_note':
-          'Gratis håller kärnverktygen tillgängliga. Premium utökar skanningsgränser, analys och exporter.',
+          'Gratis håller det viktigaste tillgängligt. Premium låser upp obegränsade skanningar och kategorier, djupare analyser och full exporthistorik.',
+      'notifications_still_blocked_snackbar':
+          'Aviseringar är fortfarande blockerade i enhetsinställningarna.',
+      'notifications_status_unavailable': 'Aviseringar är inte tillgängliga',
+      'notifications_status_on': 'Aviseringar är på',
+      'notifications_status_off': 'Aviseringar är av',
+      'notifications_web_unavailable_detail':
+          'Räkningspåminnelser är tillgängliga på mobila enheter.',
+      'notifications_device_blocking_detail':
+          'Enhetsinställningarna blockerar aviseringar.',
+      'notifications_app_off_detail':
+          'Aktivera aviseringar nedan för att få räkningspåminnelser.',
+      'notifications_bill_reminders_available_detail':
+          'Räkningspåminnelser kan levereras på den här enheten.',
+      'notifications_device_section': 'Enhet',
+      'notifications_unavailable_web_short': 'Inte tillgängligt på webben',
+      'notifications_schedule_app_alerts':
+          'Låter appen schemalägga aviseringar för räkningspåminnelser.',
+      'notifications_enable_device_settings_first':
+          'Aktivera först aviseringar i enhetsinställningarna.',
+      'notifications_schedule_bill_reminders':
+          'Schemalägger påminnelseaviseringar för dina aktiva räkningar.',
+      'notifications_enable_above_for_bill_reminders':
+          'Aktivera appaviseringar ovan för att använda räkningspåminnelser.',
+      'categories_free_limit_hint':
+          'Gratisplan: {remaining} av {limit} egna kategorier kvar. Premium låser upp obegränsade kategorier och underkategorier.',
+      'categories_free_limit_reached':
+          'Gratisplanen innehåller {limit} egna kategorier. Uppgradera till Premium för obegränsade kategorier och underkategorier.',
+      'categories_view_premium': 'Visa Premium',
+      'subcategories_active_count': '{count} aktiva underkategorier',
+      'subcategories_free_limit_hint':
+          'Gratisplan: {remaining} av {limit} egna underkategorier kvar på ditt konto. Premium låser upp obegränsade kategorier och underkategorier.',
+      'subcategories_free_limit_reached':
+          'Gratisplanen innehåller {limit} egna underkategorier. Uppgradera till Premium för obegränsade kategorier och underkategorier.',
+      'subcategories_load_error_title': 'Kunde inte läsa in underkategorier',
+      'subcategories_disabled_tip':
+          'Tips: Inaktiverade underkategorier visas inte när du kategoriserar artiklar. Du kan aktivera dem igen när som helst.',
+      'subcategories_default_section': 'Standardunderkategorier',
+      'subcategories_custom_section': 'Egna underkategorier',
+      'subcategories_custom_empty': 'Inga egna underkategorier än.',
+      'subcategories_default_empty_for_parent':
+          'Inga standardunderkategorier hittades för {name}.',
       'delete_reminder_name_confirm': 'Radera "{name}"?',
     },
     'cs': {
@@ -16544,11 +17044,11 @@ class AppLocalizations {
       'billing_current_plan_premium_subtitle':
           'Premium je pro tento účet aktivní.',
       'billing_access_list_premium':
-          'Neomezené skenování účtenek\nPokročilé podrobné analýzy\nÚplná historie exportu dat',
+          'Neomezené skenování účtenek\nPokročilé podrobné analýzy\nNeomezené vlastní kategorie a podkategorie\nÚplná historie exportu dat',
       'billing_access_list_free':
-          '{limit} skenování účtenek v každém klouzavém 30denním období\nZákladní nástroje zůstávají dostupné: štítky, kategorie, rozpočty a připomínky plateb\nExport dat v bezplatném plánu zahrnuje posledních 30 dní',
+          '{limit} skenování účtenek v každém klouzavém 30denním období\n{categoryLimit} vlastní kategorie a {subcategoryLimit} vlastních podkategorií v bezplatném plánu\nExport dat v bezplatném plánu obsahuje posledních 30 dní',
       'billing_free_upgrade_note':
-          'Upgradujte jen pokud potřebujete více skenů, podrobnější analýzy nebo plný rozsah exportu.',
+          'Přejděte na Premium, až budete chtít neomezené skeny, neomezené kategorie, hlubší analýzy a úplnou historii exportu.',
       'billing_restore_sync_note':
           'Pokud se Premium na tomto zařízení ještě nezobrazuje, použijte „Obnovit nákupy“.',
       'billing_badge_active': 'Aktivní',
@@ -16559,11 +17059,52 @@ class AppLocalizations {
       'billing_premium_applied_note':
           'Limity Premium jsou už pro tento účet použity.',
       'billing_free_limits_note':
-          'Limity bezplatného plánu zůstávají aktivní, dokud neupgradujete.',
+          'Limity bezplatného plánu platí, dokud nepřejdete na Premium.',
       'billing_managed_by_store_note':
           'Premium pro tento účet zůstává spravováno přes obchod s aplikacemi.',
       'billing_free_limits_expand_note':
-          'Bezplatný plán zachovává základní nástroje. Premium rozšiřuje limity skenování, analytiku a exporty.',
+          'Bezplatný plán zachovává základní funkce. Premium odemyká neomezené skeny a kategorie, hlubší analýzy a úplnou historii exportu.',
+      'notifications_still_blocked_snackbar':
+          'Oznámení jsou stále blokována v nastavení zařízení.',
+      'notifications_status_unavailable': 'Oznámení nejsou dostupná',
+      'notifications_status_on': 'Oznámení jsou zapnutá',
+      'notifications_status_off': 'Oznámení jsou vypnutá',
+      'notifications_web_unavailable_detail':
+          'Připomenutí účtů jsou dostupná na mobilních zařízeních.',
+      'notifications_device_blocking_detail':
+          'Nastavení zařízení blokuje oznámení.',
+      'notifications_app_off_detail':
+          'Zapněte níže oznámení, abyste dostávali připomenutí účtů.',
+      'notifications_bill_reminders_available_detail':
+          'Připomenutí účtů mohou být doručována na toto zařízení.',
+      'notifications_device_section': 'Zařízení',
+      'notifications_unavailable_web_short': 'Nedostupné na webu',
+      'notifications_schedule_app_alerts':
+          'Umožní aplikaci plánovat upozornění na připomenutí účtů.',
+      'notifications_enable_device_settings_first':
+          'Nejprve zapněte oznámení v nastavení zařízení.',
+      'notifications_schedule_bill_reminders':
+          'Plánuje připomenutí pro vaše aktivní účty.',
+      'notifications_enable_above_for_bill_reminders':
+          'Zapněte výše oznámení aplikace, abyste mohli používat připomenutí účtů.',
+      'categories_free_limit_hint':
+          'Bezplatný plán: zbývá {remaining} z {limit} vlastních kategorií. Premium odemyká neomezené kategorie a podkategorie.',
+      'categories_free_limit_reached':
+          'Bezplatný plán obsahuje {limit} vlastní kategorie. Přejděte na Premium pro neomezené kategorie a podkategorie.',
+      'categories_view_premium': 'Zobrazit Premium',
+      'subcategories_active_count': '{count} aktivních podkategorií',
+      'subcategories_free_limit_hint':
+          'Bezplatný plán: zbývá {remaining} z {limit} vlastních podkategorií v celém účtu. Premium odemyká neomezené kategorie a podkategorie.',
+      'subcategories_free_limit_reached':
+          'Bezplatný plán obsahuje {limit} vlastních podkategorií. Přejděte na Premium pro neomezené kategorie a podkategorie.',
+      'subcategories_load_error_title': 'Nepodařilo se načíst podkategorie',
+      'subcategories_disabled_tip':
+          'Tip: Vypnuté podkategorie se nebudou zobrazovat při kategorizaci položek. Kdykoli je můžete znovu zapnout.',
+      'subcategories_default_section': 'Výchozí podkategorie',
+      'subcategories_custom_section': 'Vlastní podkategorie',
+      'subcategories_custom_empty': 'Zatím žádné vlastní podkategorie.',
+      'subcategories_default_empty_for_parent':
+          'Pro {name} nebyly nalezeny žádné výchozí podkategorie.',
       'delete_reminder_name_confirm': 'Smazat "{name}"?',
     },
     'ro': {
@@ -17831,11 +18372,11 @@ class AppLocalizations {
       'billing_current_plan_premium_subtitle':
           'Premium este activ pentru acest cont.',
       'billing_access_list_premium':
-          'Scanări nelimitate ale bonurilor\nAnalize detaliate avansate\nIstoric complet al exporturilor de date',
+          'Scanări nelimitate ale bonurilor\nAnalize detaliate avansate\nCategorii și subcategorii personalizate nelimitate\nIstoric complet al exporturilor de date',
       'billing_access_list_free':
-          '{limit} scanări de bonuri în fiecare fereastră mobilă de 30 de zile\nInstrumentele de bază rămân disponibile: etichete, categorii, bugete și mementouri pentru facturi\nExportul de date include ultimele 30 de zile în planul Gratuit',
+          '{limit} scanări de bonuri în fiecare fereastră mobilă de 30 de zile\n{categoryLimit} categorii personalizate și {subcategoryLimit} subcategorii personalizate în planul Gratuit\nExportul de date include ultimele 30 de zile în planul Gratuit',
       'billing_free_upgrade_note':
-          'Faceți upgrade doar dacă aveți nevoie de mai multe scanări, analize mai detaliate sau de tot istoricul de export.',
+          'Treceți la Premium când doriți scanări nelimitate, categorii nelimitate, analize mai profunde și istoricul complet al exporturilor.',
       'billing_restore_sync_note':
           'Folosiți „Restabiliți achizițiile” dacă Premium nu apare încă pe acest dispozitiv.',
       'billing_badge_active': 'Activ',
@@ -17846,11 +18387,53 @@ class AppLocalizations {
       'billing_premium_applied_note':
           'Limitele Premium sunt deja aplicate acestui cont.',
       'billing_free_limits_note':
-          'Limitele planului Gratuit rămân active până faceți upgrade.',
+          'Limitele planului Gratuit rămân active până treceți la Premium.',
       'billing_managed_by_store_note':
           'Premium rămâne gestionat prin magazinul de aplicații pentru acest cont.',
       'billing_free_limits_expand_note':
-          'Planul Gratuit păstrează disponibile instrumentele de bază. Premium extinde limitele de scanare, analizele și exporturile.',
+          'Planul Gratuit păstrează esențialul disponibil. Premium deblochează scanări și categorii nelimitate, analize mai profunde și istoricul complet al exporturilor.',
+      'notifications_still_blocked_snackbar':
+          'Notificările sunt încă blocate în setările dispozitivului.',
+      'notifications_status_unavailable': 'Notificările nu sunt disponibile',
+      'notifications_status_on': 'Notificările sunt activate',
+      'notifications_status_off': 'Notificările sunt dezactivate',
+      'notifications_web_unavailable_detail':
+          'Mementourile pentru facturi sunt disponibile pe dispozitive mobile.',
+      'notifications_device_blocking_detail':
+          'Setările dispozitivului blochează notificările.',
+      'notifications_app_off_detail':
+          'Activați notificările de mai jos pentru a primi mementouri pentru facturi.',
+      'notifications_bill_reminders_available_detail':
+          'Mementourile pentru facturi pot fi livrate pe acest dispozitiv.',
+      'notifications_device_section': 'Dispozitiv',
+      'notifications_unavailable_web_short': 'Indisponibil pe web',
+      'notifications_schedule_app_alerts':
+          'Permite aplicației să programeze alerte pentru mementouri de facturi.',
+      'notifications_enable_device_settings_first':
+          'Activați mai întâi notificările în setările dispozitivului.',
+      'notifications_schedule_bill_reminders':
+          'Programează notificări de memento pentru facturile active.',
+      'notifications_enable_above_for_bill_reminders':
+          'Activați notificările aplicației de mai sus pentru a folosi mementourile pentru facturi.',
+      'categories_free_limit_hint':
+          'Plan Gratuit: mai aveți {remaining} din {limit} categorii personalizate. Premium deblochează categorii și subcategorii nelimitate.',
+      'categories_free_limit_reached':
+          'Planul Gratuit include {limit} categorii personalizate. Treceți la Premium pentru categorii și subcategorii nelimitate.',
+      'categories_view_premium': 'Vedeți Premium',
+      'subcategories_active_count': '{count} subcategorii active',
+      'subcategories_free_limit_hint':
+          'Plan Gratuit: mai aveți {remaining} din {limit} subcategorii personalizate în tot contul. Premium deblochează categorii și subcategorii nelimitate.',
+      'subcategories_free_limit_reached':
+          'Planul Gratuit include {limit} subcategorii personalizate. Treceți la Premium pentru categorii și subcategorii nelimitate.',
+      'subcategories_load_error_title': 'Nu s-au putut încărca subcategoriile',
+      'subcategories_disabled_tip':
+          'Sfat: subcategoriile dezactivate nu vor apărea la categorizarea articolelor. Le puteți reactiva oricând.',
+      'subcategories_default_section': 'Subcategorii implicite',
+      'subcategories_custom_section': 'Subcategorii personalizate',
+      'subcategories_custom_empty':
+          'Nu există încă subcategorii personalizate.',
+      'subcategories_default_empty_for_parent':
+          'Nu s-au găsit subcategorii implicite pentru {name}.',
       'delete_reminder_name_confirm': 'Ștergeți "{name}"?',
     },
     'hu': {
@@ -19103,11 +19686,11 @@ class AppLocalizations {
       'billing_current_plan_premium_subtitle':
           'A Premium aktív ennél a fióknál.',
       'billing_access_list_premium':
-          'Korlátlan nyugtaszkennelés\nRészletesebb fejlett elemzések\nAdatexportok teljes előzménye',
+          'Korlátlan nyugtaszkennelés\nRészletesebb fejlett elemzések\nKorlátlan egyéni kategóriák és alkategóriák\nAdatexportok teljes előzménye',
       'billing_access_list_free':
-          '{limit} nyugtaszkennelés minden gördülő 30 napos időszakban\nAz alapvető eszközök továbbra is elérhetők: címkék, kategóriák, költségkeretek és számlaemlékeztetők\nAz adatexport az Ingyenes csomagban az elmúlt 30 napot tartalmazza',
+          '{limit} nyugtaszkennelés minden gördülő 30 napos időszakban\n{categoryLimit} egyéni kategória és {subcategoryLimit} egyéni alkategória az Ingyenes csomagban\nAz adatexport az Ingyenes csomagban az elmúlt 30 napot tartalmazza',
       'billing_free_upgrade_note':
-          'Csak akkor váltson magasabb csomagra, ha több szkennelésre, mélyebb elemzésekre vagy a teljes exporttartományra van szüksége.',
+          'Váltson Premiumra, amikor korlátlan szkennelést, korlátlan kategóriákat, mélyebb elemzéseket és teljes exportelőzményt szeretne.',
       'billing_restore_sync_note':
           'Használja a „Vásárlások visszaállítása” lehetőséget, ha a Premium még nem jelenik meg ezen az eszközön.',
       'billing_badge_active': 'Aktív',
@@ -19118,11 +19701,53 @@ class AppLocalizations {
       'billing_premium_applied_note':
           'A Premium korlátai már érvényben vannak ennél a fióknál.',
       'billing_free_limits_note':
-          'Az Ingyenes csomag korlátai addig maradnak érvényben, amíg nem vált magasabb csomagra.',
+          'Az Ingyenes csomag korlátai addig aktívak, amíg nem vált Premiumra.',
       'billing_managed_by_store_note':
           'A Premium ennél a fióknál továbbra is az alkalmazásboltban kezelhető.',
       'billing_free_limits_expand_note':
-          'Az Ingyenes csomag elérhetővé teszi az alapvető eszközöket. A Premium bővíti a szkennelési korlátokat, az elemzéseket és az exportokat.',
+          'Az Ingyenes csomag megtartja az alapvető funkciókat. A Premium korlátlan szkennelést és kategóriákat, mélyebb elemzéseket és teljes exportelőzményt nyit meg.',
+      'notifications_still_blocked_snackbar':
+          'Az értesítések továbbra is blokkolva vannak az eszközbeállításokban.',
+      'notifications_status_unavailable': 'Az értesítések nem érhetők el',
+      'notifications_status_on': 'Az értesítések be vannak kapcsolva',
+      'notifications_status_off': 'Az értesítések ki vannak kapcsolva',
+      'notifications_web_unavailable_detail':
+          'A számlaemlékeztetők mobil eszközökön érhetők el.',
+      'notifications_device_blocking_detail':
+          'Az eszközbeállítások blokkolják az értesítéseket.',
+      'notifications_app_off_detail':
+          'Kapcsolja be lent az értesítéseket a számlaemlékeztetők fogadásához.',
+      'notifications_bill_reminders_available_detail':
+          'A számlaemlékeztetők kézbesíthetők erre az eszközre.',
+      'notifications_device_section': 'Eszköz',
+      'notifications_unavailable_web_short': 'Weben nem érhető el',
+      'notifications_schedule_app_alerts':
+          'Engedi az alkalmazásnak a számlaemlékeztető riasztások ütemezését.',
+      'notifications_enable_device_settings_first':
+          'Először kapcsolja be az értesítéseket az eszközbeállításokban.',
+      'notifications_schedule_bill_reminders':
+          'Emlékeztető értesítéseket ütemez az aktív számláihoz.',
+      'notifications_enable_above_for_bill_reminders':
+          'Kapcsolja be fent az alkalmazásértesítéseket a számlaemlékeztetők használatához.',
+      'categories_free_limit_hint':
+          'Ingyenes csomag: {remaining} maradt a(z) {limit} egyéni kategóriából. A Premium korlátlan kategóriákat és alkategóriákat nyit meg.',
+      'categories_free_limit_reached':
+          'Az Ingyenes csomag {limit} egyéni kategóriát tartalmaz. Váltson Premiumra korlátlan kategóriákért és alkategóriákért.',
+      'categories_view_premium': 'Premium megtekintése',
+      'subcategories_active_count': '{count} aktív alkategória',
+      'subcategories_free_limit_hint':
+          'Ingyenes csomag: {remaining} maradt a(z) {limit} egyéni alkategóriából a fiókban. A Premium korlátlan kategóriákat és alkategóriákat nyit meg.',
+      'subcategories_free_limit_reached':
+          'Az Ingyenes csomag {limit} egyéni alkategóriát tartalmaz. Váltson Premiumra korlátlan kategóriákért és alkategóriákért.',
+      'subcategories_load_error_title':
+          'Nem sikerült betölteni az alkategóriákat',
+      'subcategories_disabled_tip':
+          'Tipp: a letiltott alkategóriák nem jelennek meg az elemek kategorizálásakor. Bármikor újra engedélyezheti őket.',
+      'subcategories_default_section': 'Alapértelmezett alkategóriák',
+      'subcategories_custom_section': 'Egyéni alkategóriák',
+      'subcategories_custom_empty': 'Még nincsenek egyéni alkategóriák.',
+      'subcategories_default_empty_for_parent':
+          'Nem találhatók alapértelmezett alkategóriák ehhez: {name}.',
       'delete_reminder_name_confirm': 'Törli a következőt: "{name}"?',
     },
     'id': {
@@ -20370,11 +20995,11 @@ class AppLocalizations {
           'Saat ini Anda menggunakan paket Gratis untuk akun ini.',
       'billing_current_plan_premium_subtitle': 'Premium aktif untuk akun ini.',
       'billing_access_list_premium':
-          'Pemindaian struk tanpa batas\nRincian analitik lanjutan\nRiwayat ekspor data lengkap',
+          'Pemindaian struk tanpa batas\nRincian analitik lanjutan\nKategori dan subkategori khusus tanpa batas\nRiwayat ekspor data lengkap',
       'billing_access_list_free':
-          '{limit} pemindaian struk dalam setiap periode berjalan 30 hari\nAlat inti tetap tersedia: label, kategori, anggaran, dan pengingat tagihan\nEkspor data dalam paket Gratis mencakup 30 hari terakhir',
+          '{limit} pemindaian struk dalam setiap periode berjalan 30 hari\n{categoryLimit} kategori khusus dan {subcategoryLimit} subkategori khusus di paket Gratis\nEkspor data dalam paket Gratis mencakup 30 hari terakhir',
       'billing_free_upgrade_note':
-          'Upgrade hanya jika Anda memerlukan lebih banyak pemindaian, analitik lebih mendalam, atau seluruh riwayat ekspor.',
+          'Pilih Premium saat Anda menginginkan pemindaian tanpa batas, kategori tanpa batas, analitik lebih mendalam, dan riwayat ekspor lengkap.',
       'billing_restore_sync_note':
           'Gunakan "Pulihkan Pembelian" jika Premium belum muncul di perangkat ini.',
       'billing_badge_active': 'Aktif',
@@ -20385,11 +21010,52 @@ class AppLocalizations {
       'billing_premium_applied_note':
           'Batas Premium sudah diterapkan ke akun ini.',
       'billing_free_limits_note':
-          'Batas paket Gratis tetap berlaku sampai Anda upgrade.',
+          'Batas paket Gratis tetap aktif sampai Anda upgrade ke Premium.',
       'billing_managed_by_store_note':
           'Premium untuk akun ini tetap dikelola melalui toko aplikasi Anda.',
       'billing_free_limits_expand_note':
-          'Paket Gratis menjaga alat inti tetap tersedia. Premium memperluas batas pemindaian, analitik, dan ekspor.',
+          'Paket Gratis tetap menyediakan fitur inti. Premium membuka pemindaian dan kategori tanpa batas, analitik lebih mendalam, dan riwayat ekspor lengkap.',
+      'notifications_still_blocked_snackbar':
+          'Notifikasi masih diblokir di pengaturan perangkat.',
+      'notifications_status_unavailable': 'Notifikasi tidak tersedia',
+      'notifications_status_on': 'Notifikasi aktif',
+      'notifications_status_off': 'Notifikasi nonaktif',
+      'notifications_web_unavailable_detail':
+          'Pengingat tagihan tersedia di perangkat seluler.',
+      'notifications_device_blocking_detail':
+          'Pengaturan perangkat memblokir notifikasi.',
+      'notifications_app_off_detail':
+          'Aktifkan notifikasi di bawah untuk menerima pengingat tagihan.',
+      'notifications_bill_reminders_available_detail':
+          'Pengingat tagihan dapat dikirim ke perangkat ini.',
+      'notifications_device_section': 'Perangkat',
+      'notifications_unavailable_web_short': 'Tidak tersedia di web',
+      'notifications_schedule_app_alerts':
+          'Mengizinkan aplikasi menjadwalkan peringatan pengingat tagihan.',
+      'notifications_enable_device_settings_first':
+          'Aktifkan notifikasi di pengaturan perangkat terlebih dahulu.',
+      'notifications_schedule_bill_reminders':
+          'Menjadwalkan notifikasi pengingat untuk tagihan aktif Anda.',
+      'notifications_enable_above_for_bill_reminders':
+          'Aktifkan notifikasi aplikasi di atas untuk menggunakan pengingat tagihan.',
+      'categories_free_limit_hint':
+          'Paket Gratis: tersisa {remaining} dari {limit} kategori khusus. Premium membuka kategori dan subkategori tanpa batas.',
+      'categories_free_limit_reached':
+          'Paket Gratis mencakup {limit} kategori khusus. Upgrade ke Premium untuk kategori dan subkategori tanpa batas.',
+      'categories_view_premium': 'Lihat Premium',
+      'subcategories_active_count': '{count} subkategori aktif',
+      'subcategories_free_limit_hint':
+          'Paket Gratis: tersisa {remaining} dari {limit} subkategori khusus di seluruh akun Anda. Premium membuka kategori dan subkategori tanpa batas.',
+      'subcategories_free_limit_reached':
+          'Paket Gratis mencakup {limit} subkategori khusus. Upgrade ke Premium untuk kategori dan subkategori tanpa batas.',
+      'subcategories_load_error_title': 'Tidak dapat memuat subkategori',
+      'subcategories_disabled_tip':
+          'Tips: subkategori yang dinonaktifkan tidak akan muncul saat mengategorikan item. Anda dapat mengaktifkannya kembali kapan saja.',
+      'subcategories_default_section': 'Subkategori default',
+      'subcategories_custom_section': 'Subkategori khusus',
+      'subcategories_custom_empty': 'Belum ada subkategori khusus.',
+      'subcategories_default_empty_for_parent':
+          'Tidak ada subkategori default yang ditemukan untuk {name}.',
       'delete_reminder_name_confirm': 'Hapus "{name}"?',
     },
     'ms': {
@@ -21632,11 +22298,11 @@ class AppLocalizations {
           'Anda kini menggunakan pelan Percuma untuk akaun ini.',
       'billing_current_plan_premium_subtitle': 'Premium aktif untuk akaun ini.',
       'billing_access_list_premium':
-          'Imbasan resit tanpa had\nPecahan analitik lanjutan\nSejarah eksport data penuh',
+          'Imbasan resit tanpa had\nPecahan analitik lanjutan\nKategori dan subkategori tersuai tanpa had\nSejarah eksport data penuh',
       'billing_access_list_free':
-          '{limit} imbasan resit dalam setiap tempoh bergulir 30 hari\nAlat teras kekal tersedia: label, kategori, bajet dan peringatan bil\nEksport data dalam pelan Percuma merangkumi 30 hari terakhir anda',
+          '{limit} imbasan resit dalam setiap tempoh bergulir 30 hari\n{categoryLimit} kategori tersuai dan {subcategoryLimit} subkategori tersuai dalam pelan Percuma\nEksport data dalam pelan Percuma merangkumi 30 hari terakhir anda',
       'billing_free_upgrade_note':
-          'Naik taraf hanya jika anda perlukan lebih banyak imbasan, analitik yang lebih mendalam atau julat eksport penuh.',
+          'Pilih Premium apabila anda mahukan imbasan tanpa had, kategori tanpa had, analitik lebih mendalam dan sejarah eksport penuh.',
       'billing_restore_sync_note':
           'Gunakan "Pulihkan Pembelian" jika Premium belum muncul pada peranti ini.',
       'billing_badge_active': 'Aktif',
@@ -21647,11 +22313,52 @@ class AppLocalizations {
       'billing_premium_applied_note':
           'Had Premium sudah digunakan pada akaun ini.',
       'billing_free_limits_note':
-          'Had pelan Percuma kekal aktif sehingga anda naik taraf.',
+          'Had pelan Percuma kekal aktif sehingga anda naik taraf kepada Premium.',
       'billing_managed_by_store_note':
           'Premium untuk akaun ini terus diurus melalui gedung aplikasi anda.',
       'billing_free_limits_expand_note':
-          'Pelan Percuma mengekalkan alat teras tersedia. Premium memperluas had imbasan, analitik dan eksport.',
+          'Pelan Percuma mengekalkan asas tersedia. Premium membuka imbasan dan kategori tanpa had, analitik lebih mendalam dan sejarah eksport penuh.',
+      'notifications_still_blocked_snackbar':
+          'Pemberitahuan masih disekat dalam tetapan peranti.',
+      'notifications_status_unavailable': 'Pemberitahuan tidak tersedia',
+      'notifications_status_on': 'Pemberitahuan dihidupkan',
+      'notifications_status_off': 'Pemberitahuan dimatikan',
+      'notifications_web_unavailable_detail':
+          'Peringatan bil tersedia pada peranti mudah alih.',
+      'notifications_device_blocking_detail':
+          'Tetapan peranti menyekat pemberitahuan.',
+      'notifications_app_off_detail':
+          'Hidupkan pemberitahuan di bawah untuk menerima peringatan bil.',
+      'notifications_bill_reminders_available_detail':
+          'Peringatan bil boleh dihantar pada peranti ini.',
+      'notifications_device_section': 'Peranti',
+      'notifications_unavailable_web_short': 'Tidak tersedia di web',
+      'notifications_schedule_app_alerts':
+          'Membenarkan app menjadualkan amaran peringatan bil.',
+      'notifications_enable_device_settings_first':
+          'Hidupkan pemberitahuan dalam tetapan peranti dahulu.',
+      'notifications_schedule_bill_reminders':
+          'Menjadualkan pemberitahuan peringatan untuk bil aktif anda.',
+      'notifications_enable_above_for_bill_reminders':
+          'Hidupkan pemberitahuan app di atas untuk menggunakan peringatan bil.',
+      'categories_free_limit_hint':
+          'Pelan Percuma: berbaki {remaining} daripada {limit} kategori tersuai. Premium membuka kategori dan subkategori tanpa had.',
+      'categories_free_limit_reached':
+          'Pelan Percuma merangkumi {limit} kategori tersuai. Naik taraf kepada Premium untuk kategori dan subkategori tanpa had.',
+      'categories_view_premium': 'Lihat Premium',
+      'subcategories_active_count': '{count} subkategori aktif',
+      'subcategories_free_limit_hint':
+          'Pelan Percuma: berbaki {remaining} daripada {limit} subkategori tersuai di seluruh akaun anda. Premium membuka kategori dan subkategori tanpa had.',
+      'subcategories_free_limit_reached':
+          'Pelan Percuma merangkumi {limit} subkategori tersuai. Naik taraf kepada Premium untuk kategori dan subkategori tanpa had.',
+      'subcategories_load_error_title': 'Tidak dapat memuatkan subkategori',
+      'subcategories_disabled_tip':
+          'Petua: subkategori yang dilumpuhkan tidak akan muncul semasa mengkategorikan item. Anda boleh mengaktifkannya semula pada bila-bila masa.',
+      'subcategories_default_section': 'Subkategori lalai',
+      'subcategories_custom_section': 'Subkategori tersuai',
+      'subcategories_custom_empty': 'Belum ada subkategori tersuai.',
+      'subcategories_default_empty_for_parent':
+          'Tiada subkategori lalai ditemui untuk {name}.',
       'delete_reminder_name_confirm': 'Padam "{name}"?',
     },
     'vi': {
@@ -22897,11 +23604,11 @@ class AppLocalizations {
       'billing_current_plan_premium_subtitle':
           'Premium đang hoạt động cho tài khoản này.',
       'billing_access_list_premium':
-          'Quét hóa đơn không giới hạn\nPhân tích chi tiết nâng cao\nToàn bộ lịch sử xuất dữ liệu',
+          'Quét hóa đơn không giới hạn\nPhân tích chi tiết nâng cao\nDanh mục và danh mục con tùy chỉnh không giới hạn\nToàn bộ lịch sử xuất dữ liệu',
       'billing_access_list_free':
-          '{limit} lượt quét hóa đơn trong mỗi chu kỳ 30 ngày luân phiên\nCác công cụ cốt lõi vẫn có sẵn: nhãn, danh mục, ngân sách và nhắc hóa đơn\nXuất dữ liệu trong gói Miễn phí bao gồm 30 ngày gần nhất',
+          '{limit} lượt quét hóa đơn trong mỗi chu kỳ 30 ngày luân phiên\n{categoryLimit} danh mục tùy chỉnh và {subcategoryLimit} danh mục con tùy chỉnh trong gói Miễn phí\nXuất dữ liệu trong gói Miễn phí bao gồm 30 ngày gần nhất',
       'billing_free_upgrade_note':
-          'Chỉ nâng cấp nếu bạn cần nhiều lượt quét hơn, phân tích sâu hơn hoặc toàn bộ phạm vi xuất dữ liệu.',
+          'Chuyển sang Premium khi bạn muốn quét không giới hạn, danh mục không giới hạn, phân tích sâu hơn và toàn bộ lịch sử xuất dữ liệu.',
       'billing_restore_sync_note':
           'Hãy dùng "Khôi phục mua hàng" nếu Premium vẫn chưa hiển thị trên thiết bị này.',
       'billing_badge_active': 'Đang hoạt động',
@@ -22912,11 +23619,52 @@ class AppLocalizations {
       'billing_premium_applied_note':
           'Các giới hạn Premium đã được áp dụng cho tài khoản này.',
       'billing_free_limits_note':
-          'Các giới hạn của gói Miễn phí vẫn áp dụng cho đến khi bạn nâng cấp.',
+          'Giới hạn của gói Miễn phí vẫn áp dụng cho đến khi bạn nâng cấp lên Premium.',
       'billing_managed_by_store_note':
           'Premium cho tài khoản này tiếp tục được quản lý qua cửa hàng ứng dụng.',
       'billing_free_limits_expand_note':
-          'Gói Miễn phí vẫn giữ các công cụ cốt lõi. Premium mở rộng giới hạn quét, phân tích và xuất dữ liệu.',
+          'Gói Miễn phí giữ các tính năng cốt lõi. Premium mở khóa lượt quét và danh mục không giới hạn, phân tích sâu hơn và toàn bộ lịch sử xuất dữ liệu.',
+      'notifications_still_blocked_snackbar':
+          'Thông báo vẫn bị chặn trong cài đặt thiết bị.',
+      'notifications_status_unavailable': 'Không thể dùng thông báo',
+      'notifications_status_on': 'Thông báo đang bật',
+      'notifications_status_off': 'Thông báo đang tắt',
+      'notifications_web_unavailable_detail':
+          'Nhắc hóa đơn có trên thiết bị di động.',
+      'notifications_device_blocking_detail':
+          'Cài đặt thiết bị đang chặn thông báo.',
+      'notifications_app_off_detail':
+          'Bật thông báo bên dưới để nhận nhắc hóa đơn.',
+      'notifications_bill_reminders_available_detail':
+          'Nhắc hóa đơn có thể được gửi tới thiết bị này.',
+      'notifications_device_section': 'Thiết bị',
+      'notifications_unavailable_web_short': 'Không có trên web',
+      'notifications_schedule_app_alerts':
+          'Cho phép ứng dụng lên lịch cảnh báo nhắc hóa đơn.',
+      'notifications_enable_device_settings_first':
+          'Trước tiên hãy bật thông báo trong cài đặt thiết bị.',
+      'notifications_schedule_bill_reminders':
+          'Lên lịch thông báo nhắc cho các hóa đơn đang hoạt động.',
+      'notifications_enable_above_for_bill_reminders':
+          'Bật thông báo ứng dụng ở trên để dùng nhắc hóa đơn.',
+      'categories_free_limit_hint':
+          'Gói Miễn phí: còn {remaining} trong {limit} danh mục tùy chỉnh. Premium mở khóa danh mục và danh mục con không giới hạn.',
+      'categories_free_limit_reached':
+          'Gói Miễn phí gồm {limit} danh mục tùy chỉnh. Nâng cấp lên Premium để có danh mục và danh mục con không giới hạn.',
+      'categories_view_premium': 'Xem Premium',
+      'subcategories_active_count': '{count} danh mục con đang hoạt động',
+      'subcategories_free_limit_hint':
+          'Gói Miễn phí: còn {remaining} trong {limit} danh mục con tùy chỉnh trên toàn tài khoản. Premium mở khóa danh mục và danh mục con không giới hạn.',
+      'subcategories_free_limit_reached':
+          'Gói Miễn phí gồm {limit} danh mục con tùy chỉnh. Nâng cấp lên Premium để có danh mục và danh mục con không giới hạn.',
+      'subcategories_load_error_title': 'Không thể tải danh mục con',
+      'subcategories_disabled_tip':
+          'Mẹo: danh mục con đã tắt sẽ không xuất hiện khi phân loại mục. Bạn có thể bật lại bất cứ lúc nào.',
+      'subcategories_default_section': 'Danh mục con mặc định',
+      'subcategories_custom_section': 'Danh mục con tùy chỉnh',
+      'subcategories_custom_empty': 'Chưa có danh mục con tùy chỉnh.',
+      'subcategories_default_empty_for_parent':
+          'Không tìm thấy danh mục con mặc định cho {name}.',
       'delete_reminder_name_confirm': 'Xóa "{name}"?',
     },
     'zh': {
@@ -23962,10 +24710,10 @@ class AppLocalizations {
       'billing_update_error': '目前无法更新 Premium 权限。请重试。',
       'billing_current_plan_free_subtitle': '当前此账号使用的是免费计划。',
       'billing_current_plan_premium_subtitle': '此账号的 Premium 已激活。',
-      'billing_access_list_premium': '无限收据扫描\n高级分析明细\n完整的数据导出历史',
+      'billing_access_list_premium': '无限收据扫描\n高级分析明细\n无限自定义类别和子类别\n完整的数据导出历史',
       'billing_access_list_free':
-          '每个滚动 30 天周期可扫描 {limit} 张收据\n核心工具仍可使用：标签、类别、预算和账单提醒\n免费计划中的数据导出包含最近 30 天',
-      'billing_free_upgrade_note': '只有在你需要更多扫描、更深入的分析或完整导出范围时，再升级即可。',
+          '每个滚动 30 天周期可扫描 {limit} 张收据\n免费计划包含 {categoryLimit} 个自定义类别和 {subcategoryLimit} 个自定义子类别\n免费计划的数据导出包含最近 30 天',
+      'billing_free_upgrade_note': '当你想要无限扫描、无限类别、更深入分析和完整导出历史时，可以升级到 Premium。',
       'billing_restore_sync_note': '如果此设备上还未显示 Premium，请使用“恢复购买”。',
       'billing_badge_active': '已启用',
       'billing_badge_free': '免费',
@@ -23973,10 +24721,40 @@ class AppLocalizations {
       'billing_usage_left': '剩余 {count}',
       'billing_included_with_premium': 'Premium 包含内容',
       'billing_premium_applied_note': '此账号已应用 Premium 限制。',
-      'billing_free_limits_note': '在你升级之前，免费计划的限制会一直生效。',
+      'billing_free_limits_note': '免费计划限制会一直生效，直到你升级到 Premium。',
       'billing_managed_by_store_note': '此账号的 Premium 仍由你的应用商店管理。',
       'billing_free_limits_expand_note':
-          '免费计划保留核心工具可用。Premium 会扩展扫描限额、分析能力和导出范围。',
+          '免费计划保留核心功能。Premium 解锁无限扫描和类别、更深入分析以及完整导出历史。',
+      'notifications_still_blocked_snackbar': '通知仍被设备设置阻止。',
+      'notifications_status_unavailable': '通知不可用',
+      'notifications_status_on': '通知已开启',
+      'notifications_status_off': '通知已关闭',
+      'notifications_web_unavailable_detail': '账单提醒可在移动设备上使用。',
+      'notifications_device_blocking_detail': '设备设置正在阻止通知。',
+      'notifications_app_off_detail': '请在下方开启通知以接收账单提醒。',
+      'notifications_bill_reminders_available_detail': '账单提醒可以发送到此设备。',
+      'notifications_device_section': '设备',
+      'notifications_unavailable_web_short': '网页端不可用',
+      'notifications_schedule_app_alerts': '允许应用安排账单提醒通知。',
+      'notifications_enable_device_settings_first': '请先在设备设置中开启通知。',
+      'notifications_schedule_bill_reminders': '为你的活跃账单安排提醒通知。',
+      'notifications_enable_above_for_bill_reminders': '请先开启上方的应用通知以使用账单提醒。',
+      'categories_free_limit_hint':
+          '免费计划：{limit} 个自定义类别中还剩 {remaining} 个。Premium 解锁无限类别和子类别。',
+      'categories_free_limit_reached':
+          '免费计划包含 {limit} 个自定义类别。升级到 Premium 即可获得无限类别和子类别。',
+      'categories_view_premium': '查看 Premium',
+      'subcategories_active_count': '{count} 个活跃子类别',
+      'subcategories_free_limit_hint':
+          '免费计划：账号内 {limit} 个自定义子类别中还剩 {remaining} 个。Premium 解锁无限类别和子类别。',
+      'subcategories_free_limit_reached':
+          '免费计划包含 {limit} 个自定义子类别。升级到 Premium 即可获得无限类别和子类别。',
+      'subcategories_load_error_title': '无法加载子类别',
+      'subcategories_disabled_tip': '提示：已停用的子类别在分类项目时不会显示。你可以随时重新启用。',
+      'subcategories_default_section': '默认子类别',
+      'subcategories_custom_section': '自定义子类别',
+      'subcategories_custom_empty': '还没有自定义子类别。',
+      'subcategories_default_empty_for_parent': '未找到 {name} 的默认子类别。',
       'delete_reminder_name_confirm': '删除 "{name}"？',
     },
     'ja': {
@@ -25059,11 +25837,12 @@ class AppLocalizations {
       'billing_update_error': '現在、Premium アクセスを更新できません。もう一度お試しください。',
       'billing_current_plan_free_subtitle': 'このアカウントでは現在 Free プランを利用しています。',
       'billing_current_plan_premium_subtitle': 'このアカウントでは Premium が有効です。',
-      'billing_access_list_premium': 'レシートのスキャン無制限\n高度な分析の内訳\nデータ書き出し履歴の全期間',
+      'billing_access_list_premium':
+          'レシートのスキャン無制限\n高度な分析の内訳\nカスタムカテゴリとサブカテゴリが無制限\nデータ書き出し履歴の全期間',
       'billing_access_list_free':
-          '30 日間のローリング期間ごとに {limit} 回のレシートスキャン\nラベル、カテゴリ、予算、請求リマインダーなどの基本ツールは引き続き利用できます\nFree プランのデータ書き出しには直近 30 日分が含まれます',
+          '30 日間のローリング期間ごとに {limit} 回のレシートスキャン\nFree プランでは {categoryLimit} 個のカスタムカテゴリと {subcategoryLimit} 個のカスタムサブカテゴリ\nFree プランのデータ書き出しには直近 30 日分が含まれます',
       'billing_free_upgrade_note':
-          'より多くのスキャン、より深い分析、または全期間の書き出しが必要な場合にのみアップグレードしてください。',
+          'スキャン無制限、カテゴリ無制限、より深い分析、全期間の書き出し履歴が必要になったら Premium へアップグレードできます。',
       'billing_restore_sync_note':
           'この端末で Premium がまだ表示されない場合は、「購入を復元」をご利用ください。',
       'billing_badge_active': '有効',
@@ -25072,10 +25851,43 @@ class AppLocalizations {
       'billing_usage_left': '残り {count}',
       'billing_included_with_premium': 'Premium に含まれる内容',
       'billing_premium_applied_note': 'このアカウントにはすでに Premium の上限が適用されています。',
-      'billing_free_limits_note': 'アップグレードするまで、Free プランの上限が適用されます。',
+      'billing_free_limits_note': 'Free プランの上限は Premium へアップグレードするまで有効です。',
       'billing_managed_by_store_note': 'このアカウントの Premium は引き続きストア側で管理されます。',
       'billing_free_limits_expand_note':
-          'Free プランでも基本ツールは利用できます。Premium ではスキャン上限、分析、書き出し範囲が広がります。',
+          'Free でも基本機能は利用できます。Premium ではスキャンとカテゴリが無制限になり、より深い分析と全期間の書き出し履歴を利用できます。',
+      'notifications_still_blocked_snackbar': '通知はまだ端末設定でブロックされています。',
+      'notifications_status_unavailable': '通知は利用できません',
+      'notifications_status_on': '通知はオンです',
+      'notifications_status_off': '通知はオフです',
+      'notifications_web_unavailable_detail': '請求リマインダーはモバイル端末で利用できます。',
+      'notifications_device_blocking_detail': '端末設定で通知がブロックされています。',
+      'notifications_app_off_detail': '請求リマインダーを受け取るには、下で通知を有効にしてください。',
+      'notifications_bill_reminders_available_detail': 'この端末で請求リマインダーを受け取れます。',
+      'notifications_device_section': '端末',
+      'notifications_unavailable_web_short': 'Web では利用できません',
+      'notifications_schedule_app_alerts': 'アプリが請求リマインダー通知をスケジュールできるようにします。',
+      'notifications_enable_device_settings_first': 'まず端末設定で通知を有効にしてください。',
+      'notifications_schedule_bill_reminders': '有効な請求に対してリマインダー通知をスケジュールします。',
+      'notifications_enable_above_for_bill_reminders':
+          '請求リマインダーを使うには、上のアプリ通知を有効にしてください。',
+      'categories_free_limit_hint':
+          'Free プラン: {limit} 個中 {remaining} 個のカスタムカテゴリが残っています。Premium ではカテゴリとサブカテゴリが無制限になります。',
+      'categories_free_limit_reached':
+          'Free プランには {limit} 個のカスタムカテゴリが含まれます。カテゴリとサブカテゴリを無制限にするには Premium へアップグレードしてください。',
+      'categories_view_premium': 'Premium を見る',
+      'subcategories_active_count': '{count} 個の有効なサブカテゴリ',
+      'subcategories_free_limit_hint':
+          'Free プラン: アカウント全体で {limit} 個中 {remaining} 個のカスタムサブカテゴリが残っています。Premium ではカテゴリとサブカテゴリが無制限になります。',
+      'subcategories_free_limit_reached':
+          'Free プランには {limit} 個のカスタムサブカテゴリが含まれます。カテゴリとサブカテゴリを無制限にするには Premium へアップグレードしてください。',
+      'subcategories_load_error_title': 'サブカテゴリを読み込めませんでした',
+      'subcategories_disabled_tip':
+          'ヒント: 無効化されたサブカテゴリは項目の分類時に表示されません。いつでも再度有効化できます。',
+      'subcategories_default_section': 'デフォルトのサブカテゴリ',
+      'subcategories_custom_section': 'カスタムサブカテゴリ',
+      'subcategories_custom_empty': 'カスタムサブカテゴリはまだありません。',
+      'subcategories_default_empty_for_parent':
+          '{name} のデフォルトサブカテゴリは見つかりませんでした。',
       'delete_reminder_name_confirm': '「{name}」を削除しますか？',
     },
     'ko': {
@@ -26176,11 +26988,12 @@ class AppLocalizations {
       'billing_update_error': '지금 Premium 이용 권한을 업데이트할 수 없습니다. 다시 시도해 주세요.',
       'billing_current_plan_free_subtitle': '현재 이 계정은 Free 플랜을 사용 중입니다.',
       'billing_current_plan_premium_subtitle': '이 계정에서 Premium이 활성화되어 있습니다.',
-      'billing_access_list_premium': '무제한 영수증 스캔\n고급 분석 세부 내역\n전체 데이터 내보내기 기록',
+      'billing_access_list_premium':
+          '영수증 스캔 무제한\n고급 분석 세부 정보\n사용자 지정 카테고리와 하위 카테고리 무제한\n전체 데이터 내보내기 기록',
       'billing_access_list_free':
-          '30일 단위로 매번 {limit}회의 영수증 스캔\n라벨, 카테고리, 예산, 청구서 알림 등 핵심 도구는 계속 사용할 수 있습니다\nFree 플랜의 데이터 내보내기에는 최근 30일이 포함됩니다',
+          '30일 단위로 매번 {limit}회의 영수증 스캔\nFree 플랜에서는 사용자 지정 카테고리 {categoryLimit}개와 사용자 지정 하위 카테고리 {subcategoryLimit}개\nFree 플랜의 데이터 내보내기에는 최근 30일이 포함됩니다',
       'billing_free_upgrade_note':
-          '더 많은 스캔, 더 깊은 분석, 또는 전체 내보내기 범위가 필요할 때만 업그레이드하세요.',
+          '무제한 스캔, 무제한 카테고리, 더 깊은 분석, 전체 내보내기 기록이 필요할 때 Premium으로 업그레이드하세요.',
       'billing_restore_sync_note': '이 기기에서 Premium이 아직 보이지 않으면 "구매 복원"을 사용하세요.',
       'billing_badge_active': '사용 중',
       'billing_badge_free': '무료',
@@ -26188,10 +27001,44 @@ class AppLocalizations {
       'billing_usage_left': '{count}개 남음',
       'billing_included_with_premium': 'Premium 포함 항목',
       'billing_premium_applied_note': '이 계정에는 이미 Premium 한도가 적용되어 있습니다.',
-      'billing_free_limits_note': '업그레이드하기 전까지는 Free 플랜 제한이 유지됩니다.',
+      'billing_free_limits_note': 'Free 플랜 제한은 Premium으로 업그레이드할 때까지 유지됩니다.',
       'billing_managed_by_store_note': '이 계정의 Premium은 계속 앱 스토어에서 관리됩니다.',
       'billing_free_limits_expand_note':
-          'Free 플랜에서도 핵심 도구는 계속 사용할 수 있습니다. Premium은 스캔 한도, 분석, 내보내기 범위를 확장합니다.',
+          'Free 플랜은 핵심 기능을 계속 제공합니다. Premium은 무제한 스캔과 카테고리, 더 깊은 분석, 전체 내보내기 기록을 제공합니다.',
+      'notifications_still_blocked_snackbar': '알림이 아직 기기 설정에서 차단되어 있습니다.',
+      'notifications_status_unavailable': '알림을 사용할 수 없습니다',
+      'notifications_status_on': '알림이 켜져 있습니다',
+      'notifications_status_off': '알림이 꺼져 있습니다',
+      'notifications_web_unavailable_detail': '청구서 알림은 모바일 기기에서 사용할 수 있습니다.',
+      'notifications_device_blocking_detail': '기기 설정에서 알림을 차단하고 있습니다.',
+      'notifications_app_off_detail': '청구서 알림을 받으려면 아래에서 알림을 켜세요.',
+      'notifications_bill_reminders_available_detail':
+          '이 기기에서 청구서 알림을 받을 수 있습니다.',
+      'notifications_device_section': '기기',
+      'notifications_unavailable_web_short': '웹에서는 사용할 수 없음',
+      'notifications_schedule_app_alerts': '앱이 청구서 알림 경고를 예약할 수 있게 합니다.',
+      'notifications_enable_device_settings_first': '먼저 기기 설정에서 알림을 켜세요.',
+      'notifications_schedule_bill_reminders': '활성 청구서에 대한 알림을 예약합니다.',
+      'notifications_enable_above_for_bill_reminders':
+          '청구서 알림을 사용하려면 위에서 앱 알림을 켜세요.',
+      'categories_free_limit_hint':
+          'Free 플랜: 사용자 지정 카테고리 {limit}개 중 {remaining}개가 남았습니다. Premium은 카테고리와 하위 카테고리를 무제한으로 제공합니다.',
+      'categories_free_limit_reached':
+          'Free 플랜에는 사용자 지정 카테고리 {limit}개가 포함됩니다. 무제한 카테고리와 하위 카테고리를 위해 Premium으로 업그레이드하세요.',
+      'categories_view_premium': 'Premium 보기',
+      'subcategories_active_count': '활성 하위 카테고리 {count}개',
+      'subcategories_free_limit_hint':
+          'Free 플랜: 계정 전체에서 사용자 지정 하위 카테고리 {limit}개 중 {remaining}개가 남았습니다. Premium은 카테고리와 하위 카테고리를 무제한으로 제공합니다.',
+      'subcategories_free_limit_reached':
+          'Free 플랜에는 사용자 지정 하위 카테고리 {limit}개가 포함됩니다. 무제한 카테고리와 하위 카테고리를 위해 Premium으로 업그레이드하세요.',
+      'subcategories_load_error_title': '하위 카테고리를 불러올 수 없습니다',
+      'subcategories_disabled_tip':
+          '팁: 비활성화된 하위 카테고리는 항목을 분류할 때 표시되지 않습니다. 언제든 다시 활성화할 수 있습니다.',
+      'subcategories_default_section': '기본 하위 카테고리',
+      'subcategories_custom_section': '사용자 지정 하위 카테고리',
+      'subcategories_custom_empty': '아직 사용자 지정 하위 카테고리가 없습니다.',
+      'subcategories_default_empty_for_parent':
+          '{name}에 대한 기본 하위 카테고리를 찾을 수 없습니다.',
       'delete_reminder_name_confirm': '"{name}" 내역을 삭제하시겠습니까?',
     },
     'hi': {
@@ -27411,11 +28258,11 @@ class AppLocalizations {
       'billing_current_plan_premium_subtitle':
           'इस खाते के लिए Premium सक्रिय है।',
       'billing_access_list_premium':
-          'असीमित रसीद स्कैन\nउन्नत विश्लेषण विवरण\nपूरा डेटा निर्यात इतिहास',
+          'असीमित रसीद स्कैन\nउन्नत विश्लेषण विवरण\nअसीमित कस्टम श्रेणियां और उपश्रेणियां\nपूरा डेटा निर्यात इतिहास',
       'billing_access_list_free':
-          'हर रोलिंग 30-दिन की अवधि में {limit} रसीद स्कैन\nमुख्य टूल उपलब्ध रहते हैं: लेबल, श्रेणियां, बजट और बिल रिमाइंडर\nFree प्लान में डेटा निर्यात में पिछले 30 दिन शामिल होते हैं',
+          'हर रोलिंग 30-दिन की अवधि में {limit} रसीद स्कैन\nFree प्लान में {categoryLimit} कस्टम श्रेणियां और {subcategoryLimit} कस्टम उपश्रेणियां\nFree प्लान में डेटा निर्यात में पिछले 30 दिन शामिल होते हैं',
       'billing_free_upgrade_note':
-          'केवल तभी अपग्रेड करें जब आपको अधिक स्कैन, गहरी विश्लेषण जानकारी या पूरा निर्यात दायरा चाहिए।',
+          'जब आप असीमित स्कैन, असीमित श्रेणियां, गहरा विश्लेषण और पूरा निर्यात इतिहास चाहते हों, तब Premium लें।',
       'billing_restore_sync_note':
           'अगर इस डिवाइस पर Premium अभी नहीं दिख रहा है, तो "खरीद पुनर्स्थापित करें" का उपयोग करें।',
       'billing_badge_active': 'सक्रिय',
@@ -27426,11 +28273,52 @@ class AppLocalizations {
       'billing_premium_applied_note':
           'इस खाते पर Premium सीमाएं पहले से लागू हैं।',
       'billing_free_limits_note':
-          'जब तक आप अपग्रेड नहीं करते, Free प्लान की सीमाएं लागू रहती हैं।',
+          'Free प्लान की सीमाएं Premium में अपग्रेड करने तक सक्रिय रहती हैं।',
       'billing_managed_by_store_note':
           'इस खाते के लिए Premium का प्रबंधन आपके app store के जरिए ही होता रहेगा।',
       'billing_free_limits_expand_note':
-          'Free प्लान में मुख्य टूल उपलब्ध रहते हैं। Premium स्कैन सीमा, विश्लेषण और निर्यात दायरा बढ़ाता है।',
+          'Free प्लान जरूरी सुविधाएं उपलब्ध रखता है। Premium असीमित स्कैन और श्रेणियां, गहरा विश्लेषण और पूरा निर्यात इतिहास खोलता है।',
+      'notifications_still_blocked_snackbar':
+          'सूचनाएं अभी भी डिवाइस सेटिंग्स में ब्लॉक हैं।',
+      'notifications_status_unavailable': 'सूचनाएं उपलब्ध नहीं हैं',
+      'notifications_status_on': 'सूचनाएं चालू हैं',
+      'notifications_status_off': 'सूचनाएं बंद हैं',
+      'notifications_web_unavailable_detail':
+          'बिल रिमाइंडर मोबाइल डिवाइस पर उपलब्ध हैं।',
+      'notifications_device_blocking_detail':
+          'डिवाइस सेटिंग्स सूचनाओं को रोक रही हैं।',
+      'notifications_app_off_detail':
+          'बिल रिमाइंडर पाने के लिए नीचे सूचनाएं चालू करें।',
+      'notifications_bill_reminders_available_detail':
+          'बिल रिमाइंडर इस डिवाइस पर भेजे जा सकते हैं।',
+      'notifications_device_section': 'डिवाइस',
+      'notifications_unavailable_web_short': 'वेब पर उपलब्ध नहीं',
+      'notifications_schedule_app_alerts':
+          'ऐप को बिल रिमाइंडर अलर्ट शेड्यूल करने देता है।',
+      'notifications_enable_device_settings_first':
+          'पहले डिवाइस सेटिंग्स में सूचनाएं चालू करें।',
+      'notifications_schedule_bill_reminders':
+          'आपके सक्रिय बिलों के लिए रिमाइंडर सूचनाएं शेड्यूल करता है।',
+      'notifications_enable_above_for_bill_reminders':
+          'बिल रिमाइंडर इस्तेमाल करने के लिए ऊपर ऐप सूचनाएं चालू करें।',
+      'categories_free_limit_hint':
+          'Free प्लान: {limit} कस्टम श्रेणियों में से {remaining} बची हैं। Premium असीमित श्रेणियां और उपश्रेणियां खोलता है।',
+      'categories_free_limit_reached':
+          'Free प्लान में {limit} कस्टम श्रेणियां शामिल हैं। असीमित श्रेणियों और उपश्रेणियों के लिए Premium लें।',
+      'categories_view_premium': 'Premium देखें',
+      'subcategories_active_count': '{count} सक्रिय उपश्रेणियां',
+      'subcategories_free_limit_hint':
+          'Free प्लान: आपके खाते में {limit} कस्टम उपश्रेणियों में से {remaining} बची हैं। Premium असीमित श्रेणियां और उपश्रेणियां खोलता है।',
+      'subcategories_free_limit_reached':
+          'Free प्लान में {limit} कस्टम उपश्रेणियां शामिल हैं। असीमित श्रेणियों और उपश्रेणियों के लिए Premium लें।',
+      'subcategories_load_error_title': 'उपश्रेणियां लोड नहीं हो सकीं',
+      'subcategories_disabled_tip':
+          'सुझाव: बंद उपश्रेणियां आइटम वर्गीकृत करते समय दिखाई नहीं देंगी। आप उन्हें कभी भी फिर से चालू कर सकते हैं।',
+      'subcategories_default_section': 'डिफॉल्ट उपश्रेणियां',
+      'subcategories_custom_section': 'कस्टम उपश्रेणियां',
+      'subcategories_custom_empty': 'अभी कोई कस्टम उपश्रेणी नहीं है।',
+      'subcategories_default_empty_for_parent':
+          '{name} के लिए कोई डिफॉल्ट उपश्रेणी नहीं मिली।',
       'delete_reminder_name_confirm': 'क्या "{name}" को हटाना चाहते हैं?',
     },
     'ar': {
@@ -28629,11 +29517,11 @@ class AppLocalizations {
           'أنت تستخدم حاليًا الخطة المجانية لهذا الحساب.',
       'billing_current_plan_premium_subtitle': 'Premium نشط لهذا الحساب.',
       'billing_access_list_premium':
-          'مسح غير محدود للإيصالات\nتفصيلات تحليلية متقدمة\nالسجل الكامل لتصدير البيانات',
+          'مسح إيصالات غير محدود\nتفاصيل تحليلات متقدمة\nفئات وفئات فرعية مخصصة غير محدودة\nسجل كامل لتصدير البيانات',
       'billing_access_list_free':
-          '{limit} عملية مسح للإيصالات في كل فترة متحركة مدتها 30 يومًا\nتظل الأدوات الأساسية متاحة: العلامات والفئات والميزانيات وتذكيرات الفواتير\nيتضمن تصدير البيانات في الخطة المجانية آخر 30 يومًا',
+          '{limit} عملية مسح للإيصالات في كل فترة متحركة مدتها 30 يومًا\n{categoryLimit} فئات مخصصة و{subcategoryLimit} فئات فرعية مخصصة في الخطة المجانية\nيتضمن تصدير البيانات في الخطة المجانية آخر 30 يومًا',
       'billing_free_upgrade_note':
-          'قم بالترقية فقط إذا كنت بحاجة إلى مزيد من عمليات المسح أو تحليلات أعمق أو نطاق التصدير الكامل.',
+          'انتقل إلى Premium عندما تريد مسحًا غير محدود وفئات غير محدودة وتحليلات أعمق وسجل تصدير كامل.',
       'billing_restore_sync_note':
           'استخدم "استعادة المشتريات" إذا لم يظهر Premium على هذا الجهاز بعد.',
       'billing_badge_active': 'نشط',
@@ -28644,11 +29532,51 @@ class AppLocalizations {
       'billing_premium_applied_note':
           'تم تطبيق حدود Premium بالفعل على هذا الحساب.',
       'billing_free_limits_note':
-          'تظل حدود الخطة المجانية سارية حتى تقوم بالترقية.',
+          'تبقى حدود الخطة المجانية نشطة حتى الترقية إلى Premium.',
       'billing_managed_by_store_note':
           'يظل Premium لهذا الحساب مُدارًا من خلال متجر التطبيقات الخاص بك.',
       'billing_free_limits_expand_note':
-          'تُبقي الخطة المجانية الأدوات الأساسية متاحة. ويوسّع Premium حدود المسح والتحليلات والتصدير.',
+          'تحافظ الخطة المجانية على الأساسيات. يفتح Premium المسح والفئات غير المحدودة والتحليلات الأعمق وسجل التصدير الكامل.',
+      'notifications_still_blocked_snackbar':
+          'ما زالت الإشعارات محظورة في إعدادات الجهاز.',
+      'notifications_status_unavailable': 'الإشعارات غير متاحة',
+      'notifications_status_on': 'الإشعارات مفعّلة',
+      'notifications_status_off': 'الإشعارات متوقفة',
+      'notifications_web_unavailable_detail':
+          'تتوفر تذكيرات الفواتير على الأجهزة المحمولة.',
+      'notifications_device_blocking_detail': 'إعدادات الجهاز تحظر الإشعارات.',
+      'notifications_app_off_detail':
+          'فعّل الإشعارات أدناه لتلقي تذكيرات الفواتير.',
+      'notifications_bill_reminders_available_detail':
+          'يمكن تسليم تذكيرات الفواتير على هذا الجهاز.',
+      'notifications_device_section': 'الجهاز',
+      'notifications_unavailable_web_short': 'غير متاح على الويب',
+      'notifications_schedule_app_alerts':
+          'يسمح للتطبيق بجدولة تنبيهات تذكير الفواتير.',
+      'notifications_enable_device_settings_first':
+          'فعّل الإشعارات في إعدادات الجهاز أولًا.',
+      'notifications_schedule_bill_reminders':
+          'يجدول إشعارات تذكير لفواتيرك النشطة.',
+      'notifications_enable_above_for_bill_reminders':
+          'فعّل إشعارات التطبيق أعلاه لاستخدام تذكيرات الفواتير.',
+      'categories_free_limit_hint':
+          'الخطة المجانية: تبقى {remaining} من أصل {limit} فئات مخصصة. يفتح Premium فئات وفئات فرعية غير محدودة.',
+      'categories_free_limit_reached':
+          'تتضمن الخطة المجانية {limit} فئات مخصصة. قم بالترقية إلى Premium للحصول على فئات وفئات فرعية غير محدودة.',
+      'categories_view_premium': 'عرض Premium',
+      'subcategories_active_count': '{count} فئات فرعية نشطة',
+      'subcategories_free_limit_hint':
+          'الخطة المجانية: تبقى {remaining} من أصل {limit} فئات فرعية مخصصة في حسابك. يفتح Premium فئات وفئات فرعية غير محدودة.',
+      'subcategories_free_limit_reached':
+          'تتضمن الخطة المجانية {limit} فئات فرعية مخصصة. قم بالترقية إلى Premium للحصول على فئات وفئات فرعية غير محدودة.',
+      'subcategories_load_error_title': 'تعذر تحميل الفئات الفرعية',
+      'subcategories_disabled_tip':
+          'نصيحة: لن تظهر الفئات الفرعية المعطلة عند تصنيف العناصر. يمكنك إعادة تفعيلها في أي وقت.',
+      'subcategories_default_section': 'الفئات الفرعية الافتراضية',
+      'subcategories_custom_section': 'الفئات الفرعية المخصصة',
+      'subcategories_custom_empty': 'لا توجد فئات فرعية مخصصة بعد.',
+      'subcategories_default_empty_for_parent':
+          'لم يتم العثور على فئات فرعية افتراضية لـ {name}.',
       'delete_reminder_name_confirm': 'هل تريد حذف "{name}"؟',
     },
     'es': {
@@ -29910,11 +30838,11 @@ class AppLocalizations {
       'billing_current_plan_premium_subtitle':
           'Premium está activo para esta cuenta.',
       'billing_access_list_premium':
-          'Escaneos de recibos ilimitados\nDesgloses analíticos avanzados\nHistorial completo de exportación de datos',
+          'Escaneos de recibos ilimitados\nDesgloses avanzados de analíticas\nCategorías y subcategorías personalizadas ilimitadas\nHistorial completo de exportación de datos',
       'billing_access_list_free':
-          '{limit} escaneos de recibos en cada periodo móvil de 30 días\nLas herramientas principales siguen disponibles: etiquetas, categorías, presupuestos y recordatorios de facturas\nLa exportación de datos en el plan Gratuito incluye tus últimos 30 días',
+          '{limit} escaneos de recibos en cada periodo móvil de 30 días\n{categoryLimit} categorías personalizadas y {subcategoryLimit} subcategorías personalizadas en el plan Gratuito\nLa exportación de datos en el plan Gratuito incluye tus últimos 30 días',
       'billing_free_upgrade_note':
-          'Actualiza solo si necesitas más escaneos, análisis más profundos o todo el historial de exportación.',
+          'Pasa a Premium cuando quieras escaneos ilimitados, categorías ilimitadas, analíticas más profundas y todo el historial de exportación.',
       'billing_restore_sync_note':
           'Usa "Restaurar compras" si Premium todavía no aparece en este dispositivo.',
       'billing_badge_active': 'Activo',
@@ -29925,11 +30853,54 @@ class AppLocalizations {
       'billing_premium_applied_note':
           'Los límites de Premium ya están aplicados a esta cuenta.',
       'billing_free_limits_note':
-          'Los límites del plan Gratuito siguen activos hasta que actualices.',
+          'Los límites del plan Gratuito siguen activos hasta que pases a Premium.',
       'billing_managed_by_store_note':
           'Premium seguirá gestionándose para esta cuenta desde tu tienda de aplicaciones.',
       'billing_free_limits_expand_note':
-          'El plan Gratuito mantiene disponibles las herramientas principales. Premium amplía los límites de escaneo, los análisis y las exportaciones.',
+          'El plan Gratuito mantiene lo esencial disponible. Premium desbloquea escaneos y categorías ilimitados, analíticas más profundas y todo el historial de exportación.',
+      'notifications_still_blocked_snackbar':
+          'Las notificaciones siguen bloqueadas en la configuración del dispositivo.',
+      'notifications_status_unavailable': 'Notificaciones no disponibles',
+      'notifications_status_on': 'Las notificaciones están activadas',
+      'notifications_status_off': 'Las notificaciones están desactivadas',
+      'notifications_web_unavailable_detail':
+          'Los recordatorios de facturas están disponibles en dispositivos móviles.',
+      'notifications_device_blocking_detail':
+          'La configuración del dispositivo está bloqueando las notificaciones.',
+      'notifications_app_off_detail':
+          'Activa las notificaciones abajo para recibir recordatorios de facturas.',
+      'notifications_bill_reminders_available_detail':
+          'Los recordatorios de facturas pueden llegar a este dispositivo.',
+      'notifications_device_section': 'Dispositivo',
+      'notifications_unavailable_web_short': 'No disponible en la web',
+      'notifications_schedule_app_alerts':
+          'Permite que la app programe alertas de recordatorios de facturas.',
+      'notifications_enable_device_settings_first':
+          'Primero activa las notificaciones en la configuración del dispositivo.',
+      'notifications_schedule_bill_reminders':
+          'Programa notificaciones de recordatorio para tus facturas activas.',
+      'notifications_enable_above_for_bill_reminders':
+          'Activa las notificaciones de la app arriba para usar recordatorios de facturas.',
+      'categories_free_limit_hint':
+          'Plan Gratuito: quedan {remaining} de {limit} categorías personalizadas. Premium desbloquea categorías y subcategorías ilimitadas.',
+      'categories_free_limit_reached':
+          'El plan Gratuito incluye {limit} categorías personalizadas. Pasa a Premium para tener categorías y subcategorías ilimitadas.',
+      'categories_view_premium': 'Ver Premium',
+      'subcategories_active_count': '{count} subcategorías activas',
+      'subcategories_free_limit_hint':
+          'Plan Gratuito: quedan {remaining} de {limit} subcategorías personalizadas en toda tu cuenta. Premium desbloquea categorías y subcategorías ilimitadas.',
+      'subcategories_free_limit_reached':
+          'El plan Gratuito incluye {limit} subcategorías personalizadas. Pasa a Premium para tener categorías y subcategorías ilimitadas.',
+      'subcategories_load_error_title':
+          'No se pudieron cargar las subcategorías',
+      'subcategories_disabled_tip':
+          'Consejo: las subcategorías desactivadas no aparecerán al categorizar artículos. Puedes volver a activarlas cuando quieras.',
+      'subcategories_default_section': 'Subcategorías predeterminadas',
+      'subcategories_custom_section': 'Subcategorías personalizadas',
+      'subcategories_custom_empty':
+          'Todavía no hay subcategorías personalizadas.',
+      'subcategories_default_empty_for_parent':
+          'No se encontraron subcategorías predeterminadas para {name}.',
       'delete_reminder_name_confirm': '¿Eliminar "{name}"?',
     },
   };
