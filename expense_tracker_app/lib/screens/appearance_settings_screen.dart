@@ -4,8 +4,9 @@ import '../core/app_color_semantics.dart';
 import '../core/redesign_system.dart';
 import '../core/theme_provider.dart';
 import '../main.dart';
-import 'settings_detail_scaffold.dart';
 import '../l10n/app_localizations.dart';
+import '../widgets/compact_text.dart';
+import 'settings_detail_scaffold.dart';
 
 class AppearanceSettingsScreen extends StatefulWidget {
   const AppearanceSettingsScreen({super.key});
@@ -246,20 +247,13 @@ class _AppearanceSettingsScreenState extends State<AppearanceSettingsScreen> {
                             : Colors.white.withAlpha(120)),
                   width: 2,
                 ),
-                boxShadow: <BoxShadow>[
-                  BoxShadow(
-                    color: previewAccent.withAlpha(45),
-                    blurRadius: 14,
-                    offset: const Offset(0, 5),
-                  ),
-                ],
               ),
               child: selected
                   ? Icon(AppIcons.check, color: Colors.white, size: 22)
                   : null,
             ),
             const SizedBox(height: 10),
-            Text(
+            CompactText(
               _accentLabel(accent),
               textAlign: TextAlign.center,
               style: TextStyle(
