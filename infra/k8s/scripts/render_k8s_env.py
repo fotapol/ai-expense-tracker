@@ -16,6 +16,14 @@ CONFIG_KEYS = {
     "APP_ADMIN_EMAILS",
     "PUBLIC_API_BASE_URL",
     "PUBLIC_APP_BASE_URL",
+    "APP_WEBSITE_URL",
+    "APP_PRIVACY_URL",
+    "APP_TERMS_URL",
+    "APP_SUPPORT_EMAIL",
+    "APP_SUPPORT_SUBJECT",
+    "SITE_APP_STORE_URL",
+    "SITE_GOOGLE_PLAY_URL",
+    "SITE_OPEN_APP_URL",
     "MAX_RECEIPT_FILE_BYTES",
     "LOG_LEVEL",
     "LOG_JSON",
@@ -58,6 +66,7 @@ CONFIG_KEYS = {
     "LANGSMITH_HIDE_INPUTS",
     "LANGSMITH_HIDE_OUTPUTS",
     "BACKEND_IMAGE",
+    "SITE_IMAGE",
     "POSTGRES_BACKUP_IMAGE",
     "REVENUECAT_API_BASE_URL",
     "REVENUECAT_HTTP_TIMEOUT_SECONDS",
@@ -104,6 +113,7 @@ SECRET_KEYS = {
 REQUIRED_KEYS = {
     "APP_ENV",
     "PUBLIC_API_BASE_URL",
+    "PUBLIC_APP_BASE_URL",
     "POSTGRES_USER",
     "POSTGRES_PASSWORD",
     "POSTGRES_DB",
@@ -124,6 +134,7 @@ REQUIRED_KEYS = {
     "GRAFANA_ADMIN_USER",
     "GRAFANA_ADMIN_PASSWORD",
     "POSTGRES_BACKUP_SCHEDULE",
+    "SITE_IMAGE",
 }
 
 DEFAULTS = {
@@ -162,6 +173,7 @@ DEFAULTS = {
     "LANGSMITH_HIDE_INPUTS": "true",
     "LANGSMITH_HIDE_OUTPUTS": "true",
     "BACKEND_IMAGE": "ghcr.io/example/ai-expense-tracker-backend:latest",
+    "SITE_IMAGE": "ghcr.io/example/ai-expense-tracker-site:latest",
     "POSTGRES_BACKUP_IMAGE": "ghcr.io/example/ai-expense-tracker-postgres-backup:latest",
     "REVENUECAT_API_BASE_URL": "https://api.revenuecat.com",
     "REVENUECAT_HTTP_TIMEOUT_SECONDS": "8",
@@ -179,6 +191,7 @@ DEFAULTS = {
     "POSTGRES_BACKUP_SCHEDULE": "0 3 * * *",
     "POSTGRES_BACKUP_RETENTION_DAYS": "14",
     "POSTGRES_BACKUP_PREFIX": "postgres",
+    "APP_SUPPORT_SUBJECT": "Expense Tracker Support",
 }
 
 
@@ -250,6 +263,8 @@ def validate(values: dict[str, str]) -> None:
 
     if values.get("PUBLIC_API_BASE_URL") and not url_host(values["PUBLIC_API_BASE_URL"]):
         raise SystemExit("PUBLIC_API_BASE_URL must be a valid absolute URL")
+    if values.get("PUBLIC_APP_BASE_URL") and not url_host(values["PUBLIC_APP_BASE_URL"]):
+        raise SystemExit("PUBLIC_APP_BASE_URL must be a valid absolute URL")
     if values.get("S3_EXTERNAL_ENDPOINT") and not url_host(values["S3_EXTERNAL_ENDPOINT"]):
         raise SystemExit("S3_EXTERNAL_ENDPOINT must be a valid absolute URL")
 
@@ -334,6 +349,17 @@ def write_image_patch(path: Path, values: dict[str, str]) -> None:
                 "        - name: worker",
                 f"          image: {values['BACKEND_IMAGE']}",
                 "---",
+                "apiVersion: apps/v1",
+                "kind: Deployment",
+                "metadata:",
+                "  name: expense-tracker-site",
+                "spec:",
+                "  template:",
+                "    spec:",
+                "      containers:",
+                "        - name: site",
+                f"          image: {values['SITE_IMAGE']}",
+                "---",
                 "apiVersion: batch/v1",
                 "kind: CronJob",
                 "metadata:",
@@ -376,13 +402,27 @@ def main() -> None:
     values["RABBITMQ_URL"] = build_rabbitmq_url(values)
     values["S3_ACCESS_KEY"] = values.get("S3_ACCESS_KEY", "").strip() or values["MINIO_ROOT_USER"]
     values["S3_SECRET_KEY"] = values.get("S3_SECRET_KEY", "").strip() or values["MINIO_ROOT_PASSWORD"]
+    values["PUBLIC_APP_BASE_URL"] = values["PUBLIC_APP_BASE_URL"].rstrip("/")
     values["PUBLIC_API_HOST"] = url_host(values["PUBLIC_API_BASE_URL"])
+    values["PUBLIC_APP_HOST"] = url_host(values["PUBLIC_APP_BASE_URL"])
     values["PUBLIC_STORAGE_HOST"] = url_host(values["S3_EXTERNAL_ENDPOINT"])
+    values["APP_WEBSITE_URL"] = (
+        values.get("APP_WEBSITE_URL", "").strip() or values["PUBLIC_APP_BASE_URL"]
+    ).rstrip("/")
+    values["APP_PRIVACY_URL"] = (
+        values.get("APP_PRIVACY_URL", "").strip()
+        or f"{values['APP_WEBSITE_URL']}/privacy"
+    )
+    values["APP_TERMS_URL"] = (
+        values.get("APP_TERMS_URL", "").strip()
+        or f"{values['APP_WEBSITE_URL']}/terms"
+    )
 
     validate(values)
 
     config_values = {key: values[key] for key in CONFIG_KEYS if values.get(key, "").strip()}
     config_values["PUBLIC_API_HOST"] = values["PUBLIC_API_HOST"]
+    config_values["PUBLIC_APP_HOST"] = values["PUBLIC_APP_HOST"]
     config_values["PUBLIC_STORAGE_HOST"] = values["PUBLIC_STORAGE_HOST"]
     secret_values = {key: values[key] for key in SECRET_KEYS if values.get(key, "").strip()}
 

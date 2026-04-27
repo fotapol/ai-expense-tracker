@@ -20,6 +20,7 @@ secretGenerator:
 resources:
   - ../../base
   - api-virtualserver.yaml
+  - site-virtualserver.yaml
   - storage-virtualserver.yaml
 
 patches:
@@ -50,9 +51,25 @@ replacements:
           - spec.tls.secret
       - select:
           kind: VirtualServer
+          name: expense-tracker-site
+        fieldPaths:
+          - spec.tls.secret
+      - select:
+          kind: VirtualServer
           name: expense-tracker-storage
         fieldPaths:
           - spec.tls.secret
+
+  - source:
+      kind: ConfigMap
+      name: expense-tracker-config
+      fieldPath: data.PUBLIC_APP_HOST
+    targets:
+      - select:
+          kind: VirtualServer
+          name: expense-tracker-site
+        fieldPaths:
+          - spec.host
 
   - source:
       kind: ConfigMap
