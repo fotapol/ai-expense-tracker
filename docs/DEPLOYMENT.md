@@ -93,10 +93,17 @@ Use:
 - SSL/TLS mode: `Full (strict)`
 - proxied orange-cloud DNS records
 - free-plan assumptions only
+- an Origin Rule for `nexavend.store` that rewrites the destination port to
+  `8443`, so public users can open `https://nexavend.store` without typing the
+  origin port
 - API and storage public URLs with the explicit alternate HTTPS port:
   `https://api.nexavend.store:8443` and `https://storage.nexavend.store:8443`
 - the public site URL you set in `PUBLIC_APP_BASE_URL`, for example
   `https://nexavend.store`
+
+Cloudflare supports proxied HTTPS traffic on `8443`, and Origin Rules can route
+clean edge URLs on port `443` to a non-standard origin port. Without that Origin
+Rule, direct site access must include the port: `https://nexavend.store:8443/`.
 
 ### 5. Create The Origin TLS Secret
 
