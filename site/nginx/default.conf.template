@@ -1,0 +1,55 @@
+server {
+    listen 80;
+    server_name _;
+
+    root /usr/share/nginx/html;
+    index index.html;
+
+    add_header X-Content-Type-Options "nosniff" always;
+    add_header Referrer-Policy "strict-origin-when-cross-origin" always;
+    add_header X-Frame-Options "DENY" always;
+    add_header Permissions-Policy "camera=(), microphone=(), geolocation=()" always;
+
+    location = / {
+        try_files /index.html =404;
+    }
+
+    location = /privacy {
+        try_files /privacy.html =404;
+    }
+
+    location = /privacy/ {
+        try_files /privacy.html =404;
+    }
+
+    location = /terms {
+        try_files /terms.html =404;
+    }
+
+    location = /terms/ {
+        try_files /terms.html =404;
+    }
+
+    location = /styles.css {
+        add_header Cache-Control "public, max-age=3600";
+        try_files /styles.css =404;
+    }
+
+    location = /site.js {
+        add_header Cache-Control "public, max-age=3600";
+        try_files /site.js =404;
+    }
+
+    location = /site-config.js {
+        add_header Cache-Control "no-store";
+        try_files /site-config.js =404;
+    }
+
+    location = /site-config.template.js {
+        return 404;
+    }
+
+    location / {
+        try_files $uri =404;
+    }
+}
