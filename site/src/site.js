@@ -4,9 +4,6 @@
   function siteConfig() {
     const config = window.__SITE_CONFIG__ || {};
     return {
-      appWebsiteUrl: config.appWebsiteUrl || "/",
-      privacyUrl: config.privacyUrl || "/privacy",
-      termsUrl: config.termsUrl || "/terms",
       supportEmail: config.supportEmail || "",
       supportSubject: config.supportSubject || "",
     };
@@ -28,15 +25,12 @@
 
     const toggle = document.querySelector("[data-theme-toggle]");
     if (toggle) {
-      toggle.textContent = "Theme: " + (theme === "dark" ? "Dark" : "Light");
-      toggle.setAttribute("aria-label", "Switch theme. Current theme: " + theme + ".");
+      const nextTheme = theme === "dark" ? "light" : "dark";
+      const label = "Switch to " + nextTheme + " theme";
+      toggle.dataset.themeCurrent = theme;
+      toggle.setAttribute("aria-label", label);
+      toggle.setAttribute("title", label);
     }
-  }
-
-  function fillAnchor(selector, href) {
-    document.querySelectorAll(selector).forEach(function (anchor) {
-      anchor.setAttribute("href", href);
-    });
   }
 
   function mailtoHref(email, subject) {
@@ -66,9 +60,6 @@
   document.addEventListener("DOMContentLoaded", function () {
     const config = siteConfig();
 
-    fillAnchor("[data-home-link]", config.appWebsiteUrl);
-    fillAnchor("[data-privacy-link]", config.privacyUrl);
-    fillAnchor("[data-terms-link]", config.termsUrl);
     hydrateSupport(config);
 
     const toggle = document.querySelector("[data-theme-toggle]");
