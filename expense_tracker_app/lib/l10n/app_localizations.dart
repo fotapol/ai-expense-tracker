@@ -1239,6 +1239,20 @@ class AppLocalizations {
       'currency_view_all': 'View all currencies',
       'labels_name_label': 'Label name',
       'profile_google_managed': 'Your email and photo are managed by Google.',
+      'profile_delete_account_section': 'Account deletion',
+      'profile_delete_account_title': 'Delete account',
+      'profile_delete_account_subtitle':
+          'Permanently delete your account and app data.',
+      'profile_delete_account_body':
+          'This permanently deletes your profile, receipts, transactions, categories, labels, budgets, reminders, and related app data. This cannot be undone.',
+      'profile_delete_account_subscription_warning':
+          'You have an active Premium subscription. Deleting your account does not cancel App Store or Google Play billing and does not issue a refund. Cancel the subscription in your store settings if you do not want it to renew.',
+      'profile_delete_account_confirm_instruction': 'Type {email} to confirm.',
+      'profile_delete_account_email_label': 'Account email',
+      'profile_delete_account_confirm_button': 'Delete account',
+      'profile_delete_account_success': 'Your account was deleted.',
+      'profile_delete_account_error':
+          'Could not delete your account: {message}',
       'profile_load_error':
           'Your profile could not load right now. Please try again.',
       'profile_save_error':
@@ -2600,6 +2614,21 @@ class AppLocalizations {
       'currency_view_all': 'Alle Währungen anzeigen',
       'labels_name_label': 'Labelname',
       'profile_google_managed': 'E-Mail und Foto werden von Google verwaltet.',
+      'profile_delete_account_section': 'Kontoloschung',
+      'profile_delete_account_title': 'Konto loschen',
+      'profile_delete_account_subtitle':
+          'Losche dein Konto und deine App-Daten dauerhaft.',
+      'profile_delete_account_body':
+          'Dadurch werden dein Profil, Belege, Transaktionen, Kategorien, Labels, Budgets, Erinnerungen und zugehorige App-Daten dauerhaft geloscht. Das kann nicht ruckgangig gemacht werden.',
+      'profile_delete_account_subscription_warning':
+          'Du hast ein aktives Premium-Abonnement. Das Loschen deines Kontos beendet die Abrechnung im App Store oder bei Google Play nicht und lost keine Erstattung aus. Kundige das Abonnement in den Store-Einstellungen, wenn es sich nicht verlangern soll.',
+      'profile_delete_account_confirm_instruction':
+          'Gib {email} ein, um zu bestatigen.',
+      'profile_delete_account_email_label': 'Konto-E-Mail',
+      'profile_delete_account_confirm_button': 'Konto loschen',
+      'profile_delete_account_success': 'Dein Konto wurde geloscht.',
+      'profile_delete_account_error':
+          'Dein Konto konnte nicht geloscht werden: {message}',
       'profile_load_error':
           'Dein Profil konnte gerade nicht geladen werden. Bitte versuche es erneut.',
       'profile_save_error':
@@ -3955,6 +3984,21 @@ class AppLocalizations {
       'labels_name_label': 'Nom de l’étiquette',
       'profile_google_managed':
           'Votre e-mail et votre photo sont gérés par Google.',
+      'profile_delete_account_section': 'Suppression du compte',
+      'profile_delete_account_title': 'Supprimer le compte',
+      'profile_delete_account_subtitle':
+          'Supprime definitivement votre compte et les donnees de l app.',
+      'profile_delete_account_body':
+          'Cette action supprime definitivement votre profil, vos recus, transactions, categories, etiquettes, budgets, rappels et donnees associees. Elle est irreversible.',
+      'profile_delete_account_subscription_warning':
+          'Vous avez un abonnement Premium actif. Supprimer votre compte n annule pas la facturation App Store ou Google Play et ne declenche aucun remboursement. Annulez l abonnement dans les reglages du store si vous ne voulez pas son renouvellement.',
+      'profile_delete_account_confirm_instruction':
+          'Saisissez {email} pour confirmer.',
+      'profile_delete_account_email_label': 'E-mail du compte',
+      'profile_delete_account_confirm_button': 'Supprimer le compte',
+      'profile_delete_account_success': 'Votre compte a ete supprime.',
+      'profile_delete_account_error':
+          'Impossible de supprimer votre compte : {message}',
       'profile_load_error':
           'Votre profil ne peut pas être chargé pour le moment. Veuillez réessayer.',
       'profile_save_error':
@@ -5280,6 +5324,20 @@ class AppLocalizations {
       'currency_view_all': 'Показати всі валюти',
       'labels_name_label': 'Назва мітки',
       'profile_google_managed': 'Вашу електронну пошту та фото керує Google.',
+      'profile_delete_account_section': 'Видалення акаунта',
+      'profile_delete_account_title': 'Видалити акаунт',
+      'profile_delete_account_subtitle':
+          'Назавжди видалити акаунт і дані застосунку.',
+      'profile_delete_account_body':
+          'Ця дія назавжди видалить ваш профіль, чеки, транзакції, категорії, мітки, бюджети, нагадування та повязані дані застосунку. Її не можна скасувати.',
+      'profile_delete_account_subscription_warning':
+          'У вас активна підписка Premium. Видалення акаунта не скасовує оплату в App Store або Google Play і не повертає кошти. Скасуйте підписку в налаштуваннях магазину, якщо не хочете її поновлення.',
+      'profile_delete_account_confirm_instruction':
+          'Введіть {email}, щоб підтвердити.',
+      'profile_delete_account_email_label': 'Е-пошта акаунта',
+      'profile_delete_account_confirm_button': 'Видалити акаунт',
+      'profile_delete_account_success': 'Ваш акаунт видалено.',
+      'profile_delete_account_error': 'Не вдалося видалити акаунт: {message}',
       'profile_load_error': 'Не вдалося завантажити профіль. Спробуйте ще раз.',
       'profile_save_error': 'Не вдалося зберегти профіль. Спробуйте ще раз.',
       'profile_scans_count': '{count} сканувань',
@@ -6642,6 +6700,21 @@ class AppLocalizations {
       'currency_view_all': 'Vedi tutte le valute',
       'labels_name_label': 'Nome etichetta',
       'profile_google_managed': 'Email e foto sono gestite da Google.',
+      'profile_delete_account_section': 'Eliminazione account',
+      'profile_delete_account_title': 'Elimina account',
+      'profile_delete_account_subtitle':
+          'Elimina definitivamente account e dati dell app.',
+      'profile_delete_account_body':
+          'Questa azione elimina definitivamente profilo, ricevute, transazioni, categorie, etichette, budget, promemoria e dati collegati dell app. Non puo essere annullata.',
+      'profile_delete_account_subscription_warning':
+          'Hai un abbonamento Premium attivo. Eliminare l account non annulla la fatturazione su App Store o Google Play e non genera un rimborso. Annulla l abbonamento nelle impostazioni dello store se non vuoi il rinnovo.',
+      'profile_delete_account_confirm_instruction':
+          'Digita {email} per confermare.',
+      'profile_delete_account_email_label': 'Email account',
+      'profile_delete_account_confirm_button': 'Elimina account',
+      'profile_delete_account_success': 'Il tuo account e stato eliminato.',
+      'profile_delete_account_error':
+          'Impossibile eliminare l account: {message}',
       'profile_load_error': 'Il profilo non può essere caricato ora. Riprova.',
       'profile_save_error': 'Non siamo riusciti a salvare il profilo. Riprova.',
       'profile_scans_count': '{count} scansioni',
@@ -7988,6 +8061,19 @@ class AppLocalizations {
       'labels_name_label': 'Nazwa etykiety',
       'profile_google_managed':
           'Adres e-mail i zdjęcie są zarządzane przez Google.',
+      'profile_delete_account_section': 'Usuwanie konta',
+      'profile_delete_account_title': 'Usun konto',
+      'profile_delete_account_subtitle': 'Trwale usun konto i dane aplikacji.',
+      'profile_delete_account_body':
+          'Ta akcja trwale usunie profil, paragony, transakcje, kategorie, etykiety, budzety, przypomnienia i powiazane dane aplikacji. Nie mozna jej cofnac.',
+      'profile_delete_account_subscription_warning':
+          'Masz aktywna subskrypcje Premium. Usuniecie konta nie anuluje platnosci w App Store ani Google Play i nie powoduje zwrotu pieniedzy. Anuluj subskrypcje w ustawieniach sklepu, jesli nie chcesz odnowienia.',
+      'profile_delete_account_confirm_instruction':
+          'Wpisz {email}, aby potwierdzic.',
+      'profile_delete_account_email_label': 'E-mail konta',
+      'profile_delete_account_confirm_button': 'Usun konto',
+      'profile_delete_account_success': 'Twoje konto zostalo usuniete.',
+      'profile_delete_account_error': 'Nie mozna usunac konta: {message}',
       'profile_load_error':
           'Nie udało się teraz załadować profilu. Spróbuj ponownie.',
       'profile_save_error':
@@ -9319,6 +9405,19 @@ class AppLocalizations {
       'currency_view_all': 'Prikaži sve valute',
       'labels_name_label': 'Naziv oznake',
       'profile_google_managed': 'E-poštom i fotografijom upravlja Google.',
+      'profile_delete_account_section': 'Brisanje naloga',
+      'profile_delete_account_title': 'Obrisi nalog',
+      'profile_delete_account_subtitle':
+          'Trajno obrisi nalog i podatke aplikacije.',
+      'profile_delete_account_body':
+          'Ovo trajno brise profil, racune, transakcije, kategorije, oznake, budzete, podsetnike i povezane podatke aplikacije. Ne moze se opozvati.',
+      'profile_delete_account_subscription_warning':
+          'Imas aktivnu Premium pretplatu. Brisanje naloga ne otkazuje naplatu u App Store ili Google Play prodavnici i ne vraca novac. Otkazi pretplatu u podesavanjima prodavnice ako ne zelis obnovu.',
+      'profile_delete_account_confirm_instruction': 'Upisi {email} za potvrdu.',
+      'profile_delete_account_email_label': 'Email naloga',
+      'profile_delete_account_confirm_button': 'Obrisi nalog',
+      'profile_delete_account_success': 'Tvoj nalog je obrisan.',
+      'profile_delete_account_error': 'Nalog nije moguce obrisati: {message}',
       'profile_load_error':
           'Profil trenutno ne može da se učita. Pokušaj ponovo.',
       'profile_save_error':
@@ -10650,6 +10749,20 @@ class AppLocalizations {
       'currency_view_all': 'Показать все валюты',
       'labels_name_label': 'Название метки',
       'profile_google_managed': 'Электронная почта и фото управляются Google.',
+      'profile_delete_account_section': 'Удаление аккаунта',
+      'profile_delete_account_title': 'Удалить аккаунт',
+      'profile_delete_account_subtitle':
+          'Навсегда удалить аккаунт и данные приложения.',
+      'profile_delete_account_body':
+          'Это навсегда удалит ваш профиль, чеки, транзакции, категории, метки, бюджеты, напоминания и связанные данные приложения. Действие нельзя отменить.',
+      'profile_delete_account_subscription_warning':
+          'У вас активна подписка Premium. Удаление аккаунта не отменяет оплату в App Store или Google Play и не возвращает деньги. Отмените подписку в настройках магазина, если не хотите ее продления.',
+      'profile_delete_account_confirm_instruction':
+          'Введите {email}, чтобы подтвердить.',
+      'profile_delete_account_email_label': 'Email аккаунта',
+      'profile_delete_account_confirm_button': 'Удалить аккаунт',
+      'profile_delete_account_success': 'Ваш аккаунт удален.',
+      'profile_delete_account_error': 'Не удалось удалить аккаунт: {message}',
       'profile_load_error': 'Не удалось загрузить профиль. Повторите попытку.',
       'profile_save_error': 'Не удалось сохранить профиль. Повторите попытку.',
       'profile_scans_count': '{count} сканирований',
@@ -11997,6 +12110,21 @@ class AppLocalizations {
       'currency_view_all': 'Ver todas as moedas',
       'labels_name_label': 'Nome da etiqueta',
       'profile_google_managed': 'O seu e-mail e foto são geridos pelo Google.',
+      'profile_delete_account_section': 'Eliminacao da conta',
+      'profile_delete_account_title': 'Eliminar conta',
+      'profile_delete_account_subtitle':
+          'Elimine permanentemente a conta e os dados da app.',
+      'profile_delete_account_body':
+          'Isto elimina permanentemente o perfil, recibos, transacoes, categorias, etiquetas, orcamentos, lembretes e dados relacionados da app. Nao pode ser anulado.',
+      'profile_delete_account_subscription_warning':
+          'Tem uma subscricao Premium ativa. Eliminar a conta nao cancela a faturacao da App Store ou Google Play e nao emite reembolso. Cancele a subscricao nas definicoes da loja se nao quiser a renovacao.',
+      'profile_delete_account_confirm_instruction':
+          'Escreva {email} para confirmar.',
+      'profile_delete_account_email_label': 'Email da conta',
+      'profile_delete_account_confirm_button': 'Eliminar conta',
+      'profile_delete_account_success': 'A sua conta foi eliminada.',
+      'profile_delete_account_error':
+          'Nao foi possivel eliminar a conta: {message}',
       'profile_load_error':
           'Não foi possível carregar o seu perfil agora. Tente novamente.',
       'profile_save_error':
@@ -13319,6 +13447,20 @@ class AppLocalizations {
       'labels_name_label': 'Etiket adı',
       'profile_google_managed':
           'E-posta adresiniz ve fotoğrafınız Google tarafından yönetilir.',
+      'profile_delete_account_section': 'Hesap silme',
+      'profile_delete_account_title': 'Hesabi sil',
+      'profile_delete_account_subtitle':
+          'Hesabini ve uygulama verilerini kalici olarak sil.',
+      'profile_delete_account_body':
+          'Bu islem profilini, fislerini, islemlerini, kategorilerini, etiketlerini, butcelerini, hatirlaticilarini ve ilgili uygulama verilerini kalici olarak siler. Geri alinamaz.',
+      'profile_delete_account_subscription_warning':
+          'Aktif bir Premium aboneligin var. Hesabi silmek App Store veya Google Play faturalandirmasini iptal etmez ve geri odeme yapmaz. Yenilenmesini istemiyorsan aboneligi magazanin ayarlarindan iptal et.',
+      'profile_delete_account_confirm_instruction':
+          'Onaylamak icin {email} yaz.',
+      'profile_delete_account_email_label': 'Hesap e-postasi',
+      'profile_delete_account_confirm_button': 'Hesabi sil',
+      'profile_delete_account_success': 'Hesabin silindi.',
+      'profile_delete_account_error': 'Hesap silinemedi: {message}',
       'profile_load_error':
           'Profiliniz şu anda yüklenemedi. Lütfen tekrar deneyin.',
       'profile_save_error':
@@ -14659,6 +14801,21 @@ class AppLocalizations {
       'currency_view_all': 'Alle valuta bekijken',
       'labels_name_label': 'Labelnaam',
       'profile_google_managed': 'Je e-mail en foto worden beheerd door Google.',
+      'profile_delete_account_section': 'Account verwijderen',
+      'profile_delete_account_title': 'Account verwijderen',
+      'profile_delete_account_subtitle':
+          'Verwijder je account en appgegevens permanent.',
+      'profile_delete_account_body':
+          'Dit verwijdert permanent je profiel, bonnetjes, transacties, categorieen, labels, budgetten, herinneringen en gerelateerde appgegevens. Dit kan niet ongedaan worden gemaakt.',
+      'profile_delete_account_subscription_warning':
+          'Je hebt een actief Premium-abonnement. Je account verwijderen stopt de facturering via App Store of Google Play niet en geeft geen terugbetaling. Zeg het abonnement op in de store-instellingen als je geen verlenging wilt.',
+      'profile_delete_account_confirm_instruction':
+          'Typ {email} om te bevestigen.',
+      'profile_delete_account_email_label': 'Account-e-mail',
+      'profile_delete_account_confirm_button': 'Account verwijderen',
+      'profile_delete_account_success': 'Je account is verwijderd.',
+      'profile_delete_account_error':
+          'Je account kon niet worden verwijderd: {message}',
       'profile_load_error':
           'Je profiel kan nu niet worden geladen. Probeer het opnieuw.',
       'profile_save_error':
@@ -15985,6 +16142,20 @@ class AppLocalizations {
       'currency_view_all': 'Visa alla valutor',
       'labels_name_label': 'Etikettnamn',
       'profile_google_managed': 'Din e-post och bild hanteras av Google.',
+      'profile_delete_account_section': 'Radera konto',
+      'profile_delete_account_title': 'Radera konto',
+      'profile_delete_account_subtitle':
+          'Radera ditt konto och appdata permanent.',
+      'profile_delete_account_body':
+          'Detta raderar permanent din profil, kvitton, transaktioner, kategorier, etiketter, budgetar, paminnelser och relaterad appdata. Det gar inte att angra.',
+      'profile_delete_account_subscription_warning':
+          'Du har en aktiv Premium-prenumeration. Att radera kontot avslutar inte debitering via App Store eller Google Play och ger ingen aterbetalning. Avsluta prenumerationen i butikens installningar om du inte vill att den fornyas.',
+      'profile_delete_account_confirm_instruction':
+          'Skriv {email} for att bekrafta.',
+      'profile_delete_account_email_label': 'Konto-e-post',
+      'profile_delete_account_confirm_button': 'Radera konto',
+      'profile_delete_account_success': 'Ditt konto har raderats.',
+      'profile_delete_account_error': 'Kunde inte radera kontot: {message}',
       'profile_load_error':
           'Din profil kunde inte laddas just nu. Försök igen.',
       'profile_save_error':
@@ -17304,6 +17475,20 @@ class AppLocalizations {
       'currency_view_all': 'Zobrazit všechny měny',
       'labels_name_label': 'Název štítku',
       'profile_google_managed': 'E-mail a fotku spravuje Google.',
+      'profile_delete_account_section': 'Odstraneni uctu',
+      'profile_delete_account_title': 'Odstranit ucet',
+      'profile_delete_account_subtitle':
+          'Trvale odstranit ucet a data aplikace.',
+      'profile_delete_account_body':
+          'Tato akce trvale odstrani profil, uctenky, transakce, kategorie, stitky, rozpocty, pripomenuti a souvisejici data aplikace. Nelze ji vratit zpet.',
+      'profile_delete_account_subscription_warning':
+          'Mate aktivni predplatne Premium. Odstraneni uctu nezrusi platby v App Store ani Google Play a nevyvola vraceni penez. Pokud nechcete obnoveni, zruste predplatne v nastaveni obchodu.',
+      'profile_delete_account_confirm_instruction':
+          'Pro potvrzeni zadejte {email}.',
+      'profile_delete_account_email_label': 'E-mail uctu',
+      'profile_delete_account_confirm_button': 'Odstranit ucet',
+      'profile_delete_account_success': 'Vas ucet byl odstranen.',
+      'profile_delete_account_error': 'Ucet se nepodarilo odstranit: {message}',
       'profile_load_error':
           'Profil se nyní nepodařilo načíst. Zkuste to znovu.',
       'profile_save_error':
@@ -18656,6 +18841,20 @@ class AppLocalizations {
       'labels_name_label': 'Numele etichetei',
       'profile_google_managed':
           'E-mailul și fotografia sunt gestionate de Google.',
+      'profile_delete_account_section': 'Stergerea contului',
+      'profile_delete_account_title': 'Sterge contul',
+      'profile_delete_account_subtitle':
+          'Sterge definitiv contul si datele aplicatiei.',
+      'profile_delete_account_body':
+          'Aceasta actiune sterge definitiv profilul, bonurile, tranzactiile, categoriile, etichetele, bugetele, mementourile si datele asociate ale aplicatiei. Nu poate fi anulata.',
+      'profile_delete_account_subscription_warning':
+          'Ai un abonament Premium activ. Stergerea contului nu anuleaza facturarea din App Store sau Google Play si nu ofera rambursare. Anuleaza abonamentul din setarile magazinului daca nu vrei reinnoirea.',
+      'profile_delete_account_confirm_instruction':
+          'Tasteaza {email} pentru confirmare.',
+      'profile_delete_account_email_label': 'Email cont',
+      'profile_delete_account_confirm_button': 'Sterge contul',
+      'profile_delete_account_success': 'Contul tau a fost sters.',
+      'profile_delete_account_error': 'Contul nu a putut fi sters: {message}',
       'profile_load_error':
           'Profilul nu poate fi încărcat acum. Încercați din nou.',
       'profile_save_error':
@@ -19997,6 +20196,21 @@ class AppLocalizations {
       'currency_view_all': 'Összes pénznem megtekintése',
       'labels_name_label': 'Címke neve',
       'profile_google_managed': 'Az e-mail-címet és a fotót a Google kezeli.',
+      'profile_delete_account_section': 'Fiok torlese',
+      'profile_delete_account_title': 'Fiok torlese',
+      'profile_delete_account_subtitle':
+          'A fiok es az alkalmazasadatok vegleges torlese.',
+      'profile_delete_account_body':
+          'Ez veglegesen torli a profilt, nyugtakat, tranzakciokat, kategoriakat, cimkeket, koltsegveteseket, emlekeztetoket es a kapcsolodo alkalmazasadatokat. Nem vonhato vissza.',
+      'profile_delete_account_subscription_warning':
+          'Aktiv Premium elofizetesed van. A fiok torlese nem mondja le az App Store vagy Google Play szamlazast, es nem jar visszateritessel. Mondd le az elofizetest az aruhaz beallitasaiban, ha nem szeretned a megujitast.',
+      'profile_delete_account_confirm_instruction':
+          'A megerositeshez ird be: {email}.',
+      'profile_delete_account_email_label': 'Fiok e-mail',
+      'profile_delete_account_confirm_button': 'Fiok torlese',
+      'profile_delete_account_success': 'A fiokod torolve lett.',
+      'profile_delete_account_error':
+          'Nem sikerult torolni a fiokot: {message}',
       'profile_load_error': 'A profil most nem tölthető be. Próbáld újra.',
       'profile_save_error':
           'A profilt most nem sikerült menteni. Próbáld újra.',
@@ -21331,6 +21545,20 @@ class AppLocalizations {
       'currency_view_all': 'Lihat semua mata uang',
       'labels_name_label': 'Nama label',
       'profile_google_managed': 'Email dan foto Anda dikelola oleh Google.',
+      'profile_delete_account_section': 'Penghapusan akun',
+      'profile_delete_account_title': 'Hapus akun',
+      'profile_delete_account_subtitle':
+          'Hapus akun dan data aplikasi secara permanen.',
+      'profile_delete_account_body':
+          'Ini akan menghapus profil, struk, transaksi, kategori, label, anggaran, pengingat, dan data aplikasi terkait secara permanen. Tindakan ini tidak dapat dibatalkan.',
+      'profile_delete_account_subscription_warning':
+          'Anda memiliki langganan Premium aktif. Menghapus akun tidak membatalkan tagihan App Store atau Google Play dan tidak memberikan pengembalian dana. Batalkan langganan di pengaturan toko jika tidak ingin diperpanjang.',
+      'profile_delete_account_confirm_instruction':
+          'Ketik {email} untuk mengonfirmasi.',
+      'profile_delete_account_email_label': 'Email akun',
+      'profile_delete_account_confirm_button': 'Hapus akun',
+      'profile_delete_account_success': 'Akun Anda telah dihapus.',
+      'profile_delete_account_error': 'Tidak dapat menghapus akun: {message}',
       'profile_load_error':
           'Profil Anda tidak dapat dimuat saat ini. Coba lagi.',
       'profile_save_error':
@@ -22659,6 +22887,20 @@ class AppLocalizations {
       'currency_view_all': 'Lihat semua mata wang',
       'labels_name_label': 'Nama label',
       'profile_google_managed': 'E-mel dan foto anda diurus oleh Google.',
+      'profile_delete_account_section': 'Pemadaman akaun',
+      'profile_delete_account_title': 'Padam akaun',
+      'profile_delete_account_subtitle':
+          'Padam akaun dan data aplikasi secara kekal.',
+      'profile_delete_account_body':
+          'Ini akan memadam profil, resit, transaksi, kategori, label, bajet, peringatan dan data aplikasi berkaitan secara kekal. Tindakan ini tidak boleh dibuat asal.',
+      'profile_delete_account_subscription_warning':
+          'Anda mempunyai langganan Premium aktif. Memadam akaun tidak membatalkan bil App Store atau Google Play dan tidak memberi bayaran balik. Batalkan langganan dalam tetapan kedai jika anda tidak mahu ia diperbaharui.',
+      'profile_delete_account_confirm_instruction':
+          'Taip {email} untuk mengesahkan.',
+      'profile_delete_account_email_label': 'E-mel akaun',
+      'profile_delete_account_confirm_button': 'Padam akaun',
+      'profile_delete_account_success': 'Akaun anda telah dipadam.',
+      'profile_delete_account_error': 'Akaun tidak dapat dipadam: {message}',
       'profile_load_error':
           'Profil anda tidak dapat dimuatkan sekarang. Cuba lagi.',
       'profile_save_error':
@@ -23989,6 +24231,19 @@ class AppLocalizations {
       'currency_view_all': 'Xem tất cả tiền tệ',
       'labels_name_label': 'Tên nhãn',
       'profile_google_managed': 'Email và ảnh của bạn do Google quản lý.',
+      'profile_delete_account_section': 'Xoa tai khoan',
+      'profile_delete_account_title': 'Xoa tai khoan',
+      'profile_delete_account_subtitle':
+          'Xoa vinh vien tai khoan va du lieu ung dung.',
+      'profile_delete_account_body':
+          'Thao tac nay se xoa vinh vien ho so, hoa don, giao dich, danh muc, nhan, ngan sach, loi nhac va du lieu ung dung lien quan. Khong the hoan tac.',
+      'profile_delete_account_subscription_warning':
+          'Ban co dang ky Premium dang hoat dong. Xoa tai khoan khong huy thanh toan tren App Store hoac Google Play va khong hoan tien. Hay huy dang ky trong cai dat cua cua hang neu ban khong muon gia han.',
+      'profile_delete_account_confirm_instruction': 'Nhap {email} de xac nhan.',
+      'profile_delete_account_email_label': 'Email tai khoan',
+      'profile_delete_account_confirm_button': 'Xoa tai khoan',
+      'profile_delete_account_success': 'Tai khoan cua ban da bi xoa.',
+      'profile_delete_account_error': 'Khong the xoa tai khoan: {message}',
       'profile_load_error':
           'Không thể tải hồ sơ ngay bây giờ. Vui lòng thử lại.',
       'profile_save_error':
@@ -25133,6 +25388,18 @@ class AppLocalizations {
       'currency_view_all': '查看所有货币',
       'labels_name_label': '标签名称',
       'profile_google_managed': '你的邮箱和照片由 Google 管理。',
+      'profile_delete_account_section': '删除账户',
+      'profile_delete_account_title': '删除账户',
+      'profile_delete_account_subtitle': '永久删除你的账户和应用数据。',
+      'profile_delete_account_body':
+          '这会永久删除你的个人资料、收据、交易、类别、标签、预算、提醒和相关应用数据。此操作无法撤销。',
+      'profile_delete_account_subscription_warning':
+          '你有有效的 Premium 订阅。删除账户不会取消 App Store 或 Google Play 扣费，也不会退款。如果不想续订，请在商店设置中取消订阅。',
+      'profile_delete_account_confirm_instruction': '输入 {email} 以确认。',
+      'profile_delete_account_email_label': '账户邮箱',
+      'profile_delete_account_confirm_button': '删除账户',
+      'profile_delete_account_success': '你的账户已删除。',
+      'profile_delete_account_error': '无法删除账户：{message}',
       'profile_load_error': '目前无法加载个人资料。请重试。',
       'profile_save_error': '目前无法保存个人资料。请重试。',
       'profile_scans_count': '{count} 次扫描',
@@ -26285,6 +26552,18 @@ class AppLocalizations {
       'currency_view_all': 'すべての通貨を表示',
       'labels_name_label': 'ラベル名',
       'profile_google_managed': 'メールアドレスと写真は Google で管理されています。',
+      'profile_delete_account_section': 'アカウント削除',
+      'profile_delete_account_title': 'アカウントを削除',
+      'profile_delete_account_subtitle': 'アカウントとアプリデータを完全に削除します。',
+      'profile_delete_account_body':
+          'プロフィール、レシート、取引、カテゴリ、ラベル、予算、リマインダー、関連するアプリデータが完全に削除されます。この操作は元に戻せません。',
+      'profile_delete_account_subscription_warning':
+          '有効な Premium サブスクリプションがあります。アカウントを削除しても App Store または Google Play の請求はキャンセルされず、返金も行われません。更新したくない場合はストア設定でサブスクリプションをキャンセルしてください。',
+      'profile_delete_account_confirm_instruction': '確認のため {email} と入力してください。',
+      'profile_delete_account_email_label': 'アカウントのメール',
+      'profile_delete_account_confirm_button': 'アカウントを削除',
+      'profile_delete_account_success': 'アカウントを削除しました。',
+      'profile_delete_account_error': 'アカウントを削除できませんでした: {message}',
       'profile_load_error': '現在プロフィールを読み込めません。もう一度お試しください。',
       'profile_save_error': '現在プロフィールを保存できません。もう一度お試しください。',
       'profile_scans_count': '{count} 回のスキャン',
@@ -27459,6 +27738,18 @@ class AppLocalizations {
       'currency_view_all': '모든 통화 보기',
       'labels_name_label': '라벨 이름',
       'profile_google_managed': '이메일과 사진은 Google에서 관리됩니다.',
+      'profile_delete_account_section': '계정 삭제',
+      'profile_delete_account_title': '계정 삭제',
+      'profile_delete_account_subtitle': '계정과 앱 데이터를 영구적으로 삭제합니다.',
+      'profile_delete_account_body':
+          '프로필, 영수증, 거래, 카테고리, 라벨, 예산, 알림 및 관련 앱 데이터가 영구적으로 삭제됩니다. 이 작업은 되돌릴 수 없습니다.',
+      'profile_delete_account_subscription_warning':
+          '활성 Premium 구독이 있습니다. 계정을 삭제해도 App Store 또는 Google Play 결제가 취소되지 않으며 환불도 제공되지 않습니다. 갱신을 원하지 않으면 스토어 설정에서 구독을 취소하세요.',
+      'profile_delete_account_confirm_instruction': '확인하려면 {email}을 입력하세요.',
+      'profile_delete_account_email_label': '계정 이메일',
+      'profile_delete_account_confirm_button': '계정 삭제',
+      'profile_delete_account_success': '계정이 삭제되었습니다.',
+      'profile_delete_account_error': '계정을 삭제할 수 없습니다: {message}',
       'profile_load_error': '지금 프로필을 불러올 수 없습니다. 다시 시도하세요.',
       'profile_save_error': '지금 프로필을 저장할 수 없습니다. 다시 시도하세요.',
       'profile_scans_count': '스캔 {count}회',
@@ -28743,6 +29034,20 @@ class AppLocalizations {
       'labels_name_label': 'लेबल का नाम',
       'profile_google_managed':
           'आपका ईमेल और फ़ोटो Google द्वारा प्रबंधित हैं।',
+      'profile_delete_account_section': 'खाता हटाना',
+      'profile_delete_account_title': 'खाता हटाएं',
+      'profile_delete_account_subtitle':
+          'अपना खाता और ऐप डेटा स्थायी रूप से हटाएं।',
+      'profile_delete_account_body':
+          'यह आपकी प्रोफाइल, रसीदें, लेनदेन, श्रेणियां, लेबल, बजट, रिमाइंडर और संबंधित ऐप डेटा स्थायी रूप से हटा देगा। इसे वापस नहीं किया जा सकता।',
+      'profile_delete_account_subscription_warning':
+          'आपकी Premium सदस्यता सक्रिय है। खाता हटाने से App Store या Google Play बिलिंग रद्द नहीं होती और धनवापसी नहीं मिलती। यदि आप नवीनीकरण नहीं चाहते हैं, तो स्टोर सेटिंग में सदस्यता रद्द करें।',
+      'profile_delete_account_confirm_instruction':
+          'पुष्टि करने के लिए {email} टाइप करें।',
+      'profile_delete_account_email_label': 'खाते का ईमेल',
+      'profile_delete_account_confirm_button': 'खाता हटाएं',
+      'profile_delete_account_success': 'आपका खाता हटा दिया गया।',
+      'profile_delete_account_error': 'खाता हटाया नहीं जा सका: {message}',
       'profile_load_error':
           'अभी आपका प्रोफ़ाइल लोड नहीं हो सका। कृपया फिर कोशिश करें।',
       'profile_save_error':
@@ -30028,6 +30333,18 @@ class AppLocalizations {
       'labels_name_label': 'اسم التصنيف',
       'profile_google_managed':
           'تتم إدارة بريدك الإلكتروني وصورتك بواسطة Google.',
+      'profile_delete_account_section': 'حذف الحساب',
+      'profile_delete_account_title': 'حذف الحساب',
+      'profile_delete_account_subtitle': 'احذف حسابك وبيانات التطبيق نهائيا.',
+      'profile_delete_account_body':
+          'سيؤدي هذا إلى حذف ملفك الشخصي والإيصالات والمعاملات والفئات والتسميات والميزانيات والتذكيرات وبيانات التطبيق المرتبطة نهائيا. لا يمكن التراجع عن ذلك.',
+      'profile_delete_account_subscription_warning':
+          'لديك اشتراك Premium نشط. حذف الحساب لا يلغي فوترة App Store أو Google Play ولا يصدر استردادا. ألغ الاشتراك من إعدادات المتجر إذا كنت لا تريده أن يتجدد.',
+      'profile_delete_account_confirm_instruction': 'اكتب {email} للتأكيد.',
+      'profile_delete_account_email_label': 'بريد الحساب الإلكتروني',
+      'profile_delete_account_confirm_button': 'حذف الحساب',
+      'profile_delete_account_success': 'تم حذف حسابك.',
+      'profile_delete_account_error': 'تعذر حذف الحساب: {message}',
       'profile_load_error':
           'تعذر تحميل ملفك الشخصي الآن. يرجى المحاولة مرة أخرى.',
       'profile_save_error':
@@ -31373,6 +31690,21 @@ class AppLocalizations {
       'labels_name_label': 'Nombre de etiqueta',
       'profile_google_managed':
           'Tu correo electrónico y foto los gestiona Google.',
+      'profile_delete_account_section': 'Eliminacion de cuenta',
+      'profile_delete_account_title': 'Eliminar cuenta',
+      'profile_delete_account_subtitle':
+          'Elimina permanentemente tu cuenta y los datos de la app.',
+      'profile_delete_account_body':
+          'Esto elimina permanentemente tu perfil, recibos, transacciones, categorias, etiquetas, presupuestos, recordatorios y datos relacionados de la app. No se puede deshacer.',
+      'profile_delete_account_subscription_warning':
+          'Tienes una suscripcion Premium activa. Eliminar tu cuenta no cancela la facturacion de App Store o Google Play y no genera un reembolso. Cancela la suscripcion en los ajustes de la tienda si no quieres que se renueve.',
+      'profile_delete_account_confirm_instruction':
+          'Escribe {email} para confirmar.',
+      'profile_delete_account_email_label': 'Email de la cuenta',
+      'profile_delete_account_confirm_button': 'Eliminar cuenta',
+      'profile_delete_account_success': 'Tu cuenta fue eliminada.',
+      'profile_delete_account_error':
+          'No se pudo eliminar tu cuenta: {message}',
       'profile_load_error':
           'No se pudo cargar tu perfil ahora. Inténtalo de nuevo.',
       'profile_save_error':
