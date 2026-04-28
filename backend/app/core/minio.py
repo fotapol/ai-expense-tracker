@@ -125,6 +125,13 @@ def download_object(key: str, bucket: str | None = None) -> bytes:
     return resp["Body"].read()
 
 
+def delete_object(key: str, bucket: str | None = None) -> None:
+    """Delete an object from storage."""
+    bucket = bucket or s3_settings.BUCKET_RECEIPTS
+    client = get_s3_client()
+    client.delete_object(Bucket=bucket, Key=key)
+
+
 def ensure_bucket(bucket: str | None = None) -> None:
     """Create the bucket if it does not already exist."""
     bucket = bucket or s3_settings.BUCKET_RECEIPTS
