@@ -45,6 +45,21 @@ server {
         try_files /site-config.js =404;
     }
 
+    location = /favicon.png {
+        add_header Cache-Control "public, max-age=86400";
+        try_files /favicon.png =404;
+    }
+
+    location = /logo-login-black.png {
+        add_header Cache-Control "public, max-age=86400";
+        try_files /logo-login-black.png =404;
+    }
+
+    location = /logo-login-white.png {
+        add_header Cache-Control "public, max-age=86400";
+        try_files /logo-login-white.png =404;
+    }
+
     location = /site-config.template.js {
         return 404;
     }

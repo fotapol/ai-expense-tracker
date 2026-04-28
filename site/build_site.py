@@ -47,9 +47,6 @@ def site_config() -> dict[str, str]:
         "termsUrl": (os.environ.get("APP_TERMS_URL") or "/terms").strip() or "/terms",
         "supportEmail": (os.environ.get("APP_SUPPORT_EMAIL") or "").strip(),
         "supportSubject": (os.environ.get("APP_SUPPORT_SUBJECT") or "").strip(),
-        "appStoreUrl": (os.environ.get("SITE_APP_STORE_URL") or "").strip(),
-        "googlePlayUrl": (os.environ.get("SITE_GOOGLE_PLAY_URL") or "").strip(),
-        "openAppUrl": (os.environ.get("SITE_OPEN_APP_URL") or "").strip(),
     }
 
 
@@ -127,7 +124,9 @@ def shell(title: str, description: str, current_page: str, body_class: str, main
           <meta charset="utf-8" />
           <meta name="viewport" content="width=device-width, initial-scale=1" />
           <meta name="description" content="{html.escape(description)}" />
+          <meta name="theme-color" content="#111418" />
           <title>{html.escape(title)} | AI Expense Tracker</title>
+          <link rel="icon" type="image/png" href="/favicon.png" />
           {THEME_BOOTSTRAP}
           <link rel="stylesheet" href="/styles.css" />
           <script src="/site-config.js" defer></script>
@@ -137,10 +136,13 @@ def shell(title: str, description: str, current_page: str, body_class: str, main
           <div class="page-shell">
             <header class="site-header">
               <a class="brand-lockup" data-home-link href="/">
-                <span class="brand-mark" aria-hidden="true"></span>
+                <span class="brand-mark" aria-hidden="true">
+                  <img class="brand-logo brand-logo-light" src="/logo-login-black.png" alt="" />
+                  <img class="brand-logo brand-logo-dark" src="/logo-login-white.png" alt="" />
+                </span>
                 <span class="brand-copy">
                   <strong>AI Expense Tracker</strong>
-                  <span>Minimal, modern expense control</span>
+                  <span>Receipt intelligence for everyday spending</span>
                 </span>
               </a>
               <nav class="site-nav" aria-label="Primary">
@@ -166,19 +168,14 @@ def home_page() -> str:
         """
         <section class="hero">
           <div class="hero-copy">
-            <span class="eyebrow">Built for real-life spending, not spreadsheet theater</span>
-            <h1>Turn receipts into a clear, calmer picture of your money.</h1>
+            <span class="eyebrow">AI Expense Tracker</span>
+            <h1>Receipts become spending clarity.</h1>
             <p class="hero-lede">
-              AI Expense Tracker helps you scan receipts, organize purchases, follow spending
-              patterns, and stay ahead of budgets and bill reminders from one place.
+              Scan receipts, organize purchases, understand trends, and keep budgets and bill
+              reminders close without turning personal finance into a second job.
             </p>
-            <div class="hero-actions" data-cta-group hidden>
-              <a class="button button-primary" data-open-app-link href="#" hidden>Open app</a>
-              <a class="button button-secondary" data-app-store-link href="#" hidden>App Store</a>
-              <a class="button button-secondary" data-google-play-link href="#" hidden>Google Play</a>
-            </div>
             <p class="hero-meta" data-support-line hidden>
-              Need help? <a data-support-email-link href="#">support@example.com</a>
+              Need help? <a class="inline-link" data-support-email-link href="#">support@example.com</a>
             </p>
             <div class="hero-links">
               <a class="inline-link" data-privacy-link href="/privacy">Read the Privacy Policy</a>
@@ -187,31 +184,31 @@ def home_page() -> str:
           </div>
           <div class="hero-panel" aria-hidden="true">
             <div class="dashboard-card dashboard-card-primary">
-              <div class="panel-chip">This month</div>
-              <h2>Receipts, categories, and budget signals in one quiet workflow.</h2>
-              <div class="mini-bars">
-                <span></span>
-                <span></span>
-                <span></span>
-                <span></span>
-                <span></span>
+              <div class="panel-chip">Monthly snapshot</div>
+              <h2>Cleaner records. Faster review. Better spending signals.</h2>
+              <div class="spend-orbit">
+                <span class="orbit-ring"></span>
+                <span class="orbit-core"></span>
+                <span class="orbit-dot orbit-dot-one"></span>
+                <span class="orbit-dot orbit-dot-two"></span>
+                <span class="orbit-dot orbit-dot-three"></span>
               </div>
             </div>
             <div class="panel-stack">
               <article class="stack-card">
                 <p class="stack-label">Receipt scan</p>
-                <strong>Capture the details once.</strong>
-                <span>Keep the original receipt and the structured expense record together.</span>
+                <strong>Capture details once.</strong>
+                <span>Keep the receipt image and structured expense data together.</span>
               </article>
               <article class="stack-card">
-                <p class="stack-label">Trend view</p>
-                <strong>See spending shifts faster.</strong>
-                <span>Review categories, labels, and movement over time without extra busywork.</span>
+                <p class="stack-label">Analytics</p>
+                <strong>Find the pattern.</strong>
+                <span>Review categories, labels, and month-to-month changes at a glance.</span>
               </article>
               <article class="stack-card accent-card">
                 <p class="stack-label">Budget rhythm</p>
-                <strong>Plan ahead without losing flexibility.</strong>
-                <span>Use reminders and budget checkpoints to stay close to what matters.</span>
+                <strong>Stay ahead of the month.</strong>
+                <span>Use budgets and bill reminders to keep upcoming spending visible.</span>
               </article>
             </div>
           </div>
@@ -233,34 +230,6 @@ def home_page() -> str:
             <h2>Keep the month from sneaking up on you.</h2>
             <p>Track progress against budgets and use bill reminders to stay ahead of upcoming obligations.</p>
           </article>
-          <article class="feature-card">
-            <span class="card-kicker">Privacy-aware workflow</span>
-            <h2>Know where the boundaries are.</h2>
-            <p>The public legal pages are easy to review, and the product keeps direct links to your policies close by.</p>
-          </article>
-        </section>
-
-        <section class="story-band">
-          <div>
-            <span class="eyebrow">Why this site exists</span>
-            <h2>A simple public home for the product and its legal pages.</h2>
-          </div>
-          <p>
-            This website keeps the essentials easy to find: what the app does, how to contact support,
-            and where to review the Privacy Policy and Terms of Service without digging through the app.
-          </p>
-        </section>
-
-        <section class="legal-callout">
-          <div class="legal-copy">
-            <span class="eyebrow">Policies</span>
-            <h2>Clear links, no maze.</h2>
-            <p>Privacy Policy and Terms of Service live on dedicated pages and are generated from the root legal markdown files in this repository.</p>
-          </div>
-          <div class="legal-actions">
-            <a class="button button-secondary" data-privacy-link href="/privacy">Privacy Policy</a>
-            <a class="button button-secondary" data-terms-link href="/terms">Terms of Service</a>
-          </div>
         </section>
         """
     ).strip()
@@ -296,11 +265,6 @@ def legal_page(page_key: str, source_file: str, fallback_title: str, description
             <h1>{html.escape(title)}</h1>
             <p>{html.escape(description)}</p>
           </div>
-          <div class="legal-meta-card">
-            <p>Source of truth</p>
-            <strong>{html.escape(source_file)}</strong>
-            <span>The public page is generated directly from the repository root markdown file.</span>
-          </div>
         </section>
 
         <section class="legal-layout">
@@ -328,6 +292,18 @@ def legal_page(page_key: str, source_file: str, fallback_title: str, description
 def copy_assets(output_dir: Path) -> None:
     for filename in ("styles.css", "site.js", "site-config.template.js"):
         shutil.copy2(SRC_ROOT / filename, output_dir / filename)
+    for source, destination in (
+        (REPO_ROOT / "expense_tracker_app" / "web" / "favicon.png", "favicon.png"),
+        (
+            REPO_ROOT / "expense_tracker_app" / "assets" / "brand" / "logo-login-black.png",
+            "logo-login-black.png",
+        ),
+        (
+            REPO_ROOT / "expense_tracker_app" / "assets" / "brand" / "logo-login-white.png",
+            "logo-login-white.png",
+        ),
+    ):
+        shutil.copy2(source, output_dir / destination)
 
 
 def write_default_site_config(output_dir: Path) -> None:

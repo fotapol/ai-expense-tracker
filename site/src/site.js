@@ -9,9 +9,6 @@
       termsUrl: config.termsUrl || "/terms",
       supportEmail: config.supportEmail || "",
       supportSubject: config.supportSubject || "",
-      appStoreUrl: config.appStoreUrl || "",
-      googlePlayUrl: config.googlePlayUrl || "",
-      openAppUrl: config.openAppUrl || "",
     };
   }
 
@@ -66,32 +63,6 @@
     });
   }
 
-  function hydrateOptionalLink(selector, href) {
-    document.querySelectorAll(selector).forEach(function (anchor) {
-      if (!href) {
-        anchor.hidden = true;
-        return;
-      }
-      anchor.setAttribute("href", href);
-      anchor.hidden = false;
-    });
-  }
-
-  function hydrateCtas(config) {
-    hydrateOptionalLink("[data-open-app-link]", config.openAppUrl);
-    hydrateOptionalLink("[data-app-store-link]", config.appStoreUrl);
-    hydrateOptionalLink("[data-google-play-link]", config.googlePlayUrl);
-
-    const shouldShow =
-      Boolean(config.openAppUrl) ||
-      Boolean(config.appStoreUrl) ||
-      Boolean(config.googlePlayUrl);
-
-    document.querySelectorAll("[data-cta-group]").forEach(function (group) {
-      group.hidden = !shouldShow;
-    });
-  }
-
   document.addEventListener("DOMContentLoaded", function () {
     const config = siteConfig();
 
@@ -99,7 +70,6 @@
     fillAnchor("[data-privacy-link]", config.privacyUrl);
     fillAnchor("[data-terms-link]", config.termsUrl);
     hydrateSupport(config);
-    hydrateCtas(config);
 
     const toggle = document.querySelector("[data-theme-toggle]");
     if (toggle) {

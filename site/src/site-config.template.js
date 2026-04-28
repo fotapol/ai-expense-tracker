@@ -3,8 +3,5 @@ window.__SITE_CONFIG__ = {
   privacyUrl: "${APP_PRIVACY_URL}",
   termsUrl: "${APP_TERMS_URL}",
   supportEmail: "${APP_SUPPORT_EMAIL}",
-  supportSubject: "${APP_SUPPORT_SUBJECT}",
-  appStoreUrl: "${SITE_APP_STORE_URL}",
-  googlePlayUrl: "${SITE_GOOGLE_PLAY_URL}",
-  openAppUrl: "${SITE_OPEN_APP_URL}"
+  supportSubject: "${APP_SUPPORT_SUBJECT}"
 };
