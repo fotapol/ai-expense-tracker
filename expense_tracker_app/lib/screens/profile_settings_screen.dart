@@ -1,13 +1,18 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:google_sign_in/google_sign_in.dart';
 
+import '../core/app_navigation.dart';
 import '../core/api_client.dart';
 import '../core/launch_error_copy.dart';
 import '../core/localized_dates.dart';
 import '../core/redesign_system.dart';
+import '../core/revenuecat_service.dart';
 import '../core/session_invalidation.dart';
+import '../core/subscription_confirmation.dart';
 import 'settings_detail_scaffold.dart';
 import '../l10n/app_localizations.dart';
+import 'login_screen.dart';
 
 class ProfileSettingsScreen extends StatefulWidget {
   const ProfileSettingsScreen({super.key});
@@ -21,6 +26,7 @@ class _ProfileSettingsScreenState extends State<ProfileSettingsScreen> {
 
   bool _isLoading = true;
   bool _isSaving = false;
+  bool _isDeleting = false;
   String? _error;
   String _initialDisplayName = '';
   Map<String, dynamic>? _profileData;
@@ -140,6 +146,9 @@ class _ProfileSettingsScreenState extends State<ProfileSettingsScreen> {
     return context.tr('settings_account_type_free');
   }
 
+  bool get _hasActiveSubscription =>
+      (_subscriptionPayload?['has_active_subscription'] as bool?) == true;
+
   String _receiptUsageLabel() {
     return context.tr(
       'profile_scans_count',
@@ -212,6 +221,150 @@ class _ProfileSettingsScreenState extends State<ProfileSettingsScreen> {
     } finally {
       if (mounted) setState(() => _isSaving = false);
     }
+  }
+
+  Future<void> _deleteAccount() async {
+    if (_isDeleting || _profileData == null) return;
+    final email = _email;
+    final confirmed = await _showDeleteAccountDialog(email: email);
+    if (confirmed != true) return;
+
+    setState(() => _isDeleting = true);
+    try {
+      await ApiClient.deleteMe();
+      await clearOptimisticPremiumAccess();
+      await RevenueCatService.logOut();
+      await GoogleSignIn.instance.signOut();
+      await FirebaseAuth.instance.signOut();
+
+      if (!mounted) return;
+      final successMessage = context.tr('profile_delete_account_success');
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(successMessage)));
+      final navigator = appNavigatorKey.currentState ?? Navigator.of(context);
+      navigator.pushAndRemoveUntil(
+        MaterialPageRoute(builder: (_) => const LoginScreen()),
+        (_) => false,
+      );
+    } catch (error) {
+      if (await maybeHandleExpiredSession(error)) return;
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            context.tr(
+              'profile_delete_account_error',
+              params: {
+                'message': friendlyLaunchErrorMessage(
+                  error,
+                  fallback: context.tr('common_error'),
+                ),
+              },
+            ),
+          ),
+          backgroundColor: ShellStyles.error(context),
+        ),
+      );
+    } finally {
+      if (mounted) setState(() => _isDeleting = false);
+    }
+  }
+
+  Future<bool?> _showDeleteAccountDialog({required String email}) {
+    final confirmationText = email.trim();
+    final controller = TextEditingController();
+    final hasActiveSubscription = _hasActiveSubscription;
+    final dangerColor = ShellStyles.error(context);
+
+    return showDialog<bool>(
+      context: context,
+      barrierDismissible: !_isDeleting,
+      builder: (dialogContext) {
+        return StatefulBuilder(
+          builder: (dialogContext, setDialogState) {
+            final typedValue = controller.text.trim();
+            final canConfirm =
+                confirmationText.isNotEmpty && typedValue == confirmationText;
+            return AlertDialog(
+              title: Text(context.tr('profile_delete_account_title')),
+              content: SingleChildScrollView(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(context.tr('profile_delete_account_body')),
+                    if (hasActiveSubscription) ...[
+                      const SizedBox(height: 12),
+                      Container(
+                        width: double.infinity,
+                        padding: const EdgeInsets.all(12),
+                        decoration: BoxDecoration(
+                          color: dangerColor.withAlpha(18),
+                          borderRadius: BorderRadius.circular(12),
+                          border: Border.all(color: dangerColor.withAlpha(90)),
+                        ),
+                        child: Text(
+                          context.tr(
+                            'profile_delete_account_subscription_warning',
+                          ),
+                          style: TextStyle(
+                            color: dangerColor,
+                            fontSize: 12.5,
+                            height: 1.35,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      ),
+                    ],
+                    const SizedBox(height: 14),
+                    Text(
+                      context.tr(
+                        'profile_delete_account_confirm_instruction',
+                        params: {'email': confirmationText},
+                      ),
+                      style: TextStyle(
+                        color: ShellStyles.textMuted(context),
+                        fontSize: 12.5,
+                        height: 1.35,
+                      ),
+                    ),
+                    const SizedBox(height: 10),
+                    TextField(
+                      controller: controller,
+                      keyboardType: TextInputType.emailAddress,
+                      autocorrect: false,
+                      enableSuggestions: false,
+                      decoration: InputDecoration(
+                        labelText: context.tr(
+                          'profile_delete_account_email_label',
+                        ),
+                      ),
+                      onChanged: (_) => setDialogState(() {}),
+                    ),
+                  ],
+                ),
+              ),
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.of(dialogContext).pop(false),
+                  child: Text(context.tr('common_cancel')),
+                ),
+                FilledButton(
+                  onPressed: canConfirm
+                      ? () => Navigator.of(dialogContext).pop(true)
+                      : null,
+                  style: FilledButton.styleFrom(backgroundColor: dangerColor),
+                  child: Text(
+                    context.tr('profile_delete_account_confirm_button'),
+                  ),
+                ),
+              ],
+            );
+          },
+        );
+      },
+    ).whenComplete(controller.dispose);
   }
 
   Widget _buildPhotoAvatar() {
@@ -335,6 +488,74 @@ class _ProfileSettingsScreenState extends State<ProfileSettingsScreen> {
         ),
         if (hasDivider) Divider(height: 1, color: ShellStyles.border(context)),
       ],
+    );
+  }
+
+  Widget _buildDeleteAccountCard() {
+    final dangerColor = ShellStyles.error(context);
+    return SettingsDetailCard(
+      radius: 18,
+      padding: const EdgeInsets.all(16),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Container(
+            width: 38,
+            height: 38,
+            alignment: Alignment.center,
+            decoration: BoxDecoration(
+              color: dangerColor.withAlpha(18),
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: Icon(Icons.delete_outline, color: dangerColor, size: 20),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  context.tr('profile_delete_account_title'),
+                  style: TextStyle(
+                    color: ShellStyles.textPrimary(context),
+                    fontSize: 14.5,
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  context.tr('profile_delete_account_subtitle'),
+                  style: TextStyle(
+                    color: ShellStyles.textMuted(context),
+                    fontSize: 12.5,
+                    height: 1.35,
+                  ),
+                ),
+                const SizedBox(height: 12),
+                OutlinedButton(
+                  onPressed: _isDeleting ? null : _deleteAccount,
+                  style: OutlinedButton.styleFrom(
+                    foregroundColor: dangerColor,
+                    side: BorderSide(color: dangerColor.withAlpha(160)),
+                  ),
+                  child: _isDeleting
+                      ? SizedBox(
+                          width: 16,
+                          height: 16,
+                          child: CircularProgressIndicator(
+                            strokeWidth: 2,
+                            color: dangerColor,
+                          ),
+                        )
+                      : Text(
+                          context.tr('profile_delete_account_confirm_button'),
+                        ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
     );
   }
 
@@ -479,6 +700,13 @@ class _ProfileSettingsScreenState extends State<ProfileSettingsScreen> {
                         ),
                       ),
                     ],
+                    const SizedBox(height: 22),
+                    ShellStyles.sectionLabel(
+                      context,
+                      context.tr('profile_delete_account_section'),
+                    ),
+                    const SizedBox(height: 8),
+                    _buildDeleteAccountCard(),
                   ],
                 ),
               ),

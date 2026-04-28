@@ -268,6 +268,33 @@ class ApiClient {
     }
   }
 
+  /// DELETE /v1/me
+  static Future<void> deleteMe() async {
+    final token = await _getToken();
+    http.Response response = await http.delete(
+      Uri.parse('$apiBaseUrl/v1/me'),
+      headers: {
+        'Authorization': 'Bearer $token',
+        'Content-Type': 'application/json',
+      },
+    );
+    response = await _handleUnauthorizedResponse(
+      response,
+      retry: (freshToken) => http.delete(
+        Uri.parse('$apiBaseUrl/v1/me'),
+        headers: {
+          'Authorization': 'Bearer $freshToken',
+          'Content-Type': 'application/json',
+        },
+      ),
+    );
+
+    if (response.statusCode == 204) return;
+    throw Exception(
+      'Failed to delete account: ${response.statusCode} ${_extractErrorMessage(response)}',
+    );
+  }
+
   /// POST /v1/households
   static Future<Map<String, dynamic>> createHousehold({
     required String name,
