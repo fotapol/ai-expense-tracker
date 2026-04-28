@@ -6,95 +6,122 @@ These Terms of Service (“Terms”) govern your access to and use of the **AI E
 
 The Services are operated by:
 
-- **Operator:** Kirill Krupin
-- **Country:** Serbia
-- **Contact email:** support@nexavend.store
+**Operator:** Kirill Krupin  
+**Country:** Serbia  
+**Contact email:** support@nexavend.store
 
 By using the Services, you agree to these Terms.
 
 If you do not agree with these Terms, do not use the Services.
 
-## 1. Description of the Services
+\---
 
-AI Expense Tracker is a mobile application that helps users track expenses, upload receipts, extract receipt data using AI-assisted processing, categorize expenses, and access optional premium features through subscriptions.
+## 1\. Description of Services
+
+AI Expense Tracker helps users track expenses, upload receipts, extract receipt data using AI-assisted processing, categorize expenses, view summaries, and access optional premium features.
 
 The Services may include:
 
-- receipt scanning;
-- AI-assisted receipt parsing;
-- expense tracking;
-- categorization;
-- analytics and summaries;
-- cloud-based backend processing;
-- optional subscription-based premium features.
+* receipt upload and scanning;
+* AI-assisted receipt parsing;
+* expense tracking;
+* categorization;
+* summaries and analytics;
+* cloud-based backend processing;
+* optional subscription-based premium features.
 
-## 2. Eligibility
+The Services are intended for personal expense tracking and organization. They are not intended to be a professional accounting, tax, legal, or financial system.
+
+\---
+
+## 2\. Eligibility
 
 You must be legally capable of entering into a binding agreement in your jurisdiction.
 
 You must not use the Services if you are prohibited from doing so under applicable law.
 
-## 3. Account and Security
+\---
+
+## 3\. Accounts
+
+Users authenticate using Google login.
 
 You are responsible for:
 
-- keeping your account secure;
-- maintaining access to your authentication method;
-- all activity that occurs under your account;
-- promptly notifying us if you suspect unauthorized access.
+* keeping your account secure;
+* protecting your device;
+* maintaining access to your Google account;
+* all activity that occurs under your account;
+* reporting unauthorized access or suspected misuse.
 
 We are not responsible for losses caused by your failure to protect your account, device, or credentials.
 
-## 4. Acceptable Use
+\---
 
-You agree not to:
+## 4\. Acceptable Use
 
-- use the Services for unlawful, fraudulent, harmful, or abusive purposes;
-- attempt to gain unauthorized access to the Services or related systems;
-- interfere with or disrupt the Services;
-- upload malware, harmful files, or illegal content;
-- reverse engineer, scrape, overload, or misuse the Services except where permitted by law;
-- use the Services to violate the rights of others;
-- submit false, misleading, or unauthorized information.
+You must not:
 
-We may suspend or terminate access if we believe you violated these Terms or created risk for the Services or other users.
+* use the Services unlawfully, fraudulently, harmfully, or abusively;
+* upload malicious, illegal, or unauthorized content;
+* attempt unauthorized access to the Services or related systems;
+* interfere with or disrupt infrastructure;
+* reverse engineer, scrape, overload, or misuse the Services except where permitted by law;
+* use the Services to violate the rights of others;
+* submit false, misleading, or unauthorized information.
 
-## 5. User Content
+We may suspend or terminate access if we believe you violated these Terms or created legal, security, operational, or reputational risk.
 
-You retain ownership of content you upload, submit, or create through the Services, including receipts, expense records, notes, labels, and related data (“User Content”).
+\---
 
-You grant us a limited, non-exclusive, worldwide license to host, store, process, reproduce, transmit, and display User Content solely as necessary to:
+## 5\. User Content
 
-- provide the Services;
-- process receipts and expenses;
-- operate backend systems;
-- provide support;
-- maintain security;
-- improve reliability and functionality;
-- comply with legal obligations.
+You retain ownership of content you upload, submit, or create through the Services, including receipts, expense records, notes, labels, categories, and related data (“User Content”).
+
+You grant us a limited, non-exclusive, worldwide license to host, store, process, reproduce, transmit, display, analyze, and otherwise use User Content only as necessary to:
+
+* provide the Services;
+* process receipts and expenses;
+* operate backend systems;
+* provide support;
+* maintain security;
+* debug issues;
+* improve reliability and functionality;
+* comply with legal obligations;
+* perform other processing described in the Privacy Policy.
 
 You are responsible for ensuring that you have the right to upload and process your User Content through the Services.
 
-## 6. AI-Assisted Processing
+\---
+
+## 6\. AI Processing Disclaimer
 
 The Services may use AI-assisted processing to extract or organize data from receipts and expenses.
 
 You understand and agree that:
 
-- AI output may be incomplete, inaccurate, delayed, or incorrect;
-- extracted receipt data may require manual review;
-- the Services are not guaranteed to correctly identify every merchant, amount, tax, currency, date, or item;
-- you are responsible for reviewing and correcting important data.
+* AI output may be incomplete, inaccurate, delayed, or incorrect;
+* extracted receipt data may require manual review;
+* the Services may not correctly identify every merchant, amount, tax, currency, date, or item;
+* you are responsible for reviewing and correcting important data before relying on it.
 
-## 7. No Financial, Tax, Legal, or Accounting Advice
+\---
 
-The Services are provided for personal expense tracking and organization.
+## 7\. No Professional Advice
 
-The Services do not provide financial, tax, accounting, investment, legal, or professional advice.
+The Services do not provide:
 
-You should not rely on the Services as a substitute for professional advice. You are responsible for verifying any information before using it for tax, accounting, legal, business, or financial decisions.
+* financial advice;
+* tax advice;
+* legal advice;
+* accounting advice;
+* investment advice.
 
-## 8. Subscriptions and Premium Features
+Users remain responsible for verifying information before using it for tax, accounting, legal, business, financial, or other important decisions.
+
+\---
+
+## 8\. Subscriptions and Premium Features
 
 Some features may require a paid subscription.
 
@@ -104,145 +131,179 @@ We may use RevenueCat or similar services to manage subscription entitlements, s
 
 Unless otherwise stated:
 
-- subscriptions may renew automatically;
-- you are responsible for managing or canceling your subscription through your Google Play account;
-- deleting the App does not automatically cancel your subscription;
-- access to premium features depends on successful subscription verification;
-- subscription features, prices, and availability may change as permitted by applicable law and store policies.
+* subscriptions may renew automatically;
+* you are responsible for managing or canceling your subscription through your Google Play account;
+* deleting the App does not cancel your subscription;
+* access to premium features depends on successful subscription verification;
+* subscription features, prices, and availability may change as permitted by applicable law and store policies.
 
-## 9. Refunds
+Refund eligibility is determined by Google Play policies and applicable law. We do not control Google Play refund decisions and do not provide refunds directly unless required by law or explicitly stated.
 
-If you purchase a subscription through Google Play, refund requests are generally handled according to Google Play policies and procedures.
+\---
 
-We do not control Google Play refund decisions.
+## 9\. Free Trials and Promotions
 
-Refund eligibility is determined by Google Play policies and applicable law.
+If free trials or promotional offers are provided, their terms will be shown before activation.
 
-## 10. Service Availability
+A free trial may convert to a paid subscription if this is clearly disclosed before the user starts the trial.
+
+Users are responsible for canceling through Google Play before the trial ends if they do not wish to continue.
+
+\---
+
+## 10\. Service Availability
 
 We aim to provide reliable Services, but we do not guarantee that the Services will always be available, uninterrupted, secure, or error-free.
 
-The Services may be unavailable due to:
+Services may be interrupted due to:
 
-- maintenance;
-- updates;
-- outages;
-- infrastructure issues;
-- third-party provider issues;
-- security incidents;
-- force majeure or events outside our control.
+* maintenance;
+* updates;
+* outages;
+* infrastructure issues;
+* third-party failures;
+* security incidents;
+* force majeure events.
 
 We may modify, suspend, limit, or discontinue all or part of the Services at any time.
 
-## 11. Backups and Data Loss
+\---
 
-We may maintain backups and operational safeguards, but we do not guarantee that all data will always be recoverable.
+## 11\. Backups and Data Loss
 
-You are responsible for keeping your own copies of important financial, tax, accounting, or legal records.
+We may maintain backups and operational safeguards, but we do not guarantee recovery of all data.
+
+Users should maintain their own copies of important financial, tax, accounting, legal, or personal records.
 
 Do not rely on the Services as your only storage location for important documents.
 
-## 12. Future Model Improvement
+\---
 
-We may improve the Services over time, including improving receipt extraction, classification, and AI-assisted functionality.
+## 12\. Future Improvements
 
-In the future, we may use de-identified, anonymized, aggregated, or otherwise lawfully processed data for service improvement, model evaluation, fine-tuning, or training, where permitted by law and, where required, with additional notice or consent.
+We may improve features, models, extraction quality, categorization, performance, and reliability over time.
 
-## 13. Intellectual Property
+This may include improving AI-assisted functionality as described in the Privacy Policy.
 
-The Services, including software, design, text, graphics, logos, systems, and related materials, are owned by us or our licensors, except for your User Content.
+\---
 
-You may use the Services only as permitted by these Terms.
+## 13\. Intellectual Property
 
-No rights are granted to you except the limited right to use the Services in accordance with these Terms.
+The App, software, design, branding, systems, documentation, and related materials belong to the operator or licensors, except for User Content.
 
-## 14. Third-Party Services
+Users receive a limited right to use the Services in accordance with these Terms.
 
-The Services may depend on third-party services, including Google Play, Firebase, RevenueCat, AI providers, hosting providers, storage providers, monitoring providers, and network/security providers.
+No rights are granted except as expressly allowed by these Terms.
+
+\---
+
+## 14\. Third-Party Services
+
+The Services may depend on third-party services, including:
+
+* Google Play;
+* Firebase;
+* RevenueCat;
+* Google Gemini or similar AI services;
+* Cloudflare;
+* hosting and infrastructure providers;
+* logging, monitoring, and observability providers.
 
 We are not responsible for third-party services, outages, policies, or actions.
 
 Your use of third-party services may be subject to their own terms and privacy policies.
 
-## 15. Termination
+\---
+
+## 15\. Termination
 
 You may stop using the Services at any time.
 
-We may suspend or terminate your access if:
+We may suspend or terminate access if:
 
-- you violate these Terms;
-- your use creates legal, security, operational, or reputational risk;
-- we are required to do so by law;
-- the Services are discontinued;
-- your subscription cannot be verified;
-- your account appears fraudulent, abusive, or unauthorized.
+* these Terms are violated;
+* misuse is detected;
+* your use creates legal, security, operational, or reputational risk;
+* the Services are discontinued;
+* subscription status cannot be verified;
+* your account appears fraudulent, abusive, or unauthorized;
+* we are required to do so by law.
 
 After termination, some information may be retained as described in the Privacy Policy.
 
-## 16. Disclaimer
+\---
 
-To the maximum extent permitted by law, the Services are provided on an “as is” and “as available” basis.
+## 16\. Disclaimer
 
-We make no warranties, express or implied, including warranties of:
+To the maximum extent permitted by law, the Services are provided “as is” and “as available.”
 
-- accuracy;
-- reliability;
-- availability;
-- fitness for a particular purpose;
-- merchantability;
-- non-infringement;
-- security;
-- uninterrupted operation;
-- error-free operation.
+No guarantees are made regarding:
 
-We do not guarantee that receipt extraction, categorization, analytics, or AI output will be accurate or complete.
+* accuracy;
+* reliability;
+* availability;
+* fitness for a particular purpose;
+* uninterrupted operation;
+* error-free operation;
+* completeness of AI output;
+* correctness of extracted receipt data.
 
-## 17. Limitation of Liability
+\---
+
+## 17\. Limitation of Liability
 
 To the maximum extent permitted by law, we will not be liable for:
 
-- indirect, incidental, special, consequential, exemplary, or punitive damages;
-- loss of profits;
-- loss of revenue;
-- loss of data;
-- loss of goodwill;
-- business interruption;
-- inaccurate AI output;
-- decisions made based on extracted expense data;
-- inability to access the Services;
-- third-party service failures.
+* indirect, incidental, special, consequential, exemplary, or punitive damages;
+* loss of profits;
+* loss of revenue;
+* loss of data;
+* loss of goodwill;
+* business interruption;
+* inaccurate AI output;
+* decisions made based on extracted expense data;
+* inability to access the Services;
+* third-party service failures.
 
-To the maximum extent permitted by law, our total liability for any claim arising out of or relating to the Services or these Terms will not exceed the greater of:
+To the maximum extent permitted by law, total liability for any claim arising out of or relating to the Services or these Terms will not exceed the greater of:
 
-- the amount you paid for the Services through Google Play in the 3 months before the event giving rise to the claim; or
-- EUR 50.
+* the amount paid for the Services through Google Play during the previous 3 months before the event giving rise to the claim; or
+* EUR 50.
 
 Some jurisdictions do not allow certain limitations of liability. In such cases, this section applies only to the maximum extent permitted by law.
 
-## 18. Consumer Rights
+\---
 
-Nothing in these Terms limits any rights you may have under mandatory consumer protection laws.
+## 18\. Consumer Rights
 
-If a law gives you rights that cannot be waived, these Terms do not limit those rights.
+Nothing in these Terms limits mandatory consumer rights that cannot be waived under applicable law.
 
-## 19. Changes to the Services or Terms
+\---
+
+## 19\. Changes to the Services or Terms
 
 We may update the Services or these Terms from time to time.
 
-If changes are material, we may provide notice through the App, by email, or by other reasonable means.
+If changes are material, we may provide notice through the App, by email, or by other reasonable methods.
 
 Continued use of the Services after updated Terms become effective means that you accept the updated Terms.
 
-## 20. Governing Law and Disputes
+\---
 
-These Terms are governed by the laws of **Serbia**, excluding conflict-of-law rules.
+## 20\. Governing Law and Disputes
 
-The courts of **Belgrade, Serbia** will have jurisdiction, unless mandatory law requires otherwise.
+These Terms are governed by the laws of Serbia, excluding conflict-of-law rules.
+
+Disputes fall under the jurisdiction of the courts of Belgrade, Serbia, unless mandatory law requires otherwise.
 
 Nothing in this section limits consumer rights that cannot be waived under applicable law.
 
-## 21. Contact
+\---
+
+## 21\. Contact
 
 For questions about these Terms, contact:
 
-**support@nexavend.store**
+**Operator:** Kirill Krupin  
+**Country:** Serbia  
+**Email:** support@nexavend.store
