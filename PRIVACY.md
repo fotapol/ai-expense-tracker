@@ -2,13 +2,9 @@
 
 **Last updated:** 2026-04-28
 
-This Privacy Policy explains how **Kirill Krupin** (“we”, “us”, or “our”) collects, uses, stores, and shares information when you use the **AI Expense Tracker** mobile application and related services (the “App” or “Services”).
+This Privacy Policy explains how **AI Expense Tracker** collects, uses, stores, and shares information when you use the mobile application and related services (the “App” or “Services”).
 
-The Services are operated by:
-
-**Operator:** Kirill Krupin  
-**Country:** Serbia  
-**Contact email:** support@nexavend.store
+AI Expense Tracker is operated by **Kirill Krupin** from Serbia. For privacy questions or requests, contact us at support@nexavend.store.
 
 We act as the data controller for personal data processed through the Services.
 
@@ -270,6 +266,8 @@ Data may be processed outside your country. These countries may have data protec
 
 Where required by applicable law, we use appropriate safeguards for international transfers of personal data.
 
+AI processing providers such as Google Gemini may process data on infrastructure located in multiple countries.
+
 \---
 
 ## 15\. Changes to This Privacy Policy
@@ -284,8 +282,4 @@ The updated version will be effective when posted, unless stated otherwise.
 
 ## 16\. Contact
 
-For privacy questions, data requests, or support, contact:
-
-**Operator:** Kirill Krupin  
-**Country:** Serbia  
-**Email:** support@nexavend.store
+For questions about this Privacy Policy or your personal data, contact us at support@nexavend.store.

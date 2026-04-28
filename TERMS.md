@@ -302,8 +302,4 @@ Nothing in this section limits consumer rights that cannot be waived under appli
 
 ## 21\. Contact
 
-For questions about these Terms, contact:
-
-**Operator:** Kirill Krupin  
-**Country:** Serbia  
-**Email:** support@nexavend.store
+For questions about these Terms, contact support@nexavend.store.
