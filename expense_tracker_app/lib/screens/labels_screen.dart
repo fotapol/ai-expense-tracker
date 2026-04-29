@@ -2,6 +2,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 
 import '../core/api_client.dart';
+import '../core/app_color_semantics.dart';
 import '../core/redesign_system.dart';
 import '../l10n/app_localizations.dart';
 
@@ -13,19 +14,6 @@ class LabelsScreen extends StatefulWidget {
 }
 
 class _LabelsScreenState extends State<LabelsScreen> {
-  static const List<String> _colorOptions = [
-    '#4D7BF3',
-    '#A347F5',
-    '#EC2D91',
-    '#FF3838',
-    '#FF6B00',
-    '#F2B900',
-    '#17C653',
-    '#19BFB4',
-    '#24B7D9',
-    '#6F5CF4',
-  ];
-
   final TextEditingController _nameController = TextEditingController();
   final FocusNode _nameFocusNode = FocusNode();
   final GlobalKey _createFormKey = GlobalKey();
@@ -35,7 +23,7 @@ class _LabelsScreenState extends State<LabelsScreen> {
   bool _showCreateForm = false;
   List<dynamic> _labels = [];
   String? _error;
-  String _selectedColorHex = _colorOptions.first;
+  String _selectedColorHex = AppSemanticColors.defaultLabelColorHex;
 
   @override
   void initState() {
@@ -78,7 +66,7 @@ class _LabelsScreenState extends State<LabelsScreen> {
     if (!_showCreateForm) {
       setState(() {
         _showCreateForm = true;
-        _selectedColorHex = _colorOptions.first;
+        _selectedColorHex = AppSemanticColors.defaultLabelColorHex;
       });
     }
 
@@ -100,7 +88,7 @@ class _LabelsScreenState extends State<LabelsScreen> {
       _showCreateForm = false;
       _isSubmitting = false;
       _nameController.clear();
-      _selectedColorHex = _colorOptions.first;
+      _selectedColorHex = AppSemanticColors.defaultLabelColorHex;
     });
   }
 
@@ -108,7 +96,7 @@ class _LabelsScreenState extends State<LabelsScreen> {
     final name = _nameController.text.trim();
     if (name.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Please enter a label name.')),
+        SnackBar(content: Text(context.tr('please_enter_a_label_name'))),
       );
       return;
     }
@@ -131,7 +119,7 @@ class _LabelsScreenState extends State<LabelsScreen> {
         _showCreateForm = false;
         _isSubmitting = false;
         _nameController.clear();
-        _selectedColorHex = _colorOptions.first;
+        _selectedColorHex = AppSemanticColors.defaultLabelColorHex;
         _error = null;
       });
 
@@ -208,23 +196,20 @@ class _LabelsScreenState extends State<LabelsScreen> {
     }
   }
 
-  Color _colorFromHex(String? rawHex, int fallbackIndex) {
-    final normalized = (rawHex ?? '').trim();
-    final source = normalized.isEmpty
-        ? _colorOptions[fallbackIndex % _colorOptions.length]
-        : normalized;
-    final hex = source.replaceFirst('#', '');
-    final expanded = hex.length == 6 ? 'FF$hex' : hex;
-    final value = int.tryParse(expanded, radix: 16);
-    if (value == null) {
-      return _colorFromHex(null, fallbackIndex);
-    }
-    return Color(value);
-  }
-
   String _countLabel() {
     final count = _labels.length;
-    return '$count custom label${count == 1 ? '' : 's'}';
+    return context.tr(
+      'filters_labels_count',
+      params: {'count': count.toString()},
+    );
+  }
+
+  List<AppColorPickerOption> _labelColorOptions() {
+    return AppSemanticColors.labelColorOptions(
+      accentId: ShellStyles.accentId(context),
+      brightness: Theme.of(context).brightness,
+      labelColorMode: ShellStyles.labelColorMode(context),
+    );
   }
 
   @override
@@ -320,7 +305,10 @@ class _LabelsScreenState extends State<LabelsScreen> {
                               key: ValueKey('create-form-hidden'),
                             ),
                     ),
-                    ShellStyles.sectionLabel(context, 'Your Labels'),
+                    ShellStyles.sectionLabel(
+                      context,
+                      context.tr('labels_title'),
+                    ),
                     const SizedBox(height: 12),
                     _buildLabelsList(),
                   ],
@@ -347,7 +335,7 @@ class _LabelsScreenState extends State<LabelsScreen> {
               const SizedBox(width: 10),
               Expanded(
                 child: Text(
-                  'Could not load labels',
+                  context.tr('common_error'),
                   style: TextStyle(
                     color: ShellStyles.textPrimary(context),
                     fontSize: 15,
@@ -389,7 +377,7 @@ class _LabelsScreenState extends State<LabelsScreen> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            'Create Custom Label',
+            context.tr('labels_add_label'),
             style: TextStyle(
               color: ShellStyles.textPrimary(context),
               fontSize: 16,
@@ -397,7 +385,7 @@ class _LabelsScreenState extends State<LabelsScreen> {
             ),
           ),
           const SizedBox(height: 16),
-          _fieldLabel('Label Name'),
+          _fieldLabel(context.tr('labels_name_label')),
           const SizedBox(height: 8),
           TextField(
             controller: _nameController,
@@ -405,20 +393,20 @@ class _LabelsScreenState extends State<LabelsScreen> {
             textCapitalization: TextCapitalization.words,
             decoration: _inputDecoration(
               context,
-              hintText: 'e.g., Business Expense',
+              hintText: context.tr('labels_name_hint'),
             ),
           ),
           const SizedBox(height: 16),
-          _fieldLabel('Color'),
+          _fieldLabel(context.tr('settings_accent_color')),
           const SizedBox(height: 10),
           Wrap(
             spacing: 12,
             runSpacing: 12,
-            children: _colorOptions.map((hex) {
-              final selected = hex == _selectedColorHex;
-              final color = _colorFromHex(hex, 0);
+            children: _labelColorOptions().map((option) {
+              final selected = option.storedHex == _selectedColorHex;
               return GestureDetector(
-                onTap: () => setState(() => _selectedColorHex = hex),
+                onTap: () =>
+                    setState(() => _selectedColorHex = option.storedHex),
                 child: AnimatedContainer(
                   duration: const Duration(milliseconds: 180),
                   width: 44,
@@ -449,7 +437,7 @@ class _LabelsScreenState extends State<LabelsScreen> {
                   ),
                   child: DecoratedBox(
                     decoration: BoxDecoration(
-                      color: color,
+                      color: option.previewColor,
                       shape: BoxShape.circle,
                     ),
                   ),
@@ -484,7 +472,7 @@ class _LabelsScreenState extends State<LabelsScreen> {
                             color: Theme.of(context).colorScheme.onPrimary,
                           ),
                         )
-                      : const Text('Create Label'),
+                      : Text(context.tr('create_label')),
                 ),
               ),
               const SizedBox(width: 10),

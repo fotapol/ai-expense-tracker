@@ -7,93 +7,93 @@ import 'settings_detail_scaffold.dart';
 class TermsOfServiceScreen extends StatelessWidget {
   const TermsOfServiceScreen({super.key});
 
-  static const List<_TermsSection> _sections = [
+  static List<_TermsSection> _sections(BuildContext context) => [
     _TermsSection(
-      title: '1. Acceptance of Terms',
+      title: context.tr('1_acceptance_of_terms'),
       paragraphs: [
-        'By creating an account and using AI Expense Tracker, you agree to comply with and be bound by these Terms of Service. If you do not agree to these terms, please do not use our service.',
+        context.tr('terms_acceptance_body'),
       ],
     ),
     _TermsSection(
-      title: '2. Description of Service',
-      paragraphs: ['AI Expense Tracker provides:'],
+      title: context.tr('2_description_of_service'),
+      paragraphs: [context.tr('terms_service_desc_body')],
       bullets: [
-        'Receipt scanning and optical character recognition (OCR)',
-        'Expense tracking and categorization',
-        'AI-powered financial insights and analytics',
-        'Budget management and spending reports',
-        'Household expense sharing (Family plan only)',
+        context.tr('terms_service_bullet_1'),
+        context.tr('terms_service_bullet_2'),
+        context.tr('terms_service_bullet_3'),
+        context.tr('terms_service_bullet_4'),
+        context.tr('terms_service_bullet_5'),
       ],
     ),
     _TermsSection(
-      title: '3. User Accounts',
-      paragraphs: ['You are responsible for:'],
+      title: context.tr('3_user_accounts'),
+      paragraphs: [context.tr('terms_accounts_body')],
       bullets: [
-        'Maintaining the confidentiality of your account credentials',
-        'All activities that occur under your account',
-        'Notifying us immediately of any unauthorized access',
-        'Providing accurate and complete information',
-        'Keeping your account information up to date',
+        context.tr('terms_accounts_bullet_1'),
+        context.tr('terms_accounts_bullet_2'),
+        context.tr('terms_accounts_bullet_3'),
+        context.tr('terms_accounts_bullet_4'),
+        context.tr('terms_accounts_bullet_5'),
       ],
     ),
     _TermsSection(
-      title: '4. Subscription and Billing',
+      title: context.tr('4_subscription_and_billing'),
       paragraphs: [
-        'Paid subscriptions are billed in advance on a monthly or yearly basis. You can cancel your subscription at any time, and you will continue to have access until the end of your billing period. No refunds are provided for partial periods.',
+        context.tr('terms_billing_body'),
       ],
     ),
     _TermsSection(
-      title: '5. Prohibited Uses',
-      paragraphs: ['You agree not to:'],
+      title: context.tr('5_prohibited_uses'),
+      paragraphs: [context.tr('terms_prohibited_body')],
       bullets: [
-        'Use the service for illegal, fraudulent, or misleading activity',
-        'Reverse engineer or attempt to copy protected product features',
-        'Interfere with app stability, security, or availability',
-        'Upload harmful, abusive, or infringing content',
-        'Harass or abuse other users or our support team',
-        'Use automated systems to access the service at scale',
+        context.tr('terms_prohibited_bullet_1'),
+        context.tr('terms_prohibited_bullet_2'),
+        context.tr('terms_prohibited_bullet_3'),
+        context.tr('terms_prohibited_bullet_4'),
+        context.tr('terms_prohibited_bullet_5'),
+        context.tr('terms_prohibited_bullet_6'),
       ],
     ),
     _TermsSection(
-      title: '6. Intellectual Property',
+      title: context.tr('6_intellectual_property'),
       paragraphs: [
-        'All content, features, and functionality of AI Expense Tracker are owned by us and are protected by copyright, trademark, and other intellectual property laws. You retain ownership of your data and receipts.',
+        context.tr('terms_ip_body'),
       ],
     ),
     _TermsSection(
-      title: '7. Service Availability',
+      title: context.tr('7_service_availability'),
       paragraphs: [
-        'We strive to provide reliable service but do not guarantee uninterrupted access. We may modify, suspend, or discontinue any part of the service at any time with reasonable notice.',
+        context.tr('terms_availability_body'),
       ],
     ),
     _TermsSection(
-      title: '8. Limitation of Liability',
+      title: context.tr('8_limitation_of_liability'),
       paragraphs: [
-        'We are not liable for any indirect, incidental, special, or consequential damages arising from your use of the service. Our total liability shall not exceed the amount you paid in the past 12 months.',
+        context.tr('terms_liability_body'),
       ],
     ),
     _TermsSection(
-      title: '9. Termination',
+      title: context.tr('9_termination'),
       paragraphs: [
-        'We reserve the right to terminate or suspend your account if you violate these terms. Upon termination, you may request a copy of your data within 30 days.',
+        context.tr('terms_termination_body'),
       ],
     ),
     _TermsSection(
-      title: '10. Changes to Terms',
+      title: context.tr('10_changes_to_terms'),
       paragraphs: [
-        'We may modify these terms at any time. Continued use of the service after changes constitutes acceptance of the new terms. We will notify you of significant changes.',
+        context.tr('terms_changes_body'),
       ],
     ),
     _TermsSection(
-      title: '11. Governing Law',
+      title: context.tr('11_governing_law'),
       paragraphs: [
-        'These terms are governed by the laws of the United States. Any disputes shall be resolved in the courts of San Francisco, California.',
+        context.tr('terms_law_body'),
       ],
     ),
     _TermsSection(
-      title: '12. Contact',
+      title: context.tr('12_contact'),
       paragraphs: [
-        'For questions about these Terms of Service, contact us at:',
+        context.tr('terms_contact_body'),
         'legal@expensetracker.com',
       ],
     ),
@@ -156,7 +156,7 @@ class TermsOfServiceScreen extends StatelessWidget {
                           ),
                           SizedBox(height: 6),
                           Text(
-                            'Please read these terms carefully before using our service. By using AI Expense Tracker, you agree to be bound by these terms.',
+                            context.tr('terms_intro'),
                             style: TextStyle(
                               color: ShellStyles.heroTextSecondary(context),
                               fontSize: 12.5,
@@ -175,12 +175,12 @@ class TermsOfServiceScreen extends StatelessWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    for (var index = 0; index < _sections.length; index++) ...[
+                    for (var index = 0; index < _sections(context).length; index++) ...[
                       Padding(
                         padding: const EdgeInsets.all(16),
-                        child: _TermsBlock(section: _sections[index]),
+                        child: _TermsBlock(section: _sections(context)[index]),
                       ),
-                      if (index != _sections.length - 1)
+                      if (index != _sections(context).length - 1)
                         Divider(height: 1, color: ShellStyles.border(context)),
                     ],
                   ],

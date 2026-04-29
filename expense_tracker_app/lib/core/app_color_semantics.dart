@@ -47,6 +47,17 @@ class SemanticColorTone {
 }
 
 @immutable
+class AppColorPickerOption {
+  const AppColorPickerOption({
+    required this.storedHex,
+    required this.previewColor,
+  });
+
+  final String storedHex;
+  final Color previewColor;
+}
+
+@immutable
 class HeroAccentTone {
   const HeroAccentTone({
     required this.accent,
@@ -84,12 +95,11 @@ class AppSemanticThemeExtension
   final int mixHomeAccentIndex;
   final Brightness brightness;
 
-  SemanticColorTone get accentTone =>
-      AppSemanticColors.primaryTone(
-        accentId,
-        brightness,
-        mixHomeAccentIndex: mixHomeAccentIndex,
-      );
+  SemanticColorTone get accentTone => AppSemanticColors.primaryTone(
+    accentId,
+    brightness,
+    mixHomeAccentIndex: mixHomeAccentIndex,
+  );
 
   List<Color> get trendPalette {
     final palette = AppSemanticColors.trendPalette(accentId, brightness);
@@ -113,13 +123,16 @@ class AppSemanticThemeExtension
     String? code,
     String? parentCode,
     String? name,
+    String? rawHex,
   }) {
     return AppSemanticColors.categoryTone(
       accentId: accentId,
       brightness: brightness,
+      labelColorMode: labelColorMode,
       code: code,
       parentCode: parentCode,
       name: name,
+      rawHex: rawHex,
     );
   }
 
@@ -163,6 +176,22 @@ class AppSemanticThemeExtension
 
 class AppSemanticColors {
   AppSemanticColors._();
+
+  static const String defaultLabelColorHex = '#4D7BF3';
+  static const String defaultCategoryColorHex = '#E27A3F';
+
+  static const List<Color> _rawLabelPickerPalette = <Color>[
+    Color(0xFF4D7BF3),
+    Color(0xFFA347F5),
+    Color(0xFFEC2D91),
+    Color(0xFFFF3838),
+    Color(0xFFFF6B00),
+    Color(0xFFF2B900),
+    Color(0xFF17C653),
+    Color(0xFF19BFB4),
+    Color(0xFF24B7D9),
+    Color(0xFF6F5CF4),
+  ];
 
   static const List<Color> _mixCategoryPaletteLight = <Color>[
     Color(0xFFE27A3F),
@@ -557,15 +586,63 @@ class AppSemanticColors {
     );
   }
 
+  static List<AppColorPickerOption> labelColorOptions({
+    required String accentId,
+    required Brightness brightness,
+    required AppLabelColorMode labelColorMode,
+  }) {
+    final previewPalette = labelColorMode == AppLabelColorMode.raw
+        ? _rawLabelPickerPalette
+        : _labelPalette(accentId, brightness);
+    return _colorOptionsFromPalettes(
+      storedPalette: _rawLabelPickerPalette,
+      previewPalette: previewPalette,
+    );
+  }
+
+  static List<AppColorPickerOption> categoryColorOptions({
+    required String accentId,
+    required Brightness brightness,
+    required AppLabelColorMode labelColorMode,
+  }) {
+    final storedPalette = _mixCategoryPaletteLight;
+    final previewPalette = labelColorMode == AppLabelColorMode.raw
+        ? storedPalette
+        : _categoryPalette(accentId, brightness);
+    return _colorOptionsFromPalettes(
+      storedPalette: storedPalette,
+      previewPalette: previewPalette,
+    );
+  }
+
   static SemanticColorTone categoryTone({
     required String accentId,
     required Brightness brightness,
+    AppLabelColorMode labelColorMode = AppLabelColorMode.raw,
     String? code,
     String? parentCode,
     String? name,
+    String? rawHex,
   }) {
+    if (labelColorMode == AppLabelColorMode.raw) {
+      final rawColor = parseHexColor(rawHex);
+      if (rawColor != null) {
+        return toneFromColor(rawColor, brightness);
+      }
+
+      final rawPalette = _categoryPalette(appAccentMix, brightness);
+      final rawSlot = categorySlot(
+        code: code,
+        parentCode: parentCode,
+        name: name,
+      );
+      return toneFromColor(rawPalette[rawSlot], brightness);
+    }
+
     final palette = _categoryPalette(accentId, brightness);
-    final slot = categorySlot(code: code, parentCode: parentCode, name: name);
+    final rawSlot = _paletteSlotForRawHex(rawHex, _mixCategoryPaletteLight);
+    final slot =
+        rawSlot ?? categorySlot(code: code, parentCode: parentCode, name: name);
     return toneFromColor(palette[slot], brightness);
   }
 
@@ -585,6 +662,11 @@ class AppSemanticColors {
     }
 
     final palette = _labelPalette(accentId, brightness);
+    final rawSlot = _paletteSlotForRawHex(rawHex, _rawLabelPickerPalette);
+    if (rawSlot != null) {
+      return toneFromColor(palette[rawSlot], brightness);
+    }
+
     final seed = '${labelId ?? ''}|${name ?? ''}';
     final slot = stableIndex(seed, palette.length);
     return toneFromColor(palette[slot], brightness);
@@ -620,6 +702,18 @@ class AppSemanticColors {
     final value = int.tryParse(expanded, radix: 16);
     if (value == null) return null;
     return Color(value);
+  }
+
+  static String colorToHex(Color color) {
+    int channel(double value) => (value * 255.0).round().clamp(0, 255).toInt();
+    final red = channel(color.r);
+    final green = channel(color.g);
+    final blue = channel(color.b);
+    final hex =
+        '${red.toRadixString(16).padLeft(2, '0')}'
+        '${green.toRadixString(16).padLeft(2, '0')}'
+        '${blue.toRadixString(16).padLeft(2, '0')}';
+    return '#${hex.toUpperCase()}';
   }
 
   static SemanticColorTone toneFromColor(Color base, Brightness brightness) {
@@ -688,6 +782,33 @@ class AppSemanticColors {
             ? _mixLabelPaletteDark
             : _mixLabelPaletteLight;
     }
+  }
+
+  static List<AppColorPickerOption> _colorOptionsFromPalettes({
+    required List<Color> storedPalette,
+    required List<Color> previewPalette,
+  }) {
+    final length = math.min(storedPalette.length, previewPalette.length);
+    return List<AppColorPickerOption>.generate(
+      length,
+      (index) => AppColorPickerOption(
+        storedHex: colorToHex(storedPalette[index]),
+        previewColor: previewPalette[index],
+      ),
+      growable: false,
+    );
+  }
+
+  static int? _paletteSlotForRawHex(String? rawHex, List<Color> palette) {
+    final rawColor = parseHexColor(rawHex);
+    if (rawColor == null) return null;
+    final normalized = colorToHex(rawColor);
+    for (var index = 0; index < palette.length; index++) {
+      if (colorToHex(palette[index]) == normalized) {
+        return index;
+      }
+    }
+    return null;
   }
 
   static T _pickIndexed<T>(List<T> items, int index) {

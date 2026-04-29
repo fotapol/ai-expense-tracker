@@ -113,11 +113,14 @@ class _FeatureRequestScreenState extends State<FeatureRequestScreen> {
 
     if (normalizedTitle.length < 3 || normalizedTitle.length > 120) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(context.tr('feature_request_title_length_error'))),
+        SnackBar(
+          content: Text(context.tr('feature_request_title_length_error')),
+        ),
       );
       return;
     }
-    if (normalizedDescription.length < 10 || normalizedDescription.length > 2000) {
+    if (normalizedDescription.length < 10 ||
+        normalizedDescription.length > 2000) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(context.tr('feature_request_description_length_error')),
@@ -211,7 +214,8 @@ class _FeatureRequestScreenState extends State<FeatureRequestScreen> {
       if (!mounted) return;
       _applyItemUpdate(
         optimistic.copyWith(
-          voteCount: int.tryParse(payload['vote_count']?.toString() ?? '') ??
+          voteCount:
+              int.tryParse(payload['vote_count']?.toString() ?? '') ??
               optimistic.voteCount,
           viewerHasVoted: payload['viewer_has_voted'] as bool? ?? targetVoted,
         ),
@@ -242,7 +246,24 @@ class _FeatureRequestScreenState extends State<FeatureRequestScreen> {
   }
 
   String _categoryLabel(String category) {
-    return context.tr('feature_request_category_$category');
+    return switch (category) {
+      'analytics_reports' => context.tr(
+        'feature_request_category_analytics_reports',
+      ),
+      'receipts_scanning' => context.tr(
+        'feature_request_category_receipts_scanning',
+      ),
+      'budgets_planning' => context.tr(
+        'feature_request_category_budgets_planning',
+      ),
+      'household_sharing' => context.tr(
+        'feature_request_category_household_sharing',
+      ),
+      'design_accessibility' => context.tr(
+        'feature_request_category_design_accessibility',
+      ),
+      _ => context.tr('feature_request_category_other'),
+    };
   }
 
   Color _statusColor(_FeatureRequestItem item) {
@@ -370,8 +391,6 @@ class _FeatureRequestScreenState extends State<FeatureRequestScreen> {
             child: FilledButton(
               onPressed: _isSubmitting ? null : _submitRequest,
               style: FilledButton.styleFrom(
-                backgroundColor: ShellStyles.textPrimary(context),
-                foregroundColor: ShellStyles.surface(context),
                 minimumSize: const Size.fromHeight(46),
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(14),
@@ -394,10 +413,7 @@ class _FeatureRequestScreenState extends State<FeatureRequestScreen> {
     );
   }
 
-  Widget _buildEmptyCard({
-    required String title,
-    required String subtitle,
-  }) {
+  Widget _buildEmptyCard({required String title, required String subtitle}) {
     return Container(
       padding: const EdgeInsets.all(18),
       decoration: ShellStyles.cardDecoration(context, radius: 18),
@@ -476,10 +492,6 @@ class _FeatureRequestScreenState extends State<FeatureRequestScreen> {
           const SizedBox(height: 14),
           FilledButton(
             onPressed: _loadData,
-            style: FilledButton.styleFrom(
-              backgroundColor: ShellStyles.textPrimary(context),
-              foregroundColor: ShellStyles.surface(context),
-            ),
             child: Text(context.tr('common_retry')),
           ),
         ],
@@ -695,8 +707,6 @@ class _FeatureRequestScreenState extends State<FeatureRequestScreen> {
             child: FilledButton(
               onPressed: _toggleComposer,
               style: FilledButton.styleFrom(
-                backgroundColor: ShellStyles.textPrimary(context),
-                foregroundColor: ShellStyles.surface(context),
                 minimumSize: const Size(0, 34),
                 padding: const EdgeInsets.symmetric(horizontal: 14),
               ),

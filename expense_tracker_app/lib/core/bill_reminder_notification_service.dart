@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:io' show Platform;
 
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/foundation.dart';
@@ -10,6 +11,7 @@ import 'package:timezone/timezone.dart' as tz;
 import 'api_client.dart';
 import 'notification_preferences.dart';
 import 'planning_logic.dart';
+import '../l10n/app_localizations.dart';
 
 class BillReminderNotificationService {
   BillReminderNotificationService._();
@@ -228,7 +230,7 @@ class BillReminderNotificationService {
     if (dueSoonAt.isAfter(now)) {
       await _scheduleNotification(
         id: _notificationId(reminder.id, 'soon'),
-        title: 'Bill due soon',
+        title: AppLocalizations.lookup('bill_due_soon', languageCode: _deviceLang()),
         body:
             '${reminder.name} is due on ${_shortDate(dueDate)}. '
             'Amount: ${reminder.currency} ${reminder.amount.toStringAsFixed(2)}',
@@ -241,7 +243,7 @@ class BillReminderNotificationService {
     if (dueAt.isAfter(now)) {
       await _scheduleNotification(
         id: _notificationId(reminder.id, 'due'),
-        title: 'Bill due today',
+        title: AppLocalizations.lookup('bill_due_today', languageCode: _deviceLang()),
         body:
             '${reminder.name} is due today. '
             'Amount: ${reminder.currency} ${reminder.amount.toStringAsFixed(2)}',
@@ -278,6 +280,16 @@ class BillReminderNotificationService {
       androidScheduleMode: AndroidScheduleMode.inexactAllowWhileIdle,
       payload: payload,
     );
+  }
+
+  /// Returns a best-effort language code for the current device locale.
+  static String _deviceLang() {
+    try {
+      final locale = Platform.localeName; // e.g. 'en_US' or 'de_DE'
+      return locale.split(RegExp(r'[_\-]')).first.toLowerCase();
+    } catch (_) {
+      return 'en';
+    }
   }
 
   int _notificationId(String reminderId, String kind) {

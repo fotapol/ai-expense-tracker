@@ -59,6 +59,113 @@ void main() {
       expect(tone.base, const Color(0xFF24B7D9));
     });
 
+    test('uses raw category color when available', () {
+      final tone = AppSemanticColors.categoryTone(
+        accentId: appAccentPurple,
+        brightness: Brightness.light,
+        labelColorMode: AppLabelColorMode.raw,
+        code: 'FOOD',
+        rawHex: '#24B7D9',
+      );
+
+      expect(tone.base, const Color(0xFF24B7D9));
+    });
+
+    test('label picker stores raw slots but previews accent-aware colors', () {
+      final rawOptions = AppSemanticColors.labelColorOptions(
+        accentId: appAccentPurple,
+        brightness: Brightness.light,
+        labelColorMode: AppLabelColorMode.raw,
+      );
+      final themedOptions = AppSemanticColors.labelColorOptions(
+        accentId: appAccentPurple,
+        brightness: Brightness.light,
+        labelColorMode: AppLabelColorMode.themed,
+      );
+
+      expect(rawOptions.first.storedHex, '#4D7BF3');
+      expect(rawOptions.first.previewColor, const Color(0xFF4D7BF3));
+      expect(themedOptions.first.storedHex, '#4D7BF3');
+      expect(themedOptions.first.previewColor, const Color(0xFF7A4DCC));
+    });
+
+    test(
+      'category picker stores raw slots but previews accent-aware colors',
+      () {
+        final rawOptions = AppSemanticColors.categoryColorOptions(
+          accentId: appAccentPurple,
+          brightness: Brightness.light,
+          labelColorMode: AppLabelColorMode.raw,
+        );
+        final themedOptions = AppSemanticColors.categoryColorOptions(
+          accentId: appAccentPurple,
+          brightness: Brightness.light,
+          labelColorMode: AppLabelColorMode.themed,
+        );
+
+        expect(rawOptions.first.storedHex, '#E27A3F');
+        expect(rawOptions.first.previewColor, const Color(0xFFE27A3F));
+        expect(themedOptions.first.storedHex, '#E27A3F');
+        expect(themedOptions.first.previewColor, const Color(0xFF8259D1));
+      },
+    );
+
+    test('accent-aware label rendering uses saved color slot', () {
+      final tone = AppSemanticColors.labelTone(
+        accentId: appAccentPurple,
+        brightness: Brightness.light,
+        labelColorMode: AppLabelColorMode.themed,
+        labelId: 'label-2',
+        name: 'Travel',
+        rawHex: '#24B7D9',
+      );
+
+      expect(tone.base, const Color(0xFF6F53A9));
+    });
+
+    test('accent-aware category rendering uses saved color slot', () {
+      final tone = AppSemanticColors.categoryTone(
+        accentId: appAccentPurple,
+        brightness: Brightness.light,
+        labelColorMode: AppLabelColorMode.themed,
+        code: 'FOOD',
+        rawHex: '#5979B6',
+      );
+
+      expect(tone.base, const Color(0xFF6C58C6));
+    });
+
+    test('remaps category colors when accent-aware mode is selected', () {
+      final raw = AppSemanticColors.categoryTone(
+        accentId: appAccentMix,
+        brightness: Brightness.light,
+        labelColorMode: AppLabelColorMode.raw,
+        code: 'FOOD',
+        rawHex: '#24B7D9',
+      );
+      final themed = AppSemanticColors.categoryTone(
+        accentId: appAccentMix,
+        brightness: Brightness.light,
+        labelColorMode: AppLabelColorMode.themed,
+        code: 'FOOD',
+        rawHex: '#24B7D9',
+      );
+
+      expect(themed.base, isNot(raw.base));
+      expect(themed.base, const Color(0xFFE27A3F));
+    });
+
+    test('keeps raw category fallback independent from accent color', () {
+      final tone = AppSemanticColors.categoryTone(
+        accentId: appAccentPurple,
+        brightness: Brightness.light,
+        labelColorMode: AppLabelColorMode.raw,
+        code: 'FOOD',
+      );
+
+      expect(tone.base, const Color(0xFFE27A3F));
+    });
+
     test('falls back to themed mapping when raw label color is invalid', () {
       final rawFallback = AppSemanticColors.labelTone(
         accentId: appAccentMix,
@@ -83,6 +190,7 @@ void main() {
       final tone = AppSemanticColors.categoryTone(
         accentId: appAccentNeutral,
         brightness: Brightness.light,
+        labelColorMode: AppLabelColorMode.themed,
         code: 'HEALTH',
       );
 
@@ -94,6 +202,7 @@ void main() {
       final tone = AppSemanticColors.categoryTone(
         accentId: appAccentPurple,
         brightness: Brightness.light,
+        labelColorMode: AppLabelColorMode.themed,
         code: 'HEALTH',
       );
 

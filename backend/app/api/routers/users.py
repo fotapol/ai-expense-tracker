@@ -1,6 +1,8 @@
 """User-facing API routes (authentication-protected)."""
 
-from fastapi import APIRouter, Depends, Request
+import logging
+
+from fastapi import APIRouter, Depends, Request, Response, status
 from sqlmodel import Session
 
 from app.auth.deps import get_current_user
@@ -8,11 +10,13 @@ from app.cache.user_cache import cache_user, invalidate_user_cache
 from app.core.db import get_session
 from app.core.rate_limiter import limiter
 from app.core.redis import get_redis
-from app.models.users.user import User
 from app.models.users.profile import Profile
-from app.schemas.users import UserRead, UserUpdate, UserWithProfileRead
+from app.models.users.user import User
+from app.schemas.users import UserUpdate, UserWithProfileRead
+from app.services.account_deletion import delete_account_for_user
 
 router = APIRouter(prefix="/v1", tags=["users"])
+logger = logging.getLogger(__name__)
 
 
 @router.get("/me", response_model=UserWithProfileRead)
@@ -64,3 +68,27 @@ async def patch_me(
     await invalidate_user_cache(redis, current_user.auth_subject)
     await cache_user(redis, current_user)
     return current_user
+
+
+@router.delete("/me", status_code=status.HTTP_204_NO_CONTENT)
+@limiter.limit("5/hour")
+async def delete_me(
+    request: Request,
+    session: Session = Depends(get_session),  # noqa: B008
+    current_user: User = Depends(get_current_user),  # noqa: B008
+):
+    """Hard-delete the authenticated user's account and local app data."""
+
+    current_user = session.merge(current_user)
+    auth_subject = current_user.auth_subject
+    result = delete_account_for_user(session=session, user=current_user)
+
+    redis = get_redis()
+    await invalidate_user_cache(redis, auth_subject)
+    if result.storage_delete_failures:
+        logger.warning(
+            "Account deletion completed with %d receipt storage cleanup failures for user_id=%s.",
+            len(result.storage_delete_failures),
+            result.user_id,
+        )
+    return Response(status_code=status.HTTP_204_NO_CONTENT)

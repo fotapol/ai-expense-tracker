@@ -399,9 +399,13 @@ class ShellStyles {
     String? code,
     String? parentCode,
     String? name,
-  }) => semanticTheme(
-    context,
-  ).categoryTone(code: code, parentCode: parentCode, name: name);
+    String? rawHex,
+  }) => semanticTheme(context).categoryTone(
+    code: code,
+    parentCode: parentCode,
+    name: name,
+    rawHex: rawHex,
+  );
 
   static SemanticColorTone labelTone(
     BuildContext context, {
@@ -512,15 +516,17 @@ class ShellStyles {
     Color? highlight,
     HeroAccentTone? tone,
   }) {
-    if (tone != null) {
+    final effectiveTone =
+        tone ?? (highlight == null ? homeHeroTone(context) : null);
+    if (effectiveTone != null) {
       return BoxDecoration(
         gradient: LinearGradient(
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
-          colors: tone.gradientColors,
+          colors: effectiveTone.gradientColors,
         ),
         borderRadius: BorderRadius.circular(radius),
-        border: Border.all(color: tone.border.withAlpha(184)),
+        border: Border.all(color: effectiveTone.border.withAlpha(184)),
         boxShadow: <BoxShadow>[
           BoxShadow(
             color: Colors.black.withAlpha(isDark(context) ? 24 : 18),

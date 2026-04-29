@@ -150,8 +150,7 @@ class _AnalyticsTabState extends State<AnalyticsTab>
         setState(() {
           _error = friendlyLaunchErrorMessage(
             error,
-            fallback:
-                'Analytics could not refresh right now. Please try again.',
+            fallback: context.tr('analytics_error_message'),
           );
           _isLoading = false;
         });
@@ -190,6 +189,7 @@ class _AnalyticsTabState extends State<AnalyticsTab>
       code: category['code']?.toString(),
       parentCode: category['parent_category_code']?.toString(),
       name: category['name']?.toString(),
+      rawHex: category['color']?.toString(),
     ).base;
   }
 
@@ -212,6 +212,7 @@ class _AnalyticsTabState extends State<AnalyticsTab>
           categoryId: categoryId,
           categoryName: _breakdownName(category),
           categoryCode: category['code']?.toString() ?? '',
+          categoryColor: category['color']?.toString(),
           fromDate: PeriodFilter.getStartDate(widget.filters.period),
           selectedCategoryIds: widget.filters.categoryIds,
           selectedSubcategoryIds: widget.filters.subcategoryIds,
@@ -282,9 +283,8 @@ class _AnalyticsTabState extends State<AnalyticsTab>
           if (isEmptyAnalytics)
             AnalyticsEmptyCard(
               icon: Icons.pie_chart_outline,
-              title: 'No category insights yet',
-              message:
-                  'Scan receipts to see your spending share by category and drill into the biggest areas.',
+              title: context.tr('no_category_insights_yet'),
+              message: context.tr('analytics_empty_categories_message'),
             )
           else ...[
             _buildDonutCard(
@@ -361,6 +361,7 @@ class _AnalyticsTabState extends State<AnalyticsTab>
               code: category['code']?.toString(),
               parentCode: category['parent_category_code']?.toString(),
               name: category['name']?.toString(),
+              rawHex: category['color']?.toString(),
             );
             return PieChartSectionData(
               color: tone.base,
@@ -392,7 +393,7 @@ class _AnalyticsTabState extends State<AnalyticsTab>
             title: isSubcategoryMode
                 ? context.tr('analytics_expense_subcategories')
                 : context.tr('analytics_expense_categories'),
-            subtitle: 'The donut shows each group’s share of total spend.',
+            subtitle: context.tr('the_donut_shows_each_groups_share_of_tot'),
             trailing: _buildBreakdownToggle(),
           ),
           const SizedBox(height: 20),
@@ -599,11 +600,11 @@ class _AnalyticsTabState extends State<AnalyticsTab>
         children: [
           AnalyticsSectionHeader(
             title: isSubcategoryMode
-                ? 'Subcategory details'
-                : 'Category details',
+                ? context.tr('analytics_subcategory_details_title')
+                : context.tr('analytics_category_details_title'),
             subtitle: isSubcategoryMode
-                ? 'Open a subcategory to review the matching items.'
-                : 'Open a category to see the underlying subcategories.',
+                ? context.tr('analytics_subcategory_details_subtitle')
+                : context.tr('analytics_category_details_subtitle'),
           ),
           const SizedBox(height: 14),
           if (categories.isEmpty)
@@ -648,6 +649,7 @@ class _AnalyticsTabState extends State<AnalyticsTab>
       code: code,
       parentCode: category['parent_category_code']?.toString(),
       name: category['name']?.toString(),
+      rawHex: category['color']?.toString(),
     );
     final icon = CategoryStyle.iconForCode(code);
 
@@ -763,8 +765,8 @@ class _AnalyticsTabState extends State<AnalyticsTab>
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           AnalyticsSectionHeader(
-            title: 'Discounts',
-            subtitle: 'Helpful savings spotted in the current results.',
+            title: context.tr('analytics_discounts_title'),
+            subtitle: context.tr('helpful_savings_spotted_in_the_current_r'),
             trailing: Container(
               width: 38,
               height: 38,

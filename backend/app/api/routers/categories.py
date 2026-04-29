@@ -15,6 +15,7 @@ from app.models.shared.enums import CategoryScope
 from app.models.taxonomy.category import Category
 from app.models.taxonomy.category_hidden import UserHiddenCategory
 from app.models.users.user import User
+from app.services.billing import CategoryUsage, resolve_category_usage
 from app.services.taxonomy import (
     collect_disable_target_ids,
     disable_category_ids_for_user,
@@ -60,6 +61,57 @@ def _to_response(cat: Category, *, is_disabled: bool = False) -> dict:
     }
 
 
+def _category_limit_detail(*, code: str, usage: CategoryUsage) -> dict:
+    is_subcategory = code == "free_plan_subcategory_limit_reached"
+    used = usage.subcategories_used if is_subcategory else usage.categories_used
+    limit = usage.subcategories_limit if is_subcategory else usage.categories_limit
+    return {
+        "code": code,
+        "message": (
+            f"Free plan allows up to {limit} active custom "
+            f"{'subcategories' if is_subcategory else 'categories'}."
+        ),
+        "used": used,
+        "limit": limit,
+        "remaining": 0,
+    }
+
+
+def _raise_category_limit_error(*, code: str, usage: CategoryUsage) -> None:
+    raise HTTPException(
+        status_code=status.HTTP_403_FORBIDDEN,
+        detail=_category_limit_detail(code=code, usage=usage),
+    )
+
+
+def _assert_can_activate_custom_category(
+    session: Session,
+    current_user: User,
+    *,
+    parent_id: uuid.UUID | None,
+) -> None:
+    usage = resolve_category_usage(session, current_user.id)
+    if usage.is_unlimited:
+        return
+
+    if parent_id is None:
+        if usage.categories_limit is not None and usage.categories_used >= usage.categories_limit:
+            _raise_category_limit_error(
+                code="free_plan_category_limit_reached",
+                usage=usage,
+            )
+        return
+
+    if (
+        usage.subcategories_limit is not None
+        and usage.subcategories_used >= usage.subcategories_limit
+    ):
+        _raise_category_limit_error(
+            code="free_plan_subcategory_limit_reached",
+            usage=usage,
+        )
+
+
 def _resolve_parent_or_400(
     session: Session,
     current_user: User,
@@ -89,6 +141,7 @@ def _resolve_parent_or_400(
 # ---------------------------------------------------------------------------
 # LIST
 # ---------------------------------------------------------------------------
+
 
 @router.get("/categories")
 @limiter.limit("60/minute")
@@ -124,9 +177,7 @@ async def list_categories(
 
     effective_categories = list(effective_by_code.values())
     if not include_disabled:
-        effective_categories = [
-            cat for cat in effective_categories if cat.id not in disabled_ids
-        ]
+        effective_categories = [cat for cat in effective_categories if cat.id not in disabled_ids]
     effective_categories.sort(
         key=lambda c: (
             c.id in disabled_ids,
@@ -134,15 +185,13 @@ async def list_categories(
             c.name.lower(),
         )
     )
-    return [
-        _to_response(cat, is_disabled=cat.id in disabled_ids)
-        for cat in effective_categories
-    ]
+    return [_to_response(cat, is_disabled=cat.id in disabled_ids) for cat in effective_categories]
 
 
 # ---------------------------------------------------------------------------
 # CREATE
 # ---------------------------------------------------------------------------
+
 
 @router.post("/categories", status_code=status.HTTP_201_CREATED)
 @limiter.limit("30/minute")
@@ -168,6 +217,11 @@ async def create_category(
     ).first()
     if existing:
         if not existing.is_active:
+            _assert_can_activate_custom_category(
+                session,
+                current_user,
+                parent_id=payload.parent_id,
+            )
             existing.name = payload.name.strip()
             existing.parent_id = payload.parent_id
             existing.icon = payload.icon
@@ -182,6 +236,12 @@ async def create_category(
             status_code=status.HTTP_409_CONFLICT,
             detail=f"You already have a category with code '{code}'.",
         )
+
+    _assert_can_activate_custom_category(
+        session,
+        current_user,
+        parent_id=payload.parent_id,
+    )
 
     cat = Category(
         scope=CategoryScope.ITEM,
@@ -204,6 +264,7 @@ async def create_category(
 # UPDATE
 # ---------------------------------------------------------------------------
 
+
 @router.put("/categories/{category_id}")
 @limiter.limit("30/minute")
 async def update_category(
@@ -223,14 +284,22 @@ async def update_category(
 
     if payload.name is not None:
         cat.name = payload.name.strip()
-    if payload.parent_id is not None:
-        if payload.parent_id == cat.id:
+    if "parent_id" in payload.model_fields_set:
+        next_parent_id = payload.parent_id
+        if next_parent_id == cat.id:
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
                 detail="A category cannot be its own parent.",
             )
-        _resolve_parent_or_400(session, current_user, payload.parent_id)
-        cat.parent_id = payload.parent_id
+        if next_parent_id is not None:
+            _resolve_parent_or_400(session, current_user, next_parent_id)
+        if cat.is_active and (cat.parent_id is None) != (next_parent_id is None):
+            _assert_can_activate_custom_category(
+                session,
+                current_user,
+                parent_id=next_parent_id,
+            )
+        cat.parent_id = next_parent_id
     if payload.icon is not None:
         cat.icon = payload.icon
     if payload.color is not None:
@@ -246,6 +315,7 @@ async def update_category(
 # ---------------------------------------------------------------------------
 # DELETE (soft)
 # ---------------------------------------------------------------------------
+
 
 @router.delete("/categories/{category_id}", status_code=status.HTTP_204_NO_CONTENT)
 @limiter.limit("30/minute")
@@ -294,6 +364,7 @@ async def delete_category(
 # ---------------------------------------------------------------------------
 # RESTORE (un-hide)
 # ---------------------------------------------------------------------------
+
 
 @router.post("/categories/{category_id}/restore", status_code=status.HTTP_200_OK)
 @limiter.limit("20/minute")

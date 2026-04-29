@@ -29,24 +29,26 @@ Example creation of a household-scoped entitlement::
 PREMIUM_RECEIPT_SCANS_UNLIMITED = "premium.receipt_scans.unlimited"
 PREMIUM_ANALYTICS_ADVANCED = "premium.analytics.advanced"
 PREMIUM_EXPORTS = "premium.exports"
+PREMIUM_CATEGORIES_UNLIMITED = "premium.categories.unlimited"
 PREMIUM_FAMILY_PLAN = "premium.family_plan"
 
 PERSONAL_PREMIUM_PRODUCT_ID = "personal_premium"
 FAMILY_PREMIUM_PRODUCT_ID = "family_premium"
 FREE_PLAN_RECEIPT_SCAN_LIMIT = 10
+FREE_PLAN_CUSTOM_CATEGORY_LIMIT = 3
+FREE_PLAN_CUSTOM_SUBCATEGORY_LIMIT = 10
 
 PERSONAL_PREMIUM_FEATURE_CODES = frozenset(
     {
         PREMIUM_RECEIPT_SCANS_UNLIMITED,
         PREMIUM_ANALYTICS_ADVANCED,
         PREMIUM_EXPORTS,
+        PREMIUM_CATEGORIES_UNLIMITED,
     }
 )
 
 # Family plan grants everything in personal plus household sharing access.
-FAMILY_PREMIUM_FEATURE_CODES = frozenset(
-    PERSONAL_PREMIUM_FEATURE_CODES | {PREMIUM_FAMILY_PLAN}
-)
+FAMILY_PREMIUM_FEATURE_CODES = frozenset(PERSONAL_PREMIUM_FEATURE_CODES | {PREMIUM_FAMILY_PLAN})
 
 
 def feature_codes_for_product(product_id: str) -> set[str]:

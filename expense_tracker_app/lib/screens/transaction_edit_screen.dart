@@ -2,13 +2,13 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:currency_picker/currency_picker.dart';
-import 'package:intl/intl.dart';
 import '../core/api_client.dart';
 import '../core/app_color_semantics.dart';
 import '../core/auth_session.dart';
 import '../core/item_translation_preferences.dart';
 import '../core/item_translation_service.dart';
 import '../core/launch_error_copy.dart';
+import '../core/localized_dates.dart';
 import '../core/money_formatter.dart';
 import '../core/redesign_system.dart';
 import '../core/session_invalidation.dart';
@@ -41,6 +41,7 @@ class _TransactionEditScreenState extends State<TransactionEditScreen> {
   Color get _focusColor => ShellStyles.focusRing(context);
   Color get _dangerColor => ShellStyles.error(context);
   Color get _warningColor => ShellStyles.warningPremium(context);
+  Color get _successColor => ShellStyles.success(context);
 
   bool _isLoading = true;
   bool _isSaving = false;
@@ -62,7 +63,6 @@ class _TransactionEditScreenState extends State<TransactionEditScreen> {
   bool _hasManualTotalOverride = false;
   bool _isLoadingReceiptPreview = false;
   String? _receiptPreviewUrl;
-  String? _receiptPreviewFilename;
 
   final _merchantController = TextEditingController();
   final _amountController = TextEditingController();
@@ -308,7 +308,6 @@ class _TransactionEditScreenState extends State<TransactionEditScreen> {
           _amountController.text = '0.00';
           _hasManualTotalOverride = false;
           _receiptPreviewUrl = null;
-          _receiptPreviewFilename = null;
           _isLoadingReceiptPreview = false;
           _isLoading = false;
         });
@@ -353,8 +352,7 @@ class _TransactionEditScreenState extends State<TransactionEditScreen> {
         setState(() {
           _error = _friendlyEditorError(
             e,
-            fallback:
-                'We could not open this receipt right now. Please try again.',
+            fallback: context.tr('transaction_open_receipt_error'),
           );
           _isLoading = false;
         });
@@ -375,12 +373,14 @@ class _TransactionEditScreenState extends State<TransactionEditScreen> {
     }
 
     setState(() => _isSaving = true);
+    final saveError = context.tr('transaction_save_error');
     try {
       final payload = {
         'merchant_name': _merchantController.text,
         'amount_total': parsedAmount,
         'currency': _currency,
         'category_id': _transactionCategoryId,
+        'status': 'CONFIRMED',
       };
 
       if (_occurredAt != null) {
@@ -415,6 +415,8 @@ class _TransactionEditScreenState extends State<TransactionEditScreen> {
           'unit_price': unitPrice,
           'unit': unit,
           'category_id': categoryId,
+          'discount_amount': _itemDiscountValue(item),
+          'amount_before_discount': _itemAmountBeforeDiscountValue(item),
         };
         if (_isUuid(id)) {
           itemPayload['id'] = id;
@@ -478,11 +480,7 @@ class _TransactionEditScreenState extends State<TransactionEditScreen> {
         Navigator.pop(context, true);
       }
     } catch (e) {
-      _showEditorError(
-        e,
-        fallback:
-            'We could not save your changes. Please review the receipt and try again.',
-      );
+      _showEditorError(e, fallback: saveError);
     } finally {
       if (mounted) setState(() => _isSaving = false);
     }
@@ -491,30 +489,28 @@ class _TransactionEditScreenState extends State<TransactionEditScreen> {
   Future<void> _openReceiptPhoto() async {
     final receiptId = _receiptId;
     if (receiptId == null) return;
+    final invalidUrlText = context.tr('receipt_photo_invalid_url');
+    final previewError = context.tr('transaction_receipt_preview_error');
+    final photoTitle = context.tr('transaction_receipt_photo_title');
 
     try {
       final payload = await ApiClient.getReceiptViewUrl(receiptId);
       if (!mounted) return;
       final viewUrl = payload['view_url']?.toString();
       if (viewUrl == null || viewUrl.isEmpty) {
-        throw Exception(context.tr('receipt_photo_invalid_url'));
+        throw Exception(invalidUrlText);
       }
       await Navigator.of(context).push(
         MaterialPageRoute(
           builder: (_) => ReceiptPhotoViewScreen(
-            title:
-                payload['original_filename']?.toString() ??
-                context.tr('transaction_photo'),
+            title: photoTitle,
             viewUrl: viewUrl,
             mimeType: payload['mime_type']?.toString() ?? '',
           ),
         ),
       );
     } catch (e) {
-      _showEditorError(
-        e,
-        fallback: 'We could not open the receipt preview right now.',
-      );
+      _showEditorError(e, fallback: previewError);
     }
   }
 
@@ -524,7 +520,6 @@ class _TransactionEditScreenState extends State<TransactionEditScreen> {
       if (!mounted) return;
       setState(() {
         _receiptPreviewUrl = null;
-        _receiptPreviewFilename = null;
         _isLoadingReceiptPreview = false;
       });
       return;
@@ -539,14 +534,12 @@ class _TransactionEditScreenState extends State<TransactionEditScreen> {
         _receiptPreviewUrl = (viewUrl == null || viewUrl.isEmpty)
             ? null
             : viewUrl;
-        _receiptPreviewFilename = payload['original_filename']?.toString();
         _isLoadingReceiptPreview = false;
       });
     } catch (_) {
       if (!mounted || _receiptId != receiptId) return;
       setState(() {
         _receiptPreviewUrl = null;
-        _receiptPreviewFilename = null;
         _isLoadingReceiptPreview = false;
       });
     }
@@ -654,7 +647,10 @@ class _TransactionEditScreenState extends State<TransactionEditScreen> {
         sourceLanguage =
             itemTranslationPreferences.resolveSourceLanguage(
               sourceLanguage,
-              fallbackLanguageCode: _resolveAppLanguage(),
+              fallbackLanguageCode:
+                  itemTranslationPreferences.autoDetectSourceLanguage
+                  ? null
+                  : _resolveAppLanguage(),
             ) ??
             '';
         final existingTranslation = _normalizeText(
@@ -735,7 +731,9 @@ class _TransactionEditScreenState extends State<TransactionEditScreen> {
   String _merchantDisplayName() {
     final merchant = _merchantController.text.trim();
     if (merchant.isNotEmpty) return merchant;
-    return _isDraftCreateMode ? 'New expense' : 'Review receipt';
+    return _isDraftCreateMode
+        ? context.tr('transaction_new_expense')
+        : context.tr('transaction_review_receipt');
   }
 
   Future<void> _openMerchantNameEditor() async {
@@ -752,7 +750,7 @@ class _TransactionEditScreenState extends State<TransactionEditScreen> {
             side: BorderSide(color: _strokeColor),
           ),
           title: Text(
-            'Merchant',
+            context.tr('transaction_merchant_dialog_title'),
             style: TextStyle(color: _textColor, fontWeight: FontWeight.w700),
           ),
           content: TextFormField(
@@ -764,7 +762,7 @@ class _TransactionEditScreenState extends State<TransactionEditScreen> {
                 Navigator.pop(dialogContext, draftValue.trim()),
             style: TextStyle(color: _textColor),
             decoration: InputDecoration(
-              hintText: 'Store or merchant name',
+              hintText: context.tr('transaction_merchant_hint'),
               hintStyle: TextStyle(color: _mutedColor),
               filled: true,
               fillColor: _surfaceAltColor,
@@ -785,7 +783,10 @@ class _TransactionEditScreenState extends State<TransactionEditScreen> {
           actions: [
             TextButton(
               onPressed: () => Navigator.pop(dialogContext),
-              child: Text('Cancel', style: TextStyle(color: _mutedColor)),
+              child: Text(
+                context.tr('common_cancel'),
+                style: TextStyle(color: _mutedColor),
+              ),
             ),
             FilledButton(
               onPressed: () => Navigator.pop(dialogContext, draftValue.trim()),
@@ -793,7 +794,7 @@ class _TransactionEditScreenState extends State<TransactionEditScreen> {
                 backgroundColor: _primaryActionColor,
                 foregroundColor: Theme.of(context).colorScheme.onPrimary,
               ),
-              child: Text('Save'),
+              child: Text(context.tr('common_save')),
             ),
           ],
         ),
@@ -821,7 +822,7 @@ class _TransactionEditScreenState extends State<TransactionEditScreen> {
             side: BorderSide(color: _strokeColor),
           ),
           title: Text(
-            'Receipt total',
+            context.tr('transaction_receipt_total_label'),
             style: TextStyle(color: _textColor, fontWeight: FontWeight.w700),
           ),
           content: TextFormField(
@@ -854,7 +855,10 @@ class _TransactionEditScreenState extends State<TransactionEditScreen> {
           actions: [
             TextButton(
               onPressed: () => Navigator.pop(dialogContext),
-              child: Text('Cancel', style: TextStyle(color: _mutedColor)),
+              child: Text(
+                context.tr('common_cancel'),
+                style: TextStyle(color: _mutedColor),
+              ),
             ),
             FilledButton(
               onPressed: () => Navigator.pop(dialogContext, draftValue.trim()),
@@ -862,7 +866,7 @@ class _TransactionEditScreenState extends State<TransactionEditScreen> {
                 backgroundColor: _primaryActionColor,
                 foregroundColor: Theme.of(context).colorScheme.onPrimary,
               ),
-              child: Text('Save'),
+              child: Text(context.tr('common_save')),
             ),
           ],
         ),
@@ -873,7 +877,7 @@ class _TransactionEditScreenState extends State<TransactionEditScreen> {
     final parsed = double.tryParse(value.replaceAll(',', '.'));
     if (parsed == null) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Enter a valid total amount.')),
+        SnackBar(content: Text(context.tr('transaction_invalid_total'))),
       );
       return;
     }
@@ -924,6 +928,7 @@ class _TransactionEditScreenState extends State<TransactionEditScreen> {
       code: category['code']?.toString(),
       parentCode: category['parent_category_code']?.toString(),
       name: category['name']?.toString(),
+      rawHex: category['color']?.toString(),
     );
 
     final parentId = category['parent_id']?.toString();
@@ -948,6 +953,7 @@ class _TransactionEditScreenState extends State<TransactionEditScreen> {
       context,
       code: parent?['code']?.toString(),
       name: parent?['name']?.toString(),
+      rawHex: parent?['color']?.toString(),
     );
 
     return <_CategoryTagData>[
@@ -982,7 +988,7 @@ class _TransactionEditScreenState extends State<TransactionEditScreen> {
       final qty = _toDouble(_itemQtyControllers[itemId]?.text);
       final unitPrice = _toDouble(_itemUnitPriceControllers[itemId]?.text);
       final amount = _toDouble(_itemAmountControllers[itemId]?.text);
-      final discount = _toDouble(item['discount_amount']) ?? 0.0;
+      final discount = _itemDiscountValue(item);
       if (qty == null || unitPrice == null || amount == null) continue;
       final expected = _round2((qty * unitPrice) - discount);
       final actual = _round2(amount);
@@ -1091,7 +1097,10 @@ class _TransactionEditScreenState extends State<TransactionEditScreen> {
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: Text('Cancel', style: TextStyle(color: _mutedColor)),
+            child: Text(
+              context.tr('common_cancel'),
+              style: TextStyle(color: _mutedColor),
+            ),
           ),
           FilledButton(
             onPressed: () => Navigator.pop(context, controller.text.trim()),
@@ -1257,6 +1266,47 @@ class _TransactionEditScreenState extends State<TransactionEditScreen> {
         _toDouble(item['unit_price']);
   }
 
+  double _itemDiscountValue(Map<String, dynamic> item) {
+    final explicitDiscount = _toDouble(item['discount_amount']) ?? 0.0;
+    if (explicitDiscount > 0) return _round2(explicitDiscount);
+
+    final amount = _itemAmountValue(item);
+    final amountBeforeDiscount = _toDouble(item['amount_before_discount']);
+    if (amountBeforeDiscount != null && amountBeforeDiscount > amount) {
+      return _round2(amountBeforeDiscount - amount);
+    }
+
+    final qty = _itemQtyValue(item);
+    final unitPrice = _itemUnitPriceValue(item);
+    if (qty == null || unitPrice == null || qty <= 0) return 0.0;
+    final inferredDiscount = _round2((qty * unitPrice) - amount);
+    return inferredDiscount > 0.01 ? inferredDiscount : 0.0;
+  }
+
+  double? _itemAmountBeforeDiscountValue(Map<String, dynamic> item) {
+    final amount = _itemAmountValue(item);
+    final explicitBefore = _toDouble(item['amount_before_discount']);
+    if (explicitBefore != null && explicitBefore > amount) {
+      return _round2(explicitBefore);
+    }
+
+    final discount = _itemDiscountValue(item);
+    if (discount > 0) {
+      return _round2(amount + discount);
+    }
+
+    return null;
+  }
+
+  double _totalSavingsValue() {
+    var total = 0.0;
+    for (final raw in _items) {
+      final item = raw as Map<String, dynamic>;
+      total += _itemDiscountValue(item);
+    }
+    return _round2(total);
+  }
+
   String? _itemCategoryId(Map<String, dynamic> item) {
     final id = item['id']?.toString() ?? '';
     return _itemCategoryIds[id] ?? item['category_id']?.toString();
@@ -1368,11 +1418,17 @@ class _TransactionEditScreenState extends State<TransactionEditScreen> {
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context, false),
-            child: Text('Cancel', style: TextStyle(color: _mutedColor)),
+            child: Text(
+              context.tr('common_cancel'),
+              style: TextStyle(color: _mutedColor),
+            ),
           ),
           TextButton(
             onPressed: () => Navigator.pop(context, true),
-            child: Text('Delete', style: TextStyle(color: _dangerColor)),
+            child: Text(
+              context.tr('common_delete'),
+              style: TextStyle(color: _dangerColor),
+            ),
           ),
         ],
       ),
@@ -1537,12 +1593,88 @@ class _TransactionEditScreenState extends State<TransactionEditScreen> {
     );
   }
 
+  Future<void> _handleBackPressed() async {
+    if (!_hasLocalEdits || !_canEditTransaction) {
+      Navigator.pop(context);
+      return;
+    }
+
+    final action = await showDialog<String>(
+      context: context,
+      builder: (dialogContext) => ShellStyles.clampOverlayScale(
+        dialogContext,
+        AlertDialog(
+          backgroundColor: _surfaceColor,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(22),
+            side: BorderSide(color: _strokeColor),
+          ),
+          title: Text(
+            context.tr('transaction_unsaved_changes_title'),
+            style: TextStyle(color: _textColor, fontWeight: FontWeight.w800),
+          ),
+          content: Text(
+            context.tr('transaction_unsaved_changes_body'),
+            style: TextStyle(color: _mutedColor, height: 1.4),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(dialogContext, 'stay'),
+              child: Text(
+                context.tr('transaction_keep_editing'),
+                style: TextStyle(color: _mutedColor),
+              ),
+            ),
+            TextButton(
+              onPressed: () => Navigator.pop(dialogContext, 'discard'),
+              child: Text(
+                context.tr('transaction_discard_changes'),
+                style: TextStyle(color: _dangerColor),
+              ),
+            ),
+            FilledButton(
+              onPressed: _isSaving
+                  ? null
+                  : () => Navigator.pop(dialogContext, 'save'),
+              style: FilledButton.styleFrom(
+                backgroundColor: _primaryActionColor,
+                foregroundColor: Theme.of(context).colorScheme.onPrimary,
+              ),
+              child: Text(context.tr('common_save')),
+            ),
+          ],
+        ),
+      ),
+    );
+
+    if (!mounted || action == null || action == 'stay') return;
+    if (action == 'discard') {
+      Navigator.pop(context);
+      return;
+    }
+    if (action == 'save') {
+      await _saveTransaction();
+    }
+  }
+
   String _lineReviewMessage(Map<String, double> mismatch) {
-    return 'Review this line item: it should be ${_formatMoney(_currency, mismatch['expected'] ?? 0)} and currently shows ${_formatMoney(_currency, mismatch['actual'] ?? 0)}.';
+    return context.tr(
+      'transaction_line_review_message',
+      params: {
+        'expected': _formatMoney(_currency, mismatch['expected'] ?? 0),
+        'actual': _formatMoney(_currency, mismatch['actual'] ?? 0),
+      },
+    );
   }
 
   String _totalReviewMessage(Map<String, double> totalMismatch) {
-    return 'Review the total before saving: items add up to ${_formatMoney(_currency, totalMismatch['expected'] ?? 0)} while the receipt total is ${_formatMoney(_currency, totalMismatch['actual'] ?? 0)}.';
+    return context.tr(
+      'transaction_total_review_message',
+      params: {
+        'expected': _formatMoney(_currency, totalMismatch['expected'] ?? 0),
+        'actual': _formatMoney(_currency, totalMismatch['actual'] ?? 0),
+      },
+    );
   }
 
   @override
@@ -1552,7 +1684,7 @@ class _TransactionEditScreenState extends State<TransactionEditScreen> {
     }
     if (_error != null) {
       return Scaffold(
-        appBar: AppBar(title: Text('Review receipt')),
+        appBar: AppBar(title: Text(context.tr('transaction_review_receipt'))),
         body: Center(
           child: Padding(
             padding: const EdgeInsets.all(24),
@@ -1576,7 +1708,7 @@ class _TransactionEditScreenState extends State<TransactionEditScreen> {
 
     final lineMismatches = _computeLineMismatches();
     final totalMismatch = _computeTotalMismatch();
-    final showServerWarnings = !_hasLocalEdits && _serverWarnings.isNotEmpty;
+    final showServerWarnings = _serverWarnings.isNotEmpty;
     final hasWarnings =
         lineMismatches.isNotEmpty ||
         totalMismatch != null ||
@@ -1584,205 +1716,188 @@ class _TransactionEditScreenState extends State<TransactionEditScreen> {
     final attributionSection = _buildAttributionSection();
     final merchantTitle = _merchantDisplayName();
 
-    return Scaffold(
-      backgroundColor: _bgColor,
-      appBar: AppBar(
+    return PopScope(
+      canPop: !_hasLocalEdits || !_canEditTransaction,
+      onPopInvokedWithResult: (didPop, _) {
+        if (didPop) return;
+        unawaited(_handleBackPressed());
+      },
+      child: Scaffold(
         backgroundColor: _bgColor,
-        elevation: 0,
-        scrolledUnderElevation: 0,
-        centerTitle: true,
-        leading: IconButton(
-          icon: Icon(Icons.arrow_back_ios_new_rounded, color: _textColor),
-          onPressed: () => Navigator.pop(context),
+        appBar: AppBar(
+          backgroundColor: _bgColor,
+          elevation: 0,
+          scrolledUnderElevation: 0,
+          centerTitle: true,
+          leading: IconButton(
+            icon: Icon(Icons.arrow_back_ios_new_rounded, color: _textColor),
+            onPressed: _handleBackPressed,
+          ),
+          title: InkWell(
+            onTap: _canEditTransaction ? _openMerchantNameEditor : null,
+            borderRadius: BorderRadius.circular(999),
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  ConstrainedBox(
+                    constraints: const BoxConstraints(maxWidth: 180),
+                    child: Text(
+                      merchantTitle,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      textAlign: TextAlign.center,
+                      style: TextStyle(
+                        color: _textColor,
+                        fontSize: 19,
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
+                  ),
+                  if (_canEditTransaction) ...[
+                    const SizedBox(width: 6),
+                    Icon(Icons.edit_outlined, size: 16, color: _mutedColor),
+                  ],
+                ],
+              ),
+            ),
+          ),
+          actions: [
+            Padding(
+              padding: const EdgeInsets.only(right: 14),
+              child: FilledButton(
+                onPressed: _isSaving || !_canEditTransaction
+                    ? null
+                    : _saveTransaction,
+                style: FilledButton.styleFrom(
+                  backgroundColor: _primaryActionColor,
+                  disabledBackgroundColor: _surfaceAltColor,
+                  foregroundColor: Theme.of(context).colorScheme.onPrimary,
+                  minimumSize: const Size(0, 42),
+                  fixedSize: const Size(42, 42),
+                  padding: EdgeInsets.zero,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(999),
+                  ),
+                ),
+                child: _isSaving
+                    ? const SizedBox(
+                        width: 18,
+                        height: 18,
+                        child: CircularProgressIndicator(
+                          strokeWidth: 2,
+                          valueColor: AlwaysStoppedAnimation<Color>(
+                            Colors.white,
+                          ),
+                        ),
+                      )
+                    : Icon(Icons.check_rounded, size: 20),
+              ),
+            ),
+          ],
         ),
-        title: InkWell(
-          onTap: _canEditTransaction ? _openMerchantNameEditor : null,
-          borderRadius: BorderRadius.circular(999),
-          child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-            child: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                ConstrainedBox(
-                  constraints: const BoxConstraints(maxWidth: 180),
-                  child: Text(
-                    merchantTitle,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    textAlign: TextAlign.center,
+        body: ListView(
+          padding: EdgeInsets.fromLTRB(
+            14,
+            8,
+            14,
+            MediaQuery.of(context).padding.bottom + 104,
+          ),
+          children: [
+            if (_receiptId != null) ...[
+              _buildReceiptPhotoSection(),
+              const SizedBox(height: 10),
+            ],
+            _buildTopControlRow(),
+            if (hasWarnings) ...[
+              const SizedBox(height: 10),
+              _buildWarningsBanner(
+                lineMismatchCount: lineMismatches.length,
+                hasTotalMismatch: totalMismatch != null,
+                serverWarningCount: showServerWarnings
+                    ? _serverWarnings.length
+                    : 0,
+              ),
+            ],
+            const SizedBox(height: 12),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 2),
+              child: Row(
+                children: [
+                  Text(
+                    context.tr('transaction_items_heading'),
                     style: TextStyle(
                       color: _textColor,
-                      fontSize: 19,
+                      fontSize: 15,
+                      fontWeight: FontWeight.w800,
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  Text(
+                    '${_items.length}',
+                    style: TextStyle(
+                      color: _mutedColor,
+                      fontSize: 12,
                       fontWeight: FontWeight.w700,
                     ),
                   ),
-                ),
-                if (_canEditTransaction) ...[
-                  const SizedBox(width: 6),
-                  Icon(Icons.edit_outlined, size: 16, color: _mutedColor),
                 ],
-              ],
-            ),
-          ),
-        ),
-        actions: [
-          Padding(
-            padding: const EdgeInsets.only(right: 14),
-            child: FilledButton(
-              onPressed: _isSaving || !_canEditTransaction
-                  ? null
-                  : _saveTransaction,
-              style: FilledButton.styleFrom(
-                backgroundColor: _primaryActionColor,
-                disabledBackgroundColor: _surfaceAltColor,
-                foregroundColor: Theme.of(context).colorScheme.onPrimary,
-                minimumSize: const Size(0, 42),
-                fixedSize: const Size(42, 42),
-                padding: EdgeInsets.zero,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(999),
-                ),
               ),
-              child: _isSaving
-                  ? const SizedBox(
-                      width: 18,
-                      height: 18,
-                      child: CircularProgressIndicator(
-                        strokeWidth: 2,
-                        valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+            ),
+            const SizedBox(height: 6),
+            if (_items.isEmpty)
+              Container(
+                padding: const EdgeInsets.all(14),
+                decoration: _panelDecoration(),
+                child: Text(
+                  context.tr('transaction_empty_items'),
+                  style: TextStyle(color: _mutedColor, fontSize: 13),
+                ),
+              )
+            else
+              Container(
+                decoration: _panelDecoration(),
+                child: Column(
+                  children: [
+                    for (var index = 0; index < _items.length; index++)
+                      _buildSwipeableItemRow(
+                        item: _items[index] as Map<String, dynamic>,
+                        mismatch:
+                            lineMismatches[_items[index]['id']?.toString() ??
+                                ''],
+                        showDivider: index != _items.length - 1,
                       ),
-                    )
-                  : Icon(Icons.check_rounded, size: 20),
-            ),
-          ),
-        ],
-      ),
-      body: ListView(
-        padding: EdgeInsets.fromLTRB(
-          16,
-          10,
-          16,
-          MediaQuery.of(context).padding.bottom + 120,
-        ),
-        children: [
-          if (_receiptId != null) ...[
-            _buildReceiptPhotoSection(),
-            const SizedBox(height: 14),
-          ],
-          _buildTopControlRow(),
-          const SizedBox(height: 14),
-          _buildReviewSummaryCard(hasWarnings: hasWarnings),
-          if (hasWarnings) ...[
-            const SizedBox(height: 14),
-            _buildWarningsBanner(
-              lineMismatchCount: lineMismatches.length,
-              hasTotalMismatch: totalMismatch != null,
-              serverWarningCount: showServerWarnings
-                  ? _serverWarnings.length
-                  : 0,
-            ),
-          ],
-          const SizedBox(height: 14),
-          Text(
-            'Items',
-            style: TextStyle(
-              color: _mutedColor,
-              fontSize: 12,
-              fontWeight: FontWeight.w700,
-              letterSpacing: 0.6,
-            ),
-          ),
-          const SizedBox(height: 8),
-          if (_items.isEmpty)
-            Container(
-              padding: const EdgeInsets.all(18),
-              decoration: _panelDecoration(),
-              child: Text(
-                'No line items yet. Add your first item to finish this receipt.',
-                style: TextStyle(color: _mutedColor, fontSize: 14),
+                  ],
+                ),
               ),
-            )
-          else
-            Container(
-              decoration: _panelDecoration(),
-              child: Column(
-                children: [
-                  for (var index = 0; index < _items.length; index++)
-                    _buildSwipeableItemRow(
-                      item: _items[index] as Map<String, dynamic>,
-                      mismatch:
-                          lineMismatches[_items[index]['id']?.toString() ?? ''],
-                      showDivider: index != _items.length - 1,
-                    ),
-                ],
-              ),
-            ),
-          _buildAddItemButton(),
-          const SizedBox(height: 16),
-          Text(
-            'Labels',
-            style: TextStyle(
-              color: _mutedColor,
-              fontSize: 12,
-              fontWeight: FontWeight.w700,
-              letterSpacing: 0.6,
-            ),
-          ),
-          const SizedBox(height: 8),
-          _buildLabelsSection(),
-          if (attributionSection != null) ...[
-            const SizedBox(height: 14),
-            attributionSection,
-          ],
-          if (!_canEditTransaction) ...[
-            const SizedBox(height: 16),
+            _buildAddItemButton(),
+            const SizedBox(height: 12),
             Text(
-              'You can review this receipt, but only the owner can edit it.',
-              style: TextStyle(color: _mutedColor, fontSize: 13),
+              context.tr('labels_title'),
+              style: TextStyle(
+                color: _mutedColor,
+                fontSize: 12,
+                fontWeight: FontWeight.w700,
+                letterSpacing: 0.6,
+              ),
             ),
+            const SizedBox(height: 8),
+            _buildLabelsSection(),
+            if (attributionSection != null) ...[
+              const SizedBox(height: 10),
+              attributionSection,
+            ],
+            if (!_canEditTransaction) ...[
+              const SizedBox(height: 12),
+              Text(
+                context.tr('transaction_read_only_owner'),
+                style: TextStyle(color: _mutedColor, fontSize: 13),
+              ),
+            ],
           ],
-        ],
-      ),
-      bottomNavigationBar: _buildStickyTotalBar(totalMismatch: totalMismatch),
-    );
-  }
-
-  Widget _buildReviewSummaryCard({required bool hasWarnings}) {
-    final title = hasWarnings
-        ? 'Check before saving'
-        : _isDraftCreateMode
-        ? 'Ready to save'
-        : 'Ready to update';
-    final subtitle = hasWarnings
-        ? 'A few extracted details need a quick check before you save this expense.'
-        : _isDraftCreateMode
-        ? 'Save this expense once everything looks right.'
-        : 'Save when you are ready to update this expense in your history.';
-
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.all(16),
-      decoration: _panelDecoration(
-        color: _surfaceAltColor,
-        borderColor: _strokeColor,
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            title,
-            style: TextStyle(
-              color: _textColor,
-              fontSize: 16,
-              fontWeight: FontWeight.w700,
-            ),
-          ),
-          const SizedBox(height: 6),
-          Text(
-            subtitle,
-            style: TextStyle(color: _mutedColor, fontSize: 13, height: 1.4),
-          ),
-        ],
+        ),
+        bottomNavigationBar: _buildStickyTotalBar(totalMismatch: totalMismatch),
       ),
     );
   }
@@ -1812,10 +1927,13 @@ class _TransactionEditScreenState extends State<TransactionEditScreen> {
   Widget _buildTopControlRow() {
     final occurred = _occurredAt;
     final dateLabel = occurred != null
-        ? DateFormat('MMM d, h:mm a').format(occurred)
-        : 'Set date & time';
+        ? formatLocalizedDayMonthTime(context, occurred)
+        : context.tr('transaction_set_date');
     final translationEnabled =
         _effectiveItemsLanguage.isNotEmpty && _showTranslatedItems;
+    final languageLabel = _effectiveItemsLanguage.isEmpty
+        ? 'LANG'
+        : _effectiveItemsLanguage.toUpperCase();
 
     return Row(
       children: [
@@ -1830,19 +1948,21 @@ class _TransactionEditScreenState extends State<TransactionEditScreen> {
                   },
             borderRadius: BorderRadius.circular(16),
             child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+              height: 42,
+              padding: const EdgeInsets.symmetric(horizontal: 10),
               decoration: _panelDecoration(
                 color: _surfaceColor,
                 borderColor: _strokeColor,
+                radius: 14,
               ),
               child: Row(
                 children: [
                   Icon(
                     Icons.calendar_today_outlined,
-                    size: 18,
-                    color: _textColor,
+                    size: 15,
+                    color: _mutedColor,
                   ),
-                  const SizedBox(width: 10),
+                  const SizedBox(width: 8),
                   Expanded(
                     child: Text(
                       dateLabel,
@@ -1850,8 +1970,8 @@ class _TransactionEditScreenState extends State<TransactionEditScreen> {
                       overflow: TextOverflow.ellipsis,
                       style: TextStyle(
                         color: _textColor,
-                        fontSize: 16,
-                        fontWeight: FontWeight.w600,
+                        fontSize: 13,
+                        fontWeight: FontWeight.w700,
                       ),
                     ),
                   ),
@@ -1860,62 +1980,93 @@ class _TransactionEditScreenState extends State<TransactionEditScreen> {
             ),
           ),
         ),
-        const SizedBox(width: 10),
+        const SizedBox(width: 8),
         InkWell(
           onTap: _canEditTransaction ? _openReceiptCurrencyPicker : null,
           borderRadius: BorderRadius.circular(16),
           child: Container(
-            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+            height: 42,
+            padding: const EdgeInsets.symmetric(horizontal: 10),
             decoration: _panelDecoration(
               color: _surfaceColor,
               borderColor: _strokeColor,
+              radius: 14,
             ),
             child: Row(
               mainAxisSize: MainAxisSize.min,
               children: [
-                Icon(AppIcons.currency, size: 18, color: _textColor),
-                const SizedBox(width: 8),
+                Icon(AppIcons.currency, size: 15, color: _mutedColor),
+                const SizedBox(width: 6),
                 Text(
                   _currency.toUpperCase(),
                   style: TextStyle(
                     color: _textColor,
-                    fontSize: 16,
-                    fontWeight: FontWeight.w600,
+                    fontSize: 13,
+                    fontWeight: FontWeight.w800,
                   ),
                 ),
               ],
             ),
           ),
         ),
-        const SizedBox(width: 10),
+        const SizedBox(width: 8),
         InkWell(
           onTap: _effectiveItemsLanguage.isNotEmpty && !_isTranslatingItems
               ? _toggleTranslatedItems
               : null,
           borderRadius: BorderRadius.circular(16),
           child: Container(
-            width: 48,
-            height: 48,
-            decoration: _panelDecoration(
-              color: translationEnabled ? _surfaceAltColor : _surfaceColor,
-              borderColor: translationEnabled ? _textColor : _strokeColor,
+            height: 42,
+            width: _isTranslatingItems ? 42 : null,
+            padding: EdgeInsets.symmetric(
+              horizontal: _isTranslatingItems ? 0 : 10,
             ),
-            alignment: Alignment.center,
+            decoration: _panelDecoration(
+              color: translationEnabled
+                  ? ShellStyles.accentTone(context).container
+                  : _surfaceColor,
+              borderColor: translationEnabled
+                  ? ShellStyles.accentTone(context).border
+                  : _strokeColor,
+              radius: 14,
+            ),
             child: _isTranslatingItems
-                ? SizedBox(
-                    width: 18,
-                    height: 18,
-                    child: CircularProgressIndicator(
-                      strokeWidth: 2,
-                      valueColor: AlwaysStoppedAnimation<Color>(_textColor),
+                ? Center(
+                    child: SizedBox(
+                      width: 13,
+                      height: 13,
+                      child: CircularProgressIndicator(
+                        strokeWidth: 1.8,
+                        valueColor: AlwaysStoppedAnimation<Color>(_accentColor),
+                      ),
                     ),
                   )
-                : Icon(
-                    AppIcons.translate,
-                    size: 18,
-                    color: _effectiveItemsLanguage.isEmpty
-                        ? _mutedColor
-                        : _textColor,
+                : Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(
+                        AppIcons.translate,
+                        size: 15,
+                        color: _effectiveItemsLanguage.isEmpty
+                            ? _mutedColor
+                            : translationEnabled
+                            ? ShellStyles.accentTone(context).foreground
+                            : _textColor,
+                      ),
+                      const SizedBox(width: 6),
+                      Text(
+                        languageLabel,
+                        style: TextStyle(
+                          color: _effectiveItemsLanguage.isEmpty
+                              ? _mutedColor
+                              : translationEnabled
+                              ? ShellStyles.accentTone(context).foreground
+                              : _textColor,
+                          fontSize: 12,
+                          fontWeight: FontWeight.w800,
+                        ),
+                      ),
+                    ],
                   ),
           ),
         ),
@@ -1927,96 +2078,112 @@ class _TransactionEditScreenState extends State<TransactionEditScreen> {
     final hasPreview = (_receiptPreviewUrl ?? '').isNotEmpty;
     return InkWell(
       onTap: _openReceiptPhoto,
-      borderRadius: BorderRadius.circular(24),
+      borderRadius: BorderRadius.circular(18),
       child: Container(
-        decoration: _panelDecoration(withShadow: true),
+        padding: const EdgeInsets.all(8),
+        decoration: _panelDecoration(radius: 18),
         clipBehavior: Clip.antiAlias,
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
+        child: Row(
           children: [
-            AspectRatio(
-              aspectRatio: 16 / 10,
-              child: ColoredBox(
-                color: _surfaceAltColor,
-                child: _isLoadingReceiptPreview
-                    ? Center(
-                        child: CircularProgressIndicator(
-                          strokeWidth: 2.2,
-                          valueColor: AlwaysStoppedAnimation<Color>(_textColor),
-                        ),
-                      )
-                    : hasPreview
-                    ? Image.network(
-                        _receiptPreviewUrl!,
-                        fit: BoxFit.cover,
-                        errorBuilder: (_, _, _) => _buildPhotoFallback(),
-                        loadingBuilder: (context, child, loadingProgress) {
-                          if (loadingProgress == null) return child;
-                          return Center(
+            ClipRRect(
+              borderRadius: BorderRadius.circular(14),
+              child: SizedBox(
+                width: 70,
+                height: 58,
+                child: ColoredBox(
+                  color: _surfaceAltColor,
+                  child: _isLoadingReceiptPreview
+                      ? Center(
+                          child: SizedBox(
+                            width: 18,
+                            height: 18,
                             child: CircularProgressIndicator(
                               strokeWidth: 2.2,
                               valueColor: AlwaysStoppedAnimation<Color>(
-                                _textColor,
+                                _accentColor,
                               ),
                             ),
-                          );
-                        },
-                      )
-                    : _buildPhotoFallback(),
+                          ),
+                        )
+                      : hasPreview
+                      ? Image.network(
+                          _receiptPreviewUrl!,
+                          fit: BoxFit.cover,
+                          errorBuilder: (_, _, _) =>
+                              _buildPhotoFallback(compact: true),
+                          loadingBuilder: (context, child, loadingProgress) {
+                            if (loadingProgress == null) return child;
+                            return Center(
+                              child: SizedBox(
+                                width: 18,
+                                height: 18,
+                                child: CircularProgressIndicator(
+                                  strokeWidth: 2.2,
+                                  valueColor: AlwaysStoppedAnimation<Color>(
+                                    _accentColor,
+                                  ),
+                                ),
+                              ),
+                            );
+                          },
+                        )
+                      : _buildPhotoFallback(compact: true),
+                ),
               ),
             ),
-            Padding(
-              padding: const EdgeInsets.fromLTRB(16, 14, 16, 14),
-              child: Row(
+            const SizedBox(width: 12),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          _receiptPreviewFilename?.trim().isNotEmpty == true
-                              ? _receiptPreviewFilename!
-                              : context.tr('transaction_photo'),
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                          style: TextStyle(
-                            color: _textColor,
-                            fontSize: 15,
-                            fontWeight: FontWeight.w700,
-                          ),
-                        ),
-                        const SizedBox(height: 4),
-                        Text(
-                          'Open receipt photo',
-                          style: TextStyle(color: _mutedColor, fontSize: 13),
-                        ),
-                      ],
+                  Text(
+                    context.tr('transaction_receipt_photo_title'),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: TextStyle(
+                      color: _textColor,
+                      fontSize: 14,
+                      fontWeight: FontWeight.w800,
                     ),
                   ),
-                  const SizedBox(width: 12),
-                  Icon(AppIcons.chevronRight, size: 18, color: _mutedColor),
+                  const SizedBox(height: 3),
+                  Text(
+                    context.tr('transaction_receipt_photo_subtitle'),
+                    style: TextStyle(
+                      color: _mutedColor,
+                      fontSize: 12,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
                 ],
               ),
             ),
+            const SizedBox(width: 8),
+            Icon(AppIcons.chevronRight, size: 16, color: _mutedColor),
           ],
         ),
       ),
     );
   }
 
-  Widget _buildPhotoFallback() {
+  Widget _buildPhotoFallback({bool compact = false}) {
     return Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Icon(AppIcons.photo, size: 30, color: _mutedColor),
-          SizedBox(height: 10),
-          Text(
-            'Receipt photo',
-            style: TextStyle(color: _mutedColor, fontWeight: FontWeight.w600),
-          ),
-        ],
-      ),
+      child: compact
+          ? Icon(AppIcons.photo, size: 22, color: _mutedColor)
+          : Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(AppIcons.photo, size: 30, color: _mutedColor),
+                SizedBox(height: 10),
+                Text(
+                  context.tr('transaction_receipt_photo_title'),
+                  style: TextStyle(
+                    color: _mutedColor,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ],
+            ),
     );
   }
 
@@ -2043,42 +2210,52 @@ class _TransactionEditScreenState extends State<TransactionEditScreen> {
     }
 
     final lineText = lineMismatchCount == 1
-        ? 'Review 1 item total'
-        : 'Review $lineMismatchCount item totals';
+        ? context.tr('transaction_warning_review_one_item')
+        : context.tr(
+            'transaction_warning_review_items',
+            params: {'count': lineMismatchCount.toString()},
+          );
     final parts = <String>[];
     if (lineMismatchCount > 0) {
       parts.add(lineText);
     }
     if (hasTotalMismatch) {
-      parts.add('Review the receipt total');
+      parts.add(context.tr('transaction_warning_review_total'));
     }
     if (serverWarningCount > 0) {
       parts.add(
         serverWarningCount == 1
-            ? 'Check 1 extracted detail'
-            : 'Check $serverWarningCount extracted details',
+            ? context.tr('transaction_warning_check_one_detail')
+            : context.tr(
+                'transaction_warning_check_details',
+                params: {'count': serverWarningCount.toString()},
+              ),
       );
     }
 
     return Container(
       width: double.infinity,
-      padding: const EdgeInsets.all(12),
+      padding: const EdgeInsets.all(10),
       decoration: _panelDecoration(
         color: _surfaceAltColor,
         borderColor: _strokeColor,
+        radius: 16,
       ),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Icon(Icons.warning_amber_rounded, color: _textColor, size: 20),
+          Icon(Icons.warning_amber_rounded, color: _warningColor, size: 18),
           const SizedBox(width: 8),
           Expanded(
             child: Text(
-              'Take a quick final look before saving. ${parts.join(' • ')}.',
+              context.tr(
+                'transaction_warning_accepts_edits',
+                params: {'details': parts.join(' / ')},
+              ),
               style: TextStyle(
                 color: _textColor,
-                fontSize: 13,
-                fontWeight: FontWeight.w600,
+                fontSize: 12,
+                fontWeight: FontWeight.w700,
               ),
             ),
           ),
@@ -2098,13 +2275,13 @@ class _TransactionEditScreenState extends State<TransactionEditScreen> {
       borderRadius: BorderRadius.circular(18),
       child: Container(
         width: double.infinity,
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
-        decoration: _panelDecoration(),
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+        decoration: _panelDecoration(radius: 16),
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
-            Icon(AppIcons.labels, size: 20, color: _mutedColor),
-            const SizedBox(width: 12),
+            Icon(AppIcons.labels, size: 17, color: _mutedColor),
+            const SizedBox(width: 10),
             Expanded(
               child: Text(
                 _labelsSummaryText(selectedLabels),
@@ -2112,13 +2289,13 @@ class _TransactionEditScreenState extends State<TransactionEditScreen> {
                 overflow: TextOverflow.ellipsis,
                 style: TextStyle(
                   color: _textColor,
-                  fontSize: 16,
-                  fontWeight: FontWeight.w600,
+                  fontSize: 13.5,
+                  fontWeight: FontWeight.w700,
                 ),
               ),
             ),
-            const SizedBox(width: 12),
-            Icon(AppIcons.chevronRight, size: 18, color: _mutedColor),
+            const SizedBox(width: 10),
+            Icon(AppIcons.chevronRight, size: 16, color: _mutedColor),
           ],
         ),
       ),
@@ -2219,6 +2396,9 @@ class _TransactionEditScreenState extends State<TransactionEditScreen> {
     final unitPrice = _itemUnitPriceValue(item);
     final sourceAmount = _itemAmountValue(item);
     final displayAmount = _toDisplayAmount(sourceAmount);
+    final discountAmount = _itemDiscountValue(item);
+    final hasDiscount = discountAmount > 0;
+    final beforeDiscountAmount = _itemAmountBeforeDiscountValue(item);
     final currentName = _normalizeText(_itemDescription(item));
     final translatedName = _normalizeText(
       item['translated_description']?.toString(),
@@ -2227,7 +2407,6 @@ class _TransactionEditScreenState extends State<TransactionEditScreen> {
         translatedName.isNotEmpty &&
         translatedName.toLowerCase() != currentName.toLowerCase();
     final showTranslatedName = _showTranslatedItems && hasTranslatedName;
-    final itemCurrencyLabel = CurrencyDisplay.labelForCode(_currency);
     final displayCurrencyLabel = CurrencyDisplay.labelForCode(_displayCurrency);
     final quantityLineParts = <String>[];
     if (sourceQty != null) {
@@ -2244,12 +2423,14 @@ class _TransactionEditScreenState extends State<TransactionEditScreen> {
         '${_formatMoney(_currency, unitPrice)} / $unitLabel',
       );
     }
+    final convertedVisible =
+        _displayCurrency.toUpperCase() != _currency.toUpperCase();
 
     return InkWell(
       onTap: _canEditTransaction ? () => _openItemEditor(item) : null,
-      borderRadius: BorderRadius.circular(18),
+      borderRadius: BorderRadius.circular(16),
       child: Container(
-        padding: const EdgeInsets.fromLTRB(16, 14, 16, 14),
+        padding: const EdgeInsets.fromLTRB(12, 10, 12, 10),
         decoration: BoxDecoration(
           border: showDivider
               ? Border(bottom: BorderSide(color: _strokeColor.withAlpha(180)))
@@ -2269,12 +2450,12 @@ class _TransactionEditScreenState extends State<TransactionEditScreen> {
                         currentName.isEmpty
                             ? context.tr('transaction_item_name')
                             : currentName,
-                        maxLines: 3,
+                        maxLines: 2,
                         overflow: TextOverflow.ellipsis,
                         style: TextStyle(
                           color: _textColor,
-                          fontSize: 16,
-                          fontWeight: FontWeight.w600,
+                          fontSize: 14.5,
+                          fontWeight: FontWeight.w800,
                           height: 1.2,
                         ),
                       ),
@@ -2284,7 +2465,11 @@ class _TransactionEditScreenState extends State<TransactionEditScreen> {
                           translatedName,
                           maxLines: 2,
                           overflow: TextOverflow.ellipsis,
-                          style: TextStyle(color: _mutedColor, fontSize: 13),
+                          style: TextStyle(
+                            color: _mutedColor,
+                            fontSize: 12,
+                            height: 1.25,
+                          ),
                         ),
                       ],
                     ],
@@ -2296,33 +2481,21 @@ class _TransactionEditScreenState extends State<TransactionEditScreen> {
                   children: [
                     Text(
                       _formatMoney(_currency, sourceAmount),
+                      textAlign: TextAlign.right,
                       style: TextStyle(
                         color: _textColor,
-                        fontSize: 18,
-                        fontWeight: FontWeight.w700,
+                        fontSize: 16,
+                        fontWeight: FontWeight.w800,
                       ),
                     ),
-                    const SizedBox(height: 4),
-                    SizedBox(
-                      height: 18,
-                      child:
-                          _displayCurrency.toUpperCase() !=
-                              _currency.toUpperCase()
-                          ? Text(
-                              '$displayCurrencyLabel ${displayAmount.toStringAsFixed(2)}',
-                              style: TextStyle(
-                                color: _mutedColor,
-                                fontSize: 12,
-                              ),
-                            )
-                          : Text(
-                              ' ',
-                              style: TextStyle(
-                                color: Colors.transparent,
-                                fontSize: 12,
-                              ),
-                            ),
-                    ),
+                    if (convertedVisible) ...[
+                      const SizedBox(height: 2),
+                      Text(
+                        '$displayCurrencyLabel ${displayAmount.toStringAsFixed(2)}',
+                        textAlign: TextAlign.right,
+                        style: TextStyle(color: _mutedColor, fontSize: 11.5),
+                      ),
+                    ],
                   ],
                 ),
                 const SizedBox(width: 8),
@@ -2336,40 +2509,70 @@ class _TransactionEditScreenState extends State<TransactionEditScreen> {
                 ),
               ],
             ),
-            const SizedBox(height: 8),
+            if (hasDiscount && beforeDiscountAmount != null) ...[
+              const SizedBox(height: 7),
+              Wrap(
+                spacing: 8,
+                runSpacing: 4,
+                children: [
+                  Text(
+                    context.tr(
+                      'transaction_was_amount',
+                      params: {
+                        'amount': _formatMoney(_currency, beforeDiscountAmount),
+                      },
+                    ),
+                    style: TextStyle(
+                      color: _mutedColor,
+                      fontSize: 11.5,
+                      fontWeight: FontWeight.w600,
+                      decoration: TextDecoration.lineThrough,
+                      decorationColor: _mutedColor,
+                    ),
+                  ),
+                  Text(
+                    context.tr(
+                      'transaction_saved_amount',
+                      params: {
+                        'amount': _formatMoney(_currency, discountAmount),
+                      },
+                    ),
+                    style: TextStyle(
+                      color: _successColor,
+                      fontSize: 11.5,
+                      fontWeight: FontWeight.w800,
+                    ),
+                  ),
+                ],
+              ),
+            ],
+            const SizedBox(height: 7),
+            Text(
+              quantityLineParts.isEmpty
+                  ? context.tr('transaction_missing_quantity_price')
+                  : quantityLineParts.join(' / '),
+              style: TextStyle(
+                color: _mutedColor,
+                fontSize: 12,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+            const SizedBox(height: 7),
             Wrap(
-              spacing: 6,
-              runSpacing: 6,
+              spacing: 5,
+              runSpacing: 5,
               children: catTags
                   .map((tag) => _buildCategoryBadge(tag: tag))
                   .toList(growable: false),
             ),
-            const SizedBox(height: 8),
-            Text(
-              quantityLineParts.isEmpty
-                  ? 'Add quantity, unit, and price'
-                  : quantityLineParts.join(' / '),
-              style: TextStyle(
-                color: _mutedColor,
-                fontSize: 13,
-                fontWeight: FontWeight.w500,
-              ),
-            ),
-            if (_displayCurrency.toUpperCase() != _currency.toUpperCase()) ...[
-              const SizedBox(height: 8),
-              Text(
-                '$itemCurrencyLabel ${sourceAmount.toStringAsFixed(2)} / $displayCurrencyLabel ${displayAmount.toStringAsFixed(2)}',
-                style: TextStyle(color: _mutedColor, fontSize: 12),
-              ),
-            ],
             if (mismatch != null) ...[
               const SizedBox(height: 8),
               Text(
                 _lineReviewMessage(mismatch),
                 style: TextStyle(
-                  color: _mutedColor,
-                  fontSize: 12,
-                  fontWeight: FontWeight.w600,
+                  color: _warningColor,
+                  fontSize: 11.5,
+                  fontWeight: FontWeight.w700,
                 ),
               ),
             ],
@@ -2381,7 +2584,7 @@ class _TransactionEditScreenState extends State<TransactionEditScreen> {
 
   Widget _buildCategoryBadge({required _CategoryTagData tag}) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
       decoration: BoxDecoration(
         color: tag.tone.container,
         borderRadius: BorderRadius.circular(999),
@@ -2391,8 +2594,8 @@ class _TransactionEditScreenState extends State<TransactionEditScreen> {
         tag.label.trim(),
         style: TextStyle(
           color: tag.tone.foreground,
-          fontSize: 12,
-          fontWeight: FontWeight.w600,
+          fontSize: 11,
+          fontWeight: FontWeight.w700,
         ),
       ),
     );
@@ -2401,26 +2604,27 @@ class _TransactionEditScreenState extends State<TransactionEditScreen> {
   Widget _buildAddItemButton() {
     return InkWell(
       onTap: !_canEditTransaction ? null : _addItemAndOpenEditor,
-      borderRadius: BorderRadius.circular(18),
+      borderRadius: BorderRadius.circular(16),
       child: Container(
-        margin: const EdgeInsets.only(top: 8),
-        padding: const EdgeInsets.symmetric(vertical: 16),
+        margin: const EdgeInsets.only(top: 6),
+        padding: const EdgeInsets.symmetric(vertical: 12),
         decoration: _panelDecoration(
           color: Colors.transparent,
           borderColor: _strokeColor,
+          radius: 16,
         ),
         child: Center(
           child: Row(
             mainAxisSize: MainAxisSize.min,
             children: [
-              Icon(AppIcons.add, size: 18, color: _textColor),
+              Icon(AppIcons.add, size: 16, color: _textColor),
               const SizedBox(width: 8),
               Text(
                 context.tr('transaction_add_item'),
                 style: TextStyle(
                   color: _textColor,
-                  fontSize: 16,
-                  fontWeight: FontWeight.w600,
+                  fontSize: 13.5,
+                  fontWeight: FontWeight.w700,
                 ),
               ),
             ],
@@ -2433,11 +2637,13 @@ class _TransactionEditScreenState extends State<TransactionEditScreen> {
   Widget _buildStickyTotalBar({Map<String, double>? totalMismatch}) {
     final sourceTotal = _toDouble(_amountController.text) ?? 0;
     final displayTotal = _toDisplayAmount(sourceTotal);
+    final totalSavings = _totalSavingsValue();
+    final hasSavings = totalSavings > 0;
 
     return SafeArea(
       top: false,
       child: Container(
-        padding: const EdgeInsets.fromLTRB(16, 10, 16, 14),
+        padding: const EdgeInsets.fromLTRB(14, 8, 14, 10),
         decoration: BoxDecoration(
           color: _surfaceColor,
           border: Border(top: BorderSide(color: _strokeColor)),
@@ -2447,15 +2653,15 @@ class _TransactionEditScreenState extends State<TransactionEditScreen> {
           children: [
             if (totalMismatch != null)
               Padding(
-                padding: const EdgeInsets.only(bottom: 10),
+                padding: const EdgeInsets.only(bottom: 8),
                 child: Align(
                   alignment: Alignment.centerLeft,
                   child: Text(
                     _totalReviewMessage(totalMismatch),
                     style: TextStyle(
                       color: _warningColor,
-                      fontSize: 12,
-                      fontWeight: FontWeight.w600,
+                      fontSize: 11.5,
+                      fontWeight: FontWeight.w700,
                     ),
                   ),
                 ),
@@ -2467,38 +2673,75 @@ class _TransactionEditScreenState extends State<TransactionEditScreen> {
                     onTap: _canEditTransaction ? _openTotalEditor : null,
                     borderRadius: BorderRadius.circular(14),
                     child: Padding(
-                      padding: const EdgeInsets.symmetric(vertical: 4),
+                      padding: const EdgeInsets.symmetric(vertical: 2),
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            'Receipt total',
+                            context.tr('transaction_receipt_total_label'),
                             style: TextStyle(
                               color: _mutedColor,
-                              fontSize: 12,
-                              fontWeight: FontWeight.w700,
+                              fontSize: 11,
+                              fontWeight: FontWeight.w800,
                               letterSpacing: 0.5,
                             ),
                           ),
-                          const SizedBox(height: 3),
-                          Text(
-                            _formatMoney(_currency, sourceTotal),
-                            style: TextStyle(
-                              color: _textColor,
-                              fontSize: 20,
-                              fontWeight: FontWeight.w700,
-                            ),
+                          const SizedBox(height: 2),
+                          Wrap(
+                            crossAxisAlignment: WrapCrossAlignment.end,
+                            spacing: 8,
+                            runSpacing: 2,
+                            children: [
+                              Text(
+                                _formatMoney(_currency, sourceTotal),
+                                style: TextStyle(
+                                  color: _textColor,
+                                  fontSize: 18,
+                                  fontWeight: FontWeight.w800,
+                                ),
+                              ),
+                              if (_displayCurrency.toUpperCase() !=
+                                  _currency.toUpperCase())
+                                Padding(
+                                  padding: const EdgeInsets.only(bottom: 2),
+                                  child: Text(
+                                    _formatMoney(
+                                      _displayCurrency,
+                                      displayTotal,
+                                    ),
+                                    style: TextStyle(
+                                      color: _mutedColor,
+                                      fontSize: 12,
+                                      fontWeight: FontWeight.w600,
+                                    ),
+                                  ),
+                                ),
+                            ],
                           ),
+                          if (hasSavings) ...[
+                            const SizedBox(height: 2),
+                            Text(
+                              context.tr(
+                                'transaction_saved_amount',
+                                params: {
+                                  'amount': _formatMoney(
+                                    _currency,
+                                    totalSavings,
+                                  ),
+                                },
+                              ),
+                              style: TextStyle(
+                                color: _successColor,
+                                fontSize: 11.5,
+                                fontWeight: FontWeight.w800,
+                              ),
+                            ),
+                          ],
                         ],
                       ),
                     ),
                   ),
                 ),
-                if (_displayCurrency.toUpperCase() != _currency.toUpperCase())
-                  Text(
-                    _formatMoney(_displayCurrency, displayTotal),
-                    style: TextStyle(color: _mutedColor, fontSize: 12),
-                  ),
                 if (_canEditTransaction) ...[
                   const SizedBox(width: 10),
                   Icon(Icons.edit_outlined, size: 16, color: _mutedColor),

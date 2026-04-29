@@ -1,11 +1,14 @@
 import 'package:flutter/material.dart';
 
 import '../core/redesign_system.dart';
+import '../core/period_filter.dart';
 import '../l10n/app_localizations.dart';
 import 'receipts_tab.dart';
 
 class ReceiptManagerScreen extends StatelessWidget {
-  const ReceiptManagerScreen({super.key});
+  const ReceiptManagerScreen({super.key, this.reviewOnly = false});
+
+  final bool reviewOnly;
 
   @override
   Widget build(BuildContext context) {
@@ -15,9 +18,14 @@ class ReceiptManagerScreen extends StatelessWidget {
         title: Text(context.tr('tools_receipt_manager')),
         centerTitle: false,
       ),
-      body: const SafeArea(
+      body: SafeArea(
         top: false,
-        child: ReceiptsTab(showTopBar: true, includeTopSafeArea: false),
+        child: ReceiptsTab(
+          showTopBar: true,
+          includeTopSafeArea: false,
+          initialReviewOnly: reviewOnly,
+          initialPeriod: reviewOnly ? PeriodFilter.thisMonth : null,
+        ),
       ),
     );
   }

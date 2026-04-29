@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import '../l10n/app_localizations.dart';
+
 const String expiredSessionMessage =
     'Your session expired. Please sign in again.';
 
@@ -131,20 +133,20 @@ class SessionRestoreLoadingScreen extends StatelessWidget {
                     ),
                   ),
                   const SizedBox(height: 22),
-                  const Text(
-                    'Checking your account',
+                  Text(
+                    context.tr('session_restore_title'),
                     textAlign: TextAlign.center,
-                    style: TextStyle(
+                    style: const TextStyle(
                       color: Colors.white,
                       fontSize: 24,
                       fontWeight: FontWeight.w800,
                     ),
                   ),
                   const SizedBox(height: 10),
-                  const Text(
-                    'Securing your receipts and restoring your session.',
+                  Text(
+                    context.tr('session_restore_body'),
                     textAlign: TextAlign.center,
-                    style: TextStyle(
+                    style: const TextStyle(
                       color: Colors.white70,
                       fontSize: 14,
                       height: 1.4,

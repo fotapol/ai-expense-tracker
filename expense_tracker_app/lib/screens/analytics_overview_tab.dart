@@ -110,8 +110,7 @@ class _AnalyticsOverviewTabState extends State<AnalyticsOverviewTab> {
       setState(() {
         _error = friendlyLaunchErrorMessage(
           error,
-          fallback:
-              'Overview insights are unavailable right now. Please try again.',
+          fallback: context.tr('analytics_error_message'),
         );
         _isLoading = false;
       });
@@ -186,6 +185,7 @@ class _AnalyticsOverviewTabState extends State<AnalyticsOverviewTab> {
                   code: entry['code']?.toString(),
                   fallbackName: entry['name']?.toString(),
                 ),
+                color: entry['color']?.toString(),
                 amount: amount,
                 share: percentage > 0
                     ? percentage / 100
@@ -261,9 +261,8 @@ class _AnalyticsOverviewTabState extends State<AnalyticsOverviewTab> {
           if (isEmptyOverview)
             AnalyticsEmptyCard(
               icon: Icons.insights_outlined,
-              title: 'No overview yet',
-              message:
-                  'Scan receipts to track totals, compare periods, and surface your top merchants here.',
+              title: context.tr('no_overview_yet'),
+              message: context.tr('analytics_empty_overview_message'),
             )
           else ...[
             _buildSummaryCard(
@@ -524,14 +523,14 @@ class _AnalyticsOverviewTabState extends State<AnalyticsOverviewTab> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const AnalyticsSectionHeader(
-            title: 'Top Merchants',
-            subtitle: 'Where the most spending happened in this period.',
+          AnalyticsSectionHeader(
+            title: context.tr('top_merchants'),
+            subtitle: context.tr('where_the_most_spending_happened_in_this'),
           ),
           const SizedBox(height: 14),
           if (merchants.isEmpty)
             Text(
-              'Merchant insights will appear after more receipts are scanned.',
+              context.tr('analytics_empty_merchants_message'),
               style: TextStyle(
                 color: ShellStyles.textMuted(context),
                 fontSize: 13,
@@ -562,14 +561,14 @@ class _AnalyticsOverviewTabState extends State<AnalyticsOverviewTab> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const AnalyticsSectionHeader(
-            title: 'Top Categories',
-            subtitle: 'The biggest spending groups in this period.',
+          AnalyticsSectionHeader(
+            title: context.tr('top_categories'),
+            subtitle: context.tr('the_biggest_spending_groups_in_this_peri'),
           ),
           const SizedBox(height: 14),
           if (categories.isEmpty)
             Text(
-              'Category highlights will appear after more spending is recorded.',
+              context.tr('analytics_empty_categories_message'),
               style: TextStyle(
                 color: ShellStyles.textMuted(context),
                 fontSize: 13,
@@ -634,8 +633,11 @@ class _AnalyticsOverviewTabState extends State<AnalyticsOverviewTab> {
               const SizedBox(height: 3),
               Text(
                 merchant.count == 1
-                    ? '1 transaction'
-                    : '${merchant.count} transactions',
+                    ? context.tr('analytics_transactions_count_single')
+                    : context.tr(
+                        'analytics_transactions_count_plural',
+                        params: {'count': merchant.count.toString()},
+                      ),
                 style: TextStyle(
                   color: ShellStyles.textMuted(context),
                   fontSize: 12,
@@ -658,7 +660,10 @@ class _AnalyticsOverviewTabState extends State<AnalyticsOverviewTab> {
             ),
             const SizedBox(height: 3),
             Text(
-              '${(merchant.share * 100).round()}% of spend',
+              context.tr(
+                'analytics_spend_share',
+                params: {'percent': (merchant.share * 100).round().toString()},
+              ),
               style: TextStyle(
                 color: ShellStyles.textMuted(context),
                 fontSize: 11,
@@ -680,6 +685,7 @@ class _AnalyticsOverviewTabState extends State<AnalyticsOverviewTab> {
       context,
       code: category.code,
       name: category.name,
+      rawHex: category.color,
     );
     return Row(
       children: [
@@ -743,7 +749,10 @@ class _AnalyticsOverviewTabState extends State<AnalyticsOverviewTab> {
             ),
             const SizedBox(height: 3),
             Text(
-              '${(category.share * 100).round()}% of spend',
+              context.tr(
+                'analytics_spend_share',
+                params: {'percent': (category.share * 100).round().toString()},
+              ),
               style: TextStyle(
                 color: ShellStyles.textMuted(context),
                 fontSize: 11,
@@ -761,15 +770,15 @@ class _AnalyticsOverviewTabState extends State<AnalyticsOverviewTab> {
     required double? changePercentage,
   }) {
     if (previousTotal == null) {
-      return const _OverviewComparisonCopy(
+      return _OverviewComparisonCopy(
         icon: Icons.timeline_outlined,
-        title: 'Previous comparison is unavailable for this range.',
+        title: context.tr('previous_comparison_is_unavailable_for_t'),
       );
     }
     if (previousTotal <= 0) {
-      return const _OverviewComparisonCopy(
+      return _OverviewComparisonCopy(
         icon: Icons.remove_circle_outline,
-        title: 'No spend was recorded in the matching previous period.',
+        title: context.tr('no_spend_was_recorded_in_the_matching_pr'),
       );
     }
     if (changePercentage == null || changePercentage == 0) {
@@ -786,7 +795,7 @@ class _AnalyticsOverviewTabState extends State<AnalyticsOverviewTab> {
             : 'analytics_change_less',
         params: {'percent': changePercentage.abs().round().toString()},
       ),
-      supporting: 'Compared with the matching previous period.',
+      supporting: context.tr('analytics_comparison_subtitle'),
       color: changePercentage > 0 ? ShellColors.softRed : ShellColors.softGreen,
     );
   }
@@ -832,12 +841,14 @@ class _CategoryInsight {
   const _CategoryInsight({
     required this.code,
     required this.name,
+    this.color,
     required this.amount,
     required this.share,
   });
 
   final String code;
   final String name;
+  final String? color;
   final double amount;
   final double share;
 }

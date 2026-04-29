@@ -51,6 +51,8 @@ flutter run \
   --dart-define=REVENUECAT_PREMIUM_ENTITLEMENT_ID=personal_premium
 ```
 
+The public site is served locally at `http://localhost:3000`.
+
 Use `API_BASE_URL=http://10.0.2.2:8000` only for Android emulator.
 For a physical phone on the same Wi-Fi, use your PC LAN IP, for example `API_BASE_URL=http://192.168.1.42:8000`.
 
@@ -71,6 +73,7 @@ For a physical phone on the same Wi-Fi, use your PC LAN IP, for example `API_BAS
 
 | Service | Port | Description |
 |---|---|---|
+| `site` | 3000 | Public landing page with `/`, `/privacy`, and `/terms` |
 | `backend` | 8000 | FastAPI application |
 | `worker` | — | Receipt extraction worker (no exposed port) |
 | `postgres` | 5432 | PostgreSQL database |

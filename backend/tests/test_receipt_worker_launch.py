@@ -4,9 +4,11 @@ from __future__ import annotations
 
 import datetime as dt
 import uuid
+from decimal import Decimal
 from types import SimpleNamespace
 
 from app.models.shared.enums import ReceiptStatus
+from app.schemas.extraction import ExtractedReceiptData, ExtractedTransactionItem
 
 
 class _Result:
@@ -142,3 +144,60 @@ def test_process_receipt_skips_recent_duplicate_processing_attempt(monkeypatch) 
     assert receipt.status == ReceiptStatus.PROCESSING
     assert session.commit_calls == 0
     assert session.added == []
+
+
+def test_extraction_discount_normalization_infers_missing_discount_fields() -> None:
+    """Discounted line totals should preserve final price and explicit savings."""
+
+    from app.worker import receipt_processor as worker
+
+    extracted = ExtractedReceiptData(
+        currency="RSD",
+        amount_total=Decimal("80.00"),
+        items=[
+            ExtractedTransactionItem(
+                line_no=1,
+                description="Discounted item",
+                qty=Decimal("1"),
+                unit="pc",
+                unit_price=Decimal("100.00"),
+                amount=Decimal("80.00"),
+            )
+        ],
+    )
+
+    normalized = worker._normalize_extracted_item_discounts(extracted)
+
+    item = normalized.items[0]
+    assert item.amount == Decimal("80.00")
+    assert item.amount_before_discount == Decimal("100.00")
+    assert item.discount_amount == Decimal("20.00")
+    assert worker._compute_extraction_warnings(normalized) == []
+
+
+def test_extraction_discount_normalization_derives_discount_from_original_amount() -> None:
+    """An original amount without explicit discount should still enable discount UX."""
+
+    from app.worker import receipt_processor as worker
+
+    extracted = ExtractedReceiptData(
+        currency="RSD",
+        amount_total=Decimal("75.50"),
+        items=[
+            ExtractedTransactionItem(
+                line_no=1,
+                description="Loyalty price item",
+                qty=Decimal("1"),
+                unit="pc",
+                amount=Decimal("75.50"),
+                amount_before_discount=Decimal("99.99"),
+            )
+        ],
+    )
+
+    normalized = worker._normalize_extracted_item_discounts(extracted)
+
+    item = normalized.items[0]
+    assert item.amount_before_discount == Decimal("99.99")
+    assert item.discount_amount == Decimal("24.49")
+    assert worker._compute_extraction_warnings(normalized) == []
