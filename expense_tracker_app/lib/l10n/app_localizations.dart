@@ -98,6 +98,9 @@ class AppLocalizations {
           'Google sign-in keeps your receipts, categories, and subscription status synced.',
       'login_footer_note':
           'By continuing, you will sign in with your Google account.',
+      'session_restore_title': 'Checking your account',
+      'session_restore_body':
+          'Securing your receipts and restoring your session.',
       'settings_title': 'Settings',
       'settings_subtitle': 'Manage your preferences',
       'settings_currency': 'Currency',
@@ -1410,6 +1413,9 @@ class AppLocalizations {
           'Mit der Google-Anmeldung bleiben Ihre Belege, Kategorien und Ihr Abonnementstatus synchronisiert.',
       'login_footer_note':
           'Wenn Sie fortfahren, melden Sie sich mit Ihrem Google-Konto an.',
+      'session_restore_title': 'Konto wird geprüft',
+      'session_restore_body':
+          'Deine Belege werden geschützt und deine Sitzung wird wiederhergestellt.',
       'settings_title': 'Einstellungen',
       'settings_subtitle': 'Verwalten Sie Ihre Präferenzen',
       'settings_currency': 'Währung',
@@ -2787,6 +2793,9 @@ class AppLocalizations {
           'La connexion Googlemaintient vos reçus, catégories et statut d\'abonnement synchronisés.',
       'login_footer_note':
           'En continuant, vous vous connecterez avec votre compte Google.',
+      'session_restore_title': 'Vérification de votre compte',
+      'session_restore_body':
+          'Nous sécurisons vos reçus et restaurons votre session.',
       'settings_title': 'Paramètres',
       'settings_subtitle': 'Gérez vos préférences',
       'settings_currency': 'Devise',
@@ -4159,6 +4168,8 @@ class AppLocalizations {
           'Вхід у систему Googleсинхронізує ваші квитанції, категорії та статус підписки.',
       'login_footer_note':
           'Продовжуючи, ви ввійдете за допомогою свого облікового запису Google.',
+      'session_restore_title': 'Перевіряємо ваш акаунт',
+      'session_restore_body': 'Захищаємо ваші квитанції та відновлюємо сеанс.',
       'settings_title': 'Налаштування',
       'settings_subtitle': 'Керуйте своїми налаштуваннями',
       'settings_currency': 'Валюта',
@@ -5493,6 +5504,9 @@ class AppLocalizations {
       'login_feature_highlight':
           'L\'accesso Googlemantiene sincronizzati le ricevute, le categorie e lo stato dell\'abbonamento.',
       'login_footer_note': 'Continuando, accederai con il tuo account Google.',
+      'session_restore_title': 'Controllo dell\'account',
+      'session_restore_body':
+          'Proteggiamo le ricevute e ripristiniamo la sessione.',
       'settings_title': 'Impostazioni',
       'settings_subtitle': 'Gestisci le tue preferenze',
       'settings_currency': 'Valuta',
@@ -6872,6 +6886,8 @@ class AppLocalizations {
           'Logowanie przez Google synchronizuje paragony, kategorie i status subskrypcji.',
       'login_footer_note':
           'Kontynuując, zalogujesz się za pomocą swojego konta Google.',
+      'session_restore_title': 'Sprawdzamy Twoje konto',
+      'session_restore_body': 'Zabezpieczamy rachunki i przywracamy sesję.',
       'settings_title': 'Ustawienia',
       'settings_subtitle': 'Zarządzaj swoimi preferencjami',
       'settings_currency': 'Waluta',
@@ -8231,6 +8247,8 @@ class AppLocalizations {
           'Prijava putem Google-a sinhronizuje vaše račune, kategorije i status pretplate.',
       'login_footer_note':
           'Nastavljanjem ćete se prijaviti putem svog Google naloga.',
+      'session_restore_title': 'Proveravamo nalog',
+      'session_restore_body': 'Čuvamo račune i vraćamo tvoju sesiju.',
       'settings_title': 'Podešavanja',
       'settings_subtitle': 'Upravljajte svojim podešavanjima',
       'settings_currency': 'Valuta',
@@ -9575,6 +9593,8 @@ class AppLocalizations {
           'Вход через Google синхронизирует ваши чеки, категории и статус подписки.',
       'login_footer_note':
           'Продолжая, вы войдете в систему с помощью своего аккаунта Google.',
+      'session_restore_title': 'Проверяем аккаунт',
+      'session_restore_body': 'Защищаем ваши чеки и восстанавливаем сеанс.',
       'settings_title': 'Настройки',
       'settings_subtitle': 'Управляйте своими предпочтениями',
       'settings_currency': 'Валюта',
@@ -10458,7 +10478,7 @@ class AppLocalizations {
       'total_spent': 'Всего потрачено',
       'translate_items_into': 'Перевести элементы в',
       'translate_items_to': 'Перевести элементы в',
-      'upcoming_and_due_reminders': 'Предстоящие и предстоящие напоминания',
+      'upcoming_and_due_reminders': 'Предстоящие напоминания',
       'upload_receipt': 'Загрузить квитанцию',
       'use_this_source_language': 'Используйте этот исходный язык',
       'view_insights_and_trends': 'Просмотр статистики и тенденций',
@@ -10918,6 +10938,9 @@ class AppLocalizations {
           'O login com o Google mantém os seus recibos, categorias e o estado da subscrição sincronizados.',
       'login_footer_note':
           'Ao continuar, irá iniciar sessão com a sua conta Google.',
+      'session_restore_title': 'Verificando a sua conta',
+      'session_restore_body':
+          'Protegemos os seus recibos e restauramos a sua sessão.',
       'settings_title': 'Configurações',
       'settings_subtitle': 'Gerencie suas preferências',
       'settings_currency': 'Moeda',
@@ -12284,6 +12307,9 @@ class AppLocalizations {
           'Google ile giriş yapmak fişlerinizi, kategorilerinizi ve abonelik durumunuzu senkronize tutar.',
       'login_footer_note':
           'Devam ederek Google hesabınızla giriş yapmış olursunuz.',
+      'session_restore_title': 'Hesabınız kontrol ediliyor',
+      'session_restore_body':
+          'Makbuzlarınız korunuyor ve oturumunuz geri yükleniyor.',
       'settings_title': 'Ayarlar',
       'settings_subtitle': 'Tercihlerinizi yönetin',
       'settings_currency': 'Para birimi',
@@ -13617,6 +13643,9 @@ class AppLocalizations {
           'Inloggen met Google houdt uw bonnen, categorieën en abonnementstatus gesynchroniseerd.',
       'login_footer_note':
           'Door verder te gaan, logt u in met uw Google-account.',
+      'session_restore_title': 'Account controleren',
+      'session_restore_body':
+          'We beveiligen je bonnetjes en herstellen je sessie.',
       'settings_title': 'Instellingen',
       'settings_subtitle': 'Beheer uw voorkeuren',
       'settings_currency': 'Munteenheid',
@@ -14974,6 +15003,9 @@ class AppLocalizations {
           'Inloggning med Google håller dina kvitton, kategorier och prenumerationsstatus synkroniserade.',
       'login_footer_note':
           'Genom att fortsätta kommer du att logga in med ditt Google-konto.',
+      'session_restore_title': 'Kontrollerar ditt konto',
+      'session_restore_body':
+          'Vi skyddar dina kvitton och återställer din session.',
       'settings_title': 'Inställningar',
       'settings_subtitle': 'Hantera dina preferenser',
       'settings_currency': 'Valuta',
@@ -16312,6 +16344,8 @@ class AppLocalizations {
       'login_feature_highlight':
           'Přihlášení přes Google udržuje vaše účtenky, kategorie a stav předplatného synchronizované.',
       'login_footer_note': 'Pokračováním se přihlásíte ke svému účtu Google.',
+      'session_restore_title': 'Kontrolujeme účet',
+      'session_restore_body': 'Chráníme vaše účtenky a obnovujeme relaci.',
       'settings_title': 'Nastavení',
       'settings_subtitle': 'Spravujte své preference',
       'settings_currency': 'Měna',
@@ -17645,6 +17679,9 @@ class AppLocalizations {
       'login_feature_highlight':
           'Conectarea cu Google vă menține chitanțele, categoriile și starea abonamentului sincronizate.',
       'login_footer_note': 'Continuând, vă veți conecta cu contul Google.',
+      'session_restore_title': 'Verificăm contul',
+      'session_restore_body':
+          'Îți protejăm chitanțele și îți restaurăm sesiunea.',
       'settings_title': 'Setări',
       'settings_subtitle': 'Gestionați-vă preferințele',
       'settings_currency': 'Valută',
@@ -19013,6 +19050,9 @@ class AppLocalizations {
       'login_feature_highlight':
           'A Google-bejelentkezés szinkronizálva tartja nyugtáit, kategóriáit és előfizetési állapotát.',
       'login_footer_note': 'A folytatással bejelentkezik Google-fiókjával.',
+      'session_restore_title': 'Fiók ellenőrzése',
+      'session_restore_body':
+          'Védjük a bizonylataidat és visszaállítjuk a munkamenetedet.',
       'settings_title': 'Beállítások elemre',
       'settings_subtitle': 'Kezelje beállításait',
       'settings_currency': 'Valuta',
@@ -20368,6 +20408,8 @@ class AppLocalizations {
           'Masuk dengan Google menjaga struk, kategori, dan status langganan Anda tetap sinkron.',
       'login_footer_note':
           'Dengan melanjutkan, Anda akan masuk dengan akun Google Anda.',
+      'session_restore_title': 'Memeriksa akun Anda',
+      'session_restore_body': 'Mengamankan struk dan memulihkan sesi Anda.',
       'settings_title': 'Pengaturan',
       'settings_subtitle': 'Kelola preferensi Anda',
       'settings_currency': 'Mata uang',
@@ -21715,6 +21757,8 @@ class AppLocalizations {
           'Log masuk dengan Google memastikan resit, kategori dan status langganan anda sentiasa segerak.',
       'login_footer_note':
           'Dengan meneruskan, anda akan log masuk dengan akaun Google anda.',
+      'session_restore_title': 'Menyemak akaun anda',
+      'session_restore_body': 'Melindungi resit anda dan memulihkan sesi anda.',
       'settings_title': 'tetapan',
       'settings_subtitle': 'Urus pilihan anda',
       'settings_currency': 'mata wang',
@@ -23057,6 +23101,8 @@ class AppLocalizations {
           'Đăng nhập bằng Google giúp biên lai, danh mục và trạng thái đăng ký của bạn luôn được đồng bộ hóa.',
       'login_footer_note':
           'Bằng cách tiếp tục, bạn sẽ đăng nhập bằng tài khoản Google của mình.',
+      'session_restore_title': 'Đang kiểm tra tài khoản',
+      'session_restore_body': 'Đang bảo vệ hóa đơn và khôi phục phiên của bạn.',
       'settings_title': 'Cài đặt',
       'settings_subtitle': 'Quản lý tùy chọn của bạn',
       'settings_currency': 'Tiền tệ',
@@ -24398,6 +24444,8 @@ class AppLocalizations {
       'login_failed': '登录失败：{error}',
       'login_feature_highlight': '使用 Google 登录可使您的小票、类别和订阅状态保持同步。',
       'login_footer_note': '继续操作即表示您将使用 Google 帐号登录。',
+      'session_restore_title': '正在检查你的账户',
+      'session_restore_body': '正在保护你的收据并恢复会话。',
       'settings_title': '设置',
       'settings_subtitle': '管理您的偏好设置',
       'settings_currency': '货币',
@@ -25526,6 +25574,8 @@ class AppLocalizations {
       'login_feature_highlight':
           'Googleサインインすると、レシート、カテゴリ、サブスクリプション ステータスの同期が維持されます。',
       'login_footer_note': '続行すると、Googleアカウントでサインインします。',
+      'session_restore_title': 'アカウントを確認中',
+      'session_restore_body': 'レシートを保護し、セッションを復元しています。',
       'settings_title': '設定',
       'settings_subtitle': 'お好みを管理する',
       'settings_currency': '通貨',
@@ -26697,6 +26747,8 @@ class AppLocalizations {
       'login_feature_highlight':
           'Google로그인은 영수증, 카테고리 및 구독 상태를 동기화된 상태로 유지합니다.',
       'login_footer_note': '계속하면 Google계정으로 로그인됩니다.',
+      'session_restore_title': '계정을 확인하는 중',
+      'session_restore_body': '영수증을 보호하고 세션을 복원하는 중입니다.',
       'settings_title': '설정',
       'settings_subtitle': '기본 설정 관리',
       'settings_currency': '통화',
@@ -27885,6 +27937,9 @@ class AppLocalizations {
       'login_feature_highlight':
           'Googleसाइन-इन आपकी रसीदों, श्रेणियों और सदस्यता स्थिति को समन्वयित रखता है।',
       'login_footer_note': 'जारी रखकर, आप अपने Googleखाते से साइन इन करेंगे।',
+      'session_restore_title': 'आपका खाता जांचा जा रहा है',
+      'session_restore_body':
+          'आपकी रसीदें सुरक्षित की जा रही हैं और सत्र बहाल किया जा रहा है।',
       'settings_title': 'सेटिंग्स',
       'settings_subtitle': 'अपनी प्राथमिकताएं प्रबंधित करें',
       'settings_currency': 'मुद्रा',
@@ -29205,6 +29260,8 @@ class AppLocalizations {
           'يؤدي تسجيل الدخول إلى Googleإلى مزامنة الإيصالات والفئات وحالة الاشتراك.',
       'login_footer_note':
           'من خلال المتابعة، سيتم تسجيل الدخول باستخدام حساب Googleالخاص بك.',
+      'session_restore_title': 'جارٍ التحقق من حسابك',
+      'session_restore_body': 'نؤمّن إيصالاتك ونستعيد جلستك.',
       'settings_title': 'إعدادات',
       'settings_subtitle': 'إدارة تفضيلاتك',
       'settings_currency': 'عملة',
@@ -30500,6 +30557,8 @@ class AppLocalizations {
           'El inicio de sesión con Google mantiene sincronizados sus recibos, categorías y el estado de su suscripción.',
       'login_footer_note':
           'Al continuar, iniciará sesión con su cuenta de Google.',
+      'session_restore_title': 'Comprobando tu cuenta',
+      'session_restore_body': 'Protegemos tus recibos y restauramos tu sesión.',
       'settings_title': 'Configuración',
       'settings_subtitle': 'Gestiona tus preferencias',
       'settings_currency': 'Moneda',
