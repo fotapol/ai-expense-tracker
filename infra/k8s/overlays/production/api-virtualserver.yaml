@@ -21,43 +21,43 @@ spec:
         return:
           code: 404
           type: application/json
-          body: '{"detail":"Not Found"}'
+          body: '{\"detail\":\"Not Found\"}'
     - path: =/health/live
       action:
         return:
           code: 404
           type: application/json
-          body: '{"detail":"Not Found"}'
+          body: '{\"detail\":\"Not Found\"}'
     - path: =/health/ready
       action:
         return:
           code: 404
           type: application/json
-          body: '{"detail":"Not Found"}'
+          body: '{\"detail\":\"Not Found\"}'
     - path: =/docs
       action:
         return:
           code: 404
           type: application/json
-          body: '{"detail":"Not Found"}'
+          body: '{\"detail\":\"Not Found\"}'
     - path: =/docs/oauth2-redirect
       action:
         return:
           code: 404
           type: application/json
-          body: '{"detail":"Not Found"}'
+          body: '{\"detail\":\"Not Found\"}'
     - path: =/redoc
       action:
         return:
           code: 404
           type: application/json
-          body: '{"detail":"Not Found"}'
+          body: '{\"detail\":\"Not Found\"}'
     - path: =/openapi.json
       action:
         return:
           code: 404
           type: application/json
-          body: '{"detail":"Not Found"}'
+          body: '{\"detail\":\"Not Found\"}'
     - path: /
       action:
         pass: api
