@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:purchases_flutter/purchases_flutter.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 import '../core/api_client.dart';
+import '../core/app_env.dart';
 import '../core/launch_error_copy.dart';
 import '../core/redesign_system.dart';
 import '../core/revenuecat_service.dart';
@@ -375,6 +377,23 @@ class _SubscriptionScreenState extends State<SubscriptionScreen> {
       error,
       fallback: context.tr('billing_update_error'),
     );
+  }
+
+  Future<void> _openPlaySubscriptionManagement() async {
+    final uri = AppEnv.uriFrom(AppEnv.playSubscriptionsUrl);
+    var opened = false;
+    try {
+      opened =
+          uri != null &&
+          await launchUrl(uri, mode: LaunchMode.externalApplication);
+    } catch (_) {
+      opened = false;
+    }
+    if (!opened && mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(context.tr('could_not_open_that_link'))),
+      );
+    }
   }
 
   bool _isOperationInProgressError(Object error) {
@@ -884,6 +903,19 @@ class _SubscriptionScreenState extends State<SubscriptionScreen> {
               color: ShellStyles.heroTextSecondary(context),
               fontSize: 11.5 * uiScale,
               height: 1.35,
+            ),
+          ),
+          SizedBox(height: 14 * uiScale),
+          Align(
+            alignment: Alignment.centerLeft,
+            child: OutlinedButton.icon(
+              onPressed: _openPlaySubscriptionManagement,
+              icon: const Icon(Icons.open_in_new, size: 18),
+              label: Text(context.tr('settings_manage_subscription')),
+              style: OutlinedButton.styleFrom(
+                foregroundColor: ShellStyles.heroTextPrimary(context),
+                side: BorderSide(color: ShellStyles.heroBadgeBorder(context)),
+              ),
             ),
           ),
         ],

@@ -1,9 +1,11 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:google_sign_in/google_sign_in.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 import '../core/app_navigation.dart';
 import '../core/api_client.dart';
+import '../core/app_env.dart';
 import '../core/launch_error_copy.dart';
 import '../core/localized_dates.dart';
 import '../core/redesign_system.dart';
@@ -367,6 +369,23 @@ class _ProfileSettingsScreenState extends State<ProfileSettingsScreen> {
     ).whenComplete(controller.dispose);
   }
 
+  Future<void> _openPlaySubscriptionManagement() async {
+    final uri = AppEnv.uriFrom(AppEnv.playSubscriptionsUrl);
+    var opened = false;
+    try {
+      opened =
+          uri != null &&
+          await launchUrl(uri, mode: LaunchMode.externalApplication);
+    } catch (_) {
+      opened = false;
+    }
+    if (!opened && mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(context.tr('could_not_open_that_link'))),
+      );
+    }
+  }
+
   Widget _buildPhotoAvatar() {
     final rawProfile = _profileData?['profile'];
     final backendAvatarUrl = rawProfile is Map<String, dynamic>
@@ -488,6 +507,63 @@ class _ProfileSettingsScreenState extends State<ProfileSettingsScreen> {
         ),
         if (hasDivider) Divider(height: 1, color: ShellStyles.border(context)),
       ],
+    );
+  }
+
+  Widget _buildManageSubscriptionCard() {
+    return SettingsDetailCard(
+      radius: 18,
+      padding: const EdgeInsets.all(16),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Container(
+            width: 38,
+            height: 38,
+            alignment: Alignment.center,
+            decoration: BoxDecoration(
+              color: ShellColors.gold.withAlpha(18),
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: const CrownIcon(
+              color: ShellColors.gold,
+              size: 20,
+              strokeWidth: 1.7,
+            ),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  context.tr('settings_manage_subscription'),
+                  style: TextStyle(
+                    color: ShellStyles.textPrimary(context),
+                    fontSize: 14.5,
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  context.tr('billing_managed_by_store_note'),
+                  style: TextStyle(
+                    color: ShellStyles.textMuted(context),
+                    fontSize: 12.5,
+                    height: 1.35,
+                  ),
+                ),
+                const SizedBox(height: 12),
+                OutlinedButton.icon(
+                  onPressed: _openPlaySubscriptionManagement,
+                  icon: const Icon(Icons.open_in_new, size: 18),
+                  label: Text(context.tr('settings_manage_subscription')),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
     );
   }
 
@@ -676,6 +752,10 @@ class _ProfileSettingsScreenState extends State<ProfileSettingsScreen> {
                         ],
                       ),
                     ),
+                    if (_hasActiveSubscription) ...[
+                      const SizedBox(height: 16),
+                      _buildManageSubscriptionCard(),
+                    ],
                     if (_hasPendingChanges || _isSaving) ...[
                       const SizedBox(height: 20),
                       SizedBox(
