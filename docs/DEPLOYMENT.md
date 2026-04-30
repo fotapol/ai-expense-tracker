@@ -96,8 +96,10 @@ Use:
 - an Origin Rule for `nexavend.store` that rewrites the destination port to
   `8443`, so public users can open `https://nexavend.store` without typing the
   origin port
-- API and storage public URLs with the explicit alternate HTTPS port:
-  `https://api.nexavend.store:8443` and `https://storage.nexavend.store:8443`
+- API public URL with the explicit alternate HTTPS port:
+  `https://api.nexavend.store:8443`
+- Storage public URL without a port when Cloudflare rewrites the origin port:
+  `https://storage.nexavend.store`
 - the public site URL you set in `PUBLIC_APP_BASE_URL`, for example
   `https://nexavend.store`
 
@@ -116,7 +118,40 @@ kubectl -n expense-tracker create secret tls expense-tracker-origin-tls \
   --key=origin.key
 ```
 
-### 6. Prepare `.env.production`
+### 6. Create The GHCR Image Pull Secret
+
+The production overlay attaches the canonical private-registry pull secret
+`ghcr-creds` to the default ServiceAccount in the `expense-tracker` namespace.
+Create the secret before applying workloads:
+
+```bash
+kubectl -n expense-tracker create secret docker-registry ghcr-creds \
+  --docker-server=ghcr.io \
+  --docker-username=fotapol \
+  --docker-password="$GHCR_READ_PACKAGES_TOKEN"
+```
+
+The token in `GHCR_READ_PACKAGES_TOKEN` needs the `read:packages` permission for
+GHCR private image pulls. Do not commit the token.
+
+Preflight:
+
+```bash
+kubectl -n expense-tracker get secret ghcr-creds
+kubectl -n expense-tracker get serviceaccount default -o yaml
+```
+
+Expected ServiceAccount output includes:
+
+```yaml
+imagePullSecrets:
+- name: ghcr-creds
+```
+
+If dedicated ServiceAccounts are introduced later for API, worker, site, or
+backup jobs, keep using the same image pull secret name: `ghcr-creds`.
+
+### 7. Prepare `.env.production`
 
 Copy `.env.production.example` to `.env.production` and fill:
 
@@ -129,6 +164,12 @@ Copy `.env.production.example` to `.env.production` and fill:
 - RevenueCat values if used
 
 The image values must point to pullable registry images before you deploy.
+The render script rejects placeholder `ghcr.io/example/...` images and
+production app images tagged `:latest`. The current public site image value is:
+
+```bash
+SITE_IMAGE=ghcr.io/fotapol/ai-expense-tracker-site:prod-1
+```
 
 Build and publish the backup image from:
 
@@ -144,24 +185,30 @@ docker build -f site/Dockerfile -t ghcr.io/your-org/ai-expense-tracker-site:2026
 docker push ghcr.io/your-org/ai-expense-tracker-site:2026-04-23
 ```
 
-### 7. Render Kubernetes Inputs
+### 8. Render Kubernetes Inputs
 
 ```bash
 python infra/k8s/scripts/render_k8s_env.py --env-file .env.production
 ```
 
-### 8. Apply The Production Overlay
+### 9. Apply The Production Overlay
 
 ```bash
 kubectl apply -k infra/k8s/overlays/production
 ```
 
-The production API and storage ingress manifests already pin their F5 NGINX listener annotations to:
+The production API, site, and storage routes use F5 NGINX `VirtualServer`
+resources with the `https-8443` listener. Do not reintroduce ordinary
+Kubernetes `Ingress` objects for these public routes unless the custom HTTPS
+listener strategy is deliberately migrated.
 
-- `nginx.org/listen-ports: "[80]"`
-- `nginx.org/listen-ports-ssl: "[8443]"`
+The F5 NGINX controller values pin the public HTTPS listener to:
 
-Do not remove those annotations unless you also move the public HTTPS listener back off `8443`.
+- `containerPort: 8443`
+- `hostPort: 8443`
+- `defaultHTTPSListenerPort: 8443`
+
+Do not change those listener values unless you also move the public HTTPS listener back off `8443`.
 
 ## Traffic Path
 

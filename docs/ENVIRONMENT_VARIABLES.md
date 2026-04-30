@@ -66,7 +66,7 @@ Those generated files are the only inputs the production Kustomize overlay uses 
 | `MINIO_ROOT_USER` | MinIO root username. | Required | `minioadmin` | Stored as a secret; in the single-node setup it also seeds app S3 credentials when explicit S3 keys are omitted. | Yes |
 | `MINIO_ROOT_PASSWORD` | MinIO root password. | Required | `minioadmin123` | Use a strong production value and rotate carefully. | Yes |
 | `S3_ENDPOINT` | Internal MinIO/S3 endpoint used by backend and worker. | Required | `http://minio:9000` | Should remain the in-cluster/internal endpoint. | No |
-| `S3_EXTERNAL_ENDPOINT` | Publicly reachable S3-compatible endpoint for presigned receipt URLs. | Required | `http://localhost:9000` | In production this should be a Cloudflare-fronted storage host such as `https://storage.nexavend.store:8443`. | No |
+| `S3_EXTERNAL_ENDPOINT` | Publicly reachable S3-compatible endpoint for presigned receipt URLs. | Required | `http://localhost:9000` | In production with Cloudflare origin port rewriting, use the clean public host such as `https://storage.nexavend.store`. | No |
 | `S3_ACCESS_KEY` | Explicit S3 access key override. | Optional | blank | Leave blank to reuse `MINIO_ROOT_USER`; stored as a secret. | Yes |
 | `S3_SECRET_KEY` | Explicit S3 secret key override. | Optional | blank | Leave blank to reuse `MINIO_ROOT_PASSWORD`; stored as a secret. | Yes |
 | `S3_REGION` | S3 region value used by the client. | Required | `eu-central-1` | Keep stable once objects exist. | No |
@@ -99,9 +99,9 @@ Those generated files are the only inputs the production Kustomize overlay uses 
 | `LANGSMITH_ENDPOINT` | LangSmith API endpoint. | Required | `https://api.smith.langchain.com` | Override only for self-hosted or regional setups. | No |
 | `LANGSMITH_HIDE_INPUTS` | Hide raw trace inputs from LangSmith by default. | Required | `true` | Keep enabled for receipt privacy. | No |
 | `LANGSMITH_HIDE_OUTPUTS` | Hide raw trace outputs from LangSmith by default. | Required | `true` | Keep enabled for receipt privacy. | No |
-| `BACKEND_IMAGE` | Pullable container image for the API and worker workloads. | Required | `ghcr.io/example/ai-expense-tracker-backend:latest` | The render script patches the production manifests to use this exact image reference. | No |
-| `SITE_IMAGE` | Pullable container image for the public static site workload. | Required when deploying the public site | `ghcr.io/example/ai-expense-tracker-site:latest` | Build from `site/Dockerfile` and publish it before applying the production overlay. | No |
-| `POSTGRES_BACKUP_IMAGE` | Pullable container image for the PostgreSQL backup CronJob. | Required | `ghcr.io/example/ai-expense-tracker-postgres-backup:latest` | Build from `infra/images/postgres-backup/Dockerfile` and publish it before applying the production overlay. | No |
+| `BACKEND_IMAGE` | Pullable container image for the API and worker workloads. | Required | `ghcr.io/fotapol/ai-expense-tracker-backend:prod-1` | The render script rejects placeholder `ghcr.io/example/...` images and `:latest` in production. | No |
+| `SITE_IMAGE` | Pullable container image for the public static site workload. | Required when deploying the public site | `ghcr.io/fotapol/ai-expense-tracker-site:prod-1` | Build from `site/Dockerfile` and publish it before applying the production overlay. | No |
+| `POSTGRES_BACKUP_IMAGE` | Pullable container image for the PostgreSQL backup CronJob. | Required | `ghcr.io/fotapol/ai-expense-tracker-postgres-backup:prod-1` | Build from `infra/images/postgres-backup/Dockerfile` and publish it before applying the production overlay. | No |
 | `PROMETHEUS_RETENTION_TIME` | Prometheus local retention window. | Required | `7d` | Tune for VPS disk budget. | No |
 | `PROMETHEUS_RETENTION_SIZE` | Prometheus max local retention size. | Required | `2GB` | Tune for VPS disk budget. | No |
 | `PROMETHEUS_SCRAPE_INTERVAL` | Prometheus scrape interval for API/worker/internal targets. | Required | `15s` | Rendered into the generated Prometheus config file. | No |
@@ -139,6 +139,8 @@ These values are part of the overall operator-facing config. They are used by th
 | `APP_WEBSITE_URL` | Canonical website link shown in the app and used by the static site header/footer links. | Optional | `http://localhost:3000` | Keep aligned with the real public website. If omitted in production rendering, it falls back to `PUBLIC_APP_BASE_URL`. | No |
 | `APP_PRIVACY_URL` | Privacy-policy link shown in the app and used by the static site legal navigation. | Optional | `http://localhost:3000/privacy` | Keep aligned with the real public policy page. If omitted in production rendering, it falls back to `APP_WEBSITE_URL + /privacy`. | No |
 | `APP_TERMS_URL` | Terms-of-service link shown in the app and used by the static site legal navigation. | Optional | `http://localhost:3000/terms` | Keep aligned with the real public terms page. If omitted in production rendering, it falls back to `APP_WEBSITE_URL + /terms`. | No |
+| `APP_DELETE_ACCOUNT_URL` | Account-deletion instruction link shown in app/legal surfaces. | Required for production mobile builds | `http://localhost:3000/delete-account` | Production Android builds require `https://nexavend.store/delete-account`. If omitted in production rendering, it falls back to `APP_WEBSITE_URL + /delete-account`. | No |
+| `APP_PLAY_SUBSCRIPTIONS_URL` | Google Play subscription management link opened for active Android subscribers. | Optional | `https://play.google.com/store/account/subscriptions?package=com.nexavend.expense_tracker_app` | Override only if the package-specific Play management URL changes. | No |
 | `APP_GITHUB_URL` | Repository/support code link shown in the app. | Optional | `https://github.com/expense-tracker/ai-expense-tracker` | Adjust if the public repo URL changes. | No |
 | `APP_SUPPORT_EMAIL` | Support email displayed in the app and rendered into the public site support CTA. | Optional | `support@example.com` | Use the real operator support mailbox. | No |
 | `APP_SUPPORT_SUBJECT` | Default support email subject for mailto links. | Optional | `Expense Tracker Support` | Keep human-friendly. | No |
