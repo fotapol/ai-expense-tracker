@@ -19,6 +19,7 @@ secretGenerator:
 
 resources:
   - ../../base
+  - default-serviceaccount-imagepullsecret.yaml
   - api-virtualserver.yaml
   - site-virtualserver.yaml
   - storage-virtualserver.yaml

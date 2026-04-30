@@ -29,11 +29,59 @@ spec:
               containerPort: 5672
             - name: management
               containerPort: 15672
+          env:
+            - name: RABBITMQ_DEFAULT_USER
+              valueFrom:
+                secretKeyRef:
+                  name: expense-tracker-secrets
+                  key: RABBITMQ_USER
+            - name: RABBITMQ_DEFAULT_PASS
+              valueFrom:
+                secretKeyRef:
+                  name: expense-tracker-secrets
+                  key: RABBITMQ_PASSWORD
+            - name: RABBITMQ_DEFAULT_VHOST
+              valueFrom:
+                configMapKeyRef:
+                  name: expense-tracker-config
+                  key: RABBITMQ_VHOST
           envFrom:
             - configMapRef:
                 name: expense-tracker-config
             - secretRef:
                 name: expense-tracker-secrets
+          lifecycle:
+            postStart:
+              exec:
+                command:
+                  - sh
+                  - -ec
+                  - |
+                    for i in $(seq 1 60); do
+                      if rabbitmq-diagnostics -q ping >/dev/null 2>&1; then
+                        break
+                      fi
+                      sleep 2
+                    done
+
+                    rabbitmq-diagnostics -q ping >/dev/null 2>&1
+
+                    vhost="${RABBITMQ_DEFAULT_VHOST:-${RABBITMQ_VHOST:-/}}"
+                    user="${RABBITMQ_DEFAULT_USER:-${RABBITMQ_USER:-}}"
+                    pass="${RABBITMQ_DEFAULT_PASS:-${RABBITMQ_PASSWORD:-}}"
+
+                    if [ -z "$user" ] || [ -z "$pass" ]; then
+                      echo "RabbitMQ bootstrap credentials are missing" >&2
+                      exit 1
+                    fi
+
+                    rabbitmqctl add_vhost "$vhost" >/dev/null 2>&1 || true
+                    if rabbitmqctl list_users --silent | awk '{print $1}' | grep -Fxq "$user"; then
+                      rabbitmqctl change_password "$user" "$pass" >/dev/null
+                    else
+                      rabbitmqctl add_user "$user" "$pass" >/dev/null
+                    fi
+                    rabbitmqctl set_permissions -p "$vhost" "$user" '.*' '.*' '.*' >/dev/null
           volumeMounts:
             - name: data
               mountPath: /var/lib/rabbitmq
