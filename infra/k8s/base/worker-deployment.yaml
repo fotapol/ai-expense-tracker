@@ -20,10 +20,22 @@ spec:
         app.kubernetes.io/part-of: ai-expense-tracker
     spec:
       terminationGracePeriodSeconds: 60
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 10001
+        runAsGroup: 10001
+        fsGroup: 10001
+        seccompProfile:
+          type: RuntimeDefault
       containers:
         - name: worker
           image: ai-expense-tracker-backend:latest
           imagePullPolicy: IfNotPresent
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop:
+                - ALL
           command:
             - sh
             - -c
@@ -38,6 +50,9 @@ spec:
                 name: expense-tracker-config
             - secretRef:
                 name: expense-tracker-secrets
+          volumeMounts:
+            - name: firebase-secrets
+              mountPath: /run/secrets
           readinessProbe:
             tcpSocket:
               port: metrics
@@ -59,3 +74,6 @@ spec:
             limits:
               cpu: 1000m
               memory: 1Gi
+      volumes:
+        - name: firebase-secrets
+          emptyDir: {}

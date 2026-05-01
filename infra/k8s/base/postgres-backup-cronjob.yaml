@@ -22,10 +22,21 @@ spec:
             app.kubernetes.io/part-of: ai-expense-tracker
         spec:
           restartPolicy: OnFailure
+          securityContext:
+            runAsNonRoot: true
+            runAsUser: 70
+            runAsGroup: 70
+            seccompProfile:
+              type: RuntimeDefault
           containers:
             - name: postgres-backup
               image: ai-expense-tracker-postgres-backup:latest
               imagePullPolicy: IfNotPresent
+              securityContext:
+                allowPrivilegeEscalation: false
+                capabilities:
+                  drop:
+                    - ALL
               envFrom:
                 - configMapRef:
                     name: expense-tracker-config
