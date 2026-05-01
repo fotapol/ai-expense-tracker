@@ -23,6 +23,7 @@ resources:
   - api-virtualserver.yaml
   - site-virtualserver.yaml
   - storage-virtualserver.yaml
+  - network-policies.yaml
 
 patches:
   - path: generated/postgres-backup-schedule-patch.yaml
