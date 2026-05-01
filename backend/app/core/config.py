@@ -158,6 +158,8 @@ class AppSettings:
             if not self.is_production:
                 return ("http://localhost:3000", "http://127.0.0.1:3000")
             return ()
+        if name == "RUN_STARTUP_MIGRATIONS":
+            return _bool_env("RUN_STARTUP_MIGRATIONS", True)
         if name == "MAX_RECEIPT_FILE_BYTES":
             return _int_env("MAX_RECEIPT_FILE_BYTES", 15 * 1024 * 1024)
         if name == "UVICORN_FORWARDED_ALLOW_IPS":

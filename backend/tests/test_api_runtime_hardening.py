@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import importlib
 
+import pytest
 from fastapi.testclient import TestClient
 
 
@@ -66,3 +67,38 @@ def test_trusted_host_accepts_internal_probe_host(monkeypatch) -> None:
 
     assert response.status_code == 200
     assert response.json() == {"status": "ok"}
+
+
+@pytest.mark.anyio
+async def test_startup_migrations_can_be_disabled(monkeypatch) -> None:
+    monkeypatch.setenv("RUN_STARTUP_MIGRATIONS", "false")
+
+    import app.core.minio as minio
+    import app.main as main
+
+    main = importlib.reload(main)
+    migration_calls = 0
+
+    async def _migrate() -> None:
+        nonlocal migration_calls
+        migration_calls += 1
+
+    async def _redis_ok() -> bool:
+        return True
+
+    async def _async_noop() -> None:
+        return None
+
+    monkeypatch.setattr(main, "validate_production_config", lambda: None)
+    monkeypatch.setattr(main, "run_startup_migrations", _migrate)
+    monkeypatch.setattr(main, "initialize_firebase", lambda: None)
+    monkeypatch.setattr(main, "check_redis_health", _redis_ok)
+    monkeypatch.setattr(main, "connect_rabbitmq", _async_noop)
+    monkeypatch.setattr(main, "close_rabbitmq", _async_noop)
+    monkeypatch.setattr(main, "close_redis_pool", _async_noop)
+    monkeypatch.setattr(minio, "ensure_bucket", lambda _bucket: None)
+
+    async with main.lifespan(main.app):
+        pass
+
+    assert migration_calls == 0

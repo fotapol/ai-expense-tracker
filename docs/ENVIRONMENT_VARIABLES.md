@@ -8,7 +8,8 @@ For Kubernetes, the operator workflow is:
 1. Copy `.env.production.example` to `.env.production`.
 2. Fill real values.
 3. Run `python infra/k8s/scripts/render_k8s_env.py --env-file .env.production`.
-4. Apply `kubectl apply -k infra/k8s/overlays/production`.
+4. Run `bash scripts/run_k8s_migrations.sh` when `RUN_STARTUP_MIGRATIONS=false`.
+5. Apply `kubectl apply -k infra/k8s/overlays/production`.
 
 The render script writes:
 
@@ -31,6 +32,7 @@ Those generated files are the only inputs the production Kustomize overlay uses 
 | `API_DOCS_ENABLED` | Enable FastAPI docs, Redoc, and OpenAPI routes. | Required | `true` | Keep `false` in production; public docs are blocked at ingress and disabled in the app runtime. | No |
 | `TRUSTED_HOSTS` | Comma-separated Host header allowlist for FastAPI. | Required in production | `localhost,127.0.0.1,testserver` | Include `api.nexavend.store` and the internal API service hosts; `:8443` is accepted because the middleware normalizes ports. | No |
 | `CORS_ALLOWED_ORIGINS` | Comma-separated browser origins allowed by CORS. | Required in production | `http://localhost:3000,http://127.0.0.1:3000` | Set to the public site origin such as `https://nexavend.store`. | No |
+| `RUN_STARTUP_MIGRATIONS` | Run Alembic migrations during API startup. | Required | `true` | Prefer `false` in production after the migration job script has been verified for the cluster. | No |
 | `MAX_RECEIPT_FILE_BYTES` | Backend hard cap for uploaded receipt size. | Required | `15728640` | Keep aligned with mobile UX and ingress/storage limits. | No |
 | `LOG_LEVEL` | Default backend log level. | Required | `INFO` | Use `INFO` for launch; raise to `DEBUG` only temporarily. | No |
 | `LOG_JSON` | Toggle structured JSON logging. | Required | `false` | Use `true` in production if your log pipeline prefers JSON. | No |

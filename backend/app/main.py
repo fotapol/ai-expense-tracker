@@ -46,7 +46,10 @@ async def lifespan(app: FastAPI):
     """Application startup and shutdown lifecycle handler."""
     # --- Startup ---------------------------------------------------------
     validate_production_config()
-    await run_startup_migrations()
+    if app_settings.RUN_STARTUP_MIGRATIONS:
+        await run_startup_migrations()
+    else:
+        logger.info("Startup database migrations disabled by RUN_STARTUP_MIGRATIONS.")
     initialize_firebase()
 
     redis_ok = await check_redis_health()

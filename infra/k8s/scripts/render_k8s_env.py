@@ -29,6 +29,7 @@ CONFIG_KEYS = {
     "API_DOCS_ENABLED",
     "TRUSTED_HOSTS",
     "CORS_ALLOWED_ORIGINS",
+    "RUN_STARTUP_MIGRATIONS",
     "MAX_RECEIPT_FILE_BYTES",
     "LOG_LEVEL",
     "LOG_JSON",
@@ -154,6 +155,7 @@ REQUIRED_KEYS = {
 DEFAULTS = {
     "APP_ENV": "production",
     "API_DOCS_ENABLED": "false",
+    "RUN_STARTUP_MIGRATIONS": "true",
     "LOG_LEVEL": "INFO",
     "LOG_JSON": "false",
     "PROXY_DIAGNOSTICS_ENABLED": "false",

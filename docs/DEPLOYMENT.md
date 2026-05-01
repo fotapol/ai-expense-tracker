@@ -205,7 +205,21 @@ must not be pointed at production Postgres.
 python infra/k8s/scripts/render_k8s_env.py --env-file .env.production
 ```
 
-### 9. Apply The Production Overlay
+### 9. Run Database Migrations
+
+When `RUN_STARTUP_MIGRATIONS=false`, run the repo-defined migration job before
+the API rollout:
+
+```bash
+bash scripts/run_k8s_migrations.sh
+```
+
+The script creates a temporary Kubernetes `Job` from the currently deployed API
+image, injects the same generated ConfigMap/Secret, runs `alembic upgrade head`,
+waits for completion, and prints the migration logs. Do not point migration
+commands at a production database outside this namespace workflow.
+
+### 10. Apply The Production Overlay
 
 ```bash
 kubectl apply -k infra/k8s/overlays/production
