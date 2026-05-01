@@ -7,16 +7,19 @@ from fastapi import HTTPException, status
 
 from app.api.routers.labels import create_label, delete_label
 from app.models.labels.label import Label
-from app.schemas.labels import LabelCreateRequest
 from app.models.users.user import User
+from app.schemas.labels import LabelCreateRequest
 
 
 class _MockSession:
-    def __init__(self, existing=None):
+    def __init__(self, existing=None, exec_results=None):
         self.added = []
         self.deleted = []
         self._commit_called = False
-        self.existing = existing or []
+        if exec_results is not None:
+            self._exec_results = list(exec_results)
+        else:
+            self._exec_results = [existing or []]
     
     def exec(self, query):
         class Result:
@@ -26,7 +29,8 @@ class _MockSession:
                 return self.items[0] if self.items else None
             def all(self):
                 return self.items
-        return Result(self.existing)
+        items = self._exec_results.pop(0) if self._exec_results else []
+        return Result(items)
 
     def add(self, obj):
         if not hasattr(obj, "id") or obj.id is None:
@@ -48,6 +52,12 @@ def test_user():
     return User(id=uuid.uuid4(), email="test@example.com")
 
 
+def _unwrap(func):
+    while hasattr(func, "__wrapped__"):
+        func = func.__wrapped__
+    return func
+
+
 @pytest.mark.anyio
 async def test_create_label_happy_path(test_user):
     session = _MockSession()
@@ -55,7 +65,12 @@ async def test_create_label_happy_path(test_user):
         name="Business Trip",
     )
     
-    res = await create_label(payload=payload, request=None, session=session, current_user=test_user)
+    res = await _unwrap(create_label)(
+        payload=payload,
+        request=None,
+        session=session,
+        current_user=test_user,
+    )
     
     assert res.name == "Business Trip"
     assert session._commit_called
@@ -76,7 +91,12 @@ async def test_create_label_rejects_duplicate_name(test_user):
     )
     
     with pytest.raises(HTTPException) as exc_info:
-        await create_label(payload=payload, request=None, session=session, current_user=test_user)
+        await _unwrap(create_label)(
+            payload=payload,
+            request=None,
+            session=session,
+            current_user=test_user,
+        )
     
     assert exc_info.value.status_code == status.HTTP_409_CONFLICT
 
@@ -89,9 +109,15 @@ async def test_delete_label_happy_path(test_user):
         user_id=test_user.id,
         name="Business Trip",
     )
-    session = _MockSession(existing=[existing])
+    session = _MockSession(exec_results=[[existing], []])
     
-    await delete_label(label_id=label_id, request=None, session=session, current_user=test_user)
+    await _unwrap(delete_label)(
+        label_id=label_id,
+        request=None,
+        session=session,
+        current_user=test_user,
+    )
     
     assert session._commit_called
-    assert existing in session.deleted
+    assert existing not in session.deleted
+    assert existing.is_active is False
