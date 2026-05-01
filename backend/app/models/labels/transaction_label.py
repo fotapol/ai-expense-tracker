@@ -1,7 +1,7 @@
 import uuid
 
 from sqlalchemy import UniqueConstraint
-from sqlmodel import Field, SQLModel
+from sqlmodel import Field
 
 from app.models.shared.timestamps import TimestampedModel
 

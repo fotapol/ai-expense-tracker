@@ -41,6 +41,10 @@ from app.models.users.profile import Profile, ProfileBase
 from app.models.users.user import User, UserBase
 
 __all__ = [
+    "BillReminder",
+    "BillingWebhookEvent",
+    "BudgetCategoryLimit",
+    "BudgetSettings",
     "Category",
     "CategoryBase",
     "CategoryScope",
@@ -54,10 +58,6 @@ __all__ = [
     "FeatureRequestModerationState",
     "FeatureRequestPublicStatus",
     "FeatureRequestVote",
-    "BillReminder",
-    "BillingWebhookEvent",
-    "BudgetCategoryLimit",
-    "BudgetSettings",
     "Household",
     "HouseholdBase",
     "HouseholdInvite",

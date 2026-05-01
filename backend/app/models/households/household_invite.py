@@ -11,7 +11,6 @@ from app.models.shared.enums import HouseholdInviteStatus
 from app.models.shared.timestamps import TimestampedModel
 
 
-
 class HouseholdInviteBase(SQLModel):
     """A one-time invite token sent to join a household.
 

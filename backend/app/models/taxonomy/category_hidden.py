@@ -1,6 +1,9 @@
 import uuid
-from sqlmodel import Field, SQLModel
+
+from sqlmodel import Field
+
 from app.models.shared.timestamps import TimestampedModel
+
 
 class UserHiddenCategory(TimestampedModel, table=True):
     """Tracks global built-in categories that a specific user has chosen to hide/delete."""

@@ -16,11 +16,11 @@ class HouseholdMemberBase(SQLModel):
 
     A user may only have one *active* household membership at a time.
     The ``role`` determines management permissions:
-    - ``owner`` – full control, cannot be removed by others.
-    - ``admin`` – can invite / remove regular members.
-    - ``member`` – read-only household visibility.
+    - ``owner`` - full control, cannot be removed by others.
+    - ``admin`` - can invite / remove regular members.
+    - ``member`` - read-only household visibility.
 
-    Status transitions: ``invited`` → ``active`` (on accept) or ``removed``/``left``.
+    Status transitions: ``invited`` -> ``active`` (on accept) or ``removed``/``left``.
     """
 
     id: uuid.UUID = Field(default_factory=uuid.uuid4, primary_key=True)
