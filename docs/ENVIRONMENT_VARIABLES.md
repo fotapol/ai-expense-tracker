@@ -37,7 +37,7 @@ Those generated files are the only inputs the production Kustomize overlay uses 
 | `LOG_LEVEL` | Default backend log level. | Required | `INFO` | Use `INFO` for launch; raise to `DEBUG` only temporarily. | No |
 | `LOG_JSON` | Toggle structured JSON logging. | Required | `false` | Use `true` in production if your log pipeline prefers JSON. | No |
 | `PROXY_DIAGNOSTICS_ENABLED` | Temporarily log safe proxy/Host diagnostics for Cloudflare/F5 verification. | Required | `false` | Enable only during proxy trust validation, then turn it off. | No |
-| `UVICORN_FORWARDED_ALLOW_IPS` | Uvicorn proxy-header trust setting. | Required | `*` | Set deliberately for proxy usage; current k8s path expects a maintained NGINX-based controller in front. | No |
+| `UVICORN_FORWARDED_ALLOW_IPS` | Uvicorn proxy-header trust setting. | Required | `*` for local only | Production must use the observed F5 NGINX source IP or CIDR; wildcard is rejected. | No |
 | `INGRESS_CLASS_NAME` | Kubernetes ingress class name. | Required | `nginx` | The production overlay injects this into the API `Ingress`. | No |
 | `INGRESS_TLS_SECRET_NAME` | Kubernetes TLS secret name used by the API ingress. | Required | `expense-tracker-origin-tls` | Store the Cloudflare Origin CA certificate/key in this secret. | No |
 

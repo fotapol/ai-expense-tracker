@@ -205,6 +205,37 @@ def test_production_startup_blocks_unredacted_langsmith(monkeypatch) -> None:
     assert "Production startup blocked" in str(exc_info.value)
 
 
+def test_production_startup_blocks_wildcard_forwarded_trust(monkeypatch) -> None:
+    """Production must not trust forwarded headers from every source."""
+
+    from app.core.startup_checks import validate_production_config
+
+    env = {
+        "APP_ENV": "production",
+        "PUBLIC_API_BASE_URL": "https://api.nexavend.store:8443",
+        "DATABASE_URL": "postgresql+psycopg://user:pass@postgres:5432/db",
+        "S3_ACCESS_KEY": "access",
+        "S3_SECRET_KEY": "secret",
+        "S3_EXTERNAL_ENDPOINT": "https://storage.nexavend.store:8443",
+        "GOOGLE_API_KEY": "google-key",
+        "RABBITMQ_URL": "amqp://expense_tracker:pass@rabbitmq:5672/",
+        "FIREBASE_SERVICE_ACCOUNT_PATH": "/run/secrets/firebase_sa.json",
+        "FIREBASE_SERVICE_ACCOUNT_JSON_B64": "firebase-json",
+        "LANGSMITH_TRACING": "true",
+        "LANGSMITH_API_KEY": "langsmith-key",
+        "LANGSMITH_HIDE_INPUTS": "true",
+        "LANGSMITH_HIDE_OUTPUTS": "true",
+        "UVICORN_FORWARDED_ALLOW_IPS": "*",
+    }
+    for key, value in env.items():
+        monkeypatch.setenv(key, value)
+
+    with pytest.raises(SystemExit) as exc_info:
+        validate_production_config()
+
+    assert "Production startup blocked" in str(exc_info.value)
+
+
 # ---------------------------------------------------------------------------
 # PROD-19: Global exception handler
 # ---------------------------------------------------------------------------

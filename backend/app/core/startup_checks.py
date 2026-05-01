@@ -70,6 +70,12 @@ def validate_production_config() -> None:
                 f"Contains a local/private IP ({public_url}). "
                 "Must be a publicly reachable endpoint in production.",
             ))
+        if app_settings.UVICORN_FORWARDED_ALLOW_IPS == "*":
+            errors.append(_ConfigError(
+                "UVICORN_FORWARDED_ALLOW_IPS",
+                "Wildcard proxy trust is not allowed in production. "
+                "Set the observed F5 NGINX source IP or CIDR.",
+            ))
 
     # --- Database -----------------------------------------------------------
     db_url = database_settings.DATABASE_URL

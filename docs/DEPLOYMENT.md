@@ -205,6 +205,27 @@ must not be pointed at production Postgres.
 python infra/k8s/scripts/render_k8s_env.py --env-file .env.production
 ```
 
+`UVICORN_FORWARDED_ALLOW_IPS` must not be `*` in production. To discover the
+right value after deploying the diagnostics build, temporarily set:
+
+```env
+PROXY_DIAGNOSTICS_ENABLED=true
+UVICORN_FORWARDED_ALLOW_IPS=127.0.0.1
+```
+
+Apply the overlay, make one public request, then inspect the safe proxy
+diagnostic fields:
+
+```bash
+curl -sS https://api.nexavend.store:8443/ >/dev/null
+kubectl -n expense-tracker logs deploy/expense-tracker-api --tail=200 | \
+  grep proxy_socket_client_host
+```
+
+Set `UVICORN_FORWARDED_ALLOW_IPS` to the observed F5 NGINX source IP or CIDR,
+set `PROXY_DIAGNOSTICS_ENABLED=false`, render again, and redeploy. The Host
+header should be `api.nexavend.store` or `api.nexavend.store:8443`.
+
 ### 9. Run Database Migrations
 
 When `RUN_STARTUP_MIGRATIONS=false`, run the repo-defined migration job before

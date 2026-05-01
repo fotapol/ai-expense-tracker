@@ -147,6 +147,7 @@ REQUIRED_KEYS = {
     "GRAFANA_ADMIN_USER",
     "GRAFANA_ADMIN_PASSWORD",
     "POSTGRES_BACKUP_SCHEDULE",
+    "UVICORN_FORWARDED_ALLOW_IPS",
     "BACKEND_IMAGE",
     "SITE_IMAGE",
     "POSTGRES_BACKUP_IMAGE",
@@ -159,7 +160,6 @@ DEFAULTS = {
     "LOG_LEVEL": "INFO",
     "LOG_JSON": "false",
     "PROXY_DIAGNOSTICS_ENABLED": "false",
-    "UVICORN_FORWARDED_ALLOW_IPS": "*",
     "INGRESS_CLASS_NAME": "nginx",
     "INGRESS_TLS_SECRET_NAME": "expense-tracker-origin-tls",
     "POSTGRES_PORT": "5432",
@@ -297,6 +297,14 @@ def validate(values: dict[str, str]) -> None:
         raise SystemExit("PUBLIC_APP_BASE_URL must be a valid absolute URL")
     if values.get("S3_EXTERNAL_ENDPOINT") and not url_host(values["S3_EXTERNAL_ENDPOINT"]):
         raise SystemExit("S3_EXTERNAL_ENDPOINT must be a valid absolute URL")
+    if (
+        values.get("APP_ENV", "").strip().lower() == "production"
+        and values.get("UVICORN_FORWARDED_ALLOW_IPS", "").strip() == "*"
+    ):
+        raise SystemExit(
+            "UVICORN_FORWARDED_ALLOW_IPS must not be '*' in production; "
+            "set the observed ingress source IP or CIDR"
+        )
 
     validate_production_images(values)
 

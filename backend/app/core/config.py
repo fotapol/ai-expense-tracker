@@ -163,7 +163,7 @@ class AppSettings:
         if name == "MAX_RECEIPT_FILE_BYTES":
             return _int_env("MAX_RECEIPT_FILE_BYTES", 15 * 1024 * 1024)
         if name == "UVICORN_FORWARDED_ALLOW_IPS":
-            return _env("UVICORN_FORWARDED_ALLOW_IPS", "*")
+            return _env("UVICORN_FORWARDED_ALLOW_IPS", "127.0.0.1")
         if name == "INGRESS_CLASS_NAME":
             return _env("INGRESS_CLASS_NAME", "nginx")
         if name == "INGRESS_TLS_SECRET_NAME":
