@@ -8,6 +8,8 @@ from fastapi.exceptions import RequestValidationError
 from slowapi import _rate_limit_exceeded_handler
 from slowapi.errors import RateLimitExceeded
 from starlette.exceptions import HTTPException as StarletteHTTPException
+from starlette.middleware.cors import CORSMiddleware
+from starlette.middleware.trustedhost import TrustedHostMiddleware
 from starlette.responses import JSONResponse
 
 from app.api.routers import (
@@ -25,6 +27,7 @@ from app.api.routers import (
     users,
 )
 from app.auth.firebase_admin import initialize_firebase
+from app.core.config import app_settings
 from app.core.db import check_database_health
 from app.core.logging import BackendLoggingMiddleware, configure_logging
 from app.core.metrics import install_metrics, set_api_dependency_health
@@ -76,12 +79,28 @@ async def lifespan(app: FastAPI):
 app = FastAPI(
     title="Expense Tracker API",
     lifespan=lifespan,
+    docs_url="/docs" if app_settings.API_DOCS_ENABLED else None,
+    redoc_url="/redoc" if app_settings.API_DOCS_ENABLED else None,
+    openapi_url="/openapi.json" if app_settings.API_DOCS_ENABLED else None,
 )
 
 # Rate limiting
 app.state.limiter = limiter
 app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
 
+app.add_middleware(
+    TrustedHostMiddleware,
+    allowed_hosts=list(app_settings.TRUSTED_HOSTS),
+    www_redirect=False,
+)
+if app_settings.CORS_ALLOWED_ORIGINS:
+    app.add_middleware(
+        CORSMiddleware,
+        allow_origins=list(app_settings.CORS_ALLOWED_ORIGINS),
+        allow_credentials=True,
+        allow_methods=["DELETE", "GET", "OPTIONS", "PATCH", "POST", "PUT"],
+        allow_headers=["Authorization", "Content-Type", "X-Requested-With"],
+    )
 app.add_middleware(BackendLoggingMiddleware)
 install_metrics(app)
 

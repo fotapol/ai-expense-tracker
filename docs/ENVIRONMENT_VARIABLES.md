@@ -28,6 +28,9 @@ Those generated files are the only inputs the production Kustomize overlay uses 
 | `PUBLIC_API_BASE_URL` | Canonical public API URL. | Required | `http://localhost:8000` | Must be the Cloudflare-fronted API origin such as `https://api.nexavend.store:8443`. | No |
 | `PUBLIC_APP_BASE_URL` | Canonical public app/site URL for invite links and the public website hostname. | Required when deploying the public site | `http://localhost:3000` | Set this to the real public site URL such as `https://nexavend.store`. | No |
 | `APP_ADMIN_EMAILS` | Comma-separated backend admin allowlist. | Optional | `admin@example.com` | Keep tight for single-user launch; rendered into a Kubernetes Secret even though it is not a credential. | Yes |
+| `API_DOCS_ENABLED` | Enable FastAPI docs, Redoc, and OpenAPI routes. | Required | `true` | Keep `false` in production; public docs are blocked at ingress and disabled in the app runtime. | No |
+| `TRUSTED_HOSTS` | Comma-separated Host header allowlist for FastAPI. | Required in production | `localhost,127.0.0.1,testserver` | Include `api.nexavend.store` and the internal API service hosts; `:8443` is accepted because the middleware normalizes ports. | No |
+| `CORS_ALLOWED_ORIGINS` | Comma-separated browser origins allowed by CORS. | Required in production | `http://localhost:3000,http://127.0.0.1:3000` | Set to the public site origin such as `https://nexavend.store`. | No |
 | `MAX_RECEIPT_FILE_BYTES` | Backend hard cap for uploaded receipt size. | Required | `15728640` | Keep aligned with mobile UX and ingress/storage limits. | No |
 | `LOG_LEVEL` | Default backend log level. | Required | `INFO` | Use `INFO` for launch; raise to `DEBUG` only temporarily. | No |
 | `LOG_JSON` | Toggle structured JSON logging. | Required | `false` | Use `true` in production if your log pipeline prefers JSON. | No |

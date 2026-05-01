@@ -26,6 +26,9 @@ CONFIG_KEYS = {
     "SITE_APP_STORE_URL",
     "SITE_GOOGLE_PLAY_URL",
     "SITE_OPEN_APP_URL",
+    "API_DOCS_ENABLED",
+    "TRUSTED_HOSTS",
+    "CORS_ALLOWED_ORIGINS",
     "MAX_RECEIPT_FILE_BYTES",
     "LOG_LEVEL",
     "LOG_JSON",
@@ -150,6 +153,7 @@ REQUIRED_KEYS = {
 
 DEFAULTS = {
     "APP_ENV": "production",
+    "API_DOCS_ENABLED": "false",
     "LOG_LEVEL": "INFO",
     "LOG_JSON": "false",
     "PROXY_DIAGNOSTICS_ENABLED": "false",
