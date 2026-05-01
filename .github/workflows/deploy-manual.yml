@@ -59,6 +59,9 @@ jobs:
       - name: Build backup image
         run: docker build -f infra/images/postgres-backup/Dockerfile -t ai-expense-tracker-postgres-backup:manual .
 
+      - name: Build site image
+        run: docker build -f site/Dockerfile -t ai-expense-tracker-site:manual .
+
       - name: Configure kubeconfig
         if: ${{ inputs.apply_to_cluster }}
         env:

@@ -40,33 +40,17 @@ jobs:
             --env-file .env.production.example \
             --output-dir infra/k8s/overlays/production/generated
 
-      - name: Lint launch-safe backend paths
+      - name: Lint backend
         working-directory: backend
-        run: |
-          uv run ruff check \
-            app/main.py \
-            app/core/config.py \
-            app/core/logging.py \
-            app/core/metrics.py \
-            app/core/langsmith.py \
-            app/core/startup_checks.py \
-            app/api/routers/billing.py \
-            app/services/billing/revenuecat.py \
-            app/services/billing/webhooks.py \
-            app/worker/receipt_processor.py \
-            tests/test_health_checks.py \
-            tests/test_revenuecat_webhooks.py
+        run: uv run ruff check .
 
-      - name: Run backend launch-safe tests
+      - name: Run backend tests
         working-directory: backend
-        run: |
-          uv run pytest \
-            tests/test_health_checks.py \
-            tests/test_billing_dev_guards.py \
-            tests/test_billing_revenuecat.py \
-            tests/test_revenuecat_webhooks.py \
-            tests/test_receipt_worker_launch.py \
-            tests/test_receipts_launch.py
+        run: uv run pytest
+
+      - name: Audit backend dependencies
+        working-directory: backend
+        run: uvx pip-audit --progress-spinner off
 
       - name: Validate Alembic head
         working-directory: backend
@@ -81,24 +65,57 @@ jobs:
       - name: Build backup image
         run: docker build -f infra/images/postgres-backup/Dockerfile -t ai-expense-tracker-postgres-backup:ci .
 
+      - name: Build site image
+        run: docker build -f site/Dockerfile -t ai-expense-tracker-site:ci .
+
   mobile:
-    name: Flutter Analyze
+    name: Flutter Checks
     runs-on: ubuntu-latest
     defaults:
       run:
         shell: bash
-        working-directory: expense_tracker_app
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+
+      - name: Set up Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
 
       - name: Set up Flutter
         uses: subosito/flutter-action@v2
         with:
           channel: stable
 
-      - name: Install Flutter dependencies
-        run: flutter pub get
+      - name: Generate ephemeral CI upload keystore
+        working-directory: expense_tracker_app
+        env:
+          ANDROID_KEYSTORE_PASSWORD: ci-upload-store-password
+          ANDROID_KEY_PASSWORD: ci-upload-key-password
+          ANDROID_KEY_ALIAS: upload
+        run: |
+          keytool -genkeypair -v \
+            -keystore android/app/upload-keystore.jks \
+            -storepass "${ANDROID_KEYSTORE_PASSWORD}" \
+            -keypass "${ANDROID_KEY_PASSWORD}" \
+            -keyalg RSA \
+            -keysize 2048 \
+            -validity 10000 \
+            -alias "${ANDROID_KEY_ALIAS}" \
+            -dname "CN=CI, OU=Engineering, O=Nexavend, L=Kyiv, ST=Kyiv, C=UA"
 
-      - name: Analyze Flutter app
-        run: flutter analyze
+      - name: Run Flutter tests and Android release smoke
+        env:
+          API_BASE_URL: https://api.nexavend.store:8443
+          REVENUECAT_ANDROID_API_KEY: goog_ci_public_sdk_key_placeholder
+          APP_PRIVACY_URL: https://nexavend.store/privacy
+          APP_TERMS_URL: https://nexavend.store/terms
+          APP_DELETE_ACCOUNT_URL: https://nexavend.store/delete-account
+          APP_SUPPORT_EMAIL: support@nexavend.store
+          ANDROID_KEYSTORE_FILE: upload-keystore.jks
+          ANDROID_KEYSTORE_PASSWORD: ci-upload-store-password
+          ANDROID_KEY_ALIAS: upload
+          ANDROID_KEY_PASSWORD: ci-upload-key-password
+        run: bash scripts/build_android_prod.sh
