@@ -76,8 +76,8 @@ Those generated files are the only inputs the production Kustomize overlay uses 
 | `S3_ACCESS_KEY` | Explicit S3 access key override. | Optional | blank | Leave blank to reuse `MINIO_ROOT_USER`; stored as a secret. | Yes |
 | `S3_SECRET_KEY` | Explicit S3 secret key override. | Optional | blank | Leave blank to reuse `MINIO_ROOT_PASSWORD`; stored as a secret. | Yes |
 | `S3_REGION` | S3 region value used by the client. | Required | `eu-central-1` | Keep stable once objects exist. | No |
-| `S3_BUCKET_RECEIPTS` | Private bucket for uploaded receipt objects. | Required | `receipts` | Do not make public; access should stay presigned only. | No |
-| `S3_BUCKET_BACKUPS` | Private bucket for PostgreSQL backups. | Required | `postgres-backups` | Used by the backup CronJob in production. | No |
+| `S3_BUCKET_RECEIPTS` | Private bucket for uploaded receipt objects. | Required | `receipts` | Do not make public; access should stay presigned only. Receipt objects have no automatic expiry and are removed through receipt deletion/account deletion. | No |
+| `S3_BUCKET_BACKUPS` | Private bucket for PostgreSQL backups. | Required | `postgres-backups` | Used by the backup CronJob in production; old dumps are pruned by `POSTGRES_BACKUP_RETENTION_DAYS`. | No |
 | `S3_PRESIGNED_PUT_EXPIRY_SECONDS` | Receipt upload URL TTL. | Required | `600` | Keep short; mobile flow should upload immediately after creation. | No |
 | `S3_PRESIGNED_GET_EXPIRY_SECONDS` | Receipt preview URL TTL. | Required | `600` | Keep short because receipts are sensitive. | No |
 | `FIREBASE_SERVICE_ACCOUNT_PATH` | File path to the Firebase Admin service account JSON. | Required | `/run/secrets/firebase_sa.json` | The Kubernetes startup command writes the decoded service-account file to this path before the app starts. | No |

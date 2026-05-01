@@ -315,6 +315,38 @@ upload ceiling. The committed controller values set `client-max-body-size` to
 `16m`, which stays above the mobile 10 MB receipt limit and the backend
 `MAX_RECEIPT_FILE_BYTES` value.
 
+### Storage Lifecycle And Retention
+
+Receipt objects do not have automatic expiry. This is deliberate for launch:
+the application deletes receipt objects when a user deletes a receipt, and
+account deletion removes that user's receipt objects before local account data
+is committed as deleted. Do not add a MinIO lifecycle rule that expires the
+`receipts` bucket unless product policy, legal copy, and account deletion
+behavior are updated together.
+
+PostgreSQL backups are different. The backup CronJob uploads dumps under
+`POSTGRES_BACKUP_PREFIX` in `S3_BUCKET_BACKUPS` and prunes old dumps with the
+configured `POSTGRES_BACKUP_RETENTION_DAYS` value, which defaults to `30`.
+
+Use the operator `mc` client from a trusted machine to verify lifecycle state
+without printing secrets:
+
+```bash
+mc alias set prod-storage "$S3_ENDPOINT" "$S3_ACCESS_KEY" "$S3_SECRET_KEY"
+mc ilm ls prod-storage/receipts
+mc ilm ls prod-storage/postgres-backups
+mc ls --recursive prod-storage/postgres-backups/postgres | tail
+```
+
+Expected launch state:
+
+- `prod-storage/receipts` has no automatic expiry lifecycle rule.
+- old database backup objects are pruned by the backup job after
+  `POSTGRES_BACKUP_RETENTION_DAYS`, not by a bucket-wide receipt expiry rule.
+- `S3_EXTERNAL_ENDPOINT` remains the canonical public storage endpoint, for
+  example `https://storage.nexavend.store:8443`, unless a clean-host Cloudflare
+  Origin Rule has been deliberately added and tested.
+
 ### Monitoring
 
 Use port-forward for operator access:
