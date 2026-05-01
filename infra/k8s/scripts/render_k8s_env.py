@@ -10,7 +10,6 @@ import argparse
 from pathlib import Path
 from urllib.parse import quote, urlparse
 
-
 CONFIG_KEYS = {
     "APP_ENV",
     "APP_ADMIN_EMAILS",
@@ -287,9 +286,11 @@ def validate(values: dict[str, str]) -> None:
         missing_keys = ", ".join(missing)
         raise SystemExit(f"Missing required production env values: {missing_keys}")
 
-    if values.get("LANGSMITH_TRACING", "").lower() in {"1", "true", "yes", "on"}:
-        if not values.get("LANGSMITH_API_KEY", "").strip():
-            raise SystemExit("LANGSMITH_API_KEY is required when LANGSMITH_TRACING=true")
+    if (
+        values.get("LANGSMITH_TRACING", "").lower() in {"1", "true", "yes", "on"}
+        and not values.get("LANGSMITH_API_KEY", "").strip()
+    ):
+        raise SystemExit("LANGSMITH_API_KEY is required when LANGSMITH_TRACING=true")
 
     if values.get("PUBLIC_API_BASE_URL") and not url_host(values["PUBLIC_API_BASE_URL"]):
         raise SystemExit("PUBLIC_API_BASE_URL must be a valid absolute URL")
@@ -340,6 +341,9 @@ def write_prometheus_config(path: Path, values: dict[str, str]) -> None:
                 "global:",
                 f"  scrape_interval: {values['PROMETHEUS_SCRAPE_INTERVAL']}",
                 f"  evaluation_interval: {values['PROMETHEUS_EVALUATION_INTERVAL']}",
+                "",
+                "rule_files:",
+                "  - /etc/prometheus/rules.yml",
                 "",
                 "scrape_configs:",
                 "  - job_name: expense-tracker-api",
