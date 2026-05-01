@@ -1,0 +1,93 @@
+name: Restore Rehearsal
+
+on:
+  workflow_dispatch:
+    inputs:
+      namespace:
+        description: "Kubernetes namespace containing production backup config"
+        required: true
+        default: "expense-tracker"
+      timeout:
+        description: "Maximum wait time for the disposable restore job"
+        required: true
+        default: "600s"
+      keep_job:
+        description: "Keep the disposable restore job for operator inspection"
+        required: true
+        default: false
+        type: boolean
+
+permissions:
+  contents: read
+
+jobs:
+  restore-rehearsal:
+    name: Disposable Restore Rehearsal
+    runs-on: ubuntu-latest
+    environment: production
+    defaults:
+      run:
+        shell: bash
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up kubectl
+        uses: azure/setup-kubectl@v4
+        with:
+          version: "latest"
+
+      - name: Configure kubeconfig
+        env:
+          KUBE_CONFIG_B64: ${{ secrets.KUBE_CONFIG_B64 }}
+        run: |
+          if [[ -z "${KUBE_CONFIG_B64}" ]]; then
+            echo "KUBE_CONFIG_B64 secret is required." >&2
+            exit 1
+          fi
+          mkdir -p "${HOME}/.kube"
+          echo "${KUBE_CONFIG_B64}" | base64 --decode > "${HOME}/.kube/config"
+          chmod 600 "${HOME}/.kube/config"
+
+      - name: Run disposable restore verification
+        env:
+          NAMESPACE: ${{ inputs.namespace }}
+          TIMEOUT: ${{ inputs.timeout }}
+          KEEP_JOB: ${{ inputs.keep_job }}
+          JOB_NAME: postgres-restore-verify-${{ github.run_id }}-${{ github.run_attempt }}
+        run: |
+          set -o pipefail
+          bash scripts/verify_postgres_backup_restore.sh 2>&1 | tee restore-rehearsal.log
+
+      - name: Summarize restore rehearsal
+        if: always()
+        env:
+          NAMESPACE: ${{ inputs.namespace }}
+          TIMEOUT: ${{ inputs.timeout }}
+          KEEP_JOB: ${{ inputs.keep_job }}
+          JOB_NAME: postgres-restore-verify-${{ github.run_id }}-${{ github.run_attempt }}
+        run: |
+          {
+            echo "## Restore rehearsal"
+            echo
+            echo "- Namespace: ${NAMESPACE}"
+            echo "- Job: ${JOB_NAME}"
+            echo "- Timeout: ${TIMEOUT}"
+            echo "- Keep job: ${KEEP_JOB}"
+            echo
+            echo '```text'
+            if [[ -f restore-rehearsal.log ]]; then
+              tail -n 80 restore-rehearsal.log
+            else
+              echo "restore-rehearsal.log was not created."
+            fi
+            echo '```'
+          } >> "${GITHUB_STEP_SUMMARY}"
+
+      - name: Upload restore rehearsal log
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: restore-rehearsal-log
+          path: restore-rehearsal.log
+          if-no-files-found: ignore
