@@ -24,10 +24,8 @@ import 'items_translation_settings_screen.dart';
 import 'language_settings_screen.dart';
 import 'login_screen.dart';
 import 'notifications_settings_screen.dart';
-import 'privacy_policy_screen.dart';
 import 'profile_settings_screen.dart';
 import 'subscription_screen.dart';
-import 'terms_of_service_screen.dart';
 
 /// Screen that displays the authenticated user's profile from the backend.
 class MeScreen extends StatefulWidget {
@@ -192,6 +190,23 @@ class _MeScreenState extends State<MeScreen> {
 
   Future<void> _openPlaySubscriptionManagement() async {
     final uri = AppEnv.uriFrom(AppEnv.playSubscriptionsUrl);
+    var opened = false;
+    try {
+      opened =
+          uri != null &&
+          await launchUrl(uri, mode: LaunchMode.externalApplication);
+    } catch (_) {
+      opened = false;
+    }
+    if (!opened && mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(context.tr('could_not_open_that_link'))),
+      );
+    }
+  }
+
+  Future<void> _openExternalUrl(String rawUrl) async {
+    final uri = AppEnv.uriFrom(rawUrl);
     var opened = false;
     try {
       opened =
@@ -486,12 +501,12 @@ class _MeScreenState extends State<MeScreen> {
                 _buildSettingsTile(
                   icon: AppIcons.privacy,
                   title: context.tr('settings_privacy_policy'),
-                  onTap: () => _openSettingsRoute(const PrivacyPolicyScreen()),
+                  onTap: () => _openExternalUrl(AppEnv.privacyUrl),
                 ),
                 _buildSettingsTile(
                   icon: AppIcons.document,
                   title: context.tr('settings_terms_of_service'),
-                  onTap: () => _openSettingsRoute(const TermsOfServiceScreen()),
+                  onTap: () => _openExternalUrl(AppEnv.termsUrl),
                 ),
                 _buildSettingsTile(
                   icon: AppIcons.info,

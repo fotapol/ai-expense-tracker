@@ -1,15 +1,17 @@
+import 'dart:async';
+
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:google_sign_in/google_sign_in.dart';
+import 'package:url_launcher/url_launcher.dart';
 
+import '../core/app_env.dart';
 import '../core/launch_error_copy.dart';
 import '../core/redesign_system.dart';
 import '../core/revenuecat_service.dart';
 import '../core/session_invalidation.dart';
 import '../l10n/app_localizations.dart';
 import 'main_screen.dart';
-import 'privacy_policy_screen.dart';
-import 'terms_of_service_screen.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -80,16 +82,29 @@ class _LoginScreenState extends State<LoginScreen> {
     }
   }
 
+  Future<void> _openExternalUrl(String rawUrl) async {
+    final uri = AppEnv.uriFrom(rawUrl);
+    var opened = false;
+    try {
+      opened =
+          uri != null &&
+          await launchUrl(uri, mode: LaunchMode.externalApplication);
+    } catch (_) {
+      opened = false;
+    }
+    if (!opened && mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(context.tr('could_not_open_that_link'))),
+      );
+    }
+  }
+
   void _openTerms() {
-    Navigator.of(
-      context,
-    ).push(MaterialPageRoute(builder: (_) => const TermsOfServiceScreen()));
+    unawaited(_openExternalUrl(AppEnv.termsUrl));
   }
 
   void _openPrivacy() {
-    Navigator.of(
-      context,
-    ).push(MaterialPageRoute(builder: (_) => const PrivacyPolicyScreen()));
+    unawaited(_openExternalUrl(AppEnv.privacyUrl));
   }
 
   @override
