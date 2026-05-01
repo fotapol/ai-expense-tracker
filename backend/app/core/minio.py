@@ -125,6 +125,26 @@ def download_object(key: str, bucket: str | None = None) -> bytes:
     return resp["Body"].read()
 
 
+def read_object_prefix(
+    key: str,
+    bucket: str | None = None,
+    *,
+    length: int = 4096,
+) -> bytes:
+    """Read the first bytes of an object for lightweight content validation."""
+
+    if length <= 0:
+        return b""
+    bucket = bucket or s3_settings.BUCKET_RECEIPTS
+    client = get_s3_client()
+    resp = client.get_object(
+        Bucket=bucket,
+        Key=key,
+        Range=f"bytes=0-{length - 1}",
+    )
+    return resp["Body"].read()
+
+
 def delete_object(key: str, bucket: str | None = None) -> None:
     """Delete an object from storage."""
     bucket = bucket or s3_settings.BUCKET_RECEIPTS
