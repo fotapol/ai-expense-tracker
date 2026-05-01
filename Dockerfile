@@ -1,9 +1,11 @@
+FROM ghcr.io/astral-sh/uv:0.9.18 AS uv
+
 FROM python:3.12-slim
 
 WORKDIR /app
 
 # Install uv for fast dependency management
-COPY --from=ghcr.io/astral-sh/uv:latest /uv /uvx /bin/
+COPY --from=uv /uv /uvx /bin/
 
 # Copy dependency files first for layer caching
 COPY backend/pyproject.toml backend/uv.lock ./
