@@ -64,8 +64,6 @@ class _Session:
 def test_receipt_failure_reason_is_user_safe_message() -> None:
     """Worker must store a user-friendly message, not a raw Python traceback."""
 
-    from app.worker import receipt_processor as worker
-
     receipt = SimpleNamespace(
         id=uuid.uuid4(),
         status=ReceiptStatus.PROCESSING,
@@ -138,6 +136,73 @@ def test_max_receipt_file_size_constant_exists() -> None:
     assert 1 * 1024 * 1024 <= _MAX_RECEIPT_FILE_BYTES <= 100 * 1024 * 1024
     # Current value should be 15 MB
     assert _MAX_RECEIPT_FILE_BYTES == 15 * 1024 * 1024
+
+
+# ---------------------------------------------------------------------------
+# AI privacy: LangSmith traces must stay receipt-content redacted
+# ---------------------------------------------------------------------------
+
+def test_langsmith_receipt_trace_payloads_are_redacted() -> None:
+    """Trace helper payloads must not include raw receipt content."""
+
+    from app.core.langsmith import (
+        build_receipt_trace_inputs,
+        build_receipt_trace_outputs,
+    )
+
+    raw_receipt_marker = "RAW_RECEIPT_TOTAL_123.45"
+    inputs = build_receipt_trace_inputs(
+        receipt_id="receipt-123",
+        attempt=1,
+        mime_type="image/jpeg",
+        image_size_bytes=len(raw_receipt_marker.encode()),
+        transaction_category_count=12,
+        item_category_count=42,
+    )
+    outputs = build_receipt_trace_outputs(
+        provider="google",
+        model_name="gemini-test",
+        latency_ms=100,
+        item_count=3,
+        currency="USD",
+        warning_count=0,
+        token_usage={"input_tokens": 100, "output_tokens": 50},
+    )
+
+    serialized = repr({"inputs": inputs, "outputs": outputs})
+    assert raw_receipt_marker not in serialized
+    assert inputs["input_redacted"] is True
+    assert outputs["output_redacted"] is True
+
+
+def test_production_startup_blocks_unredacted_langsmith(monkeypatch) -> None:
+    """Production must not start with LangSmith receipt payload hiding disabled."""
+
+    from app.core.startup_checks import validate_production_config
+
+    env = {
+        "APP_ENV": "production",
+        "PUBLIC_API_BASE_URL": "https://api.nexavend.store:8443",
+        "DATABASE_URL": "postgresql+psycopg://user:pass@postgres:5432/db",
+        "S3_ACCESS_KEY": "access",
+        "S3_SECRET_KEY": "secret",
+        "S3_EXTERNAL_ENDPOINT": "https://storage.nexavend.store:8443",
+        "GOOGLE_API_KEY": "google-key",
+        "RABBITMQ_URL": "amqp://expense_tracker:pass@rabbitmq:5672/",
+        "FIREBASE_SERVICE_ACCOUNT_PATH": "/run/secrets/firebase_sa.json",
+        "FIREBASE_SERVICE_ACCOUNT_JSON_B64": "firebase-json",
+        "LANGSMITH_TRACING": "true",
+        "LANGSMITH_API_KEY": "langsmith-key",
+        "LANGSMITH_HIDE_INPUTS": "false",
+        "LANGSMITH_HIDE_OUTPUTS": "true",
+    }
+    for key, value in env.items():
+        monkeypatch.setenv(key, value)
+
+    with pytest.raises(SystemExit) as exc_info:
+        validate_production_config()
+
+    assert "Production startup blocked" in str(exc_info.value)
 
 
 # ---------------------------------------------------------------------------

@@ -150,6 +150,18 @@ def validate_production_config() -> None:
             "LANGSMITH_API_KEY",
             "Empty while LANGSMITH_TRACING=true. Tracing would fail to initialize.",
         ))
+    if (
+        is_prod
+        and observability_settings.LANGSMITH_TRACING
+        and (
+            not observability_settings.LANGSMITH_HIDE_INPUTS
+            or not observability_settings.LANGSMITH_HIDE_OUTPUTS
+        )
+    ):
+        errors.append(_ConfigError(
+            "LANGSMITH_HIDE_INPUTS / LANGSMITH_HIDE_OUTPUTS",
+            "Must both be true in production so receipt inputs and outputs stay redacted.",
+        ))
 
     # --- Report results -----------------------------------------------------
     if not errors:
