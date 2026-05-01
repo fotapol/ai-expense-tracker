@@ -3,9 +3,9 @@ import uuid
 
 from app.services.billing.features import FREE_PLAN_RECEIPT_SCAN_LIMIT
 from app.services.billing.usage import (
-    rolling_30_day_window,
     receipt_scan_limit_reached,
     resolve_receipt_scan_usage,
+    rolling_30_day_window,
 )
 
 

@@ -1,19 +1,20 @@
 """Temp script to fix existing UNCATEGORIZED transactions by re-reading the extraction."""
 
-import sys
-import os
-import asyncio
 import json
+import os
+import sys
 
 # Add backend to path
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 
-from app.core.db import engine
 from sqlmodel import Session, select
+
+from app.core.db import engine
+from app.models.receipts.receipt_extraction import ReceiptExtraction
 from app.models.transactions.transaction import Transaction
 from app.models.transactions.transaction_item import TransactionItem
-from app.models.receipts.receipt_extraction import ReceiptExtraction
 from app.worker.receipt_processor import _get_uncategorized_category_id, _resolve_category_id
+
 
 def run():
     with Session(engine) as session:
