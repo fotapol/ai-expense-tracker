@@ -98,14 +98,15 @@ Use:
   origin port
 - API public URL with the explicit alternate HTTPS port:
   `https://api.nexavend.store:8443`
-- Storage public URL without a port when Cloudflare rewrites the origin port:
-  `https://storage.nexavend.store`
+- Storage public URL with the explicit alternate HTTPS port:
+  `https://storage.nexavend.store:8443`
 - the public site URL you set in `PUBLIC_APP_BASE_URL`, for example
   `https://nexavend.store`
 
 Cloudflare supports proxied HTTPS traffic on `8443`, and Origin Rules can route
-clean edge URLs on port `443` to a non-standard origin port. Without that Origin
-Rule, direct site access must include the port: `https://nexavend.store:8443/`.
+clean edge URLs on port `443` to a non-standard origin port. Keep API and
+storage presigned URLs on the explicit `:8443` host unless you deliberately add
+and test a Cloudflare Origin Rule for the clean storage hostname.
 
 ### 5. Create The Origin TLS Secret
 
@@ -184,6 +185,19 @@ Build and publish the public site image from:
 docker build -f site/Dockerfile -t ghcr.io/your-org/ai-expense-tracker-site:2026-04-23 .
 docker push ghcr.io/your-org/ai-expense-tracker-site:2026-04-23
 ```
+
+Backups default to a 30-day retention window through
+`POSTGRES_BACKUP_RETENTION_DAYS=30`. After the first successful backup, verify
+that the newest dump can be restored into disposable infrastructure:
+
+```bash
+bash scripts/verify_postgres_backup_restore.sh
+```
+
+This script creates a temporary Kubernetes `Job`, downloads the newest backup
+from MinIO, restores it into an ephemeral PostgreSQL data directory inside that
+job, prints the result, and deletes the job unless `KEEP_JOB=true` is set. It
+must not be pointed at production Postgres.
 
 ### 8. Render Kubernetes Inputs
 
@@ -273,6 +287,35 @@ Use port-forward for operator access:
 ```bash
 kubectl -n expense-tracker port-forward svc/prometheus 9090:9090
 kubectl -n expense-tracker port-forward svc/grafana 3000:3000
+```
+
+### VPS Log Retention
+
+Keep node logs bounded so backups, PVCs, and container logs do not compete for
+disk. On K3s, configure journald and kubelet/container log rotation on the VPS:
+
+```bash
+sudo mkdir -p /etc/systemd/journald.conf.d
+printf "[Journal]\nSystemMaxUse=1G\nMaxRetentionSec=90day\n" | \
+  sudo tee /etc/systemd/journald.conf.d/retention.conf
+sudo systemctl restart systemd-journald
+```
+
+For K3s, add kubelet log rotation args to `/etc/rancher/k3s/config.yaml` and
+restart K3s during a maintenance window:
+
+```yaml
+kubelet-arg:
+  - container-log-max-size=10Mi
+  - container-log-max-files=5
+```
+
+Check disk and log usage regularly:
+
+```bash
+df -h
+journalctl --disk-usage
+sudo du -h -d1 /var/lib/rancher/k3s /var/log 2>/dev/null
 ```
 
 ### Worker

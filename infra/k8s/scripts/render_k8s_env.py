@@ -196,7 +196,7 @@ DEFAULTS = {
     "PROMETHEUS_EVALUATION_INTERVAL": "15s",
     "GRAFANA_ROOT_URL": "https://grafana.internal.example.com",
     "POSTGRES_BACKUP_SCHEDULE": "0 3 * * *",
-    "POSTGRES_BACKUP_RETENTION_DAYS": "14",
+    "POSTGRES_BACKUP_RETENTION_DAYS": "30",
     "POSTGRES_BACKUP_PREFIX": "postgres",
     "APP_SUPPORT_SUBJECT": "Expense Tracker Support",
 }

@@ -66,7 +66,7 @@ Those generated files are the only inputs the production Kustomize overlay uses 
 | `MINIO_ROOT_USER` | MinIO root username. | Required | `minioadmin` | Stored as a secret; in the single-node setup it also seeds app S3 credentials when explicit S3 keys are omitted. | Yes |
 | `MINIO_ROOT_PASSWORD` | MinIO root password. | Required | `minioadmin123` | Use a strong production value and rotate carefully. | Yes |
 | `S3_ENDPOINT` | Internal MinIO/S3 endpoint used by backend and worker. | Required | `http://minio:9000` | Should remain the in-cluster/internal endpoint. | No |
-| `S3_EXTERNAL_ENDPOINT` | Publicly reachable S3-compatible endpoint for presigned receipt URLs. | Required | `http://localhost:9000` | In production with Cloudflare origin port rewriting, use the clean public host such as `https://storage.nexavend.store`. | No |
+| `S3_EXTERNAL_ENDPOINT` | Publicly reachable S3-compatible endpoint for presigned receipt URLs. | Required | `http://localhost:9000` | Use the canonical production endpoint `https://storage.nexavend.store:8443` unless a clean-host Cloudflare Origin Rule has been deliberately added and tested. | No |
 | `S3_ACCESS_KEY` | Explicit S3 access key override. | Optional | blank | Leave blank to reuse `MINIO_ROOT_USER`; stored as a secret. | Yes |
 | `S3_SECRET_KEY` | Explicit S3 secret key override. | Optional | blank | Leave blank to reuse `MINIO_ROOT_PASSWORD`; stored as a secret. | Yes |
 | `S3_REGION` | S3 region value used by the client. | Required | `eu-central-1` | Keep stable once objects exist. | No |
@@ -110,7 +110,7 @@ Those generated files are the only inputs the production Kustomize overlay uses 
 | `GRAFANA_ADMIN_PASSWORD` | Grafana admin password. | Required | `admin-change-me` | Use a strong unique value in production. | Yes |
 | `GRAFANA_ROOT_URL` | Canonical Grafana base URL. | Required | `http://grafana.local` | If Grafana stays internal, use the internal operator URL you intend to access. | No |
 | `POSTGRES_BACKUP_SCHEDULE` | Cron expression for PostgreSQL backups. | Required | `0 3 * * *` | Injected into the Kubernetes `CronJob` schedule. | No |
-| `POSTGRES_BACKUP_RETENTION_DAYS` | Backup retention window in days. | Required | `14` | Used by the backup job when pruning old objects from MinIO. | No |
+| `POSTGRES_BACKUP_RETENTION_DAYS` | Backup retention window in days. | Required | `30` | Used by the backup job when pruning old objects from MinIO. | No |
 | `POSTGRES_BACKUP_PREFIX` | Key prefix used inside the backup bucket. | Required | `postgres` | Helps keep backup objects grouped and restore-friendly. | No |
 
 ## Billing, Webhooks, And Dev Guards
