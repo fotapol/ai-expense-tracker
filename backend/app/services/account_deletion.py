@@ -57,6 +57,14 @@ class AccountDeletionResult:
     firebase_user_deleted: bool = False
 
 
+class AccountDeletionStorageCleanupError(RuntimeError):
+    """Raised when receipt storage cleanup blocks account deletion."""
+
+    def __init__(self, failures: list[StoredReceiptObject]):
+        super().__init__("Receipt storage cleanup failed during account deletion.")
+        self.failures = failures
+
+
 def _ids(session: Session, statement: Any) -> list[uuid.UUID]:
     return list(session.exec(statement).all())
 
@@ -106,11 +114,15 @@ def _delete_receipt_objects_best_effort(
 
 
 def delete_account_for_user(*, session: Session, user: User) -> AccountDeletionResult:
-    """Hard-delete local account data and best-effort external resources."""
+    """Hard-delete local account data and external receipt objects."""
 
     user_id = user.id
     auth_subject = user.auth_subject
     receipt_objects = _receipt_objects_for_user(session, user_id)
+    storage_delete_failures = _delete_receipt_objects_best_effort(receipt_objects)
+    if storage_delete_failures:
+        raise AccountDeletionStorageCleanupError(storage_delete_failures)
+
     receipt_ids = _ids(session, select(Receipt.id).where(Receipt.user_id == user_id))
     custom_category_ids = _ids(session, select(Category.id).where(Category.user_id == user_id))
     label_ids = _ids(session, select(Label.id).where(Label.user_id == user_id))
@@ -281,7 +293,6 @@ def delete_account_for_user(*, session: Session, user: User) -> AccountDeletionR
     session.exec(delete(User).where(User.id == user_id))
     session.commit()
 
-    storage_delete_failures = _delete_receipt_objects_best_effort(receipt_objects)
     firebase_user_deleted = delete_firebase_user(auth_subject)
     if not firebase_user_deleted:
         logger.warning(
@@ -293,6 +304,6 @@ def delete_account_for_user(*, session: Session, user: User) -> AccountDeletionR
     return AccountDeletionResult(
         user_id=user_id,
         auth_subject=auth_subject,
-        storage_delete_failures=storage_delete_failures,
+        storage_delete_failures=[],
         firebase_user_deleted=firebase_user_deleted,
     )
