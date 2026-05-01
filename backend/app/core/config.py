@@ -289,6 +289,8 @@ class ObservabilitySettings:
             return _env("LOG_LEVEL", "INFO")
         if name == "LOG_JSON":
             return _bool_env("LOG_JSON", False)
+        if name == "PROXY_DIAGNOSTICS_ENABLED":
+            return _bool_env("PROXY_DIAGNOSTICS_ENABLED", False)
         if name == "METRICS_ENABLED":
             return _bool_env("METRICS_ENABLED", True)
         if name == "METRICS_API_PATH":
