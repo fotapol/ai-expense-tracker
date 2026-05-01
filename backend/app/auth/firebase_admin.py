@@ -36,13 +36,13 @@ def initialize_firebase() -> None:
     logger.info("Firebase Admin SDK initialized successfully.")
 
 
-def verify_token(id_token: str) -> dict:
+def verify_token(id_token: str, *, check_revoked: bool = False) -> dict:
     """Verify a Firebase ID token and return the decoded claims.
 
     Raises firebase_admin.auth exceptions on invalid / expired / revoked
     tokens so the caller can map them to appropriate HTTP responses.
     """
-    return auth.verify_id_token(id_token, check_revoked=False)
+    return auth.verify_id_token(id_token, check_revoked=check_revoked)
 
 
 def delete_firebase_user(uid: str) -> bool:

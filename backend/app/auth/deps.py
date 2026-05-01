@@ -1,7 +1,7 @@
 """FastAPI dependency that resolves the current authenticated user."""
 
 import logging
-import os
+import re
 
 from fastapi import Depends, HTTPException, Request, status
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
@@ -22,11 +22,34 @@ _bearer_scheme = HTTPBearer(
     description="Firebase ID token obtained via Firebase Auth SDK.",
 )
 
+_SENSITIVE_EXACT_PATHS = {
+    "/v1/data/export",
+    "/v1/data/import",
+}
+_SENSITIVE_PATH_PATTERNS = (
+    re.compile(r"^/v1/receipts/[^/]+/confirm-upload$"),
+)
+
 
 def _email_is_dev_billing_admin(email: str | None) -> bool:
     if not email:
         return False
     return email.strip().lower() in get_app_admin_emails()
+
+
+def _requires_revocation_check(request: Request | None) -> bool:
+    """Return whether this request should pay Firebase revoked-token latency."""
+
+    if request is None:
+        return False
+
+    method = request.method.upper()
+    path = request.url.path
+    if method == "DELETE":
+        return True
+    if path in _SENSITIVE_EXACT_PATHS:
+        return True
+    return any(pattern.match(path) for pattern in _SENSITIVE_PATH_PATTERNS)
 
 
 async def get_current_user(
@@ -48,7 +71,10 @@ async def get_current_user(
     """
     # --- Verify token ---------------------------------------------------
     try:
-        claims = verify_token(credentials.credentials)
+        claims = verify_token(
+            credentials.credentials,
+            check_revoked=_requires_revocation_check(request),
+        )
     except firebase_auth.ExpiredIdTokenError:
         logger.warning("Rejected expired Firebase ID token.")
         raise HTTPException(
