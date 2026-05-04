@@ -41,7 +41,7 @@ spec:
             - -c
             - >-
               python -c "import base64, os, pathlib; raw = os.environ.get('FIREBASE_SERVICE_ACCOUNT_JSON_B64', '').strip(); path = os.environ['FIREBASE_SERVICE_ACCOUNT_PATH']; pathlib.Path(path).parent.mkdir(parents=True, exist_ok=True); pathlib.Path(path).write_bytes(base64.b64decode(raw)) if raw else None" &&
-              exec uv run python -m app.worker.receipt_processor
+              exec /app/.venv/bin/python -m app.worker.receipt_processor
           ports:
             - name: metrics
               containerPort: 9101

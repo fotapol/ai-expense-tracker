@@ -53,7 +53,7 @@ spec:
           command:
             - sh
             - -c
-            - exec uv run --no-sync alembic upgrade head
+            - exec /app/.venv/bin/python -m alembic upgrade head
           env:
             - name: HOME
               value: /app

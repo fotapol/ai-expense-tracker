@@ -5,6 +5,8 @@ FROM python:3.12-slim
 WORKDIR /app
 
 ENV HOME=/app \
+    VIRTUAL_ENV=/app/.venv \
+    PATH="/app/.venv/bin:$PATH" \
     UV_CACHE_DIR=/tmp/uv-cache
 
 RUN groupadd --system --gid 10001 app \
@@ -28,4 +30,4 @@ COPY --chown=10001:10001 backend/alembic.ini ./alembic.ini
 
 EXPOSE 8000
 
-CMD ["uv", "run", "uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000"]
+CMD ["/app/.venv/bin/python", "-m", "uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000"]
