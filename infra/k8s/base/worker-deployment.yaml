@@ -45,6 +45,11 @@ spec:
           ports:
             - name: metrics
               containerPort: 9101
+          env:
+            - name: HOME
+              value: /app
+            - name: UV_CACHE_DIR
+              value: /tmp/uv-cache
           envFrom:
             - configMapRef:
                 name: expense-tracker-config

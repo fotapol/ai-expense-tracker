@@ -53,7 +53,12 @@ spec:
           command:
             - sh
             - -c
-            - exec uv run alembic upgrade head
+            - exec uv run --no-sync alembic upgrade head
+          env:
+            - name: HOME
+              value: /app
+            - name: UV_CACHE_DIR
+              value: /tmp/uv-cache
           envFrom:
             - configMapRef:
                 name: expense-tracker-config

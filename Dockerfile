@@ -4,6 +4,9 @@ FROM python:3.12-slim
 
 WORKDIR /app
 
+ENV HOME=/app \
+    UV_CACHE_DIR=/tmp/uv-cache
+
 RUN groupadd --system --gid 10001 app \
     && useradd --system --uid 10001 --gid app --home-dir /app --shell /usr/sbin/nologin app \
     && chown app:app /app
