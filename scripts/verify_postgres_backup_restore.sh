@@ -3,9 +3,21 @@ set -euo pipefail
 
 namespace="${NAMESPACE:-expense-tracker}"
 job_name="${JOB_NAME:-postgres-restore-verify-$(date -u +%Y%m%d%H%M%S)}"
-image="${POSTGRES_BACKUP_IMAGE:-ghcr.io/fotapol/ai-expense-tracker-postgres-backup:prod-1}"
 timeout="${TIMEOUT:-600s}"
 keep_job="${KEEP_JOB:-false}"
+image="${POSTGRES_BACKUP_IMAGE:-}"
+
+if [[ -z "${image}" ]]; then
+  image="$(
+    kubectl -n "${namespace}" get cronjob postgres-backup \
+      -o jsonpath='{.spec.jobTemplate.spec.template.spec.containers[0].image}'
+  )"
+fi
+
+if [[ -z "${image}" ]]; then
+  echo "POSTGRES_BACKUP_IMAGE is required and postgres-backup CronJob image could not be detected." >&2
+  exit 1
+fi
 
 cat <<YAML | kubectl apply -f -
 apiVersion: batch/v1
@@ -62,8 +74,31 @@ spec:
               remote_root="backup/\${S3_BUCKET_BACKUPS}/\${backup_prefix}"
               archive="/tmp/restore-verify.dump"
               pgdata="/tmp/restore-verify-db"
+              s3_endpoint="\${S3_ENDPOINT%/}"
 
-              mc alias set backup "\${S3_ENDPOINT}" "\${s3_access_key}" "\${s3_secret_key}" >/dev/null
+              for attempt in \$(seq 1 30); do
+                if wget -q -O /dev/null "\${s3_endpoint}/minio/health/live"; then
+                  break
+                fi
+                if [ "\${attempt}" -eq 30 ]; then
+                  echo "MinIO did not become reachable at \${s3_endpoint}" >&2
+                  exit 1
+                fi
+                echo "Waiting for MinIO at \${s3_endpoint} (attempt \${attempt}/30)..."
+                sleep 2
+              done
+
+              for attempt in \$(seq 1 10); do
+                if mc alias set backup "\${s3_endpoint}" "\${s3_access_key}" "\${s3_secret_key}" >/dev/null; then
+                  break
+                fi
+                if [ "\${attempt}" -eq 10 ]; then
+                  echo "Could not initialize MinIO client alias for restore verification." >&2
+                  exit 1
+                fi
+                echo "Retrying MinIO client initialization (attempt \${attempt}/10)..."
+                sleep 2
+              done
               latest="\$(mc find "\${remote_root}" --name '*.dump' | sort | tail -n 1)"
               if [ -z "\${latest}" ]; then
                 echo "No backup dump found under \${remote_root}" >&2
