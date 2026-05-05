@@ -71,6 +71,7 @@ jobs:
   mobile:
     name: Flutter Checks
     runs-on: ubuntu-latest
+    timeout-minutes: 30
     defaults:
       run:
         shell: bash
@@ -89,7 +90,42 @@ jobs:
         with:
           channel: stable
 
+      - name: Run Flutter analyze and tests
+        timeout-minutes: 15
+        working-directory: expense_tracker_app
+        run: |
+          flutter pub get
+          flutter analyze
+          flutter test
+
+      - name: Configure Gradle for CI
+        if: github.ref == 'refs/heads/main'
+        run: |
+          mkdir -p ~/.gradle
+          cat > ~/.gradle/gradle.properties <<'EOF'
+          org.gradle.daemon=false
+          org.gradle.vfs.watch=false
+          org.gradle.workers.max=2
+          org.gradle.jvmargs=-Xmx3g -XX:MaxMetaspaceSize=1g -XX:ReservedCodeCacheSize=256m -XX:+HeapDumpOnOutOfMemoryError
+          kotlin.incremental=false
+          EOF
+
+      - name: Preinstall Android CMake
+        if: github.ref == 'refs/heads/main'
+        run: |
+          SDKMANAGER="${ANDROID_HOME:-/usr/local/lib/android/sdk}/cmdline-tools/latest/bin/sdkmanager"
+          if [[ ! -x "${SDKMANAGER}" ]]; then
+            SDKMANAGER="$(command -v sdkmanager || true)"
+          fi
+          if [[ -z "${SDKMANAGER}" || ! -x "${SDKMANAGER}" ]]; then
+            echo "sdkmanager was not found" >&2
+            exit 1
+          fi
+          yes | "${SDKMANAGER}" --licenses >/dev/null || true
+          "${SDKMANAGER}" "cmake;3.22.1"
+
       - name: Generate ephemeral CI upload keystore
+        if: github.ref == 'refs/heads/main'
         working-directory: expense_tracker_app
         env:
           ANDROID_KEYSTORE_PASSWORD: ci-upload-store-password
@@ -106,8 +142,12 @@ jobs:
             -alias "${ANDROID_KEY_ALIAS}" \
             -dname "CN=CI, OU=Engineering, O=Nexavend, L=Kyiv, ST=Kyiv, C=UA"
 
-      - name: Run Flutter tests and Android release smoke
+      - name: Run Android release smoke
+        if: github.ref == 'refs/heads/main'
+        timeout-minutes: 20
         env:
+          BUILD_ANDROID_PROD_SKIP_CHECKS: "1"
+          GRADLE_OPTS: -Dorg.gradle.daemon=false -Dorg.gradle.vfs.watch=false -Dorg.gradle.workers.max=2
           API_BASE_URL: https://api.nexavend.store:8443
           REVENUECAT_ANDROID_API_KEY: goog_ci_public_sdk_key_placeholder
           APP_PRIVACY_URL: https://nexavend.store/privacy
