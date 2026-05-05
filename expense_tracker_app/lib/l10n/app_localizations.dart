@@ -378,12 +378,19 @@ class AppLocalizations {
       'upload_title': 'Upload Receipt',
       'upload_gallery': 'Gallery',
       'upload_camera': 'Camera',
+      'upload_scan_receipt': 'Scan receipt',
       'upload_action_extract': 'Upload & Extract',
       'upload_status_uploading': 'Uploading receipt...',
       'upload_status_processing':
           'Processing with AI... This may take a minute.',
       'upload_try_again': 'Try Again',
       'upload_pick_failed': 'Failed to pick image: {error}',
+      'upload_scanner_unavailable':
+          'Receipt scanner is not available on this device. You can still use Camera or Gallery.',
+      'upload_scanner_failed':
+          'We could not finish the scan. Try again, or use Camera or Gallery.',
+      'upload_processing_fallback':
+          'Using the scanned receipt without extra enhancement.',
       'upload_extraction_failed': 'Extraction failed',
       'upload_timed_out': 'Extraction timed out after 2 minutes.',
       'tools_subtitle': 'AI-powered financial tools',
