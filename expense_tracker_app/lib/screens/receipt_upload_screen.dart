@@ -496,7 +496,7 @@ class _ReceiptUploadScreenState extends State<ReceiptUploadScreen> {
                 Text(
                   _pickedFile == null
                       ? context.tr('transaction_receipt_photo_title')
-                      : _pickedFile!.name,
+                      : context.tr('upload_selected_title'),
                   style: TextStyle(
                     color: ShellStyles.textPrimary(context),
                     fontSize: ShellStyles.scaled(context, 15, min: 14, max: 16),
@@ -507,7 +507,7 @@ class _ReceiptUploadScreenState extends State<ReceiptUploadScreen> {
                 Text(
                   _pickedFile == null
                       ? context.tr('upload_preview_empty_body')
-                      : context.tr('upload_preview_selected_body'),
+                      : context.tr('upload_selected_body'),
                   style: TextStyle(
                     color: ShellStyles.textMuted(context),
                     fontSize: ShellStyles.scaled(context, 12, min: 11, max: 13),

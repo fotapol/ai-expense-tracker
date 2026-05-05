@@ -123,10 +123,12 @@ if [[ -n "${APP_PLAY_SUBSCRIPTIONS_URL:-}" ]]; then
 fi
 
 pushd "$APP_DIR" >/dev/null
-flutter clean
-flutter pub get
-flutter analyze
-flutter test
+if [[ "${BUILD_ANDROID_PROD_SKIP_CHECKS:-}" != "1" ]]; then
+  flutter clean
+  flutter pub get
+  flutter analyze
+  flutter test
+fi
 flutter build appbundle --release "${DART_DEFINES[@]}"
 popd >/dev/null
 

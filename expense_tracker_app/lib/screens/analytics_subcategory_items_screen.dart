@@ -366,8 +366,11 @@ class _AnalyticsSubcategoryItemsScreenState
               item['translated_description']?.toString(),
             );
             final hasTranslatedName =
-                translatedName.isNotEmpty &&
-                translatedName.toLowerCase() != name.trim().toLowerCase();
+                ItemTranslationService.shouldShowTranslatedText(
+                  translationEnabled: true,
+                  originalText: name,
+                  translatedText: translatedName,
+                );
             final amount = (item['amount'] as num?)?.toDouble() ?? 0.0;
             final occurrences = (item['occurrences'] as num?)?.toInt() ?? 0;
             final totalQty = (item['total_qty'] as num?)?.toDouble();
