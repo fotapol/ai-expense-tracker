@@ -114,24 +114,25 @@ void main() {
       expect(selection.usesProcessedUpload, isFalse);
     });
 
-    test('camera and gallery upload filenames do not expose cache names', () {
+    test('scanner and gallery upload filenames do not expose cache names', () {
       final gallery = ReceiptImageSelection.fromPickedImage(
         imagePath: '/cache/scaled_12345.jpg',
         originalFilename: 'scaled_12345.jpg',
         fileSizeBytes: 100,
         source: ReceiptImageSource.gallery,
       );
-      final camera = ReceiptImageSelection.fromPickedImage(
-        imagePath: '/cache/image_picker_987.jpg',
-        originalFilename: 'image_picker_987.jpg',
-        fileSizeBytes: 100,
-        source: ReceiptImageSource.camera,
+      final scanner = ReceiptImageSelection.fromScan(
+        const ReceiptScanVariants(
+          croppedImagePath: '/cache/receipt_scan_crop.jpg',
+          croppedFileSizeBytes: 100,
+          source: ReceiptImageSource.mlKitDocumentScanner,
+        ),
       );
 
       expect(gallery.uploadFilename, 'receipt-gallery.jpg');
-      expect(camera.uploadFilename, 'receipt-camera.jpg');
+      expect(scanner.uploadFilename, 'receipt-scan.jpg');
       expect(gallery.uploadFilename, isNot(contains('scaled_')));
-      expect(camera.uploadFilename, isNot(contains('image_picker')));
+      expect(scanner.uploadFilename, isNot(contains('receipt_scan')));
     });
   });
 
@@ -211,18 +212,38 @@ void main() {
       expect(find.textContaining(tempDir!.path), findsNothing);
     });
 
-    testWidgets('keeps scanner, camera, and gallery entrypoints available', (
+    testWidgets('uses Camera label for ML Kit scanner and keeps Gallery', (
+      tester,
+    ) async {
+      final scanner = _FakeReceiptScanner(isSupported: true);
+
+      await tester.pumpWidget(
+        _localizedApp(ReceiptUploadScreen(scanner: scanner)),
+      );
+      await tester.pump();
+
+      expect(find.text('Scan receipt'), findsNothing);
+      expect(find.text('Camera'), findsOneWidget);
+      expect(find.text('Gallery'), findsOneWidget);
+
+      await tester.tap(find.text('Camera'));
+      await tester.pump();
+
+      expect(scanner.scanCalls, 1);
+    });
+
+    testWidgets('hides Camera when ML Kit scanner is unsupported', (
       tester,
     ) async {
       await tester.pumpWidget(
         _localizedApp(
-          ReceiptUploadScreen(scanner: _FakeReceiptScanner(isSupported: true)),
+          ReceiptUploadScreen(scanner: _FakeReceiptScanner(isSupported: false)),
         ),
       );
       await tester.pump();
 
-      expect(find.text('Scan receipt'), findsOneWidget);
-      expect(find.text('Camera'), findsOneWidget);
+      expect(find.text('Scan receipt'), findsNothing);
+      expect(find.text('Camera'), findsNothing);
       expect(find.text('Gallery'), findsOneWidget);
     });
   });
@@ -278,11 +299,16 @@ class _FakeVariantBuilder implements ReceiptScanVariantBuilder {
 }
 
 class _FakeReceiptScanner implements ReceiptScanner {
-  const _FakeReceiptScanner({required this.isSupported});
+  _FakeReceiptScanner({required this.isSupported});
 
   @override
   final bool isSupported;
 
+  int scanCalls = 0;
+
   @override
-  Future<ReceiptScanVariants?> scanReceipt() async => null;
+  Future<ReceiptScanVariants?> scanReceipt() async {
+    scanCalls += 1;
+    return null;
+  }
 }

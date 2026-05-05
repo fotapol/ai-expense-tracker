@@ -198,12 +198,11 @@ class _ReceiptUploadScreenState extends State<ReceiptUploadScreen> {
     }
   }
 
-  Future<void> _pickImage(ImageSource source) async {
+  Future<void> _pickGalleryImage() async {
     try {
       final file = await _picker.pickImage(
-        source: source,
+        source: ImageSource.gallery,
         imageQuality: 90,
-        preferredCameraDevice: CameraDevice.rear,
       );
       if (file != null) {
         final fileSizeBytes = await file.length();
@@ -212,9 +211,7 @@ class _ReceiptUploadScreenState extends State<ReceiptUploadScreen> {
             imagePath: file.path,
             originalFilename: file.name,
             fileSizeBytes: fileSizeBytes,
-            source: source == ImageSource.camera
-                ? ReceiptImageSource.camera
-                : ReceiptImageSource.gallery,
+            source: ReceiptImageSource.gallery,
           ),
         );
       }
@@ -762,44 +759,33 @@ class _ReceiptUploadScreenState extends State<ReceiptUploadScreen> {
                       ShellStyles.minTapTarget(context),
                     ),
                   ),
-                  icon: const Icon(Icons.document_scanner_outlined),
-                  label: Text(context.tr('upload_scan_receipt')),
+                  icon: const Icon(Icons.photo_camera_outlined),
+                  label: Text(context.tr('upload_camera')),
                 ),
                 const SizedBox(height: 10),
               ],
               if (_scanner.isSupported)
                 OutlinedButton.icon(
-                  onPressed: () => _pickImage(ImageSource.camera),
+                  onPressed: _pickGalleryImage,
                   style: OutlinedButton.styleFrom(
                     minimumSize: Size.fromHeight(
                       ShellStyles.minTapTarget(context),
                     ),
                   ),
-                  icon: const Icon(Icons.photo_camera_outlined),
-                  label: Text(context.tr('upload_camera')),
+                  icon: const Icon(Icons.photo_library_outlined),
+                  label: Text(context.tr('upload_gallery')),
                 )
               else
                 FilledButton.icon(
-                  onPressed: () => _pickImage(ImageSource.camera),
+                  onPressed: _pickGalleryImage,
                   style: FilledButton.styleFrom(
                     minimumSize: Size.fromHeight(
                       ShellStyles.minTapTarget(context),
                     ),
                   ),
-                  icon: const Icon(Icons.photo_camera_outlined),
-                  label: Text(context.tr('upload_camera')),
+                  icon: const Icon(Icons.photo_library_outlined),
+                  label: Text(context.tr('upload_gallery')),
                 ),
-              const SizedBox(height: 10),
-              OutlinedButton.icon(
-                onPressed: () => _pickImage(ImageSource.gallery),
-                style: OutlinedButton.styleFrom(
-                  minimumSize: Size.fromHeight(
-                    ShellStyles.minTapTarget(context),
-                  ),
-                ),
-                icon: const Icon(Icons.photo_library_outlined),
-                label: Text(context.tr('upload_gallery')),
-              ),
             ] else ...[
               FilledButton.icon(
                 onPressed:
@@ -819,47 +805,47 @@ class _ReceiptUploadScreenState extends State<ReceiptUploadScreen> {
               ),
               const SizedBox(height: 10),
               if (_scanner.isSupported) ...[
+                Row(
+                  children: [
+                    Expanded(
+                      child: OutlinedButton.icon(
+                        onPressed: _scanReceipt,
+                        style: OutlinedButton.styleFrom(
+                          minimumSize: Size.fromHeight(
+                            ShellStyles.minTapTarget(context),
+                          ),
+                        ),
+                        icon: const Icon(Icons.photo_camera_outlined),
+                        label: Text(context.tr('upload_camera')),
+                      ),
+                    ),
+                    const SizedBox(width: 10),
+                    Expanded(
+                      child: OutlinedButton.icon(
+                        onPressed: _pickGalleryImage,
+                        style: OutlinedButton.styleFrom(
+                          minimumSize: Size.fromHeight(
+                            ShellStyles.minTapTarget(context),
+                          ),
+                        ),
+                        icon: const Icon(Icons.photo_library_outlined),
+                        label: Text(context.tr('upload_gallery')),
+                      ),
+                    ),
+                  ],
+                ),
+              ] else ...[
                 OutlinedButton.icon(
-                  onPressed: _scanReceipt,
+                  onPressed: _pickGalleryImage,
                   style: OutlinedButton.styleFrom(
                     minimumSize: Size.fromHeight(
                       ShellStyles.minTapTarget(context),
                     ),
                   ),
-                  icon: const Icon(Icons.document_scanner_outlined),
-                  label: Text(context.tr('upload_scan_receipt')),
+                  icon: const Icon(Icons.photo_library_outlined),
+                  label: Text(context.tr('upload_gallery')),
                 ),
-                const SizedBox(height: 10),
               ],
-              Row(
-                children: [
-                  Expanded(
-                    child: OutlinedButton.icon(
-                      onPressed: () => _pickImage(ImageSource.camera),
-                      style: OutlinedButton.styleFrom(
-                        minimumSize: Size.fromHeight(
-                          ShellStyles.minTapTarget(context),
-                        ),
-                      ),
-                      icon: const Icon(Icons.photo_camera_outlined),
-                      label: Text(context.tr('upload_camera')),
-                    ),
-                  ),
-                  const SizedBox(width: 10),
-                  Expanded(
-                    child: OutlinedButton.icon(
-                      onPressed: () => _pickImage(ImageSource.gallery),
-                      style: OutlinedButton.styleFrom(
-                        minimumSize: Size.fromHeight(
-                          ShellStyles.minTapTarget(context),
-                        ),
-                      ),
-                      icon: const Icon(Icons.photo_library_outlined),
-                      label: Text(context.tr('upload_gallery')),
-                    ),
-                  ),
-                ],
-              ),
               if (_status == 'failed') ...[
                 const SizedBox(height: 10),
                 TextButton(
