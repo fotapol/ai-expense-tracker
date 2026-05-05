@@ -17,7 +17,13 @@ from sqlmodel import Session, select
 from app.auth.deps import get_current_user
 from app.core.config import app_settings, rabbitmq_settings, s3_settings
 from app.core.db import get_session
-from app.core.minio import generate_presigned_get, generate_presigned_put, head_object
+from app.core.minio import (
+    delete_object,
+    generate_presigned_get,
+    generate_presigned_put,
+    head_object,
+    read_object_prefix,
+)
 from app.core.rabbitmq import get_rabbitmq_connection
 from app.core.rate_limiter import limiter
 from app.models.receipts.receipt import Receipt
@@ -49,6 +55,52 @@ _ALLOWED_MIME_TYPES = {
 # Server-side file size ceiling — slightly above the client-side 10 MB limit
 # to account for encoding overhead, but prevents abuse via direct presigned uploads.
 _MAX_RECEIPT_FILE_BYTES = app_settings.MAX_RECEIPT_FILE_BYTES
+_HEIF_MIME_TYPES = {"image/heic", "image/heif"}
+
+
+def _delete_receipt_object_best_effort(receipt: Receipt) -> None:
+    if not receipt.storage_key:
+        return
+    try:
+        delete_object(receipt.storage_key, bucket=receipt.storage_bucket)
+    except Exception:
+        logger.warning(
+            "Failed to clean up receipt object: bucket=%s key=%s",
+            receipt.storage_bucket,
+            receipt.storage_key,
+            exc_info=True,
+        )
+
+
+def _detect_receipt_mime_type(prefix: bytes) -> str | None:
+    if prefix.startswith(b"\xff\xd8\xff"):
+        return "image/jpeg"
+    if prefix.startswith(b"\x89PNG\r\n\x1a\n"):
+        return "image/png"
+    if len(prefix) >= 12 and prefix[:4] == b"RIFF" and prefix[8:12] == b"WEBP":
+        return "image/webp"
+    if prefix.startswith(b"%PDF-"):
+        return "application/pdf"
+    if len(prefix) >= 12 and prefix[4:8] == b"ftyp":
+        major_brand = prefix[8:12]
+        compatible_brands = prefix[16:64]
+        brands = {major_brand}
+        brands.update(
+            compatible_brands[idx:idx + 4]
+            for idx in range(0, len(compatible_brands), 4)
+            if len(compatible_brands[idx:idx + 4]) == 4
+        )
+        if brands & {b"heic", b"heix", b"hevc", b"hevx"}:
+            return "image/heic"
+        if brands & {b"heif", b"mif1", b"msf1"}:
+            return "image/heif"
+    return None
+
+
+def _mime_types_compatible(expected: str, detected: str) -> bool:
+    if expected in _HEIF_MIME_TYPES and detected in _HEIF_MIME_TYPES:
+        return True
+    return expected == detected
 
 
 def _get_visible_receipt_and_transaction(
@@ -179,9 +231,38 @@ async def confirm_upload(
     actual_size = obj_info.get("size_bytes", 0)
     if actual_size > _MAX_RECEIPT_FILE_BYTES:
         max_mb = _MAX_RECEIPT_FILE_BYTES // (1024 * 1024)
+        _delete_receipt_object_best_effort(receipt)
         raise HTTPException(
             status_code=status.HTTP_413_REQUEST_ENTITY_TOO_LARGE,
             detail=f"Uploaded file exceeds the {max_mb} MB server limit.",
+        )
+
+    try:
+        object_prefix = read_object_prefix(
+            key=receipt.storage_key,
+            bucket=receipt.storage_bucket,
+        )
+    except Exception:
+        logger.warning(
+            "Failed to read receipt object prefix: bucket=%s key=%s",
+            receipt.storage_bucket,
+            receipt.storage_key,
+            exc_info=True,
+        )
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail="Uploaded file could not be verified. Please try again.",
+        ) from None
+
+    detected_mime_type = _detect_receipt_mime_type(object_prefix)
+    if detected_mime_type is None or not _mime_types_compatible(
+        receipt.mime_type,
+        detected_mime_type,
+    ):
+        _delete_receipt_object_best_effort(receipt)
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Uploaded file content does not match a supported receipt format.",
         )
 
     session.exec(
@@ -189,6 +270,7 @@ async def confirm_upload(
     ).first()
     usage = resolve_receipt_scan_usage(session, current_user.id)
     if receipt_scan_limit_reached(usage):
+        _delete_receipt_object_best_effort(receipt)
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail={
@@ -219,8 +301,7 @@ async def confirm_upload(
     receipt.status = ReceiptStatus.UPLOADED
     receipt.uploaded_at = dt.datetime.now(dt.UTC)
     receipt.size_bytes = obj_info["size_bytes"]
-    if obj_info.get("content_type"):
-        receipt.mime_type = obj_info["content_type"]
+    receipt.mime_type = detected_mime_type
     session.add(receipt)
     session.commit()
     session.refresh(receipt)
@@ -332,6 +413,20 @@ async def delete_receipt(
             status_code=status.HTTP_404_NOT_FOUND,
             detail="Receipt not found.",
         )
+
+    try:
+        delete_object(receipt.storage_key, bucket=receipt.storage_bucket)
+    except Exception:
+        logger.warning(
+            "Failed to delete receipt object before DB deletion: bucket=%s key=%s",
+            receipt.storage_bucket,
+            receipt.storage_key,
+            exc_info=True,
+        )
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail="Receipt storage cleanup failed. Please try again.",
+        ) from None
 
     transaction = session.exec(
         select(Transaction).where(Transaction.receipt_id == receipt_id)

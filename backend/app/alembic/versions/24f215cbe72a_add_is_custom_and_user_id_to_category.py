@@ -9,7 +9,7 @@ from __future__ import annotations
 
 import uuid
 from collections.abc import Sequence
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 import sqlalchemy as sa
 from alembic import op
@@ -210,13 +210,13 @@ def _ensure_category(
                 "name": name,
                 "parent_id": parent_id,
                 "is_custom": is_custom,
-                "now": datetime.now(timezone.utc),
+                "now": datetime.now(UTC),
             },
         )
         return existing_id
 
     new_id = uuid.uuid4()
-    now = datetime.now(timezone.utc)
+    now = datetime.now(UTC)
     conn.execute(
         sa.text(
             """

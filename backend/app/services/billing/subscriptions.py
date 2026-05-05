@@ -19,9 +19,9 @@ from app.services.billing.contracts import (
 )
 from app.services.billing.entitlements import sync_subscription_entitlements
 from app.services.billing.features import (
-    FAMILY_PREMIUM_PRODUCT_ID,
     PERSONAL_PREMIUM_PRODUCT_ID,
 )
+
 # TODO(household): uncomment when household feature ships
 # from app.services.households.households import get_active_household_for_user
 

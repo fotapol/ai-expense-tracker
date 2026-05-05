@@ -1,18 +1,16 @@
 """Unit tests for household services.
 
-All tests use SimpleNamespace mock sessions — no real database required.
+All tests use SimpleNamespace mock sessions - no real database required.
 This follows the same pattern as test_billing_foundation.py.
 """
 
 from __future__ import annotations
 
-import pytest
-
-pytestmark = pytest.mark.skip(reason="household feature disabled for single-user launch — TODO(household)")
-
 import datetime as dt
 import uuid
 from types import SimpleNamespace
+
+import pytest
 
 from app.models.billing.subscription import Subscription
 from app.models.shared.enums import (
@@ -30,6 +28,8 @@ from app.services.billing.entitlements import (
     sync_subscription_entitlements,
 )
 from app.services.households.membership import validate_transaction_attribution
+
+pytestmark = pytest.mark.skip(reason="household feature disabled for single-user launch - TODO(household)")
 
 
 def _utc(hours: int = 0) -> dt.datetime:

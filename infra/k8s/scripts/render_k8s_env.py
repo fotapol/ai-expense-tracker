@@ -10,7 +10,6 @@ import argparse
 from pathlib import Path
 from urllib.parse import quote, urlparse
 
-
 CONFIG_KEYS = {
     "APP_ENV",
     "APP_ADMIN_EMAILS",
@@ -19,14 +18,21 @@ CONFIG_KEYS = {
     "APP_WEBSITE_URL",
     "APP_PRIVACY_URL",
     "APP_TERMS_URL",
+    "APP_DELETE_ACCOUNT_URL",
+    "APP_PLAY_SUBSCRIPTIONS_URL",
     "APP_SUPPORT_EMAIL",
     "APP_SUPPORT_SUBJECT",
     "SITE_APP_STORE_URL",
     "SITE_GOOGLE_PLAY_URL",
     "SITE_OPEN_APP_URL",
+    "API_DOCS_ENABLED",
+    "TRUSTED_HOSTS",
+    "CORS_ALLOWED_ORIGINS",
+    "RUN_STARTUP_MIGRATIONS",
     "MAX_RECEIPT_FILE_BYTES",
     "LOG_LEVEL",
     "LOG_JSON",
+    "PROXY_DIAGNOSTICS_ENABLED",
     "UVICORN_FORWARDED_ALLOW_IPS",
     "INGRESS_CLASS_NAME",
     "INGRESS_TLS_SECRET_NAME",
@@ -87,6 +93,12 @@ CONFIG_KEYS = {
     "POSTGRES_BACKUP_PREFIX",
 }
 
+IMAGE_KEYS = {
+    "BACKEND_IMAGE",
+    "SITE_IMAGE",
+    "POSTGRES_BACKUP_IMAGE",
+}
+
 SECRET_KEYS = {
     "POSTGRES_USER",
     "POSTGRES_PASSWORD",
@@ -134,14 +146,19 @@ REQUIRED_KEYS = {
     "GRAFANA_ADMIN_USER",
     "GRAFANA_ADMIN_PASSWORD",
     "POSTGRES_BACKUP_SCHEDULE",
+    "UVICORN_FORWARDED_ALLOW_IPS",
+    "BACKEND_IMAGE",
     "SITE_IMAGE",
+    "POSTGRES_BACKUP_IMAGE",
 }
 
 DEFAULTS = {
     "APP_ENV": "production",
+    "API_DOCS_ENABLED": "false",
+    "RUN_STARTUP_MIGRATIONS": "true",
     "LOG_LEVEL": "INFO",
     "LOG_JSON": "false",
-    "UVICORN_FORWARDED_ALLOW_IPS": "*",
+    "PROXY_DIAGNOSTICS_ENABLED": "false",
     "INGRESS_CLASS_NAME": "nginx",
     "INGRESS_TLS_SECRET_NAME": "expense-tracker-origin-tls",
     "POSTGRES_PORT": "5432",
@@ -172,9 +189,6 @@ DEFAULTS = {
     "LANGSMITH_ENDPOINT": "https://api.smith.langchain.com",
     "LANGSMITH_HIDE_INPUTS": "true",
     "LANGSMITH_HIDE_OUTPUTS": "true",
-    "BACKEND_IMAGE": "ghcr.io/example/ai-expense-tracker-backend:latest",
-    "SITE_IMAGE": "ghcr.io/example/ai-expense-tracker-site:latest",
-    "POSTGRES_BACKUP_IMAGE": "ghcr.io/example/ai-expense-tracker-postgres-backup:latest",
     "REVENUECAT_API_BASE_URL": "https://api.revenuecat.com",
     "REVENUECAT_HTTP_TIMEOUT_SECONDS": "8",
     "REVENUECAT_PERSONAL_PREMIUM_ENTITLEMENT_ID": "personal_premium",
@@ -189,7 +203,7 @@ DEFAULTS = {
     "PROMETHEUS_EVALUATION_INTERVAL": "15s",
     "GRAFANA_ROOT_URL": "https://grafana.internal.example.com",
     "POSTGRES_BACKUP_SCHEDULE": "0 3 * * *",
-    "POSTGRES_BACKUP_RETENTION_DAYS": "14",
+    "POSTGRES_BACKUP_RETENTION_DAYS": "30",
     "POSTGRES_BACKUP_PREFIX": "postgres",
     "APP_SUPPORT_SUBJECT": "Expense Tracker Support",
 }
@@ -251,15 +265,32 @@ def build_rabbitmq_url(values: dict[str, str]) -> str:
     )
 
 
+def validate_production_images(values: dict[str, str]) -> None:
+    if values.get("APP_ENV", "").strip().lower() != "production":
+        return
+
+    for key in sorted(IMAGE_KEYS):
+        image = values.get(key, "").strip()
+        if not image:
+            continue
+        image_without_digest = image.split("@", 1)[0]
+        if "ghcr.io/example/" in image:
+            raise SystemExit(f"{key} must not use placeholder ghcr.io/example images")
+        if image_without_digest.endswith(":latest"):
+            raise SystemExit(f"{key} must not use the :latest tag in production")
+
+
 def validate(values: dict[str, str]) -> None:
     missing = [key for key in sorted(REQUIRED_KEYS) if not values.get(key, "").strip()]
     if missing:
         missing_keys = ", ".join(missing)
         raise SystemExit(f"Missing required production env values: {missing_keys}")
 
-    if values.get("LANGSMITH_TRACING", "").lower() in {"1", "true", "yes", "on"}:
-        if not values.get("LANGSMITH_API_KEY", "").strip():
-            raise SystemExit("LANGSMITH_API_KEY is required when LANGSMITH_TRACING=true")
+    if (
+        values.get("LANGSMITH_TRACING", "").lower() in {"1", "true", "yes", "on"}
+        and not values.get("LANGSMITH_API_KEY", "").strip()
+    ):
+        raise SystemExit("LANGSMITH_API_KEY is required when LANGSMITH_TRACING=true")
 
     if values.get("PUBLIC_API_BASE_URL") and not url_host(values["PUBLIC_API_BASE_URL"]):
         raise SystemExit("PUBLIC_API_BASE_URL must be a valid absolute URL")
@@ -267,6 +298,16 @@ def validate(values: dict[str, str]) -> None:
         raise SystemExit("PUBLIC_APP_BASE_URL must be a valid absolute URL")
     if values.get("S3_EXTERNAL_ENDPOINT") and not url_host(values["S3_EXTERNAL_ENDPOINT"]):
         raise SystemExit("S3_EXTERNAL_ENDPOINT must be a valid absolute URL")
+    if (
+        values.get("APP_ENV", "").strip().lower() == "production"
+        and values.get("UVICORN_FORWARDED_ALLOW_IPS", "").strip() == "*"
+    ):
+        raise SystemExit(
+            "UVICORN_FORWARDED_ALLOW_IPS must not be '*' in production; "
+            "set the observed ingress source IP or CIDR"
+        )
+
+    validate_production_images(values)
 
 
 def write_env_file(path: Path, values: dict[str, str]) -> None:
@@ -300,6 +341,9 @@ def write_prometheus_config(path: Path, values: dict[str, str]) -> None:
                 "global:",
                 f"  scrape_interval: {values['PROMETHEUS_SCRAPE_INTERVAL']}",
                 f"  evaluation_interval: {values['PROMETHEUS_EVALUATION_INTERVAL']}",
+                "",
+                "rule_files:",
+                "  - /etc/prometheus/rules.yml",
                 "",
                 "scrape_configs:",
                 "  - job_name: expense-tracker-api",
@@ -416,6 +460,14 @@ def main() -> None:
     values["APP_TERMS_URL"] = (
         values.get("APP_TERMS_URL", "").strip()
         or f"{values['APP_WEBSITE_URL']}/terms"
+    )
+    values["APP_DELETE_ACCOUNT_URL"] = (
+        values.get("APP_DELETE_ACCOUNT_URL", "").strip()
+        or f"{values['APP_WEBSITE_URL']}/delete-account"
+    )
+    values["APP_PLAY_SUBSCRIPTIONS_URL"] = (
+        values.get("APP_PLAY_SUBSCRIPTIONS_URL", "").strip()
+        or "https://play.google.com/store/account/subscriptions?package=com.nexavend.expense_tracker_app"
     )
 
     validate(values)

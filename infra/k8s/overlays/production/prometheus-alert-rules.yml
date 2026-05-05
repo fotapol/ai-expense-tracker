@@ -1,0 +1,79 @@
+groups:
+  - name: expense-tracker.rules
+    rules:
+      - alert: ExpenseTrackerApiHigh5xxRate
+        expr: |
+          sum(rate(expense_tracker_http_requests_total{status_code=~"5.."}[5m])) > 0.05
+        for: 10m
+        labels:
+          severity: warning
+        annotations:
+          summary: Expense Tracker API is returning 5xx responses
+          description: API 5xx responses have exceeded 0.05 requests per second for 10 minutes.
+
+      - alert: ExpenseTrackerApiHighP95Latency
+        expr: |
+          histogram_quantile(
+            0.95,
+            sum by (le) (
+              rate(expense_tracker_http_request_duration_seconds_bucket[5m])
+            )
+          ) > 2
+        for: 10m
+        labels:
+          severity: warning
+        annotations:
+          summary: Expense Tracker API p95 latency is high
+          description: API p95 latency has exceeded 2 seconds for 10 minutes.
+
+      - alert: ExpenseTrackerPrometheusTargetDown
+        expr: up{job=~"expense-tracker-api|expense-tracker-worker|prometheus"} == 0
+        for: 5m
+        labels:
+          severity: critical
+        annotations:
+          summary: Prometheus scrape target is down
+          description: Prometheus has not been able to scrape {{ $labels.job }} for 5 minutes.
+
+      - alert: ExpenseTrackerWorkerFailures
+        expr: sum(increase(expense_tracker_worker_jobs_failed_total[15m])) > 0
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: Receipt worker jobs are failing
+          description: At least one receipt worker job failed during the last 15 minutes.
+
+      - alert: ExpenseTrackerWorkerRetriesHigh
+        expr: sum(increase(expense_tracker_worker_job_retries_total[15m])) > 5
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: Receipt worker retries are elevated
+          description: More than 5 worker retries were scheduled during the last 15 minutes.
+
+      - alert: ExpenseTrackerAiExtractionFailureRateHigh
+        expr: |
+          (
+            sum(increase(expense_tracker_receipt_extraction_total{result="failure"}[15m]))
+            /
+            clamp_min(sum(increase(expense_tracker_receipt_extraction_total[15m])), 1)
+          ) > 0.2
+          and
+          sum(increase(expense_tracker_receipt_extraction_total[15m])) > 5
+        for: 10m
+        labels:
+          severity: warning
+        annotations:
+          summary: AI receipt extraction failure rate is high
+          description: More than 20% of receipt extraction attempts failed over the last 15 minutes.
+
+      - alert: ExpenseTrackerReceiptProcessingStale
+        expr: (time() - max(expense_tracker_receipt_last_success_unixtime)) > 3600
+        for: 15m
+        labels:
+          severity: warning
+        annotations:
+          summary: Successful receipt processing is stale
+          description: No successful receipt processing run has been recorded for over 1 hour.

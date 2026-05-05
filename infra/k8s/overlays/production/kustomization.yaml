@@ -11,6 +11,7 @@ configMapGenerator:
   - name: prometheus-config
     files:
       - prometheus.yml=generated/prometheus.yml
+      - rules.yml=prometheus-alert-rules.yml
 
 secretGenerator:
   - name: expense-tracker-secrets
@@ -19,9 +20,11 @@ secretGenerator:
 
 resources:
   - ../../base
+  - default-serviceaccount-imagepullsecret.yaml
   - api-virtualserver.yaml
   - site-virtualserver.yaml
   - storage-virtualserver.yaml
+  - network-policies.yaml
 
 patches:
   - path: generated/postgres-backup-schedule-patch.yaml

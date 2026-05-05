@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../core/app_env.dart';
 import '../core/redesign_system.dart';
 import '../l10n/app_localizations.dart';
 import 'settings_detail_scaffold.dart';
@@ -10,8 +11,7 @@ class PrivacyPolicyScreen extends StatelessWidget {
   static List<_PolicySection> _sections(BuildContext context) => [
     _PolicySection(
       title: context.tr('1_information_we_collect'),
-      body:
-          context.tr('privacy_collect_body'),
+      body: context.tr('privacy_collect_body'),
       bullets: [
         context.tr('privacy_collect_bullet_1'),
         context.tr('privacy_collect_bullet_2'),
@@ -33,8 +33,7 @@ class PrivacyPolicyScreen extends StatelessWidget {
     ),
     _PolicySection(
       title: context.tr('3_data_security'),
-      body:
-          context.tr('privacy_security_body'),
+      body: context.tr('privacy_security_body'),
       bullets: [
         context.tr('privacy_security_bullet_1'),
         context.tr('privacy_security_bullet_2'),
@@ -45,8 +44,7 @@ class PrivacyPolicyScreen extends StatelessWidget {
     ),
     _PolicySection(
       title: context.tr('4_data_sharing'),
-      body:
-          context.tr('privacy_sharing_body'),
+      body: context.tr('privacy_sharing_body'),
       bullets: [
         context.tr('privacy_sharing_bullet_1'),
         context.tr('privacy_sharing_bullet_2'),
@@ -67,27 +65,23 @@ class PrivacyPolicyScreen extends StatelessWidget {
     ),
     _PolicySection(
       title: context.tr('6_cookies_and_tracking'),
-      body:
-          context.tr('privacy_cookies_body'),
+      body: context.tr('privacy_cookies_body'),
       bullets: [],
     ),
     _PolicySection(
       title: context.tr('privacy_children_title'),
-      body:
-          context.tr('privacy_children_body'),
+      body: context.tr('privacy_children_body'),
       bullets: [],
     ),
     _PolicySection(
       title: context.tr('8_changes_to_this_policy'),
-      body:
-          context.tr('privacy_changes_body'),
+      body: context.tr('privacy_changes_body'),
       bullets: [],
     ),
     _PolicySection(
       title: context.tr('9_contact_us'),
-      body:
-          context.tr('privacy_contact_body'),
-      bullets: ['privacy@expensetracker.com'],
+      body: context.tr('privacy_contact_body'),
+      bullets: [AppEnv.supportEmail],
     ),
   ];
 
@@ -167,10 +161,16 @@ class PrivacyPolicyScreen extends StatelessWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    for (var index = 0; index < _sections(context).length; index++) ...[
+                    for (
+                      var index = 0;
+                      index < _sections(context).length;
+                      index++
+                    ) ...[
                       Padding(
                         padding: const EdgeInsets.all(16),
-                        child: _SectionBlock(section: _sections(context)[index]),
+                        child: _SectionBlock(
+                          section: _sections(context)[index],
+                        ),
                       ),
                       if (index != _sections(context).length - 1)
                         Divider(height: 1, color: ShellStyles.border(context)),

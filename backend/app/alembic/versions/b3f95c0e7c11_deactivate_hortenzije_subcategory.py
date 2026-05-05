@@ -8,7 +8,7 @@ Create Date: 2026-03-05 20:05:00.000000
 from __future__ import annotations
 
 from collections.abc import Sequence
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 import sqlalchemy as sa
 from alembic import op
@@ -75,7 +75,7 @@ def upgrade() -> None:
               )
             """
         ),
-        {"updated_at": datetime.now(timezone.utc)},
+        {"updated_at": datetime.now(UTC)},
     )
 
 
@@ -95,5 +95,5 @@ def downgrade() -> None:
               )
             """
         ),
-        {"updated_at": datetime.now(timezone.utc)},
+        {"updated_at": datetime.now(UTC)},
     )

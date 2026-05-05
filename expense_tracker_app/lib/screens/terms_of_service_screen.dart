@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../core/app_env.dart';
 import '../core/redesign_system.dart';
 import '../l10n/app_localizations.dart';
 import 'settings_detail_scaffold.dart';
@@ -10,9 +11,7 @@ class TermsOfServiceScreen extends StatelessWidget {
   static List<_TermsSection> _sections(BuildContext context) => [
     _TermsSection(
       title: context.tr('1_acceptance_of_terms'),
-      paragraphs: [
-        context.tr('terms_acceptance_body'),
-      ],
+      paragraphs: [context.tr('terms_acceptance_body')],
     ),
     _TermsSection(
       title: context.tr('2_description_of_service'),
@@ -38,9 +37,7 @@ class TermsOfServiceScreen extends StatelessWidget {
     ),
     _TermsSection(
       title: context.tr('4_subscription_and_billing'),
-      paragraphs: [
-        context.tr('terms_billing_body'),
-      ],
+      paragraphs: [context.tr('terms_billing_body')],
     ),
     _TermsSection(
       title: context.tr('5_prohibited_uses'),
@@ -56,46 +53,31 @@ class TermsOfServiceScreen extends StatelessWidget {
     ),
     _TermsSection(
       title: context.tr('6_intellectual_property'),
-      paragraphs: [
-        context.tr('terms_ip_body'),
-      ],
+      paragraphs: [context.tr('terms_ip_body')],
     ),
     _TermsSection(
       title: context.tr('7_service_availability'),
-      paragraphs: [
-        context.tr('terms_availability_body'),
-      ],
+      paragraphs: [context.tr('terms_availability_body')],
     ),
     _TermsSection(
       title: context.tr('8_limitation_of_liability'),
-      paragraphs: [
-        context.tr('terms_liability_body'),
-      ],
+      paragraphs: [context.tr('terms_liability_body')],
     ),
     _TermsSection(
       title: context.tr('9_termination'),
-      paragraphs: [
-        context.tr('terms_termination_body'),
-      ],
+      paragraphs: [context.tr('terms_termination_body')],
     ),
     _TermsSection(
       title: context.tr('10_changes_to_terms'),
-      paragraphs: [
-        context.tr('terms_changes_body'),
-      ],
+      paragraphs: [context.tr('terms_changes_body')],
     ),
     _TermsSection(
       title: context.tr('11_governing_law'),
-      paragraphs: [
-        context.tr('terms_law_body'),
-      ],
+      paragraphs: [context.tr('terms_law_body')],
     ),
     _TermsSection(
       title: context.tr('12_contact'),
-      paragraphs: [
-        context.tr('terms_contact_body'),
-        'legal@expensetracker.com',
-      ],
+      paragraphs: [context.tr('terms_contact_body'), AppEnv.supportEmail],
     ),
   ];
 
@@ -175,7 +157,11 @@ class TermsOfServiceScreen extends StatelessWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    for (var index = 0; index < _sections(context).length; index++) ...[
+                    for (
+                      var index = 0;
+                      index < _sections(context).length;
+                      index++
+                    ) ...[
                       Padding(
                         padding: const EdgeInsets.all(16),
                         child: _TermsBlock(section: _sections(context)[index]),

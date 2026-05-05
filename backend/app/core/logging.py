@@ -125,6 +125,22 @@ def _request_client_ip(request: Request) -> str | None:
     return None
 
 
+def _proxy_diagnostics(request: Request) -> dict[str, str | None]:
+    if not observability_settings.PROXY_DIAGNOSTICS_ENABLED:
+        return {}
+
+    return {
+        "proxy_host": request.headers.get("host"),
+        "proxy_forwarded_host": request.headers.get("x-forwarded-host"),
+        "proxy_forwarded_proto": request.headers.get("x-forwarded-proto"),
+        "proxy_cf_connecting_ip": request.headers.get("cf-connecting-ip"),
+        "proxy_x_forwarded_for": request.headers.get("x-forwarded-for"),
+        "proxy_socket_client_host": (
+            request.client.host if request.client is not None else None
+        ),
+    }
+
+
 logger = logging.getLogger(__name__)
 
 
@@ -148,6 +164,7 @@ class BackendLoggingMiddleware(BaseHTTPMiddleware):
                     "status_code": response.status_code,
                     "duration_ms": duration_ms,
                     "client_ip": _request_client_ip(request),
+                    **_proxy_diagnostics(request),
                 },
             )
             response.headers["X-Request-ID"] = request_id
@@ -164,6 +181,7 @@ class BackendLoggingMiddleware(BaseHTTPMiddleware):
                     "path": request.url.path,
                     "duration_ms": duration_ms,
                     "client_ip": _request_client_ip(request),
+                    **_proxy_diagnostics(request),
                 },
             )
             raise

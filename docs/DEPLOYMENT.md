@@ -96,14 +96,17 @@ Use:
 - an Origin Rule for `nexavend.store` that rewrites the destination port to
   `8443`, so public users can open `https://nexavend.store` without typing the
   origin port
-- API and storage public URLs with the explicit alternate HTTPS port:
-  `https://api.nexavend.store:8443` and `https://storage.nexavend.store:8443`
+- API public URL with the explicit alternate HTTPS port:
+  `https://api.nexavend.store:8443`
+- Storage public URL with the explicit alternate HTTPS port:
+  `https://storage.nexavend.store:8443`
 - the public site URL you set in `PUBLIC_APP_BASE_URL`, for example
   `https://nexavend.store`
 
 Cloudflare supports proxied HTTPS traffic on `8443`, and Origin Rules can route
-clean edge URLs on port `443` to a non-standard origin port. Without that Origin
-Rule, direct site access must include the port: `https://nexavend.store:8443/`.
+clean edge URLs on port `443` to a non-standard origin port. Keep API and
+storage presigned URLs on the explicit `:8443` host unless you deliberately add
+and test a Cloudflare Origin Rule for the clean storage hostname.
 
 ### 5. Create The Origin TLS Secret
 
@@ -116,7 +119,40 @@ kubectl -n expense-tracker create secret tls expense-tracker-origin-tls \
   --key=origin.key
 ```
 
-### 6. Prepare `.env.production`
+### 6. Create The GHCR Image Pull Secret
+
+The production overlay attaches the canonical private-registry pull secret
+`ghcr-creds` to the default ServiceAccount in the `expense-tracker` namespace.
+Create the secret before applying workloads:
+
+```bash
+kubectl -n expense-tracker create secret docker-registry ghcr-creds \
+  --docker-server=ghcr.io \
+  --docker-username=fotapol \
+  --docker-password="$GHCR_READ_PACKAGES_TOKEN"
+```
+
+The token in `GHCR_READ_PACKAGES_TOKEN` needs the `read:packages` permission for
+GHCR private image pulls. Do not commit the token.
+
+Preflight:
+
+```bash
+kubectl -n expense-tracker get secret ghcr-creds
+kubectl -n expense-tracker get serviceaccount default -o yaml
+```
+
+Expected ServiceAccount output includes:
+
+```yaml
+imagePullSecrets:
+- name: ghcr-creds
+```
+
+If dedicated ServiceAccounts are introduced later for API, worker, site, or
+backup jobs, keep using the same image pull secret name: `ghcr-creds`.
+
+### 7. Prepare `.env.production`
 
 Copy `.env.production.example` to `.env.production` and fill:
 
@@ -129,6 +165,12 @@ Copy `.env.production.example` to `.env.production` and fill:
 - RevenueCat values if used
 
 The image values must point to pullable registry images before you deploy.
+The render script rejects placeholder `ghcr.io/example/...` images and
+production app images tagged `:latest`. The current public site image value is:
+
+```bash
+SITE_IMAGE=ghcr.io/fotapol/ai-expense-tracker-site:prod-1
+```
 
 Build and publish the backup image from:
 
@@ -144,24 +186,78 @@ docker build -f site/Dockerfile -t ghcr.io/your-org/ai-expense-tracker-site:2026
 docker push ghcr.io/your-org/ai-expense-tracker-site:2026-04-23
 ```
 
-### 7. Render Kubernetes Inputs
+Backups default to a 30-day retention window through
+`POSTGRES_BACKUP_RETENTION_DAYS=30`. After the first successful backup, verify
+that the newest dump can be restored into disposable infrastructure:
+
+```bash
+bash scripts/verify_postgres_backup_restore.sh
+```
+
+This script creates a temporary Kubernetes `Job`, downloads the newest backup
+from MinIO, restores it into an ephemeral PostgreSQL data directory inside that
+job, prints the result, and deletes the job unless `KEEP_JOB=true` is set. It
+must not be pointed at production Postgres.
+
+### 8. Render Kubernetes Inputs
 
 ```bash
 python infra/k8s/scripts/render_k8s_env.py --env-file .env.production
 ```
 
-### 8. Apply The Production Overlay
+`UVICORN_FORWARDED_ALLOW_IPS` must not be `*` in production. To discover the
+right value after deploying the diagnostics build, temporarily set:
+
+```env
+PROXY_DIAGNOSTICS_ENABLED=true
+UVICORN_FORWARDED_ALLOW_IPS=127.0.0.1
+```
+
+Apply the overlay, make one public request, then inspect the safe proxy
+diagnostic fields:
+
+```bash
+curl -sS https://api.nexavend.store:8443/ >/dev/null
+kubectl -n expense-tracker logs deploy/expense-tracker-api --tail=200 | \
+  grep proxy_socket_client_host
+```
+
+Set `UVICORN_FORWARDED_ALLOW_IPS` to the observed F5 NGINX source IP or CIDR,
+set `PROXY_DIAGNOSTICS_ENABLED=false`, render again, and redeploy. The Host
+header should be `api.nexavend.store` or `api.nexavend.store:8443`.
+
+### 9. Run Database Migrations
+
+When `RUN_STARTUP_MIGRATIONS=false`, run the repo-defined migration job before
+the API rollout:
+
+```bash
+bash scripts/run_k8s_migrations.sh
+```
+
+The script creates a temporary Kubernetes `Job` from the currently deployed API
+image, injects the same generated ConfigMap/Secret, runs `alembic upgrade head`,
+waits for completion, and prints the migration logs. Do not point migration
+commands at a production database outside this namespace workflow.
+
+### 10. Apply The Production Overlay
 
 ```bash
 kubectl apply -k infra/k8s/overlays/production
 ```
 
-The production API and storage ingress manifests already pin their F5 NGINX listener annotations to:
+The production API, site, and storage routes use F5 NGINX `VirtualServer`
+resources with the `https-8443` listener. Do not reintroduce ordinary
+Kubernetes `Ingress` objects for these public routes unless the custom HTTPS
+listener strategy is deliberately migrated.
 
-- `nginx.org/listen-ports: "[80]"`
-- `nginx.org/listen-ports-ssl: "[8443]"`
+The F5 NGINX controller values pin the public HTTPS listener to:
 
-Do not remove those annotations unless you also move the public HTTPS listener back off `8443`.
+- `containerPort: 8443`
+- `hostPort: 8443`
+- `defaultHTTPSListenerPort: 8443`
+
+Do not change those listener values unless you also move the public HTTPS listener back off `8443`.
 
 ## Traffic Path
 
@@ -219,6 +315,38 @@ upload ceiling. The committed controller values set `client-max-body-size` to
 `16m`, which stays above the mobile 10 MB receipt limit and the backend
 `MAX_RECEIPT_FILE_BYTES` value.
 
+### Storage Lifecycle And Retention
+
+Receipt objects do not have automatic expiry. This is deliberate for launch:
+the application deletes receipt objects when a user deletes a receipt, and
+account deletion removes that user's receipt objects before local account data
+is committed as deleted. Do not add a MinIO lifecycle rule that expires the
+`receipts` bucket unless product policy, legal copy, and account deletion
+behavior are updated together.
+
+PostgreSQL backups are different. The backup CronJob uploads dumps under
+`POSTGRES_BACKUP_PREFIX` in `S3_BUCKET_BACKUPS` and prunes old dumps with the
+configured `POSTGRES_BACKUP_RETENTION_DAYS` value, which defaults to `30`.
+
+Use the operator `mc` client from a trusted machine to verify lifecycle state
+without printing secrets:
+
+```bash
+mc alias set prod-storage "$S3_ENDPOINT" "$S3_ACCESS_KEY" "$S3_SECRET_KEY"
+mc ilm ls prod-storage/receipts
+mc ilm ls prod-storage/postgres-backups
+mc ls --recursive prod-storage/postgres-backups/postgres | tail
+```
+
+Expected launch state:
+
+- `prod-storage/receipts` has no automatic expiry lifecycle rule.
+- old database backup objects are pruned by the backup job after
+  `POSTGRES_BACKUP_RETENTION_DAYS`, not by a bucket-wide receipt expiry rule.
+- `S3_EXTERNAL_ENDPOINT` remains the canonical public storage endpoint, for
+  example `https://storage.nexavend.store:8443`, unless a clean-host Cloudflare
+  Origin Rule has been deliberately added and tested.
+
 ### Monitoring
 
 Use port-forward for operator access:
@@ -226,6 +354,35 @@ Use port-forward for operator access:
 ```bash
 kubectl -n expense-tracker port-forward svc/prometheus 9090:9090
 kubectl -n expense-tracker port-forward svc/grafana 3000:3000
+```
+
+### VPS Log Retention
+
+Keep node logs bounded so backups, PVCs, and container logs do not compete for
+disk. On K3s, configure journald and kubelet/container log rotation on the VPS:
+
+```bash
+sudo mkdir -p /etc/systemd/journald.conf.d
+printf "[Journal]\nSystemMaxUse=1G\nMaxRetentionSec=90day\n" | \
+  sudo tee /etc/systemd/journald.conf.d/retention.conf
+sudo systemctl restart systemd-journald
+```
+
+For K3s, add kubelet log rotation args to `/etc/rancher/k3s/config.yaml` and
+restart K3s during a maintenance window:
+
+```yaml
+kubelet-arg:
+  - container-log-max-size=10Mi
+  - container-log-max-files=5
+```
+
+Check disk and log usage regularly:
+
+```bash
+df -h
+journalctl --disk-usage
+sudo du -h -d1 /var/lib/rancher/k3s /var/log 2>/dev/null
 ```
 
 ### Worker

@@ -34,6 +34,13 @@ def _bool_env(name: str, default: bool = False) -> bool:
     return raw.lower() in {"1", "true", "yes", "on"}
 
 
+def _optional_bool_env(name: str) -> bool | None:
+    raw = _env(name)
+    if not raw:
+        return None
+    return raw.lower() in {"1", "true", "yes", "on"}
+
+
 def _int_env(name: str, default: int) -> int:
     raw = _env(name)
     if not raw:
@@ -74,8 +81,37 @@ def _url_host(raw: str) -> str:
     return parsed.hostname or ""
 
 
+def _host_without_port(raw: str) -> str:
+    cleaned = raw.strip().lower()
+    if not cleaned:
+        return ""
+    if cleaned.startswith("[") and "]" in cleaned:
+        return cleaned[1:cleaned.index("]")]
+    if cleaned.count(":") == 1:
+        return cleaned.rsplit(":", 1)[0]
+    return cleaned
+
+
 def _csv_set(raw: str) -> frozenset[str]:
     return frozenset(item.strip().lower() for item in raw.split(",") if item.strip())
+
+
+def _csv_hosts(raw: str) -> tuple[str, ...]:
+    hosts = []
+    for item in raw.split(","):
+        host = _host_without_port(item)
+        if host and host not in hosts:
+            hosts.append(host)
+    return tuple(hosts)
+
+
+def _csv_origins(raw: str) -> tuple[str, ...]:
+    origins = []
+    for item in raw.split(","):
+        origin = item.strip().rstrip("/")
+        if origin and origin not in origins:
+            origins.append(origin)
+    return tuple(origins)
 
 
 class AppSettings:
@@ -90,10 +126,44 @@ class AppSettings:
             return _normalize_base_url(_env("PUBLIC_APP_BASE_URL"))
         if name == "PUBLIC_API_HOST":
             return _url_host(self.PUBLIC_API_BASE_URL)
+        if name == "PUBLIC_APP_HOST":
+            return _url_host(self.PUBLIC_APP_BASE_URL)
+        if name == "API_DOCS_ENABLED":
+            explicit = _optional_bool_env("API_DOCS_ENABLED")
+            if explicit is not None:
+                return explicit
+            return not self.is_production
+        if name == "TRUSTED_HOSTS":
+            explicit = _csv_hosts(_env("TRUSTED_HOSTS"))
+            if explicit:
+                return explicit
+            defaults = [
+                "testserver",
+                "localhost",
+                "127.0.0.1",
+                "expense-tracker-api",
+                "expense-tracker-api.expense-tracker",
+                "expense-tracker-api.expense-tracker.svc",
+                "expense-tracker-api.expense-tracker.svc.cluster.local",
+            ]
+            if self.PUBLIC_API_HOST:
+                defaults.append(self.PUBLIC_API_HOST)
+            return tuple(dict.fromkeys(defaults))
+        if name == "CORS_ALLOWED_ORIGINS":
+            explicit = _csv_origins(_env("CORS_ALLOWED_ORIGINS"))
+            if explicit:
+                return explicit
+            if self.PUBLIC_APP_BASE_URL:
+                return (self.PUBLIC_APP_BASE_URL,)
+            if not self.is_production:
+                return ("http://localhost:3000", "http://127.0.0.1:3000")
+            return ()
+        if name == "RUN_STARTUP_MIGRATIONS":
+            return _bool_env("RUN_STARTUP_MIGRATIONS", True)
         if name == "MAX_RECEIPT_FILE_BYTES":
             return _int_env("MAX_RECEIPT_FILE_BYTES", 15 * 1024 * 1024)
         if name == "UVICORN_FORWARDED_ALLOW_IPS":
-            return _env("UVICORN_FORWARDED_ALLOW_IPS", "*")
+            return _env("UVICORN_FORWARDED_ALLOW_IPS", "127.0.0.1")
         if name == "INGRESS_CLASS_NAME":
             return _env("INGRESS_CLASS_NAME", "nginx")
         if name == "INGRESS_TLS_SECRET_NAME":
@@ -289,6 +359,8 @@ class ObservabilitySettings:
             return _env("LOG_LEVEL", "INFO")
         if name == "LOG_JSON":
             return _bool_env("LOG_JSON", False)
+        if name == "PROXY_DIAGNOSTICS_ENABLED":
+            return _bool_env("PROXY_DIAGNOSTICS_ENABLED", False)
         if name == "METRICS_ENABLED":
             return _bool_env("METRICS_ENABLED", True)
         if name == "METRICS_API_PATH":

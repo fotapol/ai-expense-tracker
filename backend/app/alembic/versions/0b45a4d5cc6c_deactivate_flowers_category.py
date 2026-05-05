@@ -8,7 +8,7 @@ Create Date: 2026-03-05 18:10:00.000000
 from __future__ import annotations
 
 from collections.abc import Sequence
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 import sqlalchemy as sa
 from alembic import op
@@ -45,7 +45,7 @@ def upgrade() -> None:
     if home_id is None or flowers_id is None or home_id == flowers_id:
         return
 
-    now = datetime.now(timezone.utc)
+    now = datetime.now(UTC)
     # Preserve custom subcategories that were nested under FLOWERS by reparenting to HOME.
     conn.execute(
         sa.text(
@@ -106,6 +106,6 @@ def downgrade() -> None:
         {
             "home_id": home_id,
             "flowers_id": flowers_id,
-            "updated_at": datetime.now(timezone.utc),
+            "updated_at": datetime.now(UTC),
         },
     )

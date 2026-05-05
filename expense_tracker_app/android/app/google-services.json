@@ -58,11 +58,11 @@
       },
       "oauth_client": [
         {
-          "client_id": "897439875337-vldhm2img2evcitdl2drie7jvq4itlcr.apps.googleusercontent.com",
+          "client_id": "897439875337-6r2i6r4ajcem2sghighq45aoon8unrp2.apps.googleusercontent.com",
           "client_type": 1,
           "android_info": {
             "package_name": "com.nexavend.expense_tracker_app",
-            "certificate_hash": "e1743f441955be1f79bbcfd6f212e7485a88aa90"
+            "certificate_hash": "f7ae6c733a9a6b9e0f8415f939b19c595fec4d0f"
           }
         },
         {

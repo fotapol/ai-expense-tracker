@@ -1,9 +1,9 @@
 import uuid
+from typing import TYPE_CHECKING, Optional
 
 from sqlalchemy import CHAR, Column, String
 from sqlmodel import Field, Relationship, SQLModel
 
-from typing import TYPE_CHECKING, Optional
 if TYPE_CHECKING:
     from app.models.users.profile import Profile
 

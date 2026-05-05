@@ -10,6 +10,12 @@ class AppEnv {
     'APP_PRIVACY_URL',
   );
   static const String _termsUrlDefine = String.fromEnvironment('APP_TERMS_URL');
+  static const String _deleteAccountUrlDefine = String.fromEnvironment(
+    'APP_DELETE_ACCOUNT_URL',
+  );
+  static const String _playSubscriptionsUrlDefine = String.fromEnvironment(
+    'APP_PLAY_SUBSCRIPTIONS_URL',
+  );
   static const String _supportEmailDefine = String.fromEnvironment(
     'APP_SUPPORT_EMAIL',
   );
@@ -41,6 +47,19 @@ class AppEnv {
     'APP_TERMS_URL',
     defineValue: _termsUrlDefine,
     fallback: 'https://nexavend.store/terms',
+  );
+
+  static String get deleteAccountUrl => _read(
+    'APP_DELETE_ACCOUNT_URL',
+    defineValue: _deleteAccountUrlDefine,
+    fallback: 'https://nexavend.store/delete-account',
+  );
+
+  static String get playSubscriptionsUrl => _read(
+    'APP_PLAY_SUBSCRIPTIONS_URL',
+    defineValue: _playSubscriptionsUrlDefine,
+    fallback:
+        'https://play.google.com/store/account/subscriptions?package=com.nexavend.expense_tracker_app',
   );
 
   static String get githubUrl => _read(

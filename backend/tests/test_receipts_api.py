@@ -1,17 +1,15 @@
 """Tests for the Receipt API."""
 
-import datetime as dt
 import uuid
 
 import pytest
 from fastapi import HTTPException, status
-from pydantic import ValidationError
 
-from app.api.routers.receipts import create_receipt, confirm_upload
+from app.api.routers.receipts import confirm_upload, create_receipt
 from app.models.receipts.receipt import Receipt
 from app.models.shared.enums import ReceiptStatus
-from app.schemas.receipts import ReceiptCreateRequest
 from app.models.users.user import User
+from app.schemas.receipts import ReceiptCreateRequest
 
 
 class _MockSession:
@@ -50,6 +48,12 @@ def test_user():
     return User(id=uuid.uuid4(), email="test@example.com")
 
 
+def _unwrap(func):
+    while hasattr(func, "__wrapped__"):
+        func = func.__wrapped__
+    return func
+
+
 @pytest.mark.anyio
 async def test_create_receipt_happy_path(mock_session, test_user):
     payload = ReceiptCreateRequest(
@@ -58,7 +62,12 @@ async def test_create_receipt_happy_path(mock_session, test_user):
         size_bytes=1024,
     )
     
-    res = await create_receipt(payload=payload, request=None, session=mock_session, current_user=test_user)
+    res = await _unwrap(create_receipt)(
+        payload=payload,
+        request=None,
+        session=mock_session,
+        current_user=test_user,
+    )
     
     assert res.receipt_id is not None
     assert "url" not in res.upload_url  # MinIO presigned generation wasn't mocked, but we verify response shape
@@ -76,7 +85,12 @@ async def test_create_receipt_rejects_invalid_mime(mock_session, test_user):
     )
     
     with pytest.raises(HTTPException) as exc_info:
-        await create_receipt(payload=payload, request=None, session=mock_session, current_user=test_user)
+        await _unwrap(create_receipt)(
+            payload=payload,
+            request=None,
+            session=mock_session,
+            current_user=test_user,
+        )
     
     assert exc_info.value.status_code == status.HTTP_400_BAD_REQUEST
     assert "Unsupported mime_type" in exc_info.value.detail
@@ -97,6 +111,10 @@ async def test_confirm_upload_happy_path(monkeypatch, mock_session, test_user):
     mock_session.added.append(receipt)
 
     monkeypatch.setattr("app.api.routers.receipts.head_object", lambda key, bucket: {"size_bytes": 1024, "content_type": "image/jpeg"})
+    monkeypatch.setattr(
+        "app.api.routers.receipts.read_object_prefix",
+        lambda key, bucket: b"\xff\xd8\xff\xe0",
+    )
     
     # Mock usage checks
     from types import SimpleNamespace
@@ -118,7 +136,12 @@ async def test_confirm_upload_happy_path(monkeypatch, mock_session, test_user):
 
     # We need to mock aio_pika imports in the try-block if aio-pika is totally missing or complex. 
     # But since it's installed as a dependency, it should pass.
-    res = await confirm_upload(receipt_id=receipt_id, request=None, session=mock_session, current_user=test_user)
+    res = await _unwrap(confirm_upload)(
+        receipt_id=receipt_id,
+        request=None,
+        session=mock_session,
+        current_user=test_user,
+    )
     
     assert res.receipt_id == receipt_id
     assert res.status == ReceiptStatus.UPLOADED
@@ -142,10 +165,55 @@ async def test_confirm_upload_rejects_oversized_file(monkeypatch, mock_session, 
 
     from app.api.routers.receipts import _MAX_RECEIPT_FILE_BYTES
     large_size = _MAX_RECEIPT_FILE_BYTES + 1
+    deleted = []
     
     monkeypatch.setattr("app.api.routers.receipts.head_object", lambda key, bucket: {"size_bytes": large_size, "content_type": "image/jpeg"})
+    monkeypatch.setattr(
+        "app.api.routers.receipts.delete_object",
+        lambda key, bucket: deleted.append((bucket, key)),
+    )
     
     with pytest.raises(HTTPException) as exc_info:
-        await confirm_upload(receipt_id=receipt_id, request=None, session=mock_session, current_user=test_user)
+        await _unwrap(confirm_upload)(
+            receipt_id=receipt_id,
+            request=None,
+            session=mock_session,
+            current_user=test_user,
+        )
 
     assert exc_info.value.status_code == status.HTTP_413_REQUEST_ENTITY_TOO_LARGE
+    assert deleted == [("receipts", "receipts/123/file.jpg")]
+
+
+@pytest.mark.anyio
+async def test_confirm_upload_rejects_mismatched_file_magic(monkeypatch, mock_session, test_user):
+    receipt_id = uuid.uuid4()
+    receipt = Receipt(
+        id=receipt_id,
+        user_id=test_user.id,
+        status=ReceiptStatus.CREATED,
+        storage_bucket="receipts",
+        storage_key="receipts/123/file.jpg",
+        mime_type="image/jpeg",
+        size_bytes=0,
+    )
+    mock_session.added.append(receipt)
+    deleted = []
+
+    monkeypatch.setattr("app.api.routers.receipts.head_object", lambda key, bucket: {"size_bytes": 1024, "content_type": "image/jpeg"})
+    monkeypatch.setattr("app.api.routers.receipts.read_object_prefix", lambda key, bucket: b"not-a-jpeg")
+    monkeypatch.setattr(
+        "app.api.routers.receipts.delete_object",
+        lambda key, bucket: deleted.append((bucket, key)),
+    )
+
+    with pytest.raises(HTTPException) as exc_info:
+        await _unwrap(confirm_upload)(
+            receipt_id=receipt_id,
+            request=None,
+            session=mock_session,
+            current_user=test_user,
+        )
+
+    assert exc_info.value.status_code == status.HTTP_400_BAD_REQUEST
+    assert deleted == [("receipts", "receipts/123/file.jpg")]

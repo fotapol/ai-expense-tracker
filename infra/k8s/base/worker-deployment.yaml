@@ -20,24 +20,44 @@ spec:
         app.kubernetes.io/part-of: ai-expense-tracker
     spec:
       terminationGracePeriodSeconds: 60
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 10001
+        runAsGroup: 10001
+        fsGroup: 10001
+        seccompProfile:
+          type: RuntimeDefault
       containers:
         - name: worker
           image: ai-expense-tracker-backend:latest
           imagePullPolicy: IfNotPresent
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop:
+                - ALL
           command:
             - sh
             - -c
             - >-
               python -c "import base64, os, pathlib; raw = os.environ.get('FIREBASE_SERVICE_ACCOUNT_JSON_B64', '').strip(); path = os.environ['FIREBASE_SERVICE_ACCOUNT_PATH']; pathlib.Path(path).parent.mkdir(parents=True, exist_ok=True); pathlib.Path(path).write_bytes(base64.b64decode(raw)) if raw else None" &&
-              exec uv run python -m app.worker.receipt_processor
+              exec /app/.venv/bin/python -m app.worker.receipt_processor
           ports:
             - name: metrics
               containerPort: 9101
+          env:
+            - name: HOME
+              value: /app
+            - name: UV_CACHE_DIR
+              value: /tmp/uv-cache
           envFrom:
             - configMapRef:
                 name: expense-tracker-config
             - secretRef:
                 name: expense-tracker-secrets
+          volumeMounts:
+            - name: firebase-secrets
+              mountPath: /run/secrets
           readinessProbe:
             tcpSocket:
               port: metrics
@@ -59,3 +79,6 @@ spec:
             limits:
               cpu: 1000m
               memory: 1Gi
+      volumes:
+        - name: firebase-secrets
+          emptyDir: {}

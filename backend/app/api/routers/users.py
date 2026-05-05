@@ -2,7 +2,7 @@
 
 import logging
 
-from fastapi import APIRouter, Depends, Request, Response, status
+from fastapi import APIRouter, Depends, HTTPException, Request, Response, status
 from sqlmodel import Session
 
 from app.auth.deps import get_current_user
@@ -13,7 +13,10 @@ from app.core.redis import get_redis
 from app.models.users.profile import Profile
 from app.models.users.user import User
 from app.schemas.users import UserUpdate, UserWithProfileRead
-from app.services.account_deletion import delete_account_for_user
+from app.services.account_deletion import (
+    AccountDeletionStorageCleanupError,
+    delete_account_for_user,
+)
 
 router = APIRouter(prefix="/v1", tags=["users"])
 logger = logging.getLogger(__name__)
@@ -81,7 +84,18 @@ async def delete_me(
 
     current_user = session.merge(current_user)
     auth_subject = current_user.auth_subject
-    result = delete_account_for_user(session=session, user=current_user)
+    try:
+        result = delete_account_for_user(session=session, user=current_user)
+    except AccountDeletionStorageCleanupError as exc:
+        logger.warning(
+            "Account deletion blocked by %d receipt storage cleanup failure(s) for user_id=%s.",
+            len(exc.failures),
+            current_user.id,
+        )
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail="Account storage cleanup failed. Please try again.",
+        ) from None
 
     redis = get_redis()
     await invalidate_user_cache(redis, auth_subject)

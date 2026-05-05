@@ -20,32 +20,55 @@ spec:
         app.kubernetes.io/part-of: ai-expense-tracker
     spec:
       terminationGracePeriodSeconds: 30
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 10001
+        runAsGroup: 10001
+        fsGroup: 10001
+        seccompProfile:
+          type: RuntimeDefault
       containers:
         - name: api
           image: ai-expense-tracker-backend:latest
           imagePullPolicy: IfNotPresent
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop:
+                - ALL
           command:
             - sh
             - -c
             - >-
               python -c "import base64, os, pathlib; raw = os.environ.get('FIREBASE_SERVICE_ACCOUNT_JSON_B64', '').strip(); path = os.environ['FIREBASE_SERVICE_ACCOUNT_PATH']; pathlib.Path(path).parent.mkdir(parents=True, exist_ok=True); pathlib.Path(path).write_bytes(base64.b64decode(raw)) if raw else None" &&
-              exec uv run uvicorn app.main:app
+              exec /app/.venv/bin/python -m uvicorn app.main:app
               --host 0.0.0.0
               --port 8000
               --proxy-headers
-              --forwarded-allow-ips="${UVICORN_FORWARDED_ALLOW_IPS:-*}"
+              --forwarded-allow-ips="${UVICORN_FORWARDED_ALLOW_IPS:-127.0.0.1}"
           ports:
             - name: http
               containerPort: 8000
+          env:
+            - name: HOME
+              value: /app
+            - name: UV_CACHE_DIR
+              value: /tmp/uv-cache
           envFrom:
             - configMapRef:
                 name: expense-tracker-config
             - secretRef:
                 name: expense-tracker-secrets
+          volumeMounts:
+            - name: firebase-secrets
+              mountPath: /run/secrets
           readinessProbe:
             httpGet:
               path: /health/ready
               port: http
+              httpHeaders:
+                - name: Host
+                  value: expense-tracker-api
             initialDelaySeconds: 10
             periodSeconds: 10
             timeoutSeconds: 5
@@ -54,6 +77,9 @@ spec:
             httpGet:
               path: /health/live
               port: http
+              httpHeaders:
+                - name: Host
+                  value: expense-tracker-api
             initialDelaySeconds: 20
             periodSeconds: 20
             timeoutSeconds: 5
@@ -62,6 +88,9 @@ spec:
             httpGet:
               path: /health/live
               port: http
+              httpHeaders:
+                - name: Host
+                  value: expense-tracker-api
             periodSeconds: 5
             timeoutSeconds: 5
             failureThreshold: 24
@@ -72,3 +101,6 @@ spec:
             limits:
               cpu: 750m
               memory: 768Mi
+      volumes:
+        - name: firebase-secrets
+          emptyDir: {}

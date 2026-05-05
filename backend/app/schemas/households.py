@@ -69,7 +69,7 @@ class InviteCreate(SchemaBase):
     invited_user_id: UUID | None = None
 
     @model_validator(mode="after")
-    def check_at_least_one_target(self) -> "InviteCreate":
+    def check_at_least_one_target(self) -> InviteCreate:
         """Require exactly one invite target."""
         if not self.invited_email and not self.invited_user_id:
             raise ValueError("Provide either invited_email or invited_user_id.")
