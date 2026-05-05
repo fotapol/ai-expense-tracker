@@ -1269,6 +1269,9 @@ class AppLocalizations {
           'Your selected photo will appear here before extraction starts.',
       'upload_preview_selected_body':
           'You can review this image, switch to another one, or start extraction now.',
+      'upload_selected_title': 'Receipt selected',
+      'upload_selected_body':
+          'Review the image, choose another photo, or start extraction.',
       'help_support_email_copied': 'Support email copied: {email}',
       'billing_dev_expire': 'Expire',
       'common_icon': 'Icon',
