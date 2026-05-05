@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../core/item_translation_service.dart';
 import '../core/money_formatter.dart';
 import '../core/redesign_system.dart';
 import '../core/taxonomy_localization.dart';
@@ -777,9 +778,11 @@ class _ReceiptItemEditScreenState extends State<ReceiptItemEditScreen> {
     final translatedName = (_item['translated_description']?.toString() ?? '')
         .trim();
     final currentName = _nameController.text.trim();
-    final hasTranslatedName =
-        translatedName.isNotEmpty &&
-        translatedName.toLowerCase() != currentName.toLowerCase();
+    final hasTranslatedName = ItemTranslationService.shouldShowTranslatedText(
+      translationEnabled: true,
+      originalText: currentName,
+      translatedText: translatedName,
+    );
     final originalAmount = _originalLineTotal();
     final finalAmount = _toDouble(_amountController.text) ?? 0;
     final displayAmount = _toDisplayAmount(

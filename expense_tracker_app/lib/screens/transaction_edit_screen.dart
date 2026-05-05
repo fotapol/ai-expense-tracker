@@ -2403,10 +2403,12 @@ class _TransactionEditScreenState extends State<TransactionEditScreen> {
     final translatedName = _normalizeText(
       item['translated_description']?.toString(),
     );
-    final hasTranslatedName =
-        translatedName.isNotEmpty &&
-        translatedName.toLowerCase() != currentName.toLowerCase();
-    final showTranslatedName = _showTranslatedItems && hasTranslatedName;
+    final showTranslatedName = ItemTranslationService.shouldShowTranslatedText(
+      translationEnabled:
+          _showTranslatedItems && _effectiveItemsLanguage.isNotEmpty,
+      originalText: currentName,
+      translatedText: translatedName,
+    );
     final displayCurrencyLabel = CurrencyDisplay.labelForCode(_displayCurrency);
     final quantityLineParts = <String>[];
     if (sourceQty != null) {
@@ -2472,6 +2474,60 @@ class _TransactionEditScreenState extends State<TransactionEditScreen> {
                           ),
                         ),
                       ],
+                      if (hasDiscount && beforeDiscountAmount != null) ...[
+                        const SizedBox(height: 7),
+                        Wrap(
+                          spacing: 8,
+                          runSpacing: 4,
+                          children: [
+                            Text(
+                              context.tr(
+                                'transaction_was_amount',
+                                params: {
+                                  'amount': _formatMoney(
+                                    _currency,
+                                    beforeDiscountAmount,
+                                  ),
+                                },
+                              ),
+                              style: TextStyle(
+                                color: _mutedColor,
+                                fontSize: 11.5,
+                                fontWeight: FontWeight.w600,
+                                decoration: TextDecoration.lineThrough,
+                                decorationColor: _mutedColor,
+                              ),
+                            ),
+                            Text(
+                              context.tr(
+                                'transaction_saved_amount',
+                                params: {
+                                  'amount': _formatMoney(
+                                    _currency,
+                                    discountAmount,
+                                  ),
+                                },
+                              ),
+                              style: TextStyle(
+                                color: _successColor,
+                                fontSize: 11.5,
+                                fontWeight: FontWeight.w800,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ],
+                      const SizedBox(height: 7),
+                      Text(
+                        quantityLineParts.isEmpty
+                            ? context.tr('transaction_missing_quantity_price')
+                            : quantityLineParts.join(' / '),
+                        style: TextStyle(
+                          color: _mutedColor,
+                          fontSize: 12,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
                     ],
                   ),
                 ),
@@ -2508,54 +2564,6 @@ class _TransactionEditScreenState extends State<TransactionEditScreen> {
                   ),
                 ),
               ],
-            ),
-            if (hasDiscount && beforeDiscountAmount != null) ...[
-              const SizedBox(height: 7),
-              Wrap(
-                spacing: 8,
-                runSpacing: 4,
-                children: [
-                  Text(
-                    context.tr(
-                      'transaction_was_amount',
-                      params: {
-                        'amount': _formatMoney(_currency, beforeDiscountAmount),
-                      },
-                    ),
-                    style: TextStyle(
-                      color: _mutedColor,
-                      fontSize: 11.5,
-                      fontWeight: FontWeight.w600,
-                      decoration: TextDecoration.lineThrough,
-                      decorationColor: _mutedColor,
-                    ),
-                  ),
-                  Text(
-                    context.tr(
-                      'transaction_saved_amount',
-                      params: {
-                        'amount': _formatMoney(_currency, discountAmount),
-                      },
-                    ),
-                    style: TextStyle(
-                      color: _successColor,
-                      fontSize: 11.5,
-                      fontWeight: FontWeight.w800,
-                    ),
-                  ),
-                ],
-              ),
-            ],
-            const SizedBox(height: 7),
-            Text(
-              quantityLineParts.isEmpty
-                  ? context.tr('transaction_missing_quantity_price')
-                  : quantityLineParts.join(' / '),
-              style: TextStyle(
-                color: _mutedColor,
-                fontSize: 12,
-                fontWeight: FontWeight.w600,
-              ),
             ),
             const SizedBox(height: 7),
             Wrap(
