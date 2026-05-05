@@ -2438,153 +2438,160 @@ class _TransactionEditScreenState extends State<TransactionEditScreen> {
               ? Border(bottom: BorderSide(color: _strokeColor.withAlpha(180)))
               : null,
         ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        currentName.isEmpty
-                            ? context.tr('transaction_item_name')
-                            : currentName,
-                        maxLines: 2,
-                        overflow: TextOverflow.ellipsis,
-                        style: TextStyle(
-                          color: _textColor,
-                          fontSize: 14.5,
-                          fontWeight: FontWeight.w800,
-                          height: 1.2,
-                        ),
-                      ),
-                      if (showTranslatedName) ...[
-                        const SizedBox(height: 6),
+        child: AnimatedSize(
+          duration: const Duration(milliseconds: 220),
+          curve: Curves.easeOutCubic,
+          alignment: Alignment.topCenter,
+          clipBehavior: Clip.hardEdge,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
                         Text(
-                          translatedName,
+                          currentName.isEmpty
+                              ? context.tr('transaction_item_name')
+                              : currentName,
                           maxLines: 2,
                           overflow: TextOverflow.ellipsis,
                           style: TextStyle(
+                            color: _textColor,
+                            fontSize: 14.5,
+                            fontWeight: FontWeight.w800,
+                            height: 1.15,
+                          ),
+                        ),
+                        if (showTranslatedName) ...[
+                          const SizedBox(height: 6),
+                          Text(
+                            translatedName,
+                            maxLines: 2,
+                            overflow: TextOverflow.ellipsis,
+                            style: TextStyle(
+                              color: _mutedColor,
+                              fontSize: 12,
+                              height: 1.25,
+                            ),
+                          ),
+                        ],
+                        if (hasDiscount && beforeDiscountAmount != null) ...[
+                          const SizedBox(height: 7),
+                          Wrap(
+                            spacing: 8,
+                            runSpacing: 4,
+                            children: [
+                              Text(
+                                context.tr(
+                                  'transaction_was_amount',
+                                  params: {
+                                    'amount': _formatMoney(
+                                      _currency,
+                                      beforeDiscountAmount,
+                                    ),
+                                  },
+                                ),
+                                style: TextStyle(
+                                  color: _mutedColor,
+                                  fontSize: 11.5,
+                                  fontWeight: FontWeight.w600,
+                                  decoration: TextDecoration.lineThrough,
+                                  decorationColor: _mutedColor,
+                                ),
+                              ),
+                              Text(
+                                context.tr(
+                                  'transaction_saved_amount',
+                                  params: {
+                                    'amount': _formatMoney(
+                                      _currency,
+                                      discountAmount,
+                                    ),
+                                  },
+                                ),
+                                style: TextStyle(
+                                  color: _successColor,
+                                  fontSize: 11.5,
+                                  fontWeight: FontWeight.w800,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ],
+                        const SizedBox(height: 7),
+                        Text(
+                          quantityLineParts.isEmpty
+                              ? context.tr('transaction_missing_quantity_price')
+                              : quantityLineParts.join(' / '),
+                          style: TextStyle(
                             color: _mutedColor,
                             fontSize: 12,
-                            height: 1.25,
+                            fontWeight: FontWeight.w600,
                           ),
                         ),
                       ],
-                      if (hasDiscount && beforeDiscountAmount != null) ...[
-                        const SizedBox(height: 7),
-                        Wrap(
-                          spacing: 8,
-                          runSpacing: 4,
-                          children: [
-                            Text(
-                              context.tr(
-                                'transaction_was_amount',
-                                params: {
-                                  'amount': _formatMoney(
-                                    _currency,
-                                    beforeDiscountAmount,
-                                  ),
-                                },
-                              ),
-                              style: TextStyle(
-                                color: _mutedColor,
-                                fontSize: 11.5,
-                                fontWeight: FontWeight.w600,
-                                decoration: TextDecoration.lineThrough,
-                                decorationColor: _mutedColor,
-                              ),
-                            ),
-                            Text(
-                              context.tr(
-                                'transaction_saved_amount',
-                                params: {
-                                  'amount': _formatMoney(
-                                    _currency,
-                                    discountAmount,
-                                  ),
-                                },
-                              ),
-                              style: TextStyle(
-                                color: _successColor,
-                                fontSize: 11.5,
-                                fontWeight: FontWeight.w800,
-                              ),
-                            ),
-                          ],
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.end,
+                    children: [
+                      Text(
+                        _formatMoney(_currency, sourceAmount),
+                        textAlign: TextAlign.right,
+                        style: TextStyle(
+                          color: _textColor,
+                          fontSize: 16,
+                          fontWeight: FontWeight.w800,
+                          height: 1.0,
+                        ),
+                      ),
+                      if (convertedVisible) ...[
+                        const SizedBox(height: 2),
+                        Text(
+                          '$displayCurrencyLabel ${displayAmount.toStringAsFixed(2)}',
+                          textAlign: TextAlign.right,
+                          style: TextStyle(color: _mutedColor, fontSize: 11.5),
                         ),
                       ],
-                      const SizedBox(height: 7),
-                      Text(
-                        quantityLineParts.isEmpty
-                            ? context.tr('transaction_missing_quantity_price')
-                            : quantityLineParts.join(' / '),
-                        style: TextStyle(
-                          color: _mutedColor,
-                          fontSize: 12,
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
                     ],
                   ),
-                ),
-                const SizedBox(width: 12),
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.end,
-                  children: [
-                    Text(
-                      _formatMoney(_currency, sourceAmount),
-                      textAlign: TextAlign.right,
-                      style: TextStyle(
-                        color: _textColor,
-                        fontSize: 16,
-                        fontWeight: FontWeight.w800,
-                      ),
+                  const SizedBox(width: 8),
+                  Padding(
+                    padding: const EdgeInsets.only(top: 2),
+                    child: Icon(
+                      AppIcons.chevronRight,
+                      size: 18,
+                      color: _mutedColor,
                     ),
-                    if (convertedVisible) ...[
-                      const SizedBox(height: 2),
-                      Text(
-                        '$displayCurrencyLabel ${displayAmount.toStringAsFixed(2)}',
-                        textAlign: TextAlign.right,
-                        style: TextStyle(color: _mutedColor, fontSize: 11.5),
-                      ),
-                    ],
-                  ],
-                ),
-                const SizedBox(width: 8),
-                Padding(
-                  padding: const EdgeInsets.only(top: 2),
-                  child: Icon(
-                    AppIcons.chevronRight,
-                    size: 18,
-                    color: _mutedColor,
+                  ),
+                ],
+              ),
+              const SizedBox(height: 7),
+              Wrap(
+                spacing: 5,
+                runSpacing: 5,
+                children: catTags
+                    .map((tag) => _buildCategoryBadge(tag: tag))
+                    .toList(growable: false),
+              ),
+              if (mismatch != null) ...[
+                const SizedBox(height: 8),
+                Text(
+                  _lineReviewMessage(mismatch),
+                  style: TextStyle(
+                    color: _warningColor,
+                    fontSize: 11.5,
+                    fontWeight: FontWeight.w700,
                   ),
                 ),
               ],
-            ),
-            const SizedBox(height: 7),
-            Wrap(
-              spacing: 5,
-              runSpacing: 5,
-              children: catTags
-                  .map((tag) => _buildCategoryBadge(tag: tag))
-                  .toList(growable: false),
-            ),
-            if (mismatch != null) ...[
-              const SizedBox(height: 8),
-              Text(
-                _lineReviewMessage(mismatch),
-                style: TextStyle(
-                  color: _warningColor,
-                  fontSize: 11.5,
-                  fontWeight: FontWeight.w700,
-                ),
-              ),
             ],
-          ],
+          ),
         ),
       ),
     );
