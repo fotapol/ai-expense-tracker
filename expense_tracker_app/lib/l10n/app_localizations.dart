@@ -1720,6 +1720,12 @@ class AppLocalizations {
           'Verarbeitung mit KI... Dies kann eine Minute dauern.',
       'upload_try_again': 'Versuchen Sie es erneut',
       'upload_pick_failed': 'Bild konnte nicht ausgewählt werden: {error}',
+      'upload_scanner_unavailable':
+          'Das Scannen mit der Kamera ist auf diesem Gerät nicht verfügbar. Du kannst weiterhin die Galerie verwenden.',
+      'upload_scanner_failed':
+          'Der Kamerascan konnte nicht abgeschlossen werden. Versuche es erneut oder verwende die Galerie.',
+      'upload_processing_fallback':
+          'Der gescannte Beleg wird ohne zusätzliche Verbesserung verwendet.',
       'upload_extraction_failed': 'Die Extraktion ist fehlgeschlagen',
       'upload_timed_out':
           'Zeitüberschreitung bei der Extraktion nach 2 Minuten.',
@@ -3095,6 +3101,12 @@ class AppLocalizations {
           'Traitement avec l\'IA... Cela peut prendre une minute.',
       'upload_try_again': 'Essayer à nouveau',
       'upload_pick_failed': 'Échec de la sélection de l\'image : {error}',
+      'upload_scanner_unavailable':
+          'La numérisation avec l’appareil photo n’est pas disponible sur cet appareil. Vous pouvez toujours utiliser la galerie.',
+      'upload_scanner_failed':
+          'Nous n’avons pas pu terminer la numérisation avec l’appareil photo. Réessayez ou utilisez la galerie.',
+      'upload_processing_fallback':
+          'Le reçu numérisé est utilisé sans amélioration supplémentaire.',
       'upload_extraction_failed': 'Échec de l\'extraction',
       'upload_timed_out': 'L\'extraction a expiré après 2 minutes.',
       'tools_subtitle': 'Outils financiers propulsés par l\'IA',
@@ -4465,6 +4477,12 @@ class AppLocalizations {
           'Обробка за допомогою ШІ... Це може зайняти хвилину.',
       'upload_try_again': 'Спробуйте знову',
       'upload_pick_failed': 'Не вдалося вибрати зображення: {error}',
+      'upload_scanner_unavailable':
+          'Сканування камерою недоступне на цьому пристрої. Ви все ще можете скористатися галереєю.',
+      'upload_scanner_failed':
+          'Не вдалося завершити сканування камерою. Спробуйте ще раз або скористайтеся галереєю.',
+      'upload_processing_fallback':
+          'Використовуємо сканований чек без додаткового покращення.',
       'upload_extraction_failed': 'Не вдалося видобути',
       'upload_timed_out': 'Час очікування вилучення минув через 2 хвилини.',
       'tools_subtitle': 'Фінансові інструменти з AI',
@@ -5813,6 +5831,12 @@ class AppLocalizations {
           'Elaborazione con AI... L\'operazione potrebbe richiedere un minuto.',
       'upload_try_again': 'Riprova',
       'upload_pick_failed': 'Impossibile selezionare l\'immagine: {error}',
+      'upload_scanner_unavailable':
+          'La scansione con la fotocamera non è disponibile su questo dispositivo. Puoi comunque usare la galleria.',
+      'upload_scanner_failed':
+          'Non siamo riusciti a completare la scansione con la fotocamera. Riprova o usa la galleria.',
+      'upload_processing_fallback':
+          'Uso della ricevuta scansionata senza miglioramenti aggiuntivi.',
       'upload_extraction_failed': 'Estrazione fallita',
       'upload_timed_out': 'Estrazione scaduta dopo 2 minuti.',
       'tools_subtitle': 'Strumenti finanziari basati su AI',
@@ -7196,6 +7220,12 @@ class AppLocalizations {
           'Przetwarzanie za pomocą AI... To może chwilę potrwać.',
       'upload_try_again': 'Spróbuj ponownie',
       'upload_pick_failed': 'Nie udało się wybrać obrazu: {error}',
+      'upload_scanner_unavailable':
+          'Skanowanie aparatem nie jest dostępne na tym urządzeniu. Nadal możesz użyć galerii.',
+      'upload_scanner_failed':
+          'Nie udało się ukończyć skanowania aparatem. Spróbuj ponownie albo użyj galerii.',
+      'upload_processing_fallback':
+          'Używamy zeskanowanego rachunku bez dodatkowego ulepszania.',
       'upload_extraction_failed': 'Ekstrakcja nie powiodła się',
       'upload_timed_out': 'Upłynął limit czasu ekstrakcji po 2 minutach.',
       'tools_subtitle': 'Narzędzia finansowe oparte na AI',
@@ -8549,6 +8579,12 @@ class AppLocalizations {
           'AI obrada u toku... Ovo može potrajati oko minut.',
       'upload_try_again': 'Pokušaj ponovo',
       'upload_pick_failed': 'Izbor slike nije uspeo: {error}',
+      'upload_scanner_unavailable':
+          'Skeniranje kamerom nije dostupno na ovom uređaju. I dalje možeš da koristiš galeriju.',
+      'upload_scanner_failed':
+          'Nismo uspeli da završimo skeniranje kamerom. Pokušaj ponovo ili koristi galeriju.',
+      'upload_processing_fallback':
+          'Koristi se skenirani račun bez dodatnog poboljšanja.',
       'upload_extraction_failed': 'Ekstrakcija nije uspela',
       'upload_timed_out': 'Ekstrakcija je istekla nakon 2 minuta.',
       'tools_subtitle': 'AI finansijski alati',
@@ -9895,6 +9931,12 @@ class AppLocalizations {
           'Обработка ИИ... Это может занять около минуты.',
       'upload_try_again': 'Попробовать снова',
       'upload_pick_failed': 'Не удалось выбрать изображение: {error}',
+      'upload_scanner_unavailable':
+          'Сканирование камерой недоступно на этом устройстве. Вы всё еще можете использовать галерею.',
+      'upload_scanner_failed':
+          'Не удалось завершить сканирование камерой. Попробуйте еще раз или используйте галерею.',
+      'upload_processing_fallback':
+          'Используется отсканированный чек без дополнительного улучшения.',
       'upload_extraction_failed': 'Не удалось распознать чек',
       'upload_timed_out': 'Время распознавания истекло через 2 минуты.',
       'tools_subtitle': 'Финансовые инструменты на базе AI',
@@ -11242,6 +11284,12 @@ class AppLocalizations {
           'Processando com IA... Isso pode levar um minuto.',
       'upload_try_again': 'Tente novamente',
       'upload_pick_failed': 'Falha ao escolher a imagem: {error}',
+      'upload_scanner_unavailable':
+          'A digitalização pela câmera não está disponível neste dispositivo. Você ainda pode usar a galeria.',
+      'upload_scanner_failed':
+          'Não foi possível concluir a digitalização pela câmera. Tente novamente ou use a galeria.',
+      'upload_processing_fallback':
+          'Usando o recibo digitalizado sem melhoria adicional.',
       'upload_extraction_failed': 'Falha na extração',
       'upload_timed_out': 'A extração expirou após 2 minutos.',
       'tools_subtitle': 'Ferramentas financeiras com tecnologia AI',
@@ -12606,6 +12654,12 @@ class AppLocalizations {
           'AI ile işleniyor... Bu işlem bir dakika sürebilir.',
       'upload_try_again': 'Tekrar deneyin',
       'upload_pick_failed': 'Resim seçilemedi: {error}',
+      'upload_scanner_unavailable':
+          'Kamera taraması bu cihazda kullanılamıyor. Yine de Galeri’yi kullanabilirsiniz.',
+      'upload_scanner_failed':
+          'Kamera taramasını tamamlayamadık. Tekrar deneyin veya Galeri’yi kullanın.',
+      'upload_processing_fallback':
+          'Taranan makbuz ek iyileştirme olmadan kullanılıyor.',
       'upload_extraction_failed': 'Çıkarma başarısız oldu',
       'upload_timed_out': 'Ekstraksiyon 2 dakika sonra zaman aşımına uğradı.',
       'tools_subtitle': 'AI-destekli finansal araçlar',
@@ -13944,6 +13998,12 @@ class AppLocalizations {
           'Verwerking met AI... Dit kan een minuutje duren.',
       'upload_try_again': 'Probeer het opnieuw',
       'upload_pick_failed': 'Kan afbeelding niet kiezen: {error}',
+      'upload_scanner_unavailable':
+          'Scannen met de camera is niet beschikbaar op dit apparaat. Je kunt nog steeds de galerij gebruiken.',
+      'upload_scanner_failed':
+          'We konden de camerascan niet voltooien. Probeer het opnieuw of gebruik de galerij.',
+      'upload_processing_fallback':
+          'Het gescande bonnetje wordt zonder extra verbetering gebruikt.',
       'upload_extraction_failed': 'Extractie is mislukt',
       'upload_timed_out':
           'Er is na 2 minuten een time-out opgetreden bij het extraheren.',
@@ -15304,6 +15364,12 @@ class AppLocalizations {
           'Bearbetar med AI... Det här kan ta en minut.',
       'upload_try_again': 'Försök igen',
       'upload_pick_failed': 'Det gick inte att välja bild: {error}',
+      'upload_scanner_unavailable':
+          'Kameraskanning är inte tillgänglig på den här enheten. Du kan fortfarande använda galleriet.',
+      'upload_scanner_failed':
+          'Vi kunde inte slutföra kameraskanningen. Försök igen eller använd galleriet.',
+      'upload_processing_fallback':
+          'Det skannade kvittot används utan extra förbättring.',
       'upload_extraction_failed': 'Extrahering misslyckades',
       'upload_timed_out': 'Extraktion togs ut efter 2 minuter.',
       'tools_subtitle': 'AI-drivna finansiella verktyg',
@@ -16644,6 +16710,12 @@ class AppLocalizations {
           'Zpracování pomocí AI... Může to chvíli trvat.',
       'upload_try_again': 'Zkuste to znovu',
       'upload_pick_failed': 'Nepodařilo se vybrat obrázek: {error}',
+      'upload_scanner_unavailable':
+          'Skenování fotoaparátem není na tomto zařízení dostupné. Stále můžete použít galerii.',
+      'upload_scanner_failed':
+          'Skenování fotoaparátem se nepodařilo dokončit. Zkuste to znovu nebo použijte galerii.',
+      'upload_processing_fallback':
+          'Používá se naskenovaná účtenka bez dalšího vylepšení.',
       'upload_extraction_failed': 'Extrakce se nezdařila',
       'upload_timed_out': 'Extrakce vypršela po 2 minutách.',
       'tools_subtitle': 'Finanční nástroje poháněné AI',
@@ -17983,6 +18055,12 @@ class AppLocalizations {
       'upload_status_processing': 'Se procesează cu AI... Poate dura un minut.',
       'upload_try_again': 'Încearcă din nou',
       'upload_pick_failed': 'Nu s-a putut alege imaginea: {error}',
+      'upload_scanner_unavailable':
+          'Scanarea cu camera nu este disponibilă pe acest dispozitiv. Puteți folosi în continuare galeria.',
+      'upload_scanner_failed':
+          'Nu am putut finaliza scanarea cu camera. Încercați din nou sau folosiți galeria.',
+      'upload_processing_fallback':
+          'Se folosește chitanța scanată fără îmbunătățiri suplimentare.',
       'upload_extraction_failed': 'Extragerea a eșuat',
       'upload_timed_out': 'Extragerea a expirat după 2 minute.',
       'tools_subtitle': 'instrumente financiare alimentate de AI',
@@ -19359,6 +19437,12 @@ class AppLocalizations {
           'Feldolgozás mesterséges intelligencia segítségével... Ez eltarthat egy percig.',
       'upload_try_again': 'Próbáld újra',
       'upload_pick_failed': 'Nem sikerült kiválasztani a képet: {error}',
+      'upload_scanner_unavailable':
+          'A kamerás beolvasás nem érhető el ezen az eszközön. Továbbra is használhatod a galériát.',
+      'upload_scanner_failed':
+          'Nem sikerült befejezni a kamerás beolvasást. Próbáld újra, vagy használd a galériát.',
+      'upload_processing_fallback':
+          'A beolvasott nyugtát további javítás nélkül használjuk.',
       'upload_extraction_failed': 'A kivonás nem sikerült',
       'upload_timed_out': 'Az extrakció 2 perc után lejárt.',
       'tools_subtitle': 'AI-alapú pénzügyi eszközök',
@@ -20708,6 +20792,12 @@ class AppLocalizations {
           'Memproses dengan AI... Ini mungkin memerlukan waktu beberapa menit.',
       'upload_try_again': 'Coba Lagi',
       'upload_pick_failed': 'Gagal memilih gambar: {error}',
+      'upload_scanner_unavailable':
+          'Pemindaian dengan kamera tidak tersedia di perangkat ini. Anda masih dapat menggunakan Galeri.',
+      'upload_scanner_failed':
+          'Kami tidak dapat menyelesaikan pemindaian kamera. Coba lagi, atau gunakan Galeri.',
+      'upload_processing_fallback':
+          'Menggunakan tanda terima yang dipindai tanpa peningkatan tambahan.',
       'upload_extraction_failed': 'Ekstraksi gagal',
       'upload_timed_out': 'Waktu ekstraksi habis setelah 2 menit.',
       'tools_subtitle': 'AI alat keuangan yang didukung',
@@ -22057,6 +22147,12 @@ class AppLocalizations {
           'Memproses dengan AI... Ini mungkin mengambil masa seminit.',
       'upload_try_again': 'Cuba Lagi',
       'upload_pick_failed': 'Gagal memilih imej: {error}',
+      'upload_scanner_unavailable':
+          'Imbasan kamera tidak tersedia pada peranti ini. Anda masih boleh menggunakan Galeri.',
+      'upload_scanner_failed':
+          'Kami tidak dapat menyelesaikan imbasan kamera. Cuba lagi, atau gunakan Galeri.',
+      'upload_processing_fallback':
+          'Menggunakan resit yang diimbas tanpa penambahbaikan tambahan.',
       'upload_extraction_failed': 'Pengekstrakan gagal',
       'upload_timed_out': 'Pengekstrakan tamat masa selepas 2 minit.',
       'tools_subtitle': 'Alat kewangan yang dikuasakan AI',
@@ -23400,6 +23496,12 @@ class AppLocalizations {
           'Đang xử lý bằng AI... Quá trình này có thể mất một phút.',
       'upload_try_again': 'Thử lại',
       'upload_pick_failed': 'Không chọn được hình ảnh: {error}',
+      'upload_scanner_unavailable':
+          'Tính năng quét bằng camera không khả dụng trên thiết bị này. Bạn vẫn có thể dùng Thư viện.',
+      'upload_scanner_failed':
+          'Chúng tôi không thể hoàn tất quét bằng camera. Hãy thử lại hoặc dùng Thư viện.',
+      'upload_processing_fallback':
+          'Đang dùng biên nhận đã quét mà không cải thiện thêm.',
       'upload_extraction_failed': 'Trích xuất không thành công',
       'upload_timed_out': 'Quá trình trích xuất hết thời gian sau 2 phút.',
       'tools_subtitle': 'AI-công cụ tài chính được hỗ trợ',
@@ -24716,6 +24818,9 @@ class AppLocalizations {
       'upload_status_processing': '使用人工智能处理...这可能需要一分钟。',
       'upload_try_again': '再试一次',
       'upload_pick_failed': '未能选择图像：{error}',
+      'upload_scanner_unavailable': '此设备不支持相机扫描。你仍可使用图库。',
+      'upload_scanner_failed': '无法完成相机扫描。请重试，或使用图库。',
+      'upload_processing_fallback': '正在使用未额外增强的扫描收据。',
       'upload_extraction_failed': '提取失败',
       'upload_timed_out': '2 分钟后提取超时。',
       'tools_subtitle': 'AI 驱动的财务工具',
@@ -25846,6 +25951,9 @@ class AppLocalizations {
       'upload_status_processing': 'AI で処理しています...これには 1 分ほどかかる場合があります。',
       'upload_try_again': 'もう一度やり直してください',
       'upload_pick_failed': '画像の選択に失敗しました: {error}',
+      'upload_scanner_unavailable': 'このデバイスではカメラスキャンを利用できません。ギャラリーは引き続き使用できます。',
+      'upload_scanner_failed': 'カメラスキャンを完了できませんでした。もう一度試すか、ギャラリーを使用してください。',
+      'upload_processing_fallback': '追加補正なしでスキャン済みの領収書を使用しています。',
       'upload_extraction_failed': '抽出に失敗しました',
       'upload_timed_out': '抽出は 2 分後にタイムアウトしました。',
       'tools_subtitle': 'AIを利用した金融ツール',
@@ -27022,6 +27130,10 @@ class AppLocalizations {
       'upload_status_processing': 'AI로 처리 중... 1분 정도 걸릴 수 있습니다.',
       'upload_try_again': '다시 시도',
       'upload_pick_failed': '이미지를 선택하지 못했습니다: {error}',
+      'upload_scanner_unavailable':
+          '이 기기에서는 카메라 스캔을 사용할 수 없습니다. 갤러리는 계속 사용할 수 있습니다.',
+      'upload_scanner_failed': '카메라 스캔을 완료하지 못했습니다. 다시 시도하거나 갤러리를 사용하세요.',
+      'upload_processing_fallback': '추가 보정 없이 스캔한 영수증을 사용합니다.',
       'upload_extraction_failed': '추출 실패',
       'upload_timed_out': '2분 후에 추출 시간이 초과되었습니다.',
       'tools_subtitle': 'AI기반 금융 도구',
@@ -28234,6 +28346,12 @@ class AppLocalizations {
           'एआई के साथ प्रसंस्करण... इसमें एक मिनट लग सकता है।',
       'upload_try_again': 'पुनः प्रयास करें',
       'upload_pick_failed': 'छवि चुनने में विफल: {error}',
+      'upload_scanner_unavailable':
+          'इस डिवाइस पर कैमरा स्कैनिंग उपलब्ध नहीं है। आप अभी भी गैलरी का उपयोग कर सकते हैं।',
+      'upload_scanner_failed':
+          'हम कैमरा स्कैन पूरा नहीं कर सके। फिर से कोशिश करें या गैलरी का उपयोग करें।',
+      'upload_processing_fallback':
+          'स्कैन की गई रसीद को अतिरिक्त सुधार के बिना इस्तेमाल किया जा रहा है।',
       'upload_extraction_failed': 'निष्कर्षण विफल',
       'upload_timed_out': '2 मिनट के बाद निष्कर्षण का समय समाप्त हो गया।',
       'tools_subtitle': 'AI-संचालित वित्तीय उपकरण',
@@ -29554,6 +29672,12 @@ class AppLocalizations {
           'المعالجة باستخدام الذكاء الاصطناعي... قد يستغرق ذلك دقيقة واحدة.',
       'upload_try_again': 'حاول ثانية',
       'upload_pick_failed': 'فشل اختيار الصورة: {error}',
+      'upload_scanner_unavailable':
+          'المسح بالكاميرا غير متاح على هذا الجهاز. لا يزال بإمكانك استخدام المعرض.',
+      'upload_scanner_failed':
+          'تعذر إكمال المسح بالكاميرا. حاول مرة أخرى أو استخدم المعرض.',
+      'upload_processing_fallback':
+          'يتم استخدام الإيصال الممسوح ضوئيًا دون تحسين إضافي.',
       'upload_extraction_failed': 'فشل الاستخراج',
       'upload_timed_out': 'انتهت مهلة الاستخراج بعد دقيقتين.',
       'tools_subtitle': 'الأدوات المالية التي تعمل بالطاقة AI',
@@ -30860,6 +30984,12 @@ class AppLocalizations {
           'Procesando con IA... Esto puede tardar un minuto.',
       'upload_try_again': 'Intentar de nuevo',
       'upload_pick_failed': 'No se pudo seleccionar la imagen: {error}',
+      'upload_scanner_unavailable':
+          'El escaneo con la cámara no está disponible en este dispositivo. Aún puedes usar la galería.',
+      'upload_scanner_failed':
+          'No pudimos completar el escaneo con la cámara. Inténtalo de nuevo o usa la galería.',
+      'upload_processing_fallback':
+          'Se usará el recibo escaneado sin mejoras adicionales.',
       'upload_extraction_failed': 'La extracción falló',
       'upload_timed_out': 'La extracción agotó el tiempo tras 2 minutos.',
       'tools_subtitle': 'Herramientas financieras impulsadas por AI',
