@@ -134,6 +134,7 @@ jobs:
         run: |
           keytool -genkeypair -v \
             -keystore android/app/upload-keystore.jks \
+            -storetype JKS \
             -storepass "${ANDROID_KEYSTORE_PASSWORD}" \
             -keypass "${ANDROID_KEY_PASSWORD}" \
             -keyalg RSA \
