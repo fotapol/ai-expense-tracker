@@ -1,8 +1,13 @@
+import 'dart:async';
+
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:google_sign_in/google_sign_in.dart';
+import 'package:url_launcher/url_launcher.dart';
 
+import '../core/app_env.dart';
 import '../core/launch_error_copy.dart';
+import '../core/redesign_system.dart';
 import '../core/revenuecat_service.dart';
 import '../core/session_invalidation.dart';
 import '../l10n/app_localizations.dart';
@@ -29,7 +34,7 @@ class _LoginScreenState extends State<LoginScreen> {
   String _friendlyLoginError(Object error) {
     return friendlyLaunchErrorMessage(
       error,
-      fallback: 'We could not sign you in right now. Please try again.',
+      fallback: context.tr('login_error_fallback'),
     );
   }
 
@@ -77,204 +82,469 @@ class _LoginScreenState extends State<LoginScreen> {
     }
   }
 
+  Future<void> _openExternalUrl(String rawUrl) async {
+    final uri = AppEnv.uriFrom(rawUrl);
+    var opened = false;
+    try {
+      opened =
+          uri != null &&
+          await launchUrl(uri, mode: LaunchMode.externalApplication);
+    } catch (_) {
+      opened = false;
+    }
+    if (!opened && mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(context.tr('could_not_open_that_link'))),
+      );
+    }
+  }
+
+  void _openTerms() {
+    unawaited(_openExternalUrl(AppEnv.termsUrl));
+  }
+
+  void _openPrivacy() {
+    unawaited(_openExternalUrl(AppEnv.privacyUrl));
+  }
+
   @override
   Widget build(BuildContext context) {
+    final compactHeight = MediaQuery.sizeOf(context).height < 690;
+    final bottomSafePadding = MediaQuery.viewPaddingOf(context).bottom;
+
     return Scaffold(
-      body: Container(
-        decoration: const BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topCenter,
-            end: Alignment.bottomCenter,
-            colors: [Color(0xFF12031F), Color(0xFF26103A), Color(0xFF06010C)],
+      backgroundColor: ShellStyles.background(context),
+      body: SafeArea(
+        bottom: false,
+        child: LayoutBuilder(
+          builder: (context, constraints) {
+            return SingleChildScrollView(
+              child: ConstrainedBox(
+                constraints: BoxConstraints(minHeight: constraints.maxHeight),
+                child: IntrinsicHeight(
+                  child: Padding(
+                    padding: EdgeInsets.fromLTRB(
+                      20,
+                      compactHeight ? 28 : 64,
+                      20,
+                      bottomSafePadding + 24,
+                    ),
+                    child: Column(
+                      children: [
+                        SizedBox(height: compactHeight ? 8 : 80),
+                        const _BrandLockup(),
+                        SizedBox(height: compactHeight ? 24 : 32),
+                        _SignInCard(
+                          isLoading: _isLoading,
+                          onSignIn: _isLoading ? null : _signInWithGoogle,
+                        ),
+                        if (_sessionNotice != null) ...[
+                          const SizedBox(height: 14),
+                          _LoginMessageCard(
+                            icon: Icons.info_outline,
+                            message: _sessionNotice!,
+                            tone: _LoginMessageTone.info,
+                          ),
+                        ],
+                        if (_errorMessage != null) ...[
+                          const SizedBox(height: 14),
+                          _LoginMessageCard(
+                            icon: Icons.error_outline,
+                            message: _errorMessage!,
+                            tone: _LoginMessageTone.error,
+                          ),
+                        ],
+                        const Spacer(),
+                        SizedBox(height: compactHeight ? 42 : 88),
+                        _LegalFooter(
+                          onOpenTerms: _openTerms,
+                          onOpenPrivacy: _openPrivacy,
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+            );
+          },
+        ),
+      ),
+    );
+  }
+}
+
+class _BrandLockup extends StatelessWidget {
+  const _BrandLockup();
+
+  @override
+  Widget build(BuildContext context) {
+    final logoAsset = Theme.of(context).brightness == Brightness.dark
+        ? 'assets/brand/logo-login-white.png'
+        : 'assets/brand/logo-login-black.png';
+
+    return Column(
+      children: [
+        Image.asset(
+          logoAsset,
+          width: 176,
+          fit: BoxFit.contain,
+          filterQuality: FilterQuality.high,
+          errorBuilder: (_, _, _) => const _TextBrandLogo(),
+        ),
+        const SizedBox(height: 22),
+        ConstrainedBox(
+          constraints: const BoxConstraints(maxWidth: 270),
+          child: Text(
+            context.tr('login_subtitle'),
+            textAlign: TextAlign.center,
+            style: TextStyle(
+              color: ShellStyles.textSecondary(context),
+              fontSize: 13.5,
+              height: 1.35,
+              fontWeight: FontWeight.w500,
+            ),
           ),
         ),
-        child: SafeArea(
-          child: Padding(
-            padding: const EdgeInsets.all(24),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                const Spacer(),
-                Container(
-                  width: 72,
-                  height: 72,
-                  decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(22),
-                    gradient: const LinearGradient(
-                      colors: [Color(0xFFF7D74B), Color(0xFFF59E0B)],
-                    ),
+      ],
+    );
+  }
+}
+
+class _TextBrandLogo extends StatelessWidget {
+  const _TextBrandLogo();
+
+  @override
+  Widget build(BuildContext context) {
+    final accentTone = ShellStyles.accentTone(context);
+    final logoColor = ShellStyles.textPrimary(context);
+    final dollarColor = Color.lerp(
+      ShellStyles.warningPremium(context),
+      accentTone.base,
+      ShellStyles.isDark(context) ? 0.22 : 0.34,
+    )!;
+
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      crossAxisAlignment: CrossAxisAlignment.center,
+      children: [
+        Text(
+          'AI',
+          style: TextStyle(
+            color: logoColor,
+            fontSize: 42,
+            height: 0.95,
+            letterSpacing: -2.7,
+            fontWeight: FontWeight.w900,
+          ),
+        ),
+        Text(
+          r'$',
+          style: TextStyle(
+            color: dollarColor,
+            fontSize: 45,
+            height: 0.95,
+            letterSpacing: -2.4,
+            fontWeight: FontWeight.w900,
+          ),
+        ),
+        const SizedBox(width: 5),
+        Text(
+          'expense\ntracker',
+          style: TextStyle(
+            color: logoColor,
+            fontSize: 19,
+            height: 1.05,
+            fontWeight: FontWeight.w800,
+            letterSpacing: -0.3,
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+class _GoogleLogo extends StatelessWidget {
+  const _GoogleLogo();
+
+  @override
+  Widget build(BuildContext context) {
+    return Image.asset(
+      'assets/auth/google_g.png',
+      width: 19,
+      height: 19,
+      fit: BoxFit.contain,
+      filterQuality: FilterQuality.high,
+      errorBuilder: (_, _, _) => Text(
+        'G',
+        style: TextStyle(
+          color: const Color(0xFF4285F4),
+          fontSize: 20,
+          fontWeight: FontWeight.w800,
+          letterSpacing: -0.6,
+        ),
+      ),
+    );
+  }
+}
+
+class _SignInCard extends StatelessWidget {
+  const _SignInCard({required this.isLoading, required this.onSignIn});
+
+  final bool isLoading;
+  final VoidCallback? onSignIn;
+
+  @override
+  Widget build(BuildContext context) {
+    return ConstrainedBox(
+      constraints: const BoxConstraints(maxWidth: 338),
+      child: Container(
+        width: double.infinity,
+        padding: const EdgeInsets.fromLTRB(18, 20, 18, 20),
+        decoration: ShellStyles.cardDecoration(
+          context,
+          radius: 10,
+          color: ShellStyles.sectionBackground(context),
+        ),
+        child: Column(
+          children: [
+            // Text(
+            //   // 'Get started',
+            //   style: TextStyle(
+            //     color: ShellStyles.textPrimary(context),
+            //     fontSize: 16,
+            //     fontWeight: FontWeight.w800,
+            //     letterSpacing: -0.1,
+            //   ),
+            // ),
+            const SizedBox(height: 12),
+            _GoogleSignInButton(isLoading: isLoading, onPressed: onSignIn),
+            const SizedBox(height: 18),
+            _LoginBenefit(text: context.tr('login_benefit_1')),
+            _LoginBenefit(text: context.tr('login_benefit_2')),
+            _LoginBenefit(text: context.tr('login_benefit_3')),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _GoogleSignInButton extends StatelessWidget {
+  const _GoogleSignInButton({required this.isLoading, required this.onPressed});
+
+  final bool isLoading;
+  final VoidCallback? onPressed;
+
+  @override
+  Widget build(BuildContext context) {
+    final foreground = ShellStyles.textPrimary(context);
+
+    return SizedBox(
+      width: double.infinity,
+      height: 50,
+      child: OutlinedButton(
+        onPressed: onPressed,
+        style: OutlinedButton.styleFrom(
+          backgroundColor: ShellStyles.standardSurface(context),
+          foregroundColor: foreground,
+          disabledBackgroundColor: ShellStyles.inputSurface(context),
+          disabledForegroundColor: ShellStyles.textDisabled(context),
+          side: BorderSide(color: ShellStyles.border(context)),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(10),
+          ),
+          elevation: 0,
+          textStyle: const TextStyle(fontSize: 15, fontWeight: FontWeight.w700),
+        ),
+        child: AnimatedSwitcher(
+          duration: const Duration(milliseconds: 180),
+          child: isLoading
+              ? SizedBox(
+                  key: const ValueKey('login-spinner'),
+                  width: 19,
+                  height: 19,
+                  child: CircularProgressIndicator(
+                    strokeWidth: 2.2,
+                    color: ShellStyles.accent(context),
                   ),
-                  child: const Icon(
-                    Icons.receipt_long_rounded,
-                    size: 36,
-                    color: Color(0xFF200532),
-                  ),
+                )
+              : Row(
+                  key: const ValueKey('login-google-label'),
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    const _GoogleLogo(),
+                    const SizedBox(width: 12),
+                    Text(context.tr('login_continue_google')),
+                  ],
                 ),
-                const SizedBox(height: 28),
-                Text(
-                  context.tr('login_welcome_title'),
-                  style: const TextStyle(
-                    fontSize: 38,
-                    fontWeight: FontWeight.w900,
-                    height: 1.05,
-                  ),
-                ),
-                const SizedBox(height: 14),
-                Text(
-                  context.tr('login_welcome_description'),
-                  style: const TextStyle(
-                    color: Colors.white70,
-                    fontSize: 16,
-                    height: 1.45,
-                  ),
-                ),
-                const SizedBox(height: 28),
-                Container(
-                  padding: const EdgeInsets.all(18),
-                  decoration: BoxDecoration(
-                    color: Colors.white.withAlpha(12),
-                    borderRadius: BorderRadius.circular(22),
-                    border: Border.all(color: Colors.white.withAlpha(20)),
-                  ),
-                  child: Row(
-                    children: [
-                      const Icon(Icons.bolt_rounded, color: Color(0xFFF7D74B)),
-                      const SizedBox(width: 12),
-                      Expanded(
-                        child: Text(
-                          context.tr('login_feature_highlight'),
-                          style: const TextStyle(color: Colors.white70),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-                const SizedBox(height: 14),
-                Container(
-                  padding: const EdgeInsets.all(16),
-                  decoration: BoxDecoration(
-                    color: Colors.white.withAlpha(10),
-                    borderRadius: BorderRadius.circular(18),
-                    border: Border.all(color: Colors.white.withAlpha(16)),
-                  ),
-                  child: const Row(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Icon(
-                        Icons.shield_outlined,
-                        color: Color(0xFFF7D74B),
-                        size: 18,
-                      ),
-                      SizedBox(width: 10),
-                      Expanded(
-                        child: Text(
-                          'Google sign-in secures your receipts and lets you restore your account on this device.',
-                          style: TextStyle(
-                            color: Colors.white70,
-                            fontSize: 13,
-                            height: 1.35,
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-                if (_sessionNotice != null) ...[
-                  const SizedBox(height: 14),
-                  Container(
-                    padding: const EdgeInsets.all(16),
-                    decoration: BoxDecoration(
-                      color: Colors.white.withAlpha(10),
-                      borderRadius: BorderRadius.circular(18),
-                      border: Border.all(color: Colors.white.withAlpha(16)),
-                    ),
-                    child: Row(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        const Icon(
-                          Icons.info_outline,
-                          color: Color(0xFFF7D74B),
-                          size: 18,
-                        ),
-                        const SizedBox(width: 10),
-                        Expanded(
-                          child: Text(
-                            _sessionNotice!,
-                            style: const TextStyle(
-                              color: Colors.white70,
-                              fontSize: 13,
-                              height: 1.35,
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ],
-                if (_errorMessage != null) ...[
-                  const SizedBox(height: 16),
-                  Container(
-                    width: double.infinity,
-                    padding: const EdgeInsets.all(14),
-                    decoration: BoxDecoration(
-                      color: const Color(0xFF7C1F2B).withAlpha(180),
-                      borderRadius: BorderRadius.circular(18),
-                      border: Border.all(color: Colors.white.withAlpha(14)),
-                    ),
-                    child: Row(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        const Icon(
-                          Icons.info_outline,
-                          color: Colors.white,
-                          size: 18,
-                        ),
-                        const SizedBox(width: 10),
-                        Expanded(
-                          child: Text(
-                            _errorMessage!,
-                            style: const TextStyle(
-                              color: Colors.white,
-                              fontSize: 13,
-                              height: 1.35,
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ],
-                const Spacer(),
-                FilledButton.icon(
-                  onPressed: _isLoading ? null : _signInWithGoogle,
-                  icon: _isLoading
-                      ? const SizedBox(
-                          width: 20,
-                          height: 20,
-                          child: CircularProgressIndicator(strokeWidth: 2),
-                        )
-                      : const Icon(Icons.login),
-                  label: Text(context.tr('login_continue_google')),
-                  style: FilledButton.styleFrom(
-                    minimumSize: const Size.fromHeight(56),
-                    backgroundColor: const Color(0xFFF7D74B),
-                    foregroundColor: const Color(0xFF190527),
-                    textStyle: const TextStyle(
-                      fontWeight: FontWeight.w700,
-                      fontSize: 16,
-                    ),
-                  ),
-                ),
-                const SizedBox(height: 14),
-                Center(
-                  child: Text(
-                    context.tr('login_footer_note'),
-                    textAlign: TextAlign.center,
-                    style: const TextStyle(color: Colors.white54, fontSize: 12),
-                  ),
-                ),
-              ],
+        ),
+      ),
+    );
+  }
+}
+
+class _LoginBenefit extends StatelessWidget {
+  const _LoginBenefit({required this.text});
+
+  final String text;
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 9),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Padding(
+            padding: const EdgeInsets.only(top: 7),
+            child: Container(
+              width: 5,
+              height: 5,
+              decoration: BoxDecoration(
+                color: ShellStyles.textMuted(context),
+                shape: BoxShape.circle,
+              ),
             ),
+          ),
+          const SizedBox(width: 11),
+          Expanded(
+            child: Text(
+              text,
+              style: TextStyle(
+                color: ShellStyles.textSecondary(context),
+                fontSize: 13,
+                height: 1.35,
+                fontWeight: FontWeight.w500,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+enum _LoginMessageTone { info, error }
+
+class _LoginMessageCard extends StatelessWidget {
+  const _LoginMessageCard({
+    required this.icon,
+    required this.message,
+    required this.tone,
+  });
+
+  final IconData icon;
+  final String message;
+  final _LoginMessageTone tone;
+
+  @override
+  Widget build(BuildContext context) {
+    final toneColor = tone == _LoginMessageTone.error
+        ? ShellStyles.error(context)
+        : ShellStyles.info(context);
+
+    return ConstrainedBox(
+      constraints: const BoxConstraints(maxWidth: 338),
+      child: Container(
+        width: double.infinity,
+        padding: const EdgeInsets.all(14),
+        decoration: BoxDecoration(
+          color: toneColor.withAlpha(ShellStyles.isDark(context) ? 32 : 18),
+          borderRadius: BorderRadius.circular(14),
+          border: Border.all(color: toneColor.withAlpha(70)),
+        ),
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Icon(icon, color: toneColor, size: 19),
+            const SizedBox(width: 10),
+            Expanded(
+              child: Text(
+                message,
+                style: TextStyle(
+                  color: ShellStyles.textPrimary(context),
+                  fontSize: 12.5,
+                  height: 1.4,
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _LegalFooter extends StatelessWidget {
+  const _LegalFooter({required this.onOpenTerms, required this.onOpenPrivacy});
+
+  final VoidCallback onOpenTerms;
+  final VoidCallback onOpenPrivacy;
+
+  @override
+  Widget build(BuildContext context) {
+    final muted = ShellStyles.textSecondary(context);
+    final linkColor = ShellStyles.textPrimary(context);
+
+    return ConstrainedBox(
+      constraints: const BoxConstraints(maxWidth: 338),
+      child: Wrap(
+        alignment: WrapAlignment.center,
+        crossAxisAlignment: WrapCrossAlignment.center,
+        children: [
+          Text(
+            context.tr('login_legal_prefix'),
+            textAlign: TextAlign.center,
+            style: TextStyle(color: muted, fontSize: 12.5, height: 1.35),
+          ),
+          _LegalLink(
+            label: context.tr('settings_terms_of_service'),
+            color: linkColor,
+            onTap: onOpenTerms,
+          ),
+          Text(
+            context.tr('login_legal_and'),
+            style: TextStyle(color: muted, fontSize: 12.5, height: 1.35),
+          ),
+          _LegalLink(
+            label: context.tr('settings_privacy_policy'),
+            color: linkColor,
+            onTap: onOpenPrivacy,
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _LegalLink extends StatelessWidget {
+  const _LegalLink({
+    required this.label,
+    required this.color,
+    required this.onTap,
+  });
+
+  final String label;
+  final Color color;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(6),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 1, vertical: 3),
+        child: Text(
+          label,
+          style: TextStyle(
+            color: color,
+            fontSize: 12.5,
+            height: 1.35,
+            decoration: TextDecoration.underline,
+            decorationColor: color,
+            fontWeight: FontWeight.w500,
           ),
         ),
       ),

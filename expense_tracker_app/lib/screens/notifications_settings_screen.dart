@@ -5,6 +5,7 @@ import '../core/bill_reminder_notification_service.dart';
 import '../core/notification_preferences.dart';
 import '../core/redesign_system.dart';
 import 'settings_detail_scaffold.dart';
+import '../l10n/app_localizations.dart';
 
 class NotificationsSettingsScreen extends StatefulWidget {
   const NotificationsSettingsScreen({super.key});
@@ -98,10 +99,8 @@ class _NotificationsSettingsScreenState
     });
     if (!granted) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text(
-            'Notifications are still blocked in your device settings.',
-          ),
+        SnackBar(
+          content: Text(context.tr('notifications_still_blocked_snackbar')),
         ),
       );
     }
@@ -119,25 +118,25 @@ class _NotificationsSettingsScreenState
 
   String _statusTitle() {
     if (!_notificationsAvailableOnPlatform) {
-      return 'Notifications are unavailable';
+      return context.tr('notifications_status_unavailable');
     }
     if (_effectiveNotificationsEnabled) {
-      return 'Notifications are on';
+      return context.tr('notifications_status_on');
     }
-    return 'Notifications are off';
+    return context.tr('notifications_status_off');
   }
 
   String _statusSubtitle() {
     if (!_notificationsAvailableOnPlatform) {
-      return 'This web build does not support local reminder notifications yet.';
+      return context.tr('notifications_web_unavailable_detail');
     }
     if (!_systemNotificationsEnabled) {
-      return 'Your device is currently blocking notifications for the app.';
+      return context.tr('notifications_device_blocking_detail');
     }
     if (!_pushEnabled) {
-      return 'Notifications are allowed by the device, but turned off inside the app.';
+      return context.tr('notifications_app_off_detail');
     }
-    return 'Bill reminders can be delivered on this device.';
+    return context.tr('notifications_bill_reminders_available_detail');
   }
 
   Widget _buildStatusCard() {
@@ -233,7 +232,7 @@ class _NotificationsSettingsScreenState
     // insights, and marketing notification controls when each category has a
     // real end-to-end notification pipeline.
     return SettingsDetailScaffold(
-      title: 'Notifications',
+      title: context.tr('settings_notifications'),
       body: _isLoading
           ? const Center(child: CircularProgressIndicator())
           : SafeArea(
@@ -245,29 +244,39 @@ class _NotificationsSettingsScreenState
                   children: <Widget>[
                     _buildStatusCard(),
                     const SizedBox(height: 16),
-                    ShellStyles.sectionLabel(context, 'Device'),
+                    ShellStyles.sectionLabel(
+                      context,
+                      context.tr('notifications_device_section'),
+                    ),
                     const SizedBox(height: 8),
                     _buildToggleCard(
-                      title: 'Enable notifications in the app',
+                      title: context.tr('enable_notifications_in_the_app'),
                       subtitle: !_notificationsAvailableOnPlatform
-                          ? 'Unavailable in this web build.'
+                          ? context.tr('notifications_unavailable_web_short')
                           : _systemNotificationsEnabled
-                          ? 'Lets the app schedule bill reminder alerts.'
-                          : 'Turn on notifications for this app in your device settings first.',
+                          ? context.tr('notifications_schedule_app_alerts')
+                          : context.tr(
+                              'notifications_enable_device_settings_first',
+                            ),
                       value: _pushEnabled && _systemNotificationsEnabled,
                       onChanged: _setPushEnabled,
                       enabled: _notificationsAvailableOnPlatform,
                     ),
                     const SizedBox(height: 16),
-                    ShellStyles.sectionLabel(context, 'Bill reminders'),
+                    ShellStyles.sectionLabel(
+                      context,
+                      context.tr('settings_bill_reminders'),
+                    ),
                     const SizedBox(height: 8),
                     _buildToggleCard(
-                      title: 'Upcoming and due reminders',
+                      title: context.tr('upcoming_and_due_reminders'),
                       subtitle: !_notificationsAvailableOnPlatform
-                          ? 'Unavailable in this web build.'
+                          ? context.tr('notifications_unavailable_web_short')
                           : _effectiveNotificationsEnabled
-                          ? 'Schedules reminder notifications for your active bills.'
-                          : 'Enable notifications above before bill reminders can run.',
+                          ? context.tr('notifications_schedule_bill_reminders')
+                          : context.tr(
+                              'notifications_enable_above_for_bill_reminders',
+                            ),
                       value: _billRemindersEnabled,
                       onChanged: _setBillRemindersEnabled,
                       enabled: _effectiveNotificationsEnabled,

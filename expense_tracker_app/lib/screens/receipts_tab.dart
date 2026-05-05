@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
-import 'package:intl/intl.dart';
 import '../core/auto_refresh_state_mixin.dart';
 import '../core/api_client.dart';
 import '../core/category_style.dart';
 import '../core/launch_error_copy.dart';
+import '../core/localized_dates.dart';
 import '../core/money_formatter.dart';
 import '../core/redesign_system.dart';
 import '../core/session_invalidation.dart';
@@ -17,11 +17,15 @@ import 'transaction_edit_screen.dart';
 class ReceiptsTab extends StatefulWidget {
   final bool showTopBar;
   final bool includeTopSafeArea;
+  final bool initialReviewOnly;
+  final String? initialPeriod;
 
   const ReceiptsTab({
     super.key,
     this.showTopBar = true,
     this.includeTopSafeArea = true,
+    this.initialReviewOnly = false,
+    this.initialPeriod,
   });
 
   @override
@@ -40,11 +44,13 @@ class _ReceiptsTabState extends State<ReceiptsTab>
   List<String> _selectedCategoryIds = [];
   List<String> _selectedSubcategoryIds = [];
   List<String> _selectedLabelIds = [];
+  bool _reviewOnly = false;
   final TextEditingController _searchController = TextEditingController();
   Map<String, Map<String, dynamic>> _categoriesById = {};
   bool _isFetchingTransactions = false;
 
   bool get _hasScopedFilters =>
+      _reviewOnly ||
       _selectedPeriod != PeriodFilter.allTime ||
       _merchantSearch.isNotEmpty ||
       _selectedCategoryIds.isNotEmpty ||
@@ -53,6 +59,7 @@ class _ReceiptsTabState extends State<ReceiptsTab>
 
   int get _activeFilterCount {
     var count = 0;
+    if (_reviewOnly) count++;
     if (_selectedPeriod != PeriodFilter.allTime) count++;
     if (_merchantSearch.isNotEmpty) count++;
     if (_selectedCategoryIds.isNotEmpty) count++;
@@ -70,6 +77,8 @@ class _ReceiptsTabState extends State<ReceiptsTab>
   @override
   void initState() {
     super.initState();
+    _reviewOnly = widget.initialReviewOnly;
+    _selectedPeriod = widget.initialPeriod ?? PeriodFilter.allTime;
     _loadPreferredCurrency();
     _loadCategories();
     _fetchTransactions();
@@ -128,21 +137,6 @@ class _ReceiptsTabState extends State<ReceiptsTab>
     return '$parentName • $childName';
   }
 
-  Color _parseHexColor(String? raw, Color fallback) {
-    final value = raw?.trim();
-    if (value == null || value.isEmpty) return fallback;
-
-    var hex = value.startsWith('#') ? value.substring(1) : value;
-    if (hex.length == 6) {
-      hex = 'FF$hex';
-    }
-    if (hex.length != 8) return fallback;
-
-    final parsed = int.tryParse(hex, radix: 16);
-    if (parsed == null) return fallback;
-    return Color(parsed);
-  }
-
   // ignore: unused_element
   String _currencySymbol(String code) {
     final normalized = code.toUpperCase();
@@ -181,6 +175,27 @@ class _ReceiptsTabState extends State<ReceiptsTab>
         ? (tx['display_currency'] ?? tx['currency'] ?? _preferredCurrency)
         : (tx['currency'] ?? _preferredCurrency);
     return raw.toString().toUpperCase();
+  }
+
+  bool _needsReview(Map<String, dynamic> tx) {
+    final status = tx['status']?.toString().toUpperCase();
+    return status == 'DRAFT' || tx['has_extraction_warnings'] == true;
+  }
+
+  String _reviewLabel(Map<String, dynamic> tx) {
+    if (tx['has_extraction_warnings'] == true) {
+      return context.tr('receipts_check_extraction');
+    }
+    final status = tx['status']?.toString().toUpperCase();
+    if (status == 'DRAFT') return context.tr('receipts_draft');
+    return context.tr('receipts_needs_review');
+  }
+
+  List<dynamic> get _visibleTransactions {
+    if (!_reviewOnly) return _transactions;
+    return _transactions
+        .where((tx) => tx is Map<String, dynamic> && _needsReview(tx))
+        .toList();
   }
 
   Future<void> _fetchTransactions({bool showLoader = true}) async {
@@ -236,8 +251,7 @@ class _ReceiptsTabState extends State<ReceiptsTab>
         setState(() {
           _error = friendlyLaunchErrorMessage(
             e,
-            fallback:
-                'Your history could not load right now. Please try again.',
+            fallback: context.tr('receipts_history_load_error'),
           );
           _isLoading = false;
         });
@@ -250,6 +264,7 @@ class _ReceiptsTabState extends State<ReceiptsTab>
   Future<void> _clearAllFilters() async {
     _searchController.clear();
     setState(() {
+      _reviewOnly = false;
       _merchantSearch = '';
       _selectedPeriod = PeriodFilter.allTime;
       _selectedCategoryIds = <String>[];
@@ -338,7 +353,7 @@ class _ReceiptsTabState extends State<ReceiptsTab>
               content: Text(
                 friendlyLaunchErrorMessage(
                   e,
-                  fallback: 'We could not remove that entry. Please try again.',
+                  fallback: context.tr('receipts_remove_error'),
                 ),
               ),
               backgroundColor: Colors.red,
@@ -482,6 +497,15 @@ class _ReceiptsTabState extends State<ReceiptsTab>
 
   Widget _buildActiveFilterChips() {
     final chips = <Widget>[
+      if (_reviewOnly)
+        _buildFilterChip(
+          context.tr('receipts_filter_needs_review'),
+          icon: Icons.rate_review_outlined,
+          onDeleted: () {
+            setState(() => _reviewOnly = false);
+            _fetchTransactions();
+          },
+        ),
       if (_selectedPeriod != PeriodFilter.allTime)
         _buildFilterChip(
           context.tr(PeriodFilter.localizationKey(_selectedPeriod)),
@@ -627,6 +651,7 @@ class _ReceiptsTabState extends State<ReceiptsTab>
 
   Widget _buildTransactionList() {
     if (_isLoading) return const Center(child: CircularProgressIndicator());
+    final visibleTransactions = _visibleTransactions;
 
     if (_error != null) {
       return Center(
@@ -636,7 +661,7 @@ class _ReceiptsTabState extends State<ReceiptsTab>
             const Icon(Icons.error_outline, color: Colors.red, size: 48),
             const SizedBox(height: 16),
             Text(
-              _error ?? 'Your history could not load right now.',
+              _error ?? context.tr('receipts_history_load_error'),
               textAlign: TextAlign.center,
             ),
             const SizedBox(height: 16),
@@ -685,7 +710,7 @@ class _ReceiptsTabState extends State<ReceiptsTab>
               ),
               const SizedBox(height: 8),
               Text(
-                'Scan your first receipt to start building a history you can review and filter.',
+                context.tr('receipts_empty_body'),
                 textAlign: TextAlign.center,
                 style: TextStyle(
                   color: ShellStyles.textMuted(context),
@@ -704,7 +729,7 @@ class _ReceiptsTabState extends State<ReceiptsTab>
                   );
                 },
                 icon: const Icon(Icons.document_scanner_outlined),
-                label: const Text('Scan your first receipt'),
+                label: Text(context.tr('receipts_scan_first_action')),
               ),
             ],
           ),
@@ -712,7 +737,7 @@ class _ReceiptsTabState extends State<ReceiptsTab>
       );
     }
 
-    if (_transactions.isEmpty) {
+    if (visibleTransactions.isEmpty) {
       return Center(
         child: Padding(
           padding: EdgeInsets.all(
@@ -738,7 +763,9 @@ class _ReceiptsTabState extends State<ReceiptsTab>
               ),
               const SizedBox(height: 16),
               Text(
-                'No receipts match the current filters.',
+                _reviewOnly
+                    ? context.tr('receipts_review_empty_title')
+                    : context.tr('receipts_no_filter_matches'),
                 textAlign: TextAlign.center,
                 style: TextStyle(
                   color: ShellStyles.textPrimary(context),
@@ -748,7 +775,9 @@ class _ReceiptsTabState extends State<ReceiptsTab>
               ),
               const SizedBox(height: 8),
               Text(
-                'Try another period, merchant search, or clear the active filters.',
+                _reviewOnly
+                    ? context.tr('receipts_review_empty_body')
+                    : context.tr('receipts_no_filter_matches_body'),
                 textAlign: TextAlign.center,
                 style: TextStyle(
                   color: ShellStyles.textMuted(context),
@@ -757,10 +786,11 @@ class _ReceiptsTabState extends State<ReceiptsTab>
                 ),
               ),
               const SizedBox(height: 18),
-              OutlinedButton(
-                onPressed: _clearAllFilters,
-                child: const Text('Clear filters'),
-              ),
+              if (_hasScopedFilters)
+                OutlinedButton(
+                  onPressed: _clearAllFilters,
+                  child: Text(context.tr('common_clear_filters')),
+                ),
             ],
           ),
         ),
@@ -768,14 +798,13 @@ class _ReceiptsTabState extends State<ReceiptsTab>
     }
 
     // Group transactions by month
-    final localeTag = Localizations.localeOf(context).toString();
     final groupedTransactions = <String, List<dynamic>>{};
-    for (var tx in _transactions) {
+    for (var tx in visibleTransactions) {
       final occurredAtStr = tx['occurred_at'] as String?;
       if (occurredAtStr == null) continue;
       final date = DateTime.tryParse(occurredAtStr);
       if (date == null) continue;
-      final monthKey = DateFormat('MMMM yyyy', localeTag).format(date);
+      final monthKey = formatLocalizedMonthYear(context, date);
       groupedTransactions.putIfAbsent(monthKey, () => []).add(tx);
     }
 
@@ -865,12 +894,11 @@ class _ReceiptsTabState extends State<ReceiptsTab>
         (displayCurrency != sourceCurrency ||
             (displayAmount - sourceAmount).abs() > 0.00001);
     String formattedTime = '';
-    final localeTag = Localizations.localeOf(context).toString();
     final occurredAtStr = tx['occurred_at'] as String?;
     if (occurredAtStr != null) {
       final date = DateTime.tryParse(occurredAtStr);
       if (date != null) {
-        formattedTime = DateFormat('d MMM, HH:mm', localeTag).format(date);
+        formattedTime = formatLocalizedDayMonthTime(context, date);
       }
     }
 
@@ -891,13 +919,13 @@ class _ReceiptsTabState extends State<ReceiptsTab>
         fallbackName: txCategoryNameRaw,
       );
     }
-    final txCategoryCode = txCategory?['code']?.toString() ?? '';
     final categoryTone = hasCategoryHint
         ? ShellStyles.categoryTone(
             context,
             code: categoryCode,
             parentCode: txCategory?['parent_category_code']?.toString(),
             name: txCategoryLabel ?? txCategoryNameRaw,
+            rawHex: txCategory?['color']?.toString(),
           )
         : ShellStyles.accentTone(context);
     final iconColor = categoryTone.base;
@@ -915,7 +943,9 @@ class _ReceiptsTabState extends State<ReceiptsTab>
     final labelsToRender = (pinnedLabels.isNotEmpty ? pinnedLabels : allLabels)
         .take(3)
         .toList();
+    final needsReview = _needsReview(tx);
     final hasMetaRow =
+        needsReview ||
         (txCategoryLabel != null && txCategoryLabel.isNotEmpty) ||
         labelsToRender.isNotEmpty;
 
@@ -1050,6 +1080,8 @@ class _ReceiptsTabState extends State<ReceiptsTab>
                         spacing: 6,
                         runSpacing: 6,
                         children: [
+                          if (needsReview)
+                            _buildReviewChip(label: _reviewLabel(tx)),
                           if (txCategoryLabel != null &&
                               txCategoryLabel.isNotEmpty)
                             _buildMetaChip(
@@ -1165,12 +1197,43 @@ class _ReceiptsTabState extends State<ReceiptsTab>
     );
   }
 
+  Widget _buildReviewChip({required String label}) {
+    final color = ShellColors.softRed;
+    return Container(
+      padding: EdgeInsets.symmetric(
+        horizontal: ShellStyles.scaled(context, 8, min: 7, max: 10),
+        vertical: ShellStyles.scaled(context, 4, min: 3, max: 5),
+      ),
+      decoration: BoxDecoration(
+        color: color.withAlpha(22),
+        borderRadius: BorderRadius.circular(999),
+        border: Border.all(color: color.withAlpha(70)),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(Icons.rate_review_outlined, size: 12, color: color),
+          const SizedBox(width: 4),
+          Text(
+            label,
+            style: TextStyle(
+              color: color,
+              fontSize: 11,
+              fontWeight: FontWeight.w700,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
   Widget _buildBottomSummary() {
     double totalPeriodExpense = 0;
     double totalPeriodSavings = 0;
     String totalCurrency = _preferredCurrency;
 
-    for (var tx in _transactions) {
+    final visibleTransactions = _visibleTransactions;
+    for (var tx in visibleTransactions) {
       final txMap = tx as Map<String, dynamic>;
       totalPeriodExpense += _displayAmountOf(txMap);
       totalCurrency = _displayCurrencyOf(txMap);
@@ -1247,7 +1310,7 @@ class _ReceiptsTabState extends State<ReceiptsTab>
                 children: [
                   Text(
                     _selectedPeriod == PeriodFilter.allTime
-                        ? 'Receipt history total'
+                        ? context.tr('receipts_history_total')
                         : context.tr('receipts_total_for_period'),
                     style: TextStyle(
                       color: mutedColor,
@@ -1284,7 +1347,7 @@ class _ReceiptsTabState extends State<ReceiptsTab>
                 Text(
                   context.tr(
                     'receipts_count',
-                    params: {'count': _transactions.length.toString()},
+                    params: {'count': visibleTransactions.length.toString()},
                   ),
                   style: TextStyle(
                     color: mutedColor,

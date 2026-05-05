@@ -2,6 +2,14 @@ import 'package:expense_tracker_app/core/app_color_semantics.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
+int _colorChannel(double value) => (value * 255.0).round().clamp(0, 255);
+
+int _red(Color color) => _colorChannel(color.r);
+
+int _green(Color color) => _colorChannel(color.g);
+
+int _blue(Color color) => _colorChannel(color.b);
+
 void main() {
   group('AppSemanticColors', () {
     test('keeps category mapping stable for the same category code', () {
@@ -51,6 +59,113 @@ void main() {
       expect(tone.base, const Color(0xFF24B7D9));
     });
 
+    test('uses raw category color when available', () {
+      final tone = AppSemanticColors.categoryTone(
+        accentId: appAccentPurple,
+        brightness: Brightness.light,
+        labelColorMode: AppLabelColorMode.raw,
+        code: 'FOOD',
+        rawHex: '#24B7D9',
+      );
+
+      expect(tone.base, const Color(0xFF24B7D9));
+    });
+
+    test('label picker stores raw slots but previews accent-aware colors', () {
+      final rawOptions = AppSemanticColors.labelColorOptions(
+        accentId: appAccentPurple,
+        brightness: Brightness.light,
+        labelColorMode: AppLabelColorMode.raw,
+      );
+      final themedOptions = AppSemanticColors.labelColorOptions(
+        accentId: appAccentPurple,
+        brightness: Brightness.light,
+        labelColorMode: AppLabelColorMode.themed,
+      );
+
+      expect(rawOptions.first.storedHex, '#4D7BF3');
+      expect(rawOptions.first.previewColor, const Color(0xFF4D7BF3));
+      expect(themedOptions.first.storedHex, '#4D7BF3');
+      expect(themedOptions.first.previewColor, const Color(0xFF7A4DCC));
+    });
+
+    test(
+      'category picker stores raw slots but previews accent-aware colors',
+      () {
+        final rawOptions = AppSemanticColors.categoryColorOptions(
+          accentId: appAccentPurple,
+          brightness: Brightness.light,
+          labelColorMode: AppLabelColorMode.raw,
+        );
+        final themedOptions = AppSemanticColors.categoryColorOptions(
+          accentId: appAccentPurple,
+          brightness: Brightness.light,
+          labelColorMode: AppLabelColorMode.themed,
+        );
+
+        expect(rawOptions.first.storedHex, '#E27A3F');
+        expect(rawOptions.first.previewColor, const Color(0xFFE27A3F));
+        expect(themedOptions.first.storedHex, '#E27A3F');
+        expect(themedOptions.first.previewColor, const Color(0xFF8259D1));
+      },
+    );
+
+    test('accent-aware label rendering uses saved color slot', () {
+      final tone = AppSemanticColors.labelTone(
+        accentId: appAccentPurple,
+        brightness: Brightness.light,
+        labelColorMode: AppLabelColorMode.themed,
+        labelId: 'label-2',
+        name: 'Travel',
+        rawHex: '#24B7D9',
+      );
+
+      expect(tone.base, const Color(0xFF6F53A9));
+    });
+
+    test('accent-aware category rendering uses saved color slot', () {
+      final tone = AppSemanticColors.categoryTone(
+        accentId: appAccentPurple,
+        brightness: Brightness.light,
+        labelColorMode: AppLabelColorMode.themed,
+        code: 'FOOD',
+        rawHex: '#5979B6',
+      );
+
+      expect(tone.base, const Color(0xFF6C58C6));
+    });
+
+    test('remaps category colors when accent-aware mode is selected', () {
+      final raw = AppSemanticColors.categoryTone(
+        accentId: appAccentMix,
+        brightness: Brightness.light,
+        labelColorMode: AppLabelColorMode.raw,
+        code: 'FOOD',
+        rawHex: '#24B7D9',
+      );
+      final themed = AppSemanticColors.categoryTone(
+        accentId: appAccentMix,
+        brightness: Brightness.light,
+        labelColorMode: AppLabelColorMode.themed,
+        code: 'FOOD',
+        rawHex: '#24B7D9',
+      );
+
+      expect(themed.base, isNot(raw.base));
+      expect(themed.base, const Color(0xFFE27A3F));
+    });
+
+    test('keeps raw category fallback independent from accent color', () {
+      final tone = AppSemanticColors.categoryTone(
+        accentId: appAccentPurple,
+        brightness: Brightness.light,
+        labelColorMode: AppLabelColorMode.raw,
+        code: 'FOOD',
+      );
+
+      expect(tone.base, const Color(0xFFE27A3F));
+    });
+
     test('falls back to themed mapping when raw label color is invalid', () {
       final rawFallback = AppSemanticColors.labelTone(
         accentId: appAccentMix,
@@ -75,22 +190,24 @@ void main() {
       final tone = AppSemanticColors.categoryTone(
         accentId: appAccentNeutral,
         brightness: Brightness.light,
+        labelColorMode: AppLabelColorMode.themed,
         code: 'HEALTH',
       );
 
-      expect(tone.base.red, tone.base.green);
-      expect(tone.base.green, tone.base.blue);
+      expect(_red(tone.base), _green(tone.base));
+      expect(_green(tone.base), _blue(tone.base));
     });
 
     test('Purple remaps category colors into a purple-led family', () {
       final tone = AppSemanticColors.categoryTone(
         accentId: appAccentPurple,
         brightness: Brightness.light,
+        labelColorMode: AppLabelColorMode.themed,
         code: 'HEALTH',
       );
 
-      expect(tone.base.blue, greaterThan(tone.base.green));
-      expect(tone.base.red, greaterThan(tone.base.green - 10));
+      expect(_blue(tone.base), greaterThan(_green(tone.base)));
+      expect(_red(tone.base), greaterThan(_green(tone.base) - 10));
     });
 
     test('returns distinct trend palettes for Mix, Neutral, and Purple', () {
@@ -109,8 +226,8 @@ void main() {
 
       expect(mix.first, isNot(neutral.first));
       expect(purple.first, isNot(neutral.first));
-      expect(neutral.first.red, neutral.first.green);
-      expect(neutral.first.green, neutral.first.blue);
+      expect(_red(neutral.first), _green(neutral.first));
+      expect(_green(neutral.first), _blue(neutral.first));
     });
   });
 }

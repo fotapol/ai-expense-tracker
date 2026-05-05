@@ -20,7 +20,6 @@ import base64
 import datetime as dt
 import json
 import logging
-import os
 import time
 import uuid
 from decimal import Decimal
@@ -33,43 +32,57 @@ from sqlmodel import Session, select
 # Bootstrap: ensure the *backend* package is importable when invoked with
 # ``python -m app.worker.receipt_processor`` from the repo-root workdir.
 # ---------------------------------------------------------------------------
-
-logging.basicConfig(
-    level=logging.INFO,
-    format="%(asctime)s %(levelname)s %(name)s: %(message)s",
+from app.core.config import llm_settings, rabbitmq_settings, worker_settings
+from app.core.db import check_database_health, engine
+from app.core.langsmith import (
+    build_receipt_trace_context,
+    build_receipt_trace_inputs,
+    build_receipt_trace_outputs,
+    langsmith_tracing_enabled,
 )
-logger = logging.getLogger(__name__)
-
-# ---------------------------------------------------------------------------
-# Local imports (after path setup)
-# ---------------------------------------------------------------------------
-from app.core.config import llm_settings  # noqa: E402
-from app.core.db import engine  # noqa: E402
-from app.core.minio import download_object, ensure_bucket  # noqa: E402
-from app.models.receipts.receipt import Receipt  # noqa: E402
-from app.models.receipts.receipt_extraction import ReceiptExtraction  # noqa: E402
-from app.models.shared.enums import CategoryScope, ReceiptStatus, TransactionSource  # noqa: E402
-from app.models.taxonomy.category import Category  # noqa: E402
-from app.models.taxonomy.category_hidden import UserHiddenCategory  # noqa: E402
-from app.models.transactions.transaction import Transaction  # noqa: E402
-from app.models.transactions.transaction_item import TransactionItem  # noqa: E402
-from app.schemas.extraction import (  # noqa: E402
+from app.core.logging import configure_logging
+from app.core.metrics import (
+    record_receipt_extraction,
+    record_worker_job_completed,
+    record_worker_job_failed,
+    record_worker_job_started,
+    record_worker_retry_scheduled,
+    set_worker_dependency_health,
+    start_worker_metrics_server,
+)
+from app.core.minio import download_object, ensure_bucket
+from app.models.receipts.receipt import Receipt
+from app.models.receipts.receipt_extraction import ReceiptExtraction
+from app.models.shared.enums import CategoryScope, ReceiptStatus, TransactionSource
+from app.models.taxonomy.category import Category
+from app.models.taxonomy.category_hidden import UserHiddenCategory
+from app.models.transactions.transaction import Transaction
+from app.models.transactions.transaction_item import TransactionItem
+from app.schemas.extraction import (
     ExtractedReceiptData,
     LineTotalMismatchWarning,
     ReceiptTotalMismatchWarning,
 )
-from app.schemas.shared import quantize_amount  # noqa: E402
+from app.schemas.shared import quantize_amount
 
-RABBITMQ_URL: str = os.environ.get("RABBITMQ_URL", "amqp://guest:guest@rabbitmq:5672/")
-QUEUE_NAME = "receipt_extraction"
-PROCESSING_STALE_AFTER = dt.timedelta(minutes=15)
+configure_logging(service_name="worker")
+logger = logging.getLogger(__name__)
+
+RABBITMQ_URL: str = rabbitmq_settings.RABBITMQ_URL
+QUEUE_NAME = rabbitmq_settings.RECEIPT_EXTRACTION_QUEUE_NAME
+PROCESSING_STALE_AFTER = dt.timedelta(minutes=worker_settings.PROCESSING_STALE_AFTER_MINUTES)
+MAX_RETRIES = worker_settings.MAX_RETRIES
 
 
 # ---------------------------------------------------------------------------
 # Vision LLM call
 # ---------------------------------------------------------------------------
 
+
 def _call_vision_llm(
+    *,
+    receipt_id: str,
+    attempt: int,
     image_bytes: bytes,
     mime_type: str,
     transaction_category_list: list[str],
@@ -111,6 +124,17 @@ You must choose the best fitting ITEM subcategory ONLY from this list:
 {item_cat_lines}
 
 If no item subcategory matches confidently, use UNKNOWN_ITEM.
+
+Line item discount handling is required:
+- If the receipt shows a discount, promotion, loyalty saving, coupon, or
+  "discounted price" line for an item, attach that saving to the item above it.
+- Do not create separate items for discount/promotion rows.
+- For discounted items, set `amount` to the final paid line amount after the
+  discount, set `amount_before_discount` to the original line amount before the
+  saving, and set `discount_amount` to a positive absolute saving.
+- If both a regular price and a discounted/final price are visible, keep both
+  values by using `amount_before_discount` and `discount_amount`.
+- Include related discount text in `raw_line` when it helps explain the item.
 """
 
     message = HumanMessage(
@@ -124,8 +148,46 @@ If no item subcategory matches confidently, use UNKNOWN_ITEM.
     )
 
     start = time.monotonic()
-    # structured_llm returns the instantiated ExtractedReceiptData Pydantic model directly
-    extracted_model: ExtractedReceiptData = structured_llm.invoke([message])
+    trace_inputs = build_receipt_trace_inputs(
+        receipt_id=receipt_id,
+        attempt=attempt,
+        mime_type=mime_type,
+        image_size_bytes=len(image_bytes),
+        transaction_category_count=len(transaction_category_list),
+        item_category_count=len(item_subcategory_list),
+    )
+    if langsmith_tracing_enabled():
+        import langsmith as ls
+
+        with (
+            build_receipt_trace_context(
+                receipt_id=receipt_id,
+                attempt=attempt,
+                mime_type=mime_type,
+                image_size_bytes=len(image_bytes),
+                transaction_category_count=len(transaction_category_list),
+                item_category_count=len(item_subcategory_list),
+            ),
+            ls.trace(
+                name="receipt_vision_extract",
+                run_type="llm",
+                inputs=trace_inputs,
+            ) as run_tree,
+        ):
+            extracted_model: ExtractedReceiptData = structured_llm.invoke([message])
+            latency_ms = int((time.monotonic() - start) * 1000)
+            run_tree.end(
+                outputs=build_receipt_trace_outputs(
+                    provider="google",
+                    model_name=llm_settings.MODEL_NAME,
+                    latency_ms=latency_ms,
+                    item_count=len(extracted_model.items),
+                    currency=extracted_model.currency,
+                    warning_count=len(extracted_model.warnings),
+                ),
+            )
+    else:
+        extracted_model = structured_llm.invoke([message])
     latency_ms = int((time.monotonic() - start) * 1000)
 
     return {
@@ -133,6 +195,9 @@ If no item subcategory matches confidently, use UNKNOWN_ITEM.
         "provider": "google",
         "model_name": llm_settings.MODEL_NAME,
         "latency_ms": latency_ms,
+        "item_count": len(extracted_model.items),
+        "currency": extracted_model.currency,
+        "warning_count": len(extracted_model.warnings),
     }
 
 
@@ -142,10 +207,19 @@ def _compute_extraction_warnings(extracted: ExtractedReceiptData) -> list:
     warnings = []
 
     for idx, item in enumerate(extracted.items, start=1):
-        if item.qty is None or item.unit_price is None or item.amount is None:
+        if item.amount is None:
             continue
 
-        expected_amount = quantize_amount(item.qty * item.unit_price)
+        expected_amount: Decimal | None = None
+        discount_amount = item.discount_amount or Decimal("0")
+        if item.amount_before_discount is not None and discount_amount >= Decimal("0"):
+            expected_amount = quantize_amount(item.amount_before_discount - discount_amount)
+        elif item.qty is not None and item.unit_price is not None:
+            expected_amount = quantize_amount((item.qty * item.unit_price) - discount_amount)
+
+        if expected_amount is None:
+            continue
+
         extracted_amount = quantize_amount(item.amount)
         if expected_amount != extracted_amount:
             warnings.append(
@@ -174,9 +248,75 @@ def _compute_extraction_warnings(extracted: ExtractedReceiptData) -> list:
     return warnings
 
 
+def _normalize_extracted_item_discounts(
+    extracted: ExtractedReceiptData,
+) -> ExtractedReceiptData:
+    """Backfill item discount fields from reliable receipt math.
+
+    Vision models sometimes read the final paid item amount correctly but omit
+    `discount_amount`. Keeping the final price is important for totals, but the
+    editor also needs explicit discount fields to show the discount toggle.
+    """
+
+    normalized_items = []
+    changed = False
+
+    for item in extracted.items:
+        amount = item.amount
+        discount_amount = item.discount_amount
+        amount_before_discount = item.amount_before_discount
+
+        if amount is not None:
+            if (
+                (discount_amount is None or discount_amount <= Decimal("0"))
+                and amount_before_discount is not None
+                and amount_before_discount > amount
+            ):
+                discount_amount = quantize_amount(amount_before_discount - amount)
+
+            if (
+                amount_before_discount is None
+                and discount_amount is not None
+                and discount_amount > Decimal("0")
+            ):
+                amount_before_discount = quantize_amount(amount + discount_amount)
+
+            if (
+                (discount_amount is None or discount_amount <= Decimal("0"))
+                and amount_before_discount is None
+                and item.qty is not None
+                and item.unit_price is not None
+            ):
+                candidate_before = quantize_amount(item.qty * item.unit_price)
+                candidate_discount = quantize_amount(candidate_before - amount)
+                if candidate_discount > Decimal("0.01"):
+                    amount_before_discount = candidate_before
+                    discount_amount = candidate_discount
+
+        if (
+            discount_amount != item.discount_amount
+            or amount_before_discount != item.amount_before_discount
+        ):
+            item = item.model_copy(
+                update={
+                    "discount_amount": discount_amount,
+                    "amount_before_discount": amount_before_discount,
+                }
+            )
+            changed = True
+
+        normalized_items.append(item)
+
+    if not changed:
+        return extracted
+
+    return extracted.model_copy(update={"items": normalized_items})
+
+
 # ---------------------------------------------------------------------------
 # Category resolution helpers
 # ---------------------------------------------------------------------------
+
 
 def _get_or_create_global_category(
     session: Session,
@@ -235,7 +375,8 @@ def _resolve_category_with_scope(
 
     clean_code = code.strip().upper()
     candidates = session.exec(
-        select(Category).where(
+        select(Category)
+        .where(
             Category.scope == scope,
             Category.code == clean_code,
             Category.is_active,
@@ -339,9 +480,9 @@ def _derive_transaction_category_id_from_items(
             parent_code = parent_by_id[category.parent_id].code
         else:
             parent_code = category.code
-        totals_by_parent_code[parent_code] = totals_by_parent_code.get(parent_code, Decimal("0")) + (
-            amount or Decimal("0")
-        )
+        totals_by_parent_code[parent_code] = totals_by_parent_code.get(
+            parent_code, Decimal("0")
+        ) + (amount or Decimal("0"))
 
     if not totals_by_parent_code:
         return None
@@ -434,6 +575,7 @@ def _reconcile_existing_processing_state(
 # Core processing logic
 # ---------------------------------------------------------------------------
 
+
 def process_receipt(receipt_id: str) -> None:
     """Process a single receipt — called per RabbitMQ message."""
     with Session(engine) as session:
@@ -467,14 +609,53 @@ def process_receipt(receipt_id: str) -> None:
         session.add(receipt)
         session.commit()
 
+        record_worker_job_started()
+        started_at = time.monotonic()
+        logger.info(
+            "Started extraction job.",
+            extra={
+                "service": "worker",
+                "event": "receipt_job_started",
+                "receipt_id": receipt_id,
+                "attempt": receipt.processing_attempt,
+                "max_retries": MAX_RETRIES,
+            },
+        )
+
         try:
             # --- Download image from MinIO -----------------------------------
-            logger.info("Downloading %s from bucket %s ...", receipt.storage_key, receipt.storage_bucket)
+            logger.info(
+                "Downloading receipt object.",
+                extra={
+                    "service": "worker",
+                    "event": "receipt_download_started",
+                    "receipt_id": receipt_id,
+                    "storage_bucket": receipt.storage_bucket,
+                },
+            )
             image_bytes = download_object(key=receipt.storage_key, bucket=receipt.storage_bucket)
-            logger.info("Downloaded %d bytes.", len(image_bytes))
+            logger.info(
+                "Receipt object downloaded.",
+                extra={
+                    "service": "worker",
+                    "event": "receipt_download_completed",
+                    "receipt_id": receipt_id,
+                    "byte_count": len(image_bytes),
+                },
+            )
 
             # --- Call Vision LLM ---------------------------------------------
-            logger.info("Calling Vision LLM for receipt %s ...", receipt_id)
+            logger.info(
+                "Calling receipt extraction model.",
+                extra={
+                    "service": "worker",
+                    "event": "receipt_extraction_started",
+                    "receipt_id": receipt_id,
+                    "attempt": receipt.processing_attempt,
+                    "provider": llm_settings.PROVIDER,
+                    "model_name": llm_settings.MODEL_NAME,
+                },
+            )
 
             tx_category_codes = session.exec(
                 select(Category.code).where(
@@ -507,16 +688,36 @@ def process_receipt(receipt_id: str) -> None:
                 len(item_subcategory_codes),
             )
 
-            llm_result = _call_vision_llm(
-                image_bytes=image_bytes,
-                mime_type=receipt.mime_type,
-                transaction_category_list=tx_category_codes,
-                item_subcategory_list=item_subcategory_codes,
-            )
+            llm_started_at = time.monotonic()
+            try:
+                llm_result = _call_vision_llm(
+                    receipt_id=receipt_id,
+                    attempt=receipt.processing_attempt,
+                    image_bytes=image_bytes,
+                    mime_type=receipt.mime_type,
+                    transaction_category_list=tx_category_codes,
+                    item_subcategory_list=item_subcategory_codes,
+                )
+                record_receipt_extraction(
+                    provider=llm_result["provider"],
+                    model=llm_result["model_name"],
+                    success=True,
+                    latency_ms=llm_result["latency_ms"],
+                    item_count=llm_result.get("item_count"),
+                )
+            except Exception:
+                record_receipt_extraction(
+                    provider=llm_settings.PROVIDER,
+                    model=llm_settings.MODEL_NAME,
+                    success=False,
+                    latency_ms=int((time.monotonic() - llm_started_at) * 1000),
+                )
+                raise
             raw_json = llm_result["raw_json"]
 
             # --- Validate with Pydantic --------------------------------------
             extracted = ExtractedReceiptData.model_validate(raw_json)
+            extracted = _normalize_extracted_item_discounts(extracted)
             computed_warnings = _compute_extraction_warnings(extracted)
             if computed_warnings:
                 extracted = extracted.model_copy(
@@ -607,18 +808,65 @@ def process_receipt(receipt_id: str) -> None:
             receipt.failure_reason = None
             session.add(receipt)
             session.commit()
+            record_worker_job_completed(duration_seconds=time.monotonic() - started_at)
             logger.info(
-                "Receipt %s processed → transaction %s with %d items.",
-                receipt_id,
-                transaction.id,
-                len(extracted.items),
+                "Receipt processed successfully.",
+                extra={
+                    "service": "worker",
+                    "event": "receipt_job_completed",
+                    "receipt_id": receipt_id,
+                    "transaction_id": str(transaction.id),
+                    "item_count": len(extracted.items),
+                },
             )
 
         except Exception:
             session.rollback()
-            logger.exception("Failed to process receipt %s.", receipt_id)
+            record_worker_job_failed(
+                reason="processing",
+                duration_seconds=time.monotonic() - started_at,
+            )
+            logger.exception(
+                "Receipt processing failed.",
+                extra={
+                    "service": "worker",
+                    "event": "receipt_job_failed",
+                    "receipt_id": receipt_id,
+                    "attempt": receipt.processing_attempt,
+                    "max_retries": MAX_RETRIES,
+                },
+            )
             # Re-open session state after rollback
             session.refresh(receipt)
+
+            if receipt.processing_attempt < MAX_RETRIES:
+                record_worker_retry_scheduled()
+                logger.warning(
+                    "Scheduling receipt retry.",
+                    extra={
+                        "service": "worker",
+                        "event": "receipt_retry_scheduled",
+                        "receipt_id": receipt_id,
+                        "attempt": receipt.processing_attempt,
+                    },
+                )
+                receipt.status = ReceiptStatus.UPLOADED
+                receipt.failure_reason = None
+                session.add(receipt)
+                session.commit()
+                time.sleep(worker_settings.RETRY_BACKOFF_SECONDS)  # brief backoff before redelivery
+                raise  # trigger aio_pika Nack and requeue
+
+            logger.error(
+                "Receipt retries exhausted.",
+                extra={
+                    "service": "worker",
+                    "event": "receipt_retry_exhausted",
+                    "receipt_id": receipt_id,
+                    "attempt": receipt.processing_attempt,
+                    "max_retries": MAX_RETRIES,
+                },
+            )
             receipt.status = ReceiptStatus.FAILED
             # Store a user-safe message — the full traceback is already
             # captured by logger.exception() above for operator debugging.
@@ -634,13 +882,18 @@ def process_receipt(receipt_id: str) -> None:
 # RabbitMQ consumer loop
 # ---------------------------------------------------------------------------
 
+
 async def main() -> None:
     """Connect to RabbitMQ and consume the receipt_extraction queue."""
+    start_worker_metrics_server()
     logger.info("Worker starting — ensuring S3 bucket exists...")
     ensure_bucket()
+    set_worker_dependency_health(dependency="s3", is_up=True)
+    set_worker_dependency_health(dependency="database", is_up=check_database_health())
 
     logger.info("Connecting to RabbitMQ at %s ...", RABBITMQ_URL)
     connection = await aio_pika.connect_robust(RABBITMQ_URL)
+    set_worker_dependency_health(dependency="rabbitmq", is_up=True)
     channel = await connection.channel()
     await channel.set_qos(prefetch_count=1)
 
@@ -657,7 +910,13 @@ async def main() -> None:
                     # Run the blocking processing in a thread
                     await asyncio.to_thread(process_receipt, receipt_id)
                 except Exception:
-                    logger.exception("Error handling message: %s", message.body)
+                    logger.exception(
+                        "Error handling worker message.",
+                        extra={
+                            "service": "worker",
+                            "event": "worker_message_failed",
+                        },
+                    )
 
 
 if __name__ == "__main__":

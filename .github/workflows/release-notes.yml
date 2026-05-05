@@ -1,0 +1,48 @@
+name: Release Notes
+
+on:
+  workflow_dispatch:
+    inputs:
+      from_ref:
+        description: "Start ref, tag, or commit excluded from the notes range"
+        required: true
+        default: "HEAD~20"
+      to_ref:
+        description: "End ref, tag, or commit included in the notes range"
+        required: true
+        default: "HEAD"
+
+permissions:
+  contents: read
+
+jobs:
+  release-notes:
+    name: Generate Release Notes
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        shell: bash
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Generate release notes
+        run: |
+          python scripts/generate_release_notes.py \
+            --from-ref "${{ inputs.from_ref }}" \
+            --to-ref "${{ inputs.to_ref }}" \
+            --output release-notes.md
+          cat release-notes.md >> "${GITHUB_STEP_SUMMARY}"
+
+      - name: Upload release notes artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: release-notes
+          path: release-notes.md

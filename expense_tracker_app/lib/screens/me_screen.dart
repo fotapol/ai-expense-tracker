@@ -2,8 +2,10 @@ import 'package:currency_picker/currency_picker.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:google_sign_in/google_sign_in.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 import '../core/api_client.dart';
+import '../core/app_env.dart';
 import '../core/launch_error_copy.dart';
 import '../core/redesign_system.dart';
 import '../core/revenuecat_service.dart';
@@ -22,10 +24,8 @@ import 'items_translation_settings_screen.dart';
 import 'language_settings_screen.dart';
 import 'login_screen.dart';
 import 'notifications_settings_screen.dart';
-import 'privacy_policy_screen.dart';
 import 'profile_settings_screen.dart';
 import 'subscription_screen.dart';
-import 'terms_of_service_screen.dart';
 
 /// Screen that displays the authenticated user's profile from the backend.
 class MeScreen extends StatefulWidget {
@@ -144,6 +144,7 @@ class _MeScreenState extends State<MeScreen> {
             'has_active_subscription': syncPayload['has_active_subscription'],
             'subscription': syncPayload['subscription'],
             'receipt_scan_usage': syncPayload['receipt_scan_usage'],
+            'category_usage': syncPayload['category_usage'],
           };
         } catch (_) {
           subscriptionPayload = await ApiClient.getMeSubscription();
@@ -187,26 +188,66 @@ class _MeScreenState extends State<MeScreen> {
     await _refreshSettings();
   }
 
+  Future<void> _openPlaySubscriptionManagement() async {
+    final uri = AppEnv.uriFrom(AppEnv.playSubscriptionsUrl);
+    var opened = false;
+    try {
+      opened =
+          uri != null &&
+          await launchUrl(uri, mode: LaunchMode.externalApplication);
+    } catch (_) {
+      opened = false;
+    }
+    if (!opened && mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(context.tr('could_not_open_that_link'))),
+      );
+    }
+  }
+
+  Future<void> _openExternalUrl(String rawUrl) async {
+    final uri = AppEnv.uriFrom(rawUrl);
+    var opened = false;
+    try {
+      opened =
+          uri != null &&
+          await launchUrl(uri, mode: LaunchMode.externalApplication);
+    } catch (_) {
+      opened = false;
+    }
+    if (!opened && mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(context.tr('could_not_open_that_link'))),
+      );
+    }
+  }
+
   Future<void> _openSettingsRoute(
     Widget screen, {
     bool refreshProfile = false,
     bool refreshBilling = false,
+    String? successMessage,
   }) async {
-    await Navigator.push(context, MaterialPageRoute(builder: (_) => screen));
+    final result = await Navigator.push<dynamic>(
+      context,
+      MaterialPageRoute(builder: (_) => screen),
+    );
     if (!mounted) return;
     if (refreshProfile && refreshBilling) {
       await _refreshSettings();
-      return;
-    }
-    if (refreshProfile) {
+    } else if (refreshProfile) {
       await _fetchProfile();
-      return;
-    }
-    if (refreshBilling) {
+    } else if (refreshBilling) {
       await _loadBillingData(showLoading: false);
-      return;
+    } else {
+      setState(() {});
     }
-    setState(() {});
+    if (!mounted) return;
+    if (result == true && successMessage != null) {
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(successMessage)));
+    }
   }
 
   Future<void> _fetchProfile() async {
@@ -385,6 +426,7 @@ class _MeScreenState extends State<MeScreen> {
                     const ProfileSettingsScreen(),
                     refreshProfile: true,
                     refreshBilling: true,
+                    successMessage: 'Profile updated.',
                   ),
                 ),
               ],
@@ -459,12 +501,12 @@ class _MeScreenState extends State<MeScreen> {
                 _buildSettingsTile(
                   icon: AppIcons.privacy,
                   title: context.tr('settings_privacy_policy'),
-                  onTap: () => _openSettingsRoute(const PrivacyPolicyScreen()),
+                  onTap: () => _openExternalUrl(AppEnv.privacyUrl),
                 ),
                 _buildSettingsTile(
                   icon: AppIcons.document,
                   title: context.tr('settings_terms_of_service'),
-                  onTap: () => _openSettingsRoute(const TermsOfServiceScreen()),
+                  onTap: () => _openExternalUrl(AppEnv.termsUrl),
                 ),
                 _buildSettingsTile(
                   icon: AppIcons.info,
@@ -619,7 +661,9 @@ class _MeScreenState extends State<MeScreen> {
                 ),
                 const SizedBox(height: 12),
                 FilledButton(
-                  onPressed: _openSubscriptionDetails,
+                  onPressed: _hasActiveSubscription
+                      ? _openPlaySubscriptionManagement
+                      : _openSubscriptionDetails,
                   style: FilledButton.styleFrom(
                     backgroundColor: ShellStyles.heroBadgeSurface(context),
                     foregroundColor: ShellStyles.heroTextPrimary(context),
@@ -722,8 +766,8 @@ class _MeScreenState extends State<MeScreen> {
     final defaultTone = ShellStyles.accentTone(context);
     final effectiveIconColor = iconColor ?? defaultTone.base;
     final effectiveTitleColor = titleColor ?? ShellStyles.textPrimary(context);
-    final effectiveContainerColor = iconColor != null 
-        ? iconColor.withAlpha(14) 
+    final effectiveContainerColor = iconColor != null
+        ? iconColor.withAlpha(14)
         : defaultTone.container;
 
     final leadingWidget =

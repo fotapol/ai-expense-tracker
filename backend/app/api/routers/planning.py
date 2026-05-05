@@ -311,7 +311,7 @@ async def mark_bill_reminder_paid(
         or payload.due_date > reminder.last_paid_due_date
     ):
         reminder.last_paid_due_date = payload.due_date
-        reminder.last_paid_at = dt.datetime.now(dt.timezone.utc)
+        reminder.last_paid_at = dt.datetime.now(dt.UTC)
         session.add(reminder)
         session.commit()
         session.refresh(reminder)

@@ -1,0 +1,79 @@
+name: Manual Deploy
+
+on:
+  workflow_dispatch:
+    inputs:
+      apply_to_cluster:
+        description: "Apply the production overlay to the configured cluster"
+        required: true
+        default: false
+        type: boolean
+
+jobs:
+  deployment-readiness:
+    name: Deployment Readiness
+    runs-on: ubuntu-latest
+    environment: production
+    defaults:
+      run:
+        shell: bash
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Set up uv
+        uses: astral-sh/setup-uv@v6
+
+      - name: Set up kubectl
+        uses: azure/setup-kubectl@v4
+        with:
+          version: "latest"
+
+      - name: Restore production env file from secret
+        env:
+          ENV_PRODUCTION: ${{ secrets.ENV_PRODUCTION }}
+        run: |
+          if [[ -z "${ENV_PRODUCTION}" ]]; then
+            echo "ENV_PRODUCTION secret is required." >&2
+            exit 1
+          fi
+          printf '%s' "${ENV_PRODUCTION}" > .env.production
+
+      - name: Render production artifacts
+        run: |
+          uv run python infra/k8s/scripts/render_k8s_env.py \
+            --env-file .env.production \
+            --output-dir infra/k8s/overlays/production/generated
+
+      - name: Validate production overlay
+        run: kubectl kustomize infra/k8s/overlays/production > /dev/null
+
+      - name: Build backend image
+        run: docker build -f Dockerfile -t ai-expense-tracker-backend:manual .
+
+      - name: Build backup image
+        run: docker build -f infra/images/postgres-backup/Dockerfile -t ai-expense-tracker-postgres-backup:manual .
+
+      - name: Build site image
+        run: docker build -f site/Dockerfile -t ai-expense-tracker-site:manual .
+
+      - name: Configure kubeconfig
+        if: ${{ inputs.apply_to_cluster }}
+        env:
+          KUBE_CONFIG_B64: ${{ secrets.KUBE_CONFIG_B64 }}
+        run: |
+          if [[ -z "${KUBE_CONFIG_B64}" ]]; then
+            echo "KUBE_CONFIG_B64 secret is required when apply_to_cluster=true." >&2
+            exit 1
+          fi
+          mkdir -p "${HOME}/.kube"
+          echo "${KUBE_CONFIG_B64}" | base64 --decode > "${HOME}/.kube/config"
+
+      - name: Apply production overlay
+        if: ${{ inputs.apply_to_cluster }}
+        run: kubectl apply -k infra/k8s/overlays/production

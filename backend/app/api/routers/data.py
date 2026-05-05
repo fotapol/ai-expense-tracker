@@ -58,8 +58,8 @@ def _resolve_default_item_category_id(session: Session) -> uuid.UUID | None:
 @limiter.limit("5/minute")
 async def export_data(
     request: Request,
-    session: Session = Depends(get_session),
-    current_user: User = Depends(get_current_user),
+    session: Session = Depends(get_session),  # noqa: B008
+    current_user: User = Depends(get_current_user),  # noqa: B008
 ):
     """Export user's categories and transactions as JSON."""
 
@@ -148,8 +148,8 @@ async def export_data(
 async def import_data(
     payload: DataImportPayload,
     request: Request,
-    session: Session = Depends(get_session),
-    current_user: User = Depends(get_current_user),
+    session: Session = Depends(get_session),  # noqa: B008
+    current_user: User = Depends(get_current_user),  # noqa: B008
 ):
     """Import categories and transactions from a JSON payload.
 

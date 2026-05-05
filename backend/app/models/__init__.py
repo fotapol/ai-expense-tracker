@@ -2,6 +2,7 @@
 
 from app.models.billing.entitlement import Entitlement
 from app.models.billing.subscription import Subscription
+from app.models.billing.webhook_event import BillingWebhookEvent
 from app.models.feature_requests.feature_request import FeatureRequest, FeatureRequestBase
 from app.models.feature_requests.feature_request_vote import FeatureRequestVote
 from app.models.fx.exchange_rate import ExchangeRate
@@ -40,6 +41,10 @@ from app.models.users.profile import Profile, ProfileBase
 from app.models.users.user import User, UserBase
 
 __all__ = [
+    "BillReminder",
+    "BillingWebhookEvent",
+    "BudgetCategoryLimit",
+    "BudgetSettings",
     "Category",
     "CategoryBase",
     "CategoryScope",
@@ -53,9 +58,6 @@ __all__ = [
     "FeatureRequestModerationState",
     "FeatureRequestPublicStatus",
     "FeatureRequestVote",
-    "BillReminder",
-    "BudgetCategoryLimit",
-    "BudgetSettings",
     "Household",
     "HouseholdBase",
     "HouseholdInvite",

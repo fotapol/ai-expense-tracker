@@ -11,6 +11,7 @@ class AnalyticsCategoryDetailScreen extends StatefulWidget {
   final String categoryId;
   final String categoryName;
   final String categoryCode;
+  final String? categoryColor;
   final DateTime? fromDate;
   final List<String> selectedCategoryIds;
   final List<String> selectedSubcategoryIds;
@@ -21,6 +22,7 @@ class AnalyticsCategoryDetailScreen extends StatefulWidget {
     required this.categoryId,
     required this.categoryName,
     required this.categoryCode,
+    this.categoryColor,
     required this.fromDate,
     required this.selectedCategoryIds,
     required this.selectedSubcategoryIds,
@@ -132,6 +134,7 @@ class _AnalyticsCategoryDetailScreenState
       context,
       code: widget.categoryCode,
       name: widget.categoryName,
+      rawHex: widget.categoryColor ?? _data?['category_color']?.toString(),
     );
 
     return RefreshIndicator(
@@ -170,7 +173,7 @@ class _AnalyticsCategoryDetailScreenState
                     border: Border.all(color: headerTone.border),
                   ),
                   child: Text(
-                    'Category overview',
+                    context.tr('analytics_category_overview'),
                     style: TextStyle(
                       color: headerTone.foreground,
                       fontSize: 12,
@@ -231,6 +234,7 @@ class _AnalyticsCategoryDetailScreenState
               code: sub['code']?.toString(),
               parentCode: widget.categoryCode,
               name: sub['name']?.toString(),
+              rawHex: sub['color']?.toString(),
             );
             final amount = (sub['amount'] as num?)?.toDouble() ?? 0.0;
             final percentage = (sub['percentage'] as num?)?.toDouble() ?? 0.0;

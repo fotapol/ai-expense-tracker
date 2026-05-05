@@ -36,9 +36,11 @@ class _Session:
         self._exec_results = exec_results or []
         self._exec_call_count = 0
         self.added: list = []
+        self.deleted: list = []
         self.committed = False
         self.commit_calls = 0
         self.refreshed: list = []
+        self.flush_calls = 0
 
     def exec(self, _statement) -> _Result:
         idx = self._exec_call_count
@@ -49,6 +51,12 @@ class _Session:
 
     def add(self, obj) -> None:
         self.added.append(obj)
+
+    def delete(self, obj) -> None:
+        self.deleted.append(obj)
+
+    def flush(self) -> None:
+        self.flush_calls += 1
 
     def commit(self) -> None:
         self.committed = True
@@ -135,7 +143,7 @@ def test_confirm_upload_reverts_receipt_state_when_enqueue_publish_fails(monkeyp
         storage_bucket="receipts",
         uploaded_at=None,
         size_bytes=0,
-        mime_type="image/jpeg",
+        mime_type="image/png",
     )
     usage = SimpleNamespace(
         used=0,
@@ -157,6 +165,11 @@ def test_confirm_upload_reverts_receipt_state_when_enqueue_publish_fails(monkeyp
         router,
         "head_object",
         lambda **_kwargs: {"size_bytes": 123, "content_type": "image/png"},
+    )
+    monkeypatch.setattr(
+        router,
+        "read_object_prefix",
+        lambda **_kwargs: b"\x89PNG\r\n\x1a\n",
     )
     monkeypatch.setattr(
         router,
@@ -184,3 +197,38 @@ def test_confirm_upload_reverts_receipt_state_when_enqueue_publish_fails(monkeyp
     assert receipt.uploaded_at is None
     assert receipt.mime_type == "image/png"
     assert session.refreshed == [receipt, receipt]
+
+
+def test_delete_receipt_aborts_when_storage_cleanup_fails(monkeypatch) -> None:
+    """Receipt deletion must not remove DB rows if object deletion fails."""
+
+    from app.api.routers import receipts as router
+
+    current_user = SimpleNamespace(id=uuid.uuid4())
+    receipt = SimpleNamespace(
+        id=uuid.uuid4(),
+        user_id=current_user.id,
+        status=ReceiptStatus.COMPLETED,
+        storage_key="receipts/test.png",
+        storage_bucket="receipts",
+    )
+    session = _Session(exec_results=[[receipt]])
+
+    def _fail_delete_object(*_args, **_kwargs) -> None:
+        raise RuntimeError("storage unavailable")
+
+    monkeypatch.setattr(router, "delete_object", _fail_delete_object)
+
+    with pytest.raises(HTTPException) as exc_info:
+        asyncio.run(
+            _unwrap(router.delete_receipt)(
+                receipt_id=receipt.id,
+                request=_request(),
+                session=session,
+                current_user=current_user,
+            )
+        )
+
+    assert exc_info.value.status_code == 503
+    assert session.deleted == []
+    assert session.commit_calls == 0

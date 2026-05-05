@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
-import 'package:intl/intl.dart';
 
 import '../core/api_client.dart';
 import '../core/bill_reminder_notification_service.dart';
 import '../core/launch_error_copy.dart';
+import '../core/localized_dates.dart';
 import '../core/planning_logic.dart';
 import '../core/redesign_system.dart';
 import '../core/session_invalidation.dart';
@@ -78,8 +78,7 @@ class _BillRemindersScreenState extends State<BillRemindersScreen> {
       setState(() {
         _error = friendlyLaunchErrorMessage(
           error,
-          fallback:
-              'Bill reminders could not load right now. Pull to try again.',
+          fallback: context.tr('bill_reminders_load_error'),
         );
         _isLoading = false;
       });
@@ -171,11 +170,11 @@ class _BillRemindersScreenState extends State<BillRemindersScreen> {
   String _recurrenceLabel(String recurrence) {
     switch (normalizeBillReminderRecurrence(recurrence)) {
       case billReminderRecurrenceNone:
-        return 'One-time';
+        return context.tr('bill_reminders_recurrence_none');
       case billReminderRecurrenceDaily:
         return context.tr('bill_reminders_recurring_daily');
       case billReminderRecurrenceWeekly:
-        return 'Weekly';
+        return context.tr('bill_reminders_recurrence_weekly');
       case billReminderRecurrenceYearly:
         return context.tr('bill_reminders_recurring_yearly');
       case billReminderRecurrenceMonthly:
@@ -185,36 +184,36 @@ class _BillRemindersScreenState extends State<BillRemindersScreen> {
   }
 
   String _dueDateFieldLabel() {
-    return 'Next due date';
+    return context.tr('bill_reminders_next_due_label');
   }
 
   String _dueDateFieldHint() {
-    return 'Pick next due date';
+    return context.tr('bill_reminders_next_due_hint');
   }
 
   String _historySortLabel(_BillHistorySort sort) {
     switch (sort) {
       case _BillHistorySort.latestPaidAt:
-        return 'Latest paid';
+        return context.tr('bill_reminders_sort_latest_paid');
       case _BillHistorySort.earliestPaidAt:
-        return 'Earliest paid';
+        return context.tr('bill_reminders_sort_earliest_paid');
       case _BillHistorySort.latestDueDate:
-        return 'Latest due';
+        return context.tr('bill_reminders_sort_latest_due');
       case _BillHistorySort.earliestDueDate:
-        return 'Earliest due';
+        return context.tr('bill_reminders_sort_earliest_due');
     }
   }
 
   String _historySubtitle() {
     switch (_historySort) {
       case _BillHistorySort.latestPaidAt:
-        return 'Sorted by when reminders were marked as paid most recently.';
+        return context.tr('bill_reminders_history_sort_latest_paid');
       case _BillHistorySort.earliestPaidAt:
-        return 'Sorted by the oldest recorded payment time first.';
+        return context.tr('bill_reminders_history_sort_earliest_paid');
       case _BillHistorySort.latestDueDate:
-        return 'Sorted by the latest due date that was paid.';
+        return context.tr('bill_reminders_history_sort_latest_due');
       case _BillHistorySort.earliestDueDate:
-        return 'Sorted by the earliest due date that was paid.';
+        return context.tr('bill_reminders_history_sort_earliest_due');
     }
   }
 
@@ -327,7 +326,7 @@ class _BillRemindersScreenState extends State<BillRemindersScreen> {
       _showMessage(
         friendlyLaunchErrorMessage(
           error,
-          fallback: 'Bill reminder could not be saved right now.',
+          fallback: context.tr('bill_reminders_save_error'),
         ),
         isError: true,
       );
@@ -356,7 +355,7 @@ class _BillRemindersScreenState extends State<BillRemindersScreen> {
       _showMessage(
         friendlyLaunchErrorMessage(
           error,
-          fallback: 'That bill could not be updated right now.',
+          fallback: context.tr('bill_reminders_update_error'),
         ),
         isError: true,
       );
@@ -381,7 +380,7 @@ class _BillRemindersScreenState extends State<BillRemindersScreen> {
     if (!_isReminderMissingError(error)) return false;
     await _loadData(showLoader: false);
     if (!mounted) return true;
-    _showMessage('This reminder is no longer available.', isError: true);
+    _showMessage(context.tr('bill_reminders_not_available'), isError: true);
     return true;
   }
 
@@ -395,9 +394,12 @@ class _BillRemindersScreenState extends State<BillRemindersScreen> {
         builder: (dialogContext) => ShellStyles.clampOverlayScale(
           dialogContext,
           AlertDialog(
-            title: const Text('Delete reminder'),
+            title: Text(context.tr('delete_reminder')),
             content: Text(
-              'Delete "${reminder.name}"?',
+              context.tr(
+                'delete_reminder_name_confirm',
+                params: {'name': reminder.name},
+              ),
               style: TextStyle(
                 color: ShellStyles.textPrimary(dialogContext),
                 height: 1.35,
@@ -414,7 +416,7 @@ class _BillRemindersScreenState extends State<BillRemindersScreen> {
                   backgroundColor: ShellColors.softRed,
                   foregroundColor: Colors.white,
                 ),
-                child: const Text('Delete'),
+                child: Text(context.tr('common_delete')),
               ),
             ],
           ),
@@ -428,9 +430,9 @@ class _BillRemindersScreenState extends State<BillRemindersScreen> {
       builder: (dialogContext) => ShellStyles.clampOverlayScale(
         dialogContext,
         AlertDialog(
-          title: const Text('Remove reminder'),
+          title: Text(context.tr('remove_reminder')),
           content: Text(
-            'Choose whether to remove only the next due reminder or the whole recurring series.',
+            context.tr('bill_reminders_delete_recurring_confirm'),
             style: TextStyle(
               color: ShellStyles.textPrimary(dialogContext),
               height: 1.35,
@@ -447,7 +449,7 @@ class _BillRemindersScreenState extends State<BillRemindersScreen> {
                 _ReminderDeleteAction.skipOccurrence,
               ),
               style: TextButton.styleFrom(foregroundColor: ShellColors.softRed),
-              child: const Text('Remove this reminder'),
+              child: Text(context.tr('remove_this_reminder')),
             ),
             FilledButton(
               onPressed: () => Navigator.pop(
@@ -458,7 +460,7 @@ class _BillRemindersScreenState extends State<BillRemindersScreen> {
                 backgroundColor: ShellColors.softRed,
                 foregroundColor: Colors.white,
               ),
-              child: const Text('Remove all in series'),
+              child: Text(context.tr('remove_all_in_series')),
             ),
           ],
         ),
@@ -480,7 +482,7 @@ class _BillRemindersScreenState extends State<BillRemindersScreen> {
           .syncScheduledNotifications();
       await _loadData(showLoader: false);
       if (!mounted) return;
-      _showMessage('The next reminder was removed from this series.');
+      _showMessage(context.tr('bill_reminders_occurrence_skipped'));
     } catch (error) {
       if (await maybeHandleExpiredSession(error)) return;
       if (await _recoverUnavailableReminder(error)) return;
@@ -488,7 +490,7 @@ class _BillRemindersScreenState extends State<BillRemindersScreen> {
       _showMessage(
         friendlyLaunchErrorMessage(
           error,
-          fallback: 'That reminder could not be updated right now.',
+          fallback: context.tr('bill_reminders_update_error_fallback'),
         ),
         isError: true,
       );
@@ -506,7 +508,7 @@ class _BillRemindersScreenState extends State<BillRemindersScreen> {
           .syncScheduledNotifications();
       await _loadData(showLoader: false);
       if (!mounted) return;
-      _showMessage('Reminder series removed.');
+      _showMessage(context.tr('bill_reminders_series_removed'));
     } catch (error) {
       if (await maybeHandleExpiredSession(error)) return;
       if (await _recoverUnavailableReminder(error)) return;
@@ -514,7 +516,7 @@ class _BillRemindersScreenState extends State<BillRemindersScreen> {
       _showMessage(
         friendlyLaunchErrorMessage(
           error,
-          fallback: 'That reminder could not be deleted right now.',
+          fallback: context.tr('bill_reminders_delete_error'),
         ),
         isError: true,
       );
@@ -593,8 +595,13 @@ class _BillRemindersScreenState extends State<BillRemindersScreen> {
               const SizedBox(height: 4),
               Text(
                 items.isEmpty
-                    ? 'No upcoming reminders'
-                    : '${items.length} upcoming reminder${items.length == 1 ? '' : 's'}',
+                    ? context.tr('bill_reminders_empty_upcoming')
+                    : items.length == 1
+                    ? context.tr('bill_reminders_subtitle_single')
+                    : context.tr(
+                        'bill_reminders_subtitle_plural',
+                        params: {'count': items.length.toString()},
+                      ),
                 style: TextStyle(
                   color: ShellStyles.heroTextSecondary(context),
                   fontSize: 12,
@@ -611,14 +618,15 @@ class _BillRemindersScreenState extends State<BillRemindersScreen> {
   Widget _buildComposerCard() {
     final dateText = _selectedDueDate == null
         ? _dueDateFieldHint()
-        : DateFormat.yMMMd().format(_selectedDueDate!);
+        : formatLocalizedDayMonthYear(context, _selectedDueDate!);
+    final accentTone = ShellStyles.accentTone(context);
 
     return SettingsDetailCard(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            'Add bill reminder',
+            context.tr('bill_reminders_add_title'),
             style: TextStyle(
               color: ShellStyles.textPrimary(context),
               fontSize: 18,
@@ -627,7 +635,7 @@ class _BillRemindersScreenState extends State<BillRemindersScreen> {
           ),
           const SizedBox(height: 6),
           Text(
-            'Choose when this bill is due next and whether it repeats.',
+            context.tr('bill_reminders_add_subtitle'),
             style: TextStyle(
               color: ShellStyles.textMuted(context),
               fontSize: 12.5,
@@ -638,7 +646,7 @@ class _BillRemindersScreenState extends State<BillRemindersScreen> {
           TextField(
             controller: _nameController,
             decoration: InputDecoration(
-              labelText: 'Bill name',
+              labelText: context.tr('bill_reminders_name_label'),
               floatingLabelBehavior: FloatingLabelBehavior.always,
               hintText: context.tr('bill_reminders_name_hint'),
             ),
@@ -686,7 +694,7 @@ class _BillRemindersScreenState extends State<BillRemindersScreen> {
           const SizedBox(height: 12),
           InputDecorator(
             decoration: InputDecoration(
-              labelText: 'Recurrence',
+              labelText: context.tr('bill_reminders_recurrence_label'),
               floatingLabelBehavior: FloatingLabelBehavior.always,
             ),
             child: Wrap(
@@ -705,11 +713,15 @@ class _BillRemindersScreenState extends State<BillRemindersScreen> {
                     selected: _selectedRecurrence == recurrence,
                     showCheckmark: false,
                     backgroundColor: ShellStyles.surface(context),
-                    selectedColor: ShellStyles.surfaceAlt(context),
-                    side: BorderSide(color: ShellStyles.border(context)),
+                    selectedColor: accentTone.container,
+                    side: BorderSide(
+                      color: _selectedRecurrence == recurrence
+                          ? accentTone.border
+                          : ShellStyles.border(context),
+                    ),
                     labelStyle: TextStyle(
                       color: _selectedRecurrence == recurrence
-                          ? ShellStyles.textPrimary(context)
+                          ? accentTone.foreground
                           : ShellStyles.textMuted(context),
                       fontWeight: FontWeight.w600,
                     ),
@@ -731,8 +743,6 @@ class _BillRemindersScreenState extends State<BillRemindersScreen> {
                 child: FilledButton(
                   onPressed: _isCreating ? null : _createReminder,
                   style: FilledButton.styleFrom(
-                    backgroundColor: ShellStyles.textPrimary(context),
-                    foregroundColor: ShellStyles.surface(context),
                     minimumSize: const Size.fromHeight(46),
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(14),
@@ -780,7 +790,9 @@ class _BillRemindersScreenState extends State<BillRemindersScreen> {
         : occurrence.isOverdue
         ? ShellColors.softRed.withAlpha(90)
         : ShellStyles.border(context);
-    final statusLabel = isHistory ? 'Paid' : _statusLabel(occurrence.status);
+    final statusLabel = isHistory
+        ? context.tr('bill_reminders_paid_status')
+        : _statusLabel(occurrence.status);
 
     return Container(
       padding: const EdgeInsets.all(14),
@@ -827,7 +839,7 @@ class _BillRemindersScreenState extends State<BillRemindersScreen> {
                   onPressed: isBusy
                       ? null
                       : () => _handleDeleteAction(occurrence),
-                  tooltip: 'Remove reminder',
+                  tooltip: context.tr('remove_reminder'),
                   icon: isDeleting
                       ? SizedBox(
                           width: 18,
@@ -884,7 +896,17 @@ class _BillRemindersScreenState extends State<BillRemindersScreen> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      '${isHistory ? 'Paid for due' : 'Next due'}: ${DateFormat.yMMMd().format(occurrence.dueDate)}',
+                      context.tr(
+                        isHistory
+                            ? 'bill_reminders_paid_due_label'
+                            : 'bill_reminders_next_due_on',
+                        params: {
+                          'date': formatLocalizedDayMonthYear(
+                            context,
+                            occurrence.dueDate,
+                          ),
+                        },
+                      ),
                       style: TextStyle(
                         color: ShellStyles.textPrimary(context),
                         fontSize: 13,
@@ -894,7 +916,15 @@ class _BillRemindersScreenState extends State<BillRemindersScreen> {
                         occurrence.reminder.lastPaidAt != null) ...[
                       const SizedBox(height: 4),
                       Text(
-                        'Marked paid ${DateFormat.yMMMd().add_Hm().format(occurrence.reminder.lastPaidAt!)}',
+                        context.tr(
+                          'bill_reminders_marked_paid_at',
+                          params: {
+                            'date': formatLocalizedDayMonthYearTime(
+                              context,
+                              occurrence.reminder.lastPaidAt!,
+                            ),
+                          },
+                        ),
                         style: TextStyle(
                           color: ShellStyles.textMuted(context),
                           fontSize: 11.5,
@@ -1015,6 +1045,7 @@ class _BillRemindersScreenState extends State<BillRemindersScreen> {
     final upcomingItems = _upcomingOccurrences();
     final paidItems = _paidHistoryOccurrences();
     final isShowingHistory = _showHistoryMode;
+    final accentTone = ShellStyles.accentTone(context);
 
     return PopScope<bool>(
       canPop: !_showHistoryMode && !_showComposer,
@@ -1036,9 +1067,13 @@ class _BillRemindersScreenState extends State<BillRemindersScreen> {
                     minimumSize: const Size(40, 38),
                     padding: const EdgeInsets.symmetric(horizontal: 11),
                     backgroundColor: isShowingHistory
-                        ? ShellStyles.surfaceAlt(context)
+                        ? accentTone.container
                         : ShellStyles.surface(context),
-                    side: BorderSide(color: ShellStyles.border(context)),
+                    side: BorderSide(
+                      color: isShowingHistory
+                          ? accentTone.border
+                          : ShellStyles.border(context),
+                    ),
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(14),
                     ),
@@ -1048,15 +1083,15 @@ class _BillRemindersScreenState extends State<BillRemindersScreen> {
                         ? Icons.schedule_outlined
                         : Icons.history_outlined,
                     size: 18,
-                    color: ShellStyles.textPrimary(context),
+                    color: isShowingHistory
+                        ? accentTone.foreground
+                        : ShellStyles.textPrimary(context),
                   ),
                 ),
                 const SizedBox(width: 8),
                 FilledButton(
                   onPressed: _toggleComposer,
                   style: FilledButton.styleFrom(
-                    backgroundColor: ShellStyles.textPrimary(context),
-                    foregroundColor: ShellStyles.surface(context),
                     minimumSize: const Size(0, 38),
                     padding: const EdgeInsets.symmetric(horizontal: 14),
                     shape: RoundedRectangleBorder(
@@ -1120,10 +1155,14 @@ class _BillRemindersScreenState extends State<BillRemindersScreen> {
                         children: [
                           Expanded(
                             child: _buildSectionHeader(
-                              isShowingHistory ? 'Paid history' : 'Upcoming',
+                              isShowingHistory
+                                  ? context.tr('bill_reminders_tab_history')
+                                  : context.tr('bill_reminders_tab_upcoming'),
                               subtitle: isShowingHistory
                                   ? _historySubtitle()
-                                  : 'Sorted by the nearest due date and counted in the summary above.',
+                                  : context.tr(
+                                      'bill_reminders_upcoming_sort_desc',
+                                    ),
                             ),
                           ),
                           if (isShowingHistory && paidItems.isNotEmpty) ...[
@@ -1165,7 +1204,7 @@ class _BillRemindersScreenState extends State<BillRemindersScreen> {
                             withShadow: false,
                           ),
                           child: Text(
-                            'Paid reminders will appear here after you mark them as paid.',
+                            context.tr('bill_reminders_empty_history'),
                             style: TextStyle(
                               color: ShellStyles.textMuted(context),
                               fontSize: 12.5,

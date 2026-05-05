@@ -5,6 +5,7 @@ import '../core/api_client.dart';
 import '../core/money_format_preferences.dart';
 import '../core/redesign_system.dart';
 import 'settings_detail_scaffold.dart';
+import '../l10n/app_localizations.dart';
 
 class CurrencySettingsScreen extends StatefulWidget {
   const CurrencySettingsScreen({super.key, required this.initialCode});
@@ -109,14 +110,23 @@ class _CurrencySettingsScreenState extends State<CurrencySettingsScreen> {
       await ApiClient.updateMe(<String, dynamic>{'default_currency': code});
       if (!mounted) return;
       setState(() => _selectedCode = code);
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text('Currency updated to $code.')));
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            context.tr('settings_currency_updated', params: {'code': code}),
+          ),
+        ),
+      );
     } catch (error) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('Failed to update currency: $error'),
+          content: Text(
+            context.tr(
+              'settings_currency_update_failed',
+              params: {'error': error.toString()},
+            ),
+          ),
           backgroundColor: Colors.red,
         ),
       );
@@ -242,7 +252,7 @@ class _CurrencySettingsScreenState extends State<CurrencySettingsScreen> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: <Widget>[
           Text(
-            'Preview',
+            context.tr('settings_example'),
             style: TextStyle(
               color: ShellStyles.textPrimary(context),
               fontSize: 16,
@@ -291,7 +301,7 @@ class _CurrencySettingsScreenState extends State<CurrencySettingsScreen> {
           ),
           const SizedBox(height: 10),
           Text(
-            'Format options are saved on this device and update supported amount displays, including Home and history.',
+            context.tr('currency_format_options_note'),
             style: TextStyle(
               color: ShellStyles.textMuted(context),
               fontSize: 12,
@@ -308,7 +318,7 @@ class _CurrencySettingsScreenState extends State<CurrencySettingsScreen> {
     final currencies = _filteredCurrencies();
 
     return SettingsDetailScaffold(
-      title: 'Currency',
+      title: context.tr('settings_currency'),
       body: SafeArea(
         top: false,
         child: Stack(
@@ -321,7 +331,7 @@ class _CurrencySettingsScreenState extends State<CurrencySettingsScreen> {
                   _buildPreviewCard(),
                   const SizedBox(height: 16),
                   SettingsSearchField(
-                    hintText: 'Search currencies',
+                    hintText: context.tr('settings_currency_search'),
                     onChanged: (value) => setState(() {
                       _query = value;
                       if (value.isNotEmpty) {
@@ -361,8 +371,8 @@ class _CurrencySettingsScreenState extends State<CurrencySettingsScreen> {
                                 children: <Widget>[
                                   Text(
                                     _showAll
-                                        ? 'Show less'
-                                        : 'View all currencies',
+                                        ? context.tr('currency_show_less')
+                                        : context.tr('currency_view_all'),
                                     style: const TextStyle(
                                       color: ShellColors.softBlue,
                                       fontSize: 13,
@@ -386,10 +396,13 @@ class _CurrencySettingsScreenState extends State<CurrencySettingsScreen> {
                     ),
                   ),
                   const SizedBox(height: 24),
-                  ShellStyles.sectionLabel(context, 'Symbol position'),
+                  ShellStyles.sectionLabel(
+                    context,
+                    context.tr('settings_display_options'),
+                  ),
                   const SizedBox(height: 8),
                   _buildPreferenceChoice(
-                    title: 'Before the amount',
+                    title: context.tr('before_the_amount'),
                     subtitle: _previewFor(
                       symbolPosition: 'before',
                       showDecimals: _showDecimals,
@@ -399,7 +412,7 @@ class _CurrencySettingsScreenState extends State<CurrencySettingsScreen> {
                   ),
                   const SizedBox(height: 8),
                   _buildPreferenceChoice(
-                    title: 'After the amount',
+                    title: context.tr('after_the_amount'),
                     subtitle: _previewFor(
                       symbolPosition: 'after',
                       showDecimals: _showDecimals,
@@ -408,10 +421,13 @@ class _CurrencySettingsScreenState extends State<CurrencySettingsScreen> {
                     onTap: () => _setSymbolPosition('after'),
                   ),
                   const SizedBox(height: 24),
-                  ShellStyles.sectionLabel(context, 'Decimals'),
+                  ShellStyles.sectionLabel(
+                    context,
+                    context.tr('currency_decimals'),
+                  ),
                   const SizedBox(height: 8),
                   _buildPreferenceChoice(
-                    title: 'Show decimals',
+                    title: context.tr('show_decimals'),
                     subtitle: _previewFor(
                       symbolPosition: _symbolPosition,
                       showDecimals: true,
@@ -421,7 +437,7 @@ class _CurrencySettingsScreenState extends State<CurrencySettingsScreen> {
                   ),
                   const SizedBox(height: 8),
                   _buildPreferenceChoice(
-                    title: 'Hide decimals',
+                    title: context.tr('hide_decimals'),
                     subtitle: _previewFor(
                       symbolPosition: _symbolPosition,
                       showDecimals: false,

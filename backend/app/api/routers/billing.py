@@ -8,12 +8,14 @@ import os
 
 from fastapi import APIRouter, Depends, HTTPException, Request, status
 from sqlmodel import Session
+from starlette.responses import JSONResponse
 
 from app.auth.deps import get_current_user
 from app.core.db import get_session
 from app.core.rate_limiter import limiter
 from app.models.users.user import User
 from app.schemas.billing import (
+    CategoryUsageRead,
     DevSubscriptionActionRequest,
     DevSubscriptionActionResponse,
     MeEntitlementsResponse,
@@ -25,6 +27,8 @@ from app.schemas.billing import (
 from app.services.billing import (
     SubscriptionSyncService,
     build_manual_subscription_event,
+    process_revenuecat_webhook,
+    resolve_category_usage,
     resolve_effective_entitlements,
     resolve_effective_subscription,
     resolve_receipt_scan_usage,
@@ -43,10 +47,10 @@ def _is_truthy(value: str | None) -> bool:
 
 def _current_app_environment() -> str:
     return (
-        os.environ.get("APP_ENV")
-        or os.environ.get("ENVIRONMENT")
-        or "development"
-    ).strip().lower()
+        (os.environ.get("APP_ENV") or os.environ.get("ENVIRONMENT") or "development")
+        .strip()
+        .lower()
+    )
 
 
 def _is_local_or_development_environment() -> bool:
@@ -70,7 +74,15 @@ def should_include_dev_billing_router() -> bool:
     return _dev_billing_routes_enabled()
 
 
-def _build_usage_payload(*, used: int, limit: int | None, remaining: int | None, is_unlimited: bool, period_start_at: dt.datetime, period_end_at: dt.datetime) -> ReceiptScanUsageRead:
+def _build_usage_payload(
+    *,
+    used: int,
+    limit: int | None,
+    remaining: int | None,
+    is_unlimited: bool,
+    period_start_at: dt.datetime,
+    period_end_at: dt.datetime,
+) -> ReceiptScanUsageRead:
     return ReceiptScanUsageRead(
         used=used,
         limit=limit,
@@ -78,6 +90,18 @@ def _build_usage_payload(*, used: int, limit: int | None, remaining: int | None,
         is_unlimited=is_unlimited,
         period_start_at=period_start_at,
         period_end_at=period_end_at,
+    )
+
+
+def _build_category_usage_payload(category_usage) -> CategoryUsageRead:
+    return CategoryUsageRead(
+        categories_used=category_usage.categories_used,
+        categories_limit=category_usage.categories_limit,
+        categories_remaining=category_usage.categories_remaining,
+        subcategories_used=category_usage.subcategories_used,
+        subcategories_limit=category_usage.subcategories_limit,
+        subcategories_remaining=category_usage.subcategories_remaining,
+        is_unlimited=category_usage.is_unlimited,
     )
 
 
@@ -138,6 +162,7 @@ async def get_me_subscription(
 
     current_time = dt.datetime.now(dt.UTC)
     usage = resolve_receipt_scan_usage(session, current_user.id, now=current_time)
+    category_usage = resolve_category_usage(session, current_user.id, now=current_time)
     usage_payload = _build_usage_payload(
         used=usage.used,
         limit=usage.limit,
@@ -146,12 +171,16 @@ async def get_me_subscription(
         period_start_at=usage.period_start_at,
         period_end_at=usage.period_end_at,
     )
-    effective_subscription = resolve_effective_subscription(session, current_user.id, now=current_time)
+    category_usage_payload = _build_category_usage_payload(category_usage)
+    effective_subscription = resolve_effective_subscription(
+        session, current_user.id, now=current_time
+    )
     if effective_subscription is None:
         return MeSubscriptionResponse(
             has_active_subscription=False,
             subscription=None,
             receipt_scan_usage=usage_payload,
+            category_usage=category_usage_payload,
         )
 
     return MeSubscriptionResponse(
@@ -162,6 +191,7 @@ async def get_me_subscription(
         ),
         subscription=_serialize_subscription_or_none(effective_subscription),
         receipt_scan_usage=usage_payload,
+        category_usage=category_usage_payload,
     )
 
 
@@ -193,6 +223,7 @@ async def sync_revenuecat_subscription(
     feature_codes = sorted(resolve_effective_entitlements(session, current_user.id))
     current_time = dt.datetime.now(dt.UTC)
     usage = resolve_receipt_scan_usage(session, current_user.id, now=current_time)
+    category_usage = resolve_category_usage(session, current_user.id, now=current_time)
     has_active_subscription = (
         subscription_grants_premium_access(
             status=subscription.status,
@@ -214,7 +245,32 @@ async def sync_revenuecat_subscription(
             period_start_at=usage.period_start_at,
             period_end_at=usage.period_end_at,
         ),
+        category_usage=_build_category_usage_payload(category_usage),
     )
+
+
+@router.post("/billing/revenuecat/webhook", include_in_schema=False)
+async def revenuecat_webhook(
+    request: Request,
+    session: Session = Depends(get_session),  # noqa: B008
+):
+    """Handle RevenueCat webhook deliveries with auth validation and idempotency."""
+
+    try:
+        payload = await request.json()
+    except Exception as exc:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="RevenueCat webhook payload must be valid JSON.",
+        ) from exc
+
+    result = await process_revenuecat_webhook(
+        session=session,
+        payload=payload if isinstance(payload, dict) else {},
+        headers=request.headers,
+    )
+    status_code = int(result.pop("status_code", status.HTTP_200_OK))
+    return JSONResponse(status_code=status_code, content=result)
 
 
 @router.get("/me/entitlements", response_model=MeEntitlementsResponse)

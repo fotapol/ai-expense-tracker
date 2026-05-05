@@ -4,6 +4,8 @@ import '../core/app_color_semantics.dart';
 import '../core/redesign_system.dart';
 import '../core/theme_provider.dart';
 import '../main.dart';
+import '../l10n/app_localizations.dart';
+import '../widgets/compact_text.dart';
 import 'settings_detail_scaffold.dart';
 
 class AppearanceSettingsScreen extends StatefulWidget {
@@ -15,12 +17,51 @@ class AppearanceSettingsScreen extends StatefulWidget {
 }
 
 class _AppearanceSettingsScreenState extends State<AppearanceSettingsScreen> {
-  static const List<_ScaleOption> _scaleOptions = <_ScaleOption>[
-    _ScaleOption(id: '60', label: '60%', subtitle: 'Extra compact text'),
-    _ScaleOption(id: '80', label: '80%', subtitle: 'Smaller interface'),
-    _ScaleOption(id: '100', label: '100%', subtitle: 'Default'),
-    _ScaleOption(id: '120', label: '120%', subtitle: 'Larger interface'),
-  ];
+  static List<_ScaleOption> _scaleOptions(BuildContext context) =>
+      <_ScaleOption>[
+        _ScaleOption(
+          id: '60',
+          label: '60%',
+          subtitle: context.tr('extra_compact_text'),
+        ),
+        _ScaleOption(
+          id: '80',
+          label: '80%',
+          subtitle: context.tr('smaller_interface'),
+        ),
+        _ScaleOption(
+          id: '100',
+          label: '100%',
+          subtitle: context.tr('settings_font_medium'),
+        ),
+        _ScaleOption(
+          id: '120',
+          label: '120%',
+          subtitle: context.tr('larger_interface'),
+        ),
+      ];
+
+  String _accentLabel(AppAccentTheme accent) {
+    switch (accent.id) {
+      case appAccentMix:
+        return context.tr('settings_accent_mix');
+      case appAccentNeutral:
+        return context.tr('settings_accent_neutral');
+      case appAccentPurple:
+        return context.tr('settings_accent_violet');
+      default:
+        return accent.label;
+    }
+  }
+
+  _ScaleOption _currentScaleOption(BuildContext context) {
+    for (final option in _scaleOptions(context)) {
+      if (option.id == themeProvider.fontSizeId) {
+        return option;
+      }
+    }
+    return _scaleOptions(context).firstWhere((option) => option.id == '100');
+  }
 
   Future<void> _selectThemeMode(ThemeMode mode) async {
     await themeProvider.setThemeMode(mode);
@@ -57,7 +98,7 @@ class _AppearanceSettingsScreenState extends State<AppearanceSettingsScreen> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: <Widget>[
           Text(
-            'Theme',
+            context.tr('settings_theme'),
             style: TextStyle(
               color: ShellStyles.textPrimary(context),
               fontSize: 16,
@@ -66,7 +107,7 @@ class _AppearanceSettingsScreenState extends State<AppearanceSettingsScreen> {
           ),
           const SizedBox(height: 4),
           Text(
-            'Choose a fixed theme or let the app follow your device appearance.',
+            context.tr('settings_appearance_subtitle'),
             style: TextStyle(
               color: ShellStyles.textMuted(context),
               fontSize: 12.5,
@@ -76,24 +117,24 @@ class _AppearanceSettingsScreenState extends State<AppearanceSettingsScreen> {
           const SizedBox(height: 14),
           _ThemeModeChoice(
             icon: AppIcons.sun,
-            title: 'Light',
-            subtitle: 'Always use the light interface.',
+            title: context.tr('settings_theme_light'),
+            subtitle: context.tr('always_use_the_light_interface'),
             selected: themeProvider.themeMode == ThemeMode.light,
             onTap: () => _selectThemeMode(ThemeMode.light),
           ),
           const SizedBox(height: 8),
           _ThemeModeChoice(
             icon: AppIcons.moon,
-            title: 'Dark',
-            subtitle: 'Always use the dark interface.',
+            title: context.tr('settings_theme_dark'),
+            subtitle: context.tr('always_use_the_dark_interface'),
             selected: themeProvider.themeMode == ThemeMode.dark,
             onTap: () => _selectThemeMode(ThemeMode.dark),
           ),
           const SizedBox(height: 8),
           _ThemeModeChoice(
             icon: AppIcons.auto,
-            title: 'Auto',
-            subtitle: 'Follow your device theme setting.',
+            title: context.tr('settings_theme_auto'),
+            subtitle: context.tr('follow_your_device_theme_setting'),
             selected: themeProvider.themeMode == ThemeMode.system,
             onTap: () => _selectThemeMode(ThemeMode.system),
           ),
@@ -112,20 +153,11 @@ class _AppearanceSettingsScreenState extends State<AppearanceSettingsScreen> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: <Widget>[
           Text(
-            'Accent color',
+            context.tr('settings_accent_color'),
             style: TextStyle(
               color: ShellStyles.textPrimary(context),
               fontSize: 16,
               fontWeight: FontWeight.w700,
-            ),
-          ),
-          const SizedBox(height: 4),
-          Text(
-            'Mix is the default multi-accent mode. Neutral keeps charts and semantic surfaces monochrome. Purple remaps accents and semantic colors into a restrained purple family.',
-            style: TextStyle(
-              color: ShellStyles.textMuted(context),
-              fontSize: 12.5,
-              height: 1.45,
             ),
           ),
           const SizedBox(height: 16),
@@ -150,26 +182,16 @@ class _AppearanceSettingsScreenState extends State<AppearanceSettingsScreen> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: <Widget>[
           Text(
-            'Label colors',
+            context.tr('appearance_label_colors_title'),
             style: TextStyle(
               color: ShellStyles.textPrimary(context),
               fontSize: 16,
               fontWeight: FontWeight.w700,
             ),
           ),
-          const SizedBox(height: 4),
-          Text(
-            'Raw colors use each label’s saved color. Accent-aware colors keep labels stable, but remap them into the active Mix, Neutral, or Purple system.',
-            style: TextStyle(
-              color: ShellStyles.textMuted(context),
-              fontSize: 12.5,
-              height: 1.45,
-            ),
-          ),
           const SizedBox(height: 14),
           SettingsChoiceRow(
-            title: 'Raw colors',
-            subtitle: 'Default. Preserve each label’s saved color across the app.',
+            title: context.tr('raw_colors'),
             selected: themeProvider.labelColorMode == AppLabelColorMode.raw,
             selectedBorder:
                 themeProvider.labelColorMode == AppLabelColorMode.raw,
@@ -177,8 +199,7 @@ class _AppearanceSettingsScreenState extends State<AppearanceSettingsScreen> {
           ),
           const SizedBox(height: 8),
           SettingsChoiceRow(
-            title: 'Accent-aware colors',
-            subtitle: 'Map labels into the active theme while keeping each label stable.',
+            title: context.tr('accentaware_colors'),
             selected: themeProvider.labelColorMode == AppLabelColorMode.themed,
             selectedBorder:
                 themeProvider.labelColorMode == AppLabelColorMode.themed,
@@ -203,9 +224,7 @@ class _AppearanceSettingsScreenState extends State<AppearanceSettingsScreen> {
               : ShellStyles.surface(context),
           borderRadius: BorderRadius.circular(18),
           border: Border.all(
-            color: selected
-                ? previewAccent
-                : ShellStyles.border(context),
+            color: selected ? previewAccent : ShellStyles.border(context),
             width: selected ? 1.4 : 1,
           ),
         ),
@@ -228,21 +247,14 @@ class _AppearanceSettingsScreenState extends State<AppearanceSettingsScreen> {
                             : Colors.white.withAlpha(120)),
                   width: 2,
                 ),
-                boxShadow: <BoxShadow>[
-                  BoxShadow(
-                    color: previewAccent.withAlpha(45),
-                    blurRadius: 14,
-                    offset: const Offset(0, 5),
-                  ),
-                ],
               ),
               child: selected
                   ? Icon(AppIcons.check, color: Colors.white, size: 22)
                   : null,
             ),
             const SizedBox(height: 10),
-            Text(
-              accent.label,
+            CompactText(
+              _accentLabel(accent),
               textAlign: TextAlign.center,
               style: TextStyle(
                 color: ShellStyles.textPrimary(context),
@@ -264,30 +276,21 @@ class _AppearanceSettingsScreenState extends State<AppearanceSettingsScreen> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: <Widget>[
           Text(
-            'Interface scale',
+            context.tr('settings_font_size'),
             style: TextStyle(
               color: ShellStyles.textPrimary(context),
               fontSize: 16,
               fontWeight: FontWeight.w700,
             ),
           ),
-          const SizedBox(height: 4),
-          Text(
-            'Scale text and the main controls across the app. Layout density still uses the current screen designs.',
-            style: TextStyle(
-              color: ShellStyles.textMuted(context),
-              fontSize: 12.5,
-              height: 1.45,
-            ),
-          ),
           const SizedBox(height: 16),
           DropdownButtonFormField<String>(
             initialValue: themeProvider.fontSizeId,
-            decoration: const InputDecoration(
-              labelText: 'Scale',
+            decoration: InputDecoration(
+              labelText: context.tr('settings_font_size'),
               isDense: true,
             ),
-            items: _scaleOptions.map((option) {
+            items: _scaleOptions(context).map((option) {
               return DropdownMenuItem<String>(
                 value: option.id,
                 child: Text('${option.label} - ${option.subtitle}'),
@@ -308,7 +311,7 @@ class _AppearanceSettingsScreenState extends State<AppearanceSettingsScreen> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: <Widget>[
                 Text(
-                  'Preview',
+                  context.tr('settings_example'),
                   style: TextStyle(
                     color: ShellStyles.textMuted(context),
                     fontSize: 11.5,
@@ -318,7 +321,7 @@ class _AppearanceSettingsScreenState extends State<AppearanceSettingsScreen> {
                 ),
                 const SizedBox(height: 8),
                 Text(
-                  'Monthly total and key controls will scale with this setting.',
+                  _currentScaleOption(context).label,
                   style: TextStyle(
                     color: ShellStyles.textPrimary(context),
                     fontSize: 15,
@@ -327,7 +330,7 @@ class _AppearanceSettingsScreenState extends State<AppearanceSettingsScreen> {
                 ),
                 const SizedBox(height: 8),
                 Text(
-                  _scaleSubtitleFor(themeProvider.fontSizeId),
+                  _currentScaleOption(context).subtitle,
                   style: TextStyle(
                     color: ShellStyles.textMuted(context),
                     fontSize: 12.5,
@@ -341,22 +344,13 @@ class _AppearanceSettingsScreenState extends State<AppearanceSettingsScreen> {
     );
   }
 
-  String _scaleSubtitleFor(String id) {
-    for (final option in _scaleOptions) {
-      if (option.id == id) {
-        return '${option.label} is active right now.';
-      }
-    }
-    return '100% is active right now.';
-  }
-
   @override
   Widget build(BuildContext context) {
     // TODO(theme): add Compact Mode when it changes real density and spacing.
     // TODO(theme): add Animations toggle when there is a user-facing motion
     // preference wired across the app.
     return SettingsDetailScaffold(
-      title: 'Appearance',
+      title: context.tr('settings_appearance'),
       body: SafeArea(
         top: false,
         child: SingleChildScrollView(
@@ -408,9 +402,7 @@ class _ThemeModeChoice extends StatelessWidget {
               : ShellStyles.surfaceAlt(context),
           borderRadius: BorderRadius.circular(12),
           border: Border.all(
-            color: selected
-                ? accentTone.border
-                : ShellStyles.border(context),
+            color: selected ? accentTone.border : ShellStyles.border(context),
           ),
         ),
         child: Icon(

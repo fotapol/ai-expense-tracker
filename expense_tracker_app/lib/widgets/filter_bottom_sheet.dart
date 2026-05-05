@@ -467,6 +467,7 @@ class _FilterBottomSheetState extends State<FilterBottomSheet> {
           code: cat['code']?.toString(),
           parentCode: cat['parent_category_code']?.toString(),
           name: cat['name']?.toString(),
+          rawHex: cat['color']?.toString(),
         );
 
         return FilterChip(

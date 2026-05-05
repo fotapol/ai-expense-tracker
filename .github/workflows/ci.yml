@@ -1,0 +1,161 @@
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+
+jobs:
+  backend:
+    name: Backend Checks
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        shell: bash
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Set up uv
+        uses: astral-sh/setup-uv@v6
+
+      - name: Set up kubectl
+        uses: azure/setup-kubectl@v4
+        with:
+          version: "latest"
+
+      - name: Sync backend dependencies
+        working-directory: backend
+        run: uv sync --frozen --all-groups
+
+      - name: Render production overlay inputs
+        run: |
+          uv run python infra/k8s/scripts/render_k8s_env.py \
+            --env-file .env.production.example \
+            --output-dir infra/k8s/overlays/production/generated
+
+      - name: Lint backend
+        working-directory: backend
+        run: uv run ruff check .
+
+      - name: Run backend tests
+        working-directory: backend
+        run: uv run pytest
+
+      - name: Audit backend dependencies
+        working-directory: backend
+        run: uvx pip-audit --progress-spinner off
+
+      - name: Validate Alembic head
+        working-directory: backend
+        run: uv run alembic heads
+
+      - name: Validate Kubernetes overlay
+        run: kubectl kustomize infra/k8s/overlays/production > /dev/null
+
+      - name: Build backend image
+        run: docker build -f Dockerfile -t ai-expense-tracker-backend:ci .
+
+      - name: Build backup image
+        run: docker build -f infra/images/postgres-backup/Dockerfile -t ai-expense-tracker-postgres-backup:ci .
+
+      - name: Build site image
+        run: docker build -f site/Dockerfile -t ai-expense-tracker-site:ci .
+
+  mobile:
+    name: Flutter Checks
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    defaults:
+      run:
+        shell: bash
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
+
+      - name: Set up Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+
+      - name: Run Flutter analyze and tests
+        timeout-minutes: 15
+        working-directory: expense_tracker_app
+        run: |
+          flutter pub get
+          flutter analyze
+          flutter test
+
+      - name: Configure Gradle for CI
+        if: github.ref == 'refs/heads/main'
+        run: |
+          mkdir -p ~/.gradle
+          cat > ~/.gradle/gradle.properties <<'EOF'
+          org.gradle.daemon=false
+          org.gradle.vfs.watch=false
+          org.gradle.workers.max=2
+          org.gradle.jvmargs=-Xmx3g -XX:MaxMetaspaceSize=1g -XX:ReservedCodeCacheSize=256m -XX:+HeapDumpOnOutOfMemoryError
+          kotlin.incremental=false
+          EOF
+
+      - name: Preinstall Android CMake
+        if: github.ref == 'refs/heads/main'
+        run: |
+          SDKMANAGER="${ANDROID_HOME:-/usr/local/lib/android/sdk}/cmdline-tools/latest/bin/sdkmanager"
+          if [[ ! -x "${SDKMANAGER}" ]]; then
+            SDKMANAGER="$(command -v sdkmanager || true)"
+          fi
+          if [[ -z "${SDKMANAGER}" || ! -x "${SDKMANAGER}" ]]; then
+            echo "sdkmanager was not found" >&2
+            exit 1
+          fi
+          yes | "${SDKMANAGER}" --licenses >/dev/null || true
+          "${SDKMANAGER}" "cmake;3.22.1"
+
+      - name: Generate ephemeral CI upload keystore
+        if: github.ref == 'refs/heads/main'
+        working-directory: expense_tracker_app
+        env:
+          ANDROID_KEYSTORE_PASSWORD: ci-upload-store-password
+          ANDROID_KEY_PASSWORD: ci-upload-key-password
+          ANDROID_KEY_ALIAS: upload
+        run: |
+          keytool -genkeypair -v \
+            -keystore android/app/upload-keystore.jks \
+            -storepass "${ANDROID_KEYSTORE_PASSWORD}" \
+            -keypass "${ANDROID_KEY_PASSWORD}" \
+            -keyalg RSA \
+            -keysize 2048 \
+            -validity 10000 \
+            -alias "${ANDROID_KEY_ALIAS}" \
+            -dname "CN=CI, OU=Engineering, O=Nexavend, L=Kyiv, ST=Kyiv, C=UA"
+
+      - name: Run Android release smoke
+        if: github.ref == 'refs/heads/main'
+        timeout-minutes: 20
+        env:
+          BUILD_ANDROID_PROD_SKIP_CHECKS: "1"
+          GRADLE_OPTS: -Dorg.gradle.daemon=false -Dorg.gradle.vfs.watch=false -Dorg.gradle.workers.max=2
+          API_BASE_URL: https://api.nexavend.store:8443
+          REVENUECAT_ANDROID_API_KEY: goog_ci_public_sdk_key_placeholder
+          APP_PRIVACY_URL: https://nexavend.store/privacy
+          APP_TERMS_URL: https://nexavend.store/terms
+          APP_DELETE_ACCOUNT_URL: https://nexavend.store/delete-account
+          APP_SUPPORT_EMAIL: support@nexavend.store
+          ANDROID_KEYSTORE_FILE: upload-keystore.jks
+          ANDROID_KEYSTORE_PASSWORD: ci-upload-store-password
+          ANDROID_KEY_ALIAS: upload
+          ANDROID_KEY_PASSWORD: ci-upload-key-password
+        run: bash scripts/build_android_prod.sh

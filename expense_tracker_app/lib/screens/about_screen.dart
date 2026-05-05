@@ -6,6 +6,7 @@ import '../core/app_env.dart';
 import '../core/app_release_notes.dart';
 import '../core/redesign_system.dart';
 import 'settings_detail_scaffold.dart';
+import '../l10n/app_localizations.dart';
 
 class AboutScreen extends StatefulWidget {
   const AboutScreen({super.key});
@@ -35,15 +36,18 @@ class _AboutScreenState extends State<AboutScreen> {
     } catch (_) {
       if (!mounted) return;
       setState(() {
-        _metadataError = 'Version details are unavailable on this device.';
+        _metadataError = context.tr('about_version_error');
       });
     }
   }
 
   String get _versionLabel {
     final packageInfo = _packageInfo;
-    if (packageInfo == null) return 'Loading version...';
-    return 'Version ${packageInfo.version} (${packageInfo.buildNumber})';
+    if (packageInfo == null) return context.tr('about_loading_version');
+    return context.tr(
+      'about_version_format',
+      params: {'version': packageInfo.version},
+    );
   }
 
   Future<void> _openUrl(String rawUrl) async {
@@ -51,9 +55,9 @@ class _AboutScreenState extends State<AboutScreen> {
     if (uri == null) return;
     final opened = await launchUrl(uri, mode: LaunchMode.externalApplication);
     if (!mounted || opened) return;
-    ScaffoldMessenger.of(
-      context,
-    ).showSnackBar(const SnackBar(content: Text('Could not open that link.')));
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text(context.tr('could_not_open_that_link'))),
+    );
   }
 
   Future<void> _openSupportEmail() async {
@@ -65,7 +69,7 @@ class _AboutScreenState extends State<AboutScreen> {
     final opened = await launchUrl(uri);
     if (!mounted || opened) return;
     ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text('Could not open ${AppEnv.supportEmail}.')),
+      SnackBar(content: Text(context.tr('could_not_open_that_link'))),
     );
   }
 
@@ -217,79 +221,16 @@ class _AboutScreenState extends State<AboutScreen> {
     );
   }
 
-  Widget _buildBuildDetailsCard(PackageInfo? packageInfo) {
-    return SettingsDetailCard(
-      radius: 22,
-      padding: const EdgeInsets.all(18),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: <Widget>[
-          Text(
-            'Installed build',
-            style: TextStyle(
-              color: ShellStyles.textPrimary(context),
-              fontSize: 16,
-              fontWeight: FontWeight.w700,
-            ),
-          ),
-          const SizedBox(height: 4),
-          Text(
-            'Live package metadata from this build is shown below.',
-            style: TextStyle(
-              color: ShellStyles.textMuted(context),
-              fontSize: 12.5,
-              height: 1.4,
-            ),
-          ),
-          const SizedBox(height: 16),
-          Container(
-            decoration: BoxDecoration(
-              color: ShellStyles.surfaceAlt(context),
-              borderRadius: BorderRadius.circular(18),
-              border: Border.all(color: ShellStyles.border(context)),
-            ),
-            child: Column(
-              children: <Widget>[
-                _BuildInfoRow(
-                  label: 'Version',
-                  value: packageInfo?.version ?? '--',
-                ),
-                Divider(
-                  height: 1,
-                  color: ShellStyles.border(context),
-                  indent: 14,
-                  endIndent: 14,
-                ),
-                _BuildInfoRow(
-                  label: 'Build number',
-                  value: packageInfo?.buildNumber ?? '--',
-                ),
-                Divider(
-                  height: 1,
-                  color: ShellStyles.border(context),
-                  indent: 14,
-                  endIndent: 14,
-                ),
-                _BuildInfoRow(
-                  label: 'Package name',
-                  value: packageInfo?.packageName ?? '--',
-                  compactValue: true,
-                ),
-              ],
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
   @override
   Widget build(BuildContext context) {
     final packageInfo = _packageInfo;
-    final releaseNotes = releaseNotesForVersion(packageInfo?.version ?? '');
+    final releaseNotes = releaseNotesForVersion(
+      context,
+      packageInfo?.version ?? '',
+    );
 
     return SettingsDetailScaffold(
-      title: 'About',
+      title: context.tr('about_screen_title'),
       body: SafeArea(
         top: false,
         child: SingleChildScrollView(
@@ -299,15 +240,21 @@ class _AboutScreenState extends State<AboutScreen> {
             children: <Widget>[
               _buildHero(),
               const SizedBox(height: 16),
-              ShellStyles.sectionLabel(context, "What's new"),
+              ShellStyles.sectionLabel(
+                context,
+                context.tr('about_whats_new_section'),
+              ),
               const SizedBox(height: 8),
               _buildWhatIsNewCard(releaseNotes),
               const SizedBox(height: 16),
-              ShellStyles.sectionLabel(context, 'About the app'),
+              ShellStyles.sectionLabel(
+                context,
+                context.tr('about_app_section'),
+              ),
               const SizedBox(height: 8),
               SettingsDetailCard(
                 child: Text(
-                  appAboutIdentityCopy,
+                  appAboutIdentityCopy(context),
                   style: TextStyle(
                     color: ShellStyles.textMuted(context),
                     fontSize: 13,
@@ -316,14 +263,17 @@ class _AboutScreenState extends State<AboutScreen> {
                 ),
               ),
               const SizedBox(height: 16),
-              ShellStyles.sectionLabel(context, 'Links'),
+              ShellStyles.sectionLabel(
+                context,
+                context.tr('about_links_section'),
+              ),
               const SizedBox(height: 8),
               Container(
                 decoration: ShellStyles.cardDecoration(context, radius: 18),
                 child: Column(
                   children: <Widget>[
                     _buildLinkRow(
-                      title: 'Website',
+                      title: context.tr('about_website_label'),
                       subtitle: AppEnv.websiteUrl,
                       onTap: () => _openUrl(AppEnv.websiteUrl),
                     ),
@@ -334,7 +284,7 @@ class _AboutScreenState extends State<AboutScreen> {
                       endIndent: 14,
                     ),
                     _buildLinkRow(
-                      title: 'Privacy policy',
+                      title: context.tr('privacy_policy'),
                       subtitle: AppEnv.privacyUrl,
                       onTap: () => _openUrl(AppEnv.privacyUrl),
                     ),
@@ -345,7 +295,7 @@ class _AboutScreenState extends State<AboutScreen> {
                       endIndent: 14,
                     ),
                     _buildLinkRow(
-                      title: 'Terms of service',
+                      title: context.tr('terms_of_service'),
                       subtitle: AppEnv.termsUrl,
                       onTap: () => _openUrl(AppEnv.termsUrl),
                     ),
@@ -356,83 +306,16 @@ class _AboutScreenState extends State<AboutScreen> {
                       endIndent: 14,
                     ),
                     _buildLinkRow(
-                      title: 'GitHub',
-                      subtitle: AppEnv.githubUrl,
-                      onTap: () => _openUrl(AppEnv.githubUrl),
-                    ),
-                    Divider(
-                      height: 1,
-                      color: ShellStyles.border(context),
-                      indent: 14,
-                      endIndent: 14,
-                    ),
-                    _buildLinkRow(
-                      title: 'Email support',
+                      title: context.tr('email_support'),
                       subtitle: AppEnv.supportEmail,
                       onTap: _openSupportEmail,
                     ),
                   ],
                 ),
               ),
-              const SizedBox(height: 16),
-              ShellStyles.sectionLabel(context, 'Build details'),
-              const SizedBox(height: 8),
-              _buildBuildDetailsCard(packageInfo),
             ],
           ),
         ),
-      ),
-    );
-  }
-}
-
-class _BuildInfoRow extends StatelessWidget {
-  const _BuildInfoRow({
-    required this.label,
-    required this.value,
-    this.compactValue = false,
-  });
-
-  final String label;
-  final String value;
-  final bool compactValue;
-
-  @override
-  Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
-      child: Row(
-        crossAxisAlignment: compactValue
-            ? CrossAxisAlignment.start
-            : CrossAxisAlignment.center,
-        children: <Widget>[
-          Expanded(
-            child: Text(
-              label,
-              style: TextStyle(
-                color: ShellStyles.textMuted(context),
-                fontSize: 12,
-              ),
-            ),
-          ),
-          const SizedBox(width: 12),
-          Flexible(
-            child: Text(
-              value,
-              textAlign: TextAlign.right,
-              maxLines: compactValue ? 2 : 1,
-              overflow: compactValue
-                  ? TextOverflow.ellipsis
-                  : TextOverflow.clip,
-              style: TextStyle(
-                color: ShellStyles.textPrimary(context),
-                fontSize: compactValue ? 12.5 : 15,
-                fontWeight: FontWeight.w700,
-                height: 1.3,
-              ),
-            ),
-          ),
-        ],
       ),
     );
   }

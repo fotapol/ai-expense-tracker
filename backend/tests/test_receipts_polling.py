@@ -1,5 +1,6 @@
 """Tests for polling receipt status."""
 
+import datetime as dt
 import uuid
 
 import pytest
@@ -16,6 +17,7 @@ class _MockSession:
     def __init__(self):
         self.receipt = None
         self.transaction = None
+        self.exec_calls = 0
     
     def exec(self, query):
         class Result:
@@ -23,10 +25,11 @@ class _MockSession:
                 self.item = item
             def first(self):
                 return self.item
-        
-        if "Receipt." in str(query):
+
+        self.exec_calls += 1
+        if self.exec_calls == 1:
             return Result(self.receipt)
-        if "Transaction." in str(query):
+        if self.exec_calls == 2:
             return Result(self.transaction)
         return Result(None)
 
@@ -41,9 +44,16 @@ def test_user():
     return User(id=uuid.uuid4(), email="test@example.com")
 
 
+def _unwrap(func):
+    while hasattr(func, "__wrapped__"):
+        func = func.__wrapped__
+    return func
+
+
 @pytest.mark.anyio
 async def test_get_receipt_created_status(mock_session, test_user):
     receipt_id = uuid.uuid4()
+    now = dt.datetime.now(dt.UTC)
     mock_session.receipt = Receipt(
         id=receipt_id,
         user_id=test_user.id,
@@ -54,9 +64,16 @@ async def test_get_receipt_created_status(mock_session, test_user):
         original_filename="a",
         sha256="",
         size_bytes=10,
+        created_at=now,
+        updated_at=now,
     )
 
-    res = await get_receipt(receipt_id=receipt_id, request=None, session=mock_session, current_user=test_user)
+    res = await _unwrap(get_receipt)(
+        receipt_id=receipt_id,
+        request=None,
+        session=mock_session,
+        current_user=test_user,
+    )
     
     assert res.status == ReceiptStatus.CREATED
     assert res.transaction_id is None
@@ -66,6 +83,7 @@ async def test_get_receipt_created_status(mock_session, test_user):
 async def test_get_receipt_completed_status_with_transaction(mock_session, test_user):
     receipt_id = uuid.uuid4()
     transaction_id = uuid.uuid4()
+    now = dt.datetime.now(dt.UTC)
 
     mock_session.receipt = Receipt(
         id=receipt_id,
@@ -77,20 +95,25 @@ async def test_get_receipt_completed_status_with_transaction(mock_session, test_
         original_filename="a",
         sha256="",
         size_bytes=10,
+        created_at=now,
+        updated_at=now,
     )
     
-    # Mock time
-    import datetime as dt
     mock_session.transaction = Transaction(
         id=transaction_id,
         user_id=test_user.id,
         receipt_id=receipt_id,
         amount_total=0.0,
         currency="USD",
-        occurred_at=dt.datetime.now(dt.UTC),
-    )
+            occurred_at=now,
+        )
 
-    res = await get_receipt(receipt_id=receipt_id, request=None, session=mock_session, current_user=test_user)
+    res = await _unwrap(get_receipt)(
+        receipt_id=receipt_id,
+        request=None,
+        session=mock_session,
+        current_user=test_user,
+    )
     
     assert res.status == ReceiptStatus.COMPLETED
     assert res.transaction_id == transaction_id
@@ -114,6 +137,11 @@ async def test_get_receipt_rejects_other_user_ownership(mock_session, test_user)
     )
 
     with pytest.raises(HTTPException) as exc_info:
-        await get_receipt(receipt_id=receipt_id, request=None, session=mock_session, current_user=test_user)
+        await _unwrap(get_receipt)(
+            receipt_id=receipt_id,
+            request=None,
+            session=mock_session,
+            current_user=test_user,
+        )
     
     assert exc_info.value.status_code == status.HTTP_404_NOT_FOUND

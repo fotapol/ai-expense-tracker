@@ -7,6 +7,7 @@ import 'package:intl/intl.dart';
 import '../core/analytics_filters.dart';
 import '../core/api_client.dart';
 import '../core/launch_error_copy.dart';
+import '../core/localized_dates.dart';
 import '../core/money_formatter.dart';
 import '../core/money_format_preferences.dart';
 import '../core/period_filter.dart';
@@ -120,8 +121,7 @@ class _AnalyticsTrendsTabState extends State<AnalyticsTrendsTab> {
       setState(() {
         _error = friendlyLaunchErrorMessage(
           error,
-          fallback:
-              'Trend insights are unavailable right now. Please try again.',
+          fallback: context.tr('analytics_trends_load_error'),
         );
         _isLoading = false;
       });
@@ -223,9 +223,8 @@ class _AnalyticsTrendsTabState extends State<AnalyticsTrendsTab> {
           if (isEmptyTrends)
             AnalyticsEmptyCard(
               icon: Icons.show_chart,
-              title: 'No trend data yet',
-              message:
-                  'Scan receipts over time to see how spending moves across days, weeks, or months.',
+              title: context.tr('no_trend_data_yet'),
+              message: context.tr('analytics_trends_empty_subtitle'),
             )
           else ...[
             _buildMetricsRow(
@@ -311,7 +310,7 @@ class _AnalyticsTrendsTabState extends State<AnalyticsTrendsTab> {
             SizedBox(
               width: tileWidth,
               child: _TrendMetricCard(
-                label: 'Total Spent',
+                label: context.tr('total_spent'),
                 value: formatMoney(currency, totalSpent),
                 change: _buildMetricChange(
                   current: totalSpent,
@@ -323,7 +322,7 @@ class _AnalyticsTrendsTabState extends State<AnalyticsTrendsTab> {
             SizedBox(
               width: tileWidth,
               child: _TrendMetricCard(
-                label: 'Transactions',
+                label: context.tr('analytics_trends_transactions'),
                 value: '$totalTransactions',
                 change: _buildMetricChange(
                   current: totalTransactions.toDouble(),
@@ -335,7 +334,7 @@ class _AnalyticsTrendsTabState extends State<AnalyticsTrendsTab> {
             SizedBox(
               width: tileWidth,
               child: _TrendMetricCard(
-                label: 'Daily Avg',
+                label: context.tr('daily_avg'),
                 value: formatMoney(currency, dailyAverage),
                 change: _buildMetricChange(
                   current: dailyAverage,
@@ -367,7 +366,7 @@ class _AnalyticsTrendsTabState extends State<AnalyticsTrendsTab> {
             children: [
               Expanded(
                 child: Text(
-                  'Spending Trend',
+                  context.tr('analytics_trends_title'),
                   style: TextStyle(
                     color: ShellStyles.textPrimary(context),
                     fontSize: 18,
@@ -389,7 +388,7 @@ class _AnalyticsTrendsTabState extends State<AnalyticsTrendsTab> {
                 border: Border.all(color: ShellStyles.border(context)),
               ),
               child: Text(
-                'Not enough activity yet to draw a spending trend for this range.',
+                context.tr('analytics_trends_empty_message'),
                 textAlign: TextAlign.center,
                 style: TextStyle(
                   color: ShellStyles.textMuted(context),
@@ -414,7 +413,7 @@ class _AnalyticsTrendsTabState extends State<AnalyticsTrendsTab> {
             children: [
               Expanded(
                 child: _RangeInsightTile(
-                  label: 'Lowest',
+                  label: context.tr('analytics_trends_lowest'),
                   value: lowestPoint == null
                       ? context.tr('analytics_no_data')
                       : '${formatMoney(currency, lowestPoint.amount)} - ${lowestPoint.label}',
@@ -426,7 +425,7 @@ class _AnalyticsTrendsTabState extends State<AnalyticsTrendsTab> {
               const SizedBox(width: 12),
               Expanded(
                 child: _RangeInsightTile(
-                  label: 'Highest',
+                  label: context.tr('analytics_trends_highest'),
                   value: highestPoint == null
                       ? context.tr('analytics_no_data')
                       : '${formatMoney(currency, highestPoint.amount)} - ${highestPoint.label}',
@@ -455,8 +454,8 @@ class _AnalyticsTrendsTabState extends State<AnalyticsTrendsTab> {
         children: [
           Text(
             widget.filters.period == PeriodFilter.last7Days
-                ? 'Daily Breakdown'
-                : 'Period Breakdown',
+                ? context.tr('analytics_trends_daily_breakdown')
+                : context.tr('analytics_trends_period_breakdown'),
             style: TextStyle(
               color: ShellStyles.textPrimary(context),
               fontSize: 18,
@@ -474,7 +473,7 @@ class _AnalyticsTrendsTabState extends State<AnalyticsTrendsTab> {
                 border: Border.all(color: ShellStyles.border(context)),
               ),
               child: Text(
-                'There is not enough activity yet to break this period down.',
+                context.tr('analytics_trends_no_breakdown'),
                 textAlign: TextAlign.center,
                 style: TextStyle(
                   color: ShellStyles.textMuted(context),
@@ -589,7 +588,13 @@ class _AnalyticsTrendsTabState extends State<AnalyticsTrendsTab> {
             final index = spot.x.round();
             final point = trendSeries[index];
             return LineTooltipItem(
-              '${point.tooltipLabel}\nSpent: ${formatMoney(currency, point.amount)}',
+              context.tr(
+                'analytics_trends_spent_tooltip',
+                params: {
+                  'label': point.tooltipLabel,
+                  'amount': formatMoney(currency, point.amount),
+                },
+              ),
               TextStyle(
                 color: ShellStyles.tooltipText(context),
                 fontWeight: FontWeight.w700,
@@ -708,7 +713,13 @@ class _AnalyticsTrendsTabState extends State<AnalyticsTrendsTab> {
           getTooltipItem: (group, groupIndex, rod, rodIndex) {
             final point = bars[groupIndex];
             return BarTooltipItem(
-              '${point.tooltipLabel}\nSpent: ${formatMoney(currency, point.amount)}',
+              context.tr(
+                'analytics_trends_spent_tooltip',
+                params: {
+                  'label': point.tooltipLabel,
+                  'amount': formatMoney(currency, point.amount),
+                },
+              ),
               TextStyle(
                 color: ShellStyles.tooltipText(context),
                 fontWeight: FontWeight.w700,
@@ -851,10 +862,16 @@ class _AnalyticsTrendsTabState extends State<AnalyticsTrendsTab> {
       for (var index = 0; index < rawValues.length; index++)
         _TrendPoint(
           label: start == null
-              ? 'Day ${index + 1}'
+              ? context.tr(
+                  'analytics_trends_day_label',
+                  params: {'number': (index + 1).toString()},
+                )
               : DateFormat('EEE').format(start.add(Duration(days: index))),
           tooltipLabel: start == null
-              ? 'Day ${index + 1}'
+              ? context.tr(
+                  'analytics_trends_day_label',
+                  params: {'number': (index + 1).toString()},
+                )
               : DateFormat('EEE').format(start.add(Duration(days: index))),
           amount: rawValues[index],
         ),
@@ -883,7 +900,10 @@ class _AnalyticsTrendsTabState extends State<AnalyticsTrendsTab> {
       final total = rawValues
           .sublist(start, end)
           .fold<double>(0, (sum, value) => sum + value);
-      final label = 'Week ${bucketIndex + 1}';
+      final label = context.tr(
+        'analytics_trends_week_label',
+        params: {'number': (bucketIndex + 1).toString()},
+      );
       series.add(_TrendPoint(label: label, tooltipLabel: label, amount: total));
     }
     return series;
@@ -905,11 +925,19 @@ class _AnalyticsTrendsTabState extends State<AnalyticsTrendsTab> {
         rawLabel: rawBuckets[index]['label']?.toString() ?? '',
       );
       final key = bucketDate == null
-          ? rawBuckets[index]['label']?.toString() ?? 'Period ${index + 1}'
+          ? rawBuckets[index]['label']?.toString() ??
+                context.tr(
+                  'analytics_trends_period_fallback',
+                  params: {'number': (index + 1).toString()},
+                )
           : '${bucketDate.year}-${bucketDate.month}';
       final label = bucketDate == null
-          ? rawBuckets[index]['label']?.toString() ?? 'Period ${index + 1}'
-          : DateFormat('MMM').format(bucketDate);
+          ? rawBuckets[index]['label']?.toString() ??
+                context.tr(
+                  'analytics_trends_period_fallback',
+                  params: {'number': (index + 1).toString()},
+                )
+          : formatLocalizedShortMonth(context, bucketDate);
       final point = grouped.putIfAbsent(
         key,
         () => _TrendPointAccumulator(label: label),
@@ -977,7 +1005,7 @@ class _AnalyticsTrendsTabState extends State<AnalyticsTrendsTab> {
 
   String _trendCardPeriodLabel(BuildContext context) {
     if (widget.filters.period == PeriodFilter.last7Days) {
-      return 'This Week';
+      return context.tr('analytics_trends_this_week');
     }
     return context.tr(PeriodFilter.localizationKey(widget.filters.period));
   }
@@ -1057,7 +1085,7 @@ class _TrendMetricCard extends StatelessWidget {
           const SizedBox(height: 8),
           if (change == null)
             Text(
-              'No prior',
+              context.tr('analytics_trends_no_prior'),
               style: TextStyle(
                 color: ShellStyles.textMuted(context),
                 fontSize: 10.5,

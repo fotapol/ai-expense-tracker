@@ -1,0 +1,73 @@
+(function () {
+  const storageKey = "site-theme";
+
+  function siteConfig() {
+    const config = window.__SITE_CONFIG__ || {};
+    return {
+      supportEmail: config.supportEmail || "",
+      supportSubject: config.supportSubject || "",
+    };
+  }
+
+  function currentTheme() {
+    return document.documentElement.dataset.theme === "dark" ? "dark" : "light";
+  }
+
+  function applyTheme(theme, persist) {
+    document.documentElement.dataset.theme = theme;
+    if (persist) {
+      try {
+        localStorage.setItem(storageKey, theme);
+      } catch (_) {
+        // Ignore storage errors.
+      }
+    }
+
+    const toggle = document.querySelector("[data-theme-toggle]");
+    if (toggle) {
+      const nextTheme = theme === "dark" ? "light" : "dark";
+      const label = "Switch to " + nextTheme + " theme";
+      toggle.dataset.themeCurrent = theme;
+      toggle.setAttribute("aria-label", label);
+      toggle.setAttribute("title", label);
+    }
+  }
+
+  function mailtoHref(email, subject) {
+    if (!subject) {
+      return "mailto:" + email;
+    }
+    return "mailto:" + email + "?subject=" + encodeURIComponent(subject);
+  }
+
+  function hydrateSupport(config) {
+    const email = config.supportEmail;
+    document.querySelectorAll("[data-support-email-link]").forEach(function (anchor) {
+      if (!email) {
+        anchor.hidden = true;
+        return;
+      }
+      anchor.textContent = email;
+      anchor.setAttribute("href", mailtoHref(email, config.supportSubject));
+      anchor.hidden = false;
+    });
+
+    document.querySelectorAll("[data-support-line]").forEach(function (node) {
+      node.hidden = !email;
+    });
+  }
+
+  document.addEventListener("DOMContentLoaded", function () {
+    const config = siteConfig();
+
+    hydrateSupport(config);
+
+    const toggle = document.querySelector("[data-theme-toggle]");
+    if (toggle) {
+      applyTheme(currentTheme(), false);
+      toggle.addEventListener("click", function () {
+        applyTheme(currentTheme() === "dark" ? "light" : "dark", true);
+      });
+    }
+  });
+})();

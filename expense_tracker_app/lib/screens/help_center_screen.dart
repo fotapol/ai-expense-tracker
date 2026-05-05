@@ -15,89 +15,49 @@ class HelpCenterScreen extends StatefulWidget {
 }
 
 class _HelpCenterScreenState extends State<HelpCenterScreen> {
-  static const List<_FaqSection> _sections = [
+  static List<_FaqSection> _sections(BuildContext context) => [
     _FaqSection(
-      title: 'Getting Started',
+      title: context.tr('getting_started'),
       items: [
+        _FaqItem(question: context.tr('faq_q1'), answer: context.tr('faq_a1')),
+        _FaqItem(question: context.tr('faq_q2'), answer: context.tr('faq_a2')),
+        _FaqItem(question: context.tr('faq_q3'), answer: context.tr('faq_a3')),
+      ],
+    ),
+    _FaqSection(
+      title: context.tr('subscription_billing'),
+      items: [
+        _FaqItem(question: context.tr('faq_q4'), answer: context.tr('faq_a4')),
+        _FaqItem(question: context.tr('faq_q5'), answer: context.tr('faq_a5')),
+        _FaqItem(question: context.tr('faq_q6'), answer: context.tr('faq_a6')),
+        _FaqItem(question: context.tr('faq_q7'), answer: context.tr('faq_a7')),
+      ],
+    ),
+    _FaqSection(
+      title: context.tr('features_tools'),
+      items: [
+        _FaqItem(question: context.tr('faq_q8'), answer: context.tr('faq_a8')),
+        _FaqItem(question: context.tr('faq_q9'), answer: context.tr('faq_a9')),
         _FaqItem(
-          question: 'How do I scan my first receipt?',
-          answer:
-              'Open Home or Tools and tap Scan Receipt. Take a clear photo, confirm the capture, and we will extract the merchant, date, total, and line items for review.',
-        ),
-        _FaqItem(
-          question: 'How does the AI categorization work?',
-          answer:
-              'The app uses the merchant name, item names, and receipt totals to suggest categories automatically. You can always adjust the category manually before saving.',
-        ),
-        _FaqItem(
-          question: 'Can I manually add expenses?',
-          answer:
-              'Yes. Use Add Expense from the Home quick actions or open the receipts flow and create a transaction without scanning a receipt.',
+          question: context.tr('faq_q10'),
+          answer: context.tr('faq_a10'),
         ),
       ],
     ),
     _FaqSection(
-      title: 'Subscription & Billing',
+      title: context.tr('privacy_security'),
       items: [
         _FaqItem(
-          question: 'What\'s included in the Free plan?',
-          answer:
-              'The Free plan includes manual expense entry, receipt review, and core history with a limited monthly scan allowance.',
+          question: context.tr('faq_q11'),
+          answer: context.tr('faq_a11'),
         ),
         _FaqItem(
-          question: 'What does Premium unlock?',
-          answer:
-              'Premium unlocks unlimited receipt scans, deeper analytics, labels, and planning tools for your personal account.',
+          question: context.tr('faq_q12'),
+          answer: context.tr('faq_a12'),
         ),
         _FaqItem(
-          question: 'How do I restore Premium access?',
-          answer:
-              'Open Subscription and tap Restore Purchases. Your store keeps the subscription tied to the same account.',
-        ),
-        _FaqItem(
-          question: 'Can I cancel anytime?',
-          answer:
-              'Yes. You can cancel through your store subscription settings at any time and keep access until the current billing period ends.',
-        ),
-      ],
-    ),
-    _FaqSection(
-      title: 'Features & Tools',
-      items: [
-        _FaqItem(
-          question: 'How do I review extracted items?',
-          answer:
-              'After scanning, review the merchant, total, date, and line items before saving. You can adjust categories, labels, and receipt details on the review screen.',
-        ),
-        _FaqItem(
-          question: 'What are labels for?',
-          answer:
-              'Labels help you group transactions your own way, like work, travel, or groceries, so you can filter them later in history and analytics.',
-        ),
-        _FaqItem(
-          question: 'Where do I find reminders and budget tools?',
-          answer:
-              'Open Tools to manage bill reminders, categories, labels, and budget planning tools from one place.',
-        ),
-      ],
-    ),
-    _FaqSection(
-      title: 'Privacy & Security',
-      items: [
-        _FaqItem(
-          question: 'Is my financial data secure?',
-          answer:
-              'We protect account and receipt data using authenticated access, secure transport, and restricted internal access. Sensitive actions always require an authenticated session.',
-        ),
-        _FaqItem(
-          question: 'What if my receipt needs corrections?',
-          answer:
-              'That is normal. Review the extracted details, adjust anything that looks off, and then save only when the receipt looks right to you.',
-        ),
-        _FaqItem(
-          question: 'How do I contact support?',
-          answer:
-              'Use the Contact Support button or email support@expense-tracker.app and include a short description of the issue.',
+          question: context.tr('faq_q13'),
+          answer: context.tr('faq_a13'),
         ),
       ],
     ),
@@ -108,8 +68,8 @@ class _HelpCenterScreenState extends State<HelpCenterScreen> {
 
   List<_FaqSection> _filteredSections() {
     final query = _query.trim().toLowerCase();
-    if (query.isEmpty) return _sections;
-    return _sections
+    if (query.isEmpty) return _sections(context);
+    return _sections(context)
         .map((section) {
           final items = section.items.where((item) {
             return item.question.toLowerCase().contains(query) ||
@@ -133,7 +93,14 @@ class _HelpCenterScreenState extends State<HelpCenterScreen> {
     await Clipboard.setData(ClipboardData(text: supportEmail));
     if (!mounted) return;
     ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text('Support email copied: $supportEmail')),
+      SnackBar(
+        content: Text(
+          context.tr(
+            'help_support_email_copied',
+            params: {'email': supportEmail},
+          ),
+        ),
+      ),
     );
   }
 
@@ -238,7 +205,7 @@ class _HelpCenterScreenState extends State<HelpCenterScreen> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               SettingsSearchField(
-                hintText: 'Search for help...',
+                hintText: context.tr('help_search_hint'),
                 onChanged: (value) => setState(() => _query = value),
               ),
               const SizedBox(height: 16),
@@ -276,7 +243,7 @@ class _HelpCenterScreenState extends State<HelpCenterScreen> {
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Text(
-                              'Contact Support',
+                              context.tr('help_contact_support'),
                               style: TextStyle(
                                 color: ShellStyles.heroTextPrimary(context),
                                 fontSize: 16,
@@ -285,7 +252,7 @@ class _HelpCenterScreenState extends State<HelpCenterScreen> {
                             ),
                             const SizedBox(height: 4),
                             Text(
-                              'Get help from our support team',
+                              context.tr('help_get_help_subtitle'),
                               style: TextStyle(
                                 color: ShellStyles.heroTextSecondary(context),
                                 fontSize: 12.5,

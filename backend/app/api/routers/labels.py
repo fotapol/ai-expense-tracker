@@ -4,7 +4,6 @@ import logging
 import uuid
 
 from fastapi import APIRouter, Depends, HTTPException, Request, status
-from pydantic import BaseModel, Field
 from sqlalchemy.exc import IntegrityError
 from sqlmodel import Session, select
 
@@ -15,27 +14,19 @@ from app.models.labels.label import Label
 from app.models.labels.transaction_label import TransactionLabel
 from app.models.transactions.transaction import Transaction
 from app.models.users.user import User
+from app.schemas.labels import LabelAssignRequest, LabelCreateRequest, LabelRead
 
 logger = logging.getLogger(__name__)
 
 router = APIRouter(prefix="/v1", tags=["labels"])
 
 
-class LabelCreateRequest(BaseModel):
-    name: str = Field(min_length=1, max_length=120)
-    color: str | None = None  # Hex color, e.g. "#FF5733"
-
-
-class LabelAssignRequest(BaseModel):
-    transaction_id: uuid.UUID
-    label_id: uuid.UUID
-
-
 # ---------------------------------------------------------------------------
 # LIST
 # ---------------------------------------------------------------------------
 
-@router.get("/labels")
+
+@router.get("/labels", response_model=list[LabelRead])
 @limiter.limit("60/minute")
 async def list_labels(
     request: Request,
@@ -45,21 +36,18 @@ async def list_labels(
     """List all labels for the current user."""
     labels = session.exec(
         select(Label)
-        .where(Label.user_id == current_user.id, Label.is_active == True)
+        .where(Label.user_id == current_user.id, Label.is_active.is_(True))
         .order_by(Label.name)
     ).all()
 
-    return [
-        {"id": str(l.id), "name": l.name, "color": l.color}
-        for l in labels
-    ]
+    return labels
 
 
 # ---------------------------------------------------------------------------
 # CREATE
 # ---------------------------------------------------------------------------
 
-@router.post("/labels", status_code=status.HTTP_201_CREATED)
+@router.post("/labels", response_model=LabelRead, status_code=status.HTTP_201_CREATED)
 @limiter.limit("30/minute")
 async def create_label(
     payload: LabelCreateRequest,
@@ -68,16 +56,30 @@ async def create_label(
     current_user: User = Depends(get_current_user),  # noqa: B008
 ):
     """Create a new label."""
+    label_name = payload.name.strip()
+    existing = session.exec(
+        select(Label).where(
+            Label.user_id == current_user.id,
+            Label.name == label_name,
+            Label.is_active.is_(True),
+        )
+    ).first()
+    if existing is not None:
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail="Label already exists.",
+        )
+
     label = Label(
         user_id=current_user.id,
-        name=payload.name.strip(),
+        name=label_name,
         color=payload.color,
     )
     session.add(label)
     session.commit()
     session.refresh(label)
 
-    return {"id": str(label.id), "name": label.name, "color": label.color}
+    return label
 
 
 # ---------------------------------------------------------------------------
@@ -140,7 +142,7 @@ async def assign_label(
         select(Label).where(
             Label.id == payload.label_id,
             Label.user_id == current_user.id,
-            Label.is_active == True,
+            Label.is_active.is_(True),
         )
     ).first()
     if label is None:
@@ -191,7 +193,7 @@ async def unassign_label(
         select(Label).where(
             Label.id == payload.label_id,
             Label.user_id == current_user.id,
-            Label.is_active == True,
+            Label.is_active.is_(True),
         )
     ).first()
     if label is None:

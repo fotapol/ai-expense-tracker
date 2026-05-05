@@ -2,6 +2,7 @@
 
 from app.schemas.auth import FirebaseIdentityIn, FirebaseIdentityOut, TokenExchangeRequest
 from app.schemas.billing import (
+    CategoryUsageRead,
     DevSubscriptionActionRequest,
     DevSubscriptionActionResponse,
     MeEntitlementsResponse,
@@ -22,6 +23,7 @@ from app.schemas.feature_requests import (
     InternalFeatureRequestRead,
     InternalFeatureRequestUpdateRequest,
 )
+from app.schemas.labels import LabelAssignRequest, LabelCreateRequest, LabelRead
 from app.schemas.merchants import MerchantAliasCreate, MerchantAliasRead, MerchantRead
 from app.schemas.overrides import (
     UserCategoryOverrideRead,
@@ -92,12 +94,6 @@ __all__ = [
     "AnalyticsHouseholdSummaryRead",
     "AnalyticsTrendBucketRead",
     "AnalyticsTrendSummaryRead",
-    "CategoryCreate",
-    "CategoryRead",
-    "CategoryTreeNode",
-    "CategoryUpdate",
-    "Cost6DP",
-    "CurrencyCode",
     "BillReminderCreate",
     "BillReminderMarkPaid",
     "BillReminderRead",
@@ -105,6 +101,13 @@ __all__ = [
     "BudgetCategoryLimitInput",
     "BudgetPlanRead",
     "BudgetPlanUpsert",
+    "CategoryCreate",
+    "CategoryRead",
+    "CategoryTreeNode",
+    "CategoryUpdate",
+    "CategoryUsageRead",
+    "Cost6DP",
+    "CurrencyCode",
     "DevSubscriptionActionRequest",
     "DevSubscriptionActionResponse",
     "ExtractedReceiptData",
@@ -119,6 +122,9 @@ __all__ = [
     "InternalFeatureRequestCreateRequest",
     "InternalFeatureRequestRead",
     "InternalFeatureRequestUpdateRequest",
+    "LabelAssignRequest",
+    "LabelCreateRequest",
+    "LabelRead",
     "MeEntitlementsResponse",
     "MeSubscriptionResponse",
     "MerchantAliasCreate",

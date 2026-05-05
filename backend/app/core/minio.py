@@ -56,7 +56,7 @@ def generate_presigned_put(
     key: str,
     content_type: str,
     bucket: str | None = None,
-    expiry: int = 600,
+    expiry: int | None = None,
 ) -> dict:
     """Generate a presigned PUT URL for direct client upload.
 
@@ -66,6 +66,7 @@ def generate_presigned_put(
     Returns ``{"url": "...", "required_headers": {"Content-Type": "..."}}``.
     """
     bucket = bucket or s3_settings.BUCKET_RECEIPTS
+    expiry = expiry or s3_settings.PRESIGNED_PUT_EXPIRY_SECONDS
     client = get_s3_presign_client()
     url = client.generate_presigned_url(
         "put_object",
@@ -85,11 +86,12 @@ def generate_presigned_put(
 def generate_presigned_get(
     key: str,
     bucket: str | None = None,
-    expiry: int = 600,
+    expiry: int | None = None,
 ) -> str:
     """Generate a presigned GET URL for client-side object viewing."""
 
     bucket = bucket or s3_settings.BUCKET_RECEIPTS
+    expiry = expiry or s3_settings.PRESIGNED_GET_EXPIRY_SECONDS
     client = get_s3_presign_client()
     return client.generate_presigned_url(
         "get_object",
@@ -121,6 +123,33 @@ def download_object(key: str, bucket: str | None = None) -> bytes:
     client = get_s3_client()
     resp = client.get_object(Bucket=bucket, Key=key)
     return resp["Body"].read()
+
+
+def read_object_prefix(
+    key: str,
+    bucket: str | None = None,
+    *,
+    length: int = 4096,
+) -> bytes:
+    """Read the first bytes of an object for lightweight content validation."""
+
+    if length <= 0:
+        return b""
+    bucket = bucket or s3_settings.BUCKET_RECEIPTS
+    client = get_s3_client()
+    resp = client.get_object(
+        Bucket=bucket,
+        Key=key,
+        Range=f"bytes=0-{length - 1}",
+    )
+    return resp["Body"].read()
+
+
+def delete_object(key: str, bucket: str | None = None) -> None:
+    """Delete an object from storage."""
+    bucket = bucket or s3_settings.BUCKET_RECEIPTS
+    client = get_s3_client()
+    client.delete_object(Bucket=bucket, Key=key)
 
 
 def ensure_bucket(bucket: str | None = None) -> None:

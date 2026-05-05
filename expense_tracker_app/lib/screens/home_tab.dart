@@ -1,12 +1,15 @@
+import 'dart:async';
+
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:intl/intl.dart';
 
+import '../core/app_navigation.dart';
 import '../core/api_client.dart';
 import '../core/auto_refresh_state_mixin.dart';
 import '../core/launch_error_copy.dart';
+import '../core/localized_dates.dart';
 import '../core/money_formatter.dart';
 import '../core/money_format_preferences.dart';
 import '../core/redesign_system.dart';
@@ -33,12 +36,15 @@ class _HomeTabState extends State<HomeTab>
   String? _error;
   String _preferredCurrency = 'EUR';
   Map<String, dynamic>? _monthlySummary;
+  Map<String, dynamic>? _monthlySubcategorySummary;
   List<Map<String, dynamic>> _currentMonthTransactions = [];
   List<Map<String, dynamic>> _previousMonthTransactions = [];
   bool _isRefreshingHome = false;
   bool _hasPremiumAccess = false;
+  int? _receiptUploadUsed;
   int? _receiptUploadRemaining;
   int? _receiptUploadLimit;
+  String _profileDisplayName = '';
 
   @override
   Duration get autoRefreshInterval => const Duration(minutes: 1);
@@ -49,12 +55,14 @@ class _HomeTabState extends State<HomeTab>
   @override
   void initState() {
     super.initState();
+    appShellTabIndex.addListener(_handleRootTabChanged);
     moneyFormatSettings.addListener(_handleDisplayPreferencesChanged);
     _loadHomeData();
   }
 
   @override
   void dispose() {
+    appShellTabIndex.removeListener(_handleRootTabChanged);
     moneyFormatSettings.removeListener(_handleDisplayPreferencesChanged);
     super.dispose();
   }
@@ -62,6 +70,11 @@ class _HomeTabState extends State<HomeTab>
   void _handleDisplayPreferencesChanged() {
     if (!mounted) return;
     setState(() {});
+  }
+
+  void _handleRootTabChanged() {
+    if (!mounted || appShellTabIndex.value != 0) return;
+    unawaited(_loadHomeData(showLoader: false));
   }
 
   DateTime get _currentMonthStart {
@@ -93,17 +106,23 @@ class _HomeTabState extends State<HomeTab>
       final subscriptionFuture = ApiClient.getMeSubscription().catchError(
         (_) => <String, dynamic>{},
       );
+      final subcategorySummaryFuture = ApiClient.getTransactionsSummary(
+        fromDate: _currentMonthStart,
+        groupBy: 'subcategory',
+      ).catchError((_) => <String, dynamic>{});
       final results = await Future.wait([
         ApiClient.getMe(),
         ApiClient.getTransactionsSummary(fromDate: _currentMonthStart),
         ApiClient.listTransactions(fromDate: _previousMonthStart),
         subscriptionFuture,
+        subcategorySummaryFuture,
       ]);
 
       final me = results[0] as Map<String, dynamic>;
       final summary = results[1] as Map<String, dynamic>;
       final rawTransactions = results[2] as List<dynamic>;
       final subscriptionPayload = results[3] as Map<String, dynamic>;
+      final subcategorySummary = results[4] as Map<String, dynamic>;
       final allTransactions = rawTransactions.whereType<Map<String, dynamic>>();
 
       final currentTransactions = <Map<String, dynamic>>[];
@@ -122,6 +141,10 @@ class _HomeTabState extends State<HomeTab>
       final usage = usageRaw is Map<String, dynamic>
           ? usageRaw
           : const <String, dynamic>{};
+      final rawProfile = me['profile'];
+      final profileDisplayName = rawProfile is Map<String, dynamic>
+          ? rawProfile['display_name']?.toString().trim() ?? ''
+          : '';
       final optimisticPremium = await hasOptimisticPremiumAccess();
       final hasPremiumAccess =
           subscriptionPayload['has_active_subscription'] == true ||
@@ -135,10 +158,17 @@ class _HomeTabState extends State<HomeTab>
             ? _preferredCurrency
             : defaultCurrency.toUpperCase();
         _monthlySummary = summary;
+        _monthlySubcategorySummary = subcategorySummary.isEmpty
+            ? null
+            : subcategorySummary;
         _currentMonthTransactions = currentTransactions;
         _previousMonthTransactions = previousTransactions;
+        _profileDisplayName = profileDisplayName;
         _hasPremiumAccess = hasPremiumAccess;
         _receiptUploadLimit = int.tryParse((usage['limit'] ?? '').toString());
+        _receiptUploadUsed = optimisticPremium
+            ? null
+            : int.tryParse((usage['used'] ?? '').toString());
         _receiptUploadRemaining = optimisticPremium
             ? null
             : int.tryParse((usage['remaining'] ?? '').toString());
@@ -151,7 +181,7 @@ class _HomeTabState extends State<HomeTab>
       setState(() {
         _error = friendlyLaunchErrorMessage(
           error,
-          fallback: 'Home could not refresh just now. Please try again.',
+          fallback: context.tr('home_refresh_error'),
         );
         _isLoading = false;
       });
@@ -174,6 +204,11 @@ class _HomeTabState extends State<HomeTab>
   }
 
   String _resolveDisplayName(BuildContext context) {
+    final profileDisplayName = _profileDisplayName.trim();
+    if (profileDisplayName.isNotEmpty) {
+      return profileDisplayName;
+    }
+
     final user = FirebaseAuth.instance.currentUser;
     final displayName = user?.displayName?.trim();
     if (displayName != null && displayName.isNotEmpty) {
@@ -208,7 +243,7 @@ class _HomeTabState extends State<HomeTab>
   String _reviewSubtitle(BuildContext context) {
     if (_currentMonthTransactions.isEmpty &&
         _previousMonthTransactions.isEmpty) {
-      return 'Scan a receipt or add an expense to get started.';
+      return context.tr('home_start_subtitle');
     }
     if (_reviewCount == 0) {
       return context.tr('home_all_reviewed');
@@ -270,8 +305,12 @@ class _HomeTabState extends State<HomeTab>
     );
   }
 
-  List<_OverviewSlice> _overviewSlices(BuildContext context) {
-    final rawBreakdown = _monthlySummary?['breakdown'] as List<dynamic>? ?? [];
+  List<_OverviewSlice> _overviewSlices(
+    BuildContext context, {
+    Map<String, dynamic>? summary,
+  }) {
+    final source = summary ?? _monthlySummary;
+    final rawBreakdown = source?['breakdown'] as List<dynamic>? ?? [];
     final slices = <_OverviewSlice>[];
     for (final raw in rawBreakdown.whereType<Map<String, dynamic>>()) {
       final amount = (raw['amount'] as num?)?.toDouble() ?? 0;
@@ -287,6 +326,7 @@ class _HomeTabState extends State<HomeTab>
         code: code,
         parentCode: raw['parent_category_code']?.toString(),
         name: raw['name']?.toString(),
+        rawHex: raw['color']?.toString(),
       );
       slices.add(
         _OverviewSlice(
@@ -335,37 +375,10 @@ class _HomeTabState extends State<HomeTab>
         (_monthlySummary?['breakdown'] as List<dynamic>? ?? const []).isEmpty) {
       return insights;
     }
-    final ratio = _changeRatio;
-    if (ratio != null) {
-      final previousMonthLabel = DateFormat('MMMM').format(_previousMonthStart);
-      final percent = (ratio.abs() * 100).round();
-      if (percent > 0) {
-        insights.add(
-          context.tr(
-            ratio < 0
-                ? 'home_insight_less_than_last_month'
-                : 'home_insight_more_than_last_month',
-            params: {
-              'percent': percent.toString(),
-              'month': previousMonthLabel,
-            },
-          ),
-        );
-      }
-    }
 
-    final slices = _overviewSlices(context);
-    if (insights.isEmpty && slices.isNotEmpty) {
-      final topSlice = slices.first;
-      insights.add(
-        context.tr(
-          'home_insight_top_category',
-          params: {
-            'category': topSlice.name,
-            'percent': topSlice.percentage.round().toString(),
-          },
-        ),
-      );
+    final topCategoryInsight = _buildTopCategoryInsight(context);
+    if (topCategoryInsight != null) {
+      insights.add(topCategoryInsight);
     }
 
     if (_reviewCount > 0) {
@@ -375,11 +388,71 @@ class _HomeTabState extends State<HomeTab>
           params: {'count': _reviewCount.toString()},
         ),
       );
-    } else {
+      return insights.take(2).toList();
+    }
+
+    final topSubcategoryInsight = _buildTopSubcategoryInsight(context);
+    if (topSubcategoryInsight != null) {
+      insights.add(topSubcategoryInsight);
+      return insights.take(2).toList();
+    }
+
+    final monthChangeInsight = _buildMonthChangeInsight(context);
+    if (monthChangeInsight != null) {
+      insights.add(monthChangeInsight);
+    } else if (insights.length < 2) {
       insights.add(context.tr('home_insight_all_caught_up'));
     }
 
     return insights.take(2).toList();
+  }
+
+  String? _buildTopCategoryInsight(BuildContext context) {
+    final slices = _overviewSlices(context);
+    if (slices.isEmpty) return null;
+    final topSlice = slices.first;
+    return context.tr(
+      'home_insight_top_category',
+      params: {
+        'category': topSlice.name,
+        'percent': topSlice.percentage.round().toString(),
+      },
+    );
+  }
+
+  String? _buildTopSubcategoryInsight(BuildContext context) {
+    final subcategorySummary = _monthlySubcategorySummary;
+    if (subcategorySummary == null) return null;
+    final slices = _overviewSlices(context, summary: subcategorySummary);
+    if (slices.isEmpty) return null;
+    final topSlice = slices.first;
+    return context.tr(
+      'home_insight_top_subcategory',
+      params: {
+        'subcategory': topSlice.name,
+        'percent': topSlice.percentage.round().toString(),
+      },
+    );
+  }
+
+  String? _buildMonthChangeInsight(BuildContext context) {
+    final ratio = _changeRatio;
+    if (ratio != null) {
+      final previousMonthLabel = formatLocalizedFullMonth(
+        context,
+        _previousMonthStart,
+      );
+      final percent = (ratio.abs() * 100).round();
+      if (percent > 0) {
+        return context.tr(
+          ratio < 0
+              ? 'home_insight_less_than_last_month'
+              : 'home_insight_more_than_last_month',
+          params: {'percent': percent.toString(), 'month': previousMonthLabel},
+        );
+      }
+    }
+    return null;
   }
 
   void _open(BuildContext context, Widget screen) {
@@ -402,8 +475,9 @@ class _HomeTabState extends State<HomeTab>
     final limit = (_receiptUploadLimit != null && _receiptUploadLimit! > 0)
         ? _receiptUploadLimit!
         : 10;
-    final safeRemaining = remaining == null ? limit : remaining.clamp(0, limit);
-    return '$safeRemaining/$limit';
+    final fallbackUsed = remaining == null ? 0 : limit - remaining;
+    final used = (_receiptUploadUsed ?? fallbackUsed).clamp(0, limit);
+    return '$used/$limit';
   }
 
   @override
@@ -449,6 +523,10 @@ class _HomeTabState extends State<HomeTab>
   }
 
   Widget _buildHeader(BuildContext context) {
+    final reviewCount = _reviewCount;
+    final subtitleColor = reviewCount > 0
+        ? ShellStyles.warningPremium(context)
+        : ShellStyles.textMuted(context);
     return Row(
       crossAxisAlignment: CrossAxisAlignment.center,
       children: [
@@ -468,11 +546,34 @@ class _HomeTabState extends State<HomeTab>
                 ),
               ),
               const SizedBox(height: 4),
-              Text(
-                _reviewSubtitle(context),
-                style: TextStyle(
-                  color: ShellStyles.textMuted(context),
-                  fontSize: 13,
+              GestureDetector(
+                behavior: HitTestBehavior.opaque,
+                onTap: reviewCount > 0
+                    ? () => _open(
+                        context,
+                        const ReceiptManagerScreen(reviewOnly: true),
+                      )
+                    : null,
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Flexible(
+                      child: Text(
+                        _reviewSubtitle(context),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: TextStyle(color: subtitleColor, fontSize: 13),
+                      ),
+                    ),
+                    if (reviewCount > 0) ...[
+                      const SizedBox(width: 4),
+                      Icon(
+                        AppIcons.chevronRight,
+                        size: 12,
+                        color: subtitleColor,
+                      ),
+                    ],
+                  ],
                 ),
               ),
             ],
@@ -567,7 +668,7 @@ class _HomeTabState extends State<HomeTab>
   }
 
   Widget _buildMonthlySummaryCard(BuildContext context) {
-    final monthLabel = DateFormat('MMMM yyyy').format(_currentMonthStart);
+    final monthLabel = formatLocalizedMonthYear(context, _currentMonthStart);
     final ratio = _changeRatio;
     final positiveDelta = ratio != null && ratio < 0;
     final transactionCount = _currentMonthTransactions.length;
@@ -707,7 +808,7 @@ class _HomeTabState extends State<HomeTab>
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    'Primary action',
+                    context.tr('home_primary_action'),
                     style: TextStyle(
                       color: ShellStyles.homeHeroTextSecondary(context),
                       fontSize: 11,
@@ -1137,7 +1238,7 @@ class _HomeTabState extends State<HomeTab>
           ),
           const SizedBox(height: 10),
           Text(
-            _error ?? 'Home could not refresh just now.',
+            _error ?? context.tr('home_refresh_error'),
             textAlign: TextAlign.center,
             style: TextStyle(color: ShellStyles.textPrimary(context)),
           ),

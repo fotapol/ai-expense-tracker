@@ -1,0 +1,84 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: expense-tracker-worker
+  labels:
+    app.kubernetes.io/name: expense-tracker-worker
+    app.kubernetes.io/component: worker
+    app.kubernetes.io/part-of: ai-expense-tracker
+spec:
+  replicas: 1
+  revisionHistoryLimit: 3
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: expense-tracker-worker
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: expense-tracker-worker
+        app.kubernetes.io/component: worker
+        app.kubernetes.io/part-of: ai-expense-tracker
+    spec:
+      terminationGracePeriodSeconds: 60
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 10001
+        runAsGroup: 10001
+        fsGroup: 10001
+        seccompProfile:
+          type: RuntimeDefault
+      containers:
+        - name: worker
+          image: ai-expense-tracker-backend:latest
+          imagePullPolicy: IfNotPresent
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop:
+                - ALL
+          command:
+            - sh
+            - -c
+            - >-
+              python -c "import base64, os, pathlib; raw = os.environ.get('FIREBASE_SERVICE_ACCOUNT_JSON_B64', '').strip(); path = os.environ['FIREBASE_SERVICE_ACCOUNT_PATH']; pathlib.Path(path).parent.mkdir(parents=True, exist_ok=True); pathlib.Path(path).write_bytes(base64.b64decode(raw)) if raw else None" &&
+              exec /app/.venv/bin/python -m app.worker.receipt_processor
+          ports:
+            - name: metrics
+              containerPort: 9101
+          env:
+            - name: HOME
+              value: /app
+            - name: UV_CACHE_DIR
+              value: /tmp/uv-cache
+          envFrom:
+            - configMapRef:
+                name: expense-tracker-config
+            - secretRef:
+                name: expense-tracker-secrets
+          volumeMounts:
+            - name: firebase-secrets
+              mountPath: /run/secrets
+          readinessProbe:
+            tcpSocket:
+              port: metrics
+            initialDelaySeconds: 10
+            periodSeconds: 10
+            timeoutSeconds: 3
+            failureThreshold: 6
+          livenessProbe:
+            tcpSocket:
+              port: metrics
+            initialDelaySeconds: 20
+            periodSeconds: 20
+            timeoutSeconds: 3
+            failureThreshold: 3
+          resources:
+            requests:
+              cpu: 200m
+              memory: 384Mi
+            limits:
+              cpu: 1000m
+              memory: 1Gi
+      volumes:
+        - name: firebase-secrets
+          emptyDir: {}

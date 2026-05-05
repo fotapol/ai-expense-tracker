@@ -6,6 +6,12 @@
 # them to the public internet, and sets APP_ENV to production.
 
 services:
+  site:
+    environment:
+      APP_ENV: production
+    ports:
+      - "127.0.0.1:3000:80"
+
   backend:
     environment:
       APP_ENV: production

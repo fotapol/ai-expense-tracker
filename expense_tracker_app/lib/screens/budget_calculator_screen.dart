@@ -120,7 +120,7 @@ class _BudgetCalculatorScreenState extends State<BudgetCalculatorScreen> {
         _error = friendlyLaunchErrorMessage(
           error,
           fallback:
-              'Budget details could not load right now. Pull to try again.',
+              context.tr('budget_load_error'),
         );
         _isLoading = false;
       });
@@ -267,7 +267,7 @@ class _BudgetCalculatorScreenState extends State<BudgetCalculatorScreen> {
         friendlyLaunchErrorMessage(
           error,
           fallback:
-              'Budget changes could not be saved right now. Please try again.',
+              context.tr('budget_save_error'),
         ),
         isError: true,
       );
@@ -538,7 +538,7 @@ class _BudgetCalculatorScreenState extends State<BudgetCalculatorScreen> {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            'Monthly budget',
+                            context.tr('budget_monthly_title'),
                             style: TextStyle(
                               color: ShellStyles.textPrimary(context),
                               fontSize: 18,
@@ -547,7 +547,7 @@ class _BudgetCalculatorScreenState extends State<BudgetCalculatorScreen> {
                           ),
                           const SizedBox(height: 8),
                           Text(
-                            'Set the full monthly budget here. Category limits stay optional and do not replace this total.',
+                            context.tr('budget_monthly_subtitle'),
                             style: TextStyle(
                               color: ShellStyles.textMuted(context),
                               fontSize: 13,
@@ -620,7 +620,7 @@ class _BudgetCalculatorScreenState extends State<BudgetCalculatorScreen> {
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
                                   Text(
-                                    'Optional category budgets',
+                                    context.tr('budget_categories_title'),
                                     style: TextStyle(
                                       color: ShellStyles.textPrimary(context),
                                       fontSize: 16,
@@ -629,7 +629,7 @@ class _BudgetCalculatorScreenState extends State<BudgetCalculatorScreen> {
                                   ),
                                   const SizedBox(height: 4),
                                   Text(
-                                    'Use these if you want extra guidance for specific categories.',
+                                    context.tr('budget_categories_subtitle'),
                                     style: TextStyle(
                                       color: ShellStyles.textMuted(context),
                                       fontSize: 12.5,
@@ -653,7 +653,7 @@ class _BudgetCalculatorScreenState extends State<BudgetCalculatorScreen> {
                                         ),
                                       ),
                                       child: Text(
-                                        'Allocated across categories: ${_formatCurrency(allocatedCategoryBudget)}',
+                                        context.tr('budget_allocated_amount', params: {'amount': _formatCurrency(allocatedCategoryBudget)}),
                                         style: TextStyle(
                                           color: ShellStyles.textPrimary(
                                             context,
@@ -726,8 +726,6 @@ class _BudgetCalculatorScreenState extends State<BudgetCalculatorScreen> {
                       child: FilledButton(
                         onPressed: _isSaving ? null : _save,
                         style: FilledButton.styleFrom(
-                          backgroundColor: ShellStyles.textPrimary(context),
-                          foregroundColor: ShellStyles.surface(context),
                           minimumSize: const Size.fromHeight(50),
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(16),

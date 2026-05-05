@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:flutter/foundation.dart';
 import 'package:google_mlkit_language_id/google_mlkit_language_id.dart';
 import 'package:google_mlkit_translation/google_mlkit_translation.dart';
 
@@ -46,6 +47,18 @@ class ItemTranslationService {
 
   String normalizeSourceText(String raw) {
     return raw.trim().replaceAll(RegExp(r'\s+'), ' ');
+  }
+
+  static bool shouldShowTranslatedText({
+    required bool translationEnabled,
+    required String originalText,
+    required String translatedText,
+  }) {
+    if (!translationEnabled) return false;
+    final original = _normalizeVisibleText(originalText);
+    final translated = _normalizeVisibleText(translatedText);
+    if (translated.isEmpty) return false;
+    return translated.toLowerCase() != original.toLowerCase();
   }
 
   static bool shouldRetranslate({
@@ -109,6 +122,9 @@ class ItemTranslationService {
     }
 
     if (normalizedSource == normalizedTarget) {
+      _debugLog(
+        'Skipping translation: source and target are both $normalizedTarget.',
+      );
       return null;
     }
 
@@ -175,9 +191,19 @@ class ItemTranslationService {
   Future<String> _detectLanguage(String text) async {
     try {
       final detected = await _languageIdentifier.identifyLanguage(text);
-      if (detected == 'und') return '';
-      return normalizeLanguageCode(detected);
-    } catch (_) {
+      if (detected == 'und') {
+        _debugLog('Language detection returned und; sourceLen=${text.length}.');
+        return '';
+      }
+      final normalized = normalizeLanguageCode(detected);
+      _debugLog(
+        'Language detection completed: sourceLen=${text.length}, source=$normalized.',
+      );
+      return normalized;
+    } catch (error) {
+      _debugLog(
+        'Language detection failed: sourceLen=${text.length}, error=${error.runtimeType}.',
+      );
       return '';
     }
   }
@@ -194,8 +220,12 @@ class ItemTranslationService {
     final extractedUnit = extractedUnitMatch?.group(0);
 
     final preparedSourceText = _prepareSourceText(sourceText);
-    final sourceMl = _toMlKitLanguage(sourceLanguage);
-    final targetMl = _toMlKitLanguage(targetLanguage);
+    final sourceMl = _toMlKitLanguage(sourceLanguage, isSource: true);
+    final targetMl = _toMlKitLanguage(targetLanguage, isSource: false);
+    _debugLog(
+      'Translation mapping: source=$sourceLanguage -> ${sourceMl?.bcpCode ?? 'unsupported'}, '
+      'target=$targetLanguage -> ${targetMl?.bcpCode ?? 'unsupported'}, sourceLen=${sourceText.length}.',
+    );
     if (sourceMl == null || targetMl == null) return null;
     if (sourceMl.bcpCode == targetMl.bcpCode) return null;
 
@@ -207,6 +237,9 @@ class ItemTranslationService {
       await _modelManager.downloadModel(
         targetMl.bcpCode,
         isWifiRequired: false,
+      );
+      _debugLog(
+        'Translation models ready: source=${sourceMl.bcpCode}, target=${targetMl.bcpCode}.',
       );
 
       final translator = OnDeviceTranslator(
@@ -220,6 +253,13 @@ class ItemTranslationService {
         }
         final normalizedTranslated = normalizeSourceText(translated);
         if (normalizedTranslated.isEmpty) return null;
+        if (_sameVisibleText(normalizedTranslated, sourceText)) {
+          _debugLog(
+            'Suppressing unchanged translation: source=$sourceLanguage, target=$targetLanguage, '
+            'sourceLen=${sourceText.length}.',
+          );
+          return null;
+        }
         return ItemTranslationResult(
           translatedText: normalizedTranslated,
           sourceLanguage: sourceLanguage,
@@ -228,23 +268,36 @@ class ItemTranslationService {
       } finally {
         translator.close();
       }
-    } catch (_) {
+    } catch (error) {
+      _debugLog(
+        'ML Kit translation failed: source=$sourceLanguage, target=$targetLanguage, '
+        'sourceLen=${sourceText.length}, error=${error.runtimeType}.',
+      );
       return null;
     }
   }
 
-  TranslateLanguage? _toMlKitLanguage(String code) {
+  TranslateLanguage? _toMlKitLanguage(String code, {required bool isSource}) {
     final normalized = normalizeLanguageCode(code);
-    // TODO(translation): route unsupported Serbian translation requests
-    // through a backend/cloud provider instead of coercing them to another
-    // language on-device. For now we keep the requested language as-is and
-    // fail closed when ML Kit has no matching model.
-    for (final lang in TranslateLanguage.values) {
-      if (lang.bcpCode == normalized) {
-        return lang;
+    final candidates = <String>[normalized];
+    if (isSource && {'sr', 'bs', 'sh'}.contains(normalized)) {
+      // ML Kit does not expose Serbian; Croatian handles Latin-script Balkan
+      // receipt item names well enough for source-side translation detection.
+      candidates.add('hr');
+    }
+    for (final candidate in candidates) {
+      for (final lang in TranslateLanguage.values) {
+        if (lang.bcpCode == candidate) {
+          return lang;
+        }
       }
     }
     return null;
+  }
+
+  @visibleForTesting
+  bool supportsMlKitLanguageForTesting(String code, {bool isSource = false}) {
+    return _toMlKitLanguage(code, isSource: isSource) != null;
   }
 
   String _prepareSourceText(String sourceText) {
@@ -326,5 +379,20 @@ class ItemTranslationService {
     _flushTimer = Timer(const Duration(seconds: 2), () {
       unawaited(flushPending());
     });
+  }
+
+  static String _normalizeVisibleText(String raw) {
+    return raw.trim().replaceAll(RegExp(r'\s+'), ' ');
+  }
+
+  static bool _sameVisibleText(String left, String right) {
+    return _normalizeVisibleText(left).toLowerCase() ==
+        _normalizeVisibleText(right).toLowerCase();
+  }
+
+  static void _debugLog(String message) {
+    if (kDebugMode) {
+      debugPrint('[ItemTranslationService] $message');
+    }
   }
 }

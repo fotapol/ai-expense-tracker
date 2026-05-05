@@ -7,13 +7,12 @@ added when receipt processing or notifications are built.
 
 import asyncio
 import logging
-import os
 
 import aio_pika
 
-logger = logging.getLogger(__name__)
+from app.core.config import rabbitmq_settings
 
-RABBITMQ_URL: str = os.environ.get("RABBITMQ_URL", "amqp://guest:guest@rabbitmq:5672/")
+logger = logging.getLogger(__name__)
 
 _connection: aio_pika.abc.AbstractRobustConnection | None = None
 
@@ -30,7 +29,7 @@ async def connect_rabbitmq() -> None:
     global _connection
     for attempt in range(1, _MAX_RETRIES + 1):
         try:
-            _connection = await aio_pika.connect_robust(RABBITMQ_URL)
+            _connection = await aio_pika.connect_robust(rabbitmq_settings.RABBITMQ_URL)
             logger.info("RabbitMQ connection established (attempt %d).", attempt)
             return
         except Exception:

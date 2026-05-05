@@ -5,7 +5,6 @@ import uuid
 from decimal import Decimal
 
 import pytest
-from fastapi import Request
 
 from app.api.routers.data import export_data
 from app.models.shared.enums import CategoryScope
@@ -44,6 +43,12 @@ def test_user():
     return User(id=uuid.uuid4(), email="test@example.com")
 
 
+def _unwrap(func):
+    while hasattr(func, "__wrapped__"):
+        func = func.__wrapped__
+    return func
+
+
 @pytest.mark.anyio
 async def test_export_data_empty(monkeypatch, test_user):
     # Mock user_has_feature
@@ -55,7 +60,11 @@ async def test_export_data_empty(monkeypatch, test_user):
         [], # items
     ])
 
-    res = await export_data(request=None, session=session, current_user=test_user)
+    res = await _unwrap(export_data)(
+        request=None,
+        session=session,
+        current_user=test_user,
+    )
     
     assert res.categories == []
     assert res.transactions == []
@@ -99,7 +108,11 @@ async def test_export_data_with_records(monkeypatch, test_user):
         [item], # items
     ])
 
-    res = await export_data(request=None, session=session, current_user=test_user)
+    res = await _unwrap(export_data)(
+        request=None,
+        session=session,
+        current_user=test_user,
+    )
     
     assert len(res.categories) == 1
     assert res.categories[0].id == cat_id

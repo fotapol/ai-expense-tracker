@@ -9,6 +9,25 @@ import 'auth_session.dart';
 import 'core_request_timeout.dart';
 import 'session_invalidation.dart';
 
+class ApiCategoryLimitException implements Exception {
+  const ApiCategoryLimitException({
+    required this.code,
+    required this.message,
+    this.used,
+    this.limit,
+    this.remaining,
+  });
+
+  final String code;
+  final String message;
+  final int? used;
+  final int? limit;
+  final int? remaining;
+
+  @override
+  String toString() => message;
+}
+
 class ApiClient {
   static const String apiBaseUrl = String.fromEnvironment(
     'API_BASE_URL',
@@ -106,6 +125,33 @@ class ApiClient {
       }
     } catch (_) {}
     return response.body;
+  }
+
+  static ApiCategoryLimitException? _extractCategoryLimitException(
+    http.Response response,
+  ) {
+    try {
+      final payload = jsonDecode(response.body);
+      if (payload is! Map<String, dynamic>) return null;
+      final detail = payload['detail'];
+      if (detail is! Map<String, dynamic>) return null;
+      final code = detail['code']?.toString();
+      if (code != 'free_plan_category_limit_reached' &&
+          code != 'free_plan_subcategory_limit_reached') {
+        return null;
+      }
+      int? parseInt(Object? value) => int.tryParse(value?.toString() ?? '');
+      return ApiCategoryLimitException(
+        code: code!,
+        message:
+            detail['message']?.toString() ?? _extractErrorMessage(response),
+        used: parseInt(detail['used']),
+        limit: parseInt(detail['limit']),
+        remaining: parseInt(detail['remaining']),
+      );
+    } catch (_) {
+      return null;
+    }
   }
 
   /// Handle a 401 response with a single token-refresh retry.
@@ -220,6 +266,33 @@ class ApiClient {
         'Failed to update profile: ${response.statusCode} ${response.body}',
       );
     }
+  }
+
+  /// DELETE /v1/me
+  static Future<void> deleteMe() async {
+    final token = await _getToken();
+    http.Response response = await http.delete(
+      Uri.parse('$apiBaseUrl/v1/me'),
+      headers: {
+        'Authorization': 'Bearer $token',
+        'Content-Type': 'application/json',
+      },
+    );
+    response = await _handleUnauthorizedResponse(
+      response,
+      retry: (freshToken) => http.delete(
+        Uri.parse('$apiBaseUrl/v1/me'),
+        headers: {
+          'Authorization': 'Bearer $freshToken',
+          'Content-Type': 'application/json',
+        },
+      ),
+    );
+
+    if (response.statusCode == 204) return;
+    throw Exception(
+      'Failed to delete account: ${response.statusCode} ${_extractErrorMessage(response)}',
+    );
   }
 
   /// POST /v1/households
@@ -1313,8 +1386,10 @@ class ApiClient {
     if (response.statusCode == 201) {
       return jsonDecode(response.body) as Map<String, dynamic>;
     } else {
+      final limitException = _extractCategoryLimitException(response);
+      if (limitException != null) throw limitException;
       throw Exception(
-        'Failed to create category: ${response.statusCode} ${response.body}',
+        'Failed to create category: ${response.statusCode} ${_extractErrorMessage(response)}',
       );
     }
   }
@@ -1346,8 +1421,10 @@ class ApiClient {
     if (response.statusCode == 200) {
       return jsonDecode(response.body) as Map<String, dynamic>;
     } else {
+      final limitException = _extractCategoryLimitException(response);
+      if (limitException != null) throw limitException;
       throw Exception(
-        'Failed to update category: ${response.statusCode} ${response.body}',
+        'Failed to update category: ${response.statusCode} ${_extractErrorMessage(response)}',
       );
     }
   }

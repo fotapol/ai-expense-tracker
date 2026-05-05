@@ -38,12 +38,25 @@ class ReceiptScanUsageRead(SchemaBase):
     period_end_at: dt.datetime
 
 
+class CategoryUsageRead(SchemaBase):
+    """Custom category usage limits for the current plan."""
+
+    categories_used: int
+    categories_limit: int | None
+    categories_remaining: int | None
+    subcategories_used: int
+    subcategories_limit: int | None
+    subcategories_remaining: int | None
+    is_unlimited: bool
+
+
 class MeSubscriptionResponse(SchemaBase):
     """Current user subscription summary response."""
 
     has_active_subscription: bool
     subscription: SubscriptionRead | None
     receipt_scan_usage: ReceiptScanUsageRead
+    category_usage: CategoryUsageRead
 
 
 class MeEntitlementsResponse(SchemaBase):
@@ -78,3 +91,4 @@ class RevenueCatSyncResponse(SchemaBase):
     subscription: SubscriptionRead | None
     feature_codes: list[str]
     receipt_scan_usage: ReceiptScanUsageRead
+    category_usage: CategoryUsageRead

@@ -45,4 +45,50 @@ void main() {
       );
     });
   });
+
+  group('item translation visibility', () {
+    test('shows only enabled, non-empty, different translated text', () {
+      expect(
+        ItemTranslationService.shouldShowTranslatedText(
+          translationEnabled: true,
+          originalText: 'Milk',
+          translatedText: 'Молоко',
+        ),
+        isTrue,
+      );
+      expect(
+        ItemTranslationService.shouldShowTranslatedText(
+          translationEnabled: false,
+          originalText: 'Milk',
+          translatedText: 'Молоко',
+        ),
+        isFalse,
+      );
+      expect(
+        ItemTranslationService.shouldShowTranslatedText(
+          translationEnabled: true,
+          originalText: 'Milk',
+          translatedText: '   ',
+        ),
+        isFalse,
+      );
+      expect(
+        ItemTranslationService.shouldShowTranslatedText(
+          translationEnabled: true,
+          originalText: 'Milk',
+          translatedText: '  Milk  ',
+        ),
+        isFalse,
+      );
+    });
+  });
+
+  group('item translation language support', () {
+    test('maps RU language code to ML Kit Russian', () {
+      expect(
+        ItemTranslationService.instance.supportsMlKitLanguageForTesting('RU'),
+        isTrue,
+      );
+    });
+  });
 }
