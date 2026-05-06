@@ -5,6 +5,7 @@ import 'package:currency_picker/currency_picker.dart';
 import '../core/api_client.dart';
 import '../core/app_color_semantics.dart';
 import '../core/auth_session.dart';
+import '../core/item_name_display.dart';
 import '../core/item_translation_preferences.dart';
 import '../core/item_translation_service.dart';
 import '../core/launch_error_copy.dart';
@@ -631,19 +632,21 @@ class _TransactionEditScreenState extends State<TransactionEditScreen> {
         final itemId = item['id']?.toString();
         if (itemId == null || itemId.isEmpty) continue;
 
-        final description = _normalizeText(
+        final currentDescription = _normalizeText(
           _itemDescControllers[itemId]?.text ?? item['description']?.toString(),
         );
-        if (description.isEmpty) continue;
+        if (currentDescription.isEmpty) continue;
 
-        var sourceLanguage = _normalizeLanguageCode(
-          item['description_lang']?.toString(),
-        );
-        if (sourceLanguage.isEmpty) {
-          sourceLanguage = _normalizeLanguageCode(
-            item['translation_source_language']?.toString(),
-          );
+        final translationSource =
+            ItemNameDisplayResolver.preferredTranslationSource(
+              item: item,
+              currentDescription: currentDescription,
+            );
+        if (translationSource == null || translationSource.text.isEmpty) {
+          continue;
         }
+
+        var sourceLanguage = _normalizeLanguageCode(translationSource.language);
         sourceLanguage =
             itemTranslationPreferences.resolveSourceLanguage(
               sourceLanguage,
@@ -656,6 +659,9 @@ class _TransactionEditScreenState extends State<TransactionEditScreen> {
         final existingTranslation = _normalizeText(
           item['translated_description']?.toString(),
         );
+        final existingSourceText = _normalizeText(
+          item['translation_source_text']?.toString(),
+        );
         final shouldRefreshExistingTranslation =
             ItemTranslationService.shouldRetranslate(
               translatedText: existingTranslation,
@@ -665,27 +671,39 @@ class _TransactionEditScreenState extends State<TransactionEditScreen> {
                   ?.toString(),
               translatedTargetLanguage: item['translation_language']
                   ?.toString(),
-            );
+            ) ||
+            existingSourceText.toLowerCase() !=
+                translationSource.text.toLowerCase();
         if (!forceRefresh && !shouldRefreshExistingTranslation) continue;
 
         final result = await ItemTranslationService.instance.translate(
-          sourceText: description,
+          sourceText: translationSource.text,
           sourceLanguage: sourceLanguage.isNotEmpty ? sourceLanguage : null,
           targetLanguage: targetLanguage,
           forceRefresh: forceRefresh || shouldRefreshExistingTranslation,
         );
         if (result == null || !mounted) continue;
 
-        final currentDescription = _normalizeText(
+        final latestDescription = _normalizeText(
           _itemDescControllers[itemId]?.text,
         );
-        if (currentDescription != description) continue;
+        final latestSource = ItemNameDisplayResolver.preferredTranslationSource(
+          item: item,
+          currentDescription: latestDescription,
+        );
+        if (latestSource == null ||
+            latestSource.text.toLowerCase() !=
+                translationSource.text.toLowerCase()) {
+          continue;
+        }
 
         setState(() {
           item['translated_description'] = result.translatedText;
           item['translation_language'] = result.targetLanguage;
           item['translation_source_language'] = result.sourceLanguage;
-          if ((item['description_lang']?.toString().trim().isEmpty ?? true)) {
+          item['translation_source_text'] = translationSource.text;
+          if (!translationSource.usesNormalizedName &&
+              (item['description_lang']?.toString().trim().isEmpty ?? true)) {
             item['description_lang'] = result.sourceLanguage;
           }
         });
@@ -2399,16 +2417,13 @@ class _TransactionEditScreenState extends State<TransactionEditScreen> {
     final discountAmount = _itemDiscountValue(item);
     final hasDiscount = discountAmount > 0;
     final beforeDiscountAmount = _itemAmountBeforeDiscountValue(item);
-    final currentName = _normalizeText(_itemDescription(item));
-    final translatedName = _normalizeText(
-      item['translated_description']?.toString(),
-    );
-    final showTranslatedName = ItemTranslationService.shouldShowTranslatedText(
+    final displayName = ItemNameDisplayResolver.resolve(
+      item: item,
+      currentDescription: _itemDescription(item),
       translationEnabled:
           _showTranslatedItems && _effectiveItemsLanguage.isNotEmpty,
-      originalText: currentName,
-      translatedText: translatedName,
     );
+    final currentName = displayName.primaryText;
     final displayCurrencyLabel = CurrencyDisplay.labelForCode(_displayCurrency);
     final quantityLineParts = <String>[];
     if (sourceQty != null) {
@@ -2466,19 +2481,6 @@ class _TransactionEditScreenState extends State<TransactionEditScreen> {
                             height: 1.15,
                           ),
                         ),
-                        if (showTranslatedName) ...[
-                          const SizedBox(height: 6),
-                          Text(
-                            translatedName,
-                            maxLines: 2,
-                            overflow: TextOverflow.ellipsis,
-                            style: TextStyle(
-                              color: _mutedColor,
-                              fontSize: 12,
-                              height: 1.25,
-                            ),
-                          ),
-                        ],
                         if (hasDiscount && beforeDiscountAmount != null) ...[
                           const SizedBox(height: 7),
                           Wrap(

@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-import '../core/item_translation_service.dart';
+import '../core/item_name_display.dart';
 import '../core/money_formatter.dart';
 import '../core/redesign_system.dart';
 import '../core/taxonomy_localization.dart';
@@ -775,14 +775,17 @@ class _ReceiptItemEditScreenState extends State<ReceiptItemEditScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final translatedName = (_item['translated_description']?.toString() ?? '')
-        .trim();
     final currentName = _nameController.text.trim();
-    final hasTranslatedName = ItemTranslationService.shouldShowTranslatedText(
+    final displayName = ItemNameDisplayResolver.resolve(
+      item: _item,
+      currentDescription: currentName,
       translationEnabled: true,
-      originalText: currentName,
-      translatedText: translatedName,
     );
+    final suggestedName = displayName.primaryText;
+    final hasSuggestedName =
+        !displayName.isUserEdited &&
+        suggestedName.isNotEmpty &&
+        suggestedName.toLowerCase() != currentName.toLowerCase();
     final originalAmount = _originalLineTotal();
     final finalAmount = _toDouble(_amountController.text) ?? 0;
     final displayAmount = _toDisplayAmount(
@@ -871,10 +874,10 @@ class _ReceiptItemEditScreenState extends State<ReceiptItemEditScreen> {
                               controller: _nameController,
                               hintText: context.tr('transaction_item_name'),
                             ),
-                            if (hasTranslatedName) ...[
+                            if (hasSuggestedName) ...[
                               const SizedBox(height: 10),
                               Text(
-                                translatedName,
+                                suggestedName,
                                 style: TextStyle(
                                   color: _mutedColor,
                                   fontSize: 14,
