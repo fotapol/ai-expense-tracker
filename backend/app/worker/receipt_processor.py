@@ -64,6 +64,7 @@ from app.schemas.extraction import (
     ReceiptTotalMismatchWarning,
 )
 from app.schemas.shared import quantize_amount
+from app.services.item_normalization import normalize_receipt_items
 
 configure_logging(service_name="worker")
 logger = logging.getLogger(__name__)
@@ -724,6 +725,12 @@ def process_receipt(receipt_id: str) -> None:
                     update={"warnings": [*extracted.warnings, *computed_warnings]}
                 )
 
+            normalization_result = normalize_receipt_items(
+                receipt_id=receipt_id,
+                attempt=receipt.processing_attempt,
+                extracted=extracted,
+            )
+
             # --- Save ReceiptExtraction --------------------------------------
             extraction = ReceiptExtraction(
                 receipt_id=receipt.id,
@@ -785,12 +792,59 @@ def process_receipt(receipt_id: str) -> None:
             session.refresh(transaction)
 
             # --- Create TransactionItems -------------------------------------
-            for line_no, item, cat_id in resolved_items:
+            for item_index, (line_no, item, cat_id) in enumerate(resolved_items):
+                normalized_item = (
+                    normalization_result.items[item_index]
+                    if normalization_result.succeeded
+                    and item_index < len(normalization_result.items)
+                    else None
+                )
+                normalization_warnings = (
+                    normalized_item.warnings
+                    if normalized_item is not None and normalized_item.warnings
+                    else normalization_result.warnings
+                )
                 ti = TransactionItem(
                     transaction_id=transaction.id,
                     line_no=line_no,
                     description=item.description,
                     description_lang=extracted.receipt_language,
+                    raw_name=item.description,
+                    translatable_name=(
+                        normalized_item.translatable_name if normalized_item is not None else None
+                    ),
+                    expanded_name=normalized_item.expanded_name
+                    if normalized_item is not None
+                    else None,
+                    normalized_display_name=(
+                        normalized_item.normalized_display_name
+                        if normalized_item is not None
+                        else None
+                    ),
+                    normalization_base_language=normalization_result.normalization_base_language,
+                    brand_name=normalized_item.brand_name if normalized_item is not None else None,
+                    product_type=normalized_item.product_type
+                    if normalized_item is not None
+                    else None,
+                    category_hint=normalized_item.category_hint
+                    if normalized_item is not None
+                    else None,
+                    item_attributes_json=(
+                        normalized_item.attributes.compact_dump()
+                        if normalized_item is not None
+                        else None
+                    ),
+                    preserve_terms_json=(
+                        normalized_item.preserve_terms
+                        if normalized_item is not None and normalized_item.preserve_terms
+                        else None
+                    ),
+                    normalization_source=normalization_result.source,
+                    normalization_status=normalization_result.status,
+                    normalization_confidence=(
+                        normalized_item.confidence if normalized_item is not None else None
+                    ),
+                    normalization_warnings_json=normalization_warnings or None,
                     qty=item.qty,
                     unit=item.unit,
                     unit_price=item.unit_price,
