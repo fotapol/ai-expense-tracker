@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 
 import '../core/api_client.dart';
+import '../core/item_name_display.dart';
 import '../core/item_translation_preferences.dart';
 import '../core/item_translation_service.dart';
 import '../core/money_formatter.dart';
@@ -71,14 +72,16 @@ class _AnalyticsSubcategoryItemsScreenState
       final description = _normalizeText(item['description']?.toString());
       if (description.isEmpty) continue;
 
-      var sourceLanguage = _normalizeLanguageCode(
-        item['description_lang']?.toString(),
-      );
-      if (sourceLanguage.isEmpty) {
-        sourceLanguage = _normalizeLanguageCode(
-          item['translation_source_language']?.toString(),
-        );
+      final translationSource =
+          ItemNameDisplayResolver.preferredTranslationSource(
+            item: item,
+            currentDescription: description,
+          );
+      if (translationSource == null || translationSource.text.isEmpty) {
+        continue;
       }
+
+      var sourceLanguage = _normalizeLanguageCode(translationSource.language);
       sourceLanguage =
           itemTranslationPreferences.resolveSourceLanguage(
             sourceLanguage,
@@ -88,6 +91,9 @@ class _AnalyticsSubcategoryItemsScreenState
       final translated = _normalizeText(
         item['translated_description']?.toString(),
       );
+      final existingSourceText = _normalizeText(
+        item['translation_source_text']?.toString(),
+      );
       final shouldRefreshExistingTranslation =
           ItemTranslationService.shouldRetranslate(
             translatedText: translated,
@@ -96,11 +102,13 @@ class _AnalyticsSubcategoryItemsScreenState
             translatedSourceLanguage: item['translation_source_language']
                 ?.toString(),
             translatedTargetLanguage: item['translation_language']?.toString(),
-          );
+          ) ||
+          existingSourceText.toLowerCase() !=
+              translationSource.text.toLowerCase();
       if (!shouldRefreshExistingTranslation) continue;
 
       final result = await ItemTranslationService.instance.translate(
-        sourceText: description,
+        sourceText: translationSource.text,
         sourceLanguage: sourceLanguage.isNotEmpty ? sourceLanguage : null,
         targetLanguage: targetLanguage,
         forceRefresh: shouldRefreshExistingTranslation,
@@ -111,7 +119,9 @@ class _AnalyticsSubcategoryItemsScreenState
         item['translated_description'] = result.translatedText;
         item['translation_language'] = result.targetLanguage;
         item['translation_source_language'] = result.sourceLanguage;
-        if ((item['description_lang']?.toString().trim().isEmpty ?? true)) {
+        item['translation_source_text'] = translationSource.text;
+        if (!translationSource.usesNormalizedName &&
+            (item['description_lang']?.toString().trim().isEmpty ?? true)) {
           item['description_lang'] = result.sourceLanguage;
         }
       });
@@ -362,15 +372,11 @@ class _AnalyticsSubcategoryItemsScreenState
             final name =
                 item['description']?.toString() ??
                 context.tr('analytics_unknown_item');
-            final translatedName = _normalizeText(
-              item['translated_description']?.toString(),
-            );
-            final hasTranslatedName =
-                ItemTranslationService.shouldShowTranslatedText(
-                  translationEnabled: true,
-                  originalText: name,
-                  translatedText: translatedName,
-                );
+            final displayName = ItemNameDisplayResolver.resolve(
+              item: item,
+              currentDescription: name,
+              translationEnabled: true,
+            ).primaryText;
             final amount = (item['amount'] as num?)?.toDouble() ?? 0.0;
             final occurrences = (item['occurrences'] as num?)?.toInt() ?? 0;
             final totalQty = (item['total_qty'] as num?)?.toDouble();
@@ -408,7 +414,9 @@ class _AnalyticsSubcategoryItemsScreenState
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          name,
+                          displayName.isEmpty
+                              ? context.tr('analytics_unknown_item')
+                              : displayName,
                           style: TextStyle(
                             color: ShellStyles.textPrimary(context),
                             fontSize: 15,
@@ -417,18 +425,6 @@ class _AnalyticsSubcategoryItemsScreenState
                           maxLines: 2,
                           overflow: TextOverflow.ellipsis,
                         ),
-                        if (hasTranslatedName) ...[
-                          const SizedBox(height: 3),
-                          Text(
-                            translatedName,
-                            style: TextStyle(
-                              fontSize: 12,
-                              color: ShellStyles.textMuted(context),
-                            ),
-                            maxLines: 2,
-                            overflow: TextOverflow.ellipsis,
-                          ),
-                        ],
                         const SizedBox(height: 4),
                         Text(
                           details,

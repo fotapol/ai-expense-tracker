@@ -198,7 +198,9 @@ def _load_translation_lookup(
     if not target_language or not source_entries:
         return {}
 
-    normalized_texts = {normalized_source_text_key(text) for text, _ in source_entries if text.strip()}
+    normalized_texts = {
+        normalized_source_text_key(text) for text, _ in source_entries if text.strip()
+    }
     source_languages = {normalize_language_code(lang) for _, lang in source_entries if lang.strip()}
     if not normalized_texts or not source_languages:
         return {}
@@ -218,6 +220,65 @@ def _load_translation_lookup(
     }
 
 
+def _normalized_item_name_text(value: str | None, *, casefold: bool = False) -> str:
+    normalized = " ".join((value or "").strip().split())
+    return normalized.casefold() if casefold else normalized
+
+
+def _item_description_user_edited_values(
+    *,
+    description: str | None,
+    raw_name: str | None,
+) -> bool:
+    if raw_name is None:
+        return False
+    normalized_raw_name = _normalized_item_name_text(raw_name, casefold=True)
+    normalized_description = _normalized_item_name_text(description, casefold=True)
+    if not normalized_raw_name or not normalized_description:
+        return False
+    return normalized_raw_name != normalized_description
+
+
+def _preferred_item_translation_source_values(
+    *,
+    description: str | None,
+    description_lang: str | None,
+    raw_name: str | None,
+    translatable_name: str | None,
+    normalization_base_language: str | None,
+) -> tuple[str, str] | None:
+    if _item_description_user_edited_values(description=description, raw_name=raw_name):
+        if description_lang is None or not description_lang.strip():
+            return None
+        return (_normalized_item_name_text(description), normalize_language_code(description_lang))
+
+    if translatable_name and normalization_base_language:
+        source_language = normalize_language_code(normalization_base_language)
+        if source_language:
+            return (_normalized_item_name_text(translatable_name), source_language)
+
+    if description_lang is None or not description_lang.strip():
+        return None
+    return (_normalized_item_name_text(description), normalize_language_code(description_lang))
+
+
+def _item_description_user_edited(item: TransactionItemRead) -> bool:
+    return _item_description_user_edited_values(
+        description=item.description,
+        raw_name=item.raw_name,
+    )
+
+
+def _preferred_item_translation_source(item: TransactionItemRead) -> tuple[str, str] | None:
+    return _preferred_item_translation_source_values(
+        description=item.description,
+        description_lang=item.description_lang,
+        raw_name=item.raw_name,
+        translatable_name=item.translatable_name,
+        normalization_base_language=item.normalization_base_language,
+    )
+
+
 def _enrich_transaction_items_with_translations(
     *,
     items: list[TransactionItemRead],
@@ -228,14 +289,16 @@ def _enrich_transaction_items_with_translations(
         item.translated_description = None
         item.translation_language = None
         item.translation_source_language = None
+        item.translation_source_text = None
         if not target_language:
             continue
-        if item.description_lang is None or not item.description_lang.strip():
+        source_entry = _preferred_item_translation_source(item)
+        if source_entry is None:
             continue
 
-        source_language = normalize_language_code(item.description_lang)
+        source_text, source_language = source_entry
         key = (
-            normalized_source_text_key(item.description),
+            normalized_source_text_key(source_text),
             source_language,
             target_language,
         )
@@ -246,6 +309,7 @@ def _enrich_transaction_items_with_translations(
         item.translated_description = translated
         item.translation_language = target_language
         item.translation_source_language = source_language
+        item.translation_source_text = source_text
 
 
 def _get_user_visible_item_categories(session: Session, current_user: User) -> list[Category]:
@@ -329,9 +393,7 @@ def _get_or_create_global_category(
         # Only write if something actually changed to avoid unnecessary DB I/O
         # on every transaction creation (M-7 fix).
         needs_update = (
-            category.name != name
-            or category.parent_id != parent_id
-            or not category.is_active
+            category.name != name or category.parent_id != parent_id or not category.is_active
         )
         if needs_update:
             category.name = name
@@ -379,9 +441,7 @@ def _resolve_transaction_category_from_item_category(
     if item_category_id is None:
         return None
 
-    category = session.exec(
-        select(Category).where(Category.id == item_category_id)
-    ).first()
+    category = session.exec(select(Category).where(Category.id == item_category_id)).first()
     if category is None:
         return None
 
@@ -389,9 +449,7 @@ def _resolve_transaction_category_from_item_category(
     visited: set[uuid.UUID] = set()
     while top_level.parent_id is not None and top_level.parent_id not in visited:
         visited.add(top_level.id)
-        parent = session.exec(
-            select(Category).where(Category.id == top_level.parent_id)
-        ).first()
+        parent = session.exec(select(Category).where(Category.id == top_level.parent_id)).first()
         if parent is None:
             break
         top_level = parent
@@ -878,7 +936,9 @@ def _convert_analytics_amount(
     return converted.value if converted.value is not None else quantize_amount(raw_amount)
 
 
-def _extract_warnings_from_structured_json(structured_json: dict[str, Any] | None) -> list[ExtractionWarning]:
+def _extract_warnings_from_structured_json(
+    structured_json: dict[str, Any] | None,
+) -> list[ExtractionWarning]:
     if not isinstance(structured_json, dict):
         return []
     raw_warnings = structured_json.get("warnings")
@@ -1110,9 +1170,11 @@ def _build_transaction_read(
     loaded_items = items
     if loaded_items is None:
         loaded_items = session.exec(
-            select(TransactionItem).where(
+            select(TransactionItem)
+            .where(
                 TransactionItem.transaction_id == transaction.id,
-            ).order_by(TransactionItem.line_no)
+            )
+            .order_by(TransactionItem.line_no)
         ).all()
 
     read = TransactionRead.model_validate(transaction)
@@ -1127,9 +1189,9 @@ def _build_transaction_read(
         current_user=current_user,
         target_language=effective_item_language,
         source_entries=[
-            (item.description, item.description_lang)
+            source_entry
             for item in read.items
-            if item.description_lang is not None
+            if (source_entry := _preferred_item_translation_source(item)) is not None
         ],
     )
     _enrich_transaction_items_with_translations(
@@ -1138,9 +1200,7 @@ def _build_transaction_read(
         lookup=translation_lookup,
     )
     read.category_name = (
-        session.exec(
-            select(Category.name).where(Category.id == transaction.category_id)
-        ).first()
+        session.exec(select(Category.name).where(Category.id == transaction.category_id)).first()
         if transaction.category_id is not None
         else None
     )
@@ -1237,9 +1297,7 @@ async def create_transaction(
                 {
                     "line_no": index,
                     "description": (
-                        item_data.description
-                        or payload.merchant_name
-                        or "Manual entry"
+                        item_data.description or payload.merchant_name or "Manual entry"
                     ),
                     "description_lang": item_data.description_lang,
                     "qty": item_data.qty,
@@ -1252,8 +1310,10 @@ async def create_transaction(
                     "category_id": resolved_category_id,
                 }
             )
-    primary_item_category_id = selected_item_category.id if selected_item_category is not None else (
-        item_rows[0]["category_id"] if item_rows else None
+    primary_item_category_id = (
+        selected_item_category.id
+        if selected_item_category is not None
+        else (item_rows[0]["category_id"] if item_rows else None)
     )
     transaction = Transaction(
         user_id=current_user.id,
@@ -1266,7 +1326,9 @@ async def create_transaction(
         category_id=_resolve_transaction_category_from_item_category(
             session,
             item_category_id=primary_item_category_id,
-        ) if primary_item_category_id is not None else None,
+        )
+        if primary_item_category_id is not None
+        else None,
         source=TransactionSource.MANUAL,
         status=payload.status,
         household_id=household_id,
@@ -1307,6 +1369,7 @@ async def create_transaction(
         app_language=app_language,
     )
 
+
 @router.get("/transactions", response_model=list[TransactionRead])
 @limiter.limit("60/minute")
 async def list_transactions(
@@ -1327,7 +1390,9 @@ async def list_transactions(
         query = query.where(Transaction.occurred_at <= filters.to_occurred_at)
     if filters.merchant_id:
         query = query.where(Transaction.merchant_id == filters.merchant_id)
-    category_predicate = _build_category_filter_predicate(session, current_user, filters.category_ids)
+    category_predicate = _build_category_filter_predicate(
+        session, current_user, filters.category_ids
+    )
     if category_predicate is not None:
         query = query.where(category_predicate)
     subcategory_predicate = _build_subcategory_filter_predicate(
@@ -1363,13 +1428,13 @@ async def list_transactions(
     query = query.offset(filters.offset).limit(filters.page_size)
 
     transactions = session.exec(query).all()
-    
-    # We could optionally eagerly load or fetch items here, but a list view 
+
+    # We could optionally eagerly load or fetch items here, but a list view
     # typically doesn't need every internal item payload.
     # To keep `TransactionRead` happy, an empty list defaults or we can fetch them.
     # We will fetch them simply to comply with the existing response model
     results = []
-    if transactions: # Only fetch items if transactions exist to save an empty query
+    if transactions:  # Only fetch items if transactions exist to save an empty query
         transaction_ids = [t.id for t in transactions]
         receipt_ids = [t.receipt_id for t in transactions if t.receipt_id is not None]
         category_ids = [t.category_id for t in transactions if t.category_id is not None]
@@ -1389,15 +1454,42 @@ async def list_transactions(
             session,
             receipt_ids=receipt_ids,
         )
-        
+
+        effective_item_language = _resolve_item_language(
+            item_language=filters.item_language,
+            app_language=filters.app_language,
+            current_user=current_user,
+        )
         items_by_tx = {}
         for item in items:
             items_by_tx.setdefault(item.transaction_id, []).append(item)
-            
+
+        read_items_by_tx: dict[uuid.UUID, list[TransactionItemRead]] = {}
+        for transaction_id, tx_items in items_by_tx.items():
+            read_items_by_tx[transaction_id] = [
+                TransactionItemRead.model_validate(item)
+                for item in sorted(tx_items, key=lambda row: row.line_no)
+            ]
+        translation_lookup = _load_translation_lookup(
+            session,
+            current_user=current_user,
+            target_language=effective_item_language,
+            source_entries=[
+                source_entry
+                for tx_items in read_items_by_tx.values()
+                for item in tx_items
+                if (source_entry := _preferred_item_translation_source(item)) is not None
+            ],
+        )
+
         for t in transactions:
             read = TransactionRead.model_validate(t)
-            tx_items = items_by_tx.get(t.id, [])
-            read.items = [TransactionItemRead.model_validate(i) for i in sorted(tx_items, key=lambda x: x.line_no)]
+            read.items = read_items_by_tx.get(t.id, [])
+            _enrich_transaction_items_with_translations(
+                items=read.items,
+                target_language=effective_item_language,
+                lookup=translation_lookup,
+            )
             read.labels = labels_by_tx.get(t.id, [])
             read.category_name = (
                 category_names_by_id.get(t.category_id) if t.category_id is not None else None
@@ -1492,7 +1584,9 @@ async def get_transactions_summary(
                 session=session,
                 quantizer=quantize_amount,
             )
-            total_amount += converted.value if converted.value is not None else quantize_amount(amount)
+            total_amount += (
+                converted.value if converted.value is not None else quantize_amount(amount)
+            )
         total_transactions = len(tx_ids)
     else:
         transaction_rows = session.exec(
@@ -1574,7 +1668,11 @@ async def get_transactions_summary(
         category_results[cat_id]["transaction_ids"].add(tx_id)
 
     # Pre-fetch all parent categories to get their names and codes if we need to roll up
-    parent_ids = {cat_data["parent_id"] for cat_data in category_results.values() if cat_data["parent_id"] is not None}
+    parent_ids = {
+        cat_data["parent_id"]
+        for cat_data in category_results.values()
+        if cat_data["parent_id"] is not None
+    }
 
     parent_map = {}
     if parent_ids:
@@ -1613,21 +1711,25 @@ async def get_transactions_summary(
                 "item_count": 0,
             }
         rolled_up_totals[target_id]["amount"] = rolled_up_totals[target_id]["amount"] + cat_total
-        rolled_up_totals[target_id]["item_count"] = rolled_up_totals[target_id]["item_count"] + int(item_count or 0)
+        rolled_up_totals[target_id]["item_count"] = rolled_up_totals[target_id]["item_count"] + int(
+            item_count or 0
+        )
 
     categories_breakdown = []
     for cat_id, data in rolled_up_totals.items():
         amt: Decimal = data["amount"]
         percentage = (amt / total_amount * 100) if total_amount > 0 else Decimal("0")
-        categories_breakdown.append({
-            "category_id": cat_id,
-            "name": data["name"],
-            "code": data["code"],
-            "color": data.get("color"),
-            "amount": float(data["amount"]),
-            "percentage": float(percentage),
-            "item_count": data["item_count"],
-        })
+        categories_breakdown.append(
+            {
+                "category_id": cat_id,
+                "name": data["name"],
+                "code": data["code"],
+                "color": data.get("color"),
+                "amount": float(data["amount"]),
+                "percentage": float(percentage),
+                "item_count": data["item_count"],
+            }
+        )
 
     # Re-sort by amount descending since the rollup might have changed the order
     categories_breakdown.sort(key=lambda x: x["amount"], reverse=True)
@@ -1690,8 +1792,7 @@ async def get_transactions_summary(
             Transaction.currency,
             Transaction.occurred_at,
             Transaction.created_at,
-        )
-        .join(Transaction, Transaction.id == item_scope_subquery.c.transaction_id)
+        ).join(Transaction, Transaction.id == item_scope_subquery.c.transaction_id)
     ).all()
 
     total_savings = Decimal("0")
@@ -1711,11 +1812,20 @@ async def get_transactions_summary(
         tx_created_at,
     ) in discount_rows:
         effective_discount = discount_amount
-        if effective_discount is None and amount_before_discount is not None and line_amount is not None:
+        if (
+            effective_discount is None
+            and amount_before_discount is not None
+            and line_amount is not None
+        ):
             derived_discount = quantize_amount(amount_before_discount - line_amount)
             if derived_discount > 0:
                 effective_discount = derived_discount
-        if effective_discount is None and qty is not None and unit_price is not None and line_amount is not None:
+        if (
+            effective_discount is None
+            and qty is not None
+            and unit_price is not None
+            and line_amount is not None
+        ):
             derived_discount = quantize_amount((qty * unit_price) - line_amount)
             if derived_discount > 0:
                 effective_discount = derived_discount
@@ -1737,9 +1847,7 @@ async def get_transactions_summary(
             quantizer=quantize_amount,
         )
         converted_discount_value = (
-            converted_discount.value
-            if converted_discount.value is not None
-            else discount_abs
+            converted_discount.value if converted_discount.value is not None else discount_abs
         )
         total_savings += converted_discount_value
 
@@ -1935,9 +2043,7 @@ async def get_transaction_trend_summary(
         bucket_unit=bucket_unit,  # type: ignore[arg-type]
         current_total_amount=quantize_amount(current_total_amount),
         previous_total_amount=(
-            quantize_amount(previous_total_amount)
-            if previous_total_amount is not None
-            else None
+            quantize_amount(previous_total_amount) if previous_total_amount is not None else None
         ),
         change_percentage=change_percentage,
         buckets=[
@@ -1974,9 +2080,7 @@ async def get_household_analytics_summary(
             members=[],
         )
 
-    household = session.exec(
-        select(Household).where(Household.id == active_household_id)
-    ).first()
+    household = session.exec(select(Household).where(Household.id == active_household_id)).first()
     if household is None:
         return AnalyticsHouseholdSummaryRead(
             household=None,
@@ -2069,10 +2173,7 @@ async def get_household_analytics_summary(
     parent_map: dict[uuid.UUID, dict[str, Any]] = {}
     if parent_ids:
         parents = session.exec(select(Category).where(Category.id.in_(parent_ids))).all()
-        parent_map = {
-            parent.id: {"name": parent.name, "code": parent.code}
-            for parent in parents
-        }
+        parent_map = {parent.id: {"name": parent.name, "code": parent.code} for parent in parents}
 
     top_categories_by_owner: dict[uuid.UUID, dict[uuid.UUID, dict[str, Any]]] = defaultdict(dict)
     for (
@@ -2231,12 +2332,18 @@ async def get_category_subcategory_summary(
             Transaction.currency,
             Transaction.occurred_at,
             Transaction.created_at,
-        )
-        .join(Transaction, Transaction.id == item_scope_subquery.c.transaction_id)
+        ).join(Transaction, Transaction.id == item_scope_subquery.c.transaction_id)
     ).all()
 
     rolled_up_subcategories: dict[uuid.UUID, dict] = {}
-    for raw_category_id, amount, _tx_id, tx_currency, tx_occurred_at, tx_created_at in category_rows:
+    for (
+        raw_category_id,
+        amount,
+        _tx_id,
+        tx_currency,
+        tx_occurred_at,
+        tx_created_at,
+    ) in category_rows:
         converted = convert_amount(
             amount=amount,
             base_currency=tx_currency,
@@ -2245,7 +2352,9 @@ async def get_category_subcategory_summary(
             session=session,
             quantizer=quantize_amount,
         )
-        converted_amount = converted.value if converted.value is not None else quantize_amount(amount)
+        converted_amount = (
+            converted.value if converted.value is not None else quantize_amount(amount)
+        )
         direct_child = _resolve_direct_child_under_top_level(
             category_id=raw_category_id,
             top_level_id=top_level_category.id,
@@ -2272,9 +2381,7 @@ async def get_category_subcategory_summary(
     subcategories = []
     for subcategory_id, data in rolled_up_subcategories.items():
         percentage = (
-            (data["amount"] / rolled_up_total * 100)
-            if rolled_up_total > 0
-            else Decimal("0")
+            (data["amount"] / rolled_up_total * 100) if rolled_up_total > 0 else Decimal("0")
         )
         subcategories.append(
             {
@@ -2358,14 +2465,18 @@ async def get_subcategory_item_summary(
         select(
             item_scope_subquery.c.description,
             item_scope_subquery.c.description_lang,
+            item_scope_subquery.c.raw_name,
+            item_scope_subquery.c.translatable_name,
+            item_scope_subquery.c.expanded_name,
+            item_scope_subquery.c.normalized_display_name,
+            item_scope_subquery.c.normalization_base_language,
             item_scope_subquery.c.amount,
             item_scope_subquery.c.qty,
             item_scope_subquery.c.unit,
             Transaction.currency,
             Transaction.occurred_at,
             Transaction.created_at,
-        )
-        .join(Transaction, Transaction.id == item_scope_subquery.c.transaction_id)
+        ).join(Transaction, Transaction.id == item_scope_subquery.c.transaction_id)
     ).all()
 
     total_amount = Decimal("0")
@@ -2373,6 +2484,11 @@ async def get_subcategory_item_summary(
     for (
         description,
         description_lang,
+        raw_name,
+        translatable_name,
+        expanded_name,
+        normalized_display_name,
+        normalization_base_language,
         amount,
         qty,
         unit,
@@ -2389,16 +2505,26 @@ async def get_subcategory_item_summary(
             session=session,
             quantizer=quantize_amount,
         )
-        converted_amount = converted.value if converted.value is not None else quantize_amount(amount)
+        converted_amount = (
+            converted.value if converted.value is not None else quantize_amount(amount)
+        )
         total_amount += converted_amount
 
         entry = grouped.setdefault(
-            (clean_description, normalize_language_code(description_lang) if description_lang else None),
+            (
+                clean_description,
+                normalize_language_code(description_lang) if description_lang else None,
+            ),
             {
                 "amount": Decimal("0"),
                 "occurrences": 0,
                 "total_qty": None,
                 "unit": unit,
+                "raw_name": raw_name,
+                "translatable_name": translatable_name,
+                "expanded_name": expanded_name,
+                "normalized_display_name": normalized_display_name,
+                "normalization_base_language": normalization_base_language,
             },
         )
         entry["amount"] += converted_amount
@@ -2417,9 +2543,18 @@ async def get_subcategory_item_summary(
         current_user=current_user,
         target_language=effective_item_language,
         source_entries=[
-            (description, description_lang)
-            for (description, description_lang) in grouped
-            if description_lang is not None
+            source_entry
+            for (description, description_lang), row in grouped.items()
+            if (
+                source_entry := _preferred_item_translation_source_values(
+                    description=description,
+                    description_lang=description_lang,
+                    raw_name=row.get("raw_name"),
+                    translatable_name=row.get("translatable_name"),
+                    normalization_base_language=row.get("normalization_base_language"),
+                )
+            )
+            is not None
         ],
     )
 
@@ -2430,6 +2565,11 @@ async def get_subcategory_item_summary(
         occurrences = int(row["occurrences"] or 0)
         qty_total = row["total_qty"]
         unit = row["unit"]
+        raw_name = row.get("raw_name")
+        translatable_name = row.get("translatable_name")
+        expanded_name = row.get("expanded_name")
+        normalized_display_name = row.get("normalized_display_name")
+        normalization_base_language = row.get("normalization_base_language")
         qty_value = qty_total if qty_total is not None else None
         avg_unit_price = None
         if qty_value not in (None, 0):
@@ -2438,11 +2578,19 @@ async def get_subcategory_item_summary(
         translated_description = None
         translation_language = None
         translation_source_language = None
-        if effective_item_language and description_lang:
-            source_lang = normalize_language_code(description_lang)
+        translation_source_text = None
+        source_entry = _preferred_item_translation_source_values(
+            description=description,
+            description_lang=description_lang,
+            raw_name=raw_name,
+            translatable_name=translatable_name,
+            normalization_base_language=normalization_base_language,
+        )
+        if effective_item_language and source_entry is not None:
+            source_text, source_lang = source_entry
             translated_description = translation_lookup.get(
                 (
-                    normalized_source_text_key(description),
+                    normalized_source_text_key(source_text),
                     source_lang,
                     effective_item_language,
                 )
@@ -2450,12 +2598,18 @@ async def get_subcategory_item_summary(
             if translated_description is not None:
                 translation_language = effective_item_language
                 translation_source_language = source_lang
+                translation_source_text = source_text
 
         total_item_rows += occurrences
         items.append(
             {
                 "description": description,
                 "description_lang": description_lang,
+                "raw_name": raw_name,
+                "translatable_name": translatable_name,
+                "expanded_name": expanded_name,
+                "normalized_display_name": normalized_display_name,
+                "normalization_base_language": normalization_base_language,
                 "amount": float(item_total or Decimal("0")),
                 "occurrences": occurrences,
                 "total_qty": float(qty_value) if qty_value is not None else None,
@@ -2464,6 +2618,7 @@ async def get_subcategory_item_summary(
                 "translated_description": translated_description,
                 "translation_language": translation_language,
                 "translation_source_language": translation_source_language,
+                "translation_source_text": translation_source_text,
             }
         )
     items.sort(key=lambda row: row["amount"], reverse=True)
@@ -2499,10 +2654,7 @@ async def get_transaction(
     ).first()
 
     if transaction is None:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND, 
-            detail="Transaction not found."
-        )
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Transaction not found.")
 
     return _build_transaction_read(
         session=session,
@@ -2535,10 +2687,7 @@ async def update_transaction(
     ).first()
 
     if transaction is None:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND, 
-            detail="Transaction not found."
-        )
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Transaction not found.")
 
     # Saving an edited transaction in single-user launch mode should keep it
     # solo even if the stored row still carries a legacy household_id.
@@ -2551,7 +2700,9 @@ async def update_transaction(
     validate_transaction_attribution(
         session,
         household_id=next_household_id,
-        owner_user_id=payload.owner_user_id if payload.owner_user_id is not None else transaction.owner_user_id,
+        owner_user_id=payload.owner_user_id
+        if payload.owner_user_id is not None
+        else transaction.owner_user_id,
     )
 
     # Enforce category visibility
@@ -2606,19 +2757,20 @@ async def update_transaction(
 
     # 2. Update Items if provided
     items = session.exec(
-        select(TransactionItem).where(TransactionItem.transaction_id == transaction_id)
+        select(TransactionItem)
+        .where(TransactionItem.transaction_id == transaction_id)
         .order_by(TransactionItem.line_no)
     ).all()
-    
+
     if payload.items is not None:
         # Simple reconciliation: match by ID.
         existing_items_map = {item.id: item for item in items}
         seen_existing_ids: set[uuid.UUID] = set()
-        
+
         # New list to return
         updated_items_list = []
         max_line_no: int = int(max([i.line_no for i in items] + [0]))
-        
+
         for item_data in payload.items:
             if item_data.id and item_data.id in existing_items_map:
                 # Update existing
@@ -2650,7 +2802,7 @@ async def update_transaction(
                     amount_before_discount=item_data.amount_before_discount,
                     discount_amount=item_data.discount_amount,
                     is_adjustment=item_data.is_adjustment or False,
-                    category_id=item_data.category_id, # Must be valid UUID for existing category
+                    category_id=item_data.category_id,  # Must be valid UUID for existing category
                 )
                 session.add(new_item)
                 updated_items_list.append(new_item)
@@ -2658,7 +2810,7 @@ async def update_transaction(
         omitted_ids = set(existing_items_map) - seen_existing_ids
         for omitted_id in omitted_ids:
             session.delete(existing_items_map[omitted_id])
-        
+
         # Re-fetch for response
         items = updated_items_list
 
@@ -2711,7 +2863,9 @@ async def delete_transaction(
     return None
 
 
-@router.delete("/transactions/{transaction_id}/items/{item_id}", status_code=status.HTTP_204_NO_CONTENT)
+@router.delete(
+    "/transactions/{transaction_id}/items/{item_id}", status_code=status.HTTP_204_NO_CONTENT
+)
 @limiter.limit("30/minute")
 async def delete_transaction_item(
     request: Request,
@@ -2749,7 +2903,9 @@ async def delete_transaction_item(
     session.flush()
 
     remaining_total = session.exec(
-        select(func.sum(TransactionItem.amount)).where(TransactionItem.transaction_id == transaction_id)
+        select(func.sum(TransactionItem.amount)).where(
+            TransactionItem.transaction_id == transaction_id
+        )
     ).first()
     transaction.amount_total = quantize_amount(remaining_total or Decimal("0.00"))
     session.add(transaction)

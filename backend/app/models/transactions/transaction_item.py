@@ -1,7 +1,9 @@
 import uuid
 from decimal import Decimal
+from typing import Any
 
-from sqlalchemy import Column, Numeric, String, UniqueConstraint
+from sqlalchemy import Column, Float, Numeric, String, UniqueConstraint
+from sqlalchemy.dialects.postgresql import JSONB
 from sqlmodel import Field
 
 from app.models.shared.timestamps import TimestampedModel
@@ -29,6 +31,38 @@ class TransactionItem(TimestampedModel, table=True):
 
     description: str = Field(sa_column=Column(String(500), nullable=False))
     description_lang: str | None = Field(default=None, max_length=16, index=True)
+    raw_name: str | None = Field(default=None, sa_column=Column(String(500), nullable=True))
+    translatable_name: str | None = Field(
+        default=None,
+        sa_column=Column(String(500), nullable=True),
+    )
+    expanded_name: str | None = Field(default=None, sa_column=Column(String(500), nullable=True))
+    normalized_display_name: str | None = Field(
+        default=None,
+        sa_column=Column(String(500), nullable=True),
+    )
+    normalization_base_language: str | None = Field(default="en", max_length=16)
+    brand_name: str | None = Field(default=None, sa_column=Column(String(255), nullable=True))
+    product_type: str | None = Field(default=None, sa_column=Column(String(255), nullable=True))
+    category_hint: str | None = Field(default=None, sa_column=Column(String(255), nullable=True))
+    item_attributes_json: dict[str, Any] | None = Field(
+        default=None,
+        sa_column=Column(JSONB, nullable=True),
+    )
+    preserve_terms_json: list[str] | None = Field(
+        default=None,
+        sa_column=Column(JSONB, nullable=True),
+    )
+    normalization_source: str | None = Field(default=None, max_length=32)
+    normalization_status: str | None = Field(default=None, max_length=32)
+    normalization_confidence: float | None = Field(
+        default=None,
+        sa_column=Column(Float, nullable=True),
+    )
+    normalization_warnings_json: list[str] | None = Field(
+        default=None,
+        sa_column=Column(JSONB, nullable=True),
+    )
 
     qty: Decimal | None = Field(default=None, sa_column=Column(Numeric(12, 3), nullable=True))
     unit: str | None = Field(default=None, max_length=32)

@@ -23,6 +23,7 @@ import logging
 import time
 import uuid
 from decimal import Decimal
+from urllib.parse import urlsplit, urlunsplit
 
 import aio_pika
 from sqlalchemy import case, or_
@@ -64,6 +65,7 @@ from app.schemas.extraction import (
     ReceiptTotalMismatchWarning,
 )
 from app.schemas.shared import quantize_amount
+from app.services.item_normalization import normalize_receipt_items
 
 configure_logging(service_name="worker")
 logger = logging.getLogger(__name__)
@@ -72,6 +74,16 @@ RABBITMQ_URL: str = rabbitmq_settings.RABBITMQ_URL
 QUEUE_NAME = rabbitmq_settings.RECEIPT_EXTRACTION_QUEUE_NAME
 PROCESSING_STALE_AFTER = dt.timedelta(minutes=worker_settings.PROCESSING_STALE_AFTER_MINUTES)
 MAX_RETRIES = worker_settings.MAX_RETRIES
+
+
+def _redact_url_credentials(raw_url: str) -> str:
+    parsed = urlsplit(raw_url)
+    if not parsed.username and not parsed.password:
+        return raw_url
+    host = parsed.hostname or ""
+    if parsed.port is not None:
+        host = f"{host}:{parsed.port}"
+    return urlunsplit((parsed.scheme, host, parsed.path, parsed.query, parsed.fragment))
 
 
 # ---------------------------------------------------------------------------
@@ -724,6 +736,12 @@ def process_receipt(receipt_id: str) -> None:
                     update={"warnings": [*extracted.warnings, *computed_warnings]}
                 )
 
+            normalization_result = normalize_receipt_items(
+                receipt_id=receipt_id,
+                attempt=receipt.processing_attempt,
+                extracted=extracted,
+            )
+
             # --- Save ReceiptExtraction --------------------------------------
             extraction = ReceiptExtraction(
                 receipt_id=receipt.id,
@@ -785,12 +803,59 @@ def process_receipt(receipt_id: str) -> None:
             session.refresh(transaction)
 
             # --- Create TransactionItems -------------------------------------
-            for line_no, item, cat_id in resolved_items:
+            for item_index, (line_no, item, cat_id) in enumerate(resolved_items):
+                normalized_item = (
+                    normalization_result.items[item_index]
+                    if normalization_result.succeeded
+                    and item_index < len(normalization_result.items)
+                    else None
+                )
+                normalization_warnings = (
+                    normalized_item.warnings
+                    if normalized_item is not None and normalized_item.warnings
+                    else normalization_result.warnings
+                )
                 ti = TransactionItem(
                     transaction_id=transaction.id,
                     line_no=line_no,
                     description=item.description,
                     description_lang=extracted.receipt_language,
+                    raw_name=item.description,
+                    translatable_name=(
+                        normalized_item.translatable_name if normalized_item is not None else None
+                    ),
+                    expanded_name=normalized_item.expanded_name
+                    if normalized_item is not None
+                    else None,
+                    normalized_display_name=(
+                        normalized_item.normalized_display_name
+                        if normalized_item is not None
+                        else None
+                    ),
+                    normalization_base_language=normalization_result.normalization_base_language,
+                    brand_name=normalized_item.brand_name if normalized_item is not None else None,
+                    product_type=normalized_item.product_type
+                    if normalized_item is not None
+                    else None,
+                    category_hint=normalized_item.category_hint
+                    if normalized_item is not None
+                    else None,
+                    item_attributes_json=(
+                        normalized_item.attributes.compact_dump()
+                        if normalized_item is not None
+                        else None
+                    ),
+                    preserve_terms_json=(
+                        normalized_item.preserve_terms
+                        if normalized_item is not None and normalized_item.preserve_terms
+                        else None
+                    ),
+                    normalization_source=normalization_result.source,
+                    normalization_status=normalization_result.status,
+                    normalization_confidence=(
+                        normalized_item.confidence if normalized_item is not None else None
+                    ),
+                    normalization_warnings_json=normalization_warnings or None,
                     qty=item.qty,
                     unit=item.unit,
                     unit_price=item.unit_price,
@@ -891,7 +956,7 @@ async def main() -> None:
     set_worker_dependency_health(dependency="s3", is_up=True)
     set_worker_dependency_health(dependency="database", is_up=check_database_health())
 
-    logger.info("Connecting to RabbitMQ at %s ...", RABBITMQ_URL)
+    logger.info("Connecting to RabbitMQ at %s ...", _redact_url_credentials(RABBITMQ_URL))
     connection = await aio_pika.connect_robust(RABBITMQ_URL)
     set_worker_dependency_health(dependency="rabbitmq", is_up=True)
     channel = await connection.channel()
@@ -902,21 +967,39 @@ async def main() -> None:
 
     async with queue.iterator() as queue_iter:
         async for message in queue_iter:
-            async with message.process():
-                try:
-                    body = json.loads(message.body.decode())
-                    receipt_id = body["receipt_id"]
-                    logger.info("Received job for receipt %s.", receipt_id)
-                    # Run the blocking processing in a thread
-                    await asyncio.to_thread(process_receipt, receipt_id)
-                except Exception:
-                    logger.exception(
-                        "Error handling worker message.",
-                        extra={
-                            "service": "worker",
-                            "event": "worker_message_failed",
-                        },
-                    )
+            await _handle_worker_message(message)
+
+
+async def _handle_worker_message(message) -> None:
+    """Process one queue message while preserving RabbitMQ retry semantics."""
+
+    try:
+        body = json.loads(message.body.decode())
+        receipt_id = body["receipt_id"]
+    except (KeyError, TypeError, UnicodeDecodeError, json.JSONDecodeError):
+        async with message.process(requeue=False):
+            logger.exception(
+                "Invalid worker message payload.",
+                extra={
+                    "service": "worker",
+                    "event": "worker_message_invalid",
+                },
+            )
+        return
+
+    try:
+        async with message.process(requeue=True):
+            logger.info("Received job for receipt %s.", receipt_id)
+            # Run the blocking processing in a thread.
+            await asyncio.to_thread(process_receipt, receipt_id)
+    except Exception:
+        logger.exception(
+            "Error handling worker message.",
+            extra={
+                "service": "worker",
+                "event": "worker_message_failed",
+            },
+        )
 
 
 if __name__ == "__main__":
