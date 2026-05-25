@@ -86,7 +86,7 @@ def _host_without_port(raw: str) -> str:
     if not cleaned:
         return ""
     if cleaned.startswith("[") and "]" in cleaned:
-        return cleaned[1:cleaned.index("]")]
+        return cleaned[1 : cleaned.index("]")]
     if cleaned.count(":") == 1:
         return cleaned.rsplit(":", 1)[0]
     return cleaned
@@ -286,6 +286,20 @@ class LLMSettings:
         raise AttributeError(name)
 
 
+class ItemNormalizationSettings:
+    def __getattr__(self, name: str):
+        if name == "ITEM_NORMALIZATION_ENABLED":
+            return _bool_env("ITEM_NORMALIZATION_ENABLED", True)
+        if name == "ITEM_NORMALIZATION_MAX_ITEMS":
+            return max(1, _int_env("ITEM_NORMALIZATION_MAX_ITEMS", 80))
+        if name == "ITEM_NORMALIZATION_TIMEOUT_SECONDS":
+            return max(1.0, _float_env("ITEM_NORMALIZATION_TIMEOUT_SECONDS", 20.0))
+        if name == "NORMALIZATION_BASE_LANGUAGE":
+            normalized = _env("ITEM_NORMALIZATION_BASE_LANGUAGE", "en").lower()
+            return normalized or "en"
+        raise AttributeError(name)
+
+
 class WorkerSettings:
     def __getattr__(self, name: str):
         if name == "PROCESSING_STALE_AFTER_MINUTES":
@@ -398,6 +412,7 @@ redis_settings = RedisSettings()
 rabbitmq_settings = RabbitMQSettings()
 s3_settings = S3Settings()
 llm_settings = LLMSettings()
+item_normalization_settings = ItemNormalizationSettings()
 worker_settings = WorkerSettings()
 firebase_settings = FirebaseSettings()
 billing_settings = BillingSettings()

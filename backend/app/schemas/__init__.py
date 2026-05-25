@@ -23,6 +23,11 @@ from app.schemas.feature_requests import (
     InternalFeatureRequestRead,
     InternalFeatureRequestUpdateRequest,
 )
+from app.schemas.item_normalization import (
+    NormalizedReceiptItem,
+    NormalizedReceiptItemAttributes,
+    NormalizedReceiptItemsResponse,
+)
 from app.schemas.labels import LabelAssignRequest, LabelCreateRequest, LabelRead
 from app.schemas.merchants import MerchantAliasCreate, MerchantAliasRead, MerchantRead
 from app.schemas.overrides import (
@@ -130,6 +135,9 @@ __all__ = [
     "MerchantAliasCreate",
     "MerchantAliasRead",
     "MerchantRead",
+    "NormalizedReceiptItem",
+    "NormalizedReceiptItemAttributes",
+    "NormalizedReceiptItemsResponse",
     "PaginatedResponse",
     "PaginationParams",
     "ProfileCreate",

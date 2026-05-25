@@ -6,35 +6,53 @@ import 'package:image_picker/image_picker.dart';
 
 import '../core/api_client.dart';
 import '../core/launch_error_copy.dart';
+import '../core/receipt_document_scanner.dart';
+import '../core/receipt_image_selection.dart';
 import '../core/receipt_upload_flow.dart';
 import '../core/redesign_system.dart';
 import '../core/session_invalidation.dart';
 import '../l10n/app_localizations.dart';
 import 'transaction_edit_screen.dart';
 
-enum _ReceiptPickSource { camera, gallery }
-
 /// Receipt upload screen implementing the full presigned-URL upload flow:
 /// pick image -> create receipt -> PUT to storage -> confirm -> poll until done.
 class ReceiptUploadScreen extends StatefulWidget {
-  const ReceiptUploadScreen({super.key});
+  const ReceiptUploadScreen({super.key, this.initialSelection, this.scanner});
+
+  final ReceiptImageSelection? initialSelection;
+  final ReceiptScanner? scanner;
 
   @override
   State<ReceiptUploadScreen> createState() => _ReceiptUploadScreenState();
 }
 
 class _ReceiptUploadScreenState extends State<ReceiptUploadScreen> {
-  XFile? _pickedFile;
+  ReceiptImageSelection? _selection;
   String _status = 'idle'; // idle | uploading | processing | failed
   String? _receiptId;
   String? _error;
   double _progress = 0;
   int _processingPollAttempts = 0;
-  _ReceiptPickSource? _lastPickSource;
 
   final ImagePicker _picker = ImagePicker();
+  late final ReceiptScanner _scanner;
 
   bool get _isBusy => _status == 'uploading' || _status == 'processing';
+
+  @override
+  void initState() {
+    super.initState();
+    _selection = widget.initialSelection;
+    _scanner = widget.scanner ?? ReceiptDocumentScannerService();
+  }
+
+  @override
+  void dispose() {
+    if (!_isBusy) {
+      unawaited(_cleanupSelectionFiles(_selection));
+    }
+    super.dispose();
+  }
 
   String _friendlyUploadError(Object error) {
     return friendlyLaunchErrorMessage(
@@ -142,24 +160,60 @@ class _ReceiptUploadScreenState extends State<ReceiptUploadScreen> {
     );
   }
 
-  Future<void> _pickImage(ImageSource source) async {
+  Future<void> _cleanupSelectionFiles(ReceiptImageSelection? selection) {
+    return deleteReceiptTemporaryFiles(
+      selection?.ownedTemporaryPaths ?? const <String>[],
+    );
+  }
+
+  void _replaceSelection(ReceiptImageSelection selection) {
+    final previousSelection = _selection;
+    setState(() {
+      _selection = selection;
+      _status = 'idle';
+      _error = null;
+      _progress = 0;
+      _processingPollAttempts = 0;
+    });
+    unawaited(_cleanupSelectionFiles(previousSelection));
+  }
+
+  Future<void> _scanReceipt() async {
+    if (_isBusy) return;
+
+    try {
+      final variants = await _scanner.scanReceipt();
+      if (variants == null || !mounted) return;
+      _replaceSelection(ReceiptImageSelection.fromScan(variants));
+    } on ReceiptScannerUnavailableException {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(context.tr('upload_scanner_unavailable'))),
+      );
+    } catch (_) {
+      if (!mounted) return;
+      setState(() {
+        _error = context.tr('upload_scanner_failed');
+      });
+    }
+  }
+
+  Future<void> _pickGalleryImage() async {
     try {
       final file = await _picker.pickImage(
-        source: source,
+        source: ImageSource.gallery,
         imageQuality: 90,
-        preferredCameraDevice: CameraDevice.rear,
       );
       if (file != null) {
-        setState(() {
-          _pickedFile = file;
-          _status = 'idle';
-          _error = null;
-          _progress = 0;
-          _processingPollAttempts = 0;
-          _lastPickSource = source == ImageSource.camera
-              ? _ReceiptPickSource.camera
-              : _ReceiptPickSource.gallery;
-        });
+        final fileSizeBytes = await file.length();
+        _replaceSelection(
+          ReceiptImageSelection.fromPickedImage(
+            imagePath: file.path,
+            originalFilename: file.name,
+            fileSizeBytes: fileSizeBytes,
+            source: ReceiptImageSource.gallery,
+          ),
+        );
       }
     } catch (error) {
       setState(() {
@@ -172,11 +226,12 @@ class _ReceiptUploadScreenState extends State<ReceiptUploadScreen> {
 
   Future<void> _startUpload() async {
     if (!canStartReceiptUpload(
-      hasPickedFile: _pickedFile != null,
+      hasPickedFile: _selection != null,
       status: _status,
     )) {
       return;
     }
+    final selection = _selection!;
 
     setState(() {
       _status = 'uploading';
@@ -186,8 +241,9 @@ class _ReceiptUploadScreenState extends State<ReceiptUploadScreen> {
     });
 
     try {
-      final filename = _pickedFile!.name;
-      final fileSizeBytes = await _pickedFile!.length();
+      final uploadFile = File(selection.uploadImagePath);
+      final filename = selection.uploadFilename;
+      final fileSizeBytes = await uploadFile.length();
       final upload = prepareReceiptUpload(
         filename: filename,
         fileSizeBytes: fileSizeBytes,
@@ -207,7 +263,7 @@ class _ReceiptUploadScreenState extends State<ReceiptUploadScreen> {
 
       setState(() => _progress = 0.3);
 
-      final fileBytes = await _pickedFile!.readAsBytes();
+      final fileBytes = await uploadFile.readAsBytes();
       await ApiClient.uploadToPresignedUrl(
         uploadUrl: uploadUrl,
         fileBytes: fileBytes,
@@ -254,6 +310,8 @@ class _ReceiptUploadScreenState extends State<ReceiptUploadScreen> {
 
         if (decision.action == ReceiptPollingAction.completed) {
           if (!mounted) return;
+          await _cleanupSelectionFiles(_selection);
+          if (!mounted) return;
           Navigator.pushReplacement(
             context,
             MaterialPageRoute(
@@ -298,16 +356,17 @@ class _ReceiptUploadScreenState extends State<ReceiptUploadScreen> {
   }
 
   void _clearFailure({bool keepSelection = true}) {
+    final previousSelection = keepSelection ? null : _selection;
     setState(() {
       _status = 'idle';
       _error = null;
       _progress = 0;
       _processingPollAttempts = 0;
       if (!keepSelection) {
-        _pickedFile = null;
-        _lastPickSource = null;
+        _selection = null;
       }
     });
+    unawaited(_cleanupSelectionFiles(previousSelection));
   }
 
   Widget _buildIntroCard() {
@@ -400,7 +459,7 @@ class _ReceiptUploadScreenState extends State<ReceiptUploadScreen> {
               ),
               width: double.infinity,
               color: ShellStyles.surfaceAlt(context),
-              child: _pickedFile == null
+              child: _selection == null
                   ? Padding(
                       padding: EdgeInsets.all(
                         ShellStyles.scaled(context, 22, min: 18, max: 24),
@@ -483,7 +542,10 @@ class _ReceiptUploadScreenState extends State<ReceiptUploadScreen> {
                         ],
                       ),
                     )
-                  : Image.file(File(_pickedFile!.path), fit: BoxFit.cover),
+                  : Image.file(
+                      File(_selection!.previewImagePath),
+                      fit: BoxFit.cover,
+                    ),
             ),
           ),
           Padding(
@@ -494,7 +556,7 @@ class _ReceiptUploadScreenState extends State<ReceiptUploadScreen> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  _pickedFile == null
+                  _selection == null
                       ? context.tr('transaction_receipt_photo_title')
                       : context.tr('upload_selected_title'),
                   style: TextStyle(
@@ -505,7 +567,7 @@ class _ReceiptUploadScreenState extends State<ReceiptUploadScreen> {
                 ),
                 const SizedBox(height: 4),
                 Text(
-                  _pickedFile == null
+                  _selection == null
                       ? context.tr('upload_preview_empty_body')
                       : context.tr('upload_selected_body'),
                   style: TextStyle(
@@ -688,33 +750,47 @@ class _ReceiptUploadScreenState extends State<ReceiptUploadScreen> {
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            if (_pickedFile == null) ...[
-              FilledButton.icon(
-                onPressed: () => _pickImage(ImageSource.camera),
-                style: FilledButton.styleFrom(
-                  minimumSize: Size.fromHeight(
-                    ShellStyles.minTapTarget(context),
+            if (_selection == null) ...[
+              if (_scanner.isSupported) ...[
+                FilledButton.icon(
+                  onPressed: _scanReceipt,
+                  style: FilledButton.styleFrom(
+                    minimumSize: Size.fromHeight(
+                      ShellStyles.minTapTarget(context),
+                    ),
                   ),
+                  icon: const Icon(Icons.photo_camera_outlined),
+                  label: Text(context.tr('upload_camera')),
                 ),
-                icon: const Icon(Icons.photo_camera_outlined),
-                label: Text(context.tr('upload_camera')),
-              ),
-              const SizedBox(height: 10),
-              OutlinedButton.icon(
-                onPressed: () => _pickImage(ImageSource.gallery),
-                style: OutlinedButton.styleFrom(
-                  minimumSize: Size.fromHeight(
-                    ShellStyles.minTapTarget(context),
+                const SizedBox(height: 10),
+              ],
+              if (_scanner.isSupported)
+                OutlinedButton.icon(
+                  onPressed: _pickGalleryImage,
+                  style: OutlinedButton.styleFrom(
+                    minimumSize: Size.fromHeight(
+                      ShellStyles.minTapTarget(context),
+                    ),
                   ),
+                  icon: const Icon(Icons.photo_library_outlined),
+                  label: Text(context.tr('upload_gallery')),
+                )
+              else
+                FilledButton.icon(
+                  onPressed: _pickGalleryImage,
+                  style: FilledButton.styleFrom(
+                    minimumSize: Size.fromHeight(
+                      ShellStyles.minTapTarget(context),
+                    ),
+                  ),
+                  icon: const Icon(Icons.photo_library_outlined),
+                  label: Text(context.tr('upload_gallery')),
                 ),
-                icon: const Icon(Icons.photo_library_outlined),
-                label: Text(context.tr('upload_gallery')),
-              ),
             ] else ...[
               FilledButton.icon(
                 onPressed:
                     canStartReceiptUpload(
-                      hasPickedFile: _pickedFile != null,
+                      hasPickedFile: _selection != null,
                       status: _status,
                     )
                     ? _startUpload
@@ -728,43 +804,48 @@ class _ReceiptUploadScreenState extends State<ReceiptUploadScreen> {
                 label: Text(context.tr('upload_action_extract')),
               ),
               const SizedBox(height: 10),
-              Row(
-                children: [
-                  Expanded(
-                    child: OutlinedButton.icon(
-                      onPressed: () => _pickImage(ImageSource.camera),
-                      style: OutlinedButton.styleFrom(
-                        minimumSize: Size.fromHeight(
-                          ShellStyles.minTapTarget(context),
+              if (_scanner.isSupported) ...[
+                Row(
+                  children: [
+                    Expanded(
+                      child: OutlinedButton.icon(
+                        onPressed: _scanReceipt,
+                        style: OutlinedButton.styleFrom(
+                          minimumSize: Size.fromHeight(
+                            ShellStyles.minTapTarget(context),
+                          ),
                         ),
-                      ),
-                      icon: const Icon(Icons.photo_camera_outlined),
-                      label: Text(
-                        _lastPickSource == _ReceiptPickSource.camera
-                            ? context.tr('upload_camera')
-                            : context.tr('upload_camera'),
+                        icon: const Icon(Icons.photo_camera_outlined),
+                        label: Text(context.tr('upload_camera')),
                       ),
                     ),
-                  ),
-                  const SizedBox(width: 10),
-                  Expanded(
-                    child: OutlinedButton.icon(
-                      onPressed: () => _pickImage(ImageSource.gallery),
-                      style: OutlinedButton.styleFrom(
-                        minimumSize: Size.fromHeight(
-                          ShellStyles.minTapTarget(context),
+                    const SizedBox(width: 10),
+                    Expanded(
+                      child: OutlinedButton.icon(
+                        onPressed: _pickGalleryImage,
+                        style: OutlinedButton.styleFrom(
+                          minimumSize: Size.fromHeight(
+                            ShellStyles.minTapTarget(context),
+                          ),
                         ),
-                      ),
-                      icon: const Icon(Icons.photo_library_outlined),
-                      label: Text(
-                        _status == 'failed'
-                            ? context.tr('upload_gallery')
-                            : context.tr('upload_gallery'),
+                        icon: const Icon(Icons.photo_library_outlined),
+                        label: Text(context.tr('upload_gallery')),
                       ),
                     ),
+                  ],
+                ),
+              ] else ...[
+                OutlinedButton.icon(
+                  onPressed: _pickGalleryImage,
+                  style: OutlinedButton.styleFrom(
+                    minimumSize: Size.fromHeight(
+                      ShellStyles.minTapTarget(context),
+                    ),
                   ),
-                ],
-              ),
+                  icon: const Icon(Icons.photo_library_outlined),
+                  label: Text(context.tr('upload_gallery')),
+                ),
+              ],
               if (_status == 'failed') ...[
                 const SizedBox(height: 10),
                 TextButton(

@@ -2,7 +2,7 @@
 
 import datetime as dt
 from decimal import Decimal
-from typing import Literal
+from typing import Any, Literal
 from uuid import UUID
 
 from pydantic import Field, field_validator
@@ -39,7 +39,17 @@ def _normalize_transaction_unit(value: str | None) -> str | None:
         return "pc"
     if normalized in {"kg", "kgs", "kilogram", "kilograms", "g", "gram", "grams"}:
         return "kg"
-    if normalized in {"l", "lt", "ltr", "liter", "liters", "litar", "ml", "milliliter", "milliliters"}:
+    if normalized in {
+        "l",
+        "lt",
+        "ltr",
+        "liter",
+        "liters",
+        "litar",
+        "ml",
+        "milliliter",
+        "milliliters",
+    }:
         return "l"
     return normalized
 
@@ -112,6 +122,20 @@ class TransactionItemRead(UUIDTimestampSchema):
     line_no: int
     description: str
     description_lang: str | None
+    raw_name: str | None = None
+    translatable_name: str | None = None
+    expanded_name: str | None = None
+    normalized_display_name: str | None = None
+    normalization_base_language: str | None = None
+    brand_name: str | None = None
+    product_type: str | None = None
+    category_hint: str | None = None
+    item_attributes_json: dict[str, Any] | None = None
+    preserve_terms_json: list[str] | None = None
+    normalization_source: str | None = None
+    normalization_status: str | None = None
+    normalization_confidence: float | None = None
+    normalization_warnings_json: list[str] | None = None
     qty: Quantity3DP | None
     unit: str | None
     unit_price: UnitPrice4DP | None
@@ -126,11 +150,15 @@ class TransactionItemRead(UUIDTimestampSchema):
     translated_description: str | None = None
     translation_language: str | None = None
     translation_source_language: str | None = None
+    translation_source_text: str | None = None
 
 
 class TransactionItemUpdate(SchemaBase):
     """Update payload for a single transaction line item."""
-    id: UUID | None = Field(default=None, description="Provide ID to update existing item, omit to create new.")
+
+    id: UUID | None = Field(
+        default=None, description="Provide ID to update existing item, omit to create new."
+    )
     description: str | None = None
     description_lang: str | None = Field(default=None, max_length=16)
     qty: Quantity3DP | None = None
@@ -207,7 +235,6 @@ class TransactionCreateManual(SchemaBase):
     household_id: UUID | None = None
     owner_user_id: UUID | None = None
 
-
     @field_validator("currency")
     @classmethod
     def normalize_currency(cls, value: str) -> str:
@@ -221,6 +248,7 @@ class TransactionCreateManual(SchemaBase):
         """Quantize transaction total."""
 
         return quantize_amount(value)
+
 
 class TransactionLabelRead(SchemaBase):
     """Read model for labels assigned to a transaction."""
@@ -337,6 +365,7 @@ class TransactionRead(UUIDTimestampSchema):
 
 class TransactionUpdateRequest(SchemaBase):
     """Payload to update an extracted transaction and its items."""
+
     occurred_at: dt.datetime | None = None
     amount_total: Amount2DP | None = None
     currency: CurrencyCode | None = None
@@ -348,8 +377,7 @@ class TransactionUpdateRequest(SchemaBase):
     owner_user_id: UUID | None = None
 
     items: list[TransactionItemUpdate] | None = Field(
-        default=None,
-        description="If provided, fully replaces or updates the line items."
+        default=None, description="If provided, fully replaces or updates the line items."
     )
 
 
