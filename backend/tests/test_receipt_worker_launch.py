@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import asyncio
 import datetime as dt
 import uuid
 from decimal import Decimal
@@ -55,6 +56,41 @@ class _SessionContext:
 
     def __exit__(self, exc_type, exc, tb) -> bool:
         return False
+
+
+class _FakeMessageProcess:
+    def __init__(self, message: _FakeMessage, *, requeue: bool):
+        self._message = message
+        self._requeue = requeue
+
+    async def __aenter__(self):
+        return self._message
+
+    async def __aexit__(self, exc_type, _exc, _tb) -> bool:
+        self._message.process_exited = True
+        if exc_type is None:
+            self._message.acked = True
+        else:
+            self._message.nacked = True
+            self._message.nack_requeue = self._requeue
+        return False
+
+
+class _FakeMessage:
+    def __init__(self, body: bytes):
+        self.body = body
+        self.process_kwargs: dict | None = None
+        self.process_exited = False
+        self.acked = False
+        self.nacked = False
+        self.nack_requeue: bool | None = None
+
+    def process(self, **kwargs):
+        self.process_kwargs = kwargs
+        return _FakeMessageProcess(
+            self,
+            requeue=bool(kwargs.get("requeue", False)),
+        )
 
 
 def test_reconcile_existing_processing_state_completes_duplicate_transaction_job() -> None:
@@ -144,6 +180,57 @@ def test_process_receipt_skips_recent_duplicate_processing_attempt(monkeypatch) 
     assert receipt.status == ReceiptStatus.PROCESSING
     assert session.commit_calls == 0
     assert session.added == []
+
+
+def test_worker_message_processing_failures_are_requeued(monkeypatch) -> None:
+    """Transient worker failures must NACK/requeue instead of ACKing stuck receipts."""
+
+    from app.worker import receipt_processor as worker
+
+    receipt_id = str(uuid.uuid4())
+    message = _FakeMessage(f'{{"receipt_id": "{receipt_id}"}}'.encode())
+
+    def _failing_process_receipt(_receipt_id: str) -> None:
+        raise RuntimeError("temporary provider failure")
+
+    monkeypatch.setattr(worker, "process_receipt", _failing_process_receipt)
+
+    asyncio.run(worker._handle_worker_message(message))
+
+    assert message.process_kwargs == {"requeue": True}
+    assert message.process_exited is True
+    assert message.acked is False
+    assert message.nacked is True
+    assert message.nack_requeue is True
+
+
+def test_invalid_worker_messages_are_acked_without_requeue() -> None:
+    """Malformed queue payloads should not poison-loop forever."""
+
+    from app.worker import receipt_processor as worker
+
+    message = _FakeMessage(b"not-json")
+
+    asyncio.run(worker._handle_worker_message(message))
+
+    assert message.process_kwargs == {"requeue": False}
+    assert message.process_exited is True
+    assert message.acked is True
+    assert message.nacked is False
+
+
+def test_rabbitmq_startup_log_redacts_credentials() -> None:
+    """Worker startup logs must not print queue credentials."""
+
+    from app.worker import receipt_processor as worker
+
+    redacted = worker._redact_url_credentials(
+        "amqp://expense_tracker:super-secret@rabbitmq:5672/"
+    )
+
+    assert redacted == "amqp://rabbitmq:5672/"
+    assert "super-secret" not in redacted
+    assert "expense_tracker" not in redacted
 
 
 def test_extraction_discount_normalization_infers_missing_discount_fields() -> None:
