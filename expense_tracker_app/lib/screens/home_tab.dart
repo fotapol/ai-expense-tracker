@@ -263,8 +263,13 @@ class _HomeTabState extends State<HomeTab>
     return double.tryParse(raw?.toString() ?? '0') ?? 0;
   }
 
+  double? _numberValue(Object? value) {
+    if (value is num) return value.toDouble();
+    return double.tryParse(value?.toString() ?? '');
+  }
+
   double get _currentMonthTotal =>
-      (_monthlySummary?['total_amount'] as num?)?.toDouble() ??
+      _numberValue(_monthlySummary?['total_amount']) ??
       _currentMonthTransactions.fold<double>(
         0,
         (sum, transaction) => sum + _displayAmountOf(transaction),
@@ -313,7 +318,7 @@ class _HomeTabState extends State<HomeTab>
     final rawBreakdown = source?['breakdown'] as List<dynamic>? ?? [];
     final slices = <_OverviewSlice>[];
     for (final raw in rawBreakdown.whereType<Map<String, dynamic>>()) {
-      final amount = (raw['amount'] as num?)?.toDouble() ?? 0;
+      final amount = _numberValue(raw['amount']) ?? 0;
       if (amount <= 0) continue;
       final code = raw['code']?.toString() ?? '';
       final name = localizeCategoryByCode(
@@ -332,40 +337,14 @@ class _HomeTabState extends State<HomeTab>
         _OverviewSlice(
           name: name,
           amount: amount,
-          percentage: (raw['percentage'] as num?)?.toDouble() ?? 0,
+          percentage: _numberValue(raw['percentage']) ?? 0,
           color: tone.base,
         ),
       );
     }
 
     slices.sort((left, right) => right.amount.compareTo(left.amount));
-
-    if (slices.length <= 3) {
-      return slices;
-    }
-
-    final visible = slices.take(3).toList();
-    final hidden = slices.skip(3);
-    final otherAmount = hidden.fold<double>(
-      0,
-      (sum, slice) => sum + slice.amount,
-    );
-    final otherPercentage = hidden.fold<double>(
-      0,
-      (sum, slice) => sum + slice.percentage,
-    );
-
-    if (otherAmount > 0) {
-      visible.add(
-        _OverviewSlice(
-          name: context.tr('taxonomy_other'),
-          amount: otherAmount,
-          percentage: otherPercentage,
-          color: ShellStyles.chartOtherColor(context),
-        ),
-      );
-    }
-    return visible;
+    return slices;
   }
 
   List<String> _buildInsights(BuildContext context) {
@@ -952,9 +931,7 @@ class _HomeTabState extends State<HomeTab>
           ),
           const SizedBox(height: 32),
           if (hasChartData) ...[
-            for (final slice in slices.where(
-              (s) => s.name != context.tr('taxonomy_other'),
-            ))
+            for (final slice in slices)
               Padding(
                 padding: const EdgeInsets.only(bottom: 16),
                 child: Row(

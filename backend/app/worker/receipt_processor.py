@@ -23,6 +23,7 @@ import logging
 import time
 import uuid
 from decimal import Decimal
+from typing import Any
 from urllib.parse import urlsplit, urlunsplit
 
 import aio_pika
@@ -39,6 +40,7 @@ from app.core.langsmith import (
     build_receipt_trace_context,
     build_receipt_trace_inputs,
     build_receipt_trace_outputs,
+    extract_langchain_token_usage,
     langsmith_tracing_enabled,
 )
 from app.core.logging import configure_logging
@@ -91,6 +93,20 @@ def _redact_url_credentials(raw_url: str) -> str:
 # ---------------------------------------------------------------------------
 
 
+def _parse_structured_receipt_response(raw_response: Any) -> tuple[ExtractedReceiptData, Any]:
+    if isinstance(raw_response, ExtractedReceiptData):
+        return raw_response, None
+    if isinstance(raw_response, dict):
+        parsed = raw_response.get("parsed")
+        raw_message = raw_response.get("raw")
+        if isinstance(parsed, ExtractedReceiptData):
+            return parsed, raw_message
+        if isinstance(parsed, dict):
+            return ExtractedReceiptData.model_validate(parsed), raw_message
+        return ExtractedReceiptData.model_validate(raw_response), raw_message
+    return ExtractedReceiptData.model_validate(raw_response), None
+
+
 def _call_vision_llm(
     *,
     receipt_id: str,
@@ -114,7 +130,10 @@ def _call_vision_llm(
     )
 
     # Use native structured output capability
-    structured_llm = model.with_structured_output(ExtractedReceiptData)
+    structured_llm = model.with_structured_output(
+        ExtractedReceiptData,
+        include_raw=True,
+    )
 
     b64_image = base64.b64encode(image_bytes).decode("utf-8")
 
@@ -184,10 +203,21 @@ Line item discount handling is required:
                 name="receipt_vision_extract",
                 run_type="llm",
                 inputs=trace_inputs,
+                metadata={
+                    "ls_provider": "google_genai",
+                    "ls_model_name": llm_settings.MODEL_NAME,
+                    "sensitive_payload_redacted": True,
+                },
             ) as run_tree,
         ):
-            extracted_model: ExtractedReceiptData = structured_llm.invoke([message])
+            structured_response = structured_llm.invoke([message])
+            extracted_model, raw_model_response = _parse_structured_receipt_response(
+                structured_response
+            )
+            token_usage = extract_langchain_token_usage(raw_model_response)
             latency_ms = int((time.monotonic() - start) * 1000)
+            if token_usage:
+                run_tree.set(usage_metadata=token_usage)
             run_tree.end(
                 outputs=build_receipt_trace_outputs(
                     provider="google",
@@ -196,10 +226,14 @@ Line item discount handling is required:
                     item_count=len(extracted_model.items),
                     currency=extracted_model.currency,
                     warning_count=len(extracted_model.warnings),
+                    token_usage=token_usage,
                 ),
             )
     else:
-        extracted_model = structured_llm.invoke([message])
+        structured_response = structured_llm.invoke([message])
+        extracted_model, _raw_model_response = _parse_structured_receipt_response(
+            structured_response
+        )
     latency_ms = int((time.monotonic() - start) * 1000)
 
     return {

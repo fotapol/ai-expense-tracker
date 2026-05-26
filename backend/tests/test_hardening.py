@@ -61,6 +61,7 @@ class _Session:
 # SEC-19: Receipt failure_reason must not leak tracebacks
 # ---------------------------------------------------------------------------
 
+
 def test_receipt_failure_reason_is_user_safe_message() -> None:
     """Worker must store a user-friendly message, not a raw Python traceback."""
 
@@ -93,8 +94,10 @@ def test_receipt_failure_reason_is_user_safe_message() -> None:
     class _SessionContext:
         def __init__(self, s):
             self._s = s
+
         def __enter__(self):
             return self._s
+
         def __exit__(self, *_args):
             return False
 
@@ -103,6 +106,7 @@ def test_receipt_failure_reason_is_user_safe_message() -> None:
         raise RuntimeError("Simulated LLM failure")
 
     import app.worker.receipt_processor as w
+
     original_session = w.Session
     original_download = w.download_object
 
@@ -120,12 +124,15 @@ def test_receipt_failure_reason_is_user_safe_message() -> None:
     assert "RuntimeError" not in (receipt.failure_reason or "")
     assert "File " not in (receipt.failure_reason or "")
     # Must contain a user-friendly message
-    assert "extract data" in receipt.failure_reason.lower() or "try" in receipt.failure_reason.lower()
+    assert (
+        "extract data" in receipt.failure_reason.lower() or "try" in receipt.failure_reason.lower()
+    )
 
 
 # ---------------------------------------------------------------------------
 # SEC-15: Server-side file size limit
 # ---------------------------------------------------------------------------
+
 
 def test_max_receipt_file_size_constant_exists() -> None:
     """The server-side file size limit constant must be defined."""
@@ -141,6 +148,7 @@ def test_max_receipt_file_size_constant_exists() -> None:
 # ---------------------------------------------------------------------------
 # AI privacy: LangSmith traces must stay receipt-content redacted
 # ---------------------------------------------------------------------------
+
 
 def test_langsmith_receipt_trace_payloads_are_redacted() -> None:
     """Trace helper payloads must not include raw receipt content."""
@@ -173,6 +181,42 @@ def test_langsmith_receipt_trace_payloads_are_redacted() -> None:
     assert raw_receipt_marker not in serialized
     assert inputs["input_redacted"] is True
     assert outputs["output_redacted"] is True
+
+
+def test_langsmith_token_usage_extraction_keeps_receipt_payloads_redacted() -> None:
+    """Only numeric usage counters should be copied out of raw model responses."""
+
+    from app.core.langsmith import extract_langchain_token_usage
+
+    raw_receipt_marker = "RAW_RECEIPT_ITEM_SECRET"
+
+    raw_response = SimpleNamespace(
+        usage_metadata={
+            "input_tokens": 100,
+            "output_tokens": 25,
+            "total_tokens": 125,
+            "input_token_details": {
+                "text": 20,
+                "image": 80,
+                "ignored": raw_receipt_marker,
+            },
+            "raw_output": raw_receipt_marker,
+            "safety": True,
+        }
+    )
+
+    usage = extract_langchain_token_usage(raw_response)
+
+    assert usage == {
+        "input_tokens": 100,
+        "output_tokens": 25,
+        "total_tokens": 125,
+        "input_token_details": {
+            "text": 20,
+            "image": 80,
+        },
+    }
+    assert raw_receipt_marker not in repr(usage)
 
 
 def test_production_startup_blocks_unredacted_langsmith(monkeypatch) -> None:
@@ -239,6 +283,7 @@ def test_production_startup_blocks_wildcard_forwarded_trust(monkeypatch) -> None
 # ---------------------------------------------------------------------------
 # PROD-19: Global exception handler
 # ---------------------------------------------------------------------------
+
 
 def test_global_exception_handler_is_registered() -> None:
     """The FastAPI app must have a global exception handler for Exception."""

@@ -33,11 +33,15 @@ class _ReceiptUploadScreenState extends State<ReceiptUploadScreen> {
   String? _error;
   double _progress = 0;
   int _processingPollAttempts = 0;
+  bool _isScanning = false;
 
   final ImagePicker _picker = ImagePicker();
   late final ReceiptScanner _scanner;
 
-  bool get _isBusy => _status == 'uploading' || _status == 'processing';
+  bool get _isUploadingOrProcessing =>
+      _status == 'uploading' || _status == 'processing';
+
+  bool get _isBusy => _isScanning || _isUploadingOrProcessing;
 
   @override
   void initState() {
@@ -48,7 +52,7 @@ class _ReceiptUploadScreenState extends State<ReceiptUploadScreen> {
 
   @override
   void dispose() {
-    if (!_isBusy) {
+    if (!_isUploadingOrProcessing) {
       unawaited(_cleanupSelectionFiles(_selection));
     }
     super.dispose();
@@ -181,6 +185,11 @@ class _ReceiptUploadScreenState extends State<ReceiptUploadScreen> {
   Future<void> _scanReceipt() async {
     if (_isBusy) return;
 
+    setState(() {
+      _isScanning = true;
+      _error = null;
+    });
+
     try {
       final variants = await _scanner.scanReceipt();
       if (variants == null || !mounted) return;
@@ -195,10 +204,16 @@ class _ReceiptUploadScreenState extends State<ReceiptUploadScreen> {
       setState(() {
         _error = context.tr('upload_scanner_failed');
       });
+    } finally {
+      if (mounted) {
+        setState(() => _isScanning = false);
+      }
     }
   }
 
   Future<void> _pickGalleryImage() async {
+    if (_isBusy) return;
+
     try {
       final file = await _picker.pickImage(
         source: ImageSource.gallery,
@@ -674,6 +689,57 @@ class _ReceiptUploadScreenState extends State<ReceiptUploadScreen> {
     );
   }
 
+  Widget _buildScannerProgressCard() {
+    return Container(
+      padding: EdgeInsets.all(
+        ShellStyles.scaled(context, 18, min: 16, max: 20),
+      ),
+      decoration: ShellStyles.cardDecoration(
+        context,
+        radius: ShellStyles.scaled(context, 20, min: 18, max: 22),
+        color: ShellStyles.surface(context),
+      ),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          SizedBox(
+            width: 28,
+            height: 28,
+            child: CircularProgressIndicator(
+              strokeWidth: 2.6,
+              color: ShellStyles.accent(context),
+            ),
+          ),
+          const SizedBox(width: 14),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  context.tr('upload_status_preparing_scan'),
+                  style: TextStyle(
+                    color: ShellStyles.textPrimary(context),
+                    fontSize: ShellStyles.scaled(context, 16, min: 15, max: 18),
+                    fontWeight: FontWeight.w800,
+                  ),
+                ),
+                const SizedBox(height: 6),
+                Text(
+                  context.tr('upload_status_preparing_scan_body'),
+                  style: TextStyle(
+                    color: ShellStyles.textMuted(context),
+                    fontSize: ShellStyles.scaled(context, 13, min: 12, max: 14),
+                    height: 1.45,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
   Widget _buildFailureCard() {
     return Container(
       padding: EdgeInsets.all(
@@ -879,6 +945,12 @@ class _ReceiptUploadScreenState extends State<ReceiptUploadScreen> {
             _buildIntroCard(),
             SizedBox(height: ShellStyles.scaled(context, 16, min: 14, max: 18)),
             _buildPreviewCard(),
+            if (_isScanning) ...[
+              SizedBox(
+                height: ShellStyles.scaled(context, 16, min: 14, max: 18),
+              ),
+              _buildScannerProgressCard(),
+            ],
             if (_status == 'uploading' || _status == 'processing') ...[
               SizedBox(
                 height: ShellStyles.scaled(context, 16, min: 14, max: 18),
