@@ -382,6 +382,9 @@ class AppLocalizations {
       'upload_status_uploading': 'Uploading receipt...',
       'upload_status_processing':
           'Processing with AI... This may take a minute.',
+      'upload_status_preparing_scan': 'Preparing scanned receipt...',
+      'upload_status_preparing_scan_body':
+          'Optimizing the camera scan before upload.',
       'upload_try_again': 'Try Again',
       'upload_pick_failed': 'Failed to pick image: {error}',
       'upload_scanner_unavailable':
