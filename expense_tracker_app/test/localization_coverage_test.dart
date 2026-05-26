@@ -25,6 +25,8 @@ void main() {
         'home_start_subtitle',
         'receipts_filter_needs_review',
         'receipts_history_total',
+        'upload_status_preparing_scan',
+        'upload_status_preparing_scan_body',
         'transaction_review_receipt',
         'transaction_receipt_photo_title',
       ];
@@ -50,6 +52,8 @@ void main() {
           'home_start_subtitle',
           'home_review_count_plural',
           'home_smart_insights',
+          'upload_status_preparing_scan',
+          'upload_status_preparing_scan_body',
           'receipts_empty_body',
           'receipts_no_filter_matches',
           'receipts_history_load_error',

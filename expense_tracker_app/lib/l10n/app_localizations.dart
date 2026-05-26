@@ -1721,6 +1721,9 @@ class AppLocalizations {
       'upload_status_uploading': 'Quittung wird hochgeladen...',
       'upload_status_processing':
           'Verarbeitung mit KI... Dies kann eine Minute dauern.',
+      'upload_status_preparing_scan': 'Gescannten Beleg vorbereiten...',
+      'upload_status_preparing_scan_body':
+          'Kamerascan vor dem Hochladen optimieren.',
       'upload_try_again': 'Versuchen Sie es erneut',
       'upload_pick_failed': 'Bild konnte nicht ausgewählt werden: {error}',
       'upload_scanner_unavailable':
@@ -3102,6 +3105,9 @@ class AppLocalizations {
       'upload_status_uploading': 'Téléchargement du reçu...',
       'upload_status_processing':
           'Traitement avec l\'IA... Cela peut prendre une minute.',
+      'upload_status_preparing_scan': 'Préparation du reçu numérisé...',
+      'upload_status_preparing_scan_body':
+          'Optimisation du scan de la caméra avant l\'import.',
       'upload_try_again': 'Essayer à nouveau',
       'upload_pick_failed': 'Échec de la sélection de l\'image : {error}',
       'upload_scanner_unavailable':
@@ -4478,6 +4484,9 @@ class AppLocalizations {
       'upload_status_uploading': 'Завантаження квитанції...',
       'upload_status_processing':
           'Обробка за допомогою ШІ... Це може зайняти хвилину.',
+      'upload_status_preparing_scan': 'Підготовка відсканованої квитанції...',
+      'upload_status_preparing_scan_body':
+          'Оптимізуємо скан із камери перед завантаженням.',
       'upload_try_again': 'Спробуйте знову',
       'upload_pick_failed': 'Не вдалося вибрати зображення: {error}',
       'upload_scanner_unavailable':
@@ -5832,6 +5841,10 @@ class AppLocalizations {
       'upload_status_uploading': 'Caricamento ricevuta...',
       'upload_status_processing':
           'Elaborazione con AI... L\'operazione potrebbe richiedere un minuto.',
+      'upload_status_preparing_scan':
+          'Preparazione della ricevuta scansionata...',
+      'upload_status_preparing_scan_body':
+          'Ottimizzazione della scansione della fotocamera prima del caricamento.',
       'upload_try_again': 'Riprova',
       'upload_pick_failed': 'Impossibile selezionare l\'immagine: {error}',
       'upload_scanner_unavailable':
@@ -7221,6 +7234,10 @@ class AppLocalizations {
       'upload_status_uploading': 'Przesyłanie rachunku...',
       'upload_status_processing':
           'Przetwarzanie za pomocą AI... To może chwilę potrwać.',
+      'upload_status_preparing_scan':
+          'Przygotowywanie zeskanowanego rachunku...',
+      'upload_status_preparing_scan_body':
+          'Optymalizowanie skanu z aparatu przed przesłaniem.',
       'upload_try_again': 'Spróbuj ponownie',
       'upload_pick_failed': 'Nie udało się wybrać obrazu: {error}',
       'upload_scanner_unavailable':
@@ -8580,6 +8597,9 @@ class AppLocalizations {
       'upload_status_uploading': 'Otpremanje računa...',
       'upload_status_processing':
           'AI obrada u toku... Ovo može potrajati oko minut.',
+      'upload_status_preparing_scan': 'Priprema skeniranog računa...',
+      'upload_status_preparing_scan_body':
+          'Optimizacija skena kamere pre otpremanja.',
       'upload_try_again': 'Pokušaj ponovo',
       'upload_pick_failed': 'Izbor slike nije uspeo: {error}',
       'upload_scanner_unavailable':
@@ -9932,6 +9952,9 @@ class AppLocalizations {
       'upload_status_uploading': 'Загрузка чека...',
       'upload_status_processing':
           'Обработка ИИ... Это может занять около минуты.',
+      'upload_status_preparing_scan': 'Подготовка отсканированного чека...',
+      'upload_status_preparing_scan_body':
+          'Оптимизируем снимок с камеры перед загрузкой.',
       'upload_try_again': 'Попробовать снова',
       'upload_pick_failed': 'Не удалось выбрать изображение: {error}',
       'upload_scanner_unavailable':
@@ -11285,6 +11308,9 @@ class AppLocalizations {
       'upload_status_uploading': 'Carregando recibo...',
       'upload_status_processing':
           'Processando com IA... Isso pode levar um minuto.',
+      'upload_status_preparing_scan': 'Preparando recibo digitalizado...',
+      'upload_status_preparing_scan_body':
+          'Otimizando a digitalização da câmera antes do upload.',
       'upload_try_again': 'Tente novamente',
       'upload_pick_failed': 'Falha ao escolher a imagem: {error}',
       'upload_scanner_unavailable':
@@ -12655,6 +12681,9 @@ class AppLocalizations {
       'upload_status_uploading': 'Makbuz yükleniyor...',
       'upload_status_processing':
           'AI ile işleniyor... Bu işlem bir dakika sürebilir.',
+      'upload_status_preparing_scan': 'Taranan makbuz hazırlanıyor...',
+      'upload_status_preparing_scan_body':
+          'Yüklemeden önce kamera taraması optimize ediliyor.',
       'upload_try_again': 'Tekrar deneyin',
       'upload_pick_failed': 'Resim seçilemedi: {error}',
       'upload_scanner_unavailable':
@@ -13999,6 +14028,9 @@ class AppLocalizations {
       'upload_status_uploading': 'Betaalbewijs uploaden...',
       'upload_status_processing':
           'Verwerking met AI... Dit kan een minuutje duren.',
+      'upload_status_preparing_scan': 'Gescande bon voorbereiden...',
+      'upload_status_preparing_scan_body':
+          'De camerascan optimaliseren voor uploaden.',
       'upload_try_again': 'Probeer het opnieuw',
       'upload_pick_failed': 'Kan afbeelding niet kiezen: {error}',
       'upload_scanner_unavailable':
@@ -15365,6 +15397,9 @@ class AppLocalizations {
       'upload_status_uploading': 'Laddar upp kvitto...',
       'upload_status_processing':
           'Bearbetar med AI... Det här kan ta en minut.',
+      'upload_status_preparing_scan': 'Förbereder skannat kvitto...',
+      'upload_status_preparing_scan_body':
+          'Optimerar kameraskanningen före uppladdning.',
       'upload_try_again': 'Försök igen',
       'upload_pick_failed': 'Det gick inte att välja bild: {error}',
       'upload_scanner_unavailable':
@@ -16711,6 +16746,9 @@ class AppLocalizations {
       'upload_status_uploading': 'Nahrávání účtenky...',
       'upload_status_processing':
           'Zpracování pomocí AI... Může to chvíli trvat.',
+      'upload_status_preparing_scan': 'Připravuje se naskenovaná účtenka...',
+      'upload_status_preparing_scan_body':
+          'Optimalizace skenu z fotoaparátu před nahráním.',
       'upload_try_again': 'Zkuste to znovu',
       'upload_pick_failed': 'Nepodařilo se vybrat obrázek: {error}',
       'upload_scanner_unavailable':
@@ -18056,6 +18094,9 @@ class AppLocalizations {
       'upload_action_extract': 'Încărcați și extrageți',
       'upload_status_uploading': 'Se încarcă chitanța...',
       'upload_status_processing': 'Se procesează cu AI... Poate dura un minut.',
+      'upload_status_preparing_scan': 'Se pregătește chitanța scanată...',
+      'upload_status_preparing_scan_body':
+          'Se optimizează scanarea camerei înainte de încărcare.',
       'upload_try_again': 'Încearcă din nou',
       'upload_pick_failed': 'Nu s-a putut alege imaginea: {error}',
       'upload_scanner_unavailable':
@@ -19438,6 +19479,9 @@ class AppLocalizations {
       'upload_status_uploading': 'Nyugta feltöltése...',
       'upload_status_processing':
           'Feldolgozás mesterséges intelligencia segítségével... Ez eltarthat egy percig.',
+      'upload_status_preparing_scan': 'A beolvasott nyugta előkészítése...',
+      'upload_status_preparing_scan_body':
+          'A kamerás beolvasás optimalizálása feltöltés előtt.',
       'upload_try_again': 'Próbáld újra',
       'upload_pick_failed': 'Nem sikerült kiválasztani a képet: {error}',
       'upload_scanner_unavailable':
@@ -20793,6 +20837,10 @@ class AppLocalizations {
       'upload_status_uploading': 'Mengunggah tanda terima...',
       'upload_status_processing':
           'Memproses dengan AI... Ini mungkin memerlukan waktu beberapa menit.',
+      'upload_status_preparing_scan':
+          'Menyiapkan tanda terima yang dipindai...',
+      'upload_status_preparing_scan_body':
+          'Mengoptimalkan pemindaian kamera sebelum diunggah.',
       'upload_try_again': 'Coba Lagi',
       'upload_pick_failed': 'Gagal memilih gambar: {error}',
       'upload_scanner_unavailable':
@@ -22148,6 +22196,9 @@ class AppLocalizations {
       'upload_status_uploading': 'Memuat naik resit...',
       'upload_status_processing':
           'Memproses dengan AI... Ini mungkin mengambil masa seminit.',
+      'upload_status_preparing_scan': 'Menyediakan resit yang diimbas...',
+      'upload_status_preparing_scan_body':
+          'Mengoptimumkan imbasan kamera sebelum muat naik.',
       'upload_try_again': 'Cuba Lagi',
       'upload_pick_failed': 'Gagal memilih imej: {error}',
       'upload_scanner_unavailable':
@@ -23497,6 +23548,9 @@ class AppLocalizations {
       'upload_status_uploading': 'Đang tải biên nhận lên...',
       'upload_status_processing':
           'Đang xử lý bằng AI... Quá trình này có thể mất một phút.',
+      'upload_status_preparing_scan': 'Đang chuẩn bị biên nhận đã quét...',
+      'upload_status_preparing_scan_body':
+          'Đang tối ưu bản quét từ camera trước khi tải lên.',
       'upload_try_again': 'Thử lại',
       'upload_pick_failed': 'Không chọn được hình ảnh: {error}',
       'upload_scanner_unavailable':
@@ -24819,6 +24873,8 @@ class AppLocalizations {
       'upload_action_extract': '上传和提取',
       'upload_status_uploading': '正在上传收据...',
       'upload_status_processing': '使用人工智能处理...这可能需要一分钟。',
+      'upload_status_preparing_scan': '正在准备扫描的小票...',
+      'upload_status_preparing_scan_body': '上传前正在优化相机扫描结果。',
       'upload_try_again': '再试一次',
       'upload_pick_failed': '未能选择图像：{error}',
       'upload_scanner_unavailable': '此设备不支持相机扫描。你仍可使用图库。',
@@ -25952,6 +26008,8 @@ class AppLocalizations {
       'upload_action_extract': 'アップロードと抽出',
       'upload_status_uploading': '領収書をアップロードしています...',
       'upload_status_processing': 'AI で処理しています...これには 1 分ほどかかる場合があります。',
+      'upload_status_preparing_scan': 'スキャンした領収書を準備しています...',
+      'upload_status_preparing_scan_body': 'アップロード前にカメラスキャンを最適化しています。',
       'upload_try_again': 'もう一度やり直してください',
       'upload_pick_failed': '画像の選択に失敗しました: {error}',
       'upload_scanner_unavailable': 'このデバイスではカメラスキャンを利用できません。ギャラリーは引き続き使用できます。',
@@ -27131,6 +27189,8 @@ class AppLocalizations {
       'upload_action_extract': '업로드 및 추출',
       'upload_status_uploading': '영수증 업로드 중...',
       'upload_status_processing': 'AI로 처리 중... 1분 정도 걸릴 수 있습니다.',
+      'upload_status_preparing_scan': '스캔한 영수증 준비 중...',
+      'upload_status_preparing_scan_body': '업로드 전에 카메라 스캔을 최적화하는 중입니다.',
       'upload_try_again': '다시 시도',
       'upload_pick_failed': '이미지를 선택하지 못했습니다: {error}',
       'upload_scanner_unavailable':
@@ -28347,6 +28407,9 @@ class AppLocalizations {
       'upload_status_uploading': 'रसीद अपलोड हो रही है...',
       'upload_status_processing':
           'एआई के साथ प्रसंस्करण... इसमें एक मिनट लग सकता है।',
+      'upload_status_preparing_scan': 'स्कैन की गई रसीद तैयार हो रही है...',
+      'upload_status_preparing_scan_body':
+          'अपलोड से पहले कैमरा स्कैन को बेहतर बनाया जा रहा है।',
       'upload_try_again': 'पुनः प्रयास करें',
       'upload_pick_failed': 'छवि चुनने में विफल: {error}',
       'upload_scanner_unavailable':
@@ -29673,6 +29736,8 @@ class AppLocalizations {
       'upload_status_uploading': 'جارٍ تحميل الإيصال...',
       'upload_status_processing':
           'المعالجة باستخدام الذكاء الاصطناعي... قد يستغرق ذلك دقيقة واحدة.',
+      'upload_status_preparing_scan': 'جارٍ تجهيز الإيصال الممسوح ضوئيًا...',
+      'upload_status_preparing_scan_body': 'جارٍ تحسين مسح الكاميرا قبل الرفع.',
       'upload_try_again': 'حاول ثانية',
       'upload_pick_failed': 'فشل اختيار الصورة: {error}',
       'upload_scanner_unavailable':
@@ -30985,6 +31050,9 @@ class AppLocalizations {
       'upload_status_uploading': 'Subiendo recibo...',
       'upload_status_processing':
           'Procesando con IA... Esto puede tardar un minuto.',
+      'upload_status_preparing_scan': 'Preparando recibo escaneado...',
+      'upload_status_preparing_scan_body':
+          'Optimizando el escaneo de cámara antes de subirlo.',
       'upload_try_again': 'Intentar de nuevo',
       'upload_pick_failed': 'No se pudo seleccionar la imagen: {error}',
       'upload_scanner_unavailable':
