@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from collections.abc import Mapping
 from contextlib import nullcontext
 from typing import Any
 
@@ -9,7 +10,9 @@ from app.core.config import app_settings, observability_settings
 
 
 def langsmith_tracing_enabled() -> bool:
-    return observability_settings.LANGSMITH_TRACING and bool(observability_settings.LANGSMITH_API_KEY)
+    return observability_settings.LANGSMITH_TRACING and bool(
+        observability_settings.LANGSMITH_API_KEY
+    )
 
 
 def build_receipt_trace_context(
@@ -88,3 +91,40 @@ def build_receipt_trace_outputs(
     if token_usage:
         payload["token_usage"] = token_usage
     return payload
+
+
+def extract_langchain_token_usage(raw_response: Any) -> dict[str, Any] | None:
+    """Return LangSmith-safe token usage from a LangChain AIMessage-like response."""
+
+    for attr_name in ("usage_metadata", "response_metadata"):
+        metadata = getattr(raw_response, attr_name, None)
+        if not isinstance(metadata, Mapping):
+            continue
+
+        usage = metadata.get("usage_metadata") if attr_name == "response_metadata" else metadata
+        sanitized = _sanitize_usage_metadata(usage)
+        if sanitized:
+            return sanitized
+    return None
+
+
+def _sanitize_usage_metadata(value: Any) -> dict[str, Any]:
+    if not isinstance(value, Mapping):
+        return {}
+
+    sanitized: dict[str, Any] = {}
+    for raw_key, raw_value in value.items():
+        key = str(raw_key)
+        if isinstance(raw_value, bool):
+            continue
+        if isinstance(raw_value, int | float):
+            sanitized[key] = raw_value
+        elif isinstance(raw_value, Mapping):
+            nested = {
+                str(nested_key): nested_value
+                for nested_key, nested_value in raw_value.items()
+                if not isinstance(nested_value, bool) and isinstance(nested_value, int | float)
+            }
+            if nested:
+                sanitized[key] = nested
+    return sanitized

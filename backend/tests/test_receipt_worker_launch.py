@@ -224,13 +224,38 @@ def test_rabbitmq_startup_log_redacts_credentials() -> None:
 
     from app.worker import receipt_processor as worker
 
-    redacted = worker._redact_url_credentials(
-        "amqp://expense_tracker:super-secret@rabbitmq:5672/"
-    )
+    redacted = worker._redact_url_credentials("amqp://expense_tracker:super-secret@rabbitmq:5672/")
 
     assert redacted == "amqp://rabbitmq:5672/"
     assert "super-secret" not in redacted
     assert "expense_tracker" not in redacted
+
+
+def test_parse_structured_receipt_response_preserves_raw_usage_message() -> None:
+    """Structured output include_raw responses should keep raw metadata separate."""
+
+    from app.worker import receipt_processor as worker
+
+    extracted = ExtractedReceiptData(
+        merchant_name="Test Store",
+        currency="EUR",
+        amount_total=Decimal("12.34"),
+        items=[],
+    )
+    raw_message = SimpleNamespace(
+        usage_metadata={
+            "input_tokens": 20,
+            "output_tokens": 10,
+            "total_tokens": 30,
+        }
+    )
+
+    parsed, raw = worker._parse_structured_receipt_response(
+        {"parsed": extracted, "raw": raw_message, "parsing_error": None}
+    )
+
+    assert parsed is extracted
+    assert raw is raw_message
 
 
 def test_extraction_discount_normalization_infers_missing_discount_fields() -> None:
