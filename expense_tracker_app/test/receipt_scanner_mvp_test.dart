@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:io';
 
 import 'package:expense_tracker_app/core/receipt_document_scanner.dart';
@@ -232,6 +233,37 @@ void main() {
       expect(scanner.scanCalls, 1);
     });
 
+    testWidgets('shows progress while scanned image is prepared', (
+      tester,
+    ) async {
+      final scanCompleter = Completer<ReceiptScanVariants?>();
+      final scanner = _FakeReceiptScanner(
+        isSupported: true,
+        scan: () => scanCompleter.future,
+      );
+
+      await tester.pumpWidget(
+        _localizedApp(ReceiptUploadScreen(scanner: scanner)),
+      );
+      await tester.pump();
+
+      await tester.tap(find.text('Camera'));
+      await tester.pump();
+
+      expect(scanner.scanCalls, 1);
+      expect(find.text('Preparing scanned receipt...'), findsOneWidget);
+      expect(
+        find.text('Optimizing the camera scan before upload.'),
+        findsOneWidget,
+      );
+
+      scanCompleter.complete(null);
+      await tester.pump();
+      await tester.pump();
+
+      expect(find.text('Preparing scanned receipt...'), findsNothing);
+    });
+
     testWidgets('hides Camera when ML Kit scanner is unsupported', (
       tester,
     ) async {
@@ -299,16 +331,20 @@ class _FakeVariantBuilder implements ReceiptScanVariantBuilder {
 }
 
 class _FakeReceiptScanner implements ReceiptScanner {
-  _FakeReceiptScanner({required this.isSupported});
+  _FakeReceiptScanner({required this.isSupported, this.scan});
 
   @override
   final bool isSupported;
+
+  final Future<ReceiptScanVariants?> Function()? scan;
 
   int scanCalls = 0;
 
   @override
   Future<ReceiptScanVariants?> scanReceipt() async {
     scanCalls += 1;
-    return null;
+    final callback = scan;
+    if (callback == null) return null;
+    return callback();
   }
 }
