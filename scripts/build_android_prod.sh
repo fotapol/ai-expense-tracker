@@ -8,11 +8,11 @@ ANDROID_APP_DIR="$ANDROID_DIR/app"
 KEY_PROPERTIES_FILE="$ANDROID_DIR/key.properties"
 AAB_PATH="$APP_DIR/build/app/outputs/bundle/release/app-release.aab"
 
-EXPECTED_API_BASE_URL="https://api.nexavend.store:8443"
-EXPECTED_PRIVACY_URL="https://nexavend.store/privacy"
-EXPECTED_TERMS_URL="https://nexavend.store/terms"
-EXPECTED_DELETE_ACCOUNT_URL="https://nexavend.store/delete-account"
-EXPECTED_SUPPORT_EMAIL="support@nexavend.store"
+EXPECTED_API_BASE_URL="${EXPECTED_API_BASE_URL:-https://api.nexavend.store:8443}"
+EXPECTED_PRIVACY_URL="${EXPECTED_PRIVACY_URL:-https://nexavend.store/privacy}"
+EXPECTED_TERMS_URL="${EXPECTED_TERMS_URL:-https://nexavend.store/terms}"
+EXPECTED_DELETE_ACCOUNT_URL="${EXPECTED_DELETE_ACCOUNT_URL:-https://nexavend.store/delete-account}"
+EXPECTED_SUPPORT_EMAIL="${EXPECTED_SUPPORT_EMAIL:-support@nexavend.store}"
 
 fail() {
   echo "error: $*" >&2

@@ -286,7 +286,7 @@ def delete_account_page() -> str:
             <p>AI Expense Tracker users can request account deletion in one of the following ways:</p>
             <ol>
               <li>Open the app, go to Settings, and use Delete Account.</li>
-              <li>Contact <a href="mailto:support@nexavend.store">support@nexavend.store</a> from the email address associated with your Google login.</li>
+              <li>Contact <a href="mailto:support@example.com">support@example.com</a> from the email address associated with your Google login.</li>
             </ol>
             <p>To protect accounts from unauthorized deletion, we may ask you to verify that you own the account.</p>
             <p>Deleting your account deletes or anonymizes account-related data where possible. Some data may be retained where required for legal, security, fraud-prevention, backup, accounting, or legitimate operational purposes.</p>

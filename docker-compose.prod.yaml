@@ -10,7 +10,7 @@ services:
     environment:
       APP_ENV: production
     ports:
-      - "127.0.0.1:3000:80"
+      - "127.0.0.1:3000:8080"
 
   backend:
     environment:
