@@ -6,6 +6,9 @@ on:
     branches:
       - main
 
+permissions:
+  contents: read
+
 jobs:
   backend:
     name: Backend Checks
@@ -28,7 +31,7 @@ jobs:
       - name: Set up kubectl
         uses: azure/setup-kubectl@v4
         with:
-          version: "latest"
+          version: "v1.30.6"
 
       - name: Sync backend dependencies
         working-directory: backend
@@ -149,12 +152,17 @@ jobs:
         env:
           BUILD_ANDROID_PROD_SKIP_CHECKS: "1"
           GRADLE_OPTS: -Dorg.gradle.daemon=false -Dorg.gradle.vfs.watch=false -Dorg.gradle.workers.max=2
-          API_BASE_URL: https://api.nexavend.store:8443
+          EXPECTED_API_BASE_URL: https://api.example.com
+          EXPECTED_PRIVACY_URL: https://example.com/privacy
+          EXPECTED_TERMS_URL: https://example.com/terms
+          EXPECTED_DELETE_ACCOUNT_URL: https://example.com/delete-account
+          EXPECTED_SUPPORT_EMAIL: support@example.com
+          API_BASE_URL: https://api.example.com
           REVENUECAT_ANDROID_API_KEY: goog_ci_public_sdk_key_placeholder
-          APP_PRIVACY_URL: https://nexavend.store/privacy
-          APP_TERMS_URL: https://nexavend.store/terms
-          APP_DELETE_ACCOUNT_URL: https://nexavend.store/delete-account
-          APP_SUPPORT_EMAIL: support@nexavend.store
+          APP_PRIVACY_URL: https://example.com/privacy
+          APP_TERMS_URL: https://example.com/terms
+          APP_DELETE_ACCOUNT_URL: https://example.com/delete-account
+          APP_SUPPORT_EMAIL: support@example.com
           ANDROID_KEYSTORE_FILE: upload-keystore.jks
           ANDROID_KEYSTORE_PASSWORD: ci-upload-store-password
           ANDROID_KEY_ALIAS: upload
