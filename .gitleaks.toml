@@ -1,0 +1,25 @@
+title = "AI Expense Tracker Gitleaks configuration"
+
+[extend]
+useDefault = true
+
+[[allowlists]]
+description = "Public Firebase mobile client configuration; restrict keys in Firebase/GCP."
+condition = "AND"
+paths = [
+  '''expense_tracker_app/android/app/google-services\.json''',
+  '''expense_tracker_app/lib/firebase_options\.dart''',
+]
+regexes = [
+  '''AIza[0-9A-Za-z_-]{20,}''',
+]
+
+[[allowlists]]
+description = "Placeholder values used in documentation and example env files."
+regexes = [
+  '''replace-with-[a-z0-9-]+''',
+  '''example\.com''',
+  '''your-github-org''',
+  '''expected-secret''',
+  '''goog_ci_public_sdk_key_placeholder''',
+]
