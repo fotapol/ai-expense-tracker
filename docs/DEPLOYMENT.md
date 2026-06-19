@@ -277,14 +277,13 @@ Internal services remain cluster-only and are not routed through the public host
 
 ```bash
 curl -I https://example.com/
-curl -I https://example.com/privacy
-curl -I https://example.com/terms
+curl -I https://example.com/delete-account
 ```
 
 Expected:
 
 - the public site returns `200`
-- `/privacy` and `/terms` return `200`
+- `/delete-account` returns `200`
 - support/download links reflect the values rendered from your production env
 
 ### API
