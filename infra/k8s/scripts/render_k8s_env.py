@@ -454,12 +454,10 @@ def main() -> None:
         values.get("APP_WEBSITE_URL", "").strip() or values["PUBLIC_APP_BASE_URL"]
     ).rstrip("/")
     values["APP_PRIVACY_URL"] = (
-        values.get("APP_PRIVACY_URL", "").strip()
-        or f"{values['APP_WEBSITE_URL']}/privacy"
+        values.get("APP_PRIVACY_URL", "").strip() or "https://example.com/privacy"
     )
     values["APP_TERMS_URL"] = (
-        values.get("APP_TERMS_URL", "").strip()
-        or f"{values['APP_WEBSITE_URL']}/terms"
+        values.get("APP_TERMS_URL", "").strip() or "https://example.com/terms"
     )
     values["APP_DELETE_ACCOUNT_URL"] = (
         values.get("APP_DELETE_ACCOUNT_URL", "").strip()

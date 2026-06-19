@@ -4,7 +4,7 @@ metadata:
   name: expense-tracker-site
   namespace: expense-tracker
 spec:
-  host: nexavend.store
+  host: example.com
   listener:
     https: https-8443
   tls:
