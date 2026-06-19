@@ -26,12 +26,12 @@ Those generated files are the only inputs the production Kustomize overlay uses 
 | Name | Purpose | Required | Dev Example | Production Notes | Secret |
 | --- | --- | --- | --- | --- | --- |
 | `APP_ENV` | Backend runtime mode. | Required | `development` | Set to `production` on the cluster. | No |
-| `PUBLIC_API_BASE_URL` | Canonical public API URL. | Required | `http://localhost:8000` | Must be the Cloudflare-fronted API origin such as `https://api.nexavend.store:8443`. | No |
-| `PUBLIC_APP_BASE_URL` | Canonical public app/site URL for invite links and the public website hostname. | Required when deploying the public site | `http://localhost:3000` | Set this to the real public site URL such as `https://nexavend.store`. | No |
+| `PUBLIC_API_BASE_URL` | Canonical public API URL. | Required | `http://localhost:8000` | Must be the Cloudflare-fronted API origin such as `https://api.example.com`. | No |
+| `PUBLIC_APP_BASE_URL` | Canonical public app/site URL for invite links and the public website hostname. | Required when deploying the public site | `http://localhost:3000` | Set this to the real public site URL such as `https://example.com`. | No |
 | `APP_ADMIN_EMAILS` | Comma-separated backend admin allowlist. | Optional | `admin@example.com` | Keep tight for single-user launch; rendered into a Kubernetes Secret even though it is not a credential. | Yes |
 | `API_DOCS_ENABLED` | Enable FastAPI docs, Redoc, and OpenAPI routes. | Required | `true` | Keep `false` in production; public docs are blocked at ingress and disabled in the app runtime. | No |
-| `TRUSTED_HOSTS` | Comma-separated Host header allowlist for FastAPI. | Required in production | `localhost,127.0.0.1,testserver` | Include `api.nexavend.store` and the internal API service hosts; `:8443` is accepted because the middleware normalizes ports. | No |
-| `CORS_ALLOWED_ORIGINS` | Comma-separated browser origins allowed by CORS. | Required in production | `http://localhost:3000,http://127.0.0.1:3000` | Set to the public site origin such as `https://nexavend.store`. | No |
+| `TRUSTED_HOSTS` | Comma-separated Host header allowlist for FastAPI. | Required in production | `localhost,127.0.0.1,testserver` | Include `api.example.com` and the internal API service hosts; `:8443` is accepted because the middleware normalizes ports. | No |
+| `CORS_ALLOWED_ORIGINS` | Comma-separated browser origins allowed by CORS. | Required in production | `http://localhost:3000,http://127.0.0.1:3000` | Set to the public site origin such as `https://example.com`. | No |
 | `RUN_STARTUP_MIGRATIONS` | Run Alembic migrations during API startup. | Required | `true` | Prefer `false` in production after the migration job script has been verified for the cluster. | No |
 | `MAX_RECEIPT_FILE_BYTES` | Backend hard cap for uploaded receipt size. | Required | `15728640` | Keep aligned with mobile UX and ingress/storage limits. | No |
 | `LOG_LEVEL` | Default backend log level. | Required | `INFO` | Use `INFO` for launch; raise to `DEBUG` only temporarily. | No |
@@ -72,7 +72,7 @@ Those generated files are the only inputs the production Kustomize overlay uses 
 | `MINIO_ROOT_USER` | MinIO root username. | Required | `minioadmin` | Stored as a secret; in the single-node setup it also seeds app S3 credentials when explicit S3 keys are omitted. | Yes |
 | `MINIO_ROOT_PASSWORD` | MinIO root password. | Required | `minioadmin123` | Use a strong production value and rotate carefully. | Yes |
 | `S3_ENDPOINT` | Internal MinIO/S3 endpoint used by backend and worker. | Required | `http://minio:9000` | Should remain the in-cluster/internal endpoint. | No |
-| `S3_EXTERNAL_ENDPOINT` | Publicly reachable S3-compatible endpoint for presigned receipt URLs. | Required | `http://localhost:9000` | Use the canonical production endpoint `https://storage.nexavend.store:8443` unless a clean-host Cloudflare Origin Rule has been deliberately added and tested. | No |
+| `S3_EXTERNAL_ENDPOINT` | Publicly reachable S3-compatible endpoint for presigned receipt URLs. | Required | `http://localhost:9000` | Use the canonical production endpoint `https://storage.example.com` unless a clean-host Cloudflare Origin Rule has been deliberately added and tested. | No |
 | `S3_ACCESS_KEY` | Explicit S3 access key override. | Optional | blank | Leave blank to reuse `MINIO_ROOT_USER`; stored as a secret. | Yes |
 | `S3_SECRET_KEY` | Explicit S3 secret key override. | Optional | blank | Leave blank to reuse `MINIO_ROOT_PASSWORD`; stored as a secret. | Yes |
 | `S3_REGION` | S3 region value used by the client. | Required | `eu-central-1` | Keep stable once objects exist. | No |
@@ -105,9 +105,9 @@ Those generated files are the only inputs the production Kustomize overlay uses 
 | `LANGSMITH_ENDPOINT` | LangSmith API endpoint. | Required | `https://api.smith.langchain.com` | Override only for self-hosted or regional setups. | No |
 | `LANGSMITH_HIDE_INPUTS` | Hide raw trace inputs from LangSmith by default. | Required | `true` | Keep enabled for receipt privacy. | No |
 | `LANGSMITH_HIDE_OUTPUTS` | Hide raw trace outputs from LangSmith by default. | Required | `true` | Keep enabled for receipt privacy. | No |
-| `BACKEND_IMAGE` | Pullable container image for the API and worker workloads. | Required | `ghcr.io/fotapol/ai-expense-tracker-backend:prod-1` | The render script rejects placeholder `ghcr.io/example/...` images and `:latest` in production. | No |
-| `SITE_IMAGE` | Pullable container image for the public static site workload. | Required when deploying the public site | `ghcr.io/fotapol/ai-expense-tracker-site:prod-1` | Build from `site/Dockerfile` and publish it before applying the production overlay. | No |
-| `POSTGRES_BACKUP_IMAGE` | Pullable container image for the PostgreSQL backup CronJob. | Required | `ghcr.io/fotapol/ai-expense-tracker-postgres-backup:prod-1` | Build from `infra/images/postgres-backup/Dockerfile` and publish it before applying the production overlay. | No |
+| `BACKEND_IMAGE` | Pullable container image for the API and worker workloads. | Required | `ghcr.io/your-github-org/ai-expense-tracker-backend:prod-1` | The render script rejects placeholder `ghcr.io/example/...` images and `:latest` in production. | No |
+| `SITE_IMAGE` | Pullable container image for the public static site workload. | Required when deploying the public site | `ghcr.io/your-github-org/ai-expense-tracker-site:prod-1` | Build from `site/Dockerfile` and publish it before applying the production overlay. | No |
+| `POSTGRES_BACKUP_IMAGE` | Pullable container image for the PostgreSQL backup CronJob. | Required | `ghcr.io/your-github-org/ai-expense-tracker-postgres-backup:prod-1` | Build from `infra/images/postgres-backup/Dockerfile` and publish it before applying the production overlay. | No |
 | `PROMETHEUS_RETENTION_TIME` | Prometheus local retention window. | Required | `7d` | Tune for VPS disk budget. | No |
 | `PROMETHEUS_RETENTION_SIZE` | Prometheus max local retention size. | Required | `2GB` | Tune for VPS disk budget. | No |
 | `PROMETHEUS_SCRAPE_INTERVAL` | Prometheus scrape interval for API/worker/internal targets. | Required | `15s` | Rendered into the generated Prometheus config file. | No |
@@ -145,7 +145,7 @@ These values are part of the overall operator-facing config. They are used by th
 | `APP_WEBSITE_URL` | Canonical website link shown in the app and used by the static site header/footer links. | Optional | `http://localhost:3000` | Keep aligned with the real public website. If omitted in production rendering, it falls back to `PUBLIC_APP_BASE_URL`. | No |
 | `APP_PRIVACY_URL` | Privacy-policy link shown in the app and used by the static site legal navigation. | Optional | `http://localhost:3000/privacy` | Keep aligned with the real public policy page. If omitted in production rendering, it falls back to `APP_WEBSITE_URL + /privacy`. | No |
 | `APP_TERMS_URL` | Terms-of-service link shown in the app and used by the static site legal navigation. | Optional | `http://localhost:3000/terms` | Keep aligned with the real public terms page. If omitted in production rendering, it falls back to `APP_WEBSITE_URL + /terms`. | No |
-| `APP_DELETE_ACCOUNT_URL` | Account-deletion instruction link shown in app/legal surfaces. | Required for production mobile builds | `http://localhost:3000/delete-account` | Production Android builds require `https://nexavend.store/delete-account`. If omitted in production rendering, it falls back to `APP_WEBSITE_URL + /delete-account`. | No |
+| `APP_DELETE_ACCOUNT_URL` | Account-deletion instruction link shown in app/legal surfaces. | Required for production mobile builds | `http://localhost:3000/delete-account` | Production Android builds require `https://example.com/delete-account`. If omitted in production rendering, it falls back to `APP_WEBSITE_URL + /delete-account`. | No |
 | `APP_PLAY_SUBSCRIPTIONS_URL` | Google Play subscription management link opened for active Android subscribers. | Optional | `https://play.google.com/store/account/subscriptions?package=com.nexavend.expense_tracker_app` | Override only if the package-specific Play management URL changes. | No |
 | `APP_GITHUB_URL` | Repository/support code link shown in the app. | Optional | `https://github.com/expense-tracker/ai-expense-tracker` | Adjust if the public repo URL changes. | No |
 | `APP_SUPPORT_EMAIL` | Support email displayed in the app and rendered into the public site support CTA. | Optional | `support@example.com` | Use the real operator support mailbox. | No |
@@ -153,7 +153,7 @@ These values are part of the overall operator-facing config. They are used by th
 | `SITE_APP_STORE_URL` | Optional App Store button target on the public site. | Optional | blank | When blank, the App Store button is hidden. | No |
 | `SITE_GOOGLE_PLAY_URL` | Optional Google Play button target on the public site. | Optional | blank | When blank, the Google Play button is hidden. | No |
 | `SITE_OPEN_APP_URL` | Optional direct open-app button target on the public site. | Optional | blank | Use this for a web app, deep link, or other primary destination if you have one. | No |
-| `API_BASE_URL` | Flutter build-time backend URL define. | Required for real mobile builds | `http://10.0.2.2:8000` | Set to the same public API URL as `PUBLIC_API_BASE_URL` in production mobile builds, for example `https://api.nexavend.store:8443`. | No |
+| `API_BASE_URL` | Flutter build-time backend URL define. | Required for real mobile builds | `http://10.0.2.2:8000` | Set to the same public API URL as `PUBLIC_API_BASE_URL` in production mobile builds, for example `https://api.example.com`. | No |
 | `REVENUECAT_ANDROID_API_KEY` | RevenueCat Android public SDK key. | Optional | blank | Required for Android subscription UI flows. | No |
 | `REVENUECAT_IOS_API_KEY` | RevenueCat iOS public SDK key. | Optional | blank | Required only if an iOS client is built. | No |
 | `REVENUECAT_PREMIUM_ENTITLEMENT_ID` | Flutter-side default premium entitlement ID. | Optional | `personal_premium` | Keep aligned with the backend entitlement mapping. | No |
