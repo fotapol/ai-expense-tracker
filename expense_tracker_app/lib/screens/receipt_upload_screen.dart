@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:io';
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 
@@ -358,7 +359,9 @@ class _ReceiptUploadScreenState extends State<ReceiptUploadScreen> {
           });
           return;
         }
-        debugPrint('Transient poll error: $error');
+        if (kDebugMode) {
+          debugPrint('Transient poll error: $error');
+        }
       }
     }
 

@@ -999,7 +999,7 @@ class AppLocalizations {
       'faq_a12':
           'That is normal. Review the extracted details, adjust anything that looks off, and then save only when the receipt looks right to you.',
       'faq_a13':
-          'Use the Contact Support button or email support@nexavend.store and include a short description of the issue.',
+          'Use the Contact Support button or email support@example.com and include a short description of the issue.',
       'faq_a2':
           'The app uses the merchant name, item names, and receipt totals to suggest categories automatically. You can always adjust the category manually before saving.',
       'faq_a3':
@@ -2369,7 +2369,7 @@ class AppLocalizations {
       'faq_a12':
           'Das ist normal. Überprüfen Sie die extrahierten Details, passen Sie alles an, was Ihnen nicht gefällt, und speichern Sie dann nur, wenn die Quittung für Sie richtig aussieht.',
       'faq_a13':
-          'Verwenden Sie die Schaltfläche „Support kontaktieren“ oder senden Sie eine E-Mail an support@nexavend.store und fügen Sie eine kurze Beschreibung des Problems bei.',
+          'Verwenden Sie die Schaltfläche „Support kontaktieren“ oder senden Sie eine E-Mail an support@example.com und fügen Sie eine kurze Beschreibung des Problems bei.',
       'faq_a2':
           'Die App verwendet den Händlernamen, die Artikelnamen und die Belegsummen, um automatisch Kategorien vorzuschlagen. Sie können die Kategorie vor dem Speichern jederzeit manuell anpassen.',
       'faq_a3':
@@ -3747,7 +3747,7 @@ class AppLocalizations {
       'faq_a12':
           'C\'est normal. Passez en revue les détails extraits, ajustez tout ce qui semble anormal, puis enregistrez uniquement lorsque le reçu vous semble correct.',
       'faq_a13':
-          'Utilisez le bouton Contacter l\'assistance ou envoyez un e-mail à support@nexavend.store et incluez une brève description du problème.',
+          'Utilisez le bouton Contacter l\'assistance ou envoyez un e-mail à support@example.com et incluez une brève description du problème.',
       'faq_a2':
           'L\'application utilise le nom du commerçant, les noms des articles et les totaux des reçus pour suggérer automatiquement des catégories. Vous pouvez toujours ajuster la catégorie manuellement avant de sauvegarder.',
       'faq_a3':
@@ -5112,7 +5112,7 @@ class AppLocalizations {
       'faq_a12':
           'Це нормально. Перегляньте витягнуті деталі, відкоригуйте все, що не виглядає, а потім збережіть лише тоді, коли квитанція виглядає правильно.',
       'faq_a13':
-          'Скористайтеся кнопкою «Зв’язатися зі службою підтримки» або надішліть електронний лист на support@nexavend.store і додайте короткий опис проблеми.',
+          'Скористайтеся кнопкою «Зв’язатися зі службою підтримки» або надішліть електронний лист на support@example.com і додайте короткий опис проблеми.',
       'faq_a2':
           'Програма використовує ім’я продавця, назви товарів і загальну суму квитанцій, щоб автоматично пропонувати категорії. Ви завжди можете змінити категорію вручну перед збереженням.',
       'faq_a3':
@@ -6490,7 +6490,7 @@ class AppLocalizations {
       'faq_a12':
           'Questo è normale. Controlla i dettagli estratti, modifica tutto ciò che sembra fuori posto e poi salva solo quando la ricevuta ti sembra adatta.',
       'faq_a13':
-          'Utilizza il pulsante Contatta l\'assistenza o invia un\'e-mail a support@nexavend.store e includi una breve descrizione del problema.',
+          'Utilizza il pulsante Contatta l\'assistenza o invia un\'e-mail a support@example.com e includi una breve descrizione del problema.',
       'faq_a2':
           'L\'app utilizza il nome del commerciante, i nomi degli articoli e i totali delle ricevute per suggerire automaticamente le categorie. Puoi sempre modificare manualmente la categoria prima di salvare.',
       'faq_a3':
@@ -7868,7 +7868,7 @@ class AppLocalizations {
       'faq_a12':
           'To normalne. Przejrzyj wyodrębnione szczegóły, dostosuj wszystko, co nie pasuje, a następnie zapisz tylko wtedy, gdy paragon będzie Ci odpowiadał.',
       'faq_a13':
-          'Użyj przycisku Skontaktuj się z pomocą techniczną lub wyślij e-mail na adres support@nexavend.store i dołącz krótki opis problemu.',
+          'Użyj przycisku Skontaktuj się z pomocą techniczną lub wyślij e-mail na adres support@example.com i dołącz krótki opis problemu.',
       'faq_a2':
           'Aplikacja wykorzystuje nazwę sprzedawcy, nazwy produktów i sumę rachunków, aby automatycznie sugerować kategorie. Zawsze możesz dostosować kategorię ręcznie przed zapisaniem.',
       'faq_a3':
@@ -9225,7 +9225,7 @@ class AppLocalizations {
       'faq_a12':
           'To je normalno. Pregledajte izvučene detalje, ispravite sve što ne izgleda dobro i sačuvajte tek kada podaci sa računa budu ispravni.',
       'faq_a13':
-          'Koristite dugme Kontaktiraj podršku ili pišite na support@nexavend.store i uključite kratak opis problema.',
+          'Koristite dugme Kontaktiraj podršku ili pišite na support@example.com i uključite kratak opis problema.',
       'faq_a2':
           'Aplikacija koristi ime prodavca, nazive artikala i ukupne iznose računa da automatski predloži kategorije. Kategoriju uvek možete ručno podesiti pre čuvanja.',
       'faq_a3':
@@ -10584,7 +10584,7 @@ class AppLocalizations {
       'faq_a12':
           'Это нормально. Проверьте извлеченные детали, исправьте то, что кажется неверным, и сохраняйте только тогда, когда данные чека выглядят правильно.',
       'faq_a13':
-          'Используйте кнопку \'Связаться с поддержкой\' или напишите на support@nexavend.store, приложив краткое описание проблемы.',
+          'Используйте кнопку \'Связаться с поддержкой\' или напишите на support@example.com, приложив краткое описание проблемы.',
       'faq_a2':
           'Приложение использует название магазина, названия товаров и суммы чека для автоматического предложения категорий. Вы всегда можете изменить категорию вручную перед сохранением.',
       'faq_a3':
@@ -11950,7 +11950,7 @@ class AppLocalizations {
       'faq_a12':
           'Isso é normal. Reveja os detalhes extraídos, ajuste o que for necessário e guarde apenas quando o recibo estiver correto.',
       'faq_a13':
-          'Utilize o botão Contactar Suporte ou envie um e-mail para support@nexavend.store e inclua uma breve descrição do problema.',
+          'Utilize o botão Contactar Suporte ou envie um e-mail para support@example.com e inclua uma breve descrição do problema.',
       'faq_a2':
           'A aplicação utiliza o nome do comerciante, os nomes dos itens e os totais do recibo para sugerir categorias automaticamente. Pode sempre ajustar a categoria manualmente antes de guardar.',
       'faq_a3':
@@ -13310,7 +13310,7 @@ class AppLocalizations {
       'faq_a12':
           'Bu normaldir. Çıkarılan ayrıntıları gözden geçirin, yanlış görünenleri düzeltin ve yalnızca veriler doğru olduğunda kaydedin.',
       'faq_a13':
-          '\'Destekle İletişime Geç\' butonunu kullanın veya sorunun kısa bir açıklamasıyla birlikte support@nexavend.store adresine e-posta gönderin.',
+          '\'Destekle İletişime Geç\' butonunu kullanın veya sorunun kısa bir açıklamasıyla birlikte support@example.com adresine e-posta gönderin.',
       'faq_a2':
           'Uygulama; mağaza adını, ürün adlarını ve fiş toplamlarını kullanarak otomatik olarak kategori önerir. Kaydetmeden önce kategoriyi her zaman manuel olarak değiştirebilirsiniz.',
       'faq_a3':
@@ -14667,7 +14667,7 @@ class AppLocalizations {
       'faq_a12':
           'Dat is normaal. Controleer de geëxtraheerde gegevens, pas aan wat niet klopt en sla ze pas op als de bongegevens correct zijn.',
       'faq_a13':
-          'Gebruik de knop \'Contact opnemen met support\' of stuur een e-mail naar support@nexavend.store met een korte beschrijving van het probleem.',
+          'Gebruik de knop \'Contact opnemen met support\' of stuur een e-mail naar support@example.com met een korte beschrijving van het probleem.',
       'faq_a2':
           'De app gebruikt de naam van de winkelier, itemnamen en bontotalen om automatisch categorieën voor te stellen. U kunt de categorie voor het opslaan altijd handmatig aanpassen.',
       'faq_a3':
@@ -16027,7 +16027,7 @@ class AppLocalizations {
       'faq_a12':
           'Det är normalt. Granska de extraherade detaljerna, justera det som inte ser rätt ut och spara först när kvitto-datan stämmer.',
       'faq_a13':
-          'Använd knappen \'Kontakta support\' eller skicka ett e-postmeddelande till support@nexavend.store med en kort beskrivning av problemet.',
+          'Använd knappen \'Kontakta support\' eller skicka ett e-postmeddelande till support@example.com med en kort beskrivning av problemet.',
       'faq_a2':
           'Appen använder butiksnamn, artikelnamn och kvittosummor för att automatiskt föreslå kategorier. Du kan alltid justera kategorin manuellt innan du sparar.',
       'faq_a3':
@@ -17372,7 +17372,7 @@ class AppLocalizations {
       'faq_a12':
           'To je normální. Zkontrolujte extrahované údaje, upravte vše, co nevypadá správně, a uložte, až když jsou data z účtenky v pořádku.',
       'faq_a13':
-          'Použijte tlačítko \'Kontaktovat podporu\' nebo napište na support@nexavend.store a uveďte stručný popis problému.',
+          'Použijte tlačítko \'Kontaktovat podporu\' nebo napište na support@example.com a uveďte stručný popis problému.',
       'faq_a2':
           'Aplikace využívá název obchodníka, názvy položek a součty účtenek k automatickému návrhu kategorií. Před uložením můžete kategorii vždy ručně upravit.',
       'faq_a3':
@@ -18737,7 +18737,7 @@ class AppLocalizations {
       'faq_a12':
           'Este normal. Verificați detaliile extrase, ajustați ce nu pare corect și salvați doar când datele de pe bon sunt corecte.',
       'faq_a13':
-          'Folosiți butonul \'Contactați asistența\' sau scrieți la support@nexavend.store incluzând o scurtă descriere a problemei.',
+          'Folosiți butonul \'Contactați asistența\' sau scrieți la support@example.com incluzând o scurtă descriere a problemei.',
       'faq_a2':
           'Aplicația folosește numele comerciantului, numele articolelor și totalurile bonurilor pentru a sugera automat categorii. Puteți ajusta manual categoria înainte de a salva.',
       'faq_a3':
@@ -20115,7 +20115,7 @@ class AppLocalizations {
       'faq_a12':
           'Ez normális. Ellenőrizze a kinyert adatokat, javítsa ki, ami nem tűnik helyesnek, és csak akkor mentse el, ha a nyugta adatai rendben vannak.',
       'faq_a13':
-          'Használja a \'Kapcsolatfelvétel az ügyfélszolgálattal\' gombot, vagy írjon a support@nexavend.store címre a probléma rövid leírásával.',
+          'Használja a \'Kapcsolatfelvétel az ügyfélszolgálattal\' gombot, vagy írjon a support@example.com címre a probléma rövid leírásával.',
       'faq_a2':
           'Az alkalmazás a bolt neve, a tételek neve és a nyugta összege alapján automatikusan kategóriákat javasol. Mentés előtt bármikor módosíthatja a kategóriát manuálisan.',
       'faq_a3':
@@ -21476,7 +21476,7 @@ class AppLocalizations {
       'faq_a12':
           'Itu normal. Tinjau detail yang diekstrak, sesuaikan apa pun yang tidak terlihat benar, dan simpan hanya jika data struk sudah benar.',
       'faq_a13':
-          'Gunakan tombol \'Hubungi Dukungan\' atau kirim email ke support@nexavend.store dengan deskripsi singkat masalahnya.',
+          'Gunakan tombol \'Hubungi Dukungan\' atau kirim email ke support@example.com dengan deskripsi singkat masalahnya.',
       'faq_a2':
           'Aplikasi menggunakan nama toko, nama item, dan total struk untuk menyarankan kategori secara otomatis. Anda selalu dapat menyesuaikan kategori secara manual sebelum menyimpan.',
       'faq_a3':
@@ -22828,7 +22828,7 @@ class AppLocalizations {
       'faq_a12':
           'Itu perkara biasa. Semak butiran yang dikeluarkan, laras apa sahaja yang tidak betul dan simpan hanya apabila data resit sudah tepat.',
       'faq_a13':
-          'Gunakan butang \'Hubungi Sokongan\' atau hantar e-mel ke support@nexavend.store dengan penerangan ringkas mengenai masalah tersebut.',
+          'Gunakan butang \'Hubungi Sokongan\' atau hantar e-mel ke support@example.com dengan penerangan ringkas mengenai masalah tersebut.',
       'faq_a2':
           'Aplikasi menggunakan nama kedai, nama item dan jumlah resit untuk mencadangkan kategori secara automatik. Anda sentiasa boleh melaras kategori secara manual sebelum menyimpan.',
       'faq_a3':
@@ -24181,7 +24181,7 @@ class AppLocalizations {
       'faq_a12':
           'Điều đó là bình thường. Hãy xem xét các chi tiết được trích xuất, điều chỉnh bất kỳ điều gì không chính xác và chỉ lưu khi dữ liệu hóa đơn đã đúng.',
       'faq_a13':
-          'Sử dụng nút \'Liên hệ với bộ phận hỗ trợ\' hoặc viết thư tới support@nexavend.store kèm theo mô tả ngắn gọn về vấn đề.',
+          'Sử dụng nút \'Liên hệ với bộ phận hỗ trợ\' hoặc viết thư tới support@example.com kèm theo mô tả ngắn gọn về vấn đề.',
       'faq_a2':
           'Ứng dụng sử dụng tên cửa hàng, tên mặt hàng và tổng hóa đơn để tự động gợi ý danh mục. Bạn luôn có thể điều chỉnh danh mục thủ công trước khi lưu.',
       'faq_a3':
@@ -25419,7 +25419,7 @@ class AppLocalizations {
       'faq_a10': '打开“工具”以统一管理账单提醒、类别、标签和预算规划工具。',
       'faq_a11': '我们通过身份验证访问、安全传输和受限的内部访问来保护账户和收据数据。敏感操作始终需要活跃的登录状态。',
       'faq_a12': '这是正常的。请检查提取的细节，调整任何看起来不正确的内容，并在收据数据正确后进行保存。',
-      'faq_a13': '使用“联系支持”按钮或发送电子邮件至 support@nexavend.store，并简要描述问题。',
+      'faq_a13': '使用“联系支持”按钮或发送电子邮件至 support@example.com，并简要描述问题。',
       'faq_a2': '应用利用商户名称、商品名称和收据总额自动建议类别。您可以在保存前手动调整类别。',
       'faq_a3': '可以。使用首页快捷操作中的“添加支出”，或打开收据列表手动创建交易，无需扫描收据。',
       'faq_a4': '免费计划包括手动输入支出、查看收据和基础历史记录，每月有扫描次数限制。',
@@ -26573,7 +26573,7 @@ class AppLocalizations {
       'faq_a12':
           'それは正常な動作です。抽出された詳細を確認し、正しくない箇所を修正して、データが正しいことを確認してから保存してください。',
       'faq_a13':
-          '「サポートに問い合わせる」ボタンを使用するか、問題の簡単な説明を添えて support@nexavend.store までメールをお送りください。',
+          '「サポートに問い合わせる」ボタンを使用するか、問題の簡単な説明を添えて support@example.com までメールをお送りください。',
       'faq_a2':
           'アプリは店舗名、品目名、合計金額を使用して、カテゴリーを自動的に提案します。保存する前に手動でカテゴリーを調整することも可能です。',
       'faq_a3':
@@ -27760,7 +27760,7 @@ class AppLocalizations {
       'faq_a12':
           '이는 정상적인 현상입니다. 추출된 상세 정보를 검토하고, 올바르지 않은 부분은 수정한 뒤 데이터가 정확할 때만 저장하세요.',
       'faq_a13':
-          '\'고객 지원팀 문의\' 버튼을 사용하거나 문제에 대한 간략한 설명과 함께 support@nexavend.store으로 이메일을 보내주세요.',
+          '\'고객 지원팀 문의\' 버튼을 사용하거나 문제에 대한 간략한 설명과 함께 support@example.com으로 이메일을 보내주세요.',
       'faq_a2':
           '앱은 상점 이름, 품목 이름 및 영수증 합계를 사용하여 자동으로 카테고리를 제안합니다. 저장하기 전에 언제든지 수동으로 카테고리를 변경할 수 있습니다.',
       'faq_a3':
@@ -29023,7 +29023,7 @@ class AppLocalizations {
       'faq_a12':
           'यह सामान्य है। निकाली गई जानकारी की समीक्षा करें, जो सही न लगे उसे बदलें और रसीद डेटा सही होने पर ही सेव करें।',
       'faq_a13':
-          '\'सपोर्ट से संपर्क करें\' बटन का उपयोग करें या समस्या के संक्षिप्त विवरण के साथ support@nexavend.store पर ईमेल करें।',
+          '\'सपोर्ट से संपर्क करें\' बटन का उपयोग करें या समस्या के संक्षिप्त विवरण के साथ support@example.com पर ईमेल करें।',
       'faq_a2':
           'ऐप ऑटोमैटिक रूप से श्रेणियों का सुझाव देने के लिए व्यापारी का नाम, आइटम का नाम और रसीद के कुल योग का उपयोग करता है। आप सेव करने से पहले श्रेणी को मैन्युअल रूप से बदल सकते हैं।',
       'faq_a3':
@@ -30346,7 +30346,7 @@ class AppLocalizations {
       'faq_a12':
           'هذا أمر طبيعي. راجع التفاصيل المستخرجة، واضبط أي شيء لا يبدو صحيحًا، واحفظ فقط عندما تكون بيانات الإيصال صحيحة.',
       'faq_a13':
-          'استخدم زر \'الاتصال بالدعم\' أو راسلنا على support@nexavend.store مع وصف موجز للمشكلة.',
+          'استخدم زر \'الاتصال بالدعم\' أو راسلنا على support@example.com مع وصف موجز للمشكلة.',
       'faq_a2':
           'يستخدم التطبيق اسم التاجر وأسماء العناصر وإجماليات الإيصال لاقتراح الفئات تلقائيًا. يمكنك دائمًا ضبط الفئة يدويًا قبل الحفظ.',
       'faq_a3':
@@ -31686,7 +31686,7 @@ class AppLocalizations {
       'faq_a12':
           'Esto es normal. Revise los detalles extraídos, ajuste lo que no parezca correcto y guarde solo cuando los datos del recibo sean correctos.',
       'faq_a13':
-          'Utilice el botón \'Contactar con soporte\' o escriba a support@nexavend.store incluyendo una breve descripción del problema.',
+          'Utilice el botón \'Contactar con soporte\' o escriba a support@example.com incluyendo una breve descripción del problema.',
       'faq_a2':
           'La aplicación utiliza el nombre del comercio, los nombres de los artículos y los totales de los recibos para sugerir categorías automáticamente. Siempre puede ajustar la categoría manualmente antes de guardar.',
       'faq_a3':

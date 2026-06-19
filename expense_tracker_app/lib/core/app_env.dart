@@ -34,25 +34,25 @@ class AppEnv {
   static String get websiteUrl => _read(
     'APP_WEBSITE_URL',
     defineValue: _websiteUrlDefine,
-    fallback: 'https://nexavend.store',
+    fallback: 'https://example.com',
   );
 
   static String get privacyUrl => _read(
     'APP_PRIVACY_URL',
     defineValue: _privacyUrlDefine,
-    fallback: 'https://nexavend.store/privacy',
+    fallback: 'https://example.com/privacy',
   );
 
   static String get termsUrl => _read(
     'APP_TERMS_URL',
     defineValue: _termsUrlDefine,
-    fallback: 'https://nexavend.store/terms',
+    fallback: 'https://example.com/terms',
   );
 
   static String get deleteAccountUrl => _read(
     'APP_DELETE_ACCOUNT_URL',
     defineValue: _deleteAccountUrlDefine,
-    fallback: 'https://nexavend.store/delete-account',
+    fallback: 'https://example.com/delete-account',
   );
 
   static String get playSubscriptionsUrl => _read(
@@ -70,7 +70,7 @@ class AppEnv {
   static String get supportEmail => _read(
     'APP_SUPPORT_EMAIL',
     defineValue: _supportEmailDefine,
-    fallback: 'support@nexavend.store',
+    fallback: 'support@example.com',
   );
 
   static String get supportSubject => _read(
