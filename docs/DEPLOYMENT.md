@@ -84,24 +84,24 @@ helm upgrade --install nginx-ingress \
 
 Create proxied DNS records:
 
-- `nexavend.store` -> VPS public IP
-- `api.nexavend.store` -> VPS public IP
-- `storage.nexavend.store` -> VPS public IP
+- `example.com` -> VPS public IP
+- `api.example.com` -> VPS public IP
+- `storage.example.com` -> VPS public IP
 
 Use:
 
 - SSL/TLS mode: `Full (strict)`
 - proxied orange-cloud DNS records
 - free-plan assumptions only
-- an Origin Rule for `nexavend.store` that rewrites the destination port to
-  `8443`, so public users can open `https://nexavend.store` without typing the
+- an Origin Rule for `example.com` that rewrites the destination port to
+  `8443`, so public users can open `https://example.com` without typing the
   origin port
 - API public URL with the explicit alternate HTTPS port:
-  `https://api.nexavend.store:8443`
+  `https://api.example.com`
 - Storage public URL with the explicit alternate HTTPS port:
-  `https://storage.nexavend.store:8443`
+  `https://storage.example.com`
 - the public site URL you set in `PUBLIC_APP_BASE_URL`, for example
-  `https://nexavend.store`
+  `https://example.com`
 
 Cloudflare supports proxied HTTPS traffic on `8443`, and Origin Rules can route
 clean edge URLs on port `443` to a non-standard origin port. Keep API and
@@ -128,7 +128,7 @@ Create the secret before applying workloads:
 ```bash
 kubectl -n expense-tracker create secret docker-registry ghcr-creds \
   --docker-server=ghcr.io \
-  --docker-username=fotapol \
+  --docker-username=your-github-org \
   --docker-password="$GHCR_READ_PACKAGES_TOKEN"
 ```
 
@@ -169,7 +169,7 @@ The render script rejects placeholder `ghcr.io/example/...` images and
 production app images tagged `:latest`. The current public site image value is:
 
 ```bash
-SITE_IMAGE=ghcr.io/fotapol/ai-expense-tracker-site:prod-1
+SITE_IMAGE=ghcr.io/your-github-org/ai-expense-tracker-site:prod-1
 ```
 
 Build and publish the backup image from:
@@ -217,14 +217,14 @@ Apply the overlay, make one public request, then inspect the safe proxy
 diagnostic fields:
 
 ```bash
-curl -sS https://api.nexavend.store:8443/ >/dev/null
+curl -sS https://api.example.com/ >/dev/null
 kubectl -n expense-tracker logs deploy/expense-tracker-api --tail=200 | \
   grep proxy_socket_client_host
 ```
 
 Set `UVICORN_FORWARDED_ALLOW_IPS` to the observed F5 NGINX source IP or CIDR,
 set `PROXY_DIAGNOSTICS_ENABLED=false`, render again, and redeploy. The Host
-header should be `api.nexavend.store` or `api.nexavend.store:8443`.
+header should be `api.example.com` or `api.example.com`.
 
 ### 9. Run Database Migrations
 
@@ -276,22 +276,21 @@ Internal services remain cluster-only and are not routed through the public host
 ### Site
 
 ```bash
-curl -I https://nexavend.store/
-curl -I https://nexavend.store/privacy
-curl -I https://nexavend.store/terms
+curl -I https://example.com/
+curl -I https://example.com/delete-account
 ```
 
 Expected:
 
 - the public site returns `200`
-- `/privacy` and `/terms` return `200`
+- `/delete-account` returns `200`
 - support/download links reflect the values rendered from your production env
 
 ### API
 
 ```bash
-curl -I https://api.nexavend.store:8443/
-curl -I https://api.nexavend.store:8443/v1/billing/revenuecat/webhook
+curl -I https://api.example.com/
+curl -I https://api.example.com/v1/billing/revenuecat/webhook
 ```
 
 Expected:
@@ -344,7 +343,7 @@ Expected launch state:
 - old database backup objects are pruned by the backup job after
   `POSTGRES_BACKUP_RETENTION_DAYS`, not by a bucket-wide receipt expiry rule.
 - `S3_EXTERNAL_ENDPOINT` remains the canonical public storage endpoint, for
-  example `https://storage.nexavend.store:8443`, unless a clean-host Cloudflare
+  example `https://storage.example.com`, unless a clean-host Cloudflare
   Origin Rule has been deliberately added and tested.
 
 ### Monitoring
@@ -399,5 +398,4 @@ The worker must show startup, RabbitMQ connection, and receipt job logs.
 - `docs/MONITORING.md`
 - `docs/BACKUPS.md`
 - `docs/WEBHOOKS.md`
-- `docs/SECURITY_EXPOSURE.md`
 - `docs/OPS_RUNBOOK.md`

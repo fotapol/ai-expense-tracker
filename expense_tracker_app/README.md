@@ -1,17 +1,48 @@
-# expense_tracker_app
+# AI Expense Tracker Flutter App
 
-A new Flutter project.
+Flutter client for AI Expense Tracker.
 
-## Getting Started
+The app provides authentication, receipt scanning/upload, transaction review,
+analytics, planning, settings, subscription UI, and account-management flows.
 
-This project is a starting point for a Flutter application.
+## Local Setup
 
-A few resources to get you started if this is your first Flutter project:
+```bash
+flutter pub get
+flutter run --dart-define=API_BASE_URL=http://10.0.2.2:8000
+```
 
-- [Learn Flutter](https://docs.flutter.dev/get-started/learn-flutter)
-- [Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
-- [Flutter learning resources](https://docs.flutter.dev/reference/learning-resources)
+Use `10.0.2.2` for an Android emulator. For a physical device, use your
+development machine's LAN IP, for example:
 
-For help getting started with Flutter development, view the
-[online documentation](https://docs.flutter.dev/), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
+```bash
+flutter run --dart-define=API_BASE_URL=http://192.168.1.42:8000
+```
+
+## Production Build Inputs
+
+Production builds should pass public runtime values with `--dart-define`:
+
+- `API_BASE_URL`
+- `APP_WEBSITE_URL`
+- `APP_PRIVACY_URL`
+- `APP_TERMS_URL`
+- `APP_DELETE_ACCOUNT_URL`
+- `APP_SUPPORT_EMAIL`
+- `REVENUECAT_ANDROID_API_KEY`
+- `REVENUECAT_IOS_API_KEY`
+- `REVENUECAT_PREMIUM_ENTITLEMENT_ID`
+
+Do not include server-side secrets in Flutter builds.
+
+## Checks
+
+```bash
+flutter analyze
+flutter test
+```
+
+## Notes
+
+Firebase client configuration is intentionally part of the mobile app. Treat it
+as public client configuration and restrict API keys in Firebase/Google Cloud.

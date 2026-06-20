@@ -1,7 +1,7 @@
 """Add budget settings, budget category limits, and bill reminders.
 
 Revision ID: e7f8a9b0c1d2
-Revises: c4d5e6f7a8b9
+Revises: 47d19b7f6184
 Create Date: 2026-03-23 12:10:00.000000
 """
 
@@ -12,7 +12,7 @@ from alembic import op
 
 # revision identifiers, used by Alembic.
 revision: str = "e7f8a9b0c1d2"
-down_revision: str | Sequence[str] | None = "c4d5e6f7a8b9"
+down_revision: str | Sequence[str] | None = "47d19b7f6184"
 branch_labels: str | Sequence[str] | None = None
 depends_on: str | Sequence[str] | None = None
 

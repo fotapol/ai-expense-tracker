@@ -280,11 +280,7 @@ async def get_me_entitlements(
     session: Session = Depends(get_session),  # noqa: B008
     current_user: User = Depends(get_current_user),  # noqa: B008
 ):
-    """Return active feature codes for the current user.
-
-    Includes both user-scope entitlements and household-scope entitlements
-    from any active household memberships (family plan support).
-    """
+    """Return active user-scope feature codes for the current user."""
     feature_codes = sorted(resolve_effective_entitlements(session, current_user.id))
     return MeEntitlementsResponse(feature_codes=feature_codes)
 

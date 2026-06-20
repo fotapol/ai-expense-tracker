@@ -1,0 +1,73 @@
+.git
+.gitignore
+.github
+
+# Environment and secrets
+.env
+.env.*
+!.env.example
+!.env.production.example
+.envrc
+.secrets/
+backend/.secrets/
+**/firebase_sa.json
+**/*service-account*.json
+**/*secret*.json
+**/*.pem
+**/*.key
+**/*.p12
+**/*.jks
+**/*.keystore
+**/key.properties
+**/local.properties
+origin.crt
+origin.key
+
+# Generated Kubernetes artifacts
+infra/k8s/**/generated/
+
+# Python
+backend/.venv/
+.venv/
+venv/
+env/
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+.coverage
+htmlcov/
+
+# Flutter/Dart/mobile build output
+expense_tracker_app/.dart_tool/
+expense_tracker_app/build/
+expense_tracker_app/.flutter-plugins
+expense_tracker_app/.flutter-plugins-dependencies
+expense_tracker_app/android/.gradle/
+expense_tracker_app/android/app/build/
+expense_tracker_app/android/app/upload-keystore.jks
+expense_tracker_app/ios/Flutter/Generated.xcconfig
+expense_tracker_app/ios/Flutter/flutter_export_environment.sh
+expense_tracker_app/linux/flutter/ephemeral/
+expense_tracker_app/macos/Flutter/ephemeral/
+expense_tracker_app/windows/flutter/ephemeral/
+*.apk
+*.aab
+*.ipa
+
+# Site and local output
+site/dist/
+dist/
+build/
+*.log
+*.sqlite
+*.sqlite3
+*.db
+
+# IDE and OS files
+.idea/
+.vscode/
+*.iml
+.DS_Store
+Thumbs.db

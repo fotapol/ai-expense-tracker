@@ -28,7 +28,10 @@ resources:
 
 patches:
   - path: generated/postgres-backup-schedule-patch.yaml
-  - path: generated/image-overrides-patch.yaml
+  - path: generated/api-image-patch.yaml
+  - path: generated/worker-image-patch.yaml
+  - path: generated/site-image-patch.yaml
+  - path: generated/postgres-backup-image-patch.yaml
 
 replacements:
   - source:

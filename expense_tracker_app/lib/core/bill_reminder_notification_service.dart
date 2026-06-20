@@ -201,10 +201,12 @@ class BillReminderNotificationService {
         );
       }
     } catch (error, stackTrace) {
-      debugPrint(
-        'BillReminderNotificationService.syncScheduledNotifications failed: '
-        '$error\n$stackTrace',
-      );
+      if (kDebugMode) {
+        debugPrint(
+          'BillReminderNotificationService.syncScheduledNotifications failed: '
+          '$error\n$stackTrace',
+        );
+      }
     }
   }
 

@@ -1,39 +1,66 @@
 # Backend
 
-FastAPI backend for the Expense Tracker application.
+FastAPI backend for AI Expense Tracker.
 
-## Prerequisites
+The backend owns authentication enforcement, receipt metadata, transaction
+creation, billing webhooks, planning data, metrics, migrations, and the API
+surface consumed by the Flutter app and receipt worker.
 
-| Variable | Description | Example |
-|---|---|---|
-| `DATABASE_URL` | PostgreSQL connection string | `postgresql+psycopg://user:pass@localhost:5432/expense_tracker` |
-| `FIREBASE_SERVICE_ACCOUNT_PATH` | Path to Firebase service-account JSON | `/run/secrets/firebase_sa.json` |
+## Responsibilities
 
-## Running Locally
+- Verify Firebase ID tokens and enforce user ownership.
+- Create presigned receipt upload URLs.
+- Validate uploaded receipt objects before queueing AI extraction.
+- Persist transactions, receipt extractions, categories, labels, plans, and
+  subscription state.
+- Process RevenueCat webhooks with shared-secret validation.
+- Expose health and metrics endpoints for operations.
+
+## Local Setup
+
+From the repository root:
 
 ```bash
-# With Docker Compose (from repo root)
-docker compose up backend
+cp .env.example .env
+docker compose up --build
+```
 
-# Or directly with uv
+Direct backend workflow:
+
+```bash
+cd backend
+uv sync --frozen --all-groups
+uv run alembic upgrade head
 uv run uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
 ```
 
-## Firebase Authentication
+## Testing
 
-The backend verifies Firebase ID tokens on every protected endpoint.
-The service-account JSON must be at the path specified by `FIREBASE_SERVICE_ACCOUNT_PATH`.
+```bash
+uv run ruff check .
+uv run pytest -q
+uv run alembic heads
+```
 
-In Docker Compose, it is mounted from `backend/.secrets/firebase_sa.json`.
+## Configuration
 
----
+Important environment groups:
 
-## Testing from a Physical Device
+- Database: `DATABASE_URL` or `POSTGRES_*`
+- Firebase: `FIREBASE_SERVICE_ACCOUNT_PATH` or `FIREBASE_SERVICE_ACCOUNT_JSON_B64`
+- Storage: `S3_ENDPOINT`, `S3_EXTERNAL_ENDPOINT`, `S3_ACCESS_KEY`, `S3_SECRET_KEY`
+- Queue: `RABBITMQ_URL` or `RABBITMQ_*`
+- AI: `GOOGLE_API_KEY`, `LLM_MODEL_NAME`
+- Billing: `REVENUECAT_SECRET_API_KEY`, `REVENUECAT_WEBHOOK_AUTH_SECRET`
 
-When running the backend on your PC and testing from a **physical phone** on the same Wi-Fi:
+Use `.env.example` for local development and
+[docs/ENVIRONMENT_VARIABLES.md](../docs/ENVIRONMENT_VARIABLES.md) for the full
+reference. Never commit real environment files.
 
-1. Find your PC's local IP: `ipconfig` → look for `IPv4 Address` (e.g., `192.168.1.42`).
-2. Run Flutter with:
-   ```bash
-   flutter run --dart-define=API_BASE_URL=http://192.168.1.42:8000
-   ```
+## Security Notes
+
+- Protected routes require Firebase authentication.
+- Receipt and transaction reads are scoped to the current user.
+- Uploaded files are checked for allowed MIME type, size, and file signature.
+- Receipt extraction runs asynchronously to avoid blocking the API.
+- Webhook authentication uses a shared secret comparison.

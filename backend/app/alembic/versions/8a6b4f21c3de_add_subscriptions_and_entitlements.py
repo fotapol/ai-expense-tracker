@@ -150,11 +150,7 @@ def upgrade() -> None:
             sa.Column("id", sa.Uuid(), nullable=False),
             sa.Column(
                 "scope_type",
-                sa.Enum(
-                    "user",
-                    name="entitlement_scope_type",
-                    native_enum=False,
-                ),
+                sa.String(length=32),
                 nullable=False,
             ),
             sa.Column("scope_id", sa.Uuid(), nullable=False),

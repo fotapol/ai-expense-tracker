@@ -4,7 +4,7 @@ metadata:
   name: expense-tracker-api
   namespace: expense-tracker
 spec:
-  host: api.nexavend.store
+  host: api.example.com
   listener:
     https: https-8443
   tls:

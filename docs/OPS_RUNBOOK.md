@@ -27,7 +27,7 @@ curl http://127.0.0.1:8080/health/ready
 Public-safe root:
 
 ```bash
-curl https://api.nexavend.store:8443/
+curl https://api.example.com/
 ```
 
 Public listener sanity check:
@@ -63,7 +63,7 @@ kubectl -n expense-tracker describe virtualserver expense-tracker-storage
 kubectl -n nginx-ingress logs daemonset/nginx-ingress-nginx-ingress --tail=200
 ```
 
-The storage route should preserve `Host: storage.nexavend.store` when
+The storage route should preserve `Host: storage.example.com` when
 forwarding presigned S3 upload requests to MinIO. Do not append the origin
 port here when Cloudflare rewrites the public hostname to origin port `8443`;
 the S3 presigned signature includes the public `Host` value.
@@ -96,7 +96,7 @@ Expected checks:
 ## Verify RevenueCat Webhook
 
 1. Configure the webhook in RevenueCat.
-   Use `https://api.nexavend.store:8443/v1/billing/revenuecat/webhook`.
+   Use `https://api.example.com/v1/billing/revenuecat/webhook`.
 2. Send a test delivery.
 3. Check:
 

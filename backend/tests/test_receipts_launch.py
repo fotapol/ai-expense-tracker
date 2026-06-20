@@ -90,8 +90,8 @@ def _unwrap(func):
     return func
 
 
-def test_get_visible_receipt_and_transaction_allows_owner_for_legacy_household_row() -> None:
-    """Receipt polling should stay visible for the uploader's legacy shared data."""
+def test_get_visible_receipt_and_transaction_allows_owner_row() -> None:
+    """Receipt polling should stay visible for the uploader's data."""
 
     from app.api.routers import receipts as router
 
@@ -104,7 +104,6 @@ def test_get_visible_receipt_and_transaction_allows_owner_for_legacy_household_r
     transaction = SimpleNamespace(
         id=uuid.uuid4(),
         receipt_id=receipt.id,
-        household_id=uuid.uuid4(),
     )
     session = _Session(exec_results=[[receipt], [transaction]])
 

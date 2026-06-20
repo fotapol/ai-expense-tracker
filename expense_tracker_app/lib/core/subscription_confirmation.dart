@@ -109,10 +109,7 @@ Future<Set<String>> featureCodesWithOptimisticPremiumAccess(
   return normalizedCodes;
 }
 
-bool syncPayloadConfirmsPremiumAccess(
-  Map<String, dynamic> syncPayload, {
-  required bool expectsFamilyPlan,
-}) {
+bool syncPayloadConfirmsPremiumAccess(Map<String, dynamic> syncPayload) {
   if (syncPayload['has_active_subscription'] == true) {
     return true;
   }
@@ -122,10 +119,6 @@ bool syncPayloadConfirmsPremiumAccess(
           .map((value) => value.toString().trim().toLowerCase())
           .where((value) => value.isNotEmpty)
           .toSet();
-
-  if (expectsFamilyPlan) {
-    return featureCodes.contains('premium.family_plan');
-  }
 
   return featureCodes.any(_personalPremiumFeatureCodes.contains);
 }

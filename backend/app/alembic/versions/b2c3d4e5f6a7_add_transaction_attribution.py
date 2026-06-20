@@ -1,13 +1,12 @@
 """Add expense attribution columns to transactions table.
 
-Adds ``household_id``, ``created_by_user_id``, and ``owner_user_id`` columns
-to the ``transactions`` table and backfills existing rows so that:
+Adds ``created_by_user_id`` and ``owner_user_id`` columns to the
+``transactions`` table and backfills existing rows so that:
     created_by_user_id = user_id
     owner_user_id      = user_id
-    household_id       = NULL
 
 Revision ID: b2c3d4e5f6a7
-Revises: a1b2c3d4e5f6
+Revises: 8a6b4f21c3de
 Create Date: 2026-03-11 10:51:30.000000
 """
 
@@ -18,7 +17,7 @@ from alembic import op
 
 # revision identifiers, used by Alembic.
 revision: str = "b2c3d4e5f6a7"
-down_revision: str | Sequence[str] | None = "a1b2c3d4e5f6"
+down_revision: str | Sequence[str] | None = "8a6b4f21c3de"
 branch_labels: str | Sequence[str] | None = None
 depends_on: str | Sequence[str] | None = None
 
@@ -39,18 +38,6 @@ def upgrade() -> None:
     bind = op.get_bind()
     insp = sa.inspect(bind)
     existing_cols = _column_names(insp, "transactions")
-
-    # Add household_id ---------------------------------------------------
-    if "household_id" not in existing_cols:
-        op.add_column(
-            "transactions",
-            sa.Column(
-                "household_id",
-                sa.Uuid(),
-                sa.ForeignKey("households.id"),
-                nullable=True,
-            ),
-        )
 
     # Add created_by_user_id ---------------------------------------------
     if "created_by_user_id" not in existing_cols:
@@ -77,7 +64,6 @@ def upgrade() -> None:
         )
 
     # Backfill: set created_by_user_id and owner_user_id = user_id -------
-    # household_id stays NULL (no default household assignment).
     op.execute(
         sa.text(
             """
@@ -101,13 +87,6 @@ def upgrade() -> None:
     insp = sa.inspect(bind)
     existing_indexes = _index_names(insp, "transactions")
 
-    if "ix_transactions_household_id" not in existing_indexes:
-        op.create_index(
-            "ix_transactions_household_id",
-            "transactions",
-            ["household_id"],
-            unique=False,
-        )
     if "ix_transactions_created_by_user_id" not in existing_indexes:
         op.create_index(
             "ix_transactions_created_by_user_id",
@@ -120,13 +99,6 @@ def upgrade() -> None:
             "ix_transactions_owner_user_id",
             "transactions",
             ["owner_user_id"],
-            unique=False,
-        )
-    if "ix_transactions_household_owner" not in existing_indexes:
-        op.create_index(
-            "ix_transactions_household_owner",
-            "transactions",
-            ["household_id", "owner_user_id"],
             unique=False,
         )
     if "ix_transactions_owner_occurred_at" not in existing_indexes:
@@ -146,14 +118,12 @@ def downgrade() -> None:
 
     for idx in [
         "ix_transactions_owner_occurred_at",
-        "ix_transactions_household_owner",
         "ix_transactions_owner_user_id",
         "ix_transactions_created_by_user_id",
-        "ix_transactions_household_id",
     ]:
         if idx in existing_indexes:
             op.drop_index(idx, table_name="transactions")
 
-    for col in ["owner_user_id", "created_by_user_id", "household_id"]:
+    for col in ["owner_user_id", "created_by_user_id"]:
         if col in existing_cols:
             op.drop_column("transactions", col)

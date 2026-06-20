@@ -226,11 +226,11 @@ def test_production_startup_blocks_unredacted_langsmith(monkeypatch) -> None:
 
     env = {
         "APP_ENV": "production",
-        "PUBLIC_API_BASE_URL": "https://api.nexavend.store:8443",
+        "PUBLIC_API_BASE_URL": "https://api.example.com",
         "DATABASE_URL": "postgresql+psycopg://user:pass@postgres:5432/db",
         "S3_ACCESS_KEY": "access",
         "S3_SECRET_KEY": "secret",
-        "S3_EXTERNAL_ENDPOINT": "https://storage.nexavend.store:8443",
+        "S3_EXTERNAL_ENDPOINT": "https://storage.example.com",
         "GOOGLE_API_KEY": "google-key",
         "RABBITMQ_URL": "amqp://expense_tracker:pass@rabbitmq:5672/",
         "FIREBASE_SERVICE_ACCOUNT_PATH": "/run/secrets/firebase_sa.json",
@@ -256,11 +256,11 @@ def test_production_startup_blocks_wildcard_forwarded_trust(monkeypatch) -> None
 
     env = {
         "APP_ENV": "production",
-        "PUBLIC_API_BASE_URL": "https://api.nexavend.store:8443",
+        "PUBLIC_API_BASE_URL": "https://api.example.com",
         "DATABASE_URL": "postgresql+psycopg://user:pass@postgres:5432/db",
         "S3_ACCESS_KEY": "access",
         "S3_SECRET_KEY": "secret",
-        "S3_EXTERNAL_ENDPOINT": "https://storage.nexavend.store:8443",
+        "S3_EXTERNAL_ENDPOINT": "https://storage.example.com",
         "GOOGLE_API_KEY": "google-key",
         "RABBITMQ_URL": "amqp://expense_tracker:pass@rabbitmq:5672/",
         "FIREBASE_SERVICE_ACCOUNT_PATH": "/run/secrets/firebase_sa.json",

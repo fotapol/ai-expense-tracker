@@ -10,19 +10,19 @@ from fastapi.testclient import TestClient
 
 def _reload_main(monkeypatch):
     monkeypatch.setenv("APP_ENV", "production")
-    monkeypatch.setenv("PUBLIC_API_BASE_URL", "https://api.nexavend.store:8443")
-    monkeypatch.setenv("PUBLIC_APP_BASE_URL", "https://nexavend.store")
+    monkeypatch.setenv("PUBLIC_API_BASE_URL", "https://api.example.com")
+    monkeypatch.setenv("PUBLIC_APP_BASE_URL", "https://example.com")
     monkeypatch.setenv(
         "TRUSTED_HOSTS",
         ",".join(
             [
-                "api.nexavend.store",
+                "api.example.com",
                 "expense-tracker-api",
                 "expense-tracker-api.expense-tracker",
             ]
         ),
     )
-    monkeypatch.setenv("CORS_ALLOWED_ORIGINS", "https://nexavend.store")
+    monkeypatch.setenv("CORS_ALLOWED_ORIGINS", "https://example.com")
     monkeypatch.delenv("API_DOCS_ENABLED", raising=False)
 
     import app.main as main
@@ -35,7 +35,7 @@ def test_production_docs_and_openapi_are_disabled(monkeypatch) -> None:
     client = TestClient(main.app)
 
     for path in ("/docs", "/redoc", "/openapi.json"):
-        response = client.get(path, headers={"host": "api.nexavend.store"})
+        response = client.get(path, headers={"host": "api.example.com"})
         assert response.status_code == 404
 
 
@@ -43,7 +43,7 @@ def test_trusted_host_accepts_public_host_with_custom_port(monkeypatch) -> None:
     main = _reload_main(monkeypatch)
     client = TestClient(main.app)
 
-    response = client.get("/", headers={"host": "api.nexavend.store:8443"})
+    response = client.get("/", headers={"host": "api.example.com"})
 
     assert response.status_code == 200
     assert response.json()["service"] == "expense-tracker-api"
