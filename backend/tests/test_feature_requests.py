@@ -156,7 +156,7 @@ def test_public_feature_requests_hide_non_approved_and_sort_by_votes(session: Se
         creator=creator_one,
         title="Shared budgets",
         description="Shared budgets with family members.",
-        category=FeatureRequestCategory.HOUSEHOLD_SHARING,
+        category=FeatureRequestCategory.BUDGETS_PLANNING,
     )
     second = create_feature_request(
         session,

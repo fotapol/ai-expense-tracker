@@ -23,7 +23,7 @@ The backend now exposes a production-oriented RevenueCat webhook endpoint:
 2. Set `REVENUECAT_WEBHOOK_AUTH_HEADER`.
 3. Set `REVENUECAT_WEBHOOK_AUTH_SECRET`.
 4. Configure the RevenueCat dashboard webhook target to:
-   `https://api.nexavend.store:8443/v1/billing/revenuecat/webhook`
+   `https://api.example.com/v1/billing/revenuecat/webhook`
 5. Configure RevenueCat to send the matching secret in the configured header.
 
 ## Verification

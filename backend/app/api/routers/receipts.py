@@ -9,6 +9,7 @@ Provides the presigned-upload flow:
 import datetime as dt
 import json
 import logging
+import re
 import uuid
 
 from fastapi import APIRouter, Depends, HTTPException, Request, status
@@ -56,6 +57,23 @@ _ALLOWED_MIME_TYPES = {
 # to account for encoding overhead, but prevents abuse via direct presigned uploads.
 _MAX_RECEIPT_FILE_BYTES = app_settings.MAX_RECEIPT_FILE_BYTES
 _HEIF_MIME_TYPES = {"image/heic", "image/heif"}
+_SAFE_FILENAME_RE = re.compile(r"[^A-Za-z0-9._-]+")
+_MIME_EXTENSION_BY_TYPE = {
+    "image/jpeg": ".jpg",
+    "image/png": ".png",
+    "image/webp": ".webp",
+    "image/heic": ".heic",
+    "image/heif": ".heif",
+    "application/pdf": ".pdf",
+}
+_ALLOWED_EXTENSIONS_BY_MIME_TYPE = {
+    "image/jpeg": {".jpg", ".jpeg"},
+    "image/png": {".png"},
+    "image/webp": {".webp"},
+    "image/heic": {".heic"},
+    "image/heif": {".heif"},
+    "application/pdf": {".pdf"},
+}
 
 
 def _delete_receipt_object_best_effort(receipt: Receipt) -> None:
@@ -70,6 +88,49 @@ def _delete_receipt_object_best_effort(receipt: Receipt) -> None:
             receipt.storage_key,
             exc_info=True,
         )
+
+
+def _sanitize_receipt_filename(
+    original_filename: str | None,
+    *,
+    mime_type: str,
+    receipt_id: uuid.UUID,
+) -> str:
+    """Return a safe object-key filename segment for a receipt upload."""
+
+    default_extension = _MIME_EXTENSION_BY_TYPE.get(mime_type, "")
+    fallback = f"{receipt_id}{default_extension}"
+    raw_filename = (original_filename or "").replace("\\", "/").split("/")[-1].strip()
+    printable_filename = "".join(char for char in raw_filename if char.isprintable())
+    safe_filename = _SAFE_FILENAME_RE.sub("_", printable_filename).strip("._-")
+
+    if not safe_filename:
+        return fallback
+
+    stem = safe_filename
+    extension = ""
+    if "." in safe_filename:
+        possible_stem, possible_extension = safe_filename.rsplit(".", 1)
+        if possible_stem:
+            stem = possible_stem
+            extension = f".{possible_extension.lower()}"
+
+    allowed_extensions = _ALLOWED_EXTENSIONS_BY_MIME_TYPE.get(mime_type, set())
+    if default_extension and extension in allowed_extensions:
+        safe_filename = f"{stem}{extension}"
+    elif default_extension:
+        safe_filename = f"{stem}{default_extension}"
+
+    max_length = 180
+    if len(safe_filename) <= max_length:
+        return safe_filename
+
+    if default_extension and safe_filename.endswith(default_extension):
+        max_stem_length = max_length - len(default_extension)
+        truncated_stem = safe_filename[:max_stem_length].rstrip("._-")
+        return f"{truncated_stem or receipt_id}{default_extension}"
+
+    return safe_filename[:max_length].rstrip("._-") or fallback
 
 
 def _detect_receipt_mime_type(prefix: bytes) -> str | None:
@@ -117,8 +178,6 @@ def _get_visible_receipt_and_transaction(
         select(Transaction).where(Transaction.receipt_id == receipt_id)
     ).first()
 
-    # Household sharing is disabled for launch. Always let the uploader see
-    # their own receipt and any linked legacy transaction.
     if receipt.user_id == current_user.id:
         return receipt, transaction
 
@@ -153,10 +212,14 @@ async def create_receipt(
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail=f"Unsupported mime_type. Allowed: {sorted(_ALLOWED_MIME_TYPES)}",
-        )
+    )
 
     receipt_id = uuid.uuid4()
-    filename = payload.original_filename or f"{receipt_id}"
+    filename = _sanitize_receipt_filename(
+        payload.original_filename,
+        mime_type=payload.mime_type,
+        receipt_id=receipt_id,
+    )
     storage_bucket = s3_settings.BUCKET_RECEIPTS
     storage_key = f"receipts/{current_user.id}/{receipt_id}/{filename}"
 

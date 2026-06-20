@@ -1,5 +1,5 @@
 name: expense_tracker_app
-description: "A new Flutter project."
+description: "Flutter client for an AI-assisted receipt and expense tracking application."
 # The following line prevents the package from being accidentally published to
 # pub.dev using `flutter pub publish`. This is preferred for private packages.
 publish_to: 'none' # Remove this line if you wish to publish to pub.dev
@@ -55,7 +55,6 @@ dependencies:
   share_plus: ^12.0.1
   path_provider: ^2.1.5
   path: ^1.9.1
-  app_links: ^6.4.1
   url_launcher: ^6.3.2
   flutter_local_notifications: ^21.0.0
   flutter_timezone: ^5.0.2

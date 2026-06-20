@@ -6,7 +6,6 @@ import 'package:expense_tracker_app/core/core_request_timeout.dart';
 import 'package:expense_tracker_app/core/premium_refresh.dart';
 import 'package:expense_tracker_app/core/receipt_upload_flow.dart';
 import 'package:expense_tracker_app/core/session_invalidation.dart';
-import 'package:expense_tracker_app/core/single_user_launch.dart';
 import 'package:expense_tracker_app/core/subscription_confirmation.dart';
 import 'package:expense_tracker_app/l10n/app_localizations.dart';
 import 'package:expense_tracker_app/widgets/app_tab_footer.dart';
@@ -247,25 +246,13 @@ void main() {
     );
   });
 
-  group('single-user launch package filtering', () {
-    test('removes family offerings from subscription choices', () {
-      final filtered = filterSingleUserLaunchPackages([
-        'personal_monthly',
-        'family_monthly',
-        'personal_yearly',
-      ], isFamilyPackage: (package) => package.contains('family'));
-
-      expect(filtered, ['personal_monthly', 'personal_yearly']);
-    });
-  });
-
   group('subscription confirmation guards', () {
     test('accepts premium feature codes from backend sync as confirmation', () {
       expect(
         syncPayloadConfirmsPremiumAccess(const {
           'has_active_subscription': false,
           'feature_codes': ['premium.receipt_scans.unlimited'],
-        }, expectsFamilyPlan: false),
+        }),
         isTrue,
       );
     });

@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -63,7 +64,9 @@ class _LoginScreenState extends State<LoginScreen> {
       ).pushReplacement(MaterialPageRoute(builder: (_) => const MainScreen()));
     } on GoogleSignInException catch (e) {
       if (e.code == GoogleSignInExceptionCode.canceled) {
-        debugPrint('Google Sign-In canceled by user.');
+        if (kDebugMode) {
+          debugPrint('Google Sign-In canceled by user.');
+        }
       } else if (mounted) {
         setState(() {
           _errorMessage = _friendlyLoginError(e.description ?? e);

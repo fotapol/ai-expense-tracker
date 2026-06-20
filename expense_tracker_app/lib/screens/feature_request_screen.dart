@@ -19,7 +19,6 @@ class _FeatureRequestScreenState extends State<FeatureRequestScreen> {
     'analytics_reports',
     'receipts_scanning',
     'budgets_planning',
-    'household_sharing',
     'design_accessibility',
     'other',
   ];
@@ -255,9 +254,6 @@ class _FeatureRequestScreenState extends State<FeatureRequestScreen> {
       ),
       'budgets_planning' => context.tr(
         'feature_request_category_budgets_planning',
-      ),
-      'household_sharing' => context.tr(
-        'feature_request_category_household_sharing',
       ),
       'design_accessibility' => context.tr(
         'feature_request_category_design_accessibility',

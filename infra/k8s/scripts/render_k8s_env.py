@@ -367,7 +367,83 @@ def write_prometheus_config(path: Path, values: dict[str, str]) -> None:
     )
 
 
-def write_image_patch(path: Path, values: dict[str, str]) -> None:
+def write_yaml_file(path: Path, lines: list[str]) -> None:
+    path.write_text(
+        "\n".join([*lines, ""]),
+        encoding="utf-8",
+        newline="\n",
+    )
+
+
+def write_image_patches(output_dir: Path, values: dict[str, str]) -> None:
+    write_yaml_file(
+        output_dir / "api-image-patch.yaml",
+        [
+            "apiVersion: apps/v1",
+            "kind: Deployment",
+            "metadata:",
+            "  name: expense-tracker-api",
+            "spec:",
+            "  template:",
+            "    spec:",
+            "      containers:",
+            "        - name: api",
+            f"          image: {values['BACKEND_IMAGE']}",
+        ],
+    )
+    write_yaml_file(
+        output_dir / "worker-image-patch.yaml",
+        [
+            "apiVersion: apps/v1",
+            "kind: Deployment",
+            "metadata:",
+            "  name: expense-tracker-worker",
+            "spec:",
+            "  template:",
+            "    spec:",
+            "      containers:",
+            "        - name: worker",
+            f"          image: {values['BACKEND_IMAGE']}",
+        ],
+    )
+    write_yaml_file(
+        output_dir / "site-image-patch.yaml",
+        [
+            "apiVersion: apps/v1",
+            "kind: Deployment",
+            "metadata:",
+            "  name: expense-tracker-site",
+            "spec:",
+            "  template:",
+            "    spec:",
+            "      containers:",
+            "        - name: site",
+            f"          image: {values['SITE_IMAGE']}",
+        ],
+    )
+    write_yaml_file(
+        output_dir / "postgres-backup-image-patch.yaml",
+        [
+            "apiVersion: batch/v1",
+            "kind: CronJob",
+            "metadata:",
+            "  name: postgres-backup",
+            "spec:",
+            "  jobTemplate:",
+            "    spec:",
+            "      template:",
+            "        spec:",
+            "          containers:",
+            "            - name: postgres-backup",
+            f"              image: {values['POSTGRES_BACKUP_IMAGE']}",
+        ],
+    )
+    legacy_patch = output_dir / "image-overrides-patch.yaml"
+    if legacy_patch.exists():
+        legacy_patch.unlink()
+
+
+def _legacy_write_image_patch(path: Path, values: dict[str, str]) -> None:
     path.write_text(
         "\n".join(
             [
@@ -454,12 +530,10 @@ def main() -> None:
         values.get("APP_WEBSITE_URL", "").strip() or values["PUBLIC_APP_BASE_URL"]
     ).rstrip("/")
     values["APP_PRIVACY_URL"] = (
-        values.get("APP_PRIVACY_URL", "").strip()
-        or f"{values['APP_WEBSITE_URL']}/privacy"
+        values.get("APP_PRIVACY_URL", "").strip() or "https://example.com/privacy"
     )
     values["APP_TERMS_URL"] = (
-        values.get("APP_TERMS_URL", "").strip()
-        or f"{values['APP_WEBSITE_URL']}/terms"
+        values.get("APP_TERMS_URL", "").strip() or "https://example.com/terms"
     )
     values["APP_DELETE_ACCOUNT_URL"] = (
         values.get("APP_DELETE_ACCOUNT_URL", "").strip()
@@ -486,12 +560,15 @@ def main() -> None:
         values["POSTGRES_BACKUP_SCHEDULE"],
     )
     write_prometheus_config(output_dir / "prometheus.yml", values)
-    write_image_patch(output_dir / "image-overrides-patch.yaml", values)
+    write_image_patches(output_dir, values)
     print(f"Wrote {output_dir / 'config.env'}")
     print(f"Wrote {output_dir / 'secret.env'}")
     print(f"Wrote {output_dir / 'postgres-backup-schedule-patch.yaml'}")
     print(f"Wrote {output_dir / 'prometheus.yml'}")
-    print(f"Wrote {output_dir / 'image-overrides-patch.yaml'}")
+    print(f"Wrote {output_dir / 'api-image-patch.yaml'}")
+    print(f"Wrote {output_dir / 'worker-image-patch.yaml'}")
+    print(f"Wrote {output_dir / 'site-image-patch.yaml'}")
+    print(f"Wrote {output_dir / 'postgres-backup-image-patch.yaml'}")
 
 
 if __name__ == "__main__":

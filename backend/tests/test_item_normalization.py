@@ -104,7 +104,7 @@ def test_normalized_item_schema_validates_and_compacts_attributes() -> None:
         normalized_display_name="brand widget",
         brand_name="BRAND",
         product_type="widget",
-        category_hint="household",
+        category_hint="cleaning",
         preserve_terms=["BRAND", "BRAND", "  MODEL-X  "],
         attributes=NormalizedReceiptItemAttributes(package_size=" 2 pack ", color=" blue "),
         cleaned_unit="pc",
@@ -252,7 +252,7 @@ def test_item_normalization_timeout_setting_is_used(monkeypatch) -> None:
 
 
 def test_api_translation_source_prefers_normalized_name_unless_user_edited() -> None:
-    from app.api.routers import transactions as router
+    from app.services.transactions import read_models as router
 
     normalized_item = _read_item(
         description="RAW ITEM",

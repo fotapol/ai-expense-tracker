@@ -6,9 +6,6 @@ from app.models.billing.webhook_event import BillingWebhookEvent
 from app.models.feature_requests.feature_request import FeatureRequest, FeatureRequestBase
 from app.models.feature_requests.feature_request_vote import FeatureRequestVote
 from app.models.fx.exchange_rate import ExchangeRate
-from app.models.households.household import Household, HouseholdBase
-from app.models.households.household_invite import HouseholdInvite
-from app.models.households.household_member import HouseholdMember
 from app.models.labels.label import Label, LabelBase
 from app.models.labels.transaction_label import TransactionLabel
 from app.models.merchants.merchant import Merchant, MerchantAlias, MerchantAliasBase, MerchantBase
@@ -24,9 +21,6 @@ from app.models.shared.enums import (
     FeatureRequestCategory,
     FeatureRequestModerationState,
     FeatureRequestPublicStatus,
-    HouseholdInviteStatus,
-    HouseholdMemberRole,
-    HouseholdMemberStatus,
     ReceiptStatus,
     SubscriptionProvider,
     SubscriptionStatus,
@@ -58,13 +52,6 @@ __all__ = [
     "FeatureRequestModerationState",
     "FeatureRequestPublicStatus",
     "FeatureRequestVote",
-    "Household",
-    "HouseholdBase",
-    "HouseholdInvite",
-    "HouseholdInviteStatus",
-    "HouseholdMember",
-    "HouseholdMemberRole",
-    "HouseholdMemberStatus",
     "ItemTranslation",
     "Label",
     "LabelBase",

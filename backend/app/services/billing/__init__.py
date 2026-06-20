@@ -19,7 +19,6 @@ from app.services.billing.entitlements import (
     user_has_feature,
 )
 from app.services.billing.features import (
-    FAMILY_PREMIUM_PRODUCT_ID,
     FREE_PLAN_CUSTOM_CATEGORY_LIMIT,
     FREE_PLAN_CUSTOM_SUBCATEGORY_LIMIT,
     FREE_PLAN_RECEIPT_SCAN_LIMIT,
@@ -28,7 +27,6 @@ from app.services.billing.features import (
     PREMIUM_ANALYTICS_ADVANCED,
     PREMIUM_CATEGORIES_UNLIMITED,
     PREMIUM_EXPORTS,
-    PREMIUM_FAMILY_PLAN,
     PREMIUM_RECEIPT_SCANS_UNLIMITED,
     feature_codes_for_product,
 )
@@ -56,7 +54,6 @@ from app.services.billing.usage import (
 from app.services.billing.webhooks import process_revenuecat_webhook
 
 __all__ = [
-    "FAMILY_PREMIUM_PRODUCT_ID",
     "FREE_PLAN_CUSTOM_CATEGORY_LIMIT",
     "FREE_PLAN_CUSTOM_SUBCATEGORY_LIMIT",
     "FREE_PLAN_RECEIPT_SCAN_LIMIT",
@@ -65,7 +62,6 @@ __all__ = [
     "PREMIUM_ANALYTICS_ADVANCED",
     "PREMIUM_CATEGORIES_UNLIMITED",
     "PREMIUM_EXPORTS",
-    "PREMIUM_FAMILY_PLAN",
     "PREMIUM_RECEIPT_SCANS_UNLIMITED",
     "BillingEventHandler",
     "BillingProvider",

@@ -334,17 +334,10 @@ class BillingSettings:
             return _float_env("REVENUECAT_HTTP_TIMEOUT_SECONDS", 8.0)
         if name == "REVENUECAT_PERSONAL_PREMIUM_ENTITLEMENT_ID":
             return _env("REVENUECAT_PERSONAL_PREMIUM_ENTITLEMENT_ID", "personal_premium")
-        if name == "REVENUECAT_FAMILY_PREMIUM_ENTITLEMENT_ID":
-            return _env("REVENUECAT_FAMILY_PREMIUM_ENTITLEMENT_ID", "family_premium")
         if name == "REVENUECAT_PERSONAL_PRODUCT_IDS":
             return _env(
                 "REVENUECAT_PERSONAL_PRODUCT_IDS",
                 "personal_premium,individual_plan_monthly,individual_plan_yearly",
-            )
-        if name == "REVENUECAT_FAMILY_PRODUCT_IDS":
-            return _env(
-                "REVENUECAT_FAMILY_PRODUCT_IDS",
-                "family_premium,family_plan_monthly,family_plan_yearly",
             )
         if name == "REVENUECAT_WEBHOOK_AUTH_HEADER":
             return _env("REVENUECAT_WEBHOOK_AUTH_HEADER", "Authorization")

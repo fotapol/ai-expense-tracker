@@ -14,22 +14,6 @@ server {
         try_files /index.html =404;
     }
 
-    location = /privacy {
-        try_files /privacy.html =404;
-    }
-
-    location = /privacy/ {
-        try_files /privacy.html =404;
-    }
-
-    location = /terms {
-        try_files /terms.html =404;
-    }
-
-    location = /terms/ {
-        try_files /terms.html =404;
-    }
-
     location = /delete-account {
         try_files /delete-account.html =404;
     }

@@ -74,6 +74,53 @@ async def test_create_receipt_happy_path(mock_session, test_user):
     assert mock_session._commit_called
     assert mock_session.added[0].status == ReceiptStatus.CREATED
     assert mock_session.added[0].mime_type == "image/jpeg"
+    assert mock_session.added[0].original_filename == "test.jpg"
+
+
+@pytest.mark.anyio
+async def test_create_receipt_sanitizes_original_filename(mock_session, test_user):
+    payload = ReceiptCreateRequest(
+        mime_type="image/jpeg",
+        original_filename="../..\\private folder/my receipt?.exe",
+        size_bytes=1024,
+    )
+
+    res = await _unwrap(create_receipt)(
+        payload=payload,
+        request=None,
+        session=mock_session,
+        current_user=test_user,
+    )
+
+    receipt = mock_session.added[0]
+    assert receipt.original_filename == "my_receipt_.jpg"
+    assert receipt.storage_key == (
+        f"receipts/{test_user.id}/{res.receipt_id}/my_receipt_.jpg"
+    )
+    assert "\\" not in receipt.storage_key
+    assert ".." not in receipt.storage_key
+
+
+@pytest.mark.anyio
+async def test_create_receipt_uses_generated_filename_when_blank(mock_session, test_user):
+    payload = ReceiptCreateRequest(
+        mime_type="application/pdf",
+        original_filename="  \t  ",
+        size_bytes=1024,
+    )
+
+    res = await _unwrap(create_receipt)(
+        payload=payload,
+        request=None,
+        session=mock_session,
+        current_user=test_user,
+    )
+
+    receipt = mock_session.added[0]
+    assert receipt.original_filename == f"{res.receipt_id}.pdf"
+    assert receipt.storage_key == (
+        f"receipts/{test_user.id}/{res.receipt_id}/{res.receipt_id}.pdf"
+    )
 
 
 @pytest.mark.anyio

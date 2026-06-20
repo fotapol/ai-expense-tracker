@@ -1,7 +1,7 @@
 """Add feature request and vote tables.
 
 Revision ID: d7a9c2e4f6b1
-Revises: c4d5e6f7a8b9, f1c8c4d7a2b9
+Revises: 47d19b7f6184
 Create Date: 2026-03-23 15:10:00.000000
 """
 
@@ -12,7 +12,7 @@ from alembic import op
 
 # revision identifiers, used by Alembic.
 revision: str = "d7a9c2e4f6b1"
-down_revision: str | Sequence[str] | None = ("c4d5e6f7a8b9", "f1c8c4d7a2b9")
+down_revision: str | Sequence[str] | None = "47d19b7f6184"
 branch_labels: str | Sequence[str] | None = None
 depends_on: str | Sequence[str] | None = None
 
@@ -41,7 +41,6 @@ def upgrade() -> None:
                     "analytics_reports",
                     "receipts_scanning",
                     "budgets_planning",
-                    "household_sharing",
                     "design_accessibility",
                     "other",
                     name="feature_request_category",
