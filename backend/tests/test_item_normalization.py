@@ -104,7 +104,7 @@ def test_normalized_item_schema_validates_and_compacts_attributes() -> None:
         normalized_display_name="brand widget",
         brand_name="BRAND",
         product_type="widget",
-        category_hint="household",
+        category_hint="cleaning",
         preserve_terms=["BRAND", "BRAND", "  MODEL-X  "],
         attributes=NormalizedReceiptItemAttributes(package_size=" 2 pack ", color=" blue "),
         cleaned_unit="pc",

@@ -4,10 +4,6 @@ from types import SimpleNamespace
 
 from app.models.shared.enums import EntitlementStatus, SubscriptionStatus
 from app.services.billing.entitlements import decide_entitlement_state, user_has_feature
-from app.services.billing.features import (
-    PERSONAL_PREMIUM_FEATURE_CODES,
-    PREMIUM_FAMILY_PLAN,
-)
 from app.services.billing.subscriptions import (
     SubscriptionSyncService,
     build_manual_subscription_event,
@@ -172,10 +168,6 @@ def test_user_has_feature_checks_resolved_entitlements(monkeypatch) -> None:
 
     assert user_has_feature(object(), user_id, "premium.exports")
     assert not user_has_feature(object(), user_id, "premium.analytics.advanced")
-
-
-def test_personal_premium_feature_bundle_excludes_family_plan() -> None:
-    assert PREMIUM_FAMILY_PLAN not in PERSONAL_PREMIUM_FEATURE_CODES
 
 
 def test_manual_terminal_override_forces_other_provider_rows_to_terminal(monkeypatch) -> None:
