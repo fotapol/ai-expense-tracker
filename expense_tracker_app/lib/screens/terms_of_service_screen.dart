@@ -21,7 +21,6 @@ class TermsOfServiceScreen extends StatelessWidget {
         context.tr('terms_service_bullet_2'),
         context.tr('terms_service_bullet_3'),
         context.tr('terms_service_bullet_4'),
-        context.tr('terms_service_bullet_5'),
       ],
     ),
     _TermsSection(
