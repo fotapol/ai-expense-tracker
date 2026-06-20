@@ -9,7 +9,6 @@ import '../core/launch_error_copy.dart';
 import '../core/redesign_system.dart';
 import '../core/revenuecat_service.dart';
 import '../core/session_invalidation.dart';
-import '../core/single_user_launch.dart';
 import '../core/subscription_confirmation.dart';
 import '../l10n/app_localizations.dart';
 import '../main.dart';
@@ -223,11 +222,7 @@ class _SubscriptionScreenState extends State<SubscriptionScreen> {
   }
 
   void _syncSelectedPackage(List<Package> packages) {
-    final launchPackages = filterSingleUserLaunchPackages(
-      packages,
-      isFamilyPackage: RevenueCatService.isFamilyPackage,
-    );
-    _availablePackages = List<Package>.from(launchPackages);
+    _availablePackages = List<Package>.from(packages);
     final previousIdentifier = _selectedPackage?.identifier;
     Package? selected;
     if (previousIdentifier != null) {
@@ -239,13 +234,9 @@ class _SubscriptionScreenState extends State<SubscriptionScreen> {
       }
     }
     selected ??=
-        _packageFor(false, _selectedPeriod, packages: _availablePackages) ??
-        _packageFor(
-          false,
-          _BillingPeriod.monthly,
-          packages: _availablePackages,
-        ) ??
-        _packageFor(false, _BillingPeriod.yearly, packages: _availablePackages);
+        _packageFor(_selectedPeriod, packages: _availablePackages) ??
+        _packageFor(_BillingPeriod.monthly, packages: _availablePackages) ??
+        _packageFor(_BillingPeriod.yearly, packages: _availablePackages);
     _selectedPackage = selected;
     if (selected != null) {
       _selectedPeriod = RevenueCatService.isYearlyPackage(selected)
@@ -254,19 +245,13 @@ class _SubscriptionScreenState extends State<SubscriptionScreen> {
     }
   }
 
-  Package? _packageFor(
-    bool family,
-    _BillingPeriod period, {
-    List<Package>? packages,
-  }) {
+  Package? _packageFor(_BillingPeriod period, {List<Package>? packages}) {
     final source = packages ?? _availablePackages;
     for (final package in source) {
-      final matchesFamily =
-          RevenueCatService.isFamilyPackage(package) == family;
       final matchesPeriod = period == _BillingPeriod.yearly
           ? RevenueCatService.isYearlyPackage(package)
           : RevenueCatService.isMonthlyPackage(package);
-      if (matchesFamily && matchesPeriod) return package;
+      if (matchesPeriod) return package;
     }
     return null;
   }
@@ -274,7 +259,7 @@ class _SubscriptionScreenState extends State<SubscriptionScreen> {
   void _selectPeriod(_BillingPeriod period) {
     setState(() {
       _selectedPeriod = period;
-      _selectedPackage = _packageFor(false, period);
+      _selectedPackage = _packageFor(period);
     });
   }
 
@@ -317,9 +302,7 @@ class _SubscriptionScreenState extends State<SubscriptionScreen> {
     _applyOptimisticUsageState(expiration);
   }
 
-  Future<bool> _confirmPurchaseWithBackend({
-    required bool expectsFamilyPlan,
-  }) async {
+  Future<bool> _confirmPurchaseWithBackend() async {
     Map<String, dynamic>? lastPayload;
     for (var attempt = 0; attempt < 4; attempt++) {
       try {
@@ -328,10 +311,7 @@ class _SubscriptionScreenState extends State<SubscriptionScreen> {
         lastPayload = null;
       }
       if (lastPayload != null &&
-          syncPayloadConfirmsPremiumAccess(
-            lastPayload,
-            expectsFamilyPlan: expectsFamilyPlan,
-          )) {
+          syncPayloadConfirmsPremiumAccess(lastPayload)) {
         return true;
       }
       if (attempt < 3) {
@@ -427,17 +407,12 @@ class _SubscriptionScreenState extends State<SubscriptionScreen> {
     }
     setState(() => _isPurchaseLoading = true);
     try {
-      if (RevenueCatService.isFamilyPackage(package)) {
-        throw Exception(context.tr('billing_subscribe_unavailable'));
-      }
       final purchaseResult = await RevenueCatService.purchasePackage(package);
       final sdkConfirmed = _customerInfoConfirmsExpectedPurchase(
         purchaseResult.customerInfo,
         package,
       );
-      final backendConfirmed = await _confirmPurchaseWithBackend(
-        expectsFamilyPlan: RevenueCatService.isFamilyPackage(package),
-      );
+      final backendConfirmed = await _confirmPurchaseWithBackend();
       if (!sdkConfirmed && !backendConfirmed) {
         throw Exception(purchaseNotConfirmedMessage);
       }
@@ -467,9 +442,7 @@ class _SubscriptionScreenState extends State<SubscriptionScreen> {
             purchaseResult.customerInfo,
             package,
           );
-          final backendConfirmed = await _confirmPurchaseWithBackend(
-            expectsFamilyPlan: RevenueCatService.isFamilyPackage(package),
-          );
+          final backendConfirmed = await _confirmPurchaseWithBackend();
           if (!sdkConfirmed && !backendConfirmed) {
             throw Exception(purchaseNotConfirmedMessage);
           }
@@ -519,9 +492,7 @@ class _SubscriptionScreenState extends State<SubscriptionScreen> {
       final sdkConfirmed = _customerInfoConfirmsKnownPremiumAccess(
         customerInfo,
       );
-      final backendConfirmed = await _confirmPurchaseWithBackend(
-        expectsFamilyPlan: false,
-      );
+      final backendConfirmed = await _confirmPurchaseWithBackend();
       if (!sdkConfirmed && !backendConfirmed) {
         throw Exception(purchaseNotConfirmedMessage);
       }
@@ -548,9 +519,7 @@ class _SubscriptionScreenState extends State<SubscriptionScreen> {
           final sdkConfirmed = _customerInfoConfirmsKnownPremiumAccess(
             customerInfo,
           );
-          final backendConfirmed = await _confirmPurchaseWithBackend(
-            expectsFamilyPlan: false,
-          );
+          final backendConfirmed = await _confirmPurchaseWithBackend();
           if (!sdkConfirmed && !backendConfirmed) {
             throw Exception(purchaseNotConfirmedMessage);
           }
@@ -1349,7 +1318,7 @@ class _SubscriptionScreenState extends State<SubscriptionScreen> {
             onPressed: _isDevActionLoading
                 ? null
                 : () => _applyDevAction('revoke'),
-            child: Text(context.tr('household_invite_revoke')),
+            child: const Text('Revoke'),
           ),
         ],
       ),
@@ -1377,13 +1346,9 @@ class _SubscriptionScreenState extends State<SubscriptionScreen> {
       );
     }
 
-    final individualPackage = _packageFor(false, _selectedPeriod);
-    // TODO(household): restore familyPackage lookup when household feature ships
-    // final familyPackage = _packageFor(true, _selectedPeriod);
-    Package? familyPackage;
+    final individualPackage = _packageFor(_selectedPeriod);
     final showIndividualOffer = _canPurchasePackage(individualPackage);
-    final showFamilyOffer = _canPurchasePackage(familyPackage);
-    final showPlanOffers = showIndividualOffer || showFamilyOffer;
+    final showPlanOffers = showIndividualOffer;
 
     return SafeArea(
       top: false,
@@ -1407,9 +1372,6 @@ class _SubscriptionScreenState extends State<SubscriptionScreen> {
                 ],
                 if (showIndividualOffer && individualPackage != null)
                   _buildPlanCard(individualPackage),
-                if (showIndividualOffer && showFamilyOffer)
-                  const SizedBox(height: 14),
-                if (showFamilyOffer) _buildPlanCard(familyPackage!),
                 if (!showPlanOffers && !_hasActiveSubscription)
                   SettingsDetailCard(
                     child: Text(context.tr('billing_subscribe_unavailable')),

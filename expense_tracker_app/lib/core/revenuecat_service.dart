@@ -19,65 +19,10 @@ class RevenueCatService {
       defaultValue: 'personal_premium',
     ),
   );
-  static const String familyEntitlementId = String.fromEnvironment(
-    'REVENUECAT_FAMILY_PREMIUM_ENTITLEMENT_ID',
-    defaultValue: '',
-  );
-  static const String personalProductIdsCsv = String.fromEnvironment(
-    'REVENUECAT_PERSONAL_PRODUCT_IDS',
-    defaultValue:
-        'personal_premium,individual_plan_monthly,individual_plan_yearly',
-  );
-  static const String familyProductIdsCsv = String.fromEnvironment(
-    'REVENUECAT_FAMILY_PRODUCT_IDS',
-    defaultValue: 'family_premium,family_plan_monthly,family_plan_yearly',
-  );
-
-  static final Set<String> _personalProductIds = _parseCsvValues(
-    personalProductIdsCsv,
-  );
-  static final Set<String> _familyProductIds = _parseCsvValues(
-    familyProductIdsCsv,
-  );
-
   static bool _isConfigured = false;
   static bool _operationInProgress = false;
 
-  static Set<String> _parseCsvValues(String raw) {
-    String sanitize(String value) {
-      var normalized = value.trim();
-      if ((normalized.startsWith('"') && normalized.endsWith('"')) ||
-          (normalized.startsWith("'") && normalized.endsWith("'"))) {
-        normalized = normalized.substring(1, normalized.length - 1).trim();
-      }
-      return normalized.toLowerCase();
-    }
-
-    return raw
-        .split(',')
-        .map(sanitize)
-        .where((entry) => entry.isNotEmpty)
-        .toSet();
-  }
-
   static String _normalizeId(String value) => value.trim().toLowerCase();
-
-  static bool isFamilyPackage(Package package) {
-    final productId = _normalizeId(package.storeProduct.identifier);
-    final packageId = _normalizeId(package.identifier);
-    if (_familyProductIds.contains(productId) ||
-        _familyProductIds.contains(packageId)) {
-      return true;
-    }
-    if (_personalProductIds.contains(productId) ||
-        _personalProductIds.contains(packageId)) {
-      return false;
-    }
-    return productId.contains('family') ||
-        productId.contains('household') ||
-        packageId.contains('family') ||
-        packageId.contains('household');
-  }
 
   static bool isYearlyPackage(Package package) {
     if (package.packageType == PackageType.annual) return true;
@@ -214,10 +159,6 @@ class RevenueCatService {
     final active = info.entitlements.active;
     final personalId = premiumEntitlementId.trim();
     if (personalId.isNotEmpty && active.containsKey(personalId)) {
-      return true;
-    }
-    final familyId = familyEntitlementId.trim();
-    if (familyId.isNotEmpty && active.containsKey(familyId)) {
       return true;
     }
     return false;
