@@ -246,7 +246,10 @@ infra/k8s/overlays/production/generated/config.env
 infra/k8s/overlays/production/generated/secret.env
 infra/k8s/overlays/production/generated/postgres-backup-schedule-patch.yaml
 infra/k8s/overlays/production/generated/prometheus.yml
-infra/k8s/overlays/production/generated/image-overrides-patch.yaml
+infra/k8s/overlays/production/generated/api-image-patch.yaml
+infra/k8s/overlays/production/generated/worker-image-patch.yaml
+infra/k8s/overlays/production/generated/site-image-patch.yaml
+infra/k8s/overlays/production/generated/postgres-backup-image-patch.yaml
 infra/k8s/generated/
 infra/k8s/**/generated/config.env
 infra/k8s/**/generated/secret.env
