@@ -39,7 +39,7 @@ dependencies:
   firebase_core: ^4.5.0
   firebase_auth: ^6.2.0
   google_sign_in: ^7.2.0
-  sign_in_with_apple: ^7.0.1
+  sign_in_with_apple: ^8.1.0
   http: ^1.6.0
   image_picker: ^1.1.2
   google_mlkit_document_scanner: ^0.4.1
