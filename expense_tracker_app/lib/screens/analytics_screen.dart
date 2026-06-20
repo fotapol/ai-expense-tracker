@@ -14,17 +14,11 @@ import '../l10n/app_localizations.dart';
 import '../widgets/app_tab_footer.dart';
 import '../widgets/analytics_shared.dart';
 import '../widgets/filter_bottom_sheet.dart';
-// TODO(household): re-import analytics_household_tab when household feature ships
 import 'analytics_overview_tab.dart';
 import 'analytics_tab.dart';
 import 'analytics_trends_tab.dart';
 
-enum AnalyticsSection {
-  overview,
-  trends,
-  categories,
-  // TODO(household): add households back when household feature ships
-}
+enum AnalyticsSection { overview, trends, categories }
 
 class AnalyticsScreen extends StatefulWidget {
   const AnalyticsScreen({super.key});
@@ -165,8 +159,6 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
       featureCodes = await featureCodesWithOptimisticPremiumAccess(
         featureCodes,
       );
-
-      // TODO(household): restore getCurrentHousehold() call when household feature ships
 
       if (!mounted) return;
       setState(() {
@@ -321,7 +313,6 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
         return 'analytics_tab_trends';
       case AnalyticsSection.categories:
         return 'analytics_tab_categories';
-      // TODO(household): add households case back when household feature ships
     }
   }
 
@@ -614,8 +605,6 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
                     controller: _pageController,
                     onPageChanged: _handlePageChanged,
                     children: [
-                      // TODO(household): restore currentHousehold/onHouseholdUpdated
-                      // params to AnalyticsOverviewTab when household feature ships
                       AnalyticsOverviewTab(
                         filters: _filters,
                         activeFiltersBuilder: _filters.hasScopedFilters
@@ -636,7 +625,6 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
                             ? _buildActiveFiltersBar
                             : null,
                       ),
-                      // TODO(household): restore AnalyticsHouseholdTab when household feature ships
                     ],
                   ),
                 ),

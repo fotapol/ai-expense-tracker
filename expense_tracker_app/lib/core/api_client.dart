@@ -12,7 +12,6 @@ import 'session_invalidation.dart';
 part 'api_clients/billing_api_client.dart';
 part 'api_clients/data_transfer_api_client.dart';
 part 'api_clients/feature_requests_api_client.dart';
-part 'api_clients/households_api_client.dart';
 part 'api_clients/item_translations_api_client.dart';
 part 'api_clients/labels_api_client.dart';
 part 'api_clients/planning_api_client.dart';
@@ -225,46 +224,6 @@ class ApiClient {
 
   static Future<void> deleteMe() => UserApiClient.deleteMe();
 
-  static Future<Map<String, dynamic>> createHousehold({required String name}) =>
-      HouseholdApiClient.createHousehold(name: name);
-
-  static Future<Map<String, dynamic>> getCurrentHousehold() =>
-      HouseholdApiClient.getCurrentHousehold();
-
-  static Future<Map<String, dynamic>> updateCurrentHousehold({
-    required String name,
-  }) => HouseholdApiClient.updateCurrentHousehold(name: name);
-
-  static Future<List<dynamic>> listCurrentHouseholdMembers() =>
-      HouseholdApiClient.listCurrentHouseholdMembers();
-
-  static Future<void> leaveCurrentHousehold() =>
-      HouseholdApiClient.leaveCurrentHousehold();
-
-  static Future<void> deleteCurrentHousehold() =>
-      HouseholdApiClient.deleteCurrentHousehold();
-
-  static Future<List<dynamic>> listCurrentHouseholdInvites() =>
-      HouseholdApiClient.listCurrentHouseholdInvites();
-
-  static Future<Map<String, dynamic>> createHouseholdInvite({
-    String? invitedEmail,
-    String? invitedUserId,
-  }) => HouseholdApiClient.createHouseholdInvite(
-    invitedEmail: invitedEmail,
-    invitedUserId: invitedUserId,
-  );
-
-  static Future<Map<String, dynamic>> revokeHouseholdInvite(String inviteId) =>
-      HouseholdApiClient.revokeHouseholdInvite(inviteId);
-
-  static Future<Map<String, dynamic>> removeHouseholdMember(String memberId) =>
-      HouseholdApiClient.removeHouseholdMember(memberId);
-
-  static Future<Map<String, dynamic>> acceptHouseholdInvite(
-    String inviteToken,
-  ) => HouseholdApiClient.acceptHouseholdInvite(inviteToken);
-
   static Future<Map<String, dynamic>> createReceipt({
     required String mimeType,
     String? originalFilename,
@@ -382,22 +341,6 @@ class ApiClient {
     List<String>? labelIds,
     String? targetCurrency,
   }) => TransactionApiClient.getTransactionTrendSummary(
-    fromDate: fromDate,
-    toDate: toDate,
-    categoryIds: categoryIds,
-    subcategoryIds: subcategoryIds,
-    labelIds: labelIds,
-    targetCurrency: targetCurrency,
-  );
-
-  static Future<Map<String, dynamic>> getHouseholdAnalyticsSummary({
-    DateTime? fromDate,
-    DateTime? toDate,
-    List<String>? categoryIds,
-    List<String>? subcategoryIds,
-    List<String>? labelIds,
-    String? targetCurrency,
-  }) => TransactionApiClient.getHouseholdAnalyticsSummary(
     fromDate: fromDate,
     toDate: toDate,
     categoryIds: categoryIds,

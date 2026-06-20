@@ -401,14 +401,6 @@ extension _TransactionEditScreenWidgets on _TransactionEditScreenState {
     );
   }
 
-  Widget? _buildAttributionSection() {
-    if (!_hasFamilyEntitlement) {
-      return null;
-    }
-    // Hidden in the single-user launch build.
-    return null;
-  }
-
   Future<void> _pickOccurredDate() async {
     final date = await showDatePicker(
       context: context,

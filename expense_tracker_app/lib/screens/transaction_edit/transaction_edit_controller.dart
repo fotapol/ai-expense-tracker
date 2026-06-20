@@ -19,7 +19,6 @@ class TransactionEditController {
   String? transactionId;
   String? viewerUserId;
   String? transactionCategoryId;
-  bool hasFamilyEntitlement = false;
   bool hasManualTotalOverride = false;
   bool isLoadingReceiptPreview = false;
   String? receiptPreviewUrl;
@@ -192,7 +191,6 @@ class TransactionEditController {
       'status': 'DRAFT',
       'display_currency': currency,
       'display_amount_total': null,
-      'household': null,
       'created_by_user': null,
       'owner_user': null,
     };

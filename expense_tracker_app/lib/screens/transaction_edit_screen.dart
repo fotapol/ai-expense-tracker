@@ -70,9 +70,6 @@ class _TransactionEditScreenState extends State<TransactionEditScreen> {
       _controller.showTranslatedItems = value;
   String? get _transactionId => _controller.transactionId;
   set _transactionId(String? value) => _controller.transactionId = value;
-  bool get _hasFamilyEntitlement => _controller.hasFamilyEntitlement;
-  set _hasFamilyEntitlement(bool value) =>
-      _controller.hasFamilyEntitlement = value;
   bool get _isLoadingReceiptPreview => _controller.isLoadingReceiptPreview;
   set _isLoadingReceiptPreview(bool value) =>
       _controller.isLoadingReceiptPreview = value;
@@ -136,21 +133,8 @@ class _TransactionEditScreenState extends State<TransactionEditScreen> {
 
       final catsFuture = ApiClient.listCategories();
       final labelsFuture = ApiClient.listLabels();
-      final entitlementsFuture = ApiClient.getMeEntitlements();
       final catsData = await catsFuture;
       final labelsData = await labelsFuture;
-      var hasFamilyEntitlement = false;
-      try {
-        final entitlements = await entitlementsFuture;
-        final featureCodes =
-            (entitlements['feature_codes'] as List<dynamic>? ??
-                    const <dynamic>[])
-                .map((value) => value.toString())
-                .toSet();
-        hasFamilyEntitlement = featureCodes.contains('premium.family_plan');
-      } catch (_) {
-        hasFamilyEntitlement = false;
-      }
       final effectiveItemsLanguage = preferredItemsLanguage.isNotEmpty
           ? preferredItemsLanguage
           : appLanguage;
@@ -163,7 +147,6 @@ class _TransactionEditScreenState extends State<TransactionEditScreen> {
         if (!mounted) return;
         setState(() {
           _controller.viewerUserId = viewerUserId;
-          _hasFamilyEntitlement = hasFamilyEntitlement;
           _controller.applyTransactionState(
             txData: draft,
             categories: catsData,
@@ -196,7 +179,6 @@ class _TransactionEditScreenState extends State<TransactionEditScreen> {
 
       setState(() {
         _controller.viewerUserId = viewerUserId;
-        _hasFamilyEntitlement = hasFamilyEntitlement;
         _controller.applyTransactionState(
           txData: txData,
           categories: catsData,
@@ -1246,7 +1228,6 @@ class _TransactionEditScreenState extends State<TransactionEditScreen> {
         lineMismatches.isNotEmpty ||
         totalMismatch != null ||
         showServerWarnings;
-    final attributionSection = _buildAttributionSection();
     final merchantTitle = _merchantDisplayName();
 
     return PopScope(
@@ -1417,10 +1398,6 @@ class _TransactionEditScreenState extends State<TransactionEditScreen> {
             ),
             const SizedBox(height: 8),
             _buildLabelsSection(),
-            if (attributionSection != null) ...[
-              const SizedBox(height: 10),
-              attributionSection,
-            ],
             if (!_canEditTransaction) ...[
               const SizedBox(height: 12),
               Text(
