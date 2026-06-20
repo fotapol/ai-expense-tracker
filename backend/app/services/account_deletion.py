@@ -17,9 +17,6 @@ from app.models.billing.subscription import Subscription
 from app.models.billing.webhook_event import BillingWebhookEvent
 from app.models.feature_requests.feature_request import FeatureRequest
 from app.models.feature_requests.feature_request_vote import FeatureRequestVote
-from app.models.households.household import Household
-from app.models.households.household_invite import HouseholdInvite
-from app.models.households.household_member import HouseholdMember
 from app.models.labels.label import Label
 from app.models.labels.transaction_label import TransactionLabel
 from app.models.merchants.merchant import MerchantAlias
@@ -131,10 +128,6 @@ def delete_account_for_user(*, session: Session, user: User) -> AccountDeletionR
         select(BudgetSettings.id).where(BudgetSettings.user_id == user_id),
     )
     subscription_ids = _ids(session, select(Subscription.id).where(Subscription.user_id == user_id))
-    owned_household_ids = _ids(
-        session,
-        select(Household.id).where(Household.owner_user_id == user_id),
-    )
     feature_request_ids = _ids(
         session,
         select(FeatureRequest.id).where(FeatureRequest.creator_user_id == user_id),
@@ -182,35 +175,6 @@ def delete_account_for_user(*, session: Session, user: User) -> AccountDeletionR
         .values(reviewed_by_user_id=None)
     )
     session.exec(delete(FeatureRequest).where(FeatureRequest.creator_user_id == user_id))
-
-    if owned_household_ids:
-        session.exec(
-            update(Transaction)
-            .where(Transaction.household_id.in_(owned_household_ids))
-            .values(household_id=None)
-        )
-        session.exec(
-            delete(Entitlement).where(
-                Entitlement.scope_type == EntitlementScopeType.HOUSEHOLD,
-                Entitlement.scope_id.in_(owned_household_ids),
-            )
-        )
-        session.exec(
-            delete(HouseholdInvite).where(HouseholdInvite.household_id.in_(owned_household_ids))
-        )
-        session.exec(
-            delete(HouseholdMember).where(HouseholdMember.household_id.in_(owned_household_ids))
-        )
-    session.exec(
-        delete(HouseholdInvite).where(
-            or_(
-                HouseholdInvite.invited_by_user_id == user_id,
-                HouseholdInvite.invited_user_id == user_id,
-            )
-        )
-    )
-    session.exec(delete(HouseholdMember).where(HouseholdMember.user_id == user_id))
-    session.exec(delete(Household).where(Household.owner_user_id == user_id))
 
     if subscription_ids:
         session.exec(

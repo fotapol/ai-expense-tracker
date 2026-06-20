@@ -827,8 +827,6 @@ def process_receipt(receipt_id: str) -> None:
                 category_id=transaction_category_id,
                 source=TransactionSource.RECEIPT,
                 status="DRAFT",
-                # Household sharing is disabled for the single-user launch.
-                household_id=None,
                 created_by_user_id=receipt.user_id,
                 owner_user_id=receipt.user_id,
             )

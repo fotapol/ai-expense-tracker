@@ -29,10 +29,8 @@ from app.schemas.transactions import (
     TransactionRead,
     TransactionUpdateRequest,
 )
-from app.services.households.membership import validate_transaction_attribution
 from app.services.transactions.read_models import (
     _apply_display_conversion,
-    _assert_household_transaction_access,
     _build_category_filter_predicate,
     _build_subcategory_filter_predicate,
     _build_transaction_read,
@@ -72,19 +70,7 @@ async def create_transaction(
 ):
     """Create a manual transaction entry."""
 
-    # Household attribution is disabled for the single-user launch.
-    household_id = None
-    _assert_household_transaction_access(
-        session,
-        current_user=current_user,
-        household_id=household_id,
-    )
-    owner_user_id = payload.owner_user_id or current_user.id
-    validate_transaction_attribution(
-        session,
-        household_id=household_id,
-        owner_user_id=owner_user_id,
-    )
+    owner_user_id = current_user.id
 
     selected_item_category: Category | None = None
     if payload.category_id is not None:
@@ -162,7 +148,6 @@ async def create_transaction(
         else None,
         source=TransactionSource.MANUAL,
         status=payload.status,
-        household_id=household_id,
         created_by_user_id=current_user.id,
         owner_user_id=owner_user_id,
     )
@@ -390,22 +375,6 @@ async def update_transaction(
     if transaction is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Transaction not found.")
 
-    # Saving an edited transaction in single-user launch mode should keep it
-    # solo even if the stored row still carries a legacy household_id.
-    next_household_id = None
-    _assert_household_transaction_access(
-        session,
-        current_user=current_user,
-        household_id=next_household_id,
-    )
-    validate_transaction_attribution(
-        session,
-        household_id=next_household_id,
-        owner_user_id=payload.owner_user_id
-        if payload.owner_user_id is not None
-        else transaction.owner_user_id,
-    )
-
     # Enforce category visibility
     requested_transaction_category_ids: set[uuid.UUID] = set()
     requested_item_category_ids: set[uuid.UUID] = set()
@@ -444,11 +413,10 @@ async def update_transaction(
     # 1. Update Core Transaction fields
     update_data = payload.model_dump(
         exclude_unset=True,
-        exclude={"items", "household_id"},
+        exclude={"items"},
     )
     for key, value in update_data.items():
         setattr(transaction, key, value)
-    transaction.household_id = None
     _clear_extraction_warnings_after_user_confirmation(
         session,
         transaction=transaction,

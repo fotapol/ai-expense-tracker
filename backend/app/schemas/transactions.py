@@ -231,9 +231,6 @@ class TransactionCreateManual(SchemaBase):
     source: TransactionSource = TransactionSource.MANUAL
     status: TransactionStatus = "DRAFT"
     items: list[TransactionItemCreate] = Field(default_factory=list)
-    # Expense attribution fields (optional — defaults are set by the router)
-    household_id: UUID | None = None
-    owner_user_id: UUID | None = None
 
     @field_validator("currency")
     @classmethod
@@ -267,13 +264,6 @@ class TransactionUserSnippetRead(SchemaBase):
     avatar_url: str | None = None
 
 
-class TransactionHouseholdSnippetRead(SchemaBase):
-    """Minimal household identity block for transaction attribution."""
-
-    household_id: UUID
-    name: str | None = None
-
-
 class AnalyticsTrendBucketRead(SchemaBase):
     """Single analytics trend bucket."""
 
@@ -304,34 +294,6 @@ class AnalyticsCategorySnippetRead(SchemaBase):
     amount: Amount2DP | None = None
 
 
-class AnalyticsHouseholdSnippetRead(SchemaBase):
-    """Compact household block for analytics summaries."""
-
-    household_id: UUID
-    name: str | None = None
-
-
-class AnalyticsHouseholdMemberRead(SchemaBase):
-    """Per-member household analytics row."""
-
-    owner_user_id: UUID
-    user: TransactionUserSnippetRead | None = None
-    total_amount: Amount2DP
-    percentage: float = 0.0
-    transaction_count: int = Field(ge=0, default=0)
-    top_category: AnalyticsCategorySnippetRead | None = None
-
-
-class AnalyticsHouseholdSummaryRead(SchemaBase):
-    """Analytics household overview payload."""
-
-    household: AnalyticsHouseholdSnippetRead | None = None
-    currency: CurrencyCode
-    total_amount: Amount2DP
-    total_transactions: int = Field(ge=0, default=0)
-    members: list[AnalyticsHouseholdMemberRead] = Field(default_factory=list)
-
-
 class TransactionRead(UUIDTimestampSchema):
     """Read model for transaction records."""
 
@@ -355,10 +317,8 @@ class TransactionRead(UUIDTimestampSchema):
     has_extraction_warnings: bool = False
     extraction_warnings: list[ExtractionWarning] = Field(default_factory=list)
     # Expense attribution fields
-    household_id: UUID | None = None
     created_by_user_id: UUID | None = None
     owner_user_id: UUID | None = None
-    household: TransactionHouseholdSnippetRead | None = None
     created_by_user: TransactionUserSnippetRead | None = None
     owner_user: TransactionUserSnippetRead | None = None
 
@@ -372,9 +332,6 @@ class TransactionUpdateRequest(SchemaBase):
     merchant_name: str | None = None
     category_id: UUID | None = None
     status: TransactionStatus | None = None
-    # Expense attribution fields (optional)
-    household_id: UUID | None = None
-    owner_user_id: UUID | None = None
 
     items: list[TransactionItemUpdate] | None = Field(
         default=None, description="If provided, fully replaces or updates the line items."

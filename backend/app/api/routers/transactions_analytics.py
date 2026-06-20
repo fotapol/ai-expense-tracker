@@ -13,7 +13,6 @@ from sqlmodel import Session, select
 from app.auth.deps import get_current_user
 from app.core.db import get_session
 from app.core.rate_limiter import limiter
-from app.models.households.household import Household
 from app.models.shared.enums import CategoryScope
 from app.models.taxonomy.category import Category
 from app.models.transactions.transaction import Transaction
@@ -25,10 +24,6 @@ from app.schemas.shared import (
     quantize_amount,
 )
 from app.schemas.transactions import (
-    AnalyticsCategorySnippetRead,
-    AnalyticsHouseholdMemberRead,
-    AnalyticsHouseholdSnippetRead,
-    AnalyticsHouseholdSummaryRead,
     AnalyticsTrendBucketRead,
     AnalyticsTrendSummaryRead,
     TransactionListFilter,
@@ -48,11 +43,8 @@ from app.services.transactions.read_models import (
     _infer_analytics_bucket_unit,
     _iter_trend_bucket_ranges,
     _load_analytics_spend_rows,
-    _load_household_category_item_rows,
-    _load_transaction_user_snippets,
     _load_translation_lookup,
     _preferred_item_translation_source_values,
-    _resolve_active_shared_household_id,
     _resolve_analytics_period_bounds,
     _resolve_category_filter_sets,
     _resolve_direct_child_under_top_level,
@@ -614,218 +606,6 @@ async def get_transaction_trend_summary(
             )
             for bucket in bucket_state
         ],
-    )
-
-@router.get("/transactions/summary/household", response_model=AnalyticsHouseholdSummaryRead)
-@limiter.limit("30/minute")
-async def get_household_analytics_summary(
-    request: Request,
-    filters: Annotated[TransactionListFilter, Depends()],
-    session: Session = Depends(get_session),  # noqa: B008
-    current_user: User = Depends(get_current_user),  # noqa: B008
-):
-    """Return per-member household analytics for the active shared household."""
-
-    target_currency = _resolve_target_currency(filters, current_user)
-    active_household_id = _resolve_active_shared_household_id(session, current_user)
-    if active_household_id is None:
-        return AnalyticsHouseholdSummaryRead(
-            household=None,
-            currency=target_currency,
-            total_amount=Decimal("0.00"),
-            total_transactions=0,
-            members=[],
-        )
-
-    household = session.exec(select(Household).where(Household.id == active_household_id)).first()
-    if household is None:
-        return AnalyticsHouseholdSummaryRead(
-            household=None,
-            currency=target_currency,
-            total_amount=Decimal("0.00"),
-            total_transactions=0,
-            members=[],
-        )
-
-    household_transaction_ids_query = _build_filtered_transaction_ids_query(
-        session=session,
-        current_user=current_user,
-        filters=filters,
-    ).where(Transaction.household_id == active_household_id)
-    (
-        _target_currency,
-        transaction_ids_subquery,
-        item_scope_subquery,
-        has_item_filters,
-    ) = _build_analytics_scope(
-        session=session,
-        current_user=current_user,
-        filters=filters,
-        transaction_ids_query=household_transaction_ids_query,
-    )
-    spend_rows = _load_analytics_spend_rows(
-        session,
-        transaction_ids_subquery=transaction_ids_subquery,
-        item_scope_subquery=item_scope_subquery,
-        has_item_filters=has_item_filters,
-    )
-
-    member_totals: dict[uuid.UUID, dict[str, Any]] = {}
-    total_amount = Decimal("0.00")
-    total_transaction_ids: set[uuid.UUID] = set()
-    for (
-        tx_id,
-        amount,
-        tx_currency,
-        tx_occurred_at,
-        tx_created_at,
-        owner_user_id,
-        user_id,
-    ) in spend_rows:
-        resolved_owner_user_id = owner_user_id or user_id
-        if resolved_owner_user_id is None:
-            continue
-
-        converted_amount = _convert_analytics_amount(
-            session=session,
-            amount=amount,
-            currency=tx_currency,
-            target_currency=target_currency,
-            occurred_at=tx_occurred_at,
-            created_at=tx_created_at,
-        )
-        total_amount += converted_amount
-        total_transaction_ids.add(tx_id)
-        member_entry = member_totals.setdefault(
-            resolved_owner_user_id,
-            {
-                "total_amount": Decimal("0.00"),
-                "transaction_ids": set(),
-            },
-        )
-        member_entry["total_amount"] += converted_amount
-        member_entry["transaction_ids"].add(tx_id)
-
-    category_item_rows = _load_household_category_item_rows(
-        session,
-        item_scope_subquery=item_scope_subquery,
-    )
-    parent_ids = {
-        parent_id
-        for (
-            _owner_user_id,
-            _user_id,
-            _category_id,
-            _name,
-            _code,
-            parent_id,
-            _amount,
-            _transaction_id,
-            _tx_currency,
-            _tx_occurred_at,
-            _tx_created_at,
-        ) in category_item_rows
-        if parent_id is not None
-    }
-    parent_map: dict[uuid.UUID, dict[str, Any]] = {}
-    if parent_ids:
-        parents = session.exec(select(Category).where(Category.id.in_(parent_ids))).all()
-        parent_map = {parent.id: {"name": parent.name, "code": parent.code} for parent in parents}
-
-    top_categories_by_owner: dict[uuid.UUID, dict[uuid.UUID, dict[str, Any]]] = defaultdict(dict)
-    for (
-        owner_user_id,
-        user_id,
-        category_id,
-        name,
-        code,
-        parent_id,
-        amount,
-        _transaction_id,
-        tx_currency,
-        tx_occurred_at,
-        tx_created_at,
-    ) in category_item_rows:
-        resolved_owner_user_id = owner_user_id or user_id
-        if resolved_owner_user_id is None:
-            continue
-
-        converted_amount = _convert_analytics_amount(
-            session=session,
-            amount=amount,
-            currency=tx_currency,
-            target_currency=target_currency,
-            occurred_at=tx_occurred_at,
-            created_at=tx_created_at,
-        )
-        target_category_id = category_id
-        target_name = name
-        target_code = code
-        if parent_id is not None:
-            target_category_id = parent_id
-            target_name = parent_map.get(parent_id, {}).get("name", name)
-            target_code = parent_map.get(parent_id, {}).get("code", code)
-
-        owner_categories = top_categories_by_owner[resolved_owner_user_id]
-        category_entry = owner_categories.setdefault(
-            target_category_id,
-            {
-                "category_id": target_category_id,
-                "name": target_name,
-                "code": target_code,
-                "amount": Decimal("0.00"),
-            },
-        )
-        category_entry["amount"] += converted_amount
-
-    user_snippets = _load_transaction_user_snippets(
-        session,
-        user_ids=set(member_totals.keys()),
-    )
-    members: list[AnalyticsHouseholdMemberRead] = []
-    for owner_user_id, data in member_totals.items():
-        member_total_amount: Decimal = data["total_amount"]
-        owner_categories = top_categories_by_owner.get(owner_user_id, {})
-        top_category_data = None
-        if owner_categories:
-            top_category_data = max(
-                owner_categories.values(),
-                key=lambda entry: entry["amount"],
-            )
-        members.append(
-            AnalyticsHouseholdMemberRead(
-                owner_user_id=owner_user_id,
-                user=user_snippets.get(owner_user_id),
-                total_amount=quantize_amount(member_total_amount),
-                percentage=float(
-                    quantize_amount((member_total_amount / total_amount) * Decimal("100"))
-                )
-                if total_amount > 0
-                else 0.0,
-                transaction_count=len(data["transaction_ids"]),
-                top_category=(
-                    AnalyticsCategorySnippetRead(
-                        category_id=top_category_data["category_id"],
-                        name=top_category_data["name"],
-                        code=top_category_data["code"],
-                        amount=quantize_amount(top_category_data["amount"]),
-                    )
-                    if top_category_data is not None
-                    else None
-                ),
-            )
-        )
-
-    members.sort(key=lambda member: member.total_amount, reverse=True)
-    return AnalyticsHouseholdSummaryRead(
-        household=AnalyticsHouseholdSnippetRead(
-            household_id=household.id,
-            name=household.name,
-        ),
-        currency=target_currency,
-        total_amount=quantize_amount(total_amount),
-        total_transactions=len(total_transaction_ids),
-        members=members,
     )
 
 @router.get("/transactions/summary/categories/{category_id}/subcategories")

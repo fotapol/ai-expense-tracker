@@ -178,8 +178,6 @@ def _get_visible_receipt_and_transaction(
         select(Transaction).where(Transaction.receipt_id == receipt_id)
     ).first()
 
-    # Household sharing is disabled for launch. Always let the uploader see
-    # their own receipt and any linked legacy transaction.
     if receipt.user_id == current_user.id:
         return receipt, transaction
 

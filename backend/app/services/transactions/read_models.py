@@ -12,12 +12,11 @@ from pydantic import TypeAdapter
 from sqlalchemy import or_
 from sqlmodel import Session, select
 
-from app.models.households.household import Household
 from app.models.labels.label import Label
 from app.models.labels.transaction_label import TransactionLabel
 from app.models.receipts.receipt import Receipt
 from app.models.receipts.receipt_extraction import ReceiptExtraction
-from app.models.shared.enums import CategoryScope, HouseholdMemberRole
+from app.models.shared.enums import CategoryScope
 from app.models.taxonomy.category import Category
 from app.models.taxonomy.category_hidden import UserHiddenCategory
 from app.models.transactions.transaction import Transaction
@@ -34,7 +33,6 @@ from app.schemas.shared import (
     quantize_unit_price,
 )
 from app.schemas.transactions import (
-    TransactionHouseholdSnippetRead,
     TransactionItemRead,
     TransactionLabelRead,
     TransactionListFilter,
@@ -42,8 +40,6 @@ from app.schemas.transactions import (
     TransactionUserSnippetRead,
 )
 from app.services.fx_rates import convert_amount, resolve_conversion_date
-from app.services.households.access import get_active_shared_household_id
-from app.services.households.membership import get_member_for_user
 
 logger = logging.getLogger(__name__)
 
@@ -53,7 +49,6 @@ _warnings_adapter = TypeAdapter(list[ExtractionWarning])
 
 __all__ = [
     "_apply_display_conversion",
-    "_assert_household_transaction_access",
     "_build_analytics_scope",
     "_build_category_filter_predicate",
     "_build_filtered_transaction_ids_query",
@@ -83,7 +78,6 @@ __all__ = [
     "_iter_trend_bucket_ranges",
     "_load_analytics_spend_rows",
     "_load_category_names_by_id",
-    "_load_household_category_item_rows",
     "_load_labels_by_transaction_id",
     "_load_transaction_user_snippets",
     "_load_translation_lookup",
@@ -92,7 +86,6 @@ __all__ = [
     "_parse_uuid_csv",
     "_preferred_item_translation_source",
     "_preferred_item_translation_source_values",
-    "_resolve_active_shared_household_id",
     "_resolve_analytics_period_bounds",
     "_resolve_category_filter_sets",
     "_resolve_direct_child_under_top_level",
@@ -130,21 +123,11 @@ def _resolve_target_currency(filters: TransactionListFilter, current_user: User)
     return normalize_currency_code(filters.target_currency or current_user.default_currency)
 
 
-def _resolve_active_shared_household_id(
-    session: Session,
-    current_user: User,
-) -> uuid.UUID | None:
-    return get_active_shared_household_id(session, current_user.id)
-
-
 def _build_transaction_read_visibility_predicate(
     session: Session,
     current_user: User,
 ):
     del session
-    # Household sharing is disabled for the single-user launch. Keep all
-    # transactions owned by the current user visible, including legacy rows
-    # that still carry a historical household_id.
     return Transaction.user_id == current_user.id
 
 
@@ -154,21 +137,6 @@ def _build_transaction_write_visibility_predicate(
 ):
     del session
     return Transaction.user_id == current_user.id
-
-
-def _assert_household_transaction_access(
-    session: Session,
-    *,
-    current_user: User,
-    household_id: uuid.UUID | None,
-) -> None:
-    del session
-    del current_user
-    del household_id
-    # Household flows are disabled for launch. Legacy household-tagged rows stay
-    # editable by their owner, but new single-user writes should not depend on
-    # household access checks.
-    return None
 
 
 def _get_deleteable_manual_transaction(
@@ -197,19 +165,10 @@ def _get_deleteable_manual_transaction(
         )
     if transaction.user_id == current_user.id:
         return transaction
-    if transaction.household_id is None:
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail="You are not allowed to delete this transaction.",
-        )
-
-    member = get_member_for_user(session, transaction.household_id, current_user.id)
-    if member is not None and member.role == HouseholdMemberRole.OWNER:
-        return transaction
 
     raise HTTPException(
         status_code=status.HTTP_403_FORBIDDEN,
-        detail="Only the creator or household owner can delete this transaction.",
+        detail="You are not allowed to delete this transaction.",
     )
 
 
@@ -836,30 +795,6 @@ def _load_analytics_spend_rows(
     ).all()
 
 
-def _load_household_category_item_rows(
-    session: Session,
-    *,
-    item_scope_subquery,
-):
-    return session.exec(
-        select(
-            Transaction.owner_user_id,
-            Transaction.user_id,
-            Category.id,
-            Category.name,
-            Category.code,
-            Category.parent_id,
-            item_scope_subquery.c.amount,
-            item_scope_subquery.c.transaction_id,
-            Transaction.currency,
-            Transaction.occurred_at,
-            Transaction.created_at,
-        )
-        .join(item_scope_subquery, item_scope_subquery.c.transaction_id == Transaction.id)
-        .join(Category, Category.id == item_scope_subquery.c.category_id)
-    ).all()
-
-
 def _coerce_analytics_datetime(
     value: dt.datetime | None,
     *,
@@ -1129,18 +1064,9 @@ def _enrich_transaction_attribution_snapshot(
     resolved_owner_user_id = read.owner_user_id or read.user_id
     read.created_by_user_id = resolved_created_by_user_id
     read.owner_user_id = resolved_owner_user_id
-    read.household = None
     read.created_by_user = None
     read.owner_user = None
 
-    if read.household_id is not None:
-        household_name = session.exec(
-            select(Household.name).where(Household.id == read.household_id)
-        ).first()
-        read.household = TransactionHouseholdSnippetRead(
-            household_id=read.household_id,
-            name=household_name,
-        )
 
     user_ids: set[uuid.UUID] = set()
     if read.created_by_user_id is not None:
