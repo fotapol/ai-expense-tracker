@@ -53,8 +53,9 @@ Important environment groups:
 - AI: `GOOGLE_API_KEY`, `LLM_MODEL_NAME`
 - Billing: `REVENUECAT_SECRET_API_KEY`, `REVENUECAT_WEBHOOK_AUTH_SECRET`
 
-Use `.env.example` for local development and `docs/ENVIRONMENT_VARIABLES.md`
-for the full reference. Never commit real environment files.
+Use `.env.example` for local development and
+[docs/ENVIRONMENT_VARIABLES.md](../docs/ENVIRONMENT_VARIABLES.md) for the full
+reference. Never commit real environment files.
 
 ## Security Notes
 

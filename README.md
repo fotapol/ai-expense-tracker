@@ -167,7 +167,7 @@ files or production secrets.
 | Billing | `REVENUECAT_SECRET_API_KEY`, `REVENUECAT_WEBHOOK_AUTH_SECRET`, `REVENUECAT_*_ENTITLEMENT_ID` | Keep server keys secret. |
 | Mobile build | `API_BASE_URL`, `REVENUECAT_ANDROID_API_KEY`, `APP_PRIVACY_URL`, `APP_TERMS_URL` | Passed with `--dart-define` for production builds. |
 
-Full details are in `docs/ENVIRONMENT_VARIABLES.md`.
+Full details are in [docs/ENVIRONMENT_VARIABLES.md](docs/ENVIRONMENT_VARIABLES.md).
 
 ## Deployment
 
@@ -204,7 +204,7 @@ uv run python infra/k8s/scripts/render_k8s_env.py \
 kubectl kustomize infra/k8s/overlays/production
 ```
 
-See `docs/DEPLOYMENT.md` and `docs/OPS_RUNBOOK.md` for operational details.
+See [docs/DEPLOYMENT.md](docs/DEPLOYMENT.md) and [docs/OPS_RUNBOOK.md](docs/OPS_RUNBOOK.md) for operational details.
 
 ## Testing
 
@@ -246,11 +246,10 @@ gitleaks detect --source . --config .gitleaks.toml --redact --verbose
 - Kubernetes network policies and startup checks make production assumptions
   explicit.
 
-More detail is available in `docs/TECHNICAL_DECISIONS.md`.
+More detail is available in [DESIGN.md](DESIGN.md).
 
 ## AI Evaluation
 
-The current repository includes the evaluation design in `docs/EVALUATION.md`.
 It defines anonymized receipt fixtures, expected structured outputs, entity
 accuracy, numeric tolerances, classification metrics, and quality gates for
 future prompt/model changes.
