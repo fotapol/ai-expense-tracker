@@ -18,6 +18,9 @@ import '../l10n/app_localizations.dart';
 import '../main.dart';
 import 'receipt_item_edit_screen.dart';
 import 'receipt_photo_view_screen.dart';
+import 'transaction_edit/transaction_edit_controller.dart';
+
+part 'transaction_edit/transaction_edit_screen_widgets.dart';
 
 class TransactionEditScreen extends StatefulWidget {
   final String? transactionId;
@@ -44,57 +47,59 @@ class _TransactionEditScreenState extends State<TransactionEditScreen> {
   Color get _warningColor => ShellStyles.warningPremium(context);
   Color get _successColor => ShellStyles.success(context);
 
-  bool _isLoading = true;
-  bool _isSaving = false;
-  String? _error;
+  final TransactionEditController _controller = TransactionEditController();
 
-  List<dynamic> _items = [];
-  List<dynamic> _categories = [];
-  List<dynamic> _labels = [];
-  Set<String> _selectedLabelIds = {};
-  List<dynamic> _serverWarnings = [];
-  bool _hasLocalEdits = false;
-  bool _isTranslatingItems = false;
-  bool _showTranslatedItems = true;
-  Map<String, dynamic>? _transactionData;
-  String? _transactionId;
-  String? _viewerUserId;
-  String? _transactionCategoryId;
-  bool _hasFamilyEntitlement = false;
-  bool _hasManualTotalOverride = false;
-  bool _isLoadingReceiptPreview = false;
-  String? _receiptPreviewUrl;
+  bool get _isLoading => _controller.isLoading;
+  set _isLoading(bool value) => _controller.isLoading = value;
+  bool get _isSaving => _controller.isSaving;
+  set _isSaving(bool value) => _controller.isSaving = value;
+  String? get _error => _controller.error;
+  set _error(String? value) => _controller.error = value;
 
-  final _merchantController = TextEditingController();
-  final _amountController = TextEditingController();
-  DateTime? _occurredAt;
-  String _currency = 'RSD';
-  String _displayCurrency = 'RSD';
-  double _displayRate = 1.0;
-  String _appLanguage = '';
-  String _effectiveItemsLanguage = '';
+  List<dynamic> get _items => _controller.items;
+  List<dynamic> get _categories => _controller.categories;
+  List<dynamic> get _labels => _controller.labels;
+  Set<String> get _selectedLabelIds => _controller.selectedLabelIds;
+  List<dynamic> get _serverWarnings => _controller.serverWarnings;
+  bool get _hasLocalEdits => _controller.hasLocalEdits;
+  set _hasLocalEdits(bool value) => _controller.hasLocalEdits = value;
+  bool get _isTranslatingItems => _controller.isTranslatingItems;
+  set _isTranslatingItems(bool value) => _controller.isTranslatingItems = value;
+  bool get _showTranslatedItems => _controller.showTranslatedItems;
+  set _showTranslatedItems(bool value) =>
+      _controller.showTranslatedItems = value;
+  String? get _transactionId => _controller.transactionId;
+  set _transactionId(String? value) => _controller.transactionId = value;
+  bool get _hasFamilyEntitlement => _controller.hasFamilyEntitlement;
+  set _hasFamilyEntitlement(bool value) =>
+      _controller.hasFamilyEntitlement = value;
+  bool get _isLoadingReceiptPreview => _controller.isLoadingReceiptPreview;
+  set _isLoadingReceiptPreview(bool value) =>
+      _controller.isLoadingReceiptPreview = value;
+  String? get _receiptPreviewUrl => _controller.receiptPreviewUrl;
+  set _receiptPreviewUrl(String? value) =>
+      _controller.receiptPreviewUrl = value;
 
-  final Map<String, TextEditingController> _itemDescControllers = {};
-  final Map<String, TextEditingController> _itemAmountControllers = {};
-  final Map<String, TextEditingController> _itemQtyControllers = {};
-  final Map<String, TextEditingController> _itemUnitPriceControllers = {};
-  final Map<String, String?> _itemCategoryIds = {};
-  final Map<String, String> _itemUnits = {}; // item id -> selected unit
+  TextEditingController get _merchantController =>
+      _controller.merchantController;
+  TextEditingController get _amountController => _controller.amountController;
+  DateTime? get _occurredAt => _controller.occurredAt;
+  set _occurredAt(DateTime? value) => _controller.occurredAt = value;
+  String get _currency => _controller.currency;
+  set _currency(String value) => _controller.currency = value;
+  String get _displayCurrency => _controller.displayCurrency;
+  set _displayCurrency(String value) => _controller.displayCurrency = value;
+  double get _displayRate => _controller.displayRate;
+  set _displayRate(double value) => _controller.displayRate = value;
+  String get _appLanguage => _controller.appLanguage;
+  String get _effectiveItemsLanguage => _controller.effectiveItemsLanguage;
 
-  String? get _receiptId {
-    final value = _transactionData?['receipt_id']?.toString();
-    if (value == null || value.isEmpty) return null;
-    return value;
-  }
+  Map<String, TextEditingController> get _itemDescControllers =>
+      _controller.itemDescControllers;
 
-  bool get _isDraftCreateMode => _transactionId == null;
-
-  bool get _canEditTransaction {
-    if (_isDraftCreateMode) return true;
-    final viewerUserId = _viewerUserId?.trim() ?? '';
-    if (viewerUserId.isEmpty) return true;
-    return _transactionData?['user_id']?.toString() == viewerUserId;
-  }
+  String? get _receiptId => _controller.receiptId;
+  bool get _isDraftCreateMode => _controller.isDraftCreateMode;
+  bool get _canEditTransaction => _controller.canEditTransaction;
 
   @override
   void initState() {
@@ -106,144 +111,8 @@ class _TransactionEditScreenState extends State<TransactionEditScreen> {
   @override
   void dispose() {
     unawaited(ItemTranslationService.instance.flushPending());
-    _merchantController.dispose();
-    _amountController.dispose();
-    _disposeItemControllers();
+    _controller.dispose();
     super.dispose();
-  }
-
-  void _disposeItemControllers() {
-    for (final c in _itemDescControllers.values) {
-      c.dispose();
-    }
-    for (final c in _itemAmountControllers.values) {
-      c.dispose();
-    }
-    for (final c in _itemQtyControllers.values) {
-      c.dispose();
-    }
-    for (final c in _itemUnitPriceControllers.values) {
-      c.dispose();
-    }
-    _itemDescControllers.clear();
-    _itemAmountControllers.clear();
-    _itemQtyControllers.clear();
-    _itemUnitPriceControllers.clear();
-    _itemCategoryIds.clear();
-    _itemUnits.clear();
-  }
-
-  void _applyTransactionState({
-    required Map<String, dynamic> txData,
-    required List<dynamic> categories,
-    required List<dynamic> labels,
-    required String appLanguage,
-    required String effectiveItemsLanguage,
-  }) {
-    _disposeItemControllers();
-    _hasLocalEdits = false;
-    _transactionData = txData;
-    _categories = categories;
-    _labels = labels;
-    _appLanguage = appLanguage;
-    _effectiveItemsLanguage = effectiveItemsLanguage;
-    _items = List.from(txData['items'] ?? []);
-    _selectedLabelIds = Set<String>.from(
-      (txData['labels'] as List<dynamic>? ?? const [])
-          .map((label) => label['id']?.toString() ?? '')
-          .where((id) => id.isNotEmpty),
-    );
-    _serverWarnings = List<dynamic>.from(
-      txData['extraction_warnings'] as List<dynamic>? ?? const [],
-    );
-
-    _merchantController.text = txData['merchant_name']?.toString() ?? '';
-    _transactionCategoryId = txData['category_id']?.toString();
-    _amountController.text = _formatNumberForInput(
-      txData['amount_total'],
-      decimals: 2,
-      keepTrailingZeros: true,
-    );
-    if (!_isDraftCreateMode && _amountController.text.isEmpty) {
-      _amountController.text = '0.00';
-    }
-    _currency = (txData['currency'] ?? 'RSD').toString();
-    final sourceTotal = _toDouble(txData['amount_total']);
-    final displayTotal = _toDouble(txData['display_amount_total']);
-    _displayCurrency = displayTotal != null
-        ? (txData['display_currency'] ?? _currency).toString()
-        : _currency;
-    if (_displayCurrency.toUpperCase() == _currency.toUpperCase()) {
-      _displayRate = 1.0;
-    } else if (sourceTotal != null &&
-        sourceTotal != 0 &&
-        displayTotal != null) {
-      _displayRate = displayTotal / sourceTotal;
-    } else {
-      _displayRate = 1.0;
-    }
-
-    _occurredAt = txData['occurred_at'] != null
-        ? DateTime.tryParse(txData['occurred_at'].toString())
-        : null;
-
-    for (final item in _items) {
-      final id = item['id'].toString();
-      _itemDescControllers[id] = TextEditingController(
-        text: item['description']?.toString() ?? '',
-      );
-      _itemAmountControllers[id] = TextEditingController(
-        text: _formatNumberForInput(
-          item['amount'],
-          decimals: 2,
-          keepTrailingZeros: true,
-        ),
-      );
-      _itemQtyControllers[id] = TextEditingController(
-        text: _formatNumberForInput(item['qty'], decimals: 3),
-      );
-      _itemUnitPriceControllers[id] = TextEditingController(
-        text: _formatNumberForInput(item['unit_price'], decimals: 3),
-      );
-      _itemCategoryIds[id] = item['category_id']?.toString();
-      // Resolve initial unit
-      final rawUnit = item['unit']?.toString().trim() ?? '';
-      final qty = _toDouble(item['qty']);
-      _itemUnits[id] = _displayUnit(
-        rawUnit.isNotEmpty ? rawUnit : null,
-        qty: qty,
-      );
-    }
-
-    final subtotal = _subtotalFromItemsList(_items);
-    _hasManualTotalOverride =
-        sourceTotal != null && _round2(sourceTotal) != subtotal;
-  }
-
-  Map<String, dynamic> _blankDraftTransaction({
-    required String currency,
-    required String? currentUserId,
-  }) {
-    final occurredAt = DateTime.now().toIso8601String();
-    return <String, dynamic>{
-      'user_id': currentUserId,
-      'receipt_id': null,
-      'occurred_at': occurredAt,
-      'amount_total': null,
-      'currency': currency,
-      'merchant_name': '',
-      'category_id': null,
-      'items': const <dynamic>[],
-      'labels': const <dynamic>[],
-      'extraction_warnings': const <dynamic>[],
-      'source': 'MANUAL',
-      'status': 'DRAFT',
-      'display_currency': currency,
-      'display_amount_total': null,
-      'household': null,
-      'created_by_user': null,
-      'owner_user': null,
-    };
   }
 
   Future<void> _fetchData() async {
@@ -287,15 +156,15 @@ class _TransactionEditScreenState extends State<TransactionEditScreen> {
           : appLanguage;
 
       if (_transactionId == null) {
-        final draft = _blankDraftTransaction(
+        final draft = _controller.blankDraftTransaction(
           currency: defaultCurrency,
           currentUserId: viewerUserId,
         );
         if (!mounted) return;
         setState(() {
-          _viewerUserId = viewerUserId;
+          _controller.viewerUserId = viewerUserId;
           _hasFamilyEntitlement = hasFamilyEntitlement;
-          _applyTransactionState(
+          _controller.applyTransactionState(
             txData: draft,
             categories: catsData,
             labels: labelsData,
@@ -307,7 +176,7 @@ class _TransactionEditScreenState extends State<TransactionEditScreen> {
           _displayRate = 1.0;
           _occurredAt = DateTime.now();
           _amountController.text = '0.00';
-          _hasManualTotalOverride = false;
+          _controller.hasManualTotalOverride = false;
           _receiptPreviewUrl = null;
           _isLoadingReceiptPreview = false;
           _isLoading = false;
@@ -326,9 +195,9 @@ class _TransactionEditScreenState extends State<TransactionEditScreen> {
       final txData = await txFuture;
 
       setState(() {
-        _viewerUserId = viewerUserId;
+        _controller.viewerUserId = viewerUserId;
         _hasFamilyEntitlement = hasFamilyEntitlement;
-        _applyTransactionState(
+        _controller.applyTransactionState(
           txData: txData,
           categories: catsData,
           labels: labelsData,
@@ -364,9 +233,8 @@ class _TransactionEditScreenState extends State<TransactionEditScreen> {
   Future<void> _saveTransaction() async {
     if (_isSaving) return;
 
-    final amountText = _amountController.text.trim();
-    final parsedAmount = double.tryParse(amountText.replaceAll(',', '.'));
-    if (parsedAmount == null) {
+    final payload = _controller.buildSavePayload();
+    if (payload == null) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text(context.tr('transaction_amount_required'))),
       );
@@ -376,68 +244,6 @@ class _TransactionEditScreenState extends State<TransactionEditScreen> {
     setState(() => _isSaving = true);
     final saveError = context.tr('transaction_save_error');
     try {
-      final payload = {
-        'merchant_name': _merchantController.text,
-        'amount_total': parsedAmount,
-        'currency': _currency,
-        'category_id': _transactionCategoryId,
-        'status': 'CONFIRMED',
-      };
-
-      if (_occurredAt != null) {
-        payload['occurred_at'] = _occurredAt!.toIso8601String();
-      }
-
-      final updatedItems = [];
-      var nextLineNo = 1;
-      for (final item in _items) {
-        final id = item['id'].toString();
-        final description = (_itemDescControllers[id]?.text ?? '').trim();
-        final amount =
-            double.tryParse(_itemAmountControllers[id]?.text ?? '0.00') ?? 0.0;
-        final qty = _toDouble(_itemQtyControllers[id]?.text);
-        final unitPrice = _toDouble(_itemUnitPriceControllers[id]?.text);
-        final categoryId = _itemCategoryIds[id];
-        final unit = _itemUnits[id] ?? item['unit'];
-        final isBlankDraftItem =
-            description.isEmpty &&
-            amount == 0.0 &&
-            qty == null &&
-            unitPrice == null &&
-            (unit == null || unit.toString().trim().isEmpty) &&
-            (categoryId == null || categoryId.isEmpty);
-        if (_isDraftCreateMode && isBlankDraftItem) {
-          continue;
-        }
-        final itemPayload = <String, dynamic>{
-          'description': description,
-          'amount': amount,
-          'qty': qty,
-          'unit_price': unitPrice,
-          'unit': unit,
-          'category_id': categoryId,
-          'discount_amount': _itemDiscountValue(item),
-          'amount_before_discount': _itemAmountBeforeDiscountValue(item),
-        };
-        if (_isUuid(id)) {
-          itemPayload['id'] = id;
-        }
-        if (_isDraftCreateMode) {
-          itemPayload['line_no'] = nextLineNo++;
-        }
-        itemPayload.removeWhere((key, value) {
-          if (value == null) return true;
-          if ((key == 'unit' || key == 'category_id') &&
-              value is String &&
-              value.trim().isEmpty) {
-            return true;
-          }
-          return false;
-        });
-        updatedItems.add(itemPayload);
-      }
-      payload['items'] = updatedItems;
-
       if (_transactionId == null) {
         final created = await ApiClient.createTransaction(
           payload,
@@ -449,7 +255,7 @@ class _TransactionEditScreenState extends State<TransactionEditScreen> {
         if (!mounted) return;
         setState(() {
           _transactionId = created['id']?.toString();
-          _applyTransactionState(
+          _controller.applyTransactionState(
             txData: created,
             categories: _categories,
             labels: _labels,
@@ -520,93 +326,37 @@ class _TransactionEditScreenState extends State<TransactionEditScreen> {
     if (receiptId == null) {
       if (!mounted) return;
       setState(() {
-        _receiptPreviewUrl = null;
-        _isLoadingReceiptPreview = false;
+        _controller.clearReceiptPreview();
       });
       return;
     }
 
-    setState(() => _isLoadingReceiptPreview = true);
+    setState(() => _controller.beginReceiptPreviewLoad());
     try {
       final payload = await ApiClient.getReceiptViewUrl(receiptId);
       if (!mounted || _receiptId != receiptId) return;
       final viewUrl = payload['view_url']?.toString();
       setState(() {
-        _receiptPreviewUrl = (viewUrl == null || viewUrl.isEmpty)
-            ? null
-            : viewUrl;
-        _isLoadingReceiptPreview = false;
+        _controller.finishReceiptPreviewLoad(viewUrl);
       });
     } catch (_) {
       if (!mounted || _receiptId != receiptId) return;
       setState(() {
-        _receiptPreviewUrl = null;
-        _isLoadingReceiptPreview = false;
+        _controller.clearReceiptPreview();
       });
     }
   }
 
-  bool _isUuid(String value) {
-    final uuidPattern = RegExp(
-      r'^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-5][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}$',
-    );
-    return uuidPattern.hasMatch(value);
-  }
-
-  double? _toDouble(dynamic value) {
-    if (value == null) return null;
-    if (value is num) return value.toDouble();
-    final normalized = value.toString().replaceAll(',', '.').trim();
-    return double.tryParse(normalized);
-  }
-
-  String _formatNumberForInput(
-    dynamic value, {
-    int decimals = 2,
-    bool keepTrailingZeros = false,
-  }) {
-    final parsed = _toDouble(value);
-    if (parsed == null) return '';
-    final fixed = parsed.toStringAsFixed(decimals);
-    if (keepTrailingZeros) return fixed;
-    return fixed.replaceFirst(RegExp(r'\.?0+$'), '');
-  }
-
-  // ignore: unused_element
-  String _currencySymbol(String code) {
-    final normalized = code.toUpperCase();
-    if (normalized == 'EUR') return '\u20AC';
-    if (normalized == 'USD') return '\$';
-    if (normalized == 'GBP') return '\u00A3';
-    if (normalized == 'AUD') return 'A\$';
-    if (normalized == 'CAD') return 'C\$';
-    if (normalized == 'RSD') return 'RSD ';
-    switch (code.toUpperCase()) {
-      case 'EUR':
-        return '€';
-      case 'USD':
-        return '\$';
-      case 'GBP':
-        return '£';
-      case 'RSD':
-        return 'RSD ';
-      default:
-        return '${code.toUpperCase()} ';
-    }
-  }
+  double? _toDouble(dynamic value) => _controller.toDouble(value);
 
   String _formatMoney(String currency, double amount) {
     return formatMoney(currency, amount);
   }
 
-  String _normalizeLanguageCode(String? raw) {
-    return ItemTranslationService.instance.normalizeLanguageCode(raw);
-  }
+  String _normalizeLanguageCode(String? raw) =>
+      _controller.normalizeLanguageCode(raw);
 
-  String _normalizeText(String? raw) {
-    return ItemTranslationService.instance.normalizeSourceText(raw ?? '');
-  }
-
+  String _normalizeText(String? raw) => _controller.normalizeText(raw);
   String _resolveAppLanguage() {
     final fromLocale = _normalizeLanguageCode(
       localeProvider.locale.languageCode,
@@ -736,11 +486,7 @@ class _TransactionEditScreenState extends State<TransactionEditScreen> {
         final nextCode = currency.code.toUpperCase();
         if (nextCode == _currency.toUpperCase()) return;
         setState(() {
-          _hasLocalEdits = true;
-          _currency = nextCode;
-          // Keep edit mode amounts coherent in source currency until next backend refresh.
-          _displayCurrency = _currency;
-          _displayRate = 1.0;
+          _controller.applyCurrency(nextCode);
         });
       },
     );
@@ -752,6 +498,18 @@ class _TransactionEditScreenState extends State<TransactionEditScreen> {
     return _isDraftCreateMode
         ? context.tr('transaction_new_expense')
         : context.tr('transaction_review_receipt');
+  }
+
+  void _applyPickedOccurredDate(DateTime date) {
+    setState(() {
+      _controller.applyOccurredDate(date);
+    });
+  }
+
+  void _applyPickedOccurredTime(TimeOfDay selected) {
+    setState(() {
+      _controller.applyOccurredTime(selected);
+    });
   }
 
   Future<void> _openMerchantNameEditor() async {
@@ -821,8 +579,7 @@ class _TransactionEditScreenState extends State<TransactionEditScreen> {
 
     if (!mounted || value == null) return;
     setState(() {
-      _merchantController.text = value;
-      _hasLocalEdits = true;
+      _controller.applyMerchantName(value);
     });
   }
 
@@ -900,22 +657,12 @@ class _TransactionEditScreenState extends State<TransactionEditScreen> {
       return;
     }
     setState(() {
-      _amountController.text = parsed.toStringAsFixed(2);
-      _hasLocalEdits = true;
-      _hasManualTotalOverride = _round2(parsed) != _round2(_subtotalValue);
+      _controller.applyManualTotal(parsed);
     });
   }
 
-  Map<String, dynamic>? _findCategoryById(String? categoryId) {
-    if (categoryId == null || categoryId.isEmpty) return null;
-    for (final raw in _categories) {
-      final category = raw as Map<String, dynamic>;
-      if (category['id']?.toString() == categoryId) {
-        return category;
-      }
-    }
-    return null;
-  }
+  Map<String, dynamic>? _findCategoryById(String? categoryId) =>
+      _controller.findCategoryById(categoryId);
 
   List<_CategoryTagData> _itemCategoryTags(String? categoryId) {
     final category = _findCategoryById(categoryId);
@@ -980,61 +727,14 @@ class _TransactionEditScreenState extends State<TransactionEditScreen> {
     ];
   }
 
-  double _round2(double value) => double.parse(value.toStringAsFixed(2));
+  double _toDisplayAmount(double sourceAmount) =>
+      _controller.toDisplayAmount(sourceAmount);
 
-  double _subtotalFromItemsList(List<dynamic> items) {
-    double subtotal = 0;
-    for (final raw in items) {
-      final item = raw as Map<String, dynamic>;
-      subtotal += _itemAmountValue(item);
-    }
-    return _round2(subtotal);
-  }
+  Map<String, Map<String, double>> _computeLineMismatches() =>
+      _controller.computeLineMismatches();
 
-  double get _subtotalValue {
-    return _subtotalFromItemsList(_items);
-  }
-
-  double _toDisplayAmount(double sourceAmount) {
-    return _round2(sourceAmount * _displayRate);
-  }
-
-  Map<String, Map<String, double>> _computeLineMismatches() {
-    final mismatches = <String, Map<String, double>>{};
-    for (final item in _items) {
-      final itemId = item['id'].toString();
-      final qty = _toDouble(_itemQtyControllers[itemId]?.text);
-      final unitPrice = _toDouble(_itemUnitPriceControllers[itemId]?.text);
-      final amount = _toDouble(_itemAmountControllers[itemId]?.text);
-      final discount = _itemDiscountValue(item);
-      if (qty == null || unitPrice == null || amount == null) continue;
-      final expected = _round2((qty * unitPrice) - discount);
-      final actual = _round2(amount);
-      if (expected != actual) {
-        mismatches[itemId] = {
-          'expected': expected,
-          'actual': actual,
-          'difference': _round2(actual - expected),
-        };
-      }
-    }
-    return mismatches;
-  }
-
-  Map<String, double>? _computeTotalMismatch() {
-    final txTotal = _toDouble(_amountController.text);
-    if (txTotal == null) return null;
-
-    final expected = _round2(_subtotalValue);
-    final actual = _round2(txTotal);
-    if (expected == actual) return null;
-    return {
-      'expected': expected,
-      'actual': actual,
-      'difference': _round2(actual - expected),
-    };
-  }
-
+  Map<String, double>? _computeTotalMismatch() =>
+      _controller.computeTotalMismatch();
   Future<void> _toggleLabel({
     required String labelId,
     required bool selected,
@@ -1061,11 +761,7 @@ class _TransactionEditScreenState extends State<TransactionEditScreen> {
       }
       if (!mounted) return;
       setState(() {
-        if (selected) {
-          _selectedLabelIds.add(labelId);
-        } else {
-          _selectedLabelIds.remove(labelId);
-        }
+        _controller.setLabelSelection(labelId: labelId, selected: selected);
       });
     } catch (e) {
       _showEditorError(
@@ -1138,7 +834,7 @@ class _TransactionEditScreenState extends State<TransactionEditScreen> {
       final newId = created['id']?.toString();
       if (newId == null || newId.isEmpty) return;
       setState(() {
-        _labels = [..._labels, created];
+        _controller.appendLabel(created);
       });
       await _toggleLabel(labelId: newId, selected: true);
     } catch (e) {
@@ -1258,160 +954,42 @@ class _TransactionEditScreenState extends State<TransactionEditScreen> {
     );
   }
 
-  String _itemDescription(Map<String, dynamic> item) {
-    final id = item['id']?.toString() ?? '';
-    return (_itemDescControllers[id]?.text ??
-            item['description']?.toString() ??
-            '')
-        .trim();
-  }
+  String _itemDescription(Map<String, dynamic> item) =>
+      _controller.itemDescription(item);
 
-  double _itemAmountValue(Map<String, dynamic> item) {
-    final id = item['id']?.toString() ?? '';
-    return _toDouble(_itemAmountControllers[id]?.text) ??
-        _toDouble(item['amount']) ??
-        0.0;
-  }
+  double _itemAmountValue(Map<String, dynamic> item) =>
+      _controller.itemAmountValue(item);
 
-  double? _itemQtyValue(Map<String, dynamic> item) {
-    final id = item['id']?.toString() ?? '';
-    return _toDouble(_itemQtyControllers[id]?.text) ?? _toDouble(item['qty']);
-  }
+  double? _itemQtyValue(Map<String, dynamic> item) =>
+      _controller.itemQtyValue(item);
 
-  double? _itemUnitPriceValue(Map<String, dynamic> item) {
-    final id = item['id']?.toString() ?? '';
-    return _toDouble(_itemUnitPriceControllers[id]?.text) ??
-        _toDouble(item['unit_price']);
-  }
+  double? _itemUnitPriceValue(Map<String, dynamic> item) =>
+      _controller.itemUnitPriceValue(item);
 
-  double _itemDiscountValue(Map<String, dynamic> item) {
-    final explicitDiscount = _toDouble(item['discount_amount']) ?? 0.0;
-    if (explicitDiscount > 0) return _round2(explicitDiscount);
+  double _itemDiscountValue(Map<String, dynamic> item) =>
+      _controller.itemDiscountValue(item);
 
-    final amount = _itemAmountValue(item);
-    final amountBeforeDiscount = _toDouble(item['amount_before_discount']);
-    if (amountBeforeDiscount != null && amountBeforeDiscount > amount) {
-      return _round2(amountBeforeDiscount - amount);
-    }
+  double? _itemAmountBeforeDiscountValue(Map<String, dynamic> item) =>
+      _controller.itemAmountBeforeDiscountValue(item);
 
-    final qty = _itemQtyValue(item);
-    final unitPrice = _itemUnitPriceValue(item);
-    if (qty == null || unitPrice == null || qty <= 0) return 0.0;
-    final inferredDiscount = _round2((qty * unitPrice) - amount);
-    return inferredDiscount > 0.01 ? inferredDiscount : 0.0;
-  }
+  double _totalSavingsValue() => _controller.totalSavingsValue();
 
-  double? _itemAmountBeforeDiscountValue(Map<String, dynamic> item) {
-    final amount = _itemAmountValue(item);
-    final explicitBefore = _toDouble(item['amount_before_discount']);
-    if (explicitBefore != null && explicitBefore > amount) {
-      return _round2(explicitBefore);
-    }
+  String? _itemCategoryId(Map<String, dynamic> item) =>
+      _controller.itemCategoryId(item);
 
-    final discount = _itemDiscountValue(item);
-    if (discount > 0) {
-      return _round2(amount + discount);
-    }
-
-    return null;
-  }
-
-  double _totalSavingsValue() {
-    var total = 0.0;
-    for (final raw in _items) {
-      final item = raw as Map<String, dynamic>;
-      total += _itemDiscountValue(item);
-    }
-    return _round2(total);
-  }
-
-  String? _itemCategoryId(Map<String, dynamic> item) {
-    final id = item['id']?.toString() ?? '';
-    return _itemCategoryIds[id] ?? item['category_id']?.toString();
-  }
-
-  String _itemUnitValue(Map<String, dynamic> item) {
-    final id = item['id']?.toString() ?? '';
-    final qty = _itemQtyValue(item);
-    return _itemUnits[id] ??
-        _displayUnit(
-          item['unit']?.toString(),
-          description: _itemDescription(item),
-          qty: qty,
-        );
-  }
+  String _itemUnitValue(Map<String, dynamic> item) =>
+      _controller.itemUnitValue(item);
 
   void _syncItemControllersFromData(Map<String, dynamic> item) {
-    final id = item['id']?.toString() ?? '';
-    if (id.isEmpty) return;
-    final descController = _itemDescControllers[id];
-    if (descController == null) {
-      _itemDescControllers[id] = TextEditingController(
-        text: item['description']?.toString() ?? '',
-      );
-    } else {
-      descController.text = item['description']?.toString() ?? '';
-    }
-
-    final amountController = _itemAmountControllers[id];
-    final amountText = _formatNumberForInput(
-      item['amount'],
-      decimals: 2,
-      keepTrailingZeros: true,
-    );
-    if (amountController == null) {
-      _itemAmountControllers[id] = TextEditingController(text: amountText);
-    } else {
-      amountController.text = amountText;
-    }
-
-    final qtyController = _itemQtyControllers[id];
-    final qtyText = _formatNumberForInput(item['qty'], decimals: 3);
-    if (qtyController == null) {
-      _itemQtyControllers[id] = TextEditingController(text: qtyText);
-    } else {
-      qtyController.text = qtyText;
-    }
-
-    final unitPriceController = _itemUnitPriceControllers[id];
-    final unitPriceText = _formatNumberForInput(
-      item['unit_price'],
-      decimals: 3,
-    );
-    if (unitPriceController == null) {
-      _itemUnitPriceControllers[id] = TextEditingController(
-        text: unitPriceText,
-      );
-    } else {
-      unitPriceController.text = unitPriceText;
-    }
-
-    _itemCategoryIds[id] = item['category_id']?.toString();
-    _itemUnits[id] = _displayUnit(
-      item['unit']?.toString(),
-      description: item['description']?.toString(),
-      qty: _toDouble(item['qty']),
-    );
+    _controller.syncItemControllersFromData(item);
   }
 
   void _removeItemLocally(String itemId) {
-    _items.removeWhere((element) => element['id']?.toString() == itemId);
-    _itemDescControllers.remove(itemId)?.dispose();
-    _itemAmountControllers.remove(itemId)?.dispose();
-    _itemQtyControllers.remove(itemId)?.dispose();
-    _itemUnitPriceControllers.remove(itemId)?.dispose();
-    _itemCategoryIds.remove(itemId);
-    _itemUnits.remove(itemId);
+    _controller.removeItemLocally(itemId);
   }
 
   void _syncTotalToItems({bool force = false}) {
-    if (_hasManualTotalOverride && !force) return;
-    final subtotal = _subtotalValue;
-    _amountController.text = subtotal.toStringAsFixed(2);
-    _amountController.selection = TextSelection.fromPosition(
-      TextPosition(offset: _amountController.text.length),
-    );
-    _hasManualTotalOverride = false;
+    _controller.syncTotalToItems(force: force);
   }
 
   Future<bool> _confirmDeleteItemFromList(Map<String, dynamic> item) async {
@@ -1526,71 +1104,8 @@ class _TransactionEditScreenState extends State<TransactionEditScreen> {
   }
 
   Future<void> _addItemAndOpenEditor() async {
-    final id = DateTime.now().millisecondsSinceEpoch.toString();
-    final draft = <String, dynamic>{
-      'id': id,
-      'description': '',
-      'amount': 0.0,
-      'qty': 1.0,
-      'unit': 'pc',
-      'unit_price': 0.0,
-      'category_id': null,
-      'translated_description': null,
-      'translation_language': null,
-      'translation_source_language': null,
-    };
+    final draft = _controller.buildDraftItem();
     await _openItemEditor(draft, isNew: true);
-  }
-
-  String _inferUnitFromDescription(String description) {
-    final upper = description.toUpperCase();
-    if (RegExp(r'\bKG\b|\bKGS\b').hasMatch(upper)) return 'kg';
-    if (RegExp(r'\bG\b').hasMatch(upper)) return 'kg';
-    if (RegExp(r'\bML\b').hasMatch(upper)) return 'l';
-    if (RegExp(r'\bL\b|\bLTR\b|\bLITAR\b|\bLITER\b').hasMatch(upper)) {
-      return 'l';
-    }
-    return 'pc';
-  }
-
-  String _displayUnit(String? rawUnit, {String? description, double? qty}) {
-    final normalized = (rawUnit ?? '').trim().toUpperCase();
-    switch (normalized) {
-      case 'KG':
-      case 'KGS':
-        return 'kg';
-      case 'G':
-        return 'kg';
-      case 'L':
-      case 'LT':
-      case 'LITER':
-      case 'LITAR':
-        return 'l';
-      case 'ML':
-        return 'l';
-      case 'KOM':
-      case 'PCS':
-      case 'PC':
-      case 'UNIT':
-      case 'UN':
-        return 'pc';
-      default:
-        if (normalized.isEmpty) {
-          final inferred = _inferUnitFromDescription(description ?? '');
-          if (inferred == 'pc' && qty != null && (qty % 1) != 0) {
-            return 'kg';
-          }
-          return inferred;
-        }
-        if (RegExp(r'\bKG\b|\bKGS\b|\bG\b').hasMatch(normalized)) return 'kg';
-        if (RegExp(
-          r'\bL\b|\bLT\b|\bLITER\b|\bLITAR\b|\bML\b',
-        ).hasMatch(normalized)) {
-          return 'l';
-        }
-        if (qty != null && (qty % 1) != 0) return 'kg';
-        return 'pc';
-    }
   }
 
   String _friendlyEditorError(Object error, {required String fallback}) {
@@ -1919,862 +1434,4 @@ class _TransactionEditScreenState extends State<TransactionEditScreen> {
       ),
     );
   }
-
-  BoxDecoration _panelDecoration({
-    Color? color,
-    Color? borderColor,
-    bool withShadow = false,
-    double radius = 20,
-  }) {
-    return BoxDecoration(
-      color: color ?? _surfaceColor,
-      borderRadius: BorderRadius.circular(radius),
-      border: Border.all(color: borderColor ?? _strokeColor),
-      boxShadow: withShadow
-          ? const [
-              BoxShadow(
-                color: Colors.black26,
-                blurRadius: 16,
-                offset: Offset(0, 6),
-              ),
-            ]
-          : const [],
-    );
-  }
-
-  Widget _buildTopControlRow() {
-    final occurred = _occurredAt;
-    final dateLabel = occurred != null
-        ? formatLocalizedDayMonthTime(context, occurred)
-        : context.tr('transaction_set_date');
-    final translationEnabled =
-        _effectiveItemsLanguage.isNotEmpty && _showTranslatedItems;
-    final languageLabel = _effectiveItemsLanguage.isEmpty
-        ? 'LANG'
-        : _effectiveItemsLanguage.toUpperCase();
-
-    return Row(
-      children: [
-        Expanded(
-          child: InkWell(
-            onTap: !_canEditTransaction
-                ? null
-                : () async {
-                    await _pickOccurredDate();
-                    if (!mounted) return;
-                    await _pickOccurredTime();
-                  },
-            borderRadius: BorderRadius.circular(16),
-            child: Container(
-              height: 42,
-              padding: const EdgeInsets.symmetric(horizontal: 10),
-              decoration: _panelDecoration(
-                color: _surfaceColor,
-                borderColor: _strokeColor,
-                radius: 14,
-              ),
-              child: Row(
-                children: [
-                  Icon(
-                    Icons.calendar_today_outlined,
-                    size: 15,
-                    color: _mutedColor,
-                  ),
-                  const SizedBox(width: 8),
-                  Expanded(
-                    child: Text(
-                      dateLabel,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: TextStyle(
-                        color: _textColor,
-                        fontSize: 13,
-                        fontWeight: FontWeight.w700,
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ),
-        ),
-        const SizedBox(width: 8),
-        InkWell(
-          onTap: _canEditTransaction ? _openReceiptCurrencyPicker : null,
-          borderRadius: BorderRadius.circular(16),
-          child: Container(
-            height: 42,
-            padding: const EdgeInsets.symmetric(horizontal: 10),
-            decoration: _panelDecoration(
-              color: _surfaceColor,
-              borderColor: _strokeColor,
-              radius: 14,
-            ),
-            child: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Icon(AppIcons.currency, size: 15, color: _mutedColor),
-                const SizedBox(width: 6),
-                Text(
-                  _currency.toUpperCase(),
-                  style: TextStyle(
-                    color: _textColor,
-                    fontSize: 13,
-                    fontWeight: FontWeight.w800,
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ),
-        const SizedBox(width: 8),
-        InkWell(
-          onTap: _effectiveItemsLanguage.isNotEmpty && !_isTranslatingItems
-              ? _toggleTranslatedItems
-              : null,
-          borderRadius: BorderRadius.circular(16),
-          child: Container(
-            height: 42,
-            width: _isTranslatingItems ? 42 : null,
-            padding: EdgeInsets.symmetric(
-              horizontal: _isTranslatingItems ? 0 : 10,
-            ),
-            decoration: _panelDecoration(
-              color: translationEnabled
-                  ? ShellStyles.accentTone(context).container
-                  : _surfaceColor,
-              borderColor: translationEnabled
-                  ? ShellStyles.accentTone(context).border
-                  : _strokeColor,
-              radius: 14,
-            ),
-            child: _isTranslatingItems
-                ? Center(
-                    child: SizedBox(
-                      width: 13,
-                      height: 13,
-                      child: CircularProgressIndicator(
-                        strokeWidth: 1.8,
-                        valueColor: AlwaysStoppedAnimation<Color>(_accentColor),
-                      ),
-                    ),
-                  )
-                : Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Icon(
-                        AppIcons.translate,
-                        size: 15,
-                        color: _effectiveItemsLanguage.isEmpty
-                            ? _mutedColor
-                            : translationEnabled
-                            ? ShellStyles.accentTone(context).foreground
-                            : _textColor,
-                      ),
-                      const SizedBox(width: 6),
-                      Text(
-                        languageLabel,
-                        style: TextStyle(
-                          color: _effectiveItemsLanguage.isEmpty
-                              ? _mutedColor
-                              : translationEnabled
-                              ? ShellStyles.accentTone(context).foreground
-                              : _textColor,
-                          fontSize: 12,
-                          fontWeight: FontWeight.w800,
-                        ),
-                      ),
-                    ],
-                  ),
-          ),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildReceiptPhotoSection() {
-    final hasPreview = (_receiptPreviewUrl ?? '').isNotEmpty;
-    return InkWell(
-      onTap: _openReceiptPhoto,
-      borderRadius: BorderRadius.circular(18),
-      child: Container(
-        padding: const EdgeInsets.all(8),
-        decoration: _panelDecoration(radius: 18),
-        clipBehavior: Clip.antiAlias,
-        child: Row(
-          children: [
-            ClipRRect(
-              borderRadius: BorderRadius.circular(14),
-              child: SizedBox(
-                width: 70,
-                height: 58,
-                child: ColoredBox(
-                  color: _surfaceAltColor,
-                  child: _isLoadingReceiptPreview
-                      ? Center(
-                          child: SizedBox(
-                            width: 18,
-                            height: 18,
-                            child: CircularProgressIndicator(
-                              strokeWidth: 2.2,
-                              valueColor: AlwaysStoppedAnimation<Color>(
-                                _accentColor,
-                              ),
-                            ),
-                          ),
-                        )
-                      : hasPreview
-                      ? Image.network(
-                          _receiptPreviewUrl!,
-                          fit: BoxFit.cover,
-                          errorBuilder: (_, _, _) =>
-                              _buildPhotoFallback(compact: true),
-                          loadingBuilder: (context, child, loadingProgress) {
-                            if (loadingProgress == null) return child;
-                            return Center(
-                              child: SizedBox(
-                                width: 18,
-                                height: 18,
-                                child: CircularProgressIndicator(
-                                  strokeWidth: 2.2,
-                                  valueColor: AlwaysStoppedAnimation<Color>(
-                                    _accentColor,
-                                  ),
-                                ),
-                              ),
-                            );
-                          },
-                        )
-                      : _buildPhotoFallback(compact: true),
-                ),
-              ),
-            ),
-            const SizedBox(width: 12),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    context.tr('transaction_receipt_photo_title'),
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: TextStyle(
-                      color: _textColor,
-                      fontSize: 14,
-                      fontWeight: FontWeight.w800,
-                    ),
-                  ),
-                  const SizedBox(height: 3),
-                  Text(
-                    context.tr('transaction_receipt_photo_subtitle'),
-                    style: TextStyle(
-                      color: _mutedColor,
-                      fontSize: 12,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            const SizedBox(width: 8),
-            Icon(AppIcons.chevronRight, size: 16, color: _mutedColor),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildPhotoFallback({bool compact = false}) {
-    return Center(
-      child: compact
-          ? Icon(AppIcons.photo, size: 22, color: _mutedColor)
-          : Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Icon(AppIcons.photo, size: 30, color: _mutedColor),
-                SizedBox(height: 10),
-                Text(
-                  context.tr('transaction_receipt_photo_title'),
-                  style: TextStyle(
-                    color: _mutedColor,
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
-              ],
-            ),
-    );
-  }
-
-  String _labelsSummaryText(List<dynamic> selectedLabels) {
-    if (selectedLabels.isEmpty) return 'Add labels';
-    final names = selectedLabels
-        .map((raw) => (raw as Map<String, dynamic>)['name']?.toString() ?? '')
-        .where((name) => name.trim().isNotEmpty)
-        .toList();
-    if (names.isEmpty) return 'Add labels';
-    if (names.length <= 2) return names.join(', ');
-    return '${names.take(2).join(', ')} +${names.length - 2}';
-  }
-
-  Widget _buildWarningsBanner({
-    required int lineMismatchCount,
-    required bool hasTotalMismatch,
-    required int serverWarningCount,
-  }) {
-    if (lineMismatchCount == 0 &&
-        !hasTotalMismatch &&
-        serverWarningCount == 0) {
-      return const SizedBox.shrink();
-    }
-
-    final lineText = lineMismatchCount == 1
-        ? context.tr('transaction_warning_review_one_item')
-        : context.tr(
-            'transaction_warning_review_items',
-            params: {'count': lineMismatchCount.toString()},
-          );
-    final parts = <String>[];
-    if (lineMismatchCount > 0) {
-      parts.add(lineText);
-    }
-    if (hasTotalMismatch) {
-      parts.add(context.tr('transaction_warning_review_total'));
-    }
-    if (serverWarningCount > 0) {
-      parts.add(
-        serverWarningCount == 1
-            ? context.tr('transaction_warning_check_one_detail')
-            : context.tr(
-                'transaction_warning_check_details',
-                params: {'count': serverWarningCount.toString()},
-              ),
-      );
-    }
-
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.all(10),
-      decoration: _panelDecoration(
-        color: _surfaceAltColor,
-        borderColor: _strokeColor,
-        radius: 16,
-      ),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Icon(Icons.warning_amber_rounded, color: _warningColor, size: 18),
-          const SizedBox(width: 8),
-          Expanded(
-            child: Text(
-              context.tr(
-                'transaction_warning_accepts_edits',
-                params: {'details': parts.join(' / ')},
-              ),
-              style: TextStyle(
-                color: _textColor,
-                fontSize: 12,
-                fontWeight: FontWeight.w700,
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildLabelsSection() {
-    final selectedLabels = _labels.where((label) {
-      final id = label['id']?.toString() ?? '';
-      return _selectedLabelIds.contains(id);
-    }).toList();
-
-    return InkWell(
-      onTap: _openLabelsPicker,
-      borderRadius: BorderRadius.circular(18),
-      child: Container(
-        width: double.infinity,
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
-        decoration: _panelDecoration(radius: 16),
-        child: Row(
-          crossAxisAlignment: CrossAxisAlignment.center,
-          children: [
-            Icon(AppIcons.labels, size: 17, color: _mutedColor),
-            const SizedBox(width: 10),
-            Expanded(
-              child: Text(
-                _labelsSummaryText(selectedLabels),
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-                style: TextStyle(
-                  color: _textColor,
-                  fontSize: 13.5,
-                  fontWeight: FontWeight.w700,
-                ),
-              ),
-            ),
-            const SizedBox(width: 10),
-            Icon(AppIcons.chevronRight, size: 16, color: _mutedColor),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget? _buildAttributionSection() {
-    if (!_hasFamilyEntitlement) {
-      return null;
-    }
-    // Hidden in the single-user launch build.
-    return null;
-  }
-
-  Future<void> _pickOccurredDate() async {
-    final date = await showDatePicker(
-      context: context,
-      initialDate: _occurredAt ?? DateTime.now(),
-      firstDate: DateTime(2000),
-      lastDate: DateTime(2100),
-      builder: (dialogContext, child) =>
-          ShellStyles.clampOverlayScale(dialogContext, child!),
-    );
-    if (date == null || !mounted) return;
-    final base = _occurredAt ?? DateTime.now();
-    setState(() {
-      _hasLocalEdits = true;
-      _occurredAt = DateTime(
-        date.year,
-        date.month,
-        date.day,
-        base.hour,
-        base.minute,
-        base.second,
-        base.millisecond,
-        base.microsecond,
-      );
-    });
-  }
-
-  Future<void> _pickOccurredTime() async {
-    final base = _occurredAt ?? DateTime.now();
-    final selected = await showTimePicker(
-      context: context,
-      initialTime: TimeOfDay(hour: base.hour, minute: base.minute),
-    );
-    if (selected == null || !mounted) return;
-    setState(() {
-      _hasLocalEdits = true;
-      _occurredAt = DateTime(
-        base.year,
-        base.month,
-        base.day,
-        selected.hour,
-        selected.minute,
-        base.second,
-        base.millisecond,
-        base.microsecond,
-      );
-    });
-  }
-
-  Widget _buildSwipeableItemRow({
-    required Map<String, dynamic> item,
-    required Map<String, double>? mismatch,
-    required bool showDivider,
-  }) {
-    return Dismissible(
-      key: Key(item['id']?.toString() ?? DateTime.now().toIso8601String()),
-      direction: _canEditTransaction
-          ? DismissDirection.endToStart
-          : DismissDirection.none,
-      confirmDismiss: (_) => _confirmDeleteItemFromList(item),
-      background: Container(
-        margin: EdgeInsets.only(bottom: showDivider ? 1 : 0),
-        padding: const EdgeInsets.only(right: 20),
-        alignment: Alignment.centerRight,
-        decoration: BoxDecoration(
-          color: _dangerColor,
-          borderRadius: BorderRadius.circular(18),
-        ),
-        child: Icon(Icons.delete_outline_rounded, color: Colors.white),
-      ),
-      child: _buildItemCard(item, mismatch, showDivider: showDivider),
-    );
-  }
-
-  Widget _buildItemCard(
-    Map<String, dynamic> item,
-    Map<String, double>? mismatch, {
-    bool showDivider = true,
-  }) {
-    final selectedCatId = _itemCategoryId(item);
-    final catTags = _itemCategoryTags(selectedCatId);
-    final sourceQty = _itemQtyValue(item);
-    final resolvedUnit = _itemUnitValue(item);
-    final unitLabel = resolvedUnit == 'pc' ? 'pcs' : resolvedUnit;
-    final unitPrice = _itemUnitPriceValue(item);
-    final sourceAmount = _itemAmountValue(item);
-    final displayAmount = _toDisplayAmount(sourceAmount);
-    final discountAmount = _itemDiscountValue(item);
-    final hasDiscount = discountAmount > 0;
-    final beforeDiscountAmount = _itemAmountBeforeDiscountValue(item);
-    final displayName = ItemNameDisplayResolver.resolve(
-      item: item,
-      currentDescription: _itemDescription(item),
-      translationEnabled:
-          _showTranslatedItems && _effectiveItemsLanguage.isNotEmpty,
-    );
-    final currentName = displayName.primaryText;
-    final displayCurrencyLabel = CurrencyDisplay.labelForCode(_displayCurrency);
-    final quantityLineParts = <String>[];
-    if (sourceQty != null) {
-      final qtyLabel = sourceQty % 1 == 0
-          ? sourceQty.toStringAsFixed(0)
-          : sourceQty
-                .toStringAsFixed(3)
-                .replaceFirst(RegExp(r'0+$'), '')
-                .replaceFirst(RegExp(r'\.$'), '');
-      quantityLineParts.add('$qtyLabel $unitLabel');
-    }
-    if (unitPrice != null) {
-      quantityLineParts.add(
-        '${_formatMoney(_currency, unitPrice)} / $unitLabel',
-      );
-    }
-    final convertedVisible =
-        _displayCurrency.toUpperCase() != _currency.toUpperCase();
-
-    return InkWell(
-      onTap: _canEditTransaction ? () => _openItemEditor(item) : null,
-      borderRadius: BorderRadius.circular(16),
-      child: Container(
-        padding: const EdgeInsets.fromLTRB(12, 10, 12, 10),
-        decoration: BoxDecoration(
-          border: showDivider
-              ? Border(bottom: BorderSide(color: _strokeColor.withAlpha(180)))
-              : null,
-        ),
-        child: AnimatedSize(
-          duration: const Duration(milliseconds: 220),
-          curve: Curves.easeOutCubic,
-          alignment: Alignment.topCenter,
-          clipBehavior: Clip.hardEdge,
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Row(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          currentName.isEmpty
-                              ? context.tr('transaction_item_name')
-                              : currentName,
-                          maxLines: 2,
-                          overflow: TextOverflow.ellipsis,
-                          style: TextStyle(
-                            color: _textColor,
-                            fontSize: 14.5,
-                            fontWeight: FontWeight.w800,
-                            height: 1.15,
-                          ),
-                        ),
-                        if (hasDiscount && beforeDiscountAmount != null) ...[
-                          const SizedBox(height: 7),
-                          Wrap(
-                            spacing: 8,
-                            runSpacing: 4,
-                            children: [
-                              Text(
-                                context.tr(
-                                  'transaction_was_amount',
-                                  params: {
-                                    'amount': _formatMoney(
-                                      _currency,
-                                      beforeDiscountAmount,
-                                    ),
-                                  },
-                                ),
-                                style: TextStyle(
-                                  color: _mutedColor,
-                                  fontSize: 11.5,
-                                  fontWeight: FontWeight.w600,
-                                  decoration: TextDecoration.lineThrough,
-                                  decorationColor: _mutedColor,
-                                ),
-                              ),
-                              Text(
-                                context.tr(
-                                  'transaction_saved_amount',
-                                  params: {
-                                    'amount': _formatMoney(
-                                      _currency,
-                                      discountAmount,
-                                    ),
-                                  },
-                                ),
-                                style: TextStyle(
-                                  color: _successColor,
-                                  fontSize: 11.5,
-                                  fontWeight: FontWeight.w800,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ],
-                        const SizedBox(height: 7),
-                        Text(
-                          quantityLineParts.isEmpty
-                              ? context.tr('transaction_missing_quantity_price')
-                              : quantityLineParts.join(' / '),
-                          style: TextStyle(
-                            color: _mutedColor,
-                            fontSize: 12,
-                            fontWeight: FontWeight.w600,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                  const SizedBox(width: 12),
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.end,
-                    children: [
-                      Text(
-                        _formatMoney(_currency, sourceAmount),
-                        textAlign: TextAlign.right,
-                        style: TextStyle(
-                          color: _textColor,
-                          fontSize: 16,
-                          fontWeight: FontWeight.w800,
-                          height: 1.0,
-                        ),
-                      ),
-                      if (convertedVisible) ...[
-                        const SizedBox(height: 2),
-                        Text(
-                          '$displayCurrencyLabel ${displayAmount.toStringAsFixed(2)}',
-                          textAlign: TextAlign.right,
-                          style: TextStyle(color: _mutedColor, fontSize: 11.5),
-                        ),
-                      ],
-                    ],
-                  ),
-                  const SizedBox(width: 8),
-                  Padding(
-                    padding: const EdgeInsets.only(top: 2),
-                    child: Icon(
-                      AppIcons.chevronRight,
-                      size: 18,
-                      color: _mutedColor,
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 7),
-              Wrap(
-                spacing: 5,
-                runSpacing: 5,
-                children: catTags
-                    .map((tag) => _buildCategoryBadge(tag: tag))
-                    .toList(growable: false),
-              ),
-              if (mismatch != null) ...[
-                const SizedBox(height: 8),
-                Text(
-                  _lineReviewMessage(mismatch),
-                  style: TextStyle(
-                    color: _warningColor,
-                    fontSize: 11.5,
-                    fontWeight: FontWeight.w700,
-                  ),
-                ),
-              ],
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildCategoryBadge({required _CategoryTagData tag}) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-      decoration: BoxDecoration(
-        color: tag.tone.container,
-        borderRadius: BorderRadius.circular(999),
-        border: Border.all(color: tag.tone.border),
-      ),
-      child: Text(
-        tag.label.trim(),
-        style: TextStyle(
-          color: tag.tone.foreground,
-          fontSize: 11,
-          fontWeight: FontWeight.w700,
-        ),
-      ),
-    );
-  }
-
-  Widget _buildAddItemButton() {
-    return InkWell(
-      onTap: !_canEditTransaction ? null : _addItemAndOpenEditor,
-      borderRadius: BorderRadius.circular(16),
-      child: Container(
-        margin: const EdgeInsets.only(top: 6),
-        padding: const EdgeInsets.symmetric(vertical: 12),
-        decoration: _panelDecoration(
-          color: Colors.transparent,
-          borderColor: _strokeColor,
-          radius: 16,
-        ),
-        child: Center(
-          child: Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Icon(AppIcons.add, size: 16, color: _textColor),
-              const SizedBox(width: 8),
-              Text(
-                context.tr('transaction_add_item'),
-                style: TextStyle(
-                  color: _textColor,
-                  fontSize: 13.5,
-                  fontWeight: FontWeight.w700,
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildStickyTotalBar({Map<String, double>? totalMismatch}) {
-    final sourceTotal = _toDouble(_amountController.text) ?? 0;
-    final displayTotal = _toDisplayAmount(sourceTotal);
-    final totalSavings = _totalSavingsValue();
-    final hasSavings = totalSavings > 0;
-
-    return SafeArea(
-      top: false,
-      child: Container(
-        padding: const EdgeInsets.fromLTRB(14, 8, 14, 10),
-        decoration: BoxDecoration(
-          color: _surfaceColor,
-          border: Border(top: BorderSide(color: _strokeColor)),
-        ),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            if (totalMismatch != null)
-              Padding(
-                padding: const EdgeInsets.only(bottom: 8),
-                child: Align(
-                  alignment: Alignment.centerLeft,
-                  child: Text(
-                    _totalReviewMessage(totalMismatch),
-                    style: TextStyle(
-                      color: _warningColor,
-                      fontSize: 11.5,
-                      fontWeight: FontWeight.w700,
-                    ),
-                  ),
-                ),
-              ),
-            Row(
-              children: [
-                Expanded(
-                  child: InkWell(
-                    onTap: _canEditTransaction ? _openTotalEditor : null,
-                    borderRadius: BorderRadius.circular(14),
-                    child: Padding(
-                      padding: const EdgeInsets.symmetric(vertical: 2),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            context.tr('transaction_receipt_total_label'),
-                            style: TextStyle(
-                              color: _mutedColor,
-                              fontSize: 11,
-                              fontWeight: FontWeight.w800,
-                              letterSpacing: 0.5,
-                            ),
-                          ),
-                          const SizedBox(height: 2),
-                          Wrap(
-                            crossAxisAlignment: WrapCrossAlignment.end,
-                            spacing: 8,
-                            runSpacing: 2,
-                            children: [
-                              Text(
-                                _formatMoney(_currency, sourceTotal),
-                                style: TextStyle(
-                                  color: _textColor,
-                                  fontSize: 18,
-                                  fontWeight: FontWeight.w800,
-                                ),
-                              ),
-                              if (_displayCurrency.toUpperCase() !=
-                                  _currency.toUpperCase())
-                                Padding(
-                                  padding: const EdgeInsets.only(bottom: 2),
-                                  child: Text(
-                                    _formatMoney(
-                                      _displayCurrency,
-                                      displayTotal,
-                                    ),
-                                    style: TextStyle(
-                                      color: _mutedColor,
-                                      fontSize: 12,
-                                      fontWeight: FontWeight.w600,
-                                    ),
-                                  ),
-                                ),
-                            ],
-                          ),
-                          if (hasSavings) ...[
-                            const SizedBox(height: 2),
-                            Text(
-                              context.tr(
-                                'transaction_saved_amount',
-                                params: {
-                                  'amount': _formatMoney(
-                                    _currency,
-                                    totalSavings,
-                                  ),
-                                },
-                              ),
-                              style: TextStyle(
-                                color: _successColor,
-                                fontSize: 11.5,
-                                fontWeight: FontWeight.w800,
-                              ),
-                            ),
-                          ],
-                        ],
-                      ),
-                    ),
-                  ),
-                ),
-                if (_canEditTransaction) ...[
-                  const SizedBox(width: 10),
-                  Icon(Icons.edit_outlined, size: 16, color: _mutedColor),
-                ],
-              ],
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-class _CategoryTagData {
-  const _CategoryTagData({required this.label, required this.tone});
-
-  final String label;
-  final SemanticColorTone tone;
 }
