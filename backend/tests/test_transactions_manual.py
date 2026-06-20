@@ -108,7 +108,7 @@ def test_create_transaction_stays_single_user_even_with_active_shared_household(
 ) -> None:
     """Blank manual creation should stay item-less and ignore shared household defaults."""
 
-    from app.api.routers import transactions as router
+    from app.api.routers import transactions_crud as router
 
     session = _Session()
     current_user = SimpleNamespace(
@@ -119,13 +119,6 @@ def test_create_transaction_stays_single_user_even_with_active_shared_household(
     item_category_id = uuid.uuid4()
     tx_category_id = uuid.uuid4()
     monkeypatch.setattr(router, "validate_transaction_attribution", lambda *args, **kwargs: None)
-    monkeypatch.setattr(
-        router,
-        "_resolve_active_shared_household_id",
-        lambda *_args, **_kwargs: (_ for _ in ()).throw(
-            AssertionError("launch create flow should not resolve shared households")
-        ),
-    )
     monkeypatch.setattr(
         router,
         "_get_user_visible_category_by_id",
@@ -182,7 +175,7 @@ def test_create_transaction_stays_single_user_even_with_active_shared_household(
 def test_get_transactions_summary_blocks_subcategory_mode_without_feature(monkeypatch) -> None:
     """Subcategory summary mode should require the advanced analytics entitlement."""
 
-    from app.api.routers import transactions as router
+    from app.api.routers import transactions_analytics as router
 
     monkeypatch.setattr(router, "user_has_feature", lambda *args, **kwargs: False)
 
@@ -209,7 +202,7 @@ def test_get_transactions_summary_blocks_subcategory_mode_without_feature(monkey
 def test_infer_analytics_bucket_unit_matches_expected_ranges() -> None:
     """Trend bucket selection should follow the selected range width."""
 
-    from app.api.routers import transactions as router
+    from app.services.transactions import read_models as router
 
     assert (
         router._infer_analytics_bucket_unit(
@@ -243,7 +236,7 @@ def test_infer_analytics_bucket_unit_matches_expected_ranges() -> None:
 def test_build_previous_period_filters_matches_current_window() -> None:
     """Previous trend range should mirror the current selected window."""
 
-    from app.api.routers import transactions as router
+    from app.services.transactions import read_models as router
 
     filters = TransactionListFilter(
         from_occurred_at=dt.datetime(2026, 3, 10, tzinfo=dt.UTC),
@@ -263,7 +256,7 @@ def test_build_previous_period_filters_matches_current_window() -> None:
 def test_get_transaction_trend_summary_aggregates_rows(monkeypatch) -> None:
     """Trend summary should bucket current rows and compare with the previous range."""
 
-    from app.api.routers import transactions as router
+    from app.api.routers import transactions_analytics as router
 
     current_user = SimpleNamespace(
         id=uuid.uuid4(),
@@ -351,7 +344,7 @@ def test_get_household_analytics_summary_returns_empty_without_active_household(
 ) -> None:
     """Household analytics should return an empty summary when no household exists."""
 
-    from app.api.routers import transactions as router
+    from app.api.routers import transactions_analytics as router
 
     current_user = SimpleNamespace(
         id=uuid.uuid4(),
@@ -383,7 +376,7 @@ def test_get_household_analytics_summary_returns_empty_without_active_household(
 def test_get_household_analytics_summary_ranks_members(monkeypatch) -> None:
     """Household analytics should rank members and surface each member's top category."""
 
-    from app.api.routers import transactions as router
+    from app.api.routers import transactions_analytics as router
 
     household_id = uuid.uuid4()
     owner_one = uuid.uuid4()
@@ -528,7 +521,7 @@ def test_get_household_analytics_summary_ranks_members(monkeypatch) -> None:
 def test_create_transaction_without_active_household_stays_solo(monkeypatch) -> None:
     """Manual creation without shared household access should remain a solo transaction."""
 
-    from app.api.routers import transactions as router
+    from app.api.routers import transactions_crud as router
 
     session = _Session()
     current_user = SimpleNamespace(
@@ -538,11 +531,6 @@ def test_create_transaction_without_active_household_stays_solo(monkeypatch) -> 
     )
 
     monkeypatch.setattr(router, "validate_transaction_attribution", lambda *args, **kwargs: None)
-    monkeypatch.setattr(
-        router,
-        "_resolve_active_shared_household_id",
-        lambda *_args, **_kwargs: None,
-    )
     monkeypatch.setattr(router, "_get_uncategorized_item_category_id", lambda _session: uuid.uuid4())
     monkeypatch.setattr(
         router,
@@ -577,7 +565,7 @@ def test_create_transaction_without_active_household_stays_solo(monkeypatch) -> 
 def test_create_transaction_normalizes_item_units(monkeypatch) -> None:
     """Manual transaction creation should normalize item units into canonical values."""
 
-    from app.api.routers import transactions as router
+    from app.api.routers import transactions_crud as router
 
     session = _Session()
     current_user = SimpleNamespace(
@@ -589,11 +577,6 @@ def test_create_transaction_normalizes_item_units(monkeypatch) -> None:
     tx_category_id = uuid.uuid4()
 
     monkeypatch.setattr(router, "validate_transaction_attribution", lambda *args, **kwargs: None)
-    monkeypatch.setattr(
-        router,
-        "_resolve_active_shared_household_id",
-        lambda *_args, **_kwargs: None,
-    )
     monkeypatch.setattr(
         router,
         "_get_user_visible_category_by_id",
@@ -649,7 +632,7 @@ def test_create_transaction_normalizes_item_units(monkeypatch) -> None:
 def test_update_transaction_deletes_omitted_existing_items(monkeypatch) -> None:
     """Receipt editor saves should delete existing items omitted from the submitted list."""
 
-    from app.api.routers import transactions as router
+    from app.api.routers import transactions_crud as router
 
     current_user = SimpleNamespace(
         id=uuid.uuid4(),
@@ -689,11 +672,6 @@ def test_update_transaction_deletes_omitted_existing_items(monkeypatch) -> None:
         router,
         "_assert_household_transaction_access",
         lambda *args, **kwargs: None,
-    )
-    monkeypatch.setattr(
-        router,
-        "_resolve_active_shared_household_id",
-        lambda *_args, **_kwargs: None,
     )
     monkeypatch.setattr(
         router,
@@ -739,7 +717,7 @@ def test_update_transaction_deletes_omitted_existing_items(monkeypatch) -> None:
 def test_update_transaction_accepts_transaction_and_item_category_scopes(monkeypatch) -> None:
     """Receipt edit saves should validate transaction and item categories by their own scopes."""
 
-    from app.api.routers import transactions as router
+    from app.api.routers import transactions_crud as router
 
     current_user = SimpleNamespace(
         id=uuid.uuid4(),
@@ -821,7 +799,7 @@ def test_update_transaction_accepts_transaction_and_item_category_scopes(monkeyp
 def test_update_transaction_rejects_invalid_transaction_category_scope(monkeypatch) -> None:
     """Receipt edit saves should fail fast when the transaction category is not visible."""
 
-    from app.api.routers import transactions as router
+    from app.api.routers import transactions_crud as router
 
     current_user = SimpleNamespace(
         id=uuid.uuid4(),
@@ -865,7 +843,7 @@ def test_update_transaction_rejects_invalid_transaction_category_scope(monkeypat
 def test_update_transaction_rejects_invalid_item_category_scope(monkeypatch) -> None:
     """Receipt edit saves should fail fast when an item category is not visible."""
 
-    from app.api.routers import transactions as router
+    from app.api.routers import transactions_crud as router
 
     current_user = SimpleNamespace(
         id=uuid.uuid4(),
@@ -917,7 +895,7 @@ def test_update_transaction_rejects_invalid_item_category_scope(monkeypatch) -> 
 def test_update_transaction_clears_legacy_household_attribution(monkeypatch) -> None:
     """Saving a legacy shared row should clear household attribution in launch mode."""
 
-    from app.api.routers import transactions as router
+    from app.api.routers import transactions_crud as router
 
     current_user = SimpleNamespace(
         id=uuid.uuid4(),
@@ -968,7 +946,7 @@ def test_update_transaction_clears_legacy_household_attribution(monkeypatch) -> 
 def test_update_transaction_duplicate_submissions_stay_stable_and_keep_labels(monkeypatch) -> None:
     """Repeated save submissions should update the same item without dropping labels."""
 
-    from app.api.routers import transactions as router
+    from app.api.routers import transactions_crud as router
 
     current_user = SimpleNamespace(
         id=uuid.uuid4(),
@@ -1061,7 +1039,7 @@ def test_update_transaction_duplicate_submissions_stay_stable_and_keep_labels(mo
 def test_confirmed_receipt_update_clears_extraction_warnings(monkeypatch) -> None:
     """A user save should accept edited receipt data and clear stale extraction warnings."""
 
-    from app.api.routers import transactions as router
+    from app.api.routers import transactions_crud as router
 
     current_user = SimpleNamespace(
         id=uuid.uuid4(),
@@ -1135,7 +1113,7 @@ def test_confirmed_receipt_update_clears_extraction_warnings(monkeypatch) -> Non
 def test_update_transaction_last_write_wins_without_revision_guard(monkeypatch) -> None:
     """Sequential saves currently overwrite each other because launch mode has no revision token."""
 
-    from app.api.routers import transactions as router
+    from app.api.routers import transactions_crud as router
 
     current_user = SimpleNamespace(
         id=uuid.uuid4(),
@@ -1262,7 +1240,7 @@ def test_collect_disable_target_ids_includes_descendants_and_transaction_match()
 def test_attribution_snapshot_uses_receipt_owner_for_legacy_created_by(monkeypatch) -> None:
     """Legacy receipt-backed rows should resolve created_by from the receipt uploader."""
 
-    from app.api.routers import transactions as router
+    from app.services.transactions import read_models as router
 
     receipt_owner_id = uuid.uuid4()
     transaction_user_id = uuid.uuid4()
@@ -1352,7 +1330,7 @@ def test_get_receipt_view_url_returns_presigned_payload(monkeypatch) -> None:
 def test_delete_transaction_removes_manual_transaction_children() -> None:
     """Manual deletion should remove label links and items, then commit the delete."""
 
-    from app.api.routers import transactions as router
+    from app.api.routers import transactions_crud as router
 
     current_user = SimpleNamespace(id=uuid.uuid4())
     transaction = SimpleNamespace(id=uuid.uuid4(), user_id=current_user.id, receipt_id=None)
@@ -1367,11 +1345,6 @@ def test_delete_transaction_removes_manual_transaction_children() -> None:
         ]
     )
     monkeypatch = pytest.MonkeyPatch()
-    monkeypatch.setattr(
-        router,
-        "_resolve_active_shared_household_id",
-        lambda *_args, **_kwargs: None,
-    )
 
     try:
         result = asyncio.run(
@@ -1394,7 +1367,7 @@ def test_delete_transaction_removes_manual_transaction_children() -> None:
 def test_transaction_visibility_predicates_ignore_household_state_in_launch_mode() -> None:
     """Launch visibility should key off owner id only, not household membership."""
 
-    from app.api.routers import transactions as router
+    from app.services.transactions import read_models as router
 
     current_user = SimpleNamespace(id=uuid.uuid4())
 
@@ -1410,7 +1383,7 @@ def test_transaction_visibility_predicates_ignore_household_state_in_launch_mode
 def test_delete_transaction_allows_owner_for_legacy_household_tagged_transaction() -> None:
     """Owners should still be able to delete their own legacy household-tagged rows."""
 
-    from app.api.routers import transactions as router
+    from app.api.routers import transactions_crud as router
 
     current_user = SimpleNamespace(id=uuid.uuid4())
     transaction = SimpleNamespace(
@@ -1446,7 +1419,7 @@ def test_delete_transaction_allows_owner_for_legacy_household_tagged_transaction
 def test_delete_transaction_rejects_receipt_backed_transaction() -> None:
     """Receipt-backed transactions should still be deleted via the receipt endpoint."""
 
-    from app.api.routers import transactions as router
+    from app.api.routers import transactions_crud as router
 
     current_user = SimpleNamespace(id=uuid.uuid4())
     transaction = SimpleNamespace(
@@ -1457,11 +1430,6 @@ def test_delete_transaction_rejects_receipt_backed_transaction() -> None:
     )
     session = _Session(exec_results=[[transaction]])
     monkeypatch = pytest.MonkeyPatch()
-    monkeypatch.setattr(
-        router,
-        "_resolve_active_shared_household_id",
-        lambda *_args, **_kwargs: None,
-    )
 
     try:
         with pytest.raises(HTTPException) as exc_info:
@@ -1484,7 +1452,7 @@ def test_delete_transaction_rejects_receipt_backed_transaction() -> None:
 def test_delete_transaction_item_recalculates_total_from_remaining_items(monkeypatch) -> None:
     """Deleting a line item should recalculate the total from the remaining items."""
 
-    from app.api.routers import transactions as router
+    from app.api.routers import transactions_crud as router
 
     current_user = SimpleNamespace(id=uuid.uuid4())
     transaction = SimpleNamespace(
@@ -1495,11 +1463,6 @@ def test_delete_transaction_item_recalculates_total_from_remaining_items(monkeyp
     item = SimpleNamespace(id=uuid.uuid4(), transaction_id=transaction.id)
     session = _Session(exec_results=[[transaction], [item], [Decimal("17.00")]])
 
-    monkeypatch.setattr(
-        router,
-        "_resolve_active_shared_household_id",
-        lambda *_args, **_kwargs: None,
-    )
 
     asyncio.run(
         _unwrap(router.delete_transaction_item)(
