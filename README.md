@@ -76,19 +76,19 @@ flowchart LR
 
 ```mermaid
 flowchart TD
-    A[User selects or scans receipt] --> B[Flutter validates image input]
-    B --> C[Backend creates receipt row]
-    C --> D[Backend returns presigned upload URL]
-    D --> E[Flutter uploads image to object storage]
-    E --> F[Backend verifies upload size and file signature]
-    F --> G[RabbitMQ extraction job]
-    G --> H[Worker downloads receipt image]
-    H --> I[Gemini Vision structured extraction]
-    I --> J[Pydantic schema validation]
-    J --> K[Backend total and line-item consistency checks]
-    K --> L[Category and item normalization]
-    L --> M[Transaction and receipt extraction records]
-    M --> N[Flutter polling shows completed receipt]
+    A["User selects or<br>scans receipt"] --> B["Flutter validates<br>image input"]
+    B --> C["Backend creates<br>receipt row"]
+    C --> D["Backend returns presigned<br>upload URL"]
+    D --> E["Flutter uploads image<br>to object storage"]
+    E --> F["Backend verifies upload size<br>and file signature"]
+    F --> G["RabbitMQ extraction job"]
+    G --> H["Worker downloads<br>receipt image"]
+    H --> I["Gemini Vision structured<br>extraction"]
+    I --> J["Pydantic schema validation"]
+    J --> K["Backend total and line-item<br>consistency checks"]
+    K --> L["Category and item<br>normalization"]
+    L --> M["Transaction and receipt<br>extraction records"]
+    M --> N["Flutter polling shows<br>completed receipt"]
 ```
 
 ## Tech Stack
