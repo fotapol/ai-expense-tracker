@@ -300,8 +300,8 @@ def update_feature_request_moderation(
     feature_request: FeatureRequest,
     reviewer: User,
     moderation_state: FeatureRequestModerationState | None = None,
-    public_status: FeatureRequestPublicStatus | object | None = _UNSET,
-    moderation_note: str | object | None = _UNSET,
+    public_status: FeatureRequestPublicStatus | None | object = _UNSET,
+    moderation_note: str | None | object = _UNSET,
 ) -> FeatureRequest:
     """Apply a moderation update while keeping public-state invariants intact."""
 
