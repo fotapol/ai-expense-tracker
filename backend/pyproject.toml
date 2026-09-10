@@ -14,13 +14,13 @@ dependencies = [
     "httpx>=0.28.1",
     "langchain-google-genai>=4.2.1",
     "langchain-mcp-adapters>=0.2.1",
-    "langsmith>=0.4.32",
-    "langgraph>=1.0.9",
+    "langsmith>=0.8.18",
+    "langgraph>=1.0.10rc1",
     "mcp>=1.26.0",
     "psycopg[binary]>=3.2.0",
     "prometheus-client>=0.22.1",
-    "pydantic-settings>=2.13.1",
-    "python-dotenv>=1.2.1",
+    "pydantic-settings>=2.14.2",
+    "python-dotenv>=1.2.2",
     "redis[hiredis]>=5.0.0",
     "slowapi>=0.1.9",
     "sqlalchemy>=2.0.0",
@@ -30,7 +30,7 @@ dependencies = [
 
 [dependency-groups]
 dev = [
-    "pytest>=9.0.2",
+    "pytest>=9.0.3",
     "ruff>=0.15.2",
 ]
 
