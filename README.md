@@ -62,7 +62,7 @@ expense, and saving normalized transactions for review and analytics.
   <img src="docs/assets/tools.png" alt="Financial toolkit" width="31%">
 </p>
 
-<p align="center"><em>Secure sign-in &rarr; Home overview &rarr; Financial toolkit</em></p>
+<p align="center"><em>Secure sign-in | Home overview | Financial toolkit</em></p>
 
 ## Architecture
 
