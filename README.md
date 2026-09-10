@@ -54,6 +54,16 @@ expense, and saving normalized transactions for review and analytics.
 - Network policies, health checks, metrics, and backup/restore tooling.
 - GitHub Actions for backend, Flutter, image, dependency, and secret checks.
 
+## App Preview
+
+<p align="center">
+  <img src="docs/screenshots/login.png" alt="Secure sign-in" width="31%">
+  <img src="docs/screenshots/home.png" alt="Home overview with sample spending data" width="31%">
+  <img src="docs/screenshots/tools.png" alt="Financial toolkit" width="31%">
+</p>
+
+<p align="center"><em>Secure sign-in &rarr; Home overview &rarr; Financial toolkit</em></p>
+
 ## Architecture
 
 ```mermaid
