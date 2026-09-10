@@ -39,7 +39,7 @@ dependencies:
   firebase_core: ^4.5.0
   firebase_auth: ^6.2.0
   google_sign_in: ^7.2.0
-  sign_in_with_apple: ^8.1.0
+  sign_in_with_apple: ^7.0.1
   http: ^1.6.0
   image_picker: ^1.1.2
   google_mlkit_document_scanner: ^0.4.1
@@ -48,15 +48,15 @@ dependencies:
   fl_chart: ^1.1.1
   shared_preferences: ^2.5.4
   currency_picker: ^2.0.21
-  purchases_flutter: ^10.3.0
+  purchases_flutter: ^9.10.3
   google_mlkit_translation: ^0.13.1
   google_mlkit_language_id: ^0.13.1
-  file_picker: ^11.0.2
+  file_picker: ^10.3.10
   share_plus: ^12.0.1
-  path_provider: ^2.1.6
+  path_provider: ^2.1.5
   path: ^1.9.1
   url_launcher: ^6.3.2
-  flutter_local_notifications: ^22.0.1
+  flutter_local_notifications: ^21.0.0
   flutter_timezone: ^5.0.2
   timezone: ^0.11.0
   package_info_plus: ^9.0.1

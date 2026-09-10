@@ -54,21 +54,6 @@ expense, and saving normalized transactions for review and analytics.
 - Network policies, health checks, metrics, and backup/restore tooling.
 - GitHub Actions for backend, Flutter, image, dependency, and secret checks.
 
-## App Preview
-
-<table>
-  <tr>
-    <td align="center"><img src="docs/screenshots/login.png" alt="AI Expense Tracker sign-in screen" width="240"></td>
-    <td align="center"><img src="docs/screenshots/tools.png" alt="AI Expense Tracker tools screen" width="240"></td>
-    <td align="center"><img src="docs/screenshots/scan-receipt.png" alt="AI Expense Tracker receipt scan screen" width="240"></td>
-  </tr>
-  <tr>
-    <td align="center"><strong>Secure sign-in</strong></td>
-    <td align="center"><strong>Financial toolkit</strong></td>
-    <td align="center"><strong>AI receipt capture</strong></td>
-  </tr>
-</table>
-
 ## Architecture
 
 ```mermaid
