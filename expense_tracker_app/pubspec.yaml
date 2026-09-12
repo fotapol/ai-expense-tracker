@@ -47,7 +47,7 @@ dependencies:
   intl: ^0.20.2
   fl_chart: ^1.1.1
   shared_preferences: ^2.5.4
-  currency_picker: ^2.0.21
+  currency_picker: ^2.0.22
   purchases_flutter: ^10.3.0
   google_mlkit_translation: ^0.13.1
   google_mlkit_language_id: ^0.13.1
