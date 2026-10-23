@@ -2,10 +2,13 @@ import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../core/analytics_filters.dart';
+import '../core/analytics_filter_preferences.dart';
 import '../core/api_client.dart';
 import '../core/app_color_semantics.dart';
 import '../core/app_navigation.dart';
 import '../core/launch_error_copy.dart';
+import '../core/localized_dates.dart';
+import '../core/period_filter.dart';
 import '../core/redesign_system.dart';
 import '../core/session_invalidation.dart';
 import '../core/subscription_confirmation.dart';
@@ -89,13 +92,7 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
     try {
       final prefs = await SharedPreferences.getInstance();
       final savedSection = prefs.getString('analytics_section');
-      final savedPeriod = prefs.getString('analytics_period');
-      final savedCategoryIds =
-          prefs.getStringList('analytics_category_ids') ?? const <String>[];
-      final savedSubcategoryIds =
-          prefs.getStringList('analytics_subcategory_ids') ?? const <String>[];
-      final savedLabelIds =
-          prefs.getStringList('analytics_label_ids') ?? const <String>[];
+      final savedFilters = AnalyticsFilterPreferences.load(prefs);
 
       Map<String, String> categoryNamesById = {};
       Map<String, String> categoryCodesById = {};
@@ -166,12 +163,7 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
           (section) => section.name == savedSection,
           orElse: () => AnalyticsSection.overview,
         );
-        _filters = AnalyticsFilters(
-          period: savedPeriod ?? _filters.period,
-          categoryIds: savedCategoryIds,
-          subcategoryIds: savedSubcategoryIds,
-          labelIds: savedLabelIds,
-        );
+        _filters = savedFilters;
         _categoryNamesById = categoryNamesById;
         _categoryCodesById = categoryCodesById;
         _categoryParentCodesById = categoryParentCodesById;
@@ -200,13 +192,7 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
 
   Future<void> _saveFilters() async {
     final prefs = await SharedPreferences.getInstance();
-    await prefs.setString('analytics_period', _filters.period);
-    await prefs.setStringList('analytics_category_ids', _filters.categoryIds);
-    await prefs.setStringList(
-      'analytics_subcategory_ids',
-      _filters.subcategoryIds,
-    );
-    await prefs.setStringList('analytics_label_ids', _filters.labelIds);
+    await AnalyticsFilterPreferences.save(prefs, _filters);
   }
 
   Future<void> _saveSection() async {
@@ -218,16 +204,18 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
     final result = await FilterBottomSheet.show(
       context,
       selectedPeriod: _filters.period,
+      selectedCustomRange: _filters.customRange,
       selectedCategoryIds: _filters.categoryIds,
       selectedSubcategoryIds: _filters.subcategoryIds,
       selectedLabelIds: _filters.labelIds,
     );
-    if (result == null) return;
+    if (result == null || !mounted) return;
 
     setState(() {
       _showAllActiveFilters = false;
       _filters = _filters.copyWith(
         period: result['period'] as String? ?? _filters.period,
+        customRange: result['custom_range'] as PeriodDateRange?,
         categoryIds: List<String>.from(result['category_ids'] ?? const []),
         subcategoryIds: List<String>.from(
           result['subcategory_ids'] ?? const [],
@@ -598,7 +586,26 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
                       ),
                     ],
                   ),
-                  child: Column(children: [_buildSectionSelector()]),
+                  child: Column(
+                    children: [
+                      _buildSectionSelector(),
+                      if (_filters.period == PeriodFilter.custom) ...[
+                        const SizedBox(height: 8),
+                        TextButton.icon(
+                          onPressed: _openFilters,
+                          icon: const Icon(Icons.date_range_outlined, size: 18),
+                          label: Text(
+                            formatLocalizedDateRange(
+                              context,
+                              _filters.customRange!.start!,
+                              _filters.customRange!.end!,
+                            ),
+                            textAlign: TextAlign.center,
+                          ),
+                        ),
+                      ],
+                    ],
+                  ),
                 ),
                 Expanded(
                   child: PageView(

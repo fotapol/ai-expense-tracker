@@ -28,6 +28,7 @@ class AnalyticsOverviewTab extends StatefulWidget {
 class _AnalyticsOverviewTabState extends State<AnalyticsOverviewTab> {
   bool _isLoading = true;
   String? _error;
+  int _dataRequest = 0;
   Map<String, dynamic>? _summaryData;
   Map<String, dynamic>? _trendsData;
   List<dynamic> _transactions = const <dynamic>[];
@@ -47,13 +48,15 @@ class _AnalyticsOverviewTabState extends State<AnalyticsOverviewTab> {
   }
 
   Future<void> _fetchData() async {
+    final request = ++_dataRequest;
     setState(() {
       _isLoading = true;
       _error = null;
     });
 
-    final fromDate = PeriodFilter.getStartDate(widget.filters.period);
-    final toDate = PeriodFilter.getEndDate(widget.filters.period);
+    final range = widget.filters.dateRange;
+    final fromDate = range.start;
+    final toDate = range.end;
 
     try {
       final results = await Future.wait<dynamic>([
@@ -86,6 +89,7 @@ class _AnalyticsOverviewTabState extends State<AnalyticsOverviewTab> {
         ),
         ApiClient.listTransactions(
           fromDate: fromDate,
+          toDate: toDate,
           categoryIds: widget.filters.categoryIds.isNotEmpty
               ? widget.filters.categoryIds
               : null,
@@ -97,7 +101,7 @@ class _AnalyticsOverviewTabState extends State<AnalyticsOverviewTab> {
               : null,
         ),
       ]);
-      if (!mounted) return;
+      if (!mounted || request != _dataRequest) return;
       setState(() {
         _summaryData = results[0] as Map<String, dynamic>;
         _trendsData = results[1] as Map<String, dynamic>;
@@ -106,7 +110,7 @@ class _AnalyticsOverviewTabState extends State<AnalyticsOverviewTab> {
       });
     } catch (error) {
       if (await maybeHandleExpiredSession(error)) return;
-      if (!mounted) return;
+      if (!mounted || request != _dataRequest) return;
       setState(() {
         _error = friendlyLaunchErrorMessage(
           error,
@@ -230,8 +234,7 @@ class _AnalyticsOverviewTabState extends State<AnalyticsOverviewTab> {
     final changePercentage = trends['change_percentage'] != null
         ? _parseDouble(trends['change_percentage'])
         : null;
-    final dailyAverage =
-        totalAmount / PeriodFilter.getPeriodDays(widget.filters.period);
+    final dailyAverage = totalAmount / widget.filters.periodDays;
     final topMerchants = _topMerchants(context, totalAmount: totalAmount);
     final topCategories = _topCategories(
       context,
