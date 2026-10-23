@@ -101,10 +101,10 @@ packages:
     dependency: "direct main"
     description:
       name: currency_picker
-      sha256: c9ab5c0da8ae4dcc6421064dccde072b44f5b44914691b967ea4cf45a266a658
+      sha256: "009ae508787af54e80cb33f89f6f5a9bd1b0ffb0b516488e626ad1f896a469e4"
       url: "https://pub.dev"
     source: hosted
-    version: "2.0.21"
+    version: "2.0.22"
   dbus:
     dependency: transitive
     description:
