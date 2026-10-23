@@ -144,7 +144,7 @@ requires-dist = [
     { name = "langsmith", specifier = ">=0.8.18" },
     { name = "mcp", specifier = ">=2.2.0" },
     { name = "prometheus-client", specifier = ">=0.26.0" },
-    { name = "psycopg", extras = ["binary"], specifier = ">=3.3.4" },
+    { name = "psycopg", extras = ["binary"], specifier = ">=3.3.5" },
     { name = "pydantic-settings", specifier = ">=2.14.2" },
     { name = "python-dotenv", specifier = ">=1.2.2" },
     { name = "redis", extras = ["hiredis"], specifier = ">=8.1.0" },
