@@ -85,6 +85,20 @@ String formatLocalizedDayMonthYear(BuildContext context, DateTime date) {
   }
 }
 
+String formatLocalizedDateRange(
+  BuildContext context,
+  DateTime start,
+  DateTime end,
+) {
+  final startLabel = formatLocalizedDayMonthYear(context, start);
+  if (start.year == end.year &&
+      start.month == end.month &&
+      start.day == end.day) {
+    return startLabel;
+  }
+  return '$startLabel – ${formatLocalizedDayMonthYear(context, end)}';
+}
+
 String formatLocalizedDayMonthTime(BuildContext context, DateTime date) {
   final month = formatLocalizedShortMonth(context, date);
   final day = date.day.toString();

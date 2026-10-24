@@ -63,7 +63,7 @@ class DataTransferActions {
   static Future<void> importData(BuildContext context) async {
     var dialogShown = false;
     try {
-      final result = await FilePicker.platform.pickFiles(
+      final result = await FilePicker.pickFiles(
         type: FileType.custom,
         allowedExtensions: ['json'],
         withData: true,

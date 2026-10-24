@@ -169,6 +169,7 @@ class TransactionApiClient {
 
   static Future<List<dynamic>> listTransactions({
     DateTime? fromDate,
+    DateTime? toDate,
     String? merchantNameSearch,
     List<String>? categoryIds,
     List<String>? subcategoryIds,
@@ -184,6 +185,9 @@ class TransactionApiClient {
     final params = <String>[];
     if (fromDate != null) {
       params.add('from_occurred_at=${fromDate.toUtc().toIso8601String()}');
+    }
+    if (toDate != null) {
+      params.add('to_occurred_at=${toDate.toUtc().toIso8601String()}');
     }
     if (merchantNameSearch != null && merchantNameSearch.isNotEmpty) {
       params.add(
@@ -344,6 +348,7 @@ class TransactionApiClient {
   static Future<Map<String, dynamic>> getCategorySubcategorySummary({
     required String categoryId,
     DateTime? fromDate,
+    DateTime? toDate,
     List<String>? categoryIds,
     List<String>? subcategoryIds,
     List<String>? labelIds,
@@ -356,6 +361,9 @@ class TransactionApiClient {
     final params = <String>[];
     if (fromDate != null) {
       params.add('from_occurred_at=${fromDate.toUtc().toIso8601String()}');
+    }
+    if (toDate != null) {
+      params.add('to_occurred_at=${toDate.toUtc().toIso8601String()}');
     }
     if (categoryIds != null && categoryIds.isNotEmpty) {
       params.add('category_ids=${categoryIds.join(',')}');
@@ -393,6 +401,7 @@ class TransactionApiClient {
   static Future<Map<String, dynamic>> getSubcategoryItemsSummary({
     required String subcategoryId,
     DateTime? fromDate,
+    DateTime? toDate,
     List<String>? categoryIds,
     List<String>? subcategoryIds,
     List<String>? labelIds,
@@ -407,6 +416,9 @@ class TransactionApiClient {
     final params = <String>[];
     if (fromDate != null) {
       params.add('from_occurred_at=${fromDate.toUtc().toIso8601String()}');
+    }
+    if (toDate != null) {
+      params.add('to_occurred_at=${toDate.toUtc().toIso8601String()}');
     }
     if (categoryIds != null && categoryIds.isNotEmpty) {
       params.add('category_ids=${categoryIds.join(',')}');

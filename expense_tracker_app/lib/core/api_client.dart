@@ -299,6 +299,7 @@ class ApiClient {
 
   static Future<List<dynamic>> listTransactions({
     DateTime? fromDate,
+    DateTime? toDate,
     String? merchantNameSearch,
     List<String>? categoryIds,
     List<String>? subcategoryIds,
@@ -307,6 +308,7 @@ class ApiClient {
     String? targetCurrency,
   }) => TransactionApiClient.listTransactions(
     fromDate: fromDate,
+    toDate: toDate,
     merchantNameSearch: merchantNameSearch,
     categoryIds: categoryIds,
     subcategoryIds: subcategoryIds,
@@ -352,6 +354,7 @@ class ApiClient {
   static Future<Map<String, dynamic>> getCategorySubcategorySummary({
     required String categoryId,
     DateTime? fromDate,
+    DateTime? toDate,
     List<String>? categoryIds,
     List<String>? subcategoryIds,
     List<String>? labelIds,
@@ -359,6 +362,7 @@ class ApiClient {
   }) => TransactionApiClient.getCategorySubcategorySummary(
     categoryId: categoryId,
     fromDate: fromDate,
+    toDate: toDate,
     categoryIds: categoryIds,
     subcategoryIds: subcategoryIds,
     labelIds: labelIds,
@@ -368,6 +372,7 @@ class ApiClient {
   static Future<Map<String, dynamic>> getSubcategoryItemsSummary({
     required String subcategoryId,
     DateTime? fromDate,
+    DateTime? toDate,
     List<String>? categoryIds,
     List<String>? subcategoryIds,
     List<String>? labelIds,
@@ -377,6 +382,7 @@ class ApiClient {
   }) => TransactionApiClient.getSubcategoryItemsSummary(
     subcategoryId: subcategoryId,
     fromDate: fromDate,
+    toDate: toDate,
     categoryIds: categoryIds,
     subcategoryIds: subcategoryIds,
     labelIds: labelIds,

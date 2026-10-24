@@ -3,6 +3,13 @@ class PeriodDateRange {
 
   final DateTime? start;
   final DateTime? end;
+
+  @override
+  bool operator ==(Object other) =>
+      other is PeriodDateRange && other.start == start && other.end == end;
+
+  @override
+  int get hashCode => Object.hash(start, end);
 }
 
 class PeriodFilter {
@@ -14,6 +21,7 @@ class PeriodFilter {
   static const String last12Months = 'Last 12 Months';
   static const String thisYear = 'This Year';
   static const String allTime = 'All Time';
+  static const String custom = 'Custom Period';
 
   static const List<String> values = [
     last7Days,
@@ -24,6 +32,7 @@ class PeriodFilter {
     last12Months,
     thisYear,
     allTime,
+    custom,
   ];
 
   static String localizationKey(String filter) {
@@ -44,6 +53,8 @@ class PeriodFilter {
         return 'period_this_year';
       case allTime:
         return 'period_all_time';
+      case custom:
+        return 'period_custom';
       default:
         return 'period_last_3_months';
     }
@@ -61,12 +72,37 @@ class PeriodFilter {
     return DateTime(value.year, value.month + monthOffset, 1);
   }
 
-  static PeriodDateRange getRange(String filter) {
-    final now = DateTime.now();
+  static bool isValidCustomRange(PeriodDateRange? range, {DateTime? now}) {
+    if (range?.start == null || range?.end == null) return false;
+    final start = _startOfDay(range!.start!);
+    final end = _startOfDay(range.end!);
+    return !start.isBefore(DateTime(2000)) &&
+        !end.isBefore(start) &&
+        !end.isAfter(_startOfDay(now ?? DateTime.now()));
+  }
+
+  static PeriodDateRange getRange(
+    String filter, {
+    PeriodDateRange? customRange,
+    DateTime? now,
+  }) {
+    now ??= DateTime.now();
     final todayStart = _startOfDay(now);
     final todayEnd = _endOfDay(now);
 
     switch (filter) {
+      case custom:
+        if (!isValidCustomRange(customRange, now: now)) {
+          throw ArgumentError.value(
+            customRange,
+            'customRange',
+            'Invalid date range',
+          );
+        }
+        return PeriodDateRange(
+          start: _startOfDay(customRange!.start!),
+          end: _endOfDay(customRange.end!),
+        );
       case last7Days:
         return PeriodDateRange(
           start: todayStart.subtract(const Duration(days: 6)),
@@ -101,17 +137,20 @@ class PeriodFilter {
   }
 
   /// Returns the start date for the given filter, or null for All Time.
-  static DateTime? getStartDate(String filter) {
-    return getRange(filter).start;
+  static DateTime? getStartDate(String filter, {PeriodDateRange? customRange}) {
+    return getRange(filter, customRange: customRange).start;
   }
 
   /// Returns the end date for the given filter.
-  static DateTime? getEndDate(String filter) {
-    return getRange(filter).end;
+  static DateTime? getEndDate(String filter, {PeriodDateRange? customRange}) {
+    return getRange(filter, customRange: customRange).end;
   }
 
-  static PeriodDateRange? getPreviousMatchedRange(String filter) {
-    final currentRange = getRange(filter);
+  static PeriodDateRange? getPreviousMatchedRange(
+    String filter, {
+    PeriodDateRange? customRange,
+  }) {
+    final currentRange = getRange(filter, customRange: customRange);
     if (currentRange.start == null || currentRange.end == null) {
       return null;
     }
@@ -145,13 +184,20 @@ class PeriodFilter {
   }
 
   /// Returns the number of days in the selected period for average calculations.
-  static int getPeriodDays(String filter) {
-    final range = getRange(filter);
+  static int getPeriodDays(String filter, {PeriodDateRange? customRange}) {
+    final range = getRange(filter, customRange: customRange);
     if (range.start == null || range.end == null) {
       return 365;
     }
     final inclusiveDays = range.end!.difference(range.start!).inDays + 1;
     switch (filter) {
+      case custom:
+        final start = range.start!;
+        final end = range.end!;
+        return DateTime.utc(end.year, end.month, end.day)
+                .difference(DateTime.utc(start.year, start.month, start.day))
+                .inDays +
+            1;
       case last7Days:
         return 7;
       case thisMonth:

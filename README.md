@@ -54,6 +54,16 @@ expense, and saving normalized transactions for review and analytics.
 - Network policies, health checks, metrics, and backup/restore tooling.
 - GitHub Actions for backend, Flutter, image, dependency, and secret checks.
 
+## App Preview
+
+<p align="center">
+  <img src="docs/assets/login.png" alt="Secure sign-in" width="31%">
+  <img src="docs/assets/home.png" alt="Home overview with spending data" width="31%">
+  <img src="docs/assets/tools.png" alt="Financial toolkit" width="31%">
+</p>
+
+<p align="center"><em>Secure sign-in | Home overview | Financial toolkit</em></p>
+
 ## Architecture
 
 ```mermaid
@@ -76,19 +86,19 @@ flowchart LR
 
 ```mermaid
 flowchart TD
-    A[User selects or scans receipt] --> B[Flutter validates image input]
-    B --> C[Backend creates receipt row]
-    C --> D[Backend returns presigned upload URL]
-    D --> E[Flutter uploads image to object storage]
-    E --> F[Backend verifies upload size and file signature]
-    F --> G[RabbitMQ extraction job]
-    G --> H[Worker downloads receipt image]
-    H --> I[Gemini Vision structured extraction]
-    I --> J[Pydantic schema validation]
-    J --> K[Backend total and line-item consistency checks]
-    K --> L[Category and item normalization]
-    L --> M[Transaction and receipt extraction records]
-    M --> N[Flutter polling shows completed receipt]
+    A["User selects or<br>scans receipt"] --> B["Flutter validates<br>image input"]
+    B --> C["Backend creates<br>receipt row"]
+    C --> D["Backend returns presigned<br>upload URL"]
+    D --> E["Flutter uploads image<br>to object storage"]
+    E --> F["Backend verifies upload size<br>and file signature"]
+    F --> G["RabbitMQ extraction job"]
+    G --> H["Worker downloads<br>receipt image"]
+    H --> I["Gemini Vision structured<br>extraction"]
+    I --> J["Pydantic schema validation"]
+    J --> K["Backend total and line-item<br>consistency checks"]
+    K --> L["Category and item<br>normalization"]
+    L --> M["Transaction and receipt<br>extraction records"]
+    M --> N["Flutter polling shows<br>completed receipt"]
 ```
 
 ## Tech Stack
