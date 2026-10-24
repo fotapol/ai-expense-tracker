@@ -40,6 +40,7 @@ class _ReceiptsTabState extends State<ReceiptsTab>
   bool _hasAnyReceipts = false;
   String _preferredCurrency = 'EUR';
   String _selectedPeriod = PeriodFilter.allTime;
+  PeriodDateRange? _selectedCustomRange;
   String _merchantSearch = '';
   List<String> _selectedCategoryIds = [];
   List<String> _selectedSubcategoryIds = [];
@@ -48,6 +49,8 @@ class _ReceiptsTabState extends State<ReceiptsTab>
   final TextEditingController _searchController = TextEditingController();
   Map<String, Map<String, dynamic>> _categoriesById = {};
   bool _isFetchingTransactions = false;
+  bool _fetchTransactionsPending = false;
+  int _transactionsRequest = 0;
 
   bool get _hasScopedFilters =>
       _reviewOnly ||
@@ -199,7 +202,11 @@ class _ReceiptsTabState extends State<ReceiptsTab>
   }
 
   Future<void> _fetchTransactions({bool showLoader = true}) async {
-    if (_isFetchingTransactions) return;
+    final request = ++_transactionsRequest;
+    if (_isFetchingTransactions) {
+      _fetchTransactionsPending = true;
+      return;
+    }
     _isFetchingTransactions = true;
     if (!mounted) {
       _isFetchingTransactions = false;
@@ -213,10 +220,14 @@ class _ReceiptsTabState extends State<ReceiptsTab>
     }
 
     try {
-      final startDate = PeriodFilter.getStartDate(_selectedPeriod);
+      final range = PeriodFilter.getRange(
+        _selectedPeriod,
+        customRange: _selectedCustomRange,
+      );
       final searchText = _searchController.text.trim();
       final data = await ApiClient.listTransactions(
-        fromDate: startDate,
+        fromDate: range.start,
+        toDate: _selectedPeriod == PeriodFilter.custom ? range.end : null,
         merchantNameSearch: searchText.isNotEmpty
             ? searchText
             : _merchantSearch.isNotEmpty
@@ -237,7 +248,7 @@ class _ReceiptsTabState extends State<ReceiptsTab>
         final baseline = await ApiClient.listTransactions();
         hasAnyReceipts = baseline.isNotEmpty;
       }
-      if (!mounted) return;
+      if (!mounted || request != _transactionsRequest) return;
       setState(() {
         _transactions = data;
         _hasAnyReceipts = hasAnyReceipts;
@@ -246,7 +257,7 @@ class _ReceiptsTabState extends State<ReceiptsTab>
       });
     } catch (e) {
       if (await maybeHandleExpiredSession(e)) return;
-      if (!mounted) return;
+      if (!mounted || request != _transactionsRequest) return;
       if (showLoader || _transactions.isEmpty) {
         setState(() {
           _error = friendlyLaunchErrorMessage(
@@ -258,6 +269,10 @@ class _ReceiptsTabState extends State<ReceiptsTab>
       }
     } finally {
       _isFetchingTransactions = false;
+      if (_fetchTransactionsPending && mounted) {
+        _fetchTransactionsPending = false;
+        await _fetchTransactions(showLoader: showLoader);
+      }
     }
   }
 
@@ -267,6 +282,7 @@ class _ReceiptsTabState extends State<ReceiptsTab>
       _reviewOnly = false;
       _merchantSearch = '';
       _selectedPeriod = PeriodFilter.allTime;
+      _selectedCustomRange = null;
       _selectedCategoryIds = <String>[];
       _selectedSubcategoryIds = <String>[];
       _selectedLabelIds = <String>[];
@@ -278,14 +294,16 @@ class _ReceiptsTabState extends State<ReceiptsTab>
     final result = await FilterBottomSheet.show(
       context,
       selectedPeriod: _selectedPeriod,
+      selectedCustomRange: _selectedCustomRange,
       selectedCategoryIds: _selectedCategoryIds,
       selectedSubcategoryIds: _selectedSubcategoryIds,
       selectedLabelIds: _selectedLabelIds,
     );
 
-    if (result != null) {
+    if (result != null && mounted) {
       setState(() {
         _selectedPeriod = result['period'] as String;
+        _selectedCustomRange = result['custom_range'] as PeriodDateRange?;
         _selectedCategoryIds = List<String>.from(result['category_ids'] ?? []);
         _selectedSubcategoryIds = List<String>.from(
           result['subcategory_ids'] ?? [],
@@ -508,10 +526,19 @@ class _ReceiptsTabState extends State<ReceiptsTab>
         ),
       if (_selectedPeriod != PeriodFilter.allTime)
         _buildFilterChip(
-          context.tr(PeriodFilter.localizationKey(_selectedPeriod)),
+          _selectedPeriod == PeriodFilter.custom
+              ? formatLocalizedDateRange(
+                  context,
+                  _selectedCustomRange!.start!,
+                  _selectedCustomRange!.end!,
+                )
+              : context.tr(PeriodFilter.localizationKey(_selectedPeriod)),
           icon: Icons.calendar_today_outlined,
           onDeleted: () {
-            setState(() => _selectedPeriod = PeriodFilter.allTime);
+            setState(() {
+              _selectedPeriod = PeriodFilter.allTime;
+              _selectedCustomRange = null;
+            });
             _fetchTransactions();
           },
         ),

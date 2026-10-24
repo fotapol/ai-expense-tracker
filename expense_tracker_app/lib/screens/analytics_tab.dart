@@ -9,7 +9,6 @@ import '../core/auto_refresh_state_mixin.dart';
 import '../core/category_style.dart';
 import '../core/launch_error_copy.dart';
 import '../core/money_formatter.dart';
-import '../core/period_filter.dart';
 import '../core/redesign_system.dart';
 import '../core/session_invalidation.dart';
 import '../core/taxonomy_localization.dart';
@@ -48,6 +47,8 @@ class _AnalyticsTabState extends State<AnalyticsTab>
   Map<String, dynamic>? _summaryData;
   String _breakdownMode = _modeCategory;
   bool _isRefreshingAnalytics = false;
+  bool _summaryPending = false;
+  int _summaryRequest = 0;
 
   @override
   Duration get autoRefreshInterval => const Duration(minutes: 1);
@@ -105,7 +106,11 @@ class _AnalyticsTabState extends State<AnalyticsTab>
     bool showLoader = true,
     String? breakdownModeOverride,
   }) async {
-    if (_isRefreshingAnalytics) return;
+    final request = ++_summaryRequest;
+    if (_isRefreshingAnalytics) {
+      _summaryPending = true;
+      return;
+    }
     _isRefreshingAnalytics = true;
     if (!mounted) {
       _isRefreshingAnalytics = false;
@@ -123,8 +128,8 @@ class _AnalyticsTabState extends State<AnalyticsTab>
         (_hasAdvancedAnalytics ? _breakdownMode : _modeCategory);
     try {
       final data = await ApiClient.getTransactionsSummary(
-        fromDate: PeriodFilter.getStartDate(widget.filters.period),
-        toDate: PeriodFilter.getEndDate(widget.filters.period),
+        fromDate: widget.filters.dateRange.start,
+        toDate: widget.filters.dateRange.end,
         categoryIds: widget.filters.categoryIds.isNotEmpty
             ? widget.filters.categoryIds
             : null,
@@ -136,7 +141,7 @@ class _AnalyticsTabState extends State<AnalyticsTab>
             : null,
         groupBy: effectiveBreakdownMode,
       );
-      if (!mounted) return;
+      if (!mounted || request != _summaryRequest) return;
       setState(() {
         _breakdownMode = effectiveBreakdownMode;
         _summaryData = data;
@@ -145,7 +150,7 @@ class _AnalyticsTabState extends State<AnalyticsTab>
       });
     } catch (error) {
       if (await maybeHandleExpiredSession(error)) return;
-      if (!mounted) return;
+      if (!mounted || request != _summaryRequest) return;
       if (showLoader || _summaryData == null) {
         setState(() {
           _error = friendlyLaunchErrorMessage(
@@ -157,6 +162,10 @@ class _AnalyticsTabState extends State<AnalyticsTab>
       }
     } finally {
       _isRefreshingAnalytics = false;
+      if (_summaryPending && mounted) {
+        _summaryPending = false;
+        await _fetchSummary(showLoader: showLoader);
+      }
     }
   }
 
@@ -213,7 +222,8 @@ class _AnalyticsTabState extends State<AnalyticsTab>
           categoryName: _breakdownName(category),
           categoryCode: category['code']?.toString() ?? '',
           categoryColor: category['color']?.toString(),
-          fromDate: PeriodFilter.getStartDate(widget.filters.period),
+          fromDate: widget.filters.dateRange.start,
+          toDate: widget.filters.dateRange.end,
           selectedCategoryIds: widget.filters.categoryIds,
           selectedSubcategoryIds: widget.filters.subcategoryIds,
           selectedLabelIds: widget.filters.labelIds,
@@ -233,7 +243,8 @@ class _AnalyticsTabState extends State<AnalyticsTab>
           subcategoryId: subcategoryId,
           subcategoryName: _breakdownName(subcategory),
           subcategoryCode: subcategory['code']?.toString() ?? '',
-          fromDate: PeriodFilter.getStartDate(widget.filters.period),
+          fromDate: widget.filters.dateRange.start,
+          toDate: widget.filters.dateRange.end,
           selectedCategoryIds: widget.filters.categoryIds,
           selectedSubcategoryIds: widget.filters.subcategoryIds,
           selectedLabelIds: widget.filters.labelIds,

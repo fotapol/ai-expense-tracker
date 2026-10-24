@@ -16,6 +16,7 @@ class AnalyticsSubcategoryItemsScreen extends StatefulWidget {
   final String subcategoryName;
   final String subcategoryCode;
   final DateTime? fromDate;
+  final DateTime? toDate;
   final List<String> selectedCategoryIds;
   final List<String> selectedSubcategoryIds;
   final List<String> selectedLabelIds;
@@ -26,6 +27,7 @@ class AnalyticsSubcategoryItemsScreen extends StatefulWidget {
     required this.subcategoryName,
     required this.subcategoryCode,
     required this.fromDate,
+    this.toDate,
     required this.selectedCategoryIds,
     required this.selectedSubcategoryIds,
     required this.selectedLabelIds,
@@ -166,6 +168,7 @@ class _AnalyticsSubcategoryItemsScreenState
       final data = await ApiClient.getSubcategoryItemsSummary(
         subcategoryId: widget.subcategoryId,
         fromDate: widget.fromDate,
+        toDate: widget.toDate,
         categoryIds: widget.selectedCategoryIds.isNotEmpty
             ? widget.selectedCategoryIds
             : null,

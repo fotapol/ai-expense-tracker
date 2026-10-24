@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../core/api_client.dart';
+import '../core/localized_dates.dart';
 import '../core/period_filter.dart';
 import '../core/redesign_system.dart';
 import '../core/taxonomy_localization.dart';
@@ -10,12 +11,14 @@ class FilterBottomSheet extends StatefulWidget {
   const FilterBottomSheet({
     super.key,
     required this.selectedPeriod,
+    this.selectedCustomRange,
     this.selectedCategoryIds,
     this.selectedSubcategoryIds,
     this.selectedLabelIds,
   });
 
   final String selectedPeriod;
+  final PeriodDateRange? selectedCustomRange;
   final List<String>? selectedCategoryIds;
   final List<String>? selectedSubcategoryIds;
   final List<String>? selectedLabelIds;
@@ -23,6 +26,7 @@ class FilterBottomSheet extends StatefulWidget {
   static Future<Map<String, dynamic>?> show(
     BuildContext context, {
     required String selectedPeriod,
+    PeriodDateRange? selectedCustomRange,
     List<String>? selectedCategoryIds,
     List<String>? selectedSubcategoryIds,
     List<String>? selectedLabelIds,
@@ -36,6 +40,7 @@ class FilterBottomSheet extends StatefulWidget {
       ),
       builder: (context) => FilterBottomSheet(
         selectedPeriod: selectedPeriod,
+        selectedCustomRange: selectedCustomRange,
         selectedCategoryIds: selectedCategoryIds,
         selectedSubcategoryIds: selectedSubcategoryIds,
         selectedLabelIds: selectedLabelIds,
@@ -49,6 +54,7 @@ class FilterBottomSheet extends StatefulWidget {
 
 class _FilterBottomSheetState extends State<FilterBottomSheet> {
   late String _selectedPeriod;
+  PeriodDateRange? _selectedCustomRange;
   late Set<String> _selectedCategoryIds;
   late Set<String> _selectedSubcategoryIds;
   late Set<String> _selectedLabelIds;
@@ -60,6 +66,12 @@ class _FilterBottomSheetState extends State<FilterBottomSheet> {
   void initState() {
     super.initState();
     _selectedPeriod = widget.selectedPeriod;
+    _selectedCustomRange = widget.selectedCustomRange;
+    if (_selectedPeriod == PeriodFilter.custom &&
+        !PeriodFilter.isValidCustomRange(_selectedCustomRange)) {
+      _selectedPeriod = PeriodFilter.last3Months;
+      _selectedCustomRange = null;
+    }
     _selectedCategoryIds = Set<String>.from(widget.selectedCategoryIds ?? []);
     _selectedSubcategoryIds = Set<String>.from(
       widget.selectedSubcategoryIds ?? [],
@@ -146,9 +158,54 @@ class _FilterBottomSheetState extends State<FilterBottomSheet> {
   void _apply() {
     Navigator.pop(context, {
       'period': _selectedPeriod,
+      'custom_range': _selectedCustomRange,
       'category_ids': _selectedCategoryIds.toList(),
       'subcategory_ids': _selectedSubcategoryIds.toList(),
       'label_ids': _selectedLabelIds.toList(),
+    });
+  }
+
+  Future<void> _pickCustomRange() async {
+    final now = DateTime.now();
+    final today = DateTime(now.year, now.month, now.day);
+    final initial =
+        _selectedCustomRange ??
+        PeriodFilter.getRange(
+          _selectedPeriod == PeriodFilter.allTime
+              ? PeriodFilter.last30Days
+              : _selectedPeriod,
+        );
+    final picked = await showDateRangePicker(
+      context: context,
+      firstDate: DateTime(2000),
+      lastDate: today,
+      initialDateRange: DateTimeRange(start: initial.start!, end: initial.end!),
+      helpText: context.tr('period_custom'),
+      builder: (dialogContext, child) {
+        final theme = Theme.of(dialogContext);
+        final picker =
+            MediaQuery.sizeOf(dialogContext).width < 480 &&
+                ShellStyles.textScale(dialogContext) > 1
+            ? Theme(
+                data: theme.copyWith(
+                  datePickerTheme: theme.datePickerTheme.copyWith(
+                    rangePickerHeaderHeadlineStyle: theme.textTheme.bodySmall
+                        ?.copyWith(letterSpacing: 0),
+                  ),
+                ),
+                child: child!,
+              )
+            : child!;
+        return ShellStyles.clampOverlayScale(dialogContext, picker);
+      },
+    );
+    if (picked == null || !mounted) return;
+    setState(() {
+      _selectedPeriod = PeriodFilter.custom;
+      _selectedCustomRange = PeriodDateRange(
+        start: picked.start,
+        end: picked.end,
+      );
     });
   }
 
@@ -293,13 +350,16 @@ class _FilterBottomSheetState extends State<FilterBottomSheet> {
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
               child: Row(
                 children: [
-                  TextButton(
-                    onPressed: () => Navigator.pop(context),
-                    child: Text(
-                      context.tr('common_cancel'),
-                      style: TextStyle(
-                        color: ShellStyles.textMuted(context),
-                        fontSize: 16,
+                  Expanded(
+                    child: TextButton(
+                      onPressed: () => Navigator.pop(context),
+                      child: Text(
+                        context.tr('common_cancel'),
+                        textAlign: TextAlign.center,
+                        style: TextStyle(
+                          color: ShellStyles.textMuted(context),
+                          fontSize: 16,
+                        ),
                       ),
                     ),
                   ),
@@ -319,14 +379,17 @@ class _FilterBottomSheetState extends State<FilterBottomSheet> {
                       ),
                     ),
                   ),
-                  TextButton(
-                    onPressed: _apply,
-                    child: Text(
-                      context.tr('common_apply'),
-                      style: TextStyle(
-                        color: ShellStyles.textPrimary(context),
-                        fontSize: 16,
-                        fontWeight: FontWeight.w700,
+                  Expanded(
+                    child: TextButton(
+                      onPressed: _apply,
+                      child: Text(
+                        context.tr('common_apply'),
+                        textAlign: TextAlign.center,
+                        style: TextStyle(
+                          color: ShellStyles.textPrimary(context),
+                          fontSize: 16,
+                          fontWeight: FontWeight.w700,
+                        ),
                       ),
                     ),
                   ),
@@ -344,6 +407,21 @@ class _FilterBottomSheetState extends State<FilterBottomSheet> {
                   ),
                   const SizedBox(height: 10),
                   _buildPeriodChips(),
+                  if (_selectedPeriod == PeriodFilter.custom &&
+                      _selectedCustomRange != null) ...[
+                    const SizedBox(height: 10),
+                    TextButton.icon(
+                      onPressed: _pickCustomRange,
+                      icon: const Icon(Icons.edit_calendar_outlined),
+                      label: Text(
+                        formatLocalizedDateRange(
+                          context,
+                          _selectedCustomRange!.start!,
+                          _selectedCustomRange!.end!,
+                        ),
+                      ),
+                    ),
+                  ],
                   const SizedBox(height: 24),
                   _buildSectionTitle(
                     icon: Icons.category_outlined,
@@ -398,12 +476,14 @@ class _FilterBottomSheetState extends State<FilterBottomSheet> {
       children: [
         Icon(icon, size: 18, color: ShellStyles.textPrimary(context)),
         const SizedBox(width: 8),
-        Text(
-          title,
-          style: TextStyle(
-            color: ShellStyles.textPrimary(context),
-            fontSize: 16,
-            fontWeight: FontWeight.w800,
+        Expanded(
+          child: Text(
+            title,
+            style: TextStyle(
+              color: ShellStyles.textPrimary(context),
+              fontSize: 16,
+              fontWeight: FontWeight.w800,
+            ),
           ),
         ),
       ],
@@ -421,8 +501,13 @@ class _FilterBottomSheetState extends State<FilterBottomSheet> {
           selected: isSelected,
           showCheckmark: false,
           onSelected: (_) {
+            if (period == PeriodFilter.custom) {
+              _pickCustomRange();
+              return;
+            }
             setState(() {
               _selectedPeriod = period;
+              _selectedCustomRange = null;
             });
           },
           selectedColor: ShellStyles.textPrimary(context).withAlpha(18),

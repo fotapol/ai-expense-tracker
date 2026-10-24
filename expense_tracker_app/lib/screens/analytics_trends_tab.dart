@@ -33,6 +33,7 @@ class AnalyticsTrendsTab extends StatefulWidget {
 class _AnalyticsTrendsTabState extends State<AnalyticsTrendsTab> {
   bool _isLoading = true;
   String? _error;
+  int _dataRequest = 0;
   Map<String, dynamic>? _trendData;
   Map<String, dynamic>? _summaryData;
   Map<String, dynamic>? _previousSummaryData;
@@ -52,15 +53,18 @@ class _AnalyticsTrendsTabState extends State<AnalyticsTrendsTab> {
   }
 
   Future<void> _fetchData() async {
+    final request = ++_dataRequest;
     setState(() {
       _isLoading = true;
       _error = null;
     });
 
-    final fromDate = PeriodFilter.getStartDate(widget.filters.period);
-    final toDate = PeriodFilter.getEndDate(widget.filters.period);
+    final range = widget.filters.dateRange;
+    final fromDate = range.start;
+    final toDate = range.end;
     final previousRange = PeriodFilter.getPreviousMatchedRange(
       widget.filters.period,
+      customRange: widget.filters.customRange,
     );
 
     try {
@@ -108,7 +112,7 @@ class _AnalyticsTrendsTabState extends State<AnalyticsTrendsTab> {
               ),
       ]);
 
-      if (!mounted) return;
+      if (!mounted || request != _dataRequest) return;
       setState(() {
         _trendData = results[0] as Map<String, dynamic>;
         _summaryData = results[1] as Map<String, dynamic>;
@@ -117,7 +121,7 @@ class _AnalyticsTrendsTabState extends State<AnalyticsTrendsTab> {
       });
     } catch (error) {
       if (await maybeHandleExpiredSession(error)) return;
-      if (!mounted) return;
+      if (!mounted || request != _dataRequest) return;
       setState(() {
         _error = friendlyLaunchErrorMessage(
           error,
@@ -180,12 +184,11 @@ class _AnalyticsTrendsTabState extends State<AnalyticsTrendsTab> {
     final previousTransactions = previousSummary == null
         ? null
         : _parseInt(previousSummary['total_transactions']);
-    final dailyAverage =
-        totalSpent / PeriodFilter.getPeriodDays(widget.filters.period);
+    final dailyAverage = totalSpent / widget.filters.periodDays;
     final previousDailyAverage = previousSummary == null
         ? null
         : _parseDouble(previousSummary['total_amount']) /
-              PeriodFilter.getPeriodDays(widget.filters.period);
+              widget.filters.periodDays;
 
     final trendSeries = _buildTrendSeries(
       bucketUnit: bucketUnit,
@@ -628,7 +631,9 @@ class _AnalyticsTrendsTabState extends State<AnalyticsTrendsTab> {
           sideTitles: SideTitles(
             showTitles: true,
             reservedSize: 32,
-            interval: 1,
+            interval: widget.filters.period == PeriodFilter.custom
+                ? math.max(1, (trendSeries.length / 5).ceil()).toDouble()
+                : 1,
             getTitlesWidget: (value, meta) {
               final index = value.round();
               if (index < 0 || index >= trendSeries.length) {
@@ -656,7 +661,9 @@ class _AnalyticsTrendsTabState extends State<AnalyticsTrendsTab> {
           barWidth: 3,
           color: ShellStyles.trendPalette(context).first,
           dotData: FlDotData(
-            show: true,
+            show:
+                widget.filters.period != PeriodFilter.custom ||
+                values.length <= 31,
             getDotPainter: (spot, percent, bar, index) => FlDotCirclePainter(
               radius: 4,
               color: ShellStyles.trendPalette(context).first,
@@ -683,6 +690,23 @@ class _AnalyticsTrendsTabState extends State<AnalyticsTrendsTab> {
     final maxValue = values.reduce(math.max);
     final maxY = math.max(maxValue * 1.12, 1).toDouble();
     final interval = math.max(maxY / 4, 1).toDouble();
+
+    final barWidth = values.length == 1
+        ? 156.0
+        : values.length >= 12
+        ? 16.0
+        : values.length >= 8
+        ? 24.0
+        : 42.0;
+    final customBarWidth = math
+        .min(
+          barWidth,
+          math.max(
+            0.5,
+            (MediaQuery.sizeOf(context).width - 120) / (values.length * 1.5),
+          ),
+        )
+        .toDouble();
 
     return BarChartData(
       minY: 0,
@@ -753,7 +777,9 @@ class _AnalyticsTrendsTabState extends State<AnalyticsTrendsTab> {
           sideTitles: SideTitles(
             showTitles: true,
             reservedSize: 34,
-            interval: 1,
+            interval: widget.filters.period == PeriodFilter.custom
+                ? math.max(1, (bars.length / 5).ceil()).toDouble()
+                : 1,
             getTitlesWidget: (value, meta) {
               final index = value.round();
               if (index < 0 || index >= bars.length) {
@@ -780,13 +806,9 @@ class _AnalyticsTrendsTabState extends State<AnalyticsTrendsTab> {
             barRods: [
               BarChartRodData(
                 toY: values[index],
-                width: values.length == 1
-                    ? 156
-                    : values.length >= 12
-                    ? 16
-                    : values.length >= 8
-                    ? 24
-                    : 42,
+                width: widget.filters.period == PeriodFilter.custom
+                    ? customBarWidth
+                    : barWidth,
                 color: ShellStyles.trendPalette(context).first,
                 borderRadius: const BorderRadius.vertical(
                   top: Radius.circular(8),
@@ -821,6 +843,11 @@ class _AnalyticsTrendsTabState extends State<AnalyticsTrendsTab> {
     required List<double> rawValues,
   }) {
     switch (widget.filters.period) {
+      case PeriodFilter.custom:
+        return [
+          for (var index = 0; index < rawBuckets.length; index++)
+            _customTrendPoint(rawBuckets[index], rawValues[index], bucketUnit),
+        ];
       case PeriodFilter.last7Days:
         return _buildDaySeries(rawValues);
       case PeriodFilter.thisMonth:
@@ -849,6 +876,27 @@ class _AnalyticsTrendsTabState extends State<AnalyticsTrendsTab> {
     }
   }
 
+  _TrendPoint _customTrendPoint(
+    Map<String, dynamic> bucket,
+    double amount,
+    String bucketUnit,
+  ) {
+    final start = DateTime.tryParse(bucket['start_date']?.toString() ?? '');
+    final end = DateTime.tryParse(bucket['end_date']?.toString() ?? '');
+    final fallback = bucket['label']?.toString() ?? '';
+    return _TrendPoint(
+      label: start == null
+          ? fallback
+          : bucketUnit == 'month'
+          ? '${formatLocalizedShortMonth(context, start)} ${start.year}'
+          : MaterialLocalizations.of(context).formatShortMonthDay(start),
+      tooltipLabel: start == null || end == null
+          ? fallback
+          : formatLocalizedDateRange(context, start, end),
+      amount: amount,
+    );
+  }
+
   List<_TrendPoint> _buildBreakdownSeries(
     BuildContext context, {
     required List<_TrendPoint> trendSeries,
@@ -857,7 +905,7 @@ class _AnalyticsTrendsTabState extends State<AnalyticsTrendsTab> {
   }
 
   List<_TrendPoint> _buildDaySeries(List<double> rawValues) {
-    final start = PeriodFilter.getStartDate(widget.filters.period);
+    final start = widget.filters.dateRange.start;
     return [
       for (var index = 0; index < rawValues.length; index++)
         _TrendPoint(
@@ -914,7 +962,7 @@ class _AnalyticsTrendsTabState extends State<AnalyticsTrendsTab> {
     required List<Map<String, dynamic>> rawBuckets,
     required List<double> rawValues,
   }) {
-    final rangeStart = PeriodFilter.getStartDate(widget.filters.period);
+    final rangeStart = widget.filters.dateRange.start;
     final grouped = <String, _TrendPointAccumulator>{};
 
     for (var index = 0; index < rawBuckets.length; index++) {
