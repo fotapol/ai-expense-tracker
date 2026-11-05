@@ -9,7 +9,7 @@ from sqlmodel import Session, select
 from app.models.transactions.transaction import Transaction
 from app.schemas.shared import quantize_amount
 from app.schemas.transactions import TransactionListFilter
-from app.services.fx_rates import lookup_rate, resolve_conversion_date
+from app.services.fx_rates import RateLookup, load_cached_rate_snapshot, resolve_conversion_date
 
 
 def list_transaction_page(
@@ -18,6 +18,7 @@ def list_transaction_page(
     query,
     filters: TransactionListFilter,
     target_currency: str,
+    rate_lookup: RateLookup | None = None,
 ) -> list[Transaction]:
     """Order the complete filtered scope, then load only this page's records."""
 
@@ -36,8 +37,15 @@ def list_transaction_page(
             ).all()
         )
 
-    # Historical FX uses the existing conversion service. Sort lightweight metadata
-    # rather than loading every transaction's items, translations and receipt data.
+    # A shared cached snapshot keeps this sort and its displayed values consistent.
+    # Never fetch historical FX from the provider while scanning the whole history.
+    resolver = (
+        rate_lookup
+        or load_cached_rate_snapshot(
+            session,
+            quote_currency=target_currency,
+        ).lookup
+    )
     rows = session.exec(
         select(
             Transaction.id,
@@ -55,7 +63,7 @@ def list_transaction_page(
         if amount is not None and currency != target_currency:
             key = (currency, conversion_date)
             if key not in rates:
-                rates[key] = lookup_rate(
+                rates[key] = resolver(
                     session,
                     base_currency=currency,
                     quote_currency=target_currency,

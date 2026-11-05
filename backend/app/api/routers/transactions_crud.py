@@ -29,6 +29,7 @@ from app.schemas.transactions import (
     TransactionRead,
     TransactionUpdateRequest,
 )
+from app.services.fx_rates import load_cached_rate_snapshot
 from app.services.transactions.listing import list_transaction_page
 from app.services.transactions.read_models import (
     _apply_display_conversion,
@@ -242,11 +243,17 @@ async def list_transactions(
     if filters.needs_review:
         query = query.where(_build_needs_review_predicate())
 
+    rate_snapshot = (
+        load_cached_rate_snapshot(session, quote_currency=target_currency)
+        if filters.sort_by in {"amount_asc", "amount_desc"}
+        else None
+    )
     transactions = list_transaction_page(
         session=session,
         query=query,
         filters=filters,
         target_currency=target_currency,
+        rate_lookup=rate_snapshot.lookup if rate_snapshot is not None else None,
     )
 
     # We could optionally eagerly load or fetch items here, but a list view
@@ -321,6 +328,7 @@ async def list_transactions(
                 read=read,
                 session=session,
                 target_currency=target_currency,
+                rate_lookup=rate_snapshot.lookup if rate_snapshot is not None else None,
             )
             results.append(read)
 

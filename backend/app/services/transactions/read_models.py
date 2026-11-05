@@ -39,7 +39,7 @@ from app.schemas.transactions import (
     TransactionRead,
     TransactionUserSnippetRead,
 )
-from app.services.fx_rates import convert_amount, resolve_conversion_date
+from app.services.fx_rates import RateLookup, convert_amount, resolve_conversion_date
 
 logger = logging.getLogger(__name__)
 
@@ -1104,6 +1104,7 @@ def _apply_display_conversion(
     read: TransactionRead,
     session: Session,
     target_currency: str,
+    rate_lookup: RateLookup | None = None,
 ) -> None:
     conversion_date = resolve_conversion_date(read.occurred_at, read.created_at)
     tx_converted = convert_amount(
@@ -1113,6 +1114,7 @@ def _apply_display_conversion(
         target_date=conversion_date,
         session=session,
         quantizer=quantize_amount,
+        rate_lookup=rate_lookup,
     )
 
     read.display_currency = tx_converted.currency
@@ -1128,6 +1130,7 @@ def _apply_display_conversion(
             target_date=conversion_date,
             session=session,
             quantizer=quantize_amount,
+            rate_lookup=rate_lookup,
         )
         unit_price_converted = convert_amount(
             amount=item.unit_price,
@@ -1136,6 +1139,7 @@ def _apply_display_conversion(
             target_date=conversion_date,
             session=session,
             quantizer=quantize_unit_price,
+            rate_lookup=rate_lookup,
         )
         item.display_amount = amount_converted.value
         item.display_unit_price = unit_price_converted.value

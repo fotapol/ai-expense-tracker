@@ -1,5 +1,6 @@
 """Receipt history must order and filter the full scope before taking a page."""
 
+import asyncio
 import datetime as dt
 import json
 import uuid
@@ -11,9 +12,12 @@ from pydantic import ValidationError
 from sqlalchemy import JSON, Column, MetaData, Table, Uuid, event, insert
 from sqlmodel import Session, create_engine, select
 
+from app.models.fx.exchange_rate import ExchangeRate
 from app.models.transactions.transaction import Transaction
+from app.models.transactions.transaction_item import TransactionItem
 from app.schemas.transactions import TransactionListFilter
-from app.services.fx_rates import FxRateLookup
+from app.services import fx_rates
+from app.services.fx_rates import FxRateLookup, load_cached_rate_snapshot
 from app.services.transactions import listing
 from app.services.transactions.read_models import _build_filtered_transaction_ids_query
 
@@ -40,6 +44,7 @@ def session():
         )
 
     Transaction.__table__.create(engine)
+    ExchangeRate.__table__.create(engine)
     extractions = Table(
         "receipt_extractions",
         MetaData(),
@@ -84,6 +89,23 @@ def page(session, **kwargs):
     )
 
 
+def add_rate(session, base, rate, *, date=None, quote="EUR", **fields):
+    session.add(
+        ExchangeRate(
+            base_currency=base,
+            quote_currency=quote,
+            rate=Decimal(rate),
+            rate_date=date or DAY.date(),
+            fetched_at=DAY,
+            **fields,
+        )
+    )
+
+
+def reject_live_fx(*_args, **_kwargs):
+    raise AssertionError("Amount sorting must not resolve live exchange rates")
+
+
 def test_history_beyond_50_rows_has_stable_pages_and_user_scope(session):
     for number in range(1, 126):
         add(session, number)
@@ -124,20 +146,175 @@ def test_amount_sort_uses_display_currency_and_leaves_unknown_rates_last(
     add(session, 6, amount="999999", currency="ZZZ")
     add(session, 7, amount=None)
     session.commit()
-    lookups = []
-
-    def rate(_session, *, base_currency, quote_currency, target_date):
-        lookups.append((base_currency, quote_currency, target_date))
-        return FxRateLookup(
-            rate={"RSD": Decimal("0.01"), "USD": Decimal("0.5")}.get(base_currency),
-            effective_date=target_date,
-            is_fallback=False,
-        )
-
-    monkeypatch.setattr(listing, "lookup_rate", rate)
+    add_rate(session, "RSD", "0.01")
+    add_rate(session, "USD", "0.5")
+    session.commit()
+    monkeypatch.setattr(fx_rates, "lookup_rate", reject_live_fx)
+    monkeypatch.setattr(fx_rates, "_fetch_rate_from_provider", reject_live_fx)
     assert [row.id.int for row in page(session, sort_by=sort_by, page_size=2)] == first_page
-    assert len(lookups) == 3  # One lookup per currency/date, including repeated USD rows.
     assert [row.id.int for row in page(session, sort_by=sort_by, page_size=5, page=2)] == [6, 7]
+
+
+def test_cached_snapshot_uses_exact_previous_latest_and_missing_rate_semantics(session):
+    earlier = DAY.date() - dt.timedelta(days=10)
+    add_rate(session, "USD", "0.4", date=earlier)
+    add_rate(session, "USD", "0.5", is_fallback=True)
+    add_rate(session, "USD", "500", quote="GBP")
+    add_rate(session, "USD", "100", provider="other")
+    session.commit()
+    selects = []
+
+    @event.listens_for(session.get_bind(), "before_cursor_execute")
+    def count_queries(_connection, _cursor, statement, _parameters, _context, _many):
+        if statement.lstrip().upper().startswith("SELECT"):
+            selects.append(statement)
+
+    snapshot = load_cached_rate_snapshot(session, quote_currency="eur")
+    assert len(selects) == 1
+    for date, expected_rate, expected_date, expected_fallback in [
+        (earlier, Decimal("0.4"), earlier, False),
+        (DAY.date(), Decimal("0.5"), DAY.date(), True),
+        (earlier + dt.timedelta(days=2), Decimal("0.4"), earlier, True),
+        (earlier - dt.timedelta(days=2), Decimal("0.5"), DAY.date(), True),
+    ]:
+        result = snapshot.lookup(
+            session, base_currency="usd", quote_currency="EUR", target_date=date
+        )
+        assert (result.rate, result.effective_date, result.is_fallback) == (
+            expected_rate,
+            expected_date,
+            expected_fallback,
+        )
+    assert (
+        snapshot.lookup(
+            session, base_currency="ZZZ", quote_currency="EUR", target_date=earlier
+        ).rate
+        is None
+    )
+    assert (
+        snapshot.lookup(
+            session, base_currency="EUR", quote_currency="EUR", target_date=earlier
+        ).rate
+        == 1
+    )
+    assert len(selects) == 1  # Lookup itself performs neither SQL nor network I/O.
+
+
+@pytest.mark.parametrize(
+    "sort_by,expected_amount,expected_live_calls",
+    [
+        ("amount_desc", Decimal("50"), 0),
+        ("newest", Decimal("80"), 3),
+    ],
+)
+def test_route_uses_same_cached_snapshot_for_amount_order_and_item_display(
+    session,
+    monkeypatch,
+    sort_by,
+    expected_amount,
+    expected_live_calls,
+):
+    from app.api.routers import transactions_crud as router
+
+    transaction = add(session, 1, amount="100", currency="USD")
+    add_rate(session, "USD", "0.5")
+    session.commit()
+    item = TransactionItem(
+        id=uuid.uuid4(),
+        transaction_id=transaction.id,
+        line_no=1,
+        description="Imported item",
+        qty=Decimal("2"),
+        unit="pc",
+        unit_price=Decimal("50"),
+        amount=Decimal("100"),
+        category_id=uuid.uuid4(),
+        created_at=DAY,
+        updated_at=DAY,
+    )
+
+    class ItemSession:
+        def exec(self, statement):
+            if statement.column_descriptions[0].get("entity") is TransactionItem:
+                return SimpleNamespace(all=lambda: [item])
+            return session.exec(statement)
+
+    for name in [
+        "_load_labels_by_transaction_id",
+        "_load_category_names_by_id",
+        "_load_warnings_by_receipt_id",
+        "_load_translation_lookup",
+    ]:
+        monkeypatch.setattr(router, name, lambda *_args, **_kwargs: {})
+    live_calls = []
+
+    def normal_lookup(*_args, **kwargs):
+        live_calls.append(kwargs)
+        if sort_by == "amount_desc":
+            reject_live_fx()
+        return FxRateLookup(Decimal("0.8"), DAY.date(), False)
+
+    monkeypatch.setattr(fx_rates, "lookup_rate", normal_lookup)
+    monkeypatch.setattr(fx_rates, "_fetch_rate_from_provider", reject_live_fx)
+    rate_queries = []
+
+    @event.listens_for(session.get_bind(), "before_cursor_execute")
+    def count_rate_queries(_connection, _cursor, statement, _parameters, _context, _many):
+        if statement.lstrip().upper().startswith("SELECT") and "exchange_rates" in statement:
+            rate_queries.append(statement)
+
+    endpoint = router.list_transactions
+    while hasattr(endpoint, "__wrapped__"):
+        endpoint = endpoint.__wrapped__
+    result = asyncio.run(
+        endpoint(
+            request=None,
+            filters=TransactionListFilter(sort_by=sort_by),
+            session=ItemSession(),
+            current_user=SimpleNamespace(
+                id=OWNER,
+                default_currency="EUR",
+                items_language=None,
+            ),
+        )
+    )
+    assert len(rate_queries) == (1 if sort_by == "amount_desc" else 0)
+    assert len(live_calls) == expected_live_calls
+    assert result[0].display_amount_total == expected_amount
+    assert result[0].items[0].display_amount == expected_amount
+    assert result[0].items[0].display_unit_price == expected_amount / 2
+
+
+def test_cached_snapshot_survives_rate_updates_during_a_request(session, monkeypatch):
+    usd = add(session, 1, amount="100", currency="USD")
+    add(session, 2, amount="75")
+    add_rate(session, "USD", "0.5")
+    session.commit()
+    snapshot = load_cached_rate_snapshot(session, quote_currency="EUR")
+    cached = session.exec(select(ExchangeRate)).first()
+    cached.rate = Decimal("2")
+    session.add(cached)
+    session.commit()
+    monkeypatch.setattr(fx_rates, "lookup_rate", reject_live_fx)
+    monkeypatch.setattr(fx_rates, "_fetch_rate_from_provider", reject_live_fx)
+    ordered = listing.list_transaction_page(
+        session=session,
+        query=select(Transaction),
+        filters=TransactionListFilter(sort_by="amount_desc"),
+        target_currency="EUR",
+        rate_lookup=snapshot.lookup,
+    )
+    assert [row.id.int for row in ordered] == [2, 1]
+    result = fx_rates.convert_amount(
+        amount=usd.amount_total,
+        base_currency="USD",
+        target_currency="EUR",
+        target_date=DAY.date(),
+        session=session,
+        quantizer=lambda amount: amount,
+        rate_lookup=snapshot.lookup,
+    )
+    assert result.value == Decimal("50")
 
 
 def test_review_filter_finds_older_drafts_and_warnings_before_pagination(session):
