@@ -341,6 +341,8 @@ class TransactionUpdateRequest(SchemaBase):
 class TransactionListFilter(PaginationParams):
     """Filter parameters for listing transactions."""
 
+    sort_by: Literal["newest", "oldest", "amount_desc", "amount_asc", "merchant_asc"] = "newest"
+    needs_review: bool = False
     user_id: UUID | None = None
     from_occurred_at: dt.datetime | None = None
     to_occurred_at: dt.datetime | None = None

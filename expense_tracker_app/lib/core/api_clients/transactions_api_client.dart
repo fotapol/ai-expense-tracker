@@ -176,13 +176,20 @@ class TransactionApiClient {
     List<String>? labelIds,
     String? labelId,
     String? targetCurrency,
+    int? page,
+    int pageSize = 200,
+    String sortBy = 'newest',
+    bool needsReview = false,
   }) async {
+    if (pageSize < 1 || pageSize > 200 || (page != null && page < 1)) {
+      throw ArgumentError('Invalid transaction pagination.');
+    }
     final token = await ApiClient._getToken();
 
-    // Build query params — do not cap page_size here; backend determines page size.
-    // M-1 fix: removing the hardcoded page_size=100 prevents silent truncation for users
-    // with more than 100 transactions.
-    final params = <String>[];
+    // Existing analytics callers need the whole scope. History passes an explicit
+    // page so it can load incrementally without truncating those other callers.
+    final params = <String>['page_size=$pageSize', 'sort_by=$sortBy'];
+    if (needsReview) params.add('needs_review=true');
     if (fromDate != null) {
       params.add('from_occurred_at=${fromDate.toUtc().toIso8601String()}');
     }
@@ -209,29 +216,31 @@ class TransactionApiClient {
     if (targetCurrency != null && targetCurrency.isNotEmpty) {
       params.add('target_currency=${Uri.encodeComponent(targetCurrency)}');
     }
-    var url = '${ApiClient.apiBaseUrl}/v1/transactions';
-    if (params.isNotEmpty) {
-      url += '?${params.join('&')}';
-    }
-
-    // M-2 fix: add a 30 s timeout so the app never hangs indefinitely on a slow network.
-    final response = await http
-        .get(
-          Uri.parse(url),
-          headers: {
-            'Authorization': 'Bearer $token',
-            'Content-Type': 'application/json',
-          },
-        )
-        .timeout(const Duration(seconds: 30));
-    await ApiClient._throwIfUnauthorizedResponse(response);
-
-    if (response.statusCode == 200) {
-      return jsonDecode(response.body) as List<dynamic>;
-    } else {
-      throw Exception(
-        'Failed to list transactions: ${response.statusCode} ${response.body}',
-      );
+    var nextPage = page ?? 1;
+    final transactions = <dynamic>[];
+    while (true) {
+      final url =
+          '${ApiClient.apiBaseUrl}/v1/transactions?'
+          '${params.join('&')}&page=$nextPage';
+      final response = await http
+          .get(
+            Uri.parse(url),
+            headers: {
+              'Authorization': 'Bearer $token',
+              'Content-Type': 'application/json',
+            },
+          )
+          .timeout(const Duration(seconds: 30));
+      await ApiClient._throwIfUnauthorizedResponse(response);
+      if (response.statusCode != 200) {
+        throw Exception(
+          'Failed to list transactions: ${response.statusCode} ${response.body}',
+        );
+      }
+      final rows = jsonDecode(response.body) as List<dynamic>;
+      transactions.addAll(rows);
+      if (page != null || rows.length < pageSize) return transactions;
+      nextPage++;
     }
   }
 

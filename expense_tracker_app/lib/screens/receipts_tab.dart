@@ -46,11 +46,24 @@ class _ReceiptsTabState extends State<ReceiptsTab>
   List<String> _selectedSubcategoryIds = [];
   List<String> _selectedLabelIds = [];
   bool _reviewOnly = false;
+  static const _pageSize = 50;
+  static const _sortLabels = {
+    'newest': 'receipts_sort_newest',
+    'oldest': 'receipts_sort_oldest',
+    'amount_desc': 'receipts_sort_amount_desc',
+    'amount_asc': 'receipts_sort_amount_asc',
+    'merchant_asc': 'receipts_sort_merchant_asc',
+  };
+  String _sortBy = 'newest';
+  int _nextPage = 1;
+  bool _hasMore = false;
+  bool _isLoadingMore = false;
+  bool _isRefreshing = false;
+  String? _loadMoreError;
   final TextEditingController _searchController = TextEditingController();
   Map<String, Map<String, dynamic>> _categoriesById = {};
-  bool _isFetchingTransactions = false;
-  bool _fetchTransactionsPending = false;
   int _transactionsRequest = 0;
+  int _historyRevision = 0;
 
   bool get _hasScopedFilters =>
       _reviewOnly ||
@@ -75,7 +88,11 @@ class _ReceiptsTabState extends State<ReceiptsTab>
   Duration get autoRefreshInterval => const Duration(minutes: 1);
 
   @override
-  Future<void> performAutoRefresh() => _fetchTransactions(showLoader: false);
+  Future<void> performAutoRefresh() async {
+    // Keep the user's place once they have expanded their history.
+    if (_isRefreshing || _isLoadingMore || _nextPage > 2) return;
+    await _fetchTransactions(showLoader: false);
+  }
 
   @override
   void initState() {
@@ -167,6 +184,20 @@ class _ReceiptsTabState extends State<ReceiptsTab>
     return formatMoney(currency, amount);
   }
 
+  Map<String, double> _expenseTotals(Iterable<dynamic> transactions) {
+    final totals = <String, double>{};
+    for (final raw in transactions) {
+      final tx = raw as Map<String, dynamic>;
+      final currency = _displayCurrencyOf(tx);
+      totals[currency] = (totals[currency] ?? 0) + _displayAmountOf(tx);
+    }
+    return totals;
+  }
+
+  String _formatTotals(Map<String, double> totals) => totals.isEmpty
+      ? _formatMoney(_preferredCurrency, 0)
+      : totals.entries.map((e) => _formatMoney(e.key, e.value)).join(' · ');
+
   double _displayAmountOf(Map<String, dynamic> tx) {
     final raw = tx['display_amount_total'] ?? tx['amount_total'] ?? 0;
     return double.tryParse(raw.toString()) ?? 0;
@@ -194,70 +225,68 @@ class _ReceiptsTabState extends State<ReceiptsTab>
     return context.tr('receipts_needs_review');
   }
 
-  List<dynamic> get _visibleTransactions {
-    if (!_reviewOnly) return _transactions;
-    return _transactions
-        .where((tx) => tx is Map<String, dynamic> && _needsReview(tx))
-        .toList();
+  List<dynamic> get _visibleTransactions => _transactions;
+
+  Future<List<dynamic>> _requestPage(int page) {
+    final range = PeriodFilter.getRange(
+      _selectedPeriod,
+      customRange: _selectedCustomRange,
+    );
+    return ApiClient.listTransactions(
+      page: page,
+      pageSize: _pageSize,
+      sortBy: _sortBy,
+      needsReview: _reviewOnly,
+      fromDate: range.start,
+      toDate: _selectedPeriod == PeriodFilter.custom ? range.end : null,
+      merchantNameSearch: _merchantSearch.isEmpty ? null : _merchantSearch,
+      categoryIds: _selectedCategoryIds.isEmpty ? null : _selectedCategoryIds,
+      subcategoryIds: _selectedSubcategoryIds.isEmpty
+          ? null
+          : _selectedSubcategoryIds,
+      labelIds: _selectedLabelIds.isEmpty ? null : _selectedLabelIds,
+    );
   }
 
   Future<void> _fetchTransactions({bool showLoader = true}) async {
     final request = ++_transactionsRequest;
-    if (_isFetchingTransactions) {
-      _fetchTransactionsPending = true;
-      return;
-    }
-    _isFetchingTransactions = true;
-    if (!mounted) {
-      _isFetchingTransactions = false;
-      return;
-    }
-    if (showLoader) {
-      setState(() {
+    if (!mounted) return;
+    setState(() {
+      _isRefreshing = true;
+      if (showLoader) {
         _isLoading = true;
-        _error = null;
-      });
-    }
+        _historyRevision++;
+      }
+      _error = null;
+      _isLoadingMore = false;
+      _loadMoreError = null;
+    });
 
     try {
-      final range = PeriodFilter.getRange(
-        _selectedPeriod,
-        customRange: _selectedCustomRange,
-      );
-      final searchText = _searchController.text.trim();
-      final data = await ApiClient.listTransactions(
-        fromDate: range.start,
-        toDate: _selectedPeriod == PeriodFilter.custom ? range.end : null,
-        merchantNameSearch: searchText.isNotEmpty
-            ? searchText
-            : _merchantSearch.isNotEmpty
-            ? _merchantSearch
-            : null,
-        categoryIds: _selectedCategoryIds.isNotEmpty
-            ? _selectedCategoryIds
-            : null,
-        subcategoryIds: _selectedSubcategoryIds.isNotEmpty
-            ? _selectedSubcategoryIds
-            : null,
-        labelIds: _selectedLabelIds.isNotEmpty ? _selectedLabelIds : null,
-      );
+      final data = await _requestPage(1);
+      if (!mounted || request != _transactionsRequest) return;
       var hasAnyReceipts = _hasAnyReceipts;
       if (data.isNotEmpty) {
         hasAnyReceipts = true;
       } else {
-        final baseline = await ApiClient.listTransactions();
+        final baseline = await ApiClient.listTransactions(page: 1, pageSize: 1);
         hasAnyReceipts = baseline.isNotEmpty;
       }
       if (!mounted || request != _transactionsRequest) return;
       setState(() {
         _transactions = data;
+        _nextPage = 2;
+        _hasMore = data.length == _pageSize;
         _hasAnyReceipts = hasAnyReceipts;
         _isLoading = false;
+        _isRefreshing = false;
         _error = null;
       });
     } catch (e) {
+      if (!mounted || request != _transactionsRequest) return;
       if (await maybeHandleExpiredSession(e)) return;
       if (!mounted || request != _transactionsRequest) return;
+      setState(() => _isRefreshing = false);
       if (showLoader || _transactions.isEmpty) {
         setState(() {
           _error = friendlyLaunchErrorMessage(
@@ -267,12 +296,40 @@ class _ReceiptsTabState extends State<ReceiptsTab>
           _isLoading = false;
         });
       }
-    } finally {
-      _isFetchingTransactions = false;
-      if (_fetchTransactionsPending && mounted) {
-        _fetchTransactionsPending = false;
-        await _fetchTransactions(showLoader: showLoader);
-      }
+    }
+  }
+
+  Future<void> _loadMore() async {
+    if (_isRefreshing || _isLoadingMore || !_hasMore) return;
+    final request = _transactionsRequest;
+    setState(() {
+      _isLoadingMore = true;
+      _loadMoreError = null;
+    });
+    try {
+      final data = await _requestPage(_nextPage);
+      if (!mounted || request != _transactionsRequest) return;
+      final ids = _transactions.map((tx) => tx['id']).toSet();
+      setState(() {
+        _transactions = [
+          ..._transactions,
+          ...data.where((tx) => ids.add(tx['id'])),
+        ];
+        _nextPage++;
+        _hasMore = data.length == _pageSize;
+        _isLoadingMore = false;
+      });
+    } catch (e) {
+      if (!mounted || request != _transactionsRequest) return;
+      if (await maybeHandleExpiredSession(e)) return;
+      if (!mounted || request != _transactionsRequest) return;
+      setState(() {
+        _isLoadingMore = false;
+        _loadMoreError = friendlyLaunchErrorMessage(
+          e,
+          fallback: context.tr('receipts_history_load_error'),
+        );
+      });
     }
   }
 
@@ -391,6 +448,7 @@ class _ReceiptsTabState extends State<ReceiptsTab>
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           if (widget.showTopBar) _buildTopBar(),
+          _buildSortControls(),
           if (_hasScopedFilters) _buildActiveFilterChips(),
           Expanded(child: _buildTransactionList()),
           _buildBottomSummary(),
@@ -473,6 +531,72 @@ class _ReceiptsTabState extends State<ReceiptsTab>
             },
             tooltip: context.tr('home_add_expense'),
           ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildSortControls() {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16),
+      child: Wrap(
+        spacing: 12,
+        crossAxisAlignment: WrapCrossAlignment.center,
+        children: [
+          PopupMenuButton<String>(
+            key: const ValueKey('receipt-sort'),
+            tooltip: context.tr('receipts_sort'),
+            initialValue: _sortBy,
+            onSelected: (value) {
+              if (value == _sortBy) return;
+              setState(() => _sortBy = value);
+              _fetchTransactions();
+            },
+            itemBuilder: (context) => [
+              for (final value in [
+                'newest',
+                'oldest',
+                'amount_desc',
+                'amount_asc',
+                'merchant_asc',
+              ])
+                CheckedPopupMenuItem(
+                  value: value,
+                  checked: value == _sortBy,
+                  child: Text(context.tr(_sortLabels[value]!)),
+                ),
+            ],
+            child: Padding(
+              padding: const EdgeInsets.symmetric(vertical: 14),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  const Icon(Icons.sort, size: 20),
+                  const SizedBox(width: 6),
+                  Text(context.tr(_sortLabels[_sortBy]!)),
+                ],
+              ),
+            ),
+          ),
+          FilterChip(
+            label: Text(context.tr('receipts_filter_needs_review')),
+            selected: _reviewOnly,
+            onSelected: (value) {
+              setState(() => _reviewOnly = value);
+              _fetchTransactions();
+            },
+          ),
+          if (_sortBy.startsWith('amount_'))
+            Padding(
+              padding: const EdgeInsets.only(bottom: 8),
+              child: Text(
+                context.tr('receipts_amount_sort_hint'),
+                style: TextStyle(
+                  color: ShellStyles.textMuted(context),
+                  fontSize: 12,
+                ),
+              ),
+            ),
         ],
       ),
     );
@@ -703,62 +827,64 @@ class _ReceiptsTabState extends State<ReceiptsTab>
 
     if (_transactions.isEmpty && !_hasAnyReceipts) {
       return Center(
-        child: Padding(
-          padding: EdgeInsets.all(
-            ShellStyles.scaled(context, 24, min: 20, max: 28),
-          ),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Container(
-                width: ShellStyles.scaled(context, 72, min: 64, max: 80),
-                height: ShellStyles.scaled(context, 72, min: 64, max: 80),
-                alignment: Alignment.center,
-                decoration: ShellStyles.iconBadgeDecoration(
-                  context,
-                  color: ShellStyles.surfaceAlt(context),
-                  radius: ShellStyles.scaled(context, 22, min: 20, max: 24),
-                ),
-                child: Icon(
-                  Icons.receipt_long,
-                  size: ShellStyles.scaled(context, 32, min: 28, max: 36),
-                  color: ShellStyles.textMuted(context),
-                ),
-              ),
-              const SizedBox(height: 16),
-              Text(
-                context.tr('receipts_no_data'),
-                textAlign: TextAlign.center,
-                style: TextStyle(
-                  color: ShellStyles.textPrimary(context),
-                  fontSize: ShellStyles.scaled(context, 16, min: 15, max: 17),
-                  fontWeight: FontWeight.w700,
-                ),
-              ),
-              const SizedBox(height: 8),
-              Text(
-                context.tr('receipts_empty_body'),
-                textAlign: TextAlign.center,
-                style: TextStyle(
-                  color: ShellStyles.textMuted(context),
-                  fontSize: ShellStyles.scaled(context, 13, min: 12, max: 14),
-                  height: 1.4,
-                ),
-              ),
-              const SizedBox(height: 18),
-              FilledButton.icon(
-                onPressed: () {
-                  Navigator.push(
+        child: SingleChildScrollView(
+          child: Padding(
+            padding: EdgeInsets.all(
+              ShellStyles.scaled(context, 24, min: 20, max: 28),
+            ),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Container(
+                  width: ShellStyles.scaled(context, 72, min: 64, max: 80),
+                  height: ShellStyles.scaled(context, 72, min: 64, max: 80),
+                  alignment: Alignment.center,
+                  decoration: ShellStyles.iconBadgeDecoration(
                     context,
-                    MaterialPageRoute(
-                      builder: (_) => const ReceiptUploadScreen(),
-                    ),
-                  );
-                },
-                icon: const Icon(Icons.document_scanner_outlined),
-                label: Text(context.tr('receipts_scan_first_action')),
-              ),
-            ],
+                    color: ShellStyles.surfaceAlt(context),
+                    radius: ShellStyles.scaled(context, 22, min: 20, max: 24),
+                  ),
+                  child: Icon(
+                    Icons.receipt_long,
+                    size: ShellStyles.scaled(context, 32, min: 28, max: 36),
+                    color: ShellStyles.textMuted(context),
+                  ),
+                ),
+                const SizedBox(height: 16),
+                Text(
+                  context.tr('receipts_no_data'),
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                    color: ShellStyles.textPrimary(context),
+                    fontSize: ShellStyles.scaled(context, 16, min: 15, max: 17),
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  context.tr('receipts_empty_body'),
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                    color: ShellStyles.textMuted(context),
+                    fontSize: ShellStyles.scaled(context, 13, min: 12, max: 14),
+                    height: 1.4,
+                  ),
+                ),
+                const SizedBox(height: 18),
+                FilledButton.icon(
+                  onPressed: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (_) => const ReceiptUploadScreen(),
+                      ),
+                    );
+                  },
+                  icon: const Icon(Icons.document_scanner_outlined),
+                  label: Text(context.tr('receipts_scan_first_action')),
+                ),
+              ],
+            ),
           ),
         ),
       );
@@ -766,109 +892,112 @@ class _ReceiptsTabState extends State<ReceiptsTab>
 
     if (visibleTransactions.isEmpty) {
       return Center(
-        child: Padding(
-          padding: EdgeInsets.all(
-            ShellStyles.scaled(context, 24, min: 20, max: 28),
-          ),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Container(
-                width: ShellStyles.scaled(context, 72, min: 64, max: 80),
-                height: ShellStyles.scaled(context, 72, min: 64, max: 80),
-                alignment: Alignment.center,
-                decoration: ShellStyles.iconBadgeDecoration(
-                  context,
-                  color: ShellStyles.surfaceAlt(context),
-                  radius: ShellStyles.scaled(context, 22, min: 20, max: 24),
+        child: SingleChildScrollView(
+          child: Padding(
+            padding: EdgeInsets.all(
+              ShellStyles.scaled(context, 24, min: 20, max: 28),
+            ),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Container(
+                  width: ShellStyles.scaled(context, 72, min: 64, max: 80),
+                  height: ShellStyles.scaled(context, 72, min: 64, max: 80),
+                  alignment: Alignment.center,
+                  decoration: ShellStyles.iconBadgeDecoration(
+                    context,
+                    color: ShellStyles.surfaceAlt(context),
+                    radius: ShellStyles.scaled(context, 22, min: 20, max: 24),
+                  ),
+                  child: Icon(
+                    Icons.filter_alt_off_outlined,
+                    size: ShellStyles.scaled(context, 30, min: 26, max: 34),
+                    color: ShellStyles.textMuted(context),
+                  ),
                 ),
-                child: Icon(
-                  Icons.filter_alt_off_outlined,
-                  size: ShellStyles.scaled(context, 30, min: 26, max: 34),
-                  color: ShellStyles.textMuted(context),
+                const SizedBox(height: 16),
+                Text(
+                  _reviewOnly
+                      ? context.tr('receipts_review_empty_title')
+                      : context.tr('receipts_no_filter_matches'),
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                    color: ShellStyles.textPrimary(context),
+                    fontSize: ShellStyles.scaled(context, 16, min: 15, max: 17),
+                    fontWeight: FontWeight.w700,
+                  ),
                 ),
-              ),
-              const SizedBox(height: 16),
-              Text(
-                _reviewOnly
-                    ? context.tr('receipts_review_empty_title')
-                    : context.tr('receipts_no_filter_matches'),
-                textAlign: TextAlign.center,
-                style: TextStyle(
-                  color: ShellStyles.textPrimary(context),
-                  fontSize: ShellStyles.scaled(context, 16, min: 15, max: 17),
-                  fontWeight: FontWeight.w700,
+                const SizedBox(height: 8),
+                Text(
+                  _reviewOnly
+                      ? context.tr('receipts_review_empty_body')
+                      : context.tr('receipts_no_filter_matches_body'),
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                    color: ShellStyles.textMuted(context),
+                    fontSize: ShellStyles.scaled(context, 13, min: 12, max: 14),
+                    height: 1.4,
+                  ),
                 ),
-              ),
-              const SizedBox(height: 8),
-              Text(
-                _reviewOnly
-                    ? context.tr('receipts_review_empty_body')
-                    : context.tr('receipts_no_filter_matches_body'),
-                textAlign: TextAlign.center,
-                style: TextStyle(
-                  color: ShellStyles.textMuted(context),
-                  fontSize: ShellStyles.scaled(context, 13, min: 12, max: 14),
-                  height: 1.4,
-                ),
-              ),
-              const SizedBox(height: 18),
-              if (_hasScopedFilters)
-                OutlinedButton(
-                  onPressed: _clearAllFilters,
-                  child: Text(context.tr('common_clear_filters')),
-                ),
-            ],
+                const SizedBox(height: 18),
+                if (_hasScopedFilters)
+                  OutlinedButton(
+                    onPressed: _clearAllFilters,
+                    child: Text(context.tr('common_clear_filters')),
+                  ),
+              ],
+            ),
           ),
         ),
       );
     }
 
-    // Group transactions by month
-    final groupedTransactions = <String, List<dynamic>>{};
-    for (var tx in visibleTransactions) {
-      final occurredAtStr = tx['occurred_at'] as String?;
-      if (occurredAtStr == null) continue;
-      final date = DateTime.tryParse(occurredAtStr);
-      if (date == null) continue;
-      final monthKey = formatLocalizedMonthYear(context, date);
-      groupedTransactions.putIfAbsent(monthKey, () => []).add(tx);
+    // Only date ordering has month headings. Grouping an amount/merchant sort
+    // would change its global order. Every receipt remains a lazy list row.
+    final rows = <dynamic>[];
+    final months = <String, List<dynamic>>{};
+    String? previousMonth;
+    final groupByMonth = _sortBy == 'newest' || _sortBy == 'oldest';
+    for (final tx in visibleTransactions) {
+      if (groupByMonth) {
+        final date = DateTime.tryParse(
+          (tx['occurred_at'] ?? tx['created_at'] ?? '').toString(),
+        );
+        final month = date == null
+            ? null
+            : formatLocalizedMonthYear(context, date);
+        if (month != null && month != previousMonth) {
+          rows.add(month);
+          previousMonth = month;
+        }
+        if (month != null) months.putIfAbsent(month, () => []).add(tx);
+      }
+      rows.add(tx);
     }
 
     return RefreshIndicator(
       onRefresh: _fetchTransactions,
       child: ListView.builder(
+        key: ValueKey(_historyRevision),
+        physics: const AlwaysScrollableScrollPhysics(),
         padding: EdgeInsets.fromLTRB(
           ShellStyles.scaled(context, 16, min: 14, max: 18),
           ShellStyles.scaled(context, 4, min: 2, max: 8),
           ShellStyles.scaled(context, 16, min: 14, max: 18),
           ShellStyles.scaled(context, 16, min: 14, max: 18),
         ),
-        itemCount: groupedTransactions.length,
+        itemCount: rows.length + (_hasMore ? 1 : 0),
         itemBuilder: (context, index) {
-          final monthKey = groupedTransactions.keys.elementAt(index);
-          final txsForMonth = groupedTransactions[monthKey]!;
-          double monthTotal = 0;
-          String monthCurrency = _preferredCurrency;
-          for (var tx in txsForMonth) {
-            final txMap = tx as Map<String, dynamic>;
-            monthTotal += _displayAmountOf(txMap);
-            monthCurrency = _displayCurrencyOf(txMap);
-          }
-
-          return Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Padding(
-                padding: EdgeInsets.only(
-                  bottom: ShellStyles.scaled(context, 10, min: 8, max: 12),
-                  top: ShellStyles.scaled(context, 6, min: 4, max: 8),
-                ),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Text(
-                      monthKey,
+          if (index == rows.length) return _buildLoadMore();
+          final row = rows[index];
+          if (row is String) {
+            return Padding(
+              padding: const EdgeInsets.only(top: 8, bottom: 12),
+              child: Row(
+                children: [
+                  Expanded(
+                    child: Text(
+                      row,
                       style: TextStyle(
                         color: ShellStyles.textPrimary(context),
                         fontWeight: FontWeight.bold,
@@ -880,28 +1009,54 @@ class _ReceiptsTabState extends State<ReceiptsTab>
                         ),
                       ),
                     ),
-                    Text(
-                      _formatMoney(monthCurrency, monthTotal),
-                      style: TextStyle(
-                        color: ShellStyles.textMuted(context),
-                        fontSize: ShellStyles.scaled(
-                          context,
-                          13,
-                          min: 12,
-                          max: 14,
+                  ),
+                  // The last month may continue on the next page.
+                  if (!_hasMore || row != previousMonth)
+                    Flexible(
+                      child: Text(
+                        _formatTotals(_expenseTotals(months[row]!)),
+                        textAlign: TextAlign.end,
+                        style: TextStyle(
+                          color: ShellStyles.textMuted(context),
+                          fontSize: 13,
                         ),
                       ),
                     ),
-                  ],
+                ],
+              ),
+            );
+          }
+          return _buildTransactionCard(row as Map<String, dynamic>);
+        },
+      ),
+    );
+  }
+
+  Widget _buildLoadMore() {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 16),
+      child: Column(
+        children: [
+          if (_loadMoreError != null) ...[
+            Text(_loadMoreError!, textAlign: TextAlign.center),
+            const SizedBox(height: 8),
+          ],
+          if (_isLoadingMore)
+            const Center(child: CircularProgressIndicator())
+          else
+            OutlinedButton.icon(
+              key: const ValueKey('receipt-load-more'),
+              onPressed: _isRefreshing ? null : _loadMore,
+              icon: const Icon(Icons.expand_more),
+              label: Text(
+                context.tr(
+                  _loadMoreError == null
+                      ? 'receipts_load_more'
+                      : 'common_retry',
                 ),
               ),
-              ...txsForMonth.map((tx) => _buildTransactionCard(tx)),
-              SizedBox(
-                height: ShellStyles.scaled(context, 12, min: 10, max: 14),
-              ),
-            ],
-          );
-        },
+            ),
+        ],
       ),
     );
   }
@@ -1255,23 +1410,18 @@ class _ReceiptsTabState extends State<ReceiptsTab>
   }
 
   Widget _buildBottomSummary() {
-    double totalPeriodExpense = 0;
-    double totalPeriodSavings = 0;
-    String totalCurrency = _preferredCurrency;
+    final savingsByCurrency = <String, double>{};
 
     final visibleTransactions = _visibleTransactions;
     for (var tx in visibleTransactions) {
       final txMap = tx as Map<String, dynamic>;
-      totalPeriodExpense += _displayAmountOf(txMap);
-      totalCurrency = _displayCurrencyOf(txMap);
+      final currency = _displayCurrencyOf(txMap);
 
       final itemsRaw = txMap['items'];
       if (itemsRaw is List) {
         final amountTotal =
             double.tryParse(txMap['amount_total']?.toString() ?? '0') ?? 0;
-        final displayAmountTotal =
-            double.tryParse(txMap['display_amount_total']?.toString() ?? '0') ??
-            0;
+        final displayAmountTotal = _displayAmountOf(txMap);
         final rate = amountTotal > 0 ? displayAmountTotal / amountTotal : 1.0;
 
         double receiptSourceSavings = 0;
@@ -1304,7 +1454,8 @@ class _ReceiptsTabState extends State<ReceiptsTab>
         }
 
         if (receiptSourceSavings > 0) {
-          totalPeriodSavings += receiptSourceSavings * rate;
+          savingsByCurrency[currency] =
+              (savingsByCurrency[currency] ?? 0) + receiptSourceSavings * rate;
         }
       }
     }
@@ -1336,7 +1487,9 @@ class _ReceiptsTabState extends State<ReceiptsTab>
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   Text(
-                    _selectedPeriod == PeriodFilter.allTime
+                    _hasMore
+                        ? context.tr('receipts_loaded_total')
+                        : _selectedPeriod == PeriodFilter.allTime
                         ? context.tr('receipts_history_total')
                         : context.tr('receipts_total_for_period'),
                     style: TextStyle(
@@ -1351,7 +1504,7 @@ class _ReceiptsTabState extends State<ReceiptsTab>
                   ),
                   const SizedBox(height: 3),
                   Text(
-                    _formatMoney(totalCurrency, totalPeriodExpense),
+                    _formatTotals(_expenseTotals(visibleTransactions)),
                     style: TextStyle(
                       color: ShellStyles.textPrimary(context),
                       fontWeight: FontWeight.w700,
@@ -1373,7 +1526,7 @@ class _ReceiptsTabState extends State<ReceiptsTab>
               children: [
                 Text(
                   context.tr(
-                    'receipts_count',
+                    _hasMore ? 'receipts_loaded_count' : 'receipts_count',
                     params: {'count': visibleTransactions.length.toString()},
                   ),
                   style: TextStyle(
@@ -1387,9 +1540,9 @@ class _ReceiptsTabState extends State<ReceiptsTab>
                     fontWeight: FontWeight.w600,
                   ),
                 ),
-                if (totalPeriodSavings > 0)
+                if (savingsByCurrency.isNotEmpty)
                   Text(
-                    '$savingsLabel: ${_formatMoney(totalCurrency, totalPeriodSavings)}',
+                    '$savingsLabel: ${_formatTotals(savingsByCurrency)}',
                     style: TextStyle(
                       color: primaryColor,
                       fontSize: ShellStyles.scaled(
