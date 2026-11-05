@@ -9,6 +9,7 @@ import 'analytics_screen.dart';
 import 'bill_reminders_screen.dart';
 import 'budget_calculator_screen.dart';
 import 'categories_screen.dart';
+import 'duplicate_finder_screen.dart';
 import 'labels_screen.dart';
 import 'receipt_manager_screen.dart';
 import 'receipt_upload_screen.dart';
@@ -80,7 +81,9 @@ class ToolsScreen extends StatelessWidget {
                     onTap: () => _open(context, const ReceiptUploadScreen()),
                   ),
                 ),
-                SizedBox(width: ShellStyles.scaled(context, 8, min: 6, max: 10)),
+                SizedBox(
+                  width: ShellStyles.scaled(context, 8, min: 6, max: 10),
+                ),
                 Expanded(
                   child: _buildShortcutCard(
                     context,
@@ -90,7 +93,9 @@ class ToolsScreen extends StatelessWidget {
                     onTap: () => _open(context, const AnalyticsScreen()),
                   ),
                 ),
-                SizedBox(width: ShellStyles.scaled(context, 8, min: 6, max: 10)),
+                SizedBox(
+                  width: ShellStyles.scaled(context, 8, min: 6, max: 10),
+                ),
                 Expanded(
                   child: _buildShortcutCard(
                     context,
@@ -109,6 +114,12 @@ class ToolsScreen extends StatelessWidget {
               context,
               title: context.tr('tools_core'),
               tiles: [
+                _ToolTileData(
+                  icon: Icons.content_copy_outlined,
+                  title: context.tr('duplicates_title'),
+                  subtitle: context.tr('duplicates_subtitle'),
+                  onTap: () => _open(context, const DuplicateFinderScreen()),
+                ),
                 _ToolTileData(
                   icon: AppIcons.receipt,
                   title: context.tr('tools_receipt_manager'),
@@ -316,7 +327,9 @@ class ToolsScreen extends StatelessWidget {
                 borderRadius: BorderRadius.circular(
                   ShellStyles.scaled(context, 12, min: 10, max: 14),
                 ),
-                border: Border.all(color: ShellStyles.accentTone(context).border),
+                border: Border.all(
+                  color: ShellStyles.accentTone(context).border,
+                ),
               ),
               child: Icon(
                 tile.icon,

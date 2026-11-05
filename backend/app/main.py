@@ -16,6 +16,7 @@ from app.api.routers import (
     billing,
     categories,
     data,
+    duplicates,
     feature_requests,
     item_translations,
     labels,
@@ -163,6 +164,7 @@ app.include_router(data.router)
 app.include_router(feature_requests.router)
 app.include_router(feature_requests.internal_router)
 app.include_router(planning.router)
+app.include_router(duplicates.router)
 if billing.should_include_dev_billing_router():
     app.include_router(billing.dev_router)
 

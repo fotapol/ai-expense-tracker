@@ -26,6 +26,7 @@ expense, and saving normalized transactions for review and analytics.
 - Google/Firebase authentication.
 - Receipt upload and scan flow from the Flutter app.
 - Transaction, item, category, label, analytics, and planning screens.
+- Duplicate finder with receipt comparison, verified image fingerprints, and explicit keep-both/keep-selected review.
 - Subscription entitlement plumbing through RevenueCat.
 - Account deletion and data export/import support.
 

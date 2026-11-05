@@ -1,5 +1,6 @@
 """Label API endpoints for creating, listing, and managing user labels."""
 
+import datetime as dt
 import logging
 import uuid
 
@@ -133,7 +134,7 @@ async def assign_label(
         select(Transaction).where(
             Transaction.id == payload.transaction_id,
             Transaction.user_id == current_user.id,
-        )
+        ).with_for_update()
     ).first()
     if transaction is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Transaction not found.")
@@ -163,6 +164,8 @@ async def assign_label(
         label_id=payload.label_id,
     )
     session.add(link)
+    transaction.updated_at = dt.datetime.now(dt.UTC)
+    session.add(transaction)
     try:
         session.commit()
     except IntegrityError:
@@ -184,7 +187,7 @@ async def unassign_label(
         select(Transaction).where(
             Transaction.id == payload.transaction_id,
             Transaction.user_id == current_user.id,
-        )
+        ).with_for_update()
     ).first()
     if transaction is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Transaction not found.")
@@ -207,5 +210,7 @@ async def unassign_label(
     ).first()
     if link:
         session.delete(link)
+        transaction.updated_at = dt.datetime.now(dt.UTC)
+        session.add(transaction)
         session.commit()
     return {"status": "unassigned"}

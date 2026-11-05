@@ -11,6 +11,7 @@ import 'session_invalidation.dart';
 
 part 'api_clients/billing_api_client.dart';
 part 'api_clients/data_transfer_api_client.dart';
+part 'api_clients/duplicates_api_client.dart';
 part 'api_clients/feature_requests_api_client.dart';
 part 'api_clients/item_translations_api_client.dart';
 part 'api_clients/labels_api_client.dart';
@@ -40,6 +41,26 @@ class ApiCategoryLimitException implements Exception {
 }
 
 class ApiClient {
+  static Future<Map<String, dynamic>> listDuplicates({
+    int page = 1,
+    String? transactionId,
+  }) => DuplicatesApiClient.list(page: page, transactionId: transactionId);
+
+  static Future<void> dismissDuplicate(String firstId, String secondId) =>
+      DuplicatesApiClient.dismiss(firstId, secondId);
+
+  static Future<Map<String, dynamic>> resolveDuplicate({
+    required String keepId,
+    required String discardId,
+    required String keepUpdatedAt,
+    required String discardUpdatedAt,
+  }) => DuplicatesApiClient.resolve(
+    keepId: keepId,
+    discardId: discardId,
+    keepUpdatedAt: keepUpdatedAt,
+    discardUpdatedAt: discardUpdatedAt,
+  );
+
   static const String apiBaseUrl = String.fromEnvironment(
     'API_BASE_URL',
     defaultValue: 'http://10.0.2.2:8000',

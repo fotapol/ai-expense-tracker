@@ -1,5 +1,6 @@
 """Transaction route handlers."""
 
+import datetime as dt
 import logging
 import uuid
 from decimal import Decimal
@@ -382,7 +383,7 @@ async def update_transaction(
         select(Transaction).where(
             Transaction.id == transaction_id,
             _build_transaction_write_visibility_predicate(session, current_user),
-        )
+        ).with_for_update()
     ).first()
 
     if transaction is None:
@@ -430,6 +431,8 @@ async def update_transaction(
     )
     for key, value in update_data.items():
         setattr(transaction, key, value)
+    # Version child edits too: a stale comparison must not remove edited items.
+    transaction.updated_at = dt.datetime.now(dt.UTC)
     _clear_extraction_warnings_after_user_confirmation(
         session,
         transaction=transaction,
@@ -559,7 +562,7 @@ async def delete_transaction_item(
         select(Transaction).where(
             Transaction.id == transaction_id,
             _build_transaction_write_visibility_predicate(session, current_user),
-        )
+        ).with_for_update()
     ).first()
     if transaction is None:
         raise HTTPException(
@@ -588,6 +591,7 @@ async def delete_transaction_item(
         )
     ).first()
     transaction.amount_total = quantize_amount(remaining_total or Decimal("0.00"))
+    transaction.updated_at = dt.datetime.now(dt.UTC)
     session.add(transaction)
     session.commit()
     return None
