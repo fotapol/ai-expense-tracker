@@ -306,6 +306,10 @@ class ApiClient {
     List<String>? labelIds,
     String? labelId,
     String? targetCurrency,
+    int? page,
+    int pageSize = 200,
+    String sortBy = 'newest',
+    bool needsReview = false,
   }) => TransactionApiClient.listTransactions(
     fromDate: fromDate,
     toDate: toDate,
@@ -315,6 +319,10 @@ class ApiClient {
     labelIds: labelIds,
     labelId: labelId,
     targetCurrency: targetCurrency,
+    page: page,
+    pageSize: pageSize,
+    sortBy: sortBy,
+    needsReview: needsReview,
   );
 
   static Future<Map<String, dynamic>> getTransactionsSummary({

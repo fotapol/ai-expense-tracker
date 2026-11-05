@@ -29,9 +29,11 @@ from app.schemas.transactions import (
     TransactionRead,
     TransactionUpdateRequest,
 )
+from app.services.transactions.listing import list_transaction_page
 from app.services.transactions.read_models import (
     _apply_display_conversion,
     _build_category_filter_predicate,
+    _build_needs_review_predicate,
     _build_subcategory_filter_predicate,
     _build_transaction_read,
     _build_transaction_read_visibility_predicate,
@@ -237,12 +239,15 @@ async def list_transactions(
         query = query.where(Transaction.source == filters.source)
     if filters.currency:
         query = query.where(Transaction.currency == filters.currency)
+    if filters.needs_review:
+        query = query.where(_build_needs_review_predicate())
 
-    # Apply pagination
-    query = query.order_by(Transaction.occurred_at.desc())
-    query = query.offset(filters.offset).limit(filters.page_size)
-
-    transactions = session.exec(query).all()
+    transactions = list_transaction_page(
+        session=session,
+        query=query,
+        filters=filters,
+        target_currency=target_currency,
+    )
 
     # We could optionally eagerly load or fetch items here, but a list view
     # typically doesn't need every internal item payload.
