@@ -18,6 +18,7 @@ import '../l10n/app_localizations.dart';
 import '../main.dart';
 import 'receipt_item_edit_screen.dart';
 import 'receipt_photo_view_screen.dart';
+import 'duplicate_finder_screen.dart';
 import 'transaction_edit/transaction_edit_controller.dart';
 
 part 'transaction_edit/transaction_edit_screen_widgets.dart';
@@ -48,6 +49,43 @@ class _TransactionEditScreenState extends State<TransactionEditScreen> {
   Color get _successColor => ShellStyles.success(context);
 
   final TransactionEditController _controller = TransactionEditController();
+  bool _hasDuplicates = false;
+  int _duplicateRequest = 0;
+
+  Future<void> _loadDuplicates() async {
+    final id = _transactionId;
+    final request = ++_duplicateRequest;
+    if (id == null) return;
+    try {
+      final data = await ApiClient.listDuplicates(transactionId: id);
+      if (!mounted || request != _duplicateRequest) return;
+      setState(
+        () => _hasDuplicates = (data['items'] as List? ?? []).isNotEmpty,
+      );
+    } catch (_) {
+      // Optional review must not prevent opening or editing a transaction.
+      if (mounted && request == _duplicateRequest) {
+        setState(() => _hasDuplicates = false);
+      }
+    }
+  }
+
+  Future<void> _reviewDuplicates() async {
+    if (_hasLocalEdits) return;
+    final deletedIds = await Navigator.push<List<String>>(
+      context,
+      MaterialPageRoute(
+        builder: (_) => DuplicateFinderScreen(transactionId: _transactionId),
+      ),
+    );
+    if (!mounted) return;
+    if (deletedIds?.contains(_transactionId) == true) {
+      _hasLocalEdits = false;
+      Navigator.pop(context, true);
+    } else {
+      await _loadDuplicates();
+    }
+  }
 
   bool get _isLoading => _controller.isLoading;
   set _isLoading(bool value) => _controller.isLoading = value;
@@ -190,6 +228,7 @@ class _TransactionEditScreenState extends State<TransactionEditScreen> {
       });
 
       unawaited(_loadReceiptPreview());
+      unawaited(_loadDuplicates());
 
       if (effectiveItemsLanguage.isNotEmpty) {
         unawaited(
@@ -250,6 +289,7 @@ class _TransactionEditScreenState extends State<TransactionEditScreen> {
             content: Text(context.tr('transaction_created_successfully')),
           ),
         );
+        unawaited(_loadDuplicates());
         return;
       }
 
@@ -1324,6 +1364,27 @@ class _TransactionEditScreenState extends State<TransactionEditScreen> {
               const SizedBox(height: 10),
             ],
             _buildTopControlRow(),
+            if (_hasDuplicates) ...[
+              const SizedBox(height: 10),
+              Card(
+                child: Padding(
+                  padding: const EdgeInsets.all(12),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(context.tr('duplicates_banner')),
+                      if (_hasLocalEdits)
+                        Text(context.tr('duplicates_save_first')),
+                      TextButton.icon(
+                        onPressed: _hasLocalEdits ? null : _reviewDuplicates,
+                        icon: const Icon(Icons.content_copy_outlined),
+                        label: Text(context.tr('duplicates_review')),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ],
             if (hasWarnings) ...[
               const SizedBox(height: 10),
               _buildWarningsBanner(

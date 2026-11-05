@@ -28,6 +28,7 @@ from app.models.shared.enums import (
 )
 from app.models.shared.timestamps import TimestampedModel
 from app.models.taxonomy.category import Category, CategoryBase
+from app.models.transactions.duplicate_dismissal import DuplicateDismissal
 from app.models.transactions.transaction import Transaction, TransactionBase
 from app.models.transactions.transaction_item import TransactionItem
 from app.models.translations.item_translation import ItemTranslation
@@ -42,6 +43,7 @@ __all__ = [
     "Category",
     "CategoryBase",
     "CategoryScope",
+    "DuplicateDismissal",
     "Entitlement",
     "EntitlementScopeType",
     "EntitlementStatus",

@@ -18,6 +18,7 @@ Flow per message:
 import asyncio
 import base64
 import datetime as dt
+import hashlib
 import json
 import logging
 import time
@@ -680,6 +681,9 @@ def process_receipt(receipt_id: str) -> None:
                 },
             )
             image_bytes = download_object(key=receipt.storage_key, bucket=receipt.storage_bucket)
+            receipt.sha256 = hashlib.sha256(image_bytes).hexdigest()
+            receipt.sha256_verified = True
+            session.add(receipt)
             logger.info(
                 "Receipt object downloaded.",
                 extra={
