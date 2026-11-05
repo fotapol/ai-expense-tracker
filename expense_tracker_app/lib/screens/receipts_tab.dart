@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import '../core/auto_refresh_state_mixin.dart';
 import '../core/api_client.dart';
 import '../core/category_style.dart';
@@ -41,11 +42,16 @@ class _ReceiptsTabState extends State<ReceiptsTab>
   String _preferredCurrency = 'EUR';
   String _selectedPeriod = PeriodFilter.allTime;
   PeriodDateRange? _selectedCustomRange;
-  String _merchantSearch = '';
+  String _search = '';
   List<String> _selectedCategoryIds = [];
   List<String> _selectedSubcategoryIds = [];
   List<String> _selectedLabelIds = [];
   bool _reviewOnly = false;
+  String? _minAmount;
+  String? _maxAmount;
+  String? _currencyFilter;
+  String? _sourceFilter;
+  String? _statusFilter;
   static const _pageSize = 50;
   static const _sortLabels = {
     'newest': 'receipts_sort_newest',
@@ -68,19 +74,28 @@ class _ReceiptsTabState extends State<ReceiptsTab>
   bool get _hasScopedFilters =>
       _reviewOnly ||
       _selectedPeriod != PeriodFilter.allTime ||
-      _merchantSearch.isNotEmpty ||
+      _search.isNotEmpty ||
       _selectedCategoryIds.isNotEmpty ||
       _selectedSubcategoryIds.isNotEmpty ||
-      _selectedLabelIds.isNotEmpty;
+      _selectedLabelIds.isNotEmpty ||
+      _minAmount != null ||
+      _maxAmount != null ||
+      _currencyFilter != null ||
+      _sourceFilter != null ||
+      _statusFilter != null;
 
   int get _activeFilterCount {
     var count = 0;
     if (_reviewOnly) count++;
     if (_selectedPeriod != PeriodFilter.allTime) count++;
-    if (_merchantSearch.isNotEmpty) count++;
+    if (_search.isNotEmpty) count++;
     if (_selectedCategoryIds.isNotEmpty) count++;
     if (_selectedSubcategoryIds.isNotEmpty) count++;
     if (_selectedLabelIds.isNotEmpty) count++;
+    if (_minAmount != null || _maxAmount != null) count++;
+    if (_currencyFilter != null) count++;
+    if (_sourceFilter != null) count++;
+    if (_statusFilter != null) count++;
     return count;
   }
 
@@ -239,7 +254,12 @@ class _ReceiptsTabState extends State<ReceiptsTab>
       needsReview: _reviewOnly,
       fromDate: range.start,
       toDate: _selectedPeriod == PeriodFilter.custom ? range.end : null,
-      merchantNameSearch: _merchantSearch.isEmpty ? null : _merchantSearch,
+      search: _search.isEmpty ? null : _search,
+      minAmount: _minAmount,
+      maxAmount: _maxAmount,
+      currency: _currencyFilter,
+      source: _sourceFilter,
+      status: _statusFilter,
       categoryIds: _selectedCategoryIds.isEmpty ? null : _selectedCategoryIds,
       subcategoryIds: _selectedSubcategoryIds.isEmpty
           ? null
@@ -337,12 +357,17 @@ class _ReceiptsTabState extends State<ReceiptsTab>
     _searchController.clear();
     setState(() {
       _reviewOnly = false;
-      _merchantSearch = '';
+      _search = '';
       _selectedPeriod = PeriodFilter.allTime;
       _selectedCustomRange = null;
       _selectedCategoryIds = <String>[];
       _selectedSubcategoryIds = <String>[];
       _selectedLabelIds = <String>[];
+      _minAmount = null;
+      _maxAmount = null;
+      _currencyFilter = null;
+      _sourceFilter = null;
+      _statusFilter = null;
     });
     await _fetchTransactions();
   }
@@ -355,6 +380,12 @@ class _ReceiptsTabState extends State<ReceiptsTab>
       selectedCategoryIds: _selectedCategoryIds,
       selectedSubcategoryIds: _selectedSubcategoryIds,
       selectedLabelIds: _selectedLabelIds,
+      enableReceiptFilters: true,
+      selectedMinAmount: _minAmount,
+      selectedMaxAmount: _maxAmount,
+      selectedCurrency: _currencyFilter,
+      selectedSource: _sourceFilter,
+      selectedStatus: _statusFilter,
     );
 
     if (result != null && mounted) {
@@ -366,6 +397,11 @@ class _ReceiptsTabState extends State<ReceiptsTab>
           result['subcategory_ids'] ?? [],
         );
         _selectedLabelIds = List<String>.from(result['label_ids'] ?? []);
+        _minAmount = result['min_amount'] as String?;
+        _maxAmount = result['max_amount'] as String?;
+        _currencyFilter = result['currency'] as String?;
+        _sourceFilter = result['source'] as String?;
+        _statusFilter = result['status'] as String?;
       });
       _fetchTransactions();
     }
@@ -478,8 +514,10 @@ class _ReceiptsTabState extends State<ReceiptsTab>
               ),
               child: TextField(
                 controller: _searchController,
+                textInputAction: TextInputAction.search,
+                inputFormatters: [LengthLimitingTextInputFormatter(200)],
                 decoration: InputDecoration(
-                  hintText: context.tr('receipts_search_hint'),
+                  hintText: context.tr('filters_search_hint'),
                   prefixIcon: Icon(
                     Icons.search,
                     color: ShellStyles.textMuted(context),
@@ -494,15 +532,13 @@ class _ReceiptsTabState extends State<ReceiptsTab>
                   fontSize: ShellStyles.scaled(context, 14, min: 13, max: 15),
                 ),
                 onChanged: (value) {
-                  if (value.trim().isEmpty && _merchantSearch.isNotEmpty) {
-                    setState(() => _merchantSearch = '');
+                  if (value.trim().isEmpty && _search.isNotEmpty) {
+                    setState(() => _search = '');
                     _fetchTransactions();
                   }
                 },
                 onSubmitted: (_) {
-                  setState(
-                    () => _merchantSearch = _searchController.text.trim(),
-                  );
+                  setState(() => _search = _searchController.text.trim());
                   _fetchTransactions();
                 },
               ),
@@ -639,6 +675,57 @@ class _ReceiptsTabState extends State<ReceiptsTab>
 
   Widget _buildActiveFilterChips() {
     final chips = <Widget>[
+      if (_currencyFilter != null)
+        _buildFilterChip(
+          _currencyFilter!,
+          icon: Icons.currency_exchange,
+          onDeleted: () {
+            setState(() {
+              _currencyFilter = null;
+              _minAmount = null;
+              _maxAmount = null;
+            });
+            _fetchTransactions();
+          },
+        ),
+      if (_minAmount != null || _maxAmount != null)
+        _buildFilterChip(
+          '${_currencyFilter ?? ''} ${_minAmount ?? '…'} – ${_maxAmount ?? '…'}',
+          icon: Icons.payments_outlined,
+          onDeleted: () {
+            setState(() {
+              _minAmount = null;
+              _maxAmount = null;
+            });
+            _fetchTransactions();
+          },
+        ),
+      if (_sourceFilter != null)
+        _buildFilterChip(
+          context.tr(
+            _sourceFilter == 'RECEIPT'
+                ? 'filters_scanned'
+                : _sourceFilter == 'MANUAL'
+                ? 'filters_manual'
+                : 'filters_imported',
+          ),
+          icon: Icons.input,
+          onDeleted: () {
+            setState(() => _sourceFilter = null);
+            _fetchTransactions();
+          },
+        ),
+      if (_statusFilter != null)
+        _buildFilterChip(
+          context.tr(
+            _statusFilter == 'DRAFT' ? 'receipts_draft' : 'filters_confirmed',
+          ),
+          icon: Icons.check_circle_outline,
+          onDeleted: () {
+            setState(() => _statusFilter = null);
+            _fetchTransactions();
+          },
+        ),
       if (_reviewOnly)
         _buildFilterChip(
           context.tr('receipts_filter_needs_review'),
@@ -666,13 +753,13 @@ class _ReceiptsTabState extends State<ReceiptsTab>
             _fetchTransactions();
           },
         ),
-      if (_merchantSearch.isNotEmpty)
+      if (_search.isNotEmpty)
         _buildFilterChip(
-          _merchantSearch,
-          icon: Icons.storefront_outlined,
+          _search,
+          icon: Icons.search,
           onDeleted: () {
             _searchController.clear();
-            setState(() => _merchantSearch = '');
+            setState(() => _search = '');
             _fetchTransactions();
           },
         ),
@@ -767,7 +854,10 @@ class _ReceiptsTabState extends State<ReceiptsTab>
               ],
             ),
             const SizedBox(height: 8),
-            Wrap(spacing: 8, runSpacing: 8, children: chips),
+            SingleChildScrollView(
+              scrollDirection: Axis.horizontal,
+              child: Row(spacing: 8, children: chips),
+            ),
           ],
         ),
       ),

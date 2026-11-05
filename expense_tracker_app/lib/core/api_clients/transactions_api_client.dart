@@ -171,6 +171,12 @@ class TransactionApiClient {
     DateTime? fromDate,
     DateTime? toDate,
     String? merchantNameSearch,
+    String? search,
+    String? minAmount,
+    String? maxAmount,
+    String? currency,
+    String? source,
+    String? status,
     List<String>? categoryIds,
     List<String>? subcategoryIds,
     List<String>? labelIds,
@@ -189,6 +195,18 @@ class TransactionApiClient {
     // Existing analytics callers need the whole scope. History passes an explicit
     // page so it can load incrementally without truncating those other callers.
     final params = <String>['page_size=$pageSize', 'sort_by=$sortBy'];
+    for (final entry in {
+      'search': search,
+      'min_amount': minAmount,
+      'max_amount': maxAmount,
+      'currency': currency,
+      'source': source,
+      'status': status,
+    }.entries) {
+      if (entry.value != null && entry.value!.isNotEmpty) {
+        params.add('${entry.key}=${Uri.encodeComponent(entry.value!)}');
+      }
+    }
     if (needsReview) params.add('needs_review=true');
     if (fromDate != null) {
       params.add('from_occurred_at=${fromDate.toUtc().toIso8601String()}');

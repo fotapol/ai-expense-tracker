@@ -34,6 +34,7 @@ from app.services.fx_rates import load_cached_rate_snapshot
 from app.services.transactions.listing import list_transaction_page
 from app.services.transactions.read_models import (
     _apply_display_conversion,
+    _apply_transaction_search_filters,
     _build_category_filter_predicate,
     _build_needs_review_predicate,
     _build_subcategory_filter_predicate,
@@ -243,6 +244,8 @@ async def list_transactions(
         query = query.where(Transaction.currency == filters.currency)
     if filters.needs_review:
         query = query.where(_build_needs_review_predicate())
+
+    query = _apply_transaction_search_filters(query, filters)
 
     rate_snapshot = (
         load_cached_rate_snapshot(session, quote_currency=target_currency)

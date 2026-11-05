@@ -8,8 +8,11 @@ from decimal import Decimal
 from types import SimpleNamespace
 
 import pytest
+from fastapi import HTTPException
 from pydantic import ValidationError
 from sqlalchemy import JSON, Column, MetaData, Table, Uuid, event, insert
+from sqlalchemy.dialects.postgresql import JSONB
+from sqlalchemy.ext.compiler import compiles
 from sqlmodel import Session, create_engine, select
 
 from app.models.fx.exchange_rate import ExchangeRate
@@ -23,6 +26,11 @@ from app.services.transactions.read_models import _build_filtered_transaction_id
 
 OWNER = uuid.UUID(int=10000)
 DAY = dt.datetime(2026, 1, 10, 12, tzinfo=dt.UTC)
+
+
+@compiles(JSONB, "sqlite")
+def compile_jsonb_sqlite(_type, _compiler, **_kwargs):
+    return "JSON"
 
 
 @pytest.fixture
@@ -44,6 +52,7 @@ def session():
         )
 
     Transaction.__table__.create(engine)
+    TransactionItem.__table__.create(engine)
     ExchangeRate.__table__.create(engine)
     extractions = Table(
         "receipt_extractions",
@@ -356,3 +365,203 @@ def test_sort_and_pagination_reject_invalid_input():
     ]:
         with pytest.raises(ValidationError):
             TransactionListFilter(**payload)
+
+
+@pytest.mark.parametrize(
+    "field",
+    [
+        "description",
+        "raw_name",
+        "translatable_name",
+        "expanded_name",
+        "normalized_display_name",
+        "brand_name",
+        "product_type",
+    ],
+)
+def test_item_search_finds_older_transactions_in_every_name_field(session, field):
+    for number in range(1, 66):
+        add(session, number, merchant="Unrelated shop")
+    for line in (1, 2):
+        values = {"description": "An item", field: "Fresh Coffee Beans"}
+        session.add(
+            TransactionItem(
+                transaction_id=uuid.UUID(int=1),
+                line_no=line,
+                amount=1,
+                category_id=uuid.uuid4(),
+                **values,
+            )
+        )
+    session.commit()
+    assert [row.id.int for row in page(session, search="  cOfFeE  ")] == [1]
+
+
+def test_search_combines_merchant_and_items_and_respects_user_scope(session):
+    add(session, 1, merchant="Coffee shop")
+    add(session, 2, merchant="Other shop")
+    other = add(session, 3, merchant="Coffee shop")
+    other.user_id = uuid.uuid4()
+    session.add(
+        TransactionItem(
+            transaction_id=uuid.UUID(int=2),
+            line_no=1,
+            description="Coffee",
+            amount=1,
+            category_id=uuid.uuid4(),
+        )
+    )
+    session.commit()
+    assert [row.id.int for row in page(session, search="coffee")] == [2, 1]
+    assert [row.id.int for row in page(session, search="coffee", merchant_name_search="Other")] == [
+        2
+    ]
+    assert [row.id.int for row in page(session, search="   ")] == [2, 1]
+
+
+@pytest.mark.parametrize("text", ["%", "_", "\\"])
+def test_search_treats_sql_wildcards_and_escape_characters_literally(session, text):
+    add(session, 1, merchant=f"Store {text}")
+    add(session, 2, merchant="Store everything")
+    add(session, 3, merchant="Different")
+    session.add(
+        TransactionItem(
+            transaction_id=uuid.UUID(int=3),
+            line_no=1,
+            description=f"Item {text}",
+            amount=1,
+            category_id=uuid.uuid4(),
+        )
+    )
+    session.commit()
+    assert [row.id.int for row in page(session, search=text)] == [3, 1]
+
+
+def test_combined_search_amount_currency_source_status_filters_precede_pagination(session):
+    for number in range(1, 126):
+        add(session, number, merchant="Coffee shop", amount="20.25", source="MANUAL")
+    add(session, 200, merchant="Coffee shop", amount="20.25", currency="USD", source="MANUAL")
+    add(session, 201, merchant="Coffee shop", amount="20.26", source="MANUAL")
+    add(session, 202, merchant="Coffee shop", amount="20.25", source="IMPORTED")
+    draft = add(session, 203, merchant="Coffee shop", amount="20.25", source="MANUAL")
+    draft.status = "DRAFT"
+    add(session, 204, merchant="Other shop", amount="20.25", source="MANUAL")
+    session.commit()
+    filters = dict(
+        search="coffee",
+        min_amount="20.25",
+        max_amount="20.25",
+        currency="EUR",
+        source="MANUAL",
+        status="CONFIRMED",
+        sort_by="oldest",
+    )
+    pages = [page(session, **filters, page=i) for i in (1, 2, 3)]
+    assert [len(rows) for rows in pages] == [50, 50, 25]
+    assert [row.id.int for rows in pages for row in rows] == list(range(1, 126))
+    assert [row.id.int for row in page(session, source="IMPORTED")] == [202]
+    assert [row.id.int for row in page(session, status="DRAFT")] == [203]
+    assert [row.id.int for row in page(session, currency="USD")] == [200]
+
+
+def test_amount_bounds_include_zero_and_refunds_and_exclude_unknown_totals(session):
+    for number, amount in enumerate(["-10.01", "-10", "0", "0.01", None], 1):
+        add(session, number, amount=amount)
+    session.commit()
+    assert [
+        row.id.int for row in page(session, currency="EUR", min_amount="-10", max_amount="0")
+    ] == [3, 2]
+    assert [row.id.int for row in page(session, currency="EUR", max_amount="0")] == [3, 2, 1]
+    assert [row.id.int for row in page(session, currency="EUR", min_amount="0")] == [4, 3]
+
+
+@pytest.mark.parametrize(
+    "filters",
+    [
+        dict(min_amount="0"),
+        dict(max_amount="0"),
+        dict(currency="EUR", min_amount="10", max_amount="9"),
+    ],
+)
+def test_invalid_amount_ranges_return_a_validation_error(session, filters):
+    with pytest.raises(HTTPException) as error:
+        page(session, **filters)
+    assert error.value.status_code == 422
+
+
+@pytest.mark.parametrize(
+    "filters",
+    [
+        dict(search="a" * 201),
+        dict(min_amount="1.001"),
+        dict(max_amount="NaN"),
+        dict(min_amount="10000000000"),
+    ],
+)
+def test_invalid_search_and_decimal_shapes_are_rejected(filters):
+    with pytest.raises(ValidationError):
+        TransactionListFilter(**filters)
+
+
+def test_http_history_search_and_validation_match_analytics_scope(session, monkeypatch):
+    import httpx
+    from fastapi import FastAPI
+
+    from app.api.routers import transactions_crud as router
+
+    add(session, 1, merchant="Coffee shop", amount="10.25", source="MANUAL")
+    add(session, 2, merchant="Different shop", amount="10.25", source="MANUAL")
+    session.add(
+        TransactionItem(
+            transaction_id=uuid.UUID(int=2),
+            line_no=1,
+            description="Ground coffee",
+            amount=1,
+            category_id=uuid.uuid4(),
+        )
+    )
+    session.commit()
+    for name in (
+        "_load_labels_by_transaction_id",
+        "_load_category_names_by_id",
+        "_load_warnings_by_receipt_id",
+        "_load_translation_lookup",
+    ):
+        monkeypatch.setattr(router, name, lambda *_args, **_kwargs: {})
+    app = FastAPI()
+    app.include_router(router.router)
+    app.state.limiter = router.limiter
+    monkeypatch.setattr(router.limiter, "enabled", False)
+    app.dependency_overrides[router.get_session] = lambda: session
+    app.dependency_overrides[router.get_current_user] = lambda: SimpleNamespace(
+        id=OWNER, default_currency="EUR", items_language=None
+    )
+    params = dict(
+        search="coffee",
+        currency="EUR",
+        min_amount="10.25",
+        max_amount="10.25",
+        source="MANUAL",
+        status="CONFIRMED",
+    )
+
+    async def check():
+        async with httpx.AsyncClient(
+            transport=httpx.ASGITransport(app), base_url="http://test"
+        ) as client:
+            response = await client.get("/v1/transactions", params=params)
+            assert response.status_code == 200, response.text
+            assert [row["id"] for row in response.json()] == [
+                str(row.id) for row in page(session, **params)
+            ]
+            for invalid in (
+                dict(min_amount="0"),
+                dict(max_amount="0"),
+                dict(currency="EUR", min_amount="10", max_amount="9"),
+                dict(currency="EUR", min_amount="1.001"),
+                dict(search="a" * 201),
+            ):
+                response = await client.get("/v1/transactions", params=invalid)
+                assert response.status_code == 422, response.text
+
+    asyncio.run(check())

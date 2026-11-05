@@ -1,3 +1,4 @@
+import 'package:currency_picker/currency_picker.dart';
 import 'package:flutter/material.dart';
 
 import '../core/api_client.dart';
@@ -15,6 +16,12 @@ class FilterBottomSheet extends StatefulWidget {
     this.selectedCategoryIds,
     this.selectedSubcategoryIds,
     this.selectedLabelIds,
+    this.enableReceiptFilters = false,
+    this.selectedMinAmount,
+    this.selectedMaxAmount,
+    this.selectedCurrency,
+    this.selectedSource,
+    this.selectedStatus,
   });
 
   final String selectedPeriod;
@@ -22,6 +29,12 @@ class FilterBottomSheet extends StatefulWidget {
   final List<String>? selectedCategoryIds;
   final List<String>? selectedSubcategoryIds;
   final List<String>? selectedLabelIds;
+  final bool enableReceiptFilters;
+  final String? selectedMinAmount;
+  final String? selectedMaxAmount;
+  final String? selectedCurrency;
+  final String? selectedSource;
+  final String? selectedStatus;
 
   static Future<Map<String, dynamic>?> show(
     BuildContext context, {
@@ -30,6 +43,12 @@ class FilterBottomSheet extends StatefulWidget {
     List<String>? selectedCategoryIds,
     List<String>? selectedSubcategoryIds,
     List<String>? selectedLabelIds,
+    bool enableReceiptFilters = false,
+    String? selectedMinAmount,
+    String? selectedMaxAmount,
+    String? selectedCurrency,
+    String? selectedSource,
+    String? selectedStatus,
   }) {
     return showModalBottomSheet<Map<String, dynamic>>(
       context: context,
@@ -44,6 +63,12 @@ class FilterBottomSheet extends StatefulWidget {
         selectedCategoryIds: selectedCategoryIds,
         selectedSubcategoryIds: selectedSubcategoryIds,
         selectedLabelIds: selectedLabelIds,
+        enableReceiptFilters: enableReceiptFilters,
+        selectedMinAmount: selectedMinAmount,
+        selectedMaxAmount: selectedMaxAmount,
+        selectedCurrency: selectedCurrency,
+        selectedSource: selectedSource,
+        selectedStatus: selectedStatus,
       ),
     );
   }
@@ -61,10 +86,26 @@ class _FilterBottomSheetState extends State<FilterBottomSheet> {
   List<dynamic> _categories = [];
   List<dynamic> _labels = [];
   bool _loadingCats = true;
+  final _amountFormKey = GlobalKey<FormState>();
+  late final TextEditingController _minAmount;
+  late final TextEditingController _maxAmount;
+  String? _currency;
+  String? _source;
+  String? _status;
+  late final List<String> _currencyCodes;
 
   @override
   void initState() {
     super.initState();
+    _minAmount = TextEditingController(text: widget.selectedMinAmount);
+    _maxAmount = TextEditingController(text: widget.selectedMaxAmount);
+    _currency = widget.selectedCurrency;
+    _source = widget.selectedSource;
+    _status = widget.selectedStatus;
+    _currencyCodes = {
+      ...CurrencyService().getAll().map((currency) => currency.code),
+      ?_currency,
+    }.toList()..sort();
     _selectedPeriod = widget.selectedPeriod;
     _selectedCustomRange = widget.selectedCustomRange;
     if (_selectedPeriod == PeriodFilter.custom &&
@@ -78,6 +119,13 @@ class _FilterBottomSheetState extends State<FilterBottomSheet> {
     );
     _selectedLabelIds = Set<String>.from(widget.selectedLabelIds ?? []);
     _loadData();
+  }
+
+  @override
+  void dispose() {
+    _minAmount.dispose();
+    _maxAmount.dispose();
+    super.dispose();
   }
 
   Future<void> _loadData() async {
@@ -105,6 +153,15 @@ class _FilterBottomSheetState extends State<FilterBottomSheet> {
     if (_selectedCategoryIds.isNotEmpty) count += 1;
     if (_selectedSubcategoryIds.isNotEmpty) count += 1;
     if (_selectedLabelIds.isNotEmpty) count += 1;
+    if (widget.enableReceiptFilters) {
+      if (_currency != null) count++;
+      if (_minAmount.text.trim().isNotEmpty ||
+          _maxAmount.text.trim().isNotEmpty) {
+        count++;
+      }
+      if (_source != null) count++;
+      if (_status != null) count++;
+    }
     return count;
   }
 
@@ -152,16 +209,33 @@ class _FilterBottomSheetState extends State<FilterBottomSheet> {
       _selectedCategoryIds.clear();
       _selectedSubcategoryIds.clear();
       _selectedLabelIds.clear();
+      _amountFormKey.currentState?.reset();
+      _minAmount.clear();
+      _maxAmount.clear();
+      _currency = null;
+      _source = null;
+      _status = null;
     });
   }
 
   void _apply() {
+    if (widget.enableReceiptFilters &&
+        !_amountFormKey.currentState!.validate()) {
+      return;
+    }
     Navigator.pop(context, {
       'period': _selectedPeriod,
       'custom_range': _selectedCustomRange,
       'category_ids': _selectedCategoryIds.toList(),
       'subcategory_ids': _selectedSubcategoryIds.toList(),
       'label_ids': _selectedLabelIds.toList(),
+      if (widget.enableReceiptFilters) ...{
+        'min_amount': _normalizedAmount(_minAmount.text),
+        'max_amount': _normalizedAmount(_maxAmount.text),
+        'currency': _currency,
+        'source': _source,
+        'status': _status,
+      },
     });
   }
 
@@ -329,147 +403,296 @@ class _FilterBottomSheetState extends State<FilterBottomSheet> {
 
   @override
   Widget build(BuildContext context) {
-    return DraggableScrollableSheet(
-      initialChildSize: 0.74,
-      minChildSize: 0.48,
-      maxChildSize: 0.92,
-      expand: false,
-      builder: (context, scrollController) {
-        return Column(
-          children: [
-            Container(
-              margin: const EdgeInsets.only(top: 12),
-              width: 40,
-              height: 4,
-              decoration: BoxDecoration(
-                color: ShellStyles.border(context),
-                borderRadius: BorderRadius.circular(2),
+    return Padding(
+      padding: EdgeInsets.only(bottom: MediaQuery.viewInsetsOf(context).bottom),
+      child: DraggableScrollableSheet(
+        initialChildSize: 0.74,
+        minChildSize: 0.48,
+        maxChildSize: 0.92,
+        expand: false,
+        builder: (context, scrollController) {
+          return Column(
+            children: [
+              Container(
+                margin: const EdgeInsets.only(top: 12),
+                width: 40,
+                height: 4,
+                decoration: BoxDecoration(
+                  color: ShellStyles.border(context),
+                  borderRadius: BorderRadius.circular(2),
+                ),
               ),
-            ),
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-              child: Row(
-                children: [
-                  Expanded(
-                    child: TextButton(
-                      onPressed: () => Navigator.pop(context),
-                      child: Text(
-                        context.tr('common_cancel'),
-                        textAlign: TextAlign.center,
-                        style: TextStyle(
-                          color: ShellStyles.textMuted(context),
-                          fontSize: 16,
+              Padding(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 16,
+                  vertical: 12,
+                ),
+                child: Row(
+                  children: [
+                    Expanded(
+                      child: TextButton(
+                        onPressed: () => Navigator.pop(context),
+                        child: Text(
+                          context.tr('common_cancel'),
+                          textAlign: TextAlign.center,
+                          style: TextStyle(
+                            color: ShellStyles.textMuted(context),
+                            fontSize: 16,
+                          ),
                         ),
                       ),
                     ),
-                  ),
-                  Expanded(
-                    child: Text(
-                      _activeFilterCount > 0
-                          ? context.tr(
-                              'filters_title_with_count',
-                              params: {'count': _activeFilterCount.toString()},
-                            )
-                          : context.tr('filters_title'),
-                      textAlign: TextAlign.center,
-                      style: TextStyle(
-                        color: ShellStyles.textPrimary(context),
-                        fontSize: 18,
-                        fontWeight: FontWeight.w800,
-                      ),
-                    ),
-                  ),
-                  Expanded(
-                    child: TextButton(
-                      onPressed: _apply,
+                    Expanded(
                       child: Text(
-                        context.tr('common_apply'),
+                        _activeFilterCount > 0
+                            ? context.tr(
+                                'filters_title_with_count',
+                                params: {
+                                  'count': _activeFilterCount.toString(),
+                                },
+                              )
+                            : context.tr('filters_title'),
                         textAlign: TextAlign.center,
                         style: TextStyle(
                           color: ShellStyles.textPrimary(context),
-                          fontSize: 16,
-                          fontWeight: FontWeight.w700,
+                          fontSize: 18,
+                          fontWeight: FontWeight.w800,
                         ),
                       ),
                     ),
-                  ),
-                ],
-              ),
-            ),
-            Expanded(
-              child: ListView(
-                controller: scrollController,
-                padding: const EdgeInsets.symmetric(horizontal: 16),
-                children: [
-                  _buildSectionTitle(
-                    icon: Icons.calendar_today_outlined,
-                    title: context.tr('filters_period'),
-                  ),
-                  const SizedBox(height: 10),
-                  _buildPeriodChips(),
-                  if (_selectedPeriod == PeriodFilter.custom &&
-                      _selectedCustomRange != null) ...[
-                    const SizedBox(height: 10),
-                    TextButton.icon(
-                      onPressed: _pickCustomRange,
-                      icon: const Icon(Icons.edit_calendar_outlined),
-                      label: Text(
-                        formatLocalizedDateRange(
-                          context,
-                          _selectedCustomRange!.start!,
-                          _selectedCustomRange!.end!,
+                    Expanded(
+                      child: TextButton(
+                        onPressed: _apply,
+                        child: Text(
+                          context.tr('common_apply'),
+                          textAlign: TextAlign.center,
+                          style: TextStyle(
+                            color: ShellStyles.textPrimary(context),
+                            fontSize: 16,
+                            fontWeight: FontWeight.w700,
+                          ),
                         ),
                       ),
                     ),
                   ],
-                  const SizedBox(height: 24),
-                  _buildSectionTitle(
-                    icon: Icons.category_outlined,
-                    title: context.tr('filters_category'),
-                  ),
-                  const SizedBox(height: 10),
-                  _buildCategoryChips(),
-                  const SizedBox(height: 24),
-                  _buildSectionTitle(
-                    icon: Icons.account_tree_outlined,
-                    title: context.tr('filters_subcategory'),
-                  ),
-                  const SizedBox(height: 10),
-                  _buildSubcategoryPicker(),
-                  if (_labels.isNotEmpty) ...[
+                ),
+              ),
+              Expanded(
+                child: ListView(
+                  controller: scrollController,
+                  padding: const EdgeInsets.symmetric(horizontal: 16),
+                  children: [
+                    _buildSectionTitle(
+                      icon: Icons.calendar_today_outlined,
+                      title: context.tr('filters_period'),
+                    ),
+                    const SizedBox(height: 10),
+                    _buildPeriodChips(),
+                    if (_selectedPeriod == PeriodFilter.custom &&
+                        _selectedCustomRange != null) ...[
+                      const SizedBox(height: 10),
+                      TextButton.icon(
+                        onPressed: _pickCustomRange,
+                        icon: const Icon(Icons.edit_calendar_outlined),
+                        label: Text(
+                          formatLocalizedDateRange(
+                            context,
+                            _selectedCustomRange!.start!,
+                            _selectedCustomRange!.end!,
+                          ),
+                        ),
+                      ),
+                    ],
+                    if (widget.enableReceiptFilters) ...[
+                      const SizedBox(height: 24),
+                      _buildReceiptFilters(),
+                    ],
                     const SizedBox(height: 24),
                     _buildSectionTitle(
-                      icon: Icons.label_outline,
-                      title: context.tr('filters_labels'),
+                      icon: Icons.category_outlined,
+                      title: context.tr('filters_category'),
                     ),
                     const SizedBox(height: 10),
-                    _buildLabelChips(),
-                  ],
-                  const SizedBox(height: 16),
-                  TextButton.icon(
-                    onPressed: _clearAll,
-                    icon: const Icon(
-                      Icons.filter_alt_off,
-                      color: ShellColors.softRed,
+                    _buildCategoryChips(),
+                    const SizedBox(height: 24),
+                    _buildSectionTitle(
+                      icon: Icons.account_tree_outlined,
+                      title: context.tr('filters_subcategory'),
                     ),
-                    label: const Text(
-                      'Clear scoped filters',
-                      style: TextStyle(
+                    const SizedBox(height: 10),
+                    _buildSubcategoryPicker(),
+                    if (_labels.isNotEmpty) ...[
+                      const SizedBox(height: 24),
+                      _buildSectionTitle(
+                        icon: Icons.label_outline,
+                        title: context.tr('filters_labels'),
+                      ),
+                      const SizedBox(height: 10),
+                      _buildLabelChips(),
+                    ],
+                    const SizedBox(height: 16),
+                    TextButton.icon(
+                      onPressed: _clearAll,
+                      icon: const Icon(
+                        Icons.filter_alt_off,
                         color: ShellColors.softRed,
-                        fontSize: 15,
-                        fontWeight: FontWeight.w600,
+                      ),
+                      label: Text(
+                        context.tr('common_clear_filters'),
+                        style: const TextStyle(
+                          color: ShellColors.softRed,
+                          fontSize: 15,
+                          fontWeight: FontWeight.w600,
+                        ),
                       ),
                     ),
-                  ),
-                  const SizedBox(height: 28),
-                ],
+                    const SizedBox(height: 28),
+                  ],
+                ),
               ),
-            ),
-          ],
-        );
-      },
+            ],
+          );
+        },
+      ),
     );
   }
+
+  String? _normalizedAmount(String value) {
+    final text = value.trim().replaceAll(',', '.');
+    return text.isEmpty ? null : text;
+  }
+
+  String? _validateAmount(String? value) {
+    final text = _normalizedAmount(value ?? '');
+    if (text != null && !RegExp(r'^-?\d{1,10}(\.\d{1,2})?$').hasMatch(text)) {
+      return context.tr('filters_invalid_amount');
+    }
+    return null;
+  }
+
+  Widget _choice({
+    required String id,
+    required String label,
+    required String? value,
+    required Map<String, String> options,
+    required ValueChanged<String?> onChanged,
+    String? Function(String?)? validator,
+  }) => KeyedSubtree(
+    key: ValueKey(id),
+    child: DropdownButtonFormField<String>(
+      key: ValueKey('$id:${value ?? ''}'),
+      initialValue: value ?? '',
+      isExpanded: true,
+      decoration: InputDecoration(labelText: label),
+      items: options.entries
+          .map(
+            (entry) => DropdownMenuItem(
+              value: entry.key,
+              child: Text(entry.value, overflow: TextOverflow.ellipsis),
+            ),
+          )
+          .toList(),
+      validator: validator,
+      onChanged: (selected) =>
+          setState(() => onChanged(selected == '' ? null : selected)),
+    ),
+  );
+
+  Widget _buildReceiptFilters() => Form(
+    key: _amountFormKey,
+    child: Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        _buildSectionTitle(
+          icon: Icons.payments_outlined,
+          title: context.tr('filters_amount'),
+        ),
+        const SizedBox(height: 10),
+        Text(
+          context.tr('filters_amount_hint'),
+          style: TextStyle(color: ShellStyles.textMuted(context)),
+        ),
+        const SizedBox(height: 12),
+        _choice(
+          id: 'filter-currency',
+          label: context.tr('filters_currency'),
+          value: _currency,
+          options: {
+            '': context.tr('filters_all_currencies'),
+            for (final code in _currencyCodes) code: code,
+          },
+          validator: (_) =>
+              _currency == null &&
+                  (_normalizedAmount(_minAmount.text) != null ||
+                      _normalizedAmount(_maxAmount.text) != null)
+              ? context.tr('filters_choose_currency')
+              : null,
+          onChanged: (value) => _currency = value,
+        ),
+        const SizedBox(height: 12),
+        TextFormField(
+          key: const ValueKey('filter-min-amount'),
+          controller: _minAmount,
+          keyboardType: const TextInputType.numberWithOptions(
+            decimal: true,
+            signed: true,
+          ),
+          decoration: InputDecoration(
+            labelText: context.tr('filters_min_amount'),
+          ),
+          validator: _validateAmount,
+          onChanged: (_) => setState(() {}),
+        ),
+        const SizedBox(height: 12),
+        TextFormField(
+          key: const ValueKey('filter-max-amount'),
+          controller: _maxAmount,
+          keyboardType: const TextInputType.numberWithOptions(
+            decimal: true,
+            signed: true,
+          ),
+          decoration: InputDecoration(
+            labelText: context.tr('filters_max_amount'),
+          ),
+          validator: (value) {
+            final error = _validateAmount(value);
+            if (error != null) return error;
+            final min = num.tryParse(_normalizedAmount(_minAmount.text) ?? '');
+            final max = num.tryParse(_normalizedAmount(value ?? '') ?? '');
+            return min != null && max != null && min > max
+                ? context.tr('filters_invalid_range')
+                : null;
+          },
+          onChanged: (_) => setState(() {}),
+        ),
+        const SizedBox(height: 24),
+        _choice(
+          id: 'filter-source',
+          label: context.tr('filters_source'),
+          value: _source,
+          options: {
+            '': context.tr('filters_any_source'),
+            'RECEIPT': context.tr('filters_scanned'),
+            'MANUAL': context.tr('filters_manual'),
+            'IMPORTED': context.tr('filters_imported'),
+          },
+          onChanged: (value) => _source = value,
+        ),
+        const SizedBox(height: 16),
+        _choice(
+          id: 'filter-status',
+          label: context.tr('filters_status'),
+          value: _status,
+          options: {
+            '': context.tr('filters_any_status'),
+            'DRAFT': context.tr('receipts_draft'),
+            'CONFIRMED': context.tr('filters_confirmed'),
+          },
+          onChanged: (value) => _status = value,
+        ),
+      ],
+    ),
+  );
 
   Widget _buildSectionTitle({required IconData icon, required String title}) {
     return Row(

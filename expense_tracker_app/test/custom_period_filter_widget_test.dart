@@ -93,7 +93,7 @@ void main() {
       onResult: (value) => result = value,
     );
     await tester.scrollUntilVisible(
-      find.text('Clear scoped filters'),
+      find.text('Clear filters'),
       200,
       scrollable: find
           .descendant(
@@ -102,7 +102,7 @@ void main() {
           )
           .first,
     );
-    await tester.tap(find.text('Clear scoped filters'));
+    await tester.tap(find.text('Clear filters'));
     await tester.tap(find.text('Apply'));
     await tester.pumpAndSettle();
     expect(result?['period'], PeriodFilter.custom);
