@@ -49,6 +49,7 @@ _warnings_adapter = TypeAdapter(list[ExtractionWarning])
 
 __all__ = [
     "_apply_display_conversion",
+    "_apply_transaction_search_filters",
     "_build_analytics_scope",
     "_build_category_filter_predicate",
     "_build_filtered_transaction_ids_query",
@@ -659,6 +660,55 @@ def _build_needs_review_predicate():
     )
 
 
+def _apply_transaction_search_filters(query, filters: TransactionListFilter):
+    """Keep history and analytics search scopes identical, before pagination."""
+    if filters.min_amount is not None or filters.max_amount is not None:
+        if filters.currency is None:
+            raise HTTPException(
+                status_code=422, detail="Choose an original currency for amount filters."
+            )
+        if (
+            filters.min_amount is not None
+            and filters.max_amount is not None
+            and filters.min_amount > filters.max_amount
+        ):
+            raise HTTPException(
+                status_code=422, detail="Minimum amount must not exceed maximum amount."
+            )
+    if filters.min_amount is not None:
+        query = query.where(Transaction.amount_total >= filters.min_amount)
+    if filters.max_amount is not None:
+        query = query.where(Transaction.amount_total <= filters.max_amount)
+    search = (filters.search or "").strip()
+    if search:
+        # Search user text literally; '%' and '_' aren't wildcard controls.
+        escaped = search.replace("\\", "\\\\").replace("%", "\\%").replace("_", "\\_")
+        pattern = f"%{escaped}%"
+        item_match = (
+            select(TransactionItem.id)
+            .where(
+                TransactionItem.transaction_id == Transaction.id,
+                or_(
+                    *[
+                        column.ilike(pattern, escape="\\")
+                        for column in (
+                            TransactionItem.description,
+                            TransactionItem.raw_name,
+                            TransactionItem.translatable_name,
+                            TransactionItem.expanded_name,
+                            TransactionItem.normalized_display_name,
+                            TransactionItem.brand_name,
+                            TransactionItem.product_type,
+                        )
+                    ]
+                ),
+            )
+            .exists()
+        )
+        query = query.where(or_(Transaction.merchant_name.ilike(pattern, escape="\\"), item_match))
+    return query
+
+
 def _build_filtered_transaction_ids_query(
     *,
     session: Session,
@@ -717,7 +767,7 @@ def _build_filtered_transaction_ids_query(
     if filters.needs_review:
         query = query.where(_build_needs_review_predicate())
 
-    return query
+    return _apply_transaction_search_filters(query, filters)
 
 
 def _build_item_scope_query(

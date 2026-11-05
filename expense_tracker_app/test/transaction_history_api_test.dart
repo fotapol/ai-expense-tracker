@@ -16,6 +16,12 @@ void main() {
     final result = await http.runWithClient(
       () => ApiClient.listTransactions(
         merchantNameSearch: 'A & B',
+        search: '50% milk & coffee_\\',
+        minAmount: '-0.25',
+        maxAmount: '99.99',
+        currency: 'EUR',
+        source: 'MANUAL',
+        status: 'CONFIRMED',
         categoryIds: ['category'],
         needsReview: true,
         sortBy: 'oldest',
@@ -39,6 +45,12 @@ void main() {
       expect(request.headers['Authorization'], 'Bearer test-token');
       expect(request.url.queryParameters['merchant_name_search'], 'A & B');
       expect(request.url.queryParameters['category_ids'], 'category');
+      expect(request.url.queryParameters['search'], '50% milk & coffee_\\');
+      expect(request.url.queryParameters['min_amount'], '-0.25');
+      expect(request.url.queryParameters['max_amount'], '99.99');
+      expect(request.url.queryParameters['currency'], 'EUR');
+      expect(request.url.queryParameters['source'], 'MANUAL');
+      expect(request.url.queryParameters['status'], 'CONFIRMED');
       expect(request.url.queryParameters['sort_by'], 'oldest');
       expect(request.url.queryParameters['needs_review'], 'true');
     }
