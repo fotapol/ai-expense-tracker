@@ -63,6 +63,7 @@ class _ReceiptsTabState extends State<ReceiptsTab>
   final TextEditingController _searchController = TextEditingController();
   Map<String, Map<String, dynamic>> _categoriesById = {};
   int _transactionsRequest = 0;
+  int _historyRevision = 0;
 
   bool get _hasScopedFilters =>
       _reviewOnly ||
@@ -252,7 +253,10 @@ class _ReceiptsTabState extends State<ReceiptsTab>
     if (!mounted) return;
     setState(() {
       _isRefreshing = true;
-      if (showLoader) _isLoading = true;
+      if (showLoader) {
+        _isLoading = true;
+        _historyRevision++;
+      }
       _error = null;
       _isLoadingMore = false;
       _loadMoreError = null;
@@ -974,7 +978,7 @@ class _ReceiptsTabState extends State<ReceiptsTab>
     return RefreshIndicator(
       onRefresh: _fetchTransactions,
       child: ListView.builder(
-        key: ValueKey(_transactionsRequest),
+        key: ValueKey(_historyRevision),
         physics: const AlwaysScrollableScrollPhysics(),
         padding: EdgeInsets.fromLTRB(
           ShellStyles.scaled(context, 16, min: 14, max: 18),

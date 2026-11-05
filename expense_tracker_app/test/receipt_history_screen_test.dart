@@ -61,6 +61,43 @@ void main() {
     SharedPreferences.setMockInitialValues({});
   });
 
+  testWidgets('background refresh preserves the current scroll position', (
+    tester,
+  ) async {
+    var requests = 0;
+    await http.runWithClient(
+      () async {
+        await tester.pumpWidget(historyApp());
+        await tester.pumpAndSettle();
+        await reachLoadMore(tester);
+        final scrollable = find.descendant(
+          of: find.byType(ListView),
+          matching: find.byType(Scrollable),
+        );
+        final before = tester
+            .state<ScrollableState>(scrollable)
+            .position
+            .pixels;
+        expect(before, greaterThan(0));
+        await tester.pump(const Duration(minutes: 1));
+        await tester.pumpAndSettle();
+        expect(requests, 2);
+        expect(
+          tester.state<ScrollableState>(scrollable).position.pixels,
+          closeTo(before, 0.1),
+        );
+        await tester.pumpWidget(const SizedBox.shrink());
+      },
+      () => MockClient((request) async {
+        if (request.url.path != '/v1/transactions') {
+          return otherResponse(request);
+        }
+        requests++;
+        return http.Response(jsonEncode(List.generate(50, receipt)), 200);
+      }),
+    );
+  });
+
   testWidgets(
     'totals keep currencies separate when a conversion is unavailable',
     (tester) async {
