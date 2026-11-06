@@ -329,6 +329,8 @@ void main() {
           await tester.pumpAndSettle();
           await tester.tap(find.byKey(const ValueKey('duplicate-one-two')));
           await tester.pumpAndSettle();
+          await tester.ensureVisible(find.byKey(const ValueKey('select-two')));
+          await tester.pumpAndSettle();
           await tester.tap(find.byKey(const ValueKey('select-two')));
           await reachActions(tester);
           await tester.tap(find.text('Keep selected'));

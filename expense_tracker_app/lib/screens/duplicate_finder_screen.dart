@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 
 import '../core/api_client.dart';
 import '../core/localized_dates.dart';
@@ -22,7 +23,9 @@ String _money(Map<String, dynamic> tx) => tx['amount_total'] == null
 
 String _date(BuildContext context, Map<String, dynamic> tx) {
   final date = DateTime.tryParse((tx['occurred_at'] ?? '').toString());
-  return date == null ? '—' : formatLocalizedDayMonthTime(context, date);
+  return date == null
+      ? '—'
+      : formatLocalizedDayMonthYearTime(context, date.toLocal());
 }
 
 String _confidence(BuildContext context, Map<String, dynamic> pair) =>
@@ -33,24 +36,125 @@ String _confidence(BuildContext context, Map<String, dynamic> pair) =>
     });
 
 String _reasons(BuildContext context, Map<String, dynamic> pair) {
-  const labels = {
+  final labels = {
     'same_image': 'duplicates_reason_image',
     'same_total': 'duplicates_reason_total',
     'same_date': 'duplicates_reason_date',
     'nearby_dates': 'duplicates_reason_nearby',
     'similar_merchant': 'duplicates_reason_merchant',
-    'matching_items': 'duplicates_reason_items',
+    'matching_items': pair['matching_item_count'] == 1
+        ? 'duplicates_reason_item_single'
+        : 'duplicates_reason_items',
   };
   return (pair['reasons'] as List? ?? [])
       .where(labels.containsKey)
       .map(
         (reason) => context.tr(
           labels[reason]!,
-          params: {'count': '${pair['matching_item_count'] ?? 0}'},
+          params: {
+            'count': MaterialLocalizations.of(
+              context,
+            ).formatDecimal((pair['matching_item_count'] as num? ?? 0).toInt()),
+          },
         ),
       )
       .join(' · ');
 }
+
+Widget _confidenceBadge(BuildContext context, Map<String, dynamic> pair) {
+  final tone = ShellStyles.accentTone(context);
+  return Container(
+    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 7),
+    decoration: BoxDecoration(
+      color: tone.container,
+      borderRadius: BorderRadius.circular(10),
+    ),
+    child: Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Icon(
+          pair['confidence'] == 'exact'
+              ? Icons.verified_outlined
+              : Icons.content_copy_outlined,
+          size: 16,
+          color: tone.foreground,
+        ),
+        const SizedBox(width: 7),
+        Flexible(
+          child: Text(
+            _confidence(context, pair),
+            style: TextStyle(
+              color: tone.foreground,
+              fontSize: 12,
+              fontWeight: FontWeight.w700,
+            ),
+          ),
+        ),
+      ],
+    ),
+  );
+}
+
+Widget _purchaseSummary(BuildContext context, Map<String, dynamic> tx) =>
+    Padding(
+      padding: const EdgeInsets.symmetric(vertical: 10),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Container(
+            padding: const EdgeInsets.all(8),
+            decoration: BoxDecoration(
+              color: ShellStyles.surfaceAlt(context),
+              borderRadius: BorderRadius.circular(10),
+            ),
+            child: Icon(
+              Icons.receipt_long_outlined,
+              color: ShellStyles.textMuted(context),
+              size: 18,
+            ),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  _merchant(context, tx),
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                  style: TextStyle(
+                    color: ShellStyles.textPrimary(context),
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+                const SizedBox(height: 5),
+                Wrap(
+                  spacing: 10,
+                  runSpacing: 4,
+                  crossAxisAlignment: WrapCrossAlignment.center,
+                  children: [
+                    Text(
+                      _money(tx),
+                      style: TextStyle(
+                        color: ShellStyles.textPrimary(context),
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
+                    Text(
+                      _date(context, tx),
+                      style: TextStyle(
+                        color: ShellStyles.textMuted(context),
+                        fontSize: 12,
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
 
 class DuplicateFinderScreen extends StatefulWidget {
   const DuplicateFinderScreen({super.key, this.transactionId});
@@ -128,6 +232,82 @@ class _DuplicateFinderScreenState extends State<DuplicateFinderScreen> {
     }
   }
 
+  Widget _intro() => Padding(
+    padding: const EdgeInsets.only(bottom: 20, top: 4),
+    child: Text(
+      context.tr('duplicates_subtitle'),
+      style: TextStyle(
+        color: ShellStyles.textMuted(context),
+        fontSize: 14,
+        height: 1.5,
+      ),
+    ),
+  );
+
+  Widget _pairCard(Map<String, dynamic> pair) {
+    final first = pair['first'] as Map<String, dynamic>;
+    final second = pair['second'] as Map<String, dynamic>;
+    return Container(
+      margin: const EdgeInsets.only(bottom: 14),
+      decoration: ShellStyles.cardDecoration(
+        context,
+        radius: 20,
+        withShadow: false,
+      ),
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          key: ValueKey('duplicate-${first['id']}-${second['id']}'),
+          borderRadius: BorderRadius.circular(20),
+          onTap: () => _review(pair),
+          child: Padding(
+            padding: const EdgeInsets.all(16),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                Row(
+                  children: [
+                    Expanded(
+                      child: Align(
+                        alignment: AlignmentDirectional.centerStart,
+                        child: _confidenceBadge(context, pair),
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    Icon(
+                      Icons.chevron_right,
+                      color: ShellStyles.textMuted(context),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 8),
+                _purchaseSummary(context, first),
+                Divider(height: 1, color: ShellStyles.border(context)),
+                _purchaseSummary(context, second),
+                const SizedBox(height: 8),
+                Container(
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    color: ShellStyles.surfaceAlt(context),
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Text(
+                    _reasons(context, pair),
+                    style: TextStyle(
+                      color: ShellStyles.textSecondary(context),
+                      fontSize: 12,
+                      height: 1.5,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) => PopScope<List<String>>(
     canPop: false,
@@ -143,43 +323,92 @@ class _DuplicateFinderScreenState extends State<DuplicateFinderScreen> {
       body: RefreshIndicator(
         onRefresh: () => _load(reset: true),
         child: _pairs.isEmpty
-            ? ListView(
-                physics: const AlwaysScrollableScrollPhysics(),
-                padding: const EdgeInsets.all(24),
-                children: [
-                  if (_loading)
-                    const Center(child: CircularProgressIndicator())
-                  else if (_error != null) ...[
-                    Text(_error!, textAlign: TextAlign.center),
-                    TextButton(
-                      onPressed: () => _load(reset: true),
-                      child: Text(context.tr('common_retry')),
-                    ),
-                  ] else ...[
-                    const Icon(Icons.check_circle_outline, size: 48),
-                    const SizedBox(height: 16),
-                    Text(
-                      context.tr('duplicates_empty'),
-                      textAlign: TextAlign.center,
+            ? LayoutBuilder(
+                builder: (context, constraints) => ListView(
+                  physics: const AlwaysScrollableScrollPhysics(),
+                  padding: const EdgeInsets.all(24),
+                  children: [
+                    _intro(),
+                    ConstrainedBox(
+                      constraints: BoxConstraints(
+                        minHeight: (constraints.maxHeight - 150).clamp(
+                          0,
+                          double.infinity,
+                        ),
+                      ),
+                      child: Center(
+                        child: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            if (_loading)
+                              const CircularProgressIndicator()
+                            else ...[
+                              Container(
+                                padding: const EdgeInsets.all(22),
+                                decoration: ShellStyles.iconBadgeDecoration(
+                                  context,
+                                  color: ShellStyles.surfaceAlt(context),
+                                  radius: 28,
+                                ),
+                                child: Icon(
+                                  _error == null
+                                      ? Icons.check_circle_outline_rounded
+                                      : Icons.error_outline_rounded,
+                                  size: 40,
+                                  color: ShellStyles.textMuted(context),
+                                ),
+                              ),
+                              const SizedBox(height: 20),
+                              Text(
+                                _error ?? context.tr('duplicates_empty'),
+                                textAlign: TextAlign.center,
+                                style: TextStyle(
+                                  color: ShellStyles.textPrimary(context),
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.w600,
+                                  height: 1.5,
+                                ),
+                              ),
+                              if (_error != null) ...[
+                                const SizedBox(height: 12),
+                                OutlinedButton(
+                                  onPressed: () => _load(reset: true),
+                                  child: Text(context.tr('common_retry')),
+                                ),
+                              ],
+                            ],
+                          ],
+                        ),
+                      ),
                     ),
                   ],
-                ],
+                ),
               )
             : ListView.builder(
                 physics: const AlwaysScrollableScrollPhysics(),
-                padding: const EdgeInsets.all(16),
-                itemCount: _pairs.length + 1,
+                padding: const EdgeInsets.fromLTRB(16, 0, 16, 24),
+                itemCount: _pairs.length + 2,
                 itemBuilder: (context, index) {
-                  if (index == _pairs.length) {
-                    return Column(
-                      children: [
-                        if (_error != null) Text(_error!),
-                        if (_loading)
-                          const Center(child: CircularProgressIndicator())
-                        else if (_hasMore || _error != null)
-                          TextButton(
+                  if (index == 0) return _intro();
+                  if (index <= _pairs.length) {
+                    return _pairCard(_pairs[index - 1]);
+                  }
+                  return Column(
+                    children: [
+                      if (_error != null)
+                        Padding(
+                          padding: const EdgeInsets.all(12),
+                          child: Text(_error!, textAlign: TextAlign.center),
+                        ),
+                      if (_loading)
+                        const Center(child: CircularProgressIndicator())
+                      else if (_hasMore || _error != null)
+                        SizedBox(
+                          width: double.infinity,
+                          child: OutlinedButton.icon(
                             onPressed: () => _load(),
-                            child: Text(
+                            icon: const Icon(Icons.expand_more),
+                            label: Text(
                               context.tr(
                                 _error == null
                                     ? 'receipts_load_more'
@@ -187,28 +416,8 @@ class _DuplicateFinderScreenState extends State<DuplicateFinderScreen> {
                               ),
                             ),
                           ),
-                      ],
-                    );
-                  }
-                  final pair = _pairs[index];
-                  final first = pair['first'] as Map<String, dynamic>;
-                  final second = pair['second'] as Map<String, dynamic>;
-                  return Card(
-                    child: ListTile(
-                      key: ValueKey('duplicate-${first['id']}-${second['id']}'),
-                      contentPadding: const EdgeInsets.all(16),
-                      leading: const Icon(Icons.content_copy_outlined),
-                      title: Text(_confidence(context, pair)),
-                      subtitle: Padding(
-                        padding: const EdgeInsets.only(top: 8),
-                        child: Text(
-                          '${_merchant(context, first)} · ${_money(first)}\n${_date(context, first)}\n'
-                          '${_merchant(context, second)} · ${_money(second)}\n${_date(context, second)}\n\n${_reasons(context, pair)}',
                         ),
-                      ),
-                      trailing: const Icon(Icons.chevron_right),
-                      onTap: () => _review(pair),
-                    ),
+                    ],
                   );
                 },
               ),
@@ -357,50 +566,198 @@ class _DuplicateComparisonScreenState
     }
   }
 
-  Widget _card(Map<String, dynamic> tx) => Card(
-    child: Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      children: [
-        ListTile(
-          key: ValueKey('select-${tx['id']}'),
-          selected: tx['id'] == _keepId,
-          leading: Icon(
-            tx['id'] == _keepId
-                ? Icons.radio_button_checked
-                : Icons.radio_button_unchecked,
-          ),
-          title: Text(_merchant(context, tx)),
-          subtitle: Text('${_money(tx)}\n${_date(context, tx)}'),
-          onTap: _busy
-              ? null
-              : () => setState(() => _keepId = tx['id'].toString()),
+  Widget _card(Map<String, dynamic> tx) {
+    final selected = tx['id'] == _keepId;
+    final tone = ShellStyles.accentTone(context);
+    return Container(
+      margin: const EdgeInsets.only(bottom: 14),
+      decoration: BoxDecoration(
+        color: selected
+            ? tone.container.withAlpha(90)
+            : ShellStyles.surface(context),
+        border: Border.all(
+          color: selected ? tone.base : ShellStyles.border(context),
+          width: selected ? 2 : 1,
         ),
-        if (tx['receipt_id'] != null)
-          TextButton.icon(
-            onPressed: _busy ? null : () => _photo(tx),
-            icon: const Icon(Icons.receipt_long),
-            label: Text(context.tr('duplicates_view_original')),
-          ),
-        ExpansionTile(
-          title: Text(
-            '${context.tr('transaction_items_heading')} (${(tx['items'] as List? ?? []).length})',
-          ),
-          children: [
-            for (final item in tx['items'] as List? ?? [])
-              ListTile(
-                dense: true,
-                title: Text(item['description']?.toString() ?? ''),
-                subtitle: item['qty'] == null
-                    ? null
-                    : Text('${item['qty']} ${item['unit'] ?? ''}'),
-                trailing: Text(
-                  formatMoney(
-                    tx['currency'].toString(),
-                    double.tryParse(item['amount'].toString()) ?? 0,
-                  ),
+        borderRadius: BorderRadius.circular(20),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Semantics(
+            selected: selected,
+            button: true,
+            child: InkWell(
+              key: ValueKey('select-${tx['id']}'),
+              borderRadius: BorderRadius.circular(20),
+              onTap: _busy
+                  ? null
+                  : () => setState(() => _keepId = tx['id'].toString()),
+              child: Padding(
+                padding: const EdgeInsets.all(16),
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Icon(
+                      selected
+                          ? Icons.check_circle_rounded
+                          : Icons.radio_button_unchecked,
+                      color: selected
+                          ? tone.base
+                          : ShellStyles.textMuted(context),
+                      size: 24,
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            _merchant(context, tx),
+                            style: TextStyle(
+                              color: ShellStyles.textPrimary(context),
+                              fontWeight: FontWeight.w700,
+                              fontSize: 16,
+                            ),
+                          ),
+                          const SizedBox(height: 8),
+                          Text(
+                            _money(tx),
+                            style: TextStyle(
+                              color: ShellStyles.textPrimary(context),
+                              fontWeight: FontWeight.w800,
+                              fontSize: 22,
+                            ),
+                          ),
+                          const SizedBox(height: 5),
+                          Text(
+                            _date(context, tx),
+                            style: TextStyle(
+                              color: ShellStyles.textMuted(context),
+                              fontSize: 12,
+                              height: 1.4,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
                 ),
               ),
-          ],
+            ),
+          ),
+          if (tx['receipt_id'] != null)
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 12),
+              child: Align(
+                alignment: AlignmentDirectional.centerStart,
+                child: TextButton.icon(
+                  onPressed: _busy ? null : () => _photo(tx),
+                  icon: const Icon(Icons.receipt_long_outlined, size: 18),
+                  label: Text(context.tr('duplicates_view_original')),
+                ),
+              ),
+            ),
+          ExpansionTile(
+            shape: const Border(),
+            collapsedShape: const Border(),
+            title: Text(
+              '${context.tr('transaction_items_heading')} (${MaterialLocalizations.of(context).formatDecimal((tx['items'] as List? ?? []).length)})',
+              style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 14),
+            ),
+            children: [
+              for (final item in tx['items'] as List? ?? [])
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(16, 4, 16, 12),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      Text(item['description']?.toString() ?? ''),
+                      const SizedBox(height: 4),
+                      Wrap(
+                        alignment: WrapAlignment.spaceBetween,
+                        spacing: 12,
+                        runSpacing: 4,
+                        children: [
+                          if (item['qty'] != null)
+                            Text(
+                              '${NumberFormat.decimalPattern(Localizations.localeOf(context).languageCode).format(num.tryParse(item['qty'].toString()) ?? 0)} ${item['unit'] ?? ''}',
+                              style: TextStyle(
+                                color: ShellStyles.textMuted(context),
+                              ),
+                            ),
+                          Text(
+                            formatMoney(
+                              tx['currency'].toString(),
+                              double.tryParse(item['amount'].toString()) ?? 0,
+                            ),
+                            style: const TextStyle(fontWeight: FontWeight.w600),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _actions() => Container(
+    padding: EdgeInsets.fromLTRB(
+      16,
+      12,
+      16,
+      12 + MediaQuery.paddingOf(context).bottom,
+    ),
+    decoration: BoxDecoration(
+      color: ShellStyles.surface(context),
+      border: Border(top: BorderSide(color: ShellStyles.border(context))),
+    ),
+    child: Column(
+      mainAxisSize: MainAxisSize.min,
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        Text(
+          context.tr('duplicates_choose'),
+          style: TextStyle(
+            color: ShellStyles.textMuted(context),
+            fontSize: 12,
+            height: 1.4,
+          ),
+        ),
+        const SizedBox(height: 10),
+        FilledButton.icon(
+          onPressed: _busy || _keepId == null || _error != null
+              ? null
+              : _keepSelected,
+          style: FilledButton.styleFrom(
+            minimumSize: const Size.fromHeight(48),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(14),
+            ),
+          ),
+          icon: _busy
+              ? const SizedBox(
+                  width: 18,
+                  height: 18,
+                  child: CircularProgressIndicator(strokeWidth: 2),
+                )
+              : const Icon(Icons.check, size: 20),
+          label: Text(context.tr('duplicates_keep_selected')),
+        ),
+        const SizedBox(height: 8),
+        OutlinedButton(
+          onPressed: _busy || _transactions.length != 2 ? null : _keepBoth,
+          style: OutlinedButton.styleFrom(
+            minimumSize: const Size.fromHeight(46),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(14),
+            ),
+          ),
+          child: Text(context.tr('duplicates_keep_both')),
         ),
       ],
     ),
@@ -412,18 +769,38 @@ class _DuplicateComparisonScreenState
     child: Scaffold(
       backgroundColor: ShellStyles.background(context),
       appBar: AppBar(title: Text(context.tr('duplicates_review'))),
+      bottomNavigationBar: !_loading && _transactions.isNotEmpty
+          ? _actions()
+          : null,
       body: _loading
           ? const Center(child: CircularProgressIndicator())
           : ListView(
               key: const ValueKey('duplicate-comparison-list'),
               padding: const EdgeInsets.all(16),
               children: [
-                Text(
-                  _confidence(context, widget.pair),
-                  style: Theme.of(context).textTheme.titleLarge,
+                Container(
+                  decoration: ShellStyles.cardDecoration(
+                    context,
+                    radius: 18,
+                    withShadow: false,
+                  ),
+                  padding: const EdgeInsets.all(16),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      _confidenceBadge(context, widget.pair),
+                      const SizedBox(height: 12),
+                      Text(
+                        _reasons(context, widget.pair),
+                        style: TextStyle(
+                          color: ShellStyles.textSecondary(context),
+                          height: 1.5,
+                          fontSize: 13,
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
-                const SizedBox(height: 8),
-                Text(_reasons(context, widget.pair)),
                 const SizedBox(height: 16),
                 if (_error != null) ...[
                   Text(
@@ -438,22 +815,6 @@ class _DuplicateComparisonScreenState
                   ),
                 ],
                 ..._transactions.map(_card),
-                const SizedBox(height: 16),
-                Text(context.tr('duplicates_choose')),
-                const SizedBox(height: 8),
-                FilledButton(
-                  onPressed: _busy || _keepId == null || _error != null
-                      ? null
-                      : _keepSelected,
-                  child: Text(context.tr('duplicates_keep_selected')),
-                ),
-                OutlinedButton(
-                  onPressed: _busy || _transactions.length != 2
-                      ? null
-                      : _keepBoth,
-                  child: Text(context.tr('duplicates_keep_both')),
-                ),
-                if (_busy) const Center(child: CircularProgressIndicator()),
               ],
             ),
     ),
