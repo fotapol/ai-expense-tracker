@@ -24,6 +24,23 @@ normalize_database_url() {
   esac
 }
 
+wait_for_postgres() {
+  for attempt in $(seq 1 20); do
+    if [ -n "${DATABASE_URL:-}" ]; then
+      if pg_isready --dbname="$(normalize_database_url "$DATABASE_URL")" >/dev/null 2>&1; then
+        return 0
+      fi
+    elif pg_isready --host="$POSTGRES_HOST" --port="$POSTGRES_PORT" \
+      --username="$POSTGRES_USER" --dbname="$POSTGRES_DB" >/dev/null 2>&1; then
+      return 0
+    fi
+    echo "Waiting for PostgreSQL connectivity (${attempt}/20)..."
+    sleep 2
+  done
+  echo "PostgreSQL did not become reachable for backup" >&2
+  return 1
+}
+
 run_pg_dump() {
   if [ -n "${DATABASE_URL:-}" ]; then
     normalized_database_url="$(normalize_database_url "${DATABASE_URL}")"
@@ -87,6 +104,7 @@ fi
 remote_prefix="backup/${S3_BUCKET_BACKUPS}/${bucket_prefix}"
 remote_object="${remote_prefix}/${day_prefix}/$(basename "$archive")"
 
+wait_for_postgres
 run_pg_dump
 
 mc alias set backup "${S3_ENDPOINT}" "${s3_access_key}" "${s3_secret_key}"

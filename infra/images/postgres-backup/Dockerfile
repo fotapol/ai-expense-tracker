@@ -10,7 +10,8 @@ RUN apk add --no-cache ca-certificates
 COPY --from=minio-client /out/mc /usr/local/bin/mc
 
 COPY infra/images/postgres-backup/backup.sh /usr/local/bin/backup.sh
-RUN chmod +x /usr/local/bin/backup.sh
+RUN sed -i 's/\r$//' /usr/local/bin/backup.sh \
+    && chmod +x /usr/local/bin/backup.sh
 
 USER 70:70
 
