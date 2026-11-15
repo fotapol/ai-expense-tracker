@@ -94,6 +94,7 @@ jobs:
         uses: subosito/flutter-action@v2
         with:
           channel: stable
+          flutter-version: '3.44.0'
 
       - name: Run Flutter analyze and tests
         timeout-minutes: 15
