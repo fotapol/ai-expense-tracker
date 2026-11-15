@@ -101,6 +101,7 @@ jobs:
         run: |
           flutter pub get
           flutter analyze
+          dart run tool/localization_audit.dart --strict
           flutter test
 
       - name: Configure Gradle for CI

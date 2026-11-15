@@ -66,6 +66,9 @@ void main() {
         'duplicates_reason_nearby',
         'duplicates_reason_merchant',
         'duplicates_reason_items',
+        'duplicates_reason_item_single',
+        'upload_selected_title',
+        'upload_selected_body',
         'duplicates_empty',
         'duplicates_error',
         'duplicates_stale',
@@ -134,6 +137,28 @@ void main() {
               reason:
                   '${locale.languageCode} should not fall back to English '
                   'for $key.',
+            );
+          }
+        }
+      },
+    );
+
+    test(
+      'review labels do not reuse legacy Italian placeholders in other locales',
+      () {
+        const placeholders = {
+          'transaction_items_heading': 'Elementi',
+          'receipts_filter_needs_review': 'Necessita di revisione',
+        };
+        for (final locale in AppLocalizations.supportedLocales.where(
+          (locale) => locale.languageCode != 'it',
+        )) {
+          for (final entry in placeholders.entries) {
+            expect(
+              AppLocalizations(locale).tr(entry.key),
+              isNot(entry.value),
+              reason:
+                  '${locale.languageCode}/${entry.key} must use its own language',
             );
           }
         }

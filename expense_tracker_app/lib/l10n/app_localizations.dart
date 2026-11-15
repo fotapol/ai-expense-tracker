@@ -70,10 +70,11 @@ class AppLocalizations {
 
   static const Map<String, Map<String, String>> _translations = {
     'en': {
-      'filters_search_hint': 'Search merchants or items…',
+      'duplicates_reason_item_single': '{count} matching item',
+      'filters_search_hint': 'Merchant or item',
       'filters_amount': 'Amount range',
-      'filters_min_amount': 'Minimum',
-      'filters_max_amount': 'Maximum',
+      'filters_min_amount': 'Minimum amount',
+      'filters_max_amount': 'Maximum amount',
       'filters_amount_hint':
           'Amounts use the original currency. Choose a currency for an amount range.',
       'filters_invalid_amount': 'Enter an amount with up to 2 decimal places.',
@@ -1356,10 +1357,14 @@ class AppLocalizations {
       'delete_reminder_name_confirm': 'Delete "{name}"?',
     },
     'de': {
-      'filters_search_hint': 'Händler oder Artikel suchen…',
+      'duplicates_reason_item_single': '{count} übereinstimmender Artikel',
+      'upload_selected_body':
+          'Prüfen Sie das Bild, wählen Sie ein anderes Foto oder starten Sie die Erkennung.',
+      'upload_selected_title': 'Beleg ausgewählt',
+      'filters_search_hint': 'Händler oder Artikel',
       'filters_amount': 'Betragsbereich',
-      'filters_min_amount': 'Minimum',
-      'filters_max_amount': 'Maximum',
+      'filters_min_amount': 'Mindestbetrag',
+      'filters_max_amount': 'Höchstbetrag',
       'filters_amount_hint':
           'Beträge gelten in der Originalwährung. Wählen Sie eine Währung für den Betragsbereich.',
       'filters_invalid_amount':
@@ -1418,7 +1423,7 @@ class AppLocalizations {
       'receipts_amount_sort_hint':
           'Beträge verwenden Ihre Anzeigewährung. Belege ohne Wechselkurs stehen am Ende.',
       'app_title': 'Spesen-Tracker',
-      'common_cancel': 'Stornieren',
+      'common_cancel': 'Abbrechen',
       'common_delete': 'Löschen',
       'common_retry': 'Wiederholen',
       'common_error': 'Fehler',
@@ -2704,10 +2709,14 @@ class AppLocalizations {
       'delete_reminder_name_confirm': '„{name}“ löschen?',
     },
     'fr': {
-      'filters_search_hint': 'Rechercher un commerçant ou un article…',
+      'duplicates_reason_item_single': '{count} article correspondant',
+      'upload_selected_body':
+          'Vérifiez l’image, choisissez une autre photo ou lancez l’extraction.',
+      'upload_selected_title': 'Reçu sélectionné',
+      'filters_search_hint': 'Commerçant ou article',
       'filters_amount': 'Plage de montants',
-      'filters_min_amount': 'Minimum',
-      'filters_max_amount': 'Maximum',
+      'filters_min_amount': 'Montant minimum',
+      'filters_max_amount': 'Montant maximum',
       'filters_amount_hint':
           'Les montants sont dans la devise d’origine. Choisissez une devise pour la plage.',
       'filters_invalid_amount':
@@ -4042,10 +4051,14 @@ class AppLocalizations {
       'delete_reminder_name_confirm': 'Supprimer "{name}" ?',
     },
     'uk': {
-      'filters_search_hint': 'Пошук продавців або товарів…',
+      'duplicates_reason_item_single': 'Збігається {count} товар',
+      'upload_selected_body':
+          'Перегляньте зображення, виберіть інше фото або почніть розпізнавання.',
+      'upload_selected_title': 'Чек вибрано',
+      'filters_search_hint': 'Продавець чи товар',
       'filters_amount': 'Діапазон сум',
-      'filters_min_amount': 'Мінімум',
-      'filters_max_amount': 'Максимум',
+      'filters_min_amount': 'Мінімальна сума',
+      'filters_max_amount': 'Максимальна сума',
       'filters_amount_hint':
           'Суми в початковій валюті. Виберіть валюту для діапазону сум.',
       'filters_invalid_amount':
@@ -4491,10 +4504,10 @@ class AppLocalizations {
       'period_all_time': 'Весь час',
       'filters_title': 'Фільтри',
       'filters_title_with_count': 'Фільтри ({count})',
-      'filters_period': 'Крапка',
+      'filters_period': 'Період',
       'filters_category': 'Категорія',
       'filters_subcategory': 'Підкатегорія',
-      'filters_labels': 'етикетки',
+      'filters_labels': 'Мітки',
       'filters_clear_all': 'Очистити всі фільтри',
       'filters_no_categories': 'Категорії відсутні',
       'filters_no_labels': 'Немає міток',
@@ -5345,10 +5358,14 @@ class AppLocalizations {
       'delete_reminder_name_confirm': 'Видалити "{name}"?',
     },
     'it': {
-      'filters_search_hint': 'Cerca negozi o articoli…',
+      'duplicates_reason_item_single': '{count} articolo corrispondente',
+      'upload_selected_body':
+          'Controlla l’immagine, scegli un’altra foto o avvia l’estrazione.',
+      'upload_selected_title': 'Ricevuta selezionata',
+      'filters_search_hint': 'Negozio o articolo',
       'filters_amount': 'Intervallo di importi',
-      'filters_min_amount': 'Minimo',
-      'filters_max_amount': 'Massimo',
+      'filters_min_amount': 'Importo minimo',
+      'filters_max_amount': 'Importo massimo',
       'filters_amount_hint':
           'Gli importi sono nella valuta originale. Scegli una valuta per l’intervallo.',
       'filters_invalid_amount':
@@ -5403,7 +5420,7 @@ class AppLocalizations {
       'receipts_amount_sort_hint':
           'Gli importi usano la valuta di visualizzazione. Le ricevute senza tasso di cambio appaiono alla fine.',
       'app_title': 'Monitoraggio delle spese',
-      'common_cancel': 'Cancellare',
+      'common_cancel': 'Annulla',
       'common_delete': 'Eliminare',
       'common_retry': 'Riprova',
       'common_error': 'Errore',
@@ -6690,10 +6707,14 @@ class AppLocalizations {
       'delete_reminder_name_confirm': 'Eliminare "{name}"?',
     },
     'pl': {
-      'filters_search_hint': 'Szukaj sprzedawców lub produktów…',
+      'duplicates_reason_item_single': '{count} zgodny produkt',
+      'upload_selected_body':
+          'Sprawdź obraz, wybierz inne zdjęcie lub rozpocznij odczyt.',
+      'upload_selected_title': 'Wybrano paragon',
+      'filters_search_hint': 'Sklep lub produkt',
       'filters_amount': 'Zakres kwot',
-      'filters_min_amount': 'Minimum',
-      'filters_max_amount': 'Maksimum',
+      'filters_min_amount': 'Kwota minimalna',
+      'filters_max_amount': 'Kwota maksymalna',
       'filters_amount_hint':
           'Kwoty są w oryginalnej walucie. Wybierz walutę dla zakresu kwot.',
       'filters_invalid_amount':
@@ -6747,7 +6768,7 @@ class AppLocalizations {
       'receipts_amount_sort_hint':
           'Kwoty używają waluty wyświetlania. Paragony bez kursu wymiany są na końcu.',
       'app_title': 'Śledzenie wydatków',
-      'common_cancel': 'Anulować',
+      'common_cancel': 'Anuluj',
       'common_delete': 'Usuwać',
       'common_retry': 'Spróbować ponownie',
       'common_error': 'Błąd',
@@ -7121,7 +7142,7 @@ class AppLocalizations {
       'home_categories': 'Kategorie',
       'home_refresh_error':
           'Nie udało się odświeżyć strony głównej. Spróbuj ponownie.',
-      'receipts_filter_needs_review': 'Necessita di revisione',
+      'receipts_filter_needs_review': 'Wymaga sprawdzenia',
       'receipts_needs_review': 'Necessita di revisione',
       'receipts_check_extraction': 'Controllare l\'estrazione',
       'receipts_draft': 'Ha bisogno di essere salvato',
@@ -7318,7 +7339,7 @@ class AppLocalizations {
           'Sprawdź tę pozycję: powinna wynosić {expected}, a obecnie pokazuje {actual}.',
       'transaction_total_review_message':
           'Sprawdź sumę przed zapisaniem: pozycje sumują się do {expected}, podczas gdy suma na paragonie to {actual}.',
-      'transaction_items_heading': 'Elementi',
+      'transaction_items_heading': 'Pozycje',
       'transaction_empty_items':
           'Brak jeszcze pozycji. Dodaj pierwszą pozycję, aby ukończyć ten paragon.',
       'transaction_read_only_owner':
@@ -8014,10 +8035,14 @@ class AppLocalizations {
       'delete_reminder_name_confirm': 'Usunąć "{name}"?',
     },
     'sr': {
-      'filters_search_hint': 'Pretraži prodavce ili artikle…',
+      'duplicates_reason_item_single': 'Podudara se {count} artikal',
+      'upload_selected_body':
+          'Pregledajte sliku, izaberite drugu fotografiju ili pokrenite prepoznavanje.',
+      'upload_selected_title': 'Račun je izabran',
+      'filters_search_hint': 'Prodavac ili artikal',
       'filters_amount': 'Raspon iznosa',
-      'filters_min_amount': 'Minimum',
-      'filters_max_amount': 'Maksimum',
+      'filters_min_amount': 'Najmanji iznos',
+      'filters_max_amount': 'Najveći iznos',
       'filters_amount_hint':
           'Iznosi su u originalnoj valuti. Izaberite valutu za raspon iznosa.',
       'filters_invalid_amount': 'Unesite iznos sa najviše 2 decimale.',
@@ -8435,7 +8460,7 @@ class AppLocalizations {
       'home_categories': 'Kategorije',
       'home_refresh_error':
           'Početna stranica se trenutno ne može osvežiti. Molimo pokušajte ponovo.',
-      'receipts_filter_needs_review': 'Necessita di revisione',
+      'receipts_filter_needs_review': 'Potrebna provera',
       'receipts_needs_review': 'Necessita di revisione',
       'receipts_check_extraction': 'Controllare l\'estrazione',
       'receipts_draft': 'Ha bisogno di essere salvato',
@@ -8630,7 +8655,7 @@ class AppLocalizations {
           'Pregledajte ovu stavku: trebalo bi da bude {expected}, a trenutno prikazuje {actual}.',
       'transaction_total_review_message':
           'Pregledajte ukupnu vrednost pre čuvanja: stavke iznose {expected}, dok je ukupna vrednost na računu {actual}.',
-      'transaction_items_heading': 'Elementi',
+      'transaction_items_heading': 'Stavke',
       'transaction_empty_items':
           'Još uvek nema stavki. Dodajte prvu stavku da biste završili ovaj račun.',
       'transaction_read_only_owner':
@@ -9321,10 +9346,14 @@ class AppLocalizations {
       'delete_reminder_name_confirm': 'Obriši "{name}"?',
     },
     'ru': {
-      'filters_search_hint': 'Поиск продавцов или товаров…',
+      'duplicates_reason_item_single': 'Совпадает {count} товар',
+      'upload_selected_body':
+          'Проверьте изображение, выберите другое фото или начните распознавание.',
+      'upload_selected_title': 'Чек выбран',
+      'filters_search_hint': 'Магазин или товар',
       'filters_amount': 'Диапазон сумм',
-      'filters_min_amount': 'Минимум',
-      'filters_max_amount': 'Максимум',
+      'filters_min_amount': 'Минимальная сумма',
+      'filters_max_amount': 'Максимальная сумма',
       'filters_amount_hint':
           'Суммы в исходной валюте. Выберите валюту для диапазона сумм.',
       'filters_invalid_amount':
@@ -10629,10 +10658,14 @@ class AppLocalizations {
       'delete_reminder_name_confirm': 'Удалить "{name}"?',
     },
     'pt': {
-      'filters_search_hint': 'Pesquisar comerciantes ou artigos…',
+      'duplicates_reason_item_single': '{count} artigo correspondente',
+      'upload_selected_body':
+          'Reveja a imagem, escolha outra fotografia ou inicie a extração.',
+      'upload_selected_title': 'Recibo selecionado',
+      'filters_search_hint': 'Loja ou artigo',
       'filters_amount': 'Intervalo de valores',
-      'filters_min_amount': 'Mínimo',
-      'filters_max_amount': 'Máximo',
+      'filters_min_amount': 'Valor mínimo',
+      'filters_max_amount': 'Valor máximo',
       'filters_amount_hint':
           'Os valores usam a moeda original. Escolha uma moeda para o intervalo.',
       'filters_invalid_amount': 'Introduza um valor com até 2 casas decimais.',
@@ -11257,7 +11290,7 @@ class AppLocalizations {
           'Reveja este item: deveria ser {expected} e atualmente mostra {actual}.',
       'transaction_total_review_message':
           'Reveja o total antes de guardar: os itens somam {expected}, enquanto o total do recibo é {actual}.',
-      'transaction_items_heading': 'Elementi',
+      'transaction_items_heading': 'Artigos',
       'transaction_empty_items':
           'Ainda não existem itens. Adicione o seu primeiro item para terminar este recibo.',
       'transaction_read_only_owner':
@@ -11960,10 +11993,14 @@ class AppLocalizations {
       'delete_reminder_name_confirm': 'Eliminar "{name}"?',
     },
     'tr': {
-      'filters_search_hint': 'Satıcı veya ürün ara…',
+      'duplicates_reason_item_single': '{count} eşleşen ürün',
+      'upload_selected_body':
+          'Görüntüyü inceleyin, başka bir fotoğraf seçin veya okumayı başlatın.',
+      'upload_selected_title': 'Fiş seçildi',
+      'filters_search_hint': 'Satıcı veya ürün',
       'filters_amount': 'Tutar aralığı',
-      'filters_min_amount': 'En az',
-      'filters_max_amount': 'En fazla',
+      'filters_min_amount': 'En düşük tutar',
+      'filters_max_amount': 'En yüksek tutar',
       'filters_amount_hint':
           'Tutarlar orijinal para birimindedir. Tutar aralığı için bir para birimi seçin.',
       'filters_invalid_amount': 'En fazla 2 ondalık basamaklı bir tutar girin.',
@@ -12016,7 +12053,7 @@ class AppLocalizations {
       'receipts_amount_sort_hint':
           'Tutarlar görüntüleme para biriminizi kullanır. Döviz kuru olmayan fişler sonda gösterilir.',
       'app_title': 'Gider Takibi',
-      'common_cancel': 'İptal etmek',
+      'common_cancel': 'İptal',
       'common_delete': 'Silmek',
       'common_retry': 'Yeniden dene',
       'common_error': 'Hata',
@@ -12380,7 +12417,7 @@ class AppLocalizations {
       'home_categories': 'Kategoriler',
       'home_refresh_error':
           'Ana sayfa şu anda yenilenemedi. Lütfen tekrar deneyin.',
-      'receipts_filter_needs_review': 'Necessita di revisione',
+      'receipts_filter_needs_review': 'İnceleme gerekli',
       'receipts_needs_review': 'Necessita di revisione',
       'receipts_check_extraction': 'Controllare l\'estrazione',
       'receipts_draft': 'Ha bisogno di essere salvato',
@@ -12576,7 +12613,7 @@ class AppLocalizations {
           'Bu kalemi inceleyin: {expected} olmalıydı ancak şu anda {actual} görünüyor.',
       'transaction_total_review_message':
           'Kaydetmeden önce toplamı inceleyin: kalemlerin toplamı {expected} iken fiş toplamı {actual}.',
-      'transaction_items_heading': 'Elementi',
+      'transaction_items_heading': 'Ürünler',
       'transaction_empty_items':
           'Henüz kalem yok. Bu fişi bitirmek için ilk kalemi ekleyin.',
       'transaction_read_only_owner':
@@ -13260,10 +13297,14 @@ class AppLocalizations {
       'delete_reminder_name_confirm': '"{name}" silinsin mi?',
     },
     'nl': {
-      'filters_search_hint': 'Zoek winkels of artikelen…',
+      'duplicates_reason_item_single': '{count} overeenkomend artikel',
+      'upload_selected_body':
+          'Controleer de afbeelding, kies een andere foto of start de herkenning.',
+      'upload_selected_title': 'Bon geselecteerd',
+      'filters_search_hint': 'Winkel of artikel',
       'filters_amount': 'Bedragbereik',
-      'filters_min_amount': 'Minimum',
-      'filters_max_amount': 'Maximum',
+      'filters_min_amount': 'Minimumbedrag',
+      'filters_max_amount': 'Maximumbedrag',
       'filters_amount_hint':
           'Bedragen gebruiken de oorspronkelijke valuta. Kies een valuta voor het bereik.',
       'filters_invalid_amount': 'Voer een bedrag met maximaal 2 decimalen in.',
@@ -13687,7 +13728,7 @@ class AppLocalizations {
       'home_categories': 'Categorieën',
       'home_refresh_error':
           'Startpagina kon niet worden vernieuwd. Probeer het opnieuw.',
-      'receipts_filter_needs_review': 'Necessita di revisione',
+      'receipts_filter_needs_review': 'Controleren',
       'receipts_needs_review': 'Necessita di revisione',
       'receipts_check_extraction': 'Controllare l\'estrazione',
       'receipts_draft': 'Ha bisogno di essere salvato',
@@ -13887,7 +13928,7 @@ class AppLocalizations {
           'Controleer dit artikel: het zou {expected} moeten zijn en toont momenteel {actual}.',
       'transaction_total_review_message':
           'Controleer het totaal voordat u opslaat: artikelen tellen op tot {expected} terwijl het totaal op de bon {actual} is.',
-      'transaction_items_heading': 'Elementi',
+      'transaction_items_heading': 'Artikelen',
       'transaction_empty_items':
           'Nog geen artikelen. Voeg uw eerste artikel toe om deze bon af te ronden.',
       'transaction_read_only_owner':
@@ -14585,10 +14626,14 @@ class AppLocalizations {
       'delete_reminder_name_confirm': '"{name}" verwijderen?',
     },
     'sv': {
-      'filters_search_hint': 'Sök butiker eller varor…',
+      'duplicates_reason_item_single': '{count} matchande artikel',
+      'upload_selected_body':
+          'Granska bilden, välj ett annat foto eller starta tolkningen.',
+      'upload_selected_title': 'Kvitto valt',
+      'filters_search_hint': 'Butik eller vara',
       'filters_amount': 'Beloppsintervall',
-      'filters_min_amount': 'Minimum',
-      'filters_max_amount': 'Maximum',
+      'filters_min_amount': 'Lägsta belopp',
+      'filters_max_amount': 'Högsta belopp',
       'filters_amount_hint':
           'Beloppen är i ursprungsvalutan. Välj en valuta för beloppsintervallet.',
       'filters_invalid_amount': 'Ange ett belopp med högst 2 decimaler.',
@@ -14641,7 +14686,7 @@ class AppLocalizations {
       'receipts_amount_sort_hint':
           'Beloppen använder din visningsvaluta. Kvitton utan växelkurs visas sist.',
       'app_title': 'Expense Tracker',
-      'common_cancel': 'Avboka',
+      'common_cancel': 'Avbryt',
       'common_delete': 'Radera',
       'common_retry': 'Försöka igen',
       'common_error': 'Fel',
@@ -15009,7 +15054,7 @@ class AppLocalizations {
       'home_add_expense': 'Aggiungi spesa',
       'home_categories': 'Kategorier',
       'home_refresh_error': 'Hem kunde inte uppdateras just nu. Försök igen.',
-      'receipts_filter_needs_review': 'Necessita di revisione',
+      'receipts_filter_needs_review': 'Behöver granskas',
       'receipts_needs_review': 'Necessita di revisione',
       'receipts_check_extraction': 'Controllare l\'estrazione',
       'receipts_draft': 'Ha bisogno di essere salvato',
@@ -15204,7 +15249,7 @@ class AppLocalizations {
           'Granska denna artikel: den borde vara {expected} och visar för närvarande {actual}.',
       'transaction_total_review_message':
           'Granska totalen innan du sparar: artiklar summeras till {expected} medan kvittots total är {actual}.',
-      'transaction_items_heading': 'Elementi',
+      'transaction_items_heading': 'Artiklar',
       'transaction_empty_items':
           'Inga artiklar ännu. Lägg till din första artikel för att slutföra detta kvitto.',
       'transaction_read_only_owner':
@@ -15893,10 +15938,14 @@ class AppLocalizations {
       'delete_reminder_name_confirm': 'Radera "{name}"?',
     },
     'cs': {
-      'filters_search_hint': 'Hledat obchody nebo položky…',
+      'duplicates_reason_item_single': '{count} shodná položka',
+      'upload_selected_body':
+          'Zkontrolujte obrázek, vyberte jinou fotografii nebo spusťte rozpoznávání.',
+      'upload_selected_title': 'Účtenka vybrána',
+      'filters_search_hint': 'Obchod nebo položka',
       'filters_amount': 'Rozsah částek',
-      'filters_min_amount': 'Minimum',
-      'filters_max_amount': 'Maximum',
+      'filters_min_amount': 'Minimální částka',
+      'filters_max_amount': 'Maximální částka',
       'filters_amount_hint':
           'Částky jsou v původní měně. Vyberte měnu pro rozsah částek.',
       'filters_invalid_amount': 'Zadejte částku s nejvýše 2 desetinnými místy.',
@@ -16313,7 +16362,7 @@ class AppLocalizations {
       'home_categories': 'Kategorie',
       'home_refresh_error':
           'Domovskou stránku se nepodařilo obnovit. Zkuste to prosím znovu.',
-      'receipts_filter_needs_review': 'Necessita di revisione',
+      'receipts_filter_needs_review': 'Vyžaduje kontrolu',
       'receipts_needs_review': 'Necessita di revisione',
       'receipts_check_extraction': 'Controllare l\'estrazione',
       'receipts_draft': 'Ha bisogno di essere salvato',
@@ -16505,7 +16554,7 @@ class AppLocalizations {
           'Zkontrolujte tuto položku: měla by být {expected} a aktuálně ukazuje {actual}.',
       'transaction_total_review_message':
           'Před uložením zkontrolujte celkovou částku: položky tvoří {expected}, zatímco celková částka na účtence je {actual}.',
-      'transaction_items_heading': 'Elementi',
+      'transaction_items_heading': 'Položky',
       'transaction_empty_items':
           'Zatím žádné položky. Přidejte svou první položku k dokončení této účtenky.',
       'transaction_read_only_owner':
@@ -17192,10 +17241,14 @@ class AppLocalizations {
       'delete_reminder_name_confirm': 'Smazat "{name}"?',
     },
     'ro': {
-      'filters_search_hint': 'Caută comercianți sau articole…',
+      'duplicates_reason_item_single': '{count} articol identic',
+      'upload_selected_body':
+          'Verificați imaginea, alegeți altă fotografie sau începeți extragerea.',
+      'upload_selected_title': 'Bon selectat',
+      'filters_search_hint': 'Comerciant sau articol',
       'filters_amount': 'Interval de sume',
-      'filters_min_amount': 'Minim',
-      'filters_max_amount': 'Maxim',
+      'filters_min_amount': 'Sumă minimă',
+      'filters_max_amount': 'Sumă maximă',
       'filters_amount_hint':
           'Sumele sunt în moneda originală. Alegeți o monedă pentru interval.',
       'filters_invalid_amount': 'Introduceți o sumă cu cel mult 2 zecimale.',
@@ -17619,7 +17672,7 @@ class AppLocalizations {
       'home_categories': 'Categorii',
       'home_refresh_error':
           'Acasă nu s-a putut reîmprospăta acum. Vă rugăm să încercați din nou.',
-      'receipts_filter_needs_review': 'Necessita di revisione',
+      'receipts_filter_needs_review': 'Necesită verificare',
       'receipts_needs_review': 'Necessita di revisione',
       'receipts_check_extraction': 'Controllare l\'estrazione',
       'receipts_draft': 'Ha bisogno di essere salvato',
@@ -17819,7 +17872,7 @@ class AppLocalizations {
           'Revizuiți acest articol: ar trebui să fie {expected} și în prezent arată {actual}.',
       'transaction_total_review_message':
           'Revizuiți totalul înainte de salvare: articolele însumează {expected}, în timp ce totalul chitanței este {actual}.',
-      'transaction_items_heading': 'Elementi',
+      'transaction_items_heading': 'Articole',
       'transaction_empty_items':
           'Niciun articol încă. Adăugați primul articol pentru a finaliza această chitanță.',
       'transaction_read_only_owner':
@@ -18527,10 +18580,14 @@ class AppLocalizations {
       'delete_reminder_name_confirm': 'Ștergeți "{name}"?',
     },
     'hu': {
-      'filters_search_hint': 'Kereskedők vagy termékek keresése…',
+      'duplicates_reason_item_single': '{count} egyező termék',
+      'upload_selected_body':
+          'Ellenőrizze a képet, válasszon másik fényképet, vagy indítsa el a felismerést.',
+      'upload_selected_title': 'Nyugta kiválasztva',
+      'filters_search_hint': 'Kereskedő vagy termék',
       'filters_amount': 'Összegtartomány',
-      'filters_min_amount': 'Minimum',
-      'filters_max_amount': 'Maximum',
+      'filters_min_amount': 'Legkisebb összeg',
+      'filters_max_amount': 'Legnagyobb összeg',
       'filters_amount_hint':
           'Az összegek az eredeti pénznemben értendők. Válasszon pénznemet a tartományhoz.',
       'filters_invalid_amount': 'Legfeljebb 2 tizedesjegyű összeget adjon meg.',
@@ -18954,7 +19011,7 @@ class AppLocalizations {
       'home_categories': 'Kategóriák',
       'home_refresh_error':
           'A Kezdőlap nem frissíthető. Kérjük, próbálja újra.',
-      'receipts_filter_needs_review': 'Necessita di revisione',
+      'receipts_filter_needs_review': 'Ellenőrzés szükséges',
       'receipts_needs_review': 'Necessita di revisione',
       'receipts_check_extraction': 'Controllare l\'estrazione',
       'receipts_draft': 'Ha bisogno di essere salvato',
@@ -19151,7 +19208,7 @@ class AppLocalizations {
           'Ellenőrizze ezt a tételt: {expected} értéknek kellene lennie, de jelenleg {actual} látható.',
       'transaction_total_review_message':
           'Mentés előtt ellenőrizze az összeget: a tételek összege {expected}, míg a nyugta végösszege {actual}.',
-      'transaction_items_heading': 'Elementi',
+      'transaction_items_heading': 'Tételek',
       'transaction_empty_items':
           'Még nincsenek tételek. Adja hozzá az első tételt a nyugta befejezéséhez.',
       'transaction_read_only_owner':
@@ -19844,10 +19901,14 @@ class AppLocalizations {
       'delete_reminder_name_confirm': 'Törli a következőt: "{name}"?',
     },
     'id': {
-      'filters_search_hint': 'Cari pedagang atau barang…',
+      'duplicates_reason_item_single': '{count} barang cocok',
+      'upload_selected_body':
+          'Periksa gambar, pilih foto lain, atau mulai ekstraksi.',
+      'upload_selected_title': 'Struk dipilih',
+      'filters_search_hint': 'Pedagang atau barang',
       'filters_amount': 'Rentang jumlah',
-      'filters_min_amount': 'Minimum',
-      'filters_max_amount': 'Maksimum',
+      'filters_min_amount': 'Jumlah minimum',
+      'filters_max_amount': 'Jumlah maksimum',
       'filters_amount_hint':
           'Jumlah menggunakan mata uang asli. Pilih mata uang untuk rentang jumlah.',
       'filters_invalid_amount':
@@ -19900,7 +19961,7 @@ class AppLocalizations {
       'receipts_amount_sort_hint':
           'Jumlah menggunakan mata uang tampilan. Struk tanpa kurs ditampilkan terakhir.',
       'app_title': 'Pelacak Biaya',
-      'common_cancel': 'Membatalkan',
+      'common_cancel': 'Batal',
       'common_delete': 'Menghapus',
       'common_retry': 'Mencoba kembali',
       'common_error': 'Kesalahan',
@@ -20268,7 +20329,7 @@ class AppLocalizations {
       'home_categories': 'Kategori',
       'home_refresh_error':
           'Halaman Utama tidak dapat diperbarui sekarang. Silakan coba lagi.',
-      'receipts_filter_needs_review': 'Necessita di revisione',
+      'receipts_filter_needs_review': 'Perlu ditinjau',
       'receipts_needs_review': 'Necessita di revisione',
       'receipts_check_extraction': 'Controllare l\'estrazione',
       'receipts_draft': 'Ha bisogno di essere salvato',
@@ -20467,7 +20528,7 @@ class AppLocalizations {
           'Tinjau item ini: seharusnya {expected} dan saat ini menunjukkan {actual}.',
       'transaction_total_review_message':
           'Tinjau total sebelum menyimpan: item berjumlah {expected} sementara total struk adalah {actual}.',
-      'transaction_items_heading': 'Elementi',
+      'transaction_items_heading': 'Barang',
       'transaction_empty_items':
           'Belum ada item. Tambahkan item pertama Anda untuk menyelesaikan struk ini.',
       'transaction_read_only_owner':
@@ -21157,10 +21218,14 @@ class AppLocalizations {
       'delete_reminder_name_confirm': 'Hapus "{name}"?',
     },
     'ms': {
-      'filters_search_hint': 'Cari peniaga atau item…',
+      'duplicates_reason_item_single': '{count} item sepadan',
+      'upload_selected_body':
+          'Semak imej, pilih foto lain atau mulakan pengekstrakan.',
+      'upload_selected_title': 'Resit dipilih',
+      'filters_search_hint': 'Peniaga atau item',
       'filters_amount': 'Julat amaun',
-      'filters_min_amount': 'Minimum',
-      'filters_max_amount': 'Maksimum',
+      'filters_min_amount': 'Amaun minimum',
+      'filters_max_amount': 'Amaun maksimum',
       'filters_amount_hint':
           'Amaun menggunakan mata wang asal. Pilih mata wang untuk julat amaun.',
       'filters_invalid_amount':
@@ -21579,7 +21644,7 @@ class AppLocalizations {
       'home_categories': 'Kategori',
       'home_refresh_error':
           'Halaman Utama tidak dapat disegarkan sekarang. Sila cuba lagi.',
-      'receipts_filter_needs_review': 'Necessita di revisione',
+      'receipts_filter_needs_review': 'Perlu disemak',
       'receipts_needs_review': 'Necessita di revisione',
       'receipts_check_extraction': 'Controllare l\'estrazione',
       'receipts_draft': 'Ha bisogno di essere salvato',
@@ -21598,7 +21663,7 @@ class AppLocalizations {
           'Sejarah anda tidak dapat dimuatkan sekarang. Sila cuba lagi.',
       'receipts_remove_error':
           'Kami tidak dapat mengalih keluar entri tersebut. Sila cuba lagi.',
-      'common_apply': 'Terapkan',
+      'common_apply': 'Gunakan',
       'common_create': 'Buat',
       'common_save': 'Jimat',
       'common_new': 'baru',
@@ -21615,7 +21680,7 @@ class AppLocalizations {
       'filters_title': 'Penapis',
       'filters_title_with_count': 'Penapis ({count})',
       'filters_period': 'Tempoh',
-      'filters_category': 'kategori',
+      'filters_category': 'Kategori',
       'filters_subcategory': 'Subkategori',
       'filters_labels': 'Label',
       'filters_clear_all': 'Kosongkan Semua Penapis',
@@ -21775,7 +21840,7 @@ class AppLocalizations {
           'Semak item ini: ia sepatutnya {expected} dan pada masa ini menunjukkan {actual}.',
       'transaction_total_review_message':
           'Semak jumlah sebelum menyimpan: jumlah item ialah {expected} manakala jumlah resit ialah {actual}.',
-      'transaction_items_heading': 'Elementi',
+      'transaction_items_heading': 'Item',
       'transaction_empty_items':
           'Belum ada item lagi. Tambah item pertama anda untuk melengkapkan resit ini.',
       'transaction_read_only_owner':
@@ -22464,10 +22529,14 @@ class AppLocalizations {
       'delete_reminder_name_confirm': 'Padam "{name}"?',
     },
     'vi': {
-      'filters_search_hint': 'Tìm cửa hàng hoặc mặt hàng…',
+      'duplicates_reason_item_single': '{count} mặt hàng trùng khớp',
+      'upload_selected_body':
+          'Kiểm tra ảnh, chọn ảnh khác hoặc bắt đầu trích xuất.',
+      'upload_selected_title': 'Đã chọn hóa đơn',
+      'filters_search_hint': 'Cửa hàng hoặc mặt hàng',
       'filters_amount': 'Khoảng số tiền',
-      'filters_min_amount': 'Tối thiểu',
-      'filters_max_amount': 'Tối đa',
+      'filters_min_amount': 'Số tiền tối thiểu',
+      'filters_max_amount': 'Số tiền tối đa',
       'filters_amount_hint':
           'Số tiền dùng tiền tệ gốc. Chọn tiền tệ cho khoảng số tiền.',
       'filters_invalid_amount': 'Nhập số tiền có tối đa 2 chữ số thập phân.',
@@ -22886,7 +22955,7 @@ class AppLocalizations {
       'home_categories': 'Danh mục',
       'home_refresh_error':
           'Không thể làm mới Trang chủ ngay bây giờ. Vui lòng thử lại.',
-      'receipts_filter_needs_review': 'Necessita di revisione',
+      'receipts_filter_needs_review': 'Cần kiểm tra',
       'receipts_needs_review': 'Necessita di revisione',
       'receipts_check_extraction': 'Controllare l\'estrazione',
       'receipts_draft': 'Ha bisogno di essere salvato',
@@ -22921,9 +22990,9 @@ class AppLocalizations {
       'period_all_time': 'mọi lúc',
       'filters_title': 'Bộ lọc',
       'filters_title_with_count': 'Bộ lọc ({count})',
-      'filters_period': 'Giai đoạn',
-      'filters_category': 'Loại',
-      'filters_subcategory': 'Tiểu thể loại',
+      'filters_period': 'Khoảng thời gian',
+      'filters_category': 'Danh mục',
+      'filters_subcategory': 'Danh mục con',
       'filters_labels': 'Nhãn',
       'filters_clear_all': 'Xóa tất cả bộ lọc',
       'filters_no_categories': 'Không có danh mục nào',
@@ -23080,7 +23149,7 @@ class AppLocalizations {
           'Xem lại mặt hàng này: nó nên là {expected} và hiện đang hiển thị {actual}.',
       'transaction_total_review_message':
           'Xem lại tổng số trước khi lưu: các mặt hàng có tổng là {expected} trong khi tổng số trên biên lai là {actual}.',
-      'transaction_items_heading': 'Elementi',
+      'transaction_items_heading': 'Mặt hàng',
       'transaction_empty_items':
           'Chưa có mặt hàng nào. Thêm mặt hàng đầu tiên để hoàn thành biên lai này.',
       'transaction_read_only_owner':
@@ -23770,7 +23839,10 @@ class AppLocalizations {
       'delete_reminder_name_confirm': 'Xóa "{name}"?',
     },
     'zh': {
-      'filters_search_hint': '搜索商家或商品…',
+      'duplicates_reason_item_single': '{count} 项匹配商品',
+      'upload_selected_body': '检查图片、选择其他照片，或开始识别。',
+      'upload_selected_title': '已选择收据',
+      'filters_search_hint': '商家或商品',
       'filters_amount': '金额范围',
       'filters_min_amount': '最低金额',
       'filters_max_amount': '最高金额',
@@ -24871,7 +24943,10 @@ class AppLocalizations {
       'delete_reminder_name_confirm': '删除 "{name}"？',
     },
     'ja': {
-      'filters_search_hint': '店舗や商品を検索…',
+      'duplicates_reason_item_single': '一致する商品 {count} 点',
+      'upload_selected_body': '画像を確認し、別の写真を選ぶか、読み取りを開始してください。',
+      'upload_selected_title': 'レシートを選択しました',
+      'filters_search_hint': '店舗または商品',
       'filters_amount': '金額の範囲',
       'filters_min_amount': '最小金額',
       'filters_max_amount': '最大金額',
@@ -25425,7 +25500,7 @@ class AppLocalizations {
           'この項目を確認してください。{expected}である必要がありますが、現在は {actual}と表示されています。',
       'transaction_total_review_message':
           '保存する前に合計を確認してください。アイテムの合計は {expected}になりますが、領収書の合計は {actual}です。',
-      'transaction_items_heading': 'Elementi',
+      'transaction_items_heading': '商品',
       'transaction_empty_items': 'まだ項目はありません。最初の商品を追加してこのレシートを完成させます。',
       'transaction_read_only_owner': 'この領収書を確認することはできますが、編集できるのは所有者だけです。',
       'transaction_receipt_photo_title': '領収書の写真',
@@ -26013,7 +26088,10 @@ class AppLocalizations {
       'delete_reminder_name_confirm': '「{name}」を削除しますか？',
     },
     'ko': {
-      'filters_search_hint': '상점 또는 상품 검색…',
+      'duplicates_reason_item_single': '일치하는 상품 {count}개',
+      'upload_selected_body': '이미지를 확인하거나 다른 사진을 선택하거나 추출을 시작하세요.',
+      'upload_selected_title': '영수증 선택됨',
+      'filters_search_hint': '상점 또는 상품',
       'filters_amount': '금액 범위',
       'filters_min_amount': '최소 금액',
       'filters_max_amount': '최대 금액',
@@ -26575,7 +26653,7 @@ class AppLocalizations {
           '이 광고 항목을 검토하세요. {expected}여야 하며 현재 {actual}가 표시됩니다.',
       'transaction_total_review_message':
           '저장하기 전에 총액을 검토하세요. 항목의 합은 {expected}이고 영수증 총액은 {actual}입니다.',
-      'transaction_items_heading': 'Elementi',
+      'transaction_items_heading': '품목',
       'transaction_empty_items': '아직 광고 항목이 없습니다. 이 영수증을 완성하려면 첫 번째 항목을 추가하세요.',
       'transaction_read_only_owner': '이 영수증을 검토할 수 있지만 편집은 소유자만 할 수 있습니다.',
       'transaction_receipt_photo_title': '영수증 사진',
@@ -27173,10 +27251,14 @@ class AppLocalizations {
       'delete_reminder_name_confirm': '"{name}" 내역을 삭제하시겠습니까?',
     },
     'hi': {
-      'filters_search_hint': 'विक्रेता या वस्तु खोजें…',
+      'duplicates_reason_item_single': '{count} मेल खाने वाली वस्तु',
+      'upload_selected_body':
+          'चित्र की समीक्षा करें, दूसरी फ़ोटो चुनें या जानकारी निकालना शुरू करें।',
+      'upload_selected_title': 'रसीद चुनी गई',
+      'filters_search_hint': 'विक्रेता या वस्तु',
       'filters_amount': 'राशि सीमा',
-      'filters_min_amount': 'न्यूनतम',
-      'filters_max_amount': 'अधिकतम',
+      'filters_min_amount': 'न्यूनतम राशि',
+      'filters_max_amount': 'अधिकतम राशि',
       'filters_amount_hint':
           'राशियाँ मूल मुद्रा में हैं। राशि सीमा के लिए मुद्रा चुनें।',
       'filters_invalid_amount': 'अधिकतम 2 दशमलव स्थानों वाली राशि दर्ज करें।',
@@ -27227,7 +27309,7 @@ class AppLocalizations {
       'receipts_amount_sort_hint':
           'राशियाँ आपकी प्रदर्शन मुद्रा में हैं। विनिमय दर के बिना रसीदें अंत में दिखाई जाती हैं।',
       'app_title': 'व्यय ट्रैकर',
-      'common_cancel': 'रद्द करना',
+      'common_cancel': 'रद्द करें',
       'common_delete': 'मिटाना',
       'common_retry': 'पुन: प्रयास करें',
       'common_error': 'गलती',
@@ -27776,7 +27858,7 @@ class AppLocalizations {
           'इस पंक्ति वस्तु की समीक्षा करें: यह {expected}होना चाहिए और वर्तमान में {actual}दिखाता है।',
       'transaction_total_review_message':
           'बचत करने से पहले कुल की समीक्षा करें: आइटम का योग {expected}है जबकि रसीद का कुल योग {actual}है।',
-      'transaction_items_heading': 'Elementi',
+      'transaction_items_heading': 'वस्तुएँ',
       'transaction_empty_items':
           'अभी तक कोई पंक्ति वस्तु नहीं. इस रसीद को पूरा करने के लिए अपना पहला आइटम जोड़ें।',
       'transaction_read_only_owner':
@@ -28460,10 +28542,14 @@ class AppLocalizations {
       'delete_reminder_name_confirm': 'क्या "{name}" को हटाना चाहते हैं?',
     },
     'ar': {
-      'filters_search_hint': 'ابحث عن تاجر أو منتج…',
+      'duplicates_reason_item_single': '{count} عنصر متطابق',
+      'upload_selected_body':
+          'راجع الصورة أو اختر صورة أخرى أو ابدأ الاستخراج.',
+      'upload_selected_title': 'تم اختيار الإيصال',
+      'filters_search_hint': 'تاجر أو منتج',
       'filters_amount': 'نطاق المبلغ',
-      'filters_min_amount': 'الحد الأدنى',
-      'filters_max_amount': 'الحد الأقصى',
+      'filters_min_amount': 'أقل مبلغ',
+      'filters_max_amount': 'أعلى مبلغ',
       'filters_amount_hint': 'المبالغ بالعملة الأصلية. اختر عملة لنطاق المبلغ.',
       'filters_invalid_amount': 'أدخل مبلغًا بما يصل إلى منزلتين عشريتين.',
       'filters_invalid_range': 'يجب ألا يتجاوز الحد الأدنى الحد الأقصى.',
@@ -28513,7 +28599,7 @@ class AppLocalizations {
       'receipts_amount_sort_hint':
           'تستخدم المبالغ عملة العرض. تظهر الإيصالات التي لا يتوفر لها سعر صرف في النهاية.',
       'app_title': 'تعقب النفقات',
-      'common_cancel': 'يلغي',
+      'common_cancel': 'إلغاء',
       'common_delete': 'يمسح',
       'common_retry': 'أعد المحاولة',
       'common_error': 'خطأ',
@@ -29057,7 +29143,7 @@ class AppLocalizations {
           'قم بمراجعة هذا العنصر: يجب أن يكون {expected}ويعرض حاليًا {actual}.',
       'transaction_total_review_message':
           'قم بمراجعة الإجمالي قبل الحفظ: العناصر تضيف ما يصل إلى {expected}بينما إجمالي الإيصالات هو {actual}.',
-      'transaction_items_heading': 'Elementi',
+      'transaction_items_heading': 'الأصناف',
       'transaction_empty_items':
           'لا توجد عناصر بعد. أضف العنصر الأول الخاص بك لإنهاء هذا الإيصال.',
       'transaction_read_only_owner':
@@ -29722,10 +29808,14 @@ class AppLocalizations {
       'delete_reminder_name_confirm': 'هل تريد حذف "{name}"؟',
     },
     'es': {
-      'filters_search_hint': 'Buscar comercios o artículos…',
+      'duplicates_reason_item_single': '{count} artículo coincidente',
+      'upload_selected_body':
+          'Revisa la imagen, elige otra foto o inicia la extracción.',
+      'upload_selected_title': 'Recibo seleccionado',
+      'filters_search_hint': 'Comercio o artículo',
       'filters_amount': 'Rango de importes',
-      'filters_min_amount': 'Mínimo',
-      'filters_max_amount': 'Máximo',
+      'filters_min_amount': 'Importe mínimo',
+      'filters_max_amount': 'Importe máximo',
       'filters_amount_hint':
           'Los importes usan la moneda original. Elige una moneda para el rango.',
       'filters_invalid_amount':

@@ -45,3 +45,8 @@ in [Duplicate review](DUPLICATE_REVIEW.md).
    deleted. Save editor changes before entering comparison.
 6. Check receipt history beyond 50 records, all sort options, retrying a failed
    load-more request, and display-currency totals.
+
+7. Switch the app language and check sorting, filters, validation messages and
+   duplicate review. Check German with larger text and Arabic with right-to-left
+   controls. Amount range chips should use localized decimal separators; decimal
+   keyboards using commas or Arabic digits must still submit exact amounts.
