@@ -33,11 +33,6 @@ def _index_names(insp: sa.Inspector, table_name: str) -> set[str]:
     return {index["name"] for index in insp.get_indexes(table_name)}
 
 
-def _drop_table_indexes(insp: sa.Inspector, table_name: str) -> None:
-    for index_name in sorted(_index_names(insp, table_name)):
-        op.drop_index(index_name, table_name=table_name)
-
-
 def _drop_transaction_household_column(insp: sa.Inspector) -> None:
     if "transactions" not in _table_names(insp):
         return
@@ -69,7 +64,8 @@ def upgrade() -> None:
     for table_name in ["household_invites", "household_members", "households"]:
         if table_name not in _table_names(insp):
             continue
-        _drop_table_indexes(insp, table_name)
+        # PostgreSQL drops owned indexes and constraints with the table.
+        # Dropping a unique constraint index separately raises SQLSTATE 2BP01.
         op.drop_table(table_name)
         insp = sa.inspect(bind)
 

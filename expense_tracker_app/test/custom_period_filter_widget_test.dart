@@ -141,6 +141,7 @@ void main() {
             )
             .first,
       );
+      await tester.pumpAndSettle();
       await tester.tap(find.byIcon(Icons.edit_calendar_outlined));
       await tester.pumpAndSettle();
       expect(find.byType(DateRangePickerDialog), findsOneWidget);

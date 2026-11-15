@@ -199,6 +199,33 @@ from MinIO, restores it into an ephemeral PostgreSQL data directory inside that
 job, prints the result, and deletes the job unless `KEEP_JOB=true` is set. It
 must not be pointed at production Postgres.
 
+### Development images from Docker Hub
+
+Public Docker Hub images can use `docker.io/fotapol/ai-expense-tracker-backend:<tag>`,
+`docker.io/fotapol/ai-expense-tracker-site:<tag>` and
+`docker.io/fotapol/ai-expense-tracker-postgres-backup:<tag>` for the three image
+variables. The API and worker use the same backend image. Verify pulls from the
+actual registry named in the image reference before rolling out.
+
+Run migrations from the new backend image before its rollout. The migration
+helper defaults to the currently deployed API image, so an older API image
+will not contain newly introduced revisions. The household-removal revision must
+drop tables directly: PostgreSQL removes their owned indexes and constraints;
+trying to drop a constraint-owned index first fails with SQLSTATE `2BP01`.
+
+Shell entrypoints must use LF line endings. The site and backup Dockerfiles
+normalize copied startup scripts, including builds from Windows checkouts. The
+backup script waits for PostgreSQL connectivity before starting its dump.
+
+The temporary `dev-c7c4ddd` rollout uses ConfigMap
+`expense-tracker-startup-scripts-c7c4ddd` and volume `startup-script-fix` to supply
+LF scripts to the existing Windows-built images. The site mounts its
+`site-entrypoint.sh` key at `/docker-entrypoint.d/40-render-site-config.sh`; the
+backup CronJob mounts `backup.sh` at `/usr/local/bin/backup.sh`. After rebuilding
+both images from the corrected Dockerfiles, remove these temporary volume mounts
+and volumes when deploying the replacement images, then delete the ConfigMap.
+The API and worker need no startup-script override.
+
 ### 8. Render Kubernetes Inputs
 
 ```bash
