@@ -5,6 +5,14 @@ import 'package:flutter/material.dart';
 import '../core/redesign_system.dart';
 import '../l10n/app_localizations.dart';
 
+IconData receiptSortIcon(String sort) => switch (sort) {
+  'oldest' => Icons.arrow_upward,
+  'amount_asc' => Icons.trending_up,
+  'amount_desc' => Icons.trending_down,
+  'merchant_asc' => Icons.sort_by_alpha,
+  _ => Icons.arrow_downward,
+};
+
 class ReceiptHistoryControls extends StatelessWidget {
   const ReceiptHistoryControls({
     super.key,
@@ -80,7 +88,7 @@ class ReceiptHistoryControls extends StatelessWidget {
             child: Row(
               children: [
                 Icon(
-                  Icons.sort_rounded,
+                  receiptSortIcon(sort),
                   size: 18,
                   color: ShellStyles.textMuted(context),
                 ),

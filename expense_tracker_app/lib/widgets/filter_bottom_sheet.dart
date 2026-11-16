@@ -941,38 +941,43 @@ class _FilterBottomSheetState extends State<FilterBottomSheet> {
         ),
         if (_selectedSubcategoryIds.isNotEmpty) ...[
           const SizedBox(height: 8),
-          Wrap(
-            spacing: 8,
-            runSpacing: 8,
-            children: available
-                .where(
-                  (subcat) => _selectedSubcategoryIds.contains(subcat['id']),
-                )
-                .map((subcat) {
-                  final id = subcat['id'] as String;
-                  final name = _localizedCategoryName(
-                    subcat as Map<String, dynamic>,
-                  );
-                  return InputChip(
-                    selected: true,
-                    showCheckmark: true,
-                    checkmarkColor: ShellStyles.accentTone(context).foreground,
-                    deleteIconColor: ShellStyles.accentTone(context).foreground,
-                    labelStyle: Theme.of(context).textTheme.labelLarge!
-                        .copyWith(
-                          color: ShellStyles.accentTone(context).foreground,
-                        ),
-                    selectedColor: ShellStyles.accentTone(context).container,
-                    side: BorderSide(
-                      color: ShellStyles.accentTone(context).border,
-                    ),
-                    label: Text(name),
-                    onDeleted: () {
-                      setState(() => _selectedSubcategoryIds.remove(id));
-                    },
-                  );
-                })
-                .toList(),
+          SizedBox(
+            width: double.infinity,
+            child: Wrap(
+              spacing: 8,
+              runSpacing: 8,
+              children: available
+                  .where(
+                    (subcat) => _selectedSubcategoryIds.contains(subcat['id']),
+                  )
+                  .map((subcat) {
+                    final id = subcat['id'] as String;
+                    final name = _localizedCategoryName(
+                      subcat as Map<String, dynamic>,
+                    );
+                    return FilterChip(
+                      key: ValueKey('selected-subcategory-$id'),
+                      selected: true,
+                      showCheckmark: true,
+                      checkmarkColor: ShellStyles.accentTone(
+                        context,
+                      ).foreground,
+                      labelStyle: Theme.of(context).textTheme.labelLarge!
+                          .copyWith(
+                            color: ShellStyles.accentTone(context).foreground,
+                          ),
+                      selectedColor: ShellStyles.accentTone(context).container,
+                      side: BorderSide(
+                        color: ShellStyles.accentTone(context).border,
+                      ),
+                      label: Text(name),
+                      onSelected: (_) {
+                        setState(() => _selectedSubcategoryIds.remove(id));
+                      },
+                    );
+                  })
+                  .toList(),
+            ),
           ),
         ],
       ],

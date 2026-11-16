@@ -355,10 +355,14 @@ class AnalyticsMetric {
     required this.value,
     required this.icon,
     this.valueColor,
+    this.supporting,
+    this.supportingColor,
   });
   final String label, value;
   final IconData icon;
   final Color? valueColor;
+  final String? supporting;
+  final Color? supportingColor;
 }
 
 /// Equal metric surfaces with complete labels at each locale and text size.
@@ -380,6 +384,11 @@ class AnalyticsMetricGroup extends StatelessWidget {
         fontSize: 17,
         height: 1.25,
         fontWeight: FontWeight.w800,
+      );
+      final supportingStyle = Theme.of(context).textTheme.bodySmall!.copyWith(
+        fontSize: 11.5,
+        height: 1.35,
+        color: ShellStyles.textMuted(context),
       );
       Size measure(
         String text,
@@ -406,6 +415,9 @@ class AnalyticsMetricGroup extends StatelessWidget {
       const borderWidth = 1.0;
       const insets = 2 * (padding + borderWidth);
       var minimumColumnWidth = 120 * ShellStyles.textScale(context);
+      if (valueWidth + insets > minimumColumnWidth) {
+        minimumColumnWidth = valueWidth + insets;
+      }
       for (final metric in metrics) {
         for (final word in metric.label.split(RegExp(r'\s+'))) {
           final width = measure(word, labelStyle).width + insets + 26;
@@ -418,9 +430,12 @@ class AnalyticsMetricGroup extends StatelessWidget {
       final tileWidth = columns
           ? (constraints.maxWidth - 10 * (metrics.length - 1)) / metrics.length
           : constraints.maxWidth;
+      final naturalValueWidth = valueWidth;
       valueWidth = valueWidth.clamp(0, tileWidth * .45);
       final horizontal =
-          !columns && tileWidth - insets - 34 - valueWidth >= 100;
+          !columns &&
+          naturalValueWidth <= valueWidth &&
+          tileWidth - insets - 34 - valueWidth >= 100;
       final labelWidth =
           tileWidth - insets - 26 - (horizontal ? valueWidth + 8 : 0);
       var labelHeight = 18.0;
@@ -435,7 +450,20 @@ class AnalyticsMetricGroup extends StatelessWidget {
       final contentHeight = horizontal
           ? (labelHeight > valueHeight ? labelHeight : valueHeight)
           : labelHeight + 8 + valueHeight;
-      final height = contentHeight + insets;
+      var supportingHeight = 0.0;
+      for (final metric in metrics) {
+        if (metric.supporting == null) continue;
+        final height = measure(
+          metric.supporting!,
+          supportingStyle,
+          maxWidth: tileWidth - insets,
+        ).height;
+        if (height > supportingHeight) supportingHeight = height;
+      }
+      final height =
+          contentHeight +
+          insets +
+          (supportingHeight > 0 ? supportingHeight + 6 : 0);
       Widget tile(AnalyticsMetric metric, int index) {
         final label = Text(metric.label, style: labelStyle);
         final icon = Icon(
@@ -473,34 +501,54 @@ class AnalyticsMetricGroup extends StatelessWidget {
               width: borderWidth,
             ),
           ),
-          child: horizontal
-              ? Row(
-                  children: [
-                    icon,
-                    const SizedBox(width: 8),
-                    Expanded(child: label),
-                    const SizedBox(width: 8),
-                    value,
-                  ],
-                )
-              : Column(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    SizedBox(
-                      height: labelHeight,
-                      child: Row(
-                        crossAxisAlignment: CrossAxisAlignment.start,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              SizedBox(
+                height: contentHeight,
+                child: horizontal
+                    ? Row(
                         children: [
                           icon,
                           const SizedBox(width: 8),
                           Expanded(child: label),
+                          const SizedBox(width: 8),
+                          value,
+                        ],
+                      )
+                    : Column(
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                        children: [
+                          SizedBox(
+                            height: labelHeight,
+                            child: Row(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                icon,
+                                const SizedBox(width: 8),
+                                Expanded(child: label),
+                              ],
+                            ),
+                          ),
+                          const SizedBox(height: 8),
+                          value,
                         ],
                       ),
+              ),
+              if (supportingHeight > 0) ...[
+                const SizedBox(height: 6),
+                SizedBox(
+                  height: supportingHeight,
+                  child: Text(
+                    metric.supporting ?? '',
+                    style: supportingStyle.copyWith(
+                      color: metric.supportingColor,
                     ),
-                    const SizedBox(height: 8),
-                    value,
-                  ],
+                  ),
                 ),
+              ],
+            ],
+          ),
         );
       }
 

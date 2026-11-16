@@ -300,55 +300,57 @@ class _AnalyticsTrendsTabState extends State<AnalyticsTrendsTab> {
     required int? previousTransactions,
     required double? previousDailyAverage,
   }) {
-    return LayoutBuilder(
-      builder: (context, constraints) {
-        final useTwoColumns = constraints.maxWidth < 320;
-        final tileWidth = useTwoColumns
-            ? (constraints.maxWidth - 10) / 2
-            : (constraints.maxWidth - 20) / 3;
-        return Wrap(
-          spacing: 10,
-          runSpacing: 10,
-          children: [
-            SizedBox(
-              width: tileWidth,
-              child: _TrendMetricCard(
-                label: context.tr('total_spent'),
-                value: formatMoney(currency, totalSpent),
-                change: _buildMetricChange(
-                  current: totalSpent,
-                  previous: previousTotalSpent,
-                  lowerIsBetter: true,
-                ),
-              ),
-            ),
-            SizedBox(
-              width: tileWidth,
-              child: _TrendMetricCard(
-                label: context.tr('analytics_trends_transactions'),
-                value: '$totalTransactions',
-                change: _buildMetricChange(
-                  current: totalTransactions.toDouble(),
-                  previous: previousTransactions?.toDouble(),
-                  lowerIsBetter: true,
-                ),
-              ),
-            ),
-            SizedBox(
-              width: tileWidth,
-              child: _TrendMetricCard(
-                label: context.tr('daily_avg'),
-                value: formatMoney(currency, dailyAverage),
-                change: _buildMetricChange(
-                  current: dailyAverage,
-                  previous: previousDailyAverage,
-                  lowerIsBetter: true,
-                ),
-              ),
-            ),
-          ],
-        );
-      },
+    AnalyticsMetric metric(
+      String label,
+      String value,
+      IconData icon,
+      double current,
+      double? previous,
+    ) {
+      final change = _buildMetricChange(
+        current: current,
+        previous: previous,
+        lowerIsBetter: true,
+      );
+      return AnalyticsMetric(
+        label: label,
+        value: value,
+        icon: icon,
+        supporting: change == null
+            ? context.tr('analytics_trends_no_prior')
+            : '${change.isDownward ? '−' : '+'}${MaterialLocalizations.of(context).formatDecimal(change.percent.round())}%',
+        supportingColor: change == null
+            ? null
+            : change.isPositive
+            ? ShellStyles.success(context)
+            : ShellStyles.error(context),
+      );
+    }
+
+    return AnalyticsMetricGroup(
+      metrics: [
+        metric(
+          context.tr('total_spent'),
+          formatMoney(currency, totalSpent),
+          Icons.account_balance_wallet_outlined,
+          totalSpent,
+          previousTotalSpent,
+        ),
+        metric(
+          context.tr('analytics_trends_transactions'),
+          MaterialLocalizations.of(context).formatDecimal(totalTransactions),
+          Icons.receipt_long_outlined,
+          totalTransactions.toDouble(),
+          previousTransactions?.toDouble(),
+        ),
+        metric(
+          context.tr('daily_avg'),
+          formatMoney(currency, dailyAverage),
+          Icons.calendar_today_outlined,
+          dailyAverage,
+          previousDailyAverage,
+        ),
+      ],
     );
   }
 
@@ -365,16 +367,17 @@ class _AnalyticsTrendsTabState extends State<AnalyticsTrendsTab> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Row(
+          Wrap(
+            spacing: 12,
+            runSpacing: 10,
+            crossAxisAlignment: WrapCrossAlignment.center,
             children: [
-              Expanded(
-                child: Text(
-                  context.tr('analytics_trends_title'),
-                  style: TextStyle(
-                    color: ShellStyles.textPrimary(context),
-                    fontSize: 18,
-                    fontWeight: FontWeight.w800,
-                  ),
+              Text(
+                context.tr('analytics_trends_title'),
+                style: TextStyle(
+                  color: ShellStyles.textPrimary(context),
+                  fontSize: 18,
+                  fontWeight: FontWeight.w800,
                 ),
               ),
               _buildCardPeriodPill(context),
@@ -514,12 +517,14 @@ class _AnalyticsTrendsTabState extends State<AnalyticsTrendsTab> {
             color: ShellStyles.textMuted(context),
           ),
           const SizedBox(width: 6),
-          Text(
-            _trendCardPeriodLabel(context),
-            style: TextStyle(
-              color: ShellStyles.textMuted(context),
-              fontSize: 11,
-              fontWeight: FontWeight.w700,
+          Flexible(
+            child: Text(
+              _trendCardPeriodLabel(context),
+              style: TextStyle(
+                color: ShellStyles.textMuted(context),
+                fontSize: 11,
+                fontWeight: FontWeight.w700,
+              ),
             ),
           ),
         ],
@@ -1076,92 +1081,6 @@ class _AnalyticsTrendsTabState extends State<AnalyticsTrendsTab> {
     }
 
     return '$symbol$compactValue';
-  }
-}
-
-class _TrendMetricCard extends StatelessWidget {
-  const _TrendMetricCard({
-    required this.label,
-    required this.value,
-    required this.change,
-  });
-
-  final String label;
-  final String value;
-  final _MetricChange? change;
-
-  @override
-  Widget build(BuildContext context) {
-    final changeColor = change == null
-        ? ShellStyles.textMuted(context)
-        : change!.isPositive
-        ? ShellColors.softGreen
-        : ShellColors.softRed;
-    return Container(
-      padding: const EdgeInsets.fromLTRB(12, 12, 12, 13),
-      decoration: ShellStyles.cardDecoration(
-        context,
-        radius: 18,
-        color: ShellStyles.surface(context),
-        withShadow: false,
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            label.toUpperCase(),
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
-            style: TextStyle(
-              color: ShellStyles.textMuted(context),
-              fontSize: 10.5,
-              fontWeight: FontWeight.w700,
-              letterSpacing: 0.6,
-            ),
-          ),
-          const SizedBox(height: 8),
-          Text(
-            value,
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
-            style: TextStyle(
-              color: ShellStyles.textPrimary(context),
-              fontSize: 17,
-              fontWeight: FontWeight.w800,
-            ),
-          ),
-          const SizedBox(height: 8),
-          if (change == null)
-            Text(
-              context.tr('analytics_trends_no_prior'),
-              style: TextStyle(
-                color: ShellStyles.textMuted(context),
-                fontSize: 10.5,
-                fontWeight: FontWeight.w600,
-              ),
-            )
-          else
-            Row(
-              children: [
-                Icon(
-                  change!.isDownward ? Icons.south_east : Icons.north_east,
-                  size: 13,
-                  color: changeColor,
-                ),
-                const SizedBox(width: 4),
-                Text(
-                  '${change!.percent.round()}%',
-                  style: TextStyle(
-                    color: changeColor,
-                    fontSize: 10.5,
-                    fontWeight: FontWeight.w700,
-                  ),
-                ),
-              ],
-            ),
-        ],
-      ),
-    );
   }
 }
 
