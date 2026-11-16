@@ -5,6 +5,7 @@ import '../core/data_transfer_actions.dart';
 import '../core/redesign_system.dart';
 import '../core/single_user_launch.dart';
 import '../l10n/app_localizations.dart';
+import '../widgets/surface_action.dart';
 import 'analytics_screen.dart';
 import 'bill_reminders_screen.dart';
 import 'budget_calculator_screen.dart';
@@ -55,48 +56,36 @@ class ToolsScreen extends StatelessWidget {
               ),
             ),
             SizedBox(height: ShellStyles.scaled(context, 18, min: 14, max: 20)),
-            Row(
-              children: [
-                Icon(
-                  CupertinoIcons.pin_fill,
-                  size: ShellStyles.scaled(context, 12, min: 11, max: 13),
-                  color: ShellStyles.accentTone(context).base,
-                ),
-                const SizedBox(width: 6),
-                Expanded(
-                  child: ShellStyles.sectionLabel(
-                    context,
-                    context.tr('tools_most_used'),
-                  ),
-                ),
-              ],
-            ),
-            SizedBox(height: ShellStyles.scaled(context, 10, min: 8, max: 12)),
-            _buildShortcuts(context),
-            SizedBox(height: ShellStyles.scaled(context, 22, min: 18, max: 26)),
-            ShellStyles.sectionLabel(context, context.tr('tools_all_tools')),
-            SizedBox(height: ShellStyles.scaled(context, 12, min: 10, max: 14)),
             _buildToolSection(
               context,
               title: context.tr('tools_core'),
               tiles: [
                 _ToolTileData(
-                  icon: Icons.content_copy_outlined,
-                  title: context.tr('duplicates_title'),
-                  subtitle: context.tr('duplicates_subtitle'),
-                  onTap: () => _open(context, const DuplicateFinderScreen()),
+                  icon: AppIcons.scan,
+                  title: context.tr('tools_scan_receipt'),
+                  subtitle: context.tr('quick_scan_with_ai_review'),
+                  featured: true,
+                  onTap: () => _open(context, const ReceiptUploadScreen()),
                 ),
                 _ToolTileData(
                   icon: AppIcons.receipt,
                   title: context.tr('tools_receipt_manager'),
                   subtitle: context.tr('tools_receipt_manager_subtitle'),
+                  featured: true,
                   onTap: () => _open(context, const ReceiptManagerScreen()),
                 ),
                 _ToolTileData(
                   icon: AppIcons.analyticsAlt,
                   title: context.tr('tools_analytics'),
                   subtitle: context.tr('tools_analytics_subtitle'),
+                  featured: true,
                   onTap: () => _open(context, const AnalyticsScreen()),
+                ),
+                _ToolTileData(
+                  icon: Icons.content_copy_outlined,
+                  title: context.tr('duplicates_title'),
+                  subtitle: context.tr('duplicates_subtitle'),
+                  onTap: () => _open(context, const DuplicateFinderScreen()),
                 ),
                 _ToolTileData(
                   icon: AppIcons.category,
@@ -191,227 +180,85 @@ class ToolsScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildShortcuts(BuildContext context) {
-    final shortcuts = [
-      _ToolTileData(
-        icon: AppIcons.scan,
-        title: context.tr('tools_scan_receipt'),
-        subtitle: context.tr('quick_scan_with_ai_review'),
-        onTap: () => _open(context, const ReceiptUploadScreen()),
-      ),
-      _ToolTileData(
-        icon: AppIcons.analyticsAlt,
-        title: context.tr('tools_analytics'),
-        subtitle: context.tr('view_insights_and_trends'),
-        onTap: () => _open(context, const AnalyticsScreen()),
-      ),
-      _ToolTileData(
-        icon: AppIcons.receipt,
-        title: context.tr('tools_receipt_manager'),
-        subtitle: context.tr('organize_your_receipts'),
-        onTap: () => _open(context, const ReceiptManagerScreen()),
-      ),
-    ];
-    return LayoutBuilder(
-      builder: (context, constraints) {
-        final columns =
-            (constraints.maxWidth / (130 * ShellStyles.textScale(context)))
-                .floor()
-                .clamp(1, 3)
-                .toInt();
-        return Column(
-          children: [
-            for (var start = 0; start < shortcuts.length; start += columns) ...[
-              if (start > 0) const SizedBox(height: 8),
-              IntrinsicHeight(
-                child: Row(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    for (var i = 0; i < columns; i++) ...[
-                      if (i > 0) const SizedBox(width: 8),
-                      Expanded(
-                        child: start + i >= shortcuts.length
-                            ? const SizedBox.shrink()
-                            : _buildShortcutCard(
-                                context,
-                                icon: shortcuts[start + i].icon,
-                                title: shortcuts[start + i].title,
-                                subtitle: shortcuts[start + i].subtitle,
-                                onTap: shortcuts[start + i].onTap,
-                              ),
-                      ),
-                    ],
-                  ],
-                ),
-              ),
-            ],
-          ],
-        );
-      },
-    );
-  }
-
-  Widget _buildShortcutCard(
-    BuildContext context, {
-    required IconData icon,
-    required String title,
-    required String subtitle,
-    required VoidCallback onTap,
-  }) {
-    return InkWell(
-      borderRadius: BorderRadius.circular(
-        ShellStyles.scaled(context, 16, min: 14, max: 18),
-      ),
-      onTap: onTap,
-      child: Container(
-        constraints: const BoxConstraints(minHeight: 110),
-        padding: EdgeInsets.all(
-          ShellStyles.scaled(context, 10, min: 9, max: 12),
-        ),
-        decoration: ShellStyles.cardDecoration(
-          context,
-          radius: ShellStyles.scaled(context, 16, min: 14, max: 18),
-          color: ShellStyles.surface(context),
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Container(
-              width: ShellStyles.scaled(context, 36, min: 32, max: 40),
-              height: ShellStyles.scaled(context, 36, min: 32, max: 40),
-              alignment: Alignment.center,
-              decoration: BoxDecoration(
-                color: ShellStyles.accentTone(context).base,
-                borderRadius: BorderRadius.circular(
-                  ShellStyles.scaled(context, 12, min: 10, max: 13),
-                ),
-              ),
-              child: Icon(
-                icon,
-                size: ShellStyles.scaled(context, 18, min: 16, max: 20),
-                color: ShellStyles.accentTone(context).onSolid,
-              ),
-            ),
-            SizedBox(height: ShellStyles.scaled(context, 12, min: 10, max: 14)),
-            Text(
-              title,
-              maxLines: 2,
-              overflow: TextOverflow.ellipsis,
-              style: TextStyle(
-                color: ShellStyles.textPrimary(context),
-                fontSize: ShellStyles.scaled(context, 12.5, min: 11, max: 13.5),
-                height: 1.15,
-                fontWeight: FontWeight.w700,
-              ),
-            ),
-            SizedBox(height: ShellStyles.scaled(context, 3, min: 2, max: 5)),
-            Text(
-              subtitle,
-              maxLines: 2,
-              overflow: TextOverflow.ellipsis,
-              style: TextStyle(
-                color: ShellStyles.textMuted(context),
-                fontSize: ShellStyles.scaled(
-                  context,
-                  10.5,
-                  min: 9.5,
-                  max: 11.5,
-                ),
-                height: 1.2,
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
   Widget _buildListTile(BuildContext context, _ToolTileData tile) {
-    return InkWell(
+    return SurfaceAction(
       onTap: tile.onTap,
-      borderRadius: BorderRadius.circular(
-        ShellStyles.scaled(context, 18, min: 16, max: 20),
-      ),
-      child: Container(
-        decoration: ShellStyles.cardDecoration(
-          context,
-          radius: ShellStyles.scaled(context, 18, min: 16, max: 20),
-          color: ShellStyles.surface(context),
-        ),
-        padding: EdgeInsets.symmetric(
-          horizontal: ShellStyles.scaled(context, 14, min: 12, max: 16),
-          vertical: ShellStyles.scaled(context, 14, min: 12, max: 16),
-        ),
-        child: Row(
-          children: [
-            Container(
-              width: ShellStyles.scaled(context, 38, min: 34, max: 42),
-              height: ShellStyles.scaled(context, 38, min: 34, max: 42),
-              alignment: Alignment.center,
-              decoration: BoxDecoration(
-                color: ShellStyles.accentTone(context).container,
-                borderRadius: BorderRadius.circular(
-                  ShellStyles.scaled(context, 12, min: 10, max: 14),
-                ),
-                border: Border.all(
-                  color: ShellStyles.accentTone(context).border,
-                ),
+      radius: 18,
+      highlighted: tile.featured,
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+      child: Row(
+        children: [
+          Container(
+            width: ShellStyles.scaled(context, 38, min: 34, max: 42),
+            height: ShellStyles.scaled(context, 38, min: 34, max: 42),
+            alignment: Alignment.center,
+            decoration: BoxDecoration(
+              color: tile.featured
+                  ? ShellStyles.accentTone(context).base
+                  : ShellStyles.accentTone(context).container,
+              borderRadius: BorderRadius.circular(
+                ShellStyles.scaled(context, 12, min: 10, max: 14),
               ),
+              border: Border.all(color: ShellStyles.accentTone(context).border),
+            ),
+            child: Icon(
+              tile.icon,
+              color: tile.featured
+                  ? ShellStyles.accentTone(context).onSolid
+                  : ShellStyles.accentTone(context).foreground,
+              size: ShellStyles.scaled(context, 18, min: 16, max: 20),
+            ),
+          ),
+          SizedBox(width: ShellStyles.scaled(context, 12, min: 10, max: 14)),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  tile.title,
+                  style: TextStyle(
+                    color: ShellStyles.textPrimary(context),
+                    fontSize: ShellStyles.scaled(context, 14, min: 13, max: 15),
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+                SizedBox(
+                  height: ShellStyles.scaled(context, 2, min: 1, max: 4),
+                ),
+                Text(
+                  tile.subtitle,
+                  style: TextStyle(
+                    color: ShellStyles.textMuted(context),
+                    fontSize: ShellStyles.scaled(
+                      context,
+                      11,
+                      min: 10.5,
+                      max: 12,
+                    ),
+                    height: 1.25,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          if (tile.featured) ...[
+            const SizedBox(width: 8),
+            Tooltip(
+              message: context.tr('tools_most_used'),
               child: Icon(
-                tile.icon,
+                CupertinoIcons.pin_fill,
+                size: 13,
                 color: ShellStyles.accentTone(context).foreground,
-                size: ShellStyles.scaled(context, 18, min: 16, max: 20),
               ),
-            ),
-            SizedBox(width: ShellStyles.scaled(context, 12, min: 10, max: 14)),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    tile.title,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: TextStyle(
-                      color: ShellStyles.textPrimary(context),
-                      fontSize: ShellStyles.scaled(
-                        context,
-                        14,
-                        min: 13,
-                        max: 15,
-                      ),
-                      fontWeight: FontWeight.w700,
-                    ),
-                  ),
-                  SizedBox(
-                    height: ShellStyles.scaled(context, 2, min: 1, max: 4),
-                  ),
-                  Text(
-                    tile.subtitle,
-                    maxLines: 2,
-                    overflow: TextOverflow.ellipsis,
-                    style: TextStyle(
-                      color: ShellStyles.textMuted(context),
-                      fontSize: ShellStyles.scaled(
-                        context,
-                        11,
-                        min: 10.5,
-                        max: 12,
-                      ),
-                      height: 1.25,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            SizedBox(width: ShellStyles.scaled(context, 10, min: 8, max: 12)),
-            Icon(
-              AppIcons.chevronRight,
-              color: ShellStyles.textMuted(context),
-              size: ShellStyles.scaled(context, 16, min: 14, max: 18),
             ),
           ],
-        ),
+          SizedBox(width: ShellStyles.scaled(context, 10, min: 8, max: 12)),
+          Icon(
+            AppIcons.chevronRight,
+            color: ShellStyles.textMuted(context),
+            size: ShellStyles.scaled(context, 16, min: 14, max: 18),
+          ),
+        ],
       ),
     );
   }
@@ -423,10 +270,12 @@ class _ToolTileData {
     required this.title,
     required this.subtitle,
     required this.onTap,
+    this.featured = false,
   });
 
   final IconData icon;
   final String title;
   final String subtitle;
   final VoidCallback onTap;
+  final bool featured;
 }

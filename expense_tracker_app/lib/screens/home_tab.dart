@@ -17,6 +17,7 @@ import '../core/session_invalidation.dart';
 import '../core/subscription_confirmation.dart';
 import '../core/taxonomy_localization.dart';
 import '../l10n/app_localizations.dart';
+import '../widgets/surface_action.dart';
 import 'analytics_screen.dart';
 import 'receipt_manager_screen.dart';
 import 'receipt_upload_screen.dart';
@@ -515,7 +516,7 @@ class _HomeTabState extends State<HomeTab>
             children: [
               Text(
                 '${_greetingLabel(context)}, ${_resolveDisplayName(context)}',
-                maxLines: 1,
+                maxLines: 2,
                 overflow: TextOverflow.ellipsis,
                 style: TextStyle(
                   color: ShellStyles.textPrimary(context),
@@ -539,8 +540,6 @@ class _HomeTabState extends State<HomeTab>
                     Flexible(
                       child: Text(
                         _reviewSubtitle(context),
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
                         style: TextStyle(color: subtitleColor, fontSize: 13),
                       ),
                     ),
@@ -1002,29 +1001,19 @@ class _HomeTabState extends State<HomeTab>
             ),
           const SizedBox(height: 8),
           Center(
-            child: InkWell(
-              onTap: () => _open(context, const AnalyticsScreen()),
-              child: Padding(
-                padding: const EdgeInsets.all(8.0),
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Text(
-                      context.tr('home_view_all'),
-                      style: TextStyle(
-                        color: ShellStyles.textMuted(context),
-                        fontSize: 13,
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
-                    const SizedBox(width: 4),
-                    Icon(
-                      AppIcons.chevronRight,
-                      size: 12,
-                      color: ShellStyles.textMuted(context),
-                    ),
-                  ],
+            child: TextButton.icon(
+              onPressed: () => _open(context, const AnalyticsScreen()),
+              style: TextButton.styleFrom(
+                foregroundColor: ShellStyles.textMuted(context),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
                 ),
+              ),
+              iconAlignment: IconAlignment.end,
+              icon: const Icon(AppIcons.chevronRight, size: 14),
+              label: Text(
+                context.tr('home_view_all'),
+                textAlign: TextAlign.center,
               ),
             ),
           ),
@@ -1124,18 +1113,52 @@ class _HomeTabState extends State<HomeTab>
       ),
     ];
 
+    const style = TextStyle(
+      fontSize: 13,
+      height: 1.3,
+      fontWeight: FontWeight.w600,
+    );
     return LayoutBuilder(
       builder: (context, constraints) {
-        final cardWidth = (constraints.maxWidth - 16) / 3;
-        return Wrap(
-          spacing: 8,
-          runSpacing: 8,
+        final widths = actions.map((action) {
+          final painter = TextPainter(
+            text: TextSpan(text: action.label, style: style),
+            textDirection: Directionality.of(context),
+            textScaler: MediaQuery.textScalerOf(context),
+          )..layout();
+          final width = painter.width + 64;
+          painter.dispose();
+          return width;
+        }).toList();
+        Widget row(List<int> indices) => IntrinsicHeight(
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              for (final index in indices) ...[
+                if (index != indices.first) const SizedBox(width: 8),
+                Expanded(
+                  flex: widths[index].ceil(),
+                  child: _buildQuickActionCard(context, actions[index]),
+                ),
+              ],
+            ],
+          ),
+        );
+        if (widths.reduce((a, b) => a + b) + 16 <= constraints.maxWidth) {
+          return row([0, 1, 2]);
+        }
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            for (final action in actions)
-              SizedBox(
-                width: cardWidth,
-                child: _buildQuickActionCard(context, action),
-              ),
+            _buildQuickActionCard(context, actions[0]),
+            const SizedBox(height: 8),
+            if (widths[1] + widths[2] + 8 <= constraints.maxWidth)
+              row([1, 2])
+            else ...[
+              _buildQuickActionCard(context, actions[1]),
+              const SizedBox(height: 8),
+              _buildQuickActionCard(context, actions[2]),
+            ],
           ],
         );
       },
@@ -1143,42 +1166,29 @@ class _HomeTabState extends State<HomeTab>
   }
 
   Widget _buildQuickActionCard(BuildContext context, _QuickAction action) {
-    return InkWell(
-      borderRadius: BorderRadius.circular(16),
+    return SurfaceAction(
       onTap: action.onTap,
-      child: Container(
-        height: 84,
-        padding: const EdgeInsets.fromLTRB(10, 12, 10, 10),
-        decoration: ShellStyles.cardDecoration(context, radius: 16),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+      child: ConstrainedBox(
+        constraints: const BoxConstraints(minHeight: 30),
+        child: Row(
           children: [
-            Container(
-              width: 30,
-              height: 30,
-              alignment: Alignment.center,
-              decoration: BoxDecoration(
-                color: ShellStyles.surfaceAlt(context),
-                shape: BoxShape.circle,
-              ),
-              child: Icon(
-                action.icon,
-                color: ShellStyles.textMuted(context),
-                size: 15,
-              ),
+            Icon(
+              action.icon,
+              color: ShellStyles.accentTone(context).foreground,
+              size: 20,
             ),
-            const SizedBox(height: 10),
-            Text(
-              action.label,
-              textAlign: TextAlign.center,
-              style: TextStyle(
-                color: ShellStyles.textPrimary(context),
-                fontSize: 12.5,
-                height: 1.2,
-                fontWeight: FontWeight.w700,
+            const SizedBox(width: 8),
+            Expanded(
+              child: Text(
+                action.label,
+                style: TextStyle(
+                  color: ShellStyles.textPrimary(context),
+                  fontSize: 13,
+                  height: 1.3,
+                  fontWeight: FontWeight.w600,
+                ),
               ),
-              maxLines: 2,
-              overflow: TextOverflow.ellipsis,
             ),
           ],
         ),
