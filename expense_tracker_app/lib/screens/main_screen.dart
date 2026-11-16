@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../core/app_navigation.dart';
 import '../core/redesign_system.dart';
 import '../widgets/app_tab_footer.dart';
+import '../widgets/sliding_tab_view.dart';
 import 'home_tab.dart';
 import 'me_screen.dart';
 import 'receipt_upload_screen.dart';
@@ -60,7 +61,7 @@ class _MainScreenState extends State<MainScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: ShellStyles.background(context),
-      body: IndexedStack(index: _selectedIndex, children: _tabs),
+      body: SlidingTabView(index: _selectedIndex, children: _tabs),
       floatingActionButton: _showsScanAction
           ? ClipOval(
               clipBehavior: Clip.antiAliasWithSaveLayer,

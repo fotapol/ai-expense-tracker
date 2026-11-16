@@ -6,6 +6,7 @@ import '../core/analytics_filter_preferences.dart';
 import '../core/api_client.dart';
 import '../core/app_color_semantics.dart';
 import '../core/app_navigation.dart';
+import '../core/app_motion.dart';
 import '../core/launch_error_copy.dart';
 import '../core/localized_dates.dart';
 import '../core/period_filter.dart';
@@ -38,6 +39,8 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
   String? _error;
   AnalyticsSection _selectedSection = AnalyticsSection.overview;
   bool _showAllActiveFilters = false;
+  int _sectionTransition = 0;
+  bool _animatingSection = false;
   AnalyticsFilters _filters = const AnalyticsFilters();
   Map<String, String> _categoryNamesById = {};
   Map<String, String> _categoryCodesById = {};
@@ -226,20 +229,31 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
     await _saveFilters();
   }
 
-  void _selectSection(AnalyticsSection section) {
+  Future<void> _selectSection(AnalyticsSection section) async {
     if (section == _selectedSection) return;
-    setState(() => _selectedSection = section);
+    final request = ++_sectionTransition;
+    setState(() {
+      _selectedSection = section;
+      _animatingSection = true;
+    });
     if (_pageController.hasClients) {
-      _pageController.animateToPage(
-        section.index,
-        duration: const Duration(milliseconds: 220),
-        curve: Curves.easeOutCubic,
-      );
+      if (MediaQuery.disableAnimationsOf(context)) {
+        _pageController.jumpToPage(section.index);
+      } else {
+        await _pageController.animateToPage(
+          section.index,
+          duration: AppMotion.duration(context),
+          curve: AppMotion.curve,
+        );
+      }
     }
+    if (!mounted || request != _sectionTransition) return;
+    _animatingSection = false;
     _saveSection();
   }
 
   void _handlePageChanged(int index) {
+    if (_animatingSection) return;
     final section = AnalyticsSection.values[index];
     if (section == _selectedSection) return;
     setState(() => _selectedSection = section);
@@ -253,40 +267,37 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
     }
   }
 
-  Widget _buildSectionChip(AnalyticsSection section) {
-    final isSelected = _selectedSection == section;
-    final accentTone = ShellStyles.accentTone(context);
-    return InkWell(
-      borderRadius: BorderRadius.circular(16),
-      onTap: () => _selectSection(section),
-      child: AnimatedContainer(
-        duration: const Duration(milliseconds: 180),
-        alignment: Alignment.center,
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
-        decoration: BoxDecoration(
-          color: isSelected ? accentTone.container : Colors.transparent,
-          borderRadius: BorderRadius.circular(16),
-          boxShadow: isSelected
-              ? [
-                  BoxShadow(
-                    color: Colors.black.withAlpha(
-                      ShellStyles.isDark(context) ? 20 : 12,
-                    ),
-                    blurRadius: 12,
-                    offset: const Offset(0, 6),
-                  ),
-                ]
-              : const [],
-        ),
-        child: Text(
-          context.tr(_sectionLabelKey(section)),
-          textAlign: TextAlign.center,
-          style: TextStyle(
-            color: isSelected
-                ? accentTone.foreground
-                : ShellStyles.textMuted(context),
-            fontSize: 14,
-            fontWeight: isSelected ? FontWeight.w700 : FontWeight.w600,
+  Widget _buildSectionChip(AnalyticsSection section, double height) {
+    final selected = _selectedSection == section;
+    return Semantics(
+      selected: selected,
+      button: true,
+      child: InkWell(
+        key: ValueKey('analytics-section-${section.name}'),
+        borderRadius: BorderRadius.circular(14),
+        onTap: () => _selectSection(section),
+        child: SizedBox(
+          height: height,
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 8),
+            child: Center(
+              child: AnimatedDefaultTextStyle(
+                duration: AppMotion.duration(context),
+                curve: AppMotion.curve,
+                style: TextStyle(
+                  color: selected
+                      ? ShellStyles.accentTone(context).foreground
+                      : ShellStyles.textMuted(context),
+                  fontSize: 13,
+                  height: 1.3,
+                  fontWeight: selected ? FontWeight.w700 : FontWeight.w600,
+                ),
+                child: Text(
+                  context.tr(_sectionLabelKey(section)),
+                  textAlign: TextAlign.center,
+                ),
+              ),
+            ),
           ),
         ),
       ),
@@ -494,26 +505,73 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
     );
   }
 
-  Widget _buildSectionSelector() {
-    final sections = AnalyticsSection.values;
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.all(8),
-      decoration: BoxDecoration(
-        color: ShellStyles.sectionBackground(context),
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: ShellStyles.border(context)),
-      ),
-      child: Row(
-        children: [
-          for (var index = 0; index < sections.length; index++) ...[
-            Expanded(child: _buildSectionChip(sections[index])),
-            if (index != sections.length - 1) const SizedBox(width: 8),
-          ],
-        ],
-      ),
-    );
-  }
+  Widget _buildSectionSelector() => LayoutBuilder(
+    builder: (context, constraints) {
+      final sections = AnalyticsSection.values;
+      final width = (constraints.maxWidth - 12) / sections.length;
+      var height = 48.0;
+      for (final section in sections) {
+        final painter = TextPainter(
+          text: TextSpan(
+            text: context.tr(_sectionLabelKey(section)),
+            style: const TextStyle(
+              fontSize: 13,
+              height: 1.3,
+              fontWeight: FontWeight.w700,
+            ),
+          ),
+          textDirection: Directionality.of(context),
+          textScaler: MediaQuery.textScalerOf(context),
+        )..layout(maxWidth: width - 16);
+        if (painter.height + 20 > height) height = painter.height + 20;
+        painter.dispose();
+      }
+      return DecoratedBox(
+        decoration: ShellStyles.cardDecoration(context, radius: 20),
+        child: Material(
+          color: ShellStyles.surface(context),
+          borderRadius: BorderRadius.circular(20),
+          clipBehavior: Clip.antiAlias,
+          child: Padding(
+            padding: const EdgeInsets.all(6),
+            child: Stack(
+              children: [
+                AnimatedBuilder(
+                  animation: _pageController,
+                  builder: (context, child) {
+                    final position =
+                        _pageController.hasClients &&
+                            _pageController.position.hasContentDimensions
+                        ? _pageController.page ??
+                              _selectedSection.index.toDouble()
+                        : _selectedSection.index.toDouble();
+                    return PositionedDirectional(
+                      start: position * width,
+                      child: Container(
+                        key: const ValueKey('analytics-tab-indicator'),
+                        width: width,
+                        height: height,
+                        decoration: BoxDecoration(
+                          color: ShellStyles.accentTone(context).container,
+                          borderRadius: BorderRadius.circular(14),
+                        ),
+                      ),
+                    );
+                  },
+                ),
+                Row(
+                  children: [
+                    for (final section in sections)
+                      Expanded(child: _buildSectionChip(section, height)),
+                  ],
+                ),
+              ],
+            ),
+          ),
+        ),
+      );
+    },
+  );
 
   Widget _buildFilterAction() {
     return InkWell(
@@ -568,24 +626,8 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
             )
           : Column(
               children: [
-                Container(
-                  width: double.infinity,
-                  padding: const EdgeInsets.fromLTRB(20, 12, 20, 10),
-                  decoration: BoxDecoration(
-                    color: ShellStyles.sectionBackground(context),
-                    border: Border(
-                      bottom: BorderSide(color: ShellStyles.divider(context)),
-                    ),
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.black.withAlpha(
-                          ShellStyles.isDark(context) ? 18 : 6,
-                        ),
-                        blurRadius: 10,
-                        offset: const Offset(0, 4),
-                      ),
-                    ],
-                  ),
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(16, 10, 16, 12),
                   child: Column(
                     children: [
                       _buildSectionSelector(),
@@ -608,31 +650,47 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
                   ),
                 ),
                 Expanded(
-                  child: PageView(
-                    controller: _pageController,
-                    onPageChanged: _handlePageChanged,
-                    children: [
-                      AnalyticsOverviewTab(
-                        filters: _filters,
-                        activeFiltersBuilder: _filters.hasScopedFilters
-                            ? _buildActiveFiltersBar
-                            : null,
-                      ),
-                      AnalyticsTrendsTab(
-                        filters: _filters,
-                        activeFiltersBuilder: _filters.hasScopedFilters
-                            ? _buildActiveFiltersBar
-                            : null,
-                      ),
-                      AnalyticsTab(
-                        filters: _filters,
-                        featureCodes: _featureCodes,
-                        onPremiumStatusChanged: _refreshFeatureCodes,
-                        activeFiltersBuilder: _filters.hasScopedFilters
-                            ? _buildActiveFiltersBar
-                            : null,
-                      ),
-                    ],
+                  child: NotificationListener<ScrollNotification>(
+                    onNotification: (notification) {
+                      if (notification.depth == 0 &&
+                          notification.metrics.axis == Axis.horizontal) {
+                        if (notification is ScrollStartNotification &&
+                            notification.dragDetails != null) {
+                          _sectionTransition++;
+                          _animatingSection = false;
+                        } else if (notification is ScrollEndNotification &&
+                            !_animatingSection) {
+                          _handlePageChanged(_pageController.page!.round());
+                        }
+                      }
+                      return false;
+                    },
+                    child: PageView(
+                      controller: _pageController,
+                      onPageChanged: _handlePageChanged,
+                      children: [
+                        AnalyticsOverviewTab(
+                          filters: _filters,
+                          activeFiltersBuilder: _filters.hasScopedFilters
+                              ? _buildActiveFiltersBar
+                              : null,
+                        ),
+                        AnalyticsTrendsTab(
+                          filters: _filters,
+                          activeFiltersBuilder: _filters.hasScopedFilters
+                              ? _buildActiveFiltersBar
+                              : null,
+                        ),
+                        AnalyticsTab(
+                          filters: _filters,
+                          featureCodes: _featureCodes,
+                          onPremiumStatusChanged: _refreshFeatureCodes,
+                          activeFiltersBuilder: _filters.hasScopedFilters
+                              ? _buildActiveFiltersBar
+                              : null,
+                        ),
+                      ],
+                    ),
                   ),
                 ),
               ],

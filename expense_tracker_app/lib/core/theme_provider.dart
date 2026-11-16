@@ -1,6 +1,8 @@
 import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
+
+import 'app_motion.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import 'app_color_semantics.dart';
@@ -256,6 +258,15 @@ class ThemeProvider extends ChangeNotifier {
 
     return ThemeData(
       brightness: brightness,
+      pageTransitionsTheme: PageTransitionsTheme(
+        builders: {
+          ...const PageTransitionsTheme().builders,
+          TargetPlatform.android: const AppPageTransitionsBuilder(),
+          TargetPlatform.fuchsia: const AppPageTransitionsBuilder(),
+          TargetPlatform.linux: const AppPageTransitionsBuilder(),
+          TargetPlatform.windows: const AppPageTransitionsBuilder(),
+        },
+      ),
       textTheme:
           (isDark
                   ? Typography.material2021().white
