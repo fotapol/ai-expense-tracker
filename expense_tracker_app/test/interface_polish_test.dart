@@ -104,6 +104,40 @@ void main() {
     },
   );
 
+  testWidgets('choice menu stays clear of its field in a short viewport', (
+    tester,
+  ) async {
+    fixture.phone(tester);
+    tester.view.physicalSize = const Size(390, 390);
+    await tester.pumpWidget(
+      fixture.app(
+        Scaffold(
+          body: Padding(
+            padding: const EdgeInsets.fromLTRB(16, 200, 16, 0),
+            child: AnchoredChoiceField(
+              key: const ValueKey('short-choice'),
+              value: PeriodFilter.allTime,
+              options: {
+                for (final period in PeriodFilter.values) period: period,
+              },
+              onChanged: (_) {},
+            ),
+          ),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+    final anchor = tester.getRect(find.byKey(const ValueKey('short-choice')));
+    await tester.tap(find.byKey(const ValueKey('short-choice')));
+    await tester.pumpAndSettle();
+    final panel = find.byWidgetPredicate(
+      (widget) => widget is Material && widget.elevation > 0,
+    );
+    expect(panel, findsOneWidget);
+    expect(tester.getRect(panel).overlaps(anchor), isFalse);
+    expect(tester.takeException(), isNull);
+  });
+
   for (final factor in [.6, .8, 1.0, 1.2]) {
     testWidgets(
       '$factor menu opens below its anchor and review stays beside sorting',
@@ -127,6 +161,7 @@ void main() {
                     const SizedBox(height: 20),
                     AnchoredChoiceField(
                       key: const ValueKey('period-choice'),
+                      label: 'Period',
                       value: PeriodFilter.allTime,
                       options: {
                         for (final period in PeriodFilter.values)

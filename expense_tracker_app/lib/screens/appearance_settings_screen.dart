@@ -7,6 +7,7 @@ import '../core/money_formatter.dart';
 import '../main.dart';
 import '../l10n/app_localizations.dart';
 import '../widgets/compact_text.dart';
+import '../widgets/anchored_choice_field.dart';
 import 'settings_detail_scaffold.dart';
 
 class AppearanceSettingsScreen extends StatefulWidget {
@@ -285,34 +286,12 @@ class _AppearanceSettingsScreenState extends State<AppearanceSettingsScreen> {
             ),
           ),
           const SizedBox(height: 16),
-          DropdownButtonFormField<String>(
-            initialValue: themeProvider.fontSizeId,
-            isExpanded: true,
-            itemHeight: null,
-            selectedItemBuilder: (context) => [
+          AnchoredChoiceField(
+            value: themeProvider.fontSizeId,
+            options: {
               for (final option in _scaleOptions(context))
-                Align(
-                  alignment: AlignmentDirectional.centerStart,
-                  child: Text(
-                    '${option.label} - ${option.subtitle}',
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                ),
-            ],
-            decoration: InputDecoration(
-              labelText: context.tr('settings_interface_scale'),
-              isDense: true,
-            ),
-            items: _scaleOptions(context).map((option) {
-              return DropdownMenuItem<String>(
-                value: option.id,
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(vertical: 8),
-                  child: Text('${option.label} - ${option.subtitle}'),
-                ),
-              );
-            }).toList(),
+                option.id: '${option.label} - ${option.subtitle}',
+            },
             onChanged: _selectScale,
           ),
           const SizedBox(height: 14),

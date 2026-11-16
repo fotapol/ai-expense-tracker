@@ -520,6 +520,7 @@ class _FeatureRequestScreenState extends State<FeatureRequestScreen> {
     final badgeColor = _statusColor(item);
 
     return InkWell(
+      borderRadius: BorderRadius.circular(12),
       onTap: isVoteLoading ? null : () => _toggleVote(item),
       child: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),

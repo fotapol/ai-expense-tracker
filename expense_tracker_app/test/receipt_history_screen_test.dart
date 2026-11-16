@@ -248,6 +248,11 @@ void main() {
         await tester.tap(find.byKey(const ValueKey('receipt-review-filter')));
         await tester.pumpAndSettle();
         expect(find.text('Old draft'), findsOneWidget);
+        expect(find.byType(InputChip), findsNothing);
+        expect(
+          find.byKey(const ValueKey('receipt-clear-all-filters')),
+          findsNothing,
+        );
         expect(requests.last.url.queryParameters['needs_review'], 'true');
         expect(requests.last.url.queryParameters['page'], '1');
         await tester.pumpWidget(const SizedBox.shrink());

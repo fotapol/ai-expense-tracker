@@ -1,3 +1,5 @@
+import 'dart:math' as math;
+
 import 'package:flutter/material.dart';
 
 import '../core/redesign_system.dart';
@@ -23,7 +25,7 @@ class AnchoredChoiceField extends StatelessWidget {
     builder: (context, constraints) {
       final radius = BorderRadius.circular(12);
       final tone = ShellStyles.accentTone(context);
-      return MenuAnchor(
+      final field = MenuAnchor(
         alignmentOffset: const Offset(0, 6),
         crossAxisUnconstrained: false,
         consumeOutsideTap: true,
@@ -31,9 +33,40 @@ class AnchoredChoiceField extends StatelessWidget {
         style: MenuStyle(
           alignment: AlignmentDirectional.bottomStart,
           minimumSize: WidgetStatePropertyAll(Size(constraints.maxWidth, 0)),
-          maximumSize: WidgetStatePropertyAll(Size(constraints.maxWidth, 260)),
+          maximumSize: WidgetStateProperty.resolveWith((states) {
+            // Resolve on opening, once the field has a position. Bound the menu
+            // by the larger free side so a short/keyboard viewport does not
+            // force the panel over its anchor.
+            final box = context.findRenderObject() as RenderBox?;
+            final overlay =
+                Overlay.of(context).context.findRenderObject() as RenderBox?;
+            var height = 260.0;
+            if (box != null &&
+                box.hasSize &&
+                overlay != null &&
+                overlay.hasSize) {
+              final media = MediaQuery.of(context);
+              final top = box.localToGlobal(Offset.zero, ancestor: overlay).dy;
+              final bottom = box
+                  .localToGlobal(Offset(0, box.size.height), ancestor: overlay)
+                  .dy;
+              final above = top - media.viewPadding.top - 12;
+              final below =
+                  overlay.size.height -
+                  math.max(media.viewInsets.bottom, media.viewPadding.bottom) -
+                  bottom -
+                  12;
+              height = math
+                  .min(height, math.max(above, below))
+                  .clamp(0.0, 260.0);
+            }
+            return Size(constraints.maxWidth, height);
+          }),
           backgroundColor: WidgetStatePropertyAll(ShellStyles.surface(context)),
           surfaceTintColor: const WidgetStatePropertyAll(Colors.transparent),
+          side: WidgetStatePropertyAll(
+            BorderSide(color: ShellStyles.border(context)),
+          ),
           padding: const WidgetStatePropertyAll(EdgeInsets.all(4)),
           shape: WidgetStatePropertyAll(
             RoundedRectangleBorder(borderRadius: radius),
@@ -67,6 +100,7 @@ class AnchoredChoiceField extends StatelessWidget {
         ],
         builder: (context, controller, child) => Semantics(
           button: true,
+          label: label,
           expanded: controller.isOpen,
           child: Material(
             color: ShellStyles.surfaceAlt(context),
@@ -85,7 +119,6 @@ class AnchoredChoiceField extends StatelessWidget {
               child: InputDecorator(
                 isFocused: controller.isOpen,
                 decoration: InputDecoration(
-                  labelText: label,
                   isDense: true,
                   filled: false,
                   contentPadding: const EdgeInsets.symmetric(
@@ -114,6 +147,26 @@ class AnchoredChoiceField extends StatelessWidget {
             ),
           ),
         ),
+      );
+      if (label == null) return field;
+      return Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Padding(
+            padding: const EdgeInsetsDirectional.only(start: 4, bottom: 6),
+            child: ExcludeSemantics(
+              child: Text(
+                label!,
+                style: TextStyle(
+                  color: ShellStyles.textMuted(context),
+                  fontSize: 12,
+                ),
+              ),
+            ),
+          ),
+          field,
+        ],
       );
     },
   );

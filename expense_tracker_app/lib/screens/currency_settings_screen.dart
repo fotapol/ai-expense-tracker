@@ -153,6 +153,7 @@ class _CurrencySettingsScreenState extends State<CurrencySettingsScreen> {
     final isSelected = _selectedCode == currency.code.toUpperCase();
     final badgeLabel = CurrencyDisplay.labelForCode(currency.code);
     return InkWell(
+      borderRadius: BorderRadius.circular(12),
       onTap: () => _selectCurrency(currency),
       child: Column(
         children: <Widget>[

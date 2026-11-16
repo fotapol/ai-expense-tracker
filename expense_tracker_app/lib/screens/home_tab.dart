@@ -1113,7 +1113,7 @@ class _HomeTabState extends State<HomeTab>
       ),
     ];
 
-    const style = TextStyle(
+    final style = Theme.of(context).textTheme.bodyMedium!.copyWith(
       fontSize: 13,
       height: 1.3,
       fontWeight: FontWeight.w600,

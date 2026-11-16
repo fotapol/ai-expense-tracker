@@ -16,6 +16,8 @@ import 'package:expense_tracker_app/screens/duplicate_finder_screen.dart';
 import 'package:expense_tracker_app/screens/receipts_tab.dart';
 import 'package:expense_tracker_app/screens/home_tab.dart';
 import 'package:expense_tracker_app/screens/tools_screen.dart';
+import 'package:expense_tracker_app/screens/analytics_screen.dart';
+import 'package:expense_tracker_app/widgets/app_tab_footer.dart';
 import 'package:expense_tracker_app/widgets/filter_bottom_sheet.dart';
 import 'package:expense_tracker_app/widgets/duplicate_details_comparison.dart';
 import 'package:expense_tracker_app/widgets/receipt_history_controls.dart';
@@ -70,6 +72,19 @@ ThemeData _theme(bool dark) {
   return const bool.fromEnvironment('SAVE_ADAPTIVE_PREVIEWS')
       ? theme.copyWith(
           textTheme: theme.textTheme.apply(fontFamily: 'DejaVuSans'),
+          chipTheme: theme.chipTheme.copyWith(
+            labelStyle: theme.chipTheme.labelStyle?.copyWith(
+              fontFamily: 'DejaVuSans',
+            ),
+            secondaryLabelStyle: theme.chipTheme.secondaryLabelStyle?.copyWith(
+              fontFamily: 'DejaVuSans',
+            ),
+          ),
+          popupMenuTheme: theme.popupMenuTheme.copyWith(
+            textStyle: theme.popupMenuTheme.textStyle?.copyWith(
+              fontFamily: 'DejaVuSans',
+            ),
+          ),
           appBarTheme: theme.appBarTheme.copyWith(
             titleTextStyle: theme.appBarTheme.titleTextStyle?.copyWith(
               fontFamily: 'DejaVuSans',
@@ -611,123 +626,263 @@ void main() {
     'adaptive previews',
     (tester) async {
       phone(tester);
-      await tester.runAsync(() async {
-        for (final font in {
-          'DejaVuSans': '/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf',
-          'Roboto': '/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf',
-          'packages/cupertino_icons/CupertinoIcons':
-              '/home/kirill/.pub-cache/hosted/pub.dev/cupertino_icons-1.0.8/assets/CupertinoIcons.ttf',
-          'MaterialIcons':
-              '/home/kirill/.local/flutter-sdks/flutter/bin/cache/artifacts/material_fonts/MaterialIcons-Regular.otf',
-        }.entries) {
-          if (await File(font.value).exists()) {
-            await (FontLoader(font.key)..addFont(
-                  File(
-                    font.value,
-                  ).readAsBytes().then((b) => b.buffer.asByteData()),
-                ))
-                .load();
+      final oldShadows = debugDisableShadows;
+      debugDisableShadows = false;
+      try {
+        await tester.runAsync(() async {
+          for (final font in {
+            'DejaVuSans': '/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf',
+            'Roboto': '/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf',
+            'packages/cupertino_icons/CupertinoIcons':
+                '/home/kirill/.pub-cache/hosted/pub.dev/cupertino_icons-1.0.8/assets/CupertinoIcons.ttf',
+            'MaterialIcons':
+                '/home/kirill/.local/flutter-sdks/flutter/bin/cache/artifacts/material_fonts/MaterialIcons-Regular.otf',
+          }.entries) {
+            if (await File(font.value).exists()) {
+              await (FontLoader(font.key)..addFont(
+                    File(
+                      font.value,
+                    ).readAsBytes().then((b) => b.buffer.asByteData()),
+                  ))
+                  .load();
+            }
           }
-        }
-      });
-      await http.runWithClient(() async {
-        Future<void> show(
-          Widget home,
-          String name, {
-          double factor = 1,
-          Locale locale = const Locale('en'),
-          bool dark = true,
-          double systemText = 1,
-        }) async {
-          await themeProvider.setFontSize((factor * 100).round().toString());
+        });
+        await http.runWithClient(() async {
+          Future<void> show(
+            Widget home,
+            String name, {
+            double factor = 1,
+            Locale locale = const Locale('en'),
+            bool dark = true,
+            double systemText = 1,
+            String? reveal,
+          }) async {
+            await themeProvider.setFontSize((factor * 100).round().toString());
+            await tester.pumpWidget(
+              RepaintBoundary(
+                key: _previewKey,
+                child: app(
+                  home,
+                  factor: factor,
+                  locale: locale,
+                  dark: dark,
+                  systemText: systemText,
+                ),
+              ),
+            );
+            if (reveal != null) {
+              await tester.pumpAndSettle();
+              await tester.ensureVisible(find.text(reveal));
+              await tester.pumpAndSettle();
+            }
+            await capture(tester, name);
+            await tester.pumpWidget(const SizedBox.shrink());
+            await tester.pumpAndSettle();
+          }
+
+          await show(const Scaffold(body: ReceiptsTab()), 'history-100');
+          await show(
+            const Scaffold(body: ReceiptsTab()),
+            'history-de-60',
+            factor: .6,
+            locale: const Locale('de'),
+            dark: false,
+          );
+          await show(const DuplicateFinderScreen(), 'duplicate-group');
           await tester.pumpWidget(
             RepaintBoundary(
               key: _previewKey,
               child: app(
-                home,
-                factor: factor,
-                locale: locale,
-                dark: dark,
-                systemText: systemText,
+                const DuplicateFinderScreen(),
+                dark: true,
+                locale: const Locale('ru'),
               ),
             ),
           );
-          await capture(tester, name);
+          await tester.pumpAndSettle();
+          await tester.tap(find.byKey(const ValueKey('duplicate-one-two')));
+          await tester.pumpAndSettle();
+          await tester.tap(find.byType(ListTile).first);
+          await tester.pumpAndSettle();
+          await tester.tap(find.byKey(const ValueKey('select-one')));
+          await capture(tester, 'comparison-top');
+          await tester.ensureVisible(find.byType(CheckboxListTile));
+          await tester.tap(find.byType(CheckboxListTile));
+          await tester.pumpAndSettle();
+          await tester.drag(
+            find.byKey(const ValueKey('duplicate-comparison-list')),
+            const Offset(0, -240),
+          );
+          await capture(tester, 'comparison-items');
           await tester.pumpWidget(const SizedBox.shrink());
           await tester.pumpAndSettle();
-        }
-
-        await show(const Scaffold(body: ReceiptsTab()), 'history-100');
-        await show(
-          const Scaffold(body: ReceiptsTab()),
-          'history-de-60',
-          factor: .6,
-          locale: const Locale('de'),
-          dark: false,
-        );
-        await show(const DuplicateFinderScreen(), 'duplicate-group');
-        await tester.pumpWidget(
-          RepaintBoundary(
-            key: _previewKey,
-            child: app(
-              const DuplicateFinderScreen(),
-              dark: true,
-              locale: const Locale('ru'),
+          await show(
+            const AppearanceSettingsScreen(),
+            'appearance-60',
+            factor: .6,
+            locale: const Locale('de'),
+            dark: false,
+          );
+          await show(
+            const Scaffold(body: HomeTab()),
+            'home-ru-120',
+            factor: 1.2,
+            locale: const Locale('ru'),
+            systemText: 1.4,
+          );
+          await http.runWithClient(
+            () async {
+              await show(
+                Scaffold(
+                  body: const HomeTab(),
+                  bottomNavigationBar: AppTabFooter(
+                    selectedIndex: 0,
+                    onSelected: (_) {},
+                  ),
+                ),
+                'polish-home-de-100',
+                locale: const Locale('de'),
+                dark: false,
+              );
+            },
+            () => MockClient((request) async {
+              if (request.url.path == '/v1/transactions') {
+                return http.Response('[]', 200);
+              }
+              if (request.url.path.endsWith('/summary')) {
+                return http.Response(
+                  '{"currency":"EUR","total_amount":0,"total_transactions":0,"breakdown":[]}',
+                  200,
+                );
+              }
+              return response(request);
+            }),
+          );
+          await show(
+            Scaffold(
+              body: const ToolsScreen(),
+              bottomNavigationBar: AppTabFooter(
+                selectedIndex: 1,
+                onSelected: (_) {},
+              ),
             ),
-          ),
-        );
-        await tester.pumpAndSettle();
-        await tester.tap(find.byKey(const ValueKey('duplicate-one-two')));
-        await tester.pumpAndSettle();
-        await tester.tap(find.byType(ListTile).first);
-        await tester.pumpAndSettle();
-        await tester.tap(find.byKey(const ValueKey('select-one')));
-        await capture(tester, 'comparison-top');
-        await tester.ensureVisible(find.byType(CheckboxListTile));
-        await tester.tap(find.byType(CheckboxListTile));
-        await tester.pumpAndSettle();
-        await tester.drag(
-          find.byKey(const ValueKey('duplicate-comparison-list')),
-          const Offset(0, -240),
-        );
-        await capture(tester, 'comparison-items');
-        await tester.pumpWidget(const SizedBox.shrink());
-        await tester.pumpAndSettle();
-        await show(
-          const AppearanceSettingsScreen(),
-          'appearance-60',
-          factor: .6,
-          locale: const Locale('de'),
-          dark: false,
-        );
-        await show(
-          const Scaffold(body: HomeTab()),
-          'home-ru-120',
-          factor: 1.2,
-          locale: const Locale('ru'),
-          systemText: 1.4,
-        );
-        await show(const CategoriesScreen(), 'categories-100');
-        await show(
-          const SubcategoriesScreen(
-            parentId: 'food',
-            parentName: 'Food',
-            parentIsDefault: true,
-          ),
-          'subcategories-100',
-        );
-        await show(const LabelsScreen(), 'labels-100');
-        await show(
-          const Scaffold(
-            body: FilterBottomSheet(
-              selectedPeriod: 'All Time',
-              enableReceiptFilters: true,
-              displayCurrency: 'EUR',
+            'polish-tools-de-100',
+            locale: const Locale('de'),
+            dark: false,
+          );
+          await http.runWithClient(
+            () async {
+              await show(
+                const DuplicateFinderScreen(),
+                'polish-empty-duplicates',
+                locale: const Locale('de'),
+                dark: false,
+              );
+            },
+            () => MockClient(
+              (request) async =>
+                  http.Response('{"items":[],"has_more":false}', 200),
             ),
-          ),
-          'filters-100',
-        );
-      }, () => MockClient((r) async => response(r)));
+          );
+          await http.runWithClient(
+            () async {
+              for (final factor in [.8, 1.0, 1.2]) {
+                await show(
+                  const AnalyticsScreen(),
+                  'polish-analytics-de-${(factor * 100).round()}',
+                  factor: factor,
+                  locale: const Locale('de'),
+                  dark: false,
+                );
+              }
+            },
+            () => MockClient((request) async {
+              if (request.url.path.endsWith('/trends')) {
+                return http.Response(
+                  '{"currency":"EUR","total_amount":42.04,"previous_total_amount":0,"change_percentage":null,"buckets":[]}',
+                  200,
+                );
+              }
+              if (request.url.path.endsWith('/summary')) {
+                return http.Response(
+                  '{"currency":"EUR","total_amount":42.04,"total_transactions":3,"breakdown":[]}',
+                  200,
+                );
+              }
+              return response(request);
+            }),
+          );
+          await tester.pumpWidget(
+            RepaintBoundary(
+              key: _previewKey,
+              child: app(
+                const Scaffold(
+                  body: FilterBottomSheet(
+                    selectedPeriod: 'All Time',
+                    enableReceiptFilters: true,
+                    displayCurrency: 'EUR',
+                  ),
+                ),
+                locale: const Locale('de'),
+                dark: false,
+              ),
+            ),
+          );
+          await tester.pumpAndSettle();
+          final gesture = await tester.startGesture(
+            tester.getCenter(find.text('Weitere Filter')),
+          );
+          await tester.pump(const Duration(milliseconds: 200));
+          await capture(tester, 'polish-filter-pressed');
+          await gesture.up();
+          await tester.pumpAndSettle();
+          await tester.tap(
+            find.byKey(const ValueKey('receipt-period-All Time')),
+          );
+          await capture(tester, 'polish-period-menu');
+          await tester.tapAt(const Offset(1, 1));
+          await tester.pumpWidget(const SizedBox.shrink());
+          await tester.pumpAndSettle();
+          await show(
+            const Scaffold(
+              body: FilterBottomSheet(
+                selectedPeriod: 'All Time',
+                enableReceiptFilters: true,
+                displayCurrency: 'EUR',
+                selectedCategoryIds: ['food'],
+                selectedSubcategoryIds: ['sub-0'],
+              ),
+            ),
+            'polish-selected-categories',
+            reveal: 'Baby food',
+            locale: const Locale('de'),
+            dark: false,
+          );
+          await show(const CategoriesScreen(), 'categories-100');
+          await show(
+            const SubcategoriesScreen(
+              parentId: 'food',
+              parentName: 'Food',
+              parentIsDefault: true,
+            ),
+            'subcategories-100',
+          );
+          await show(const LabelsScreen(), 'labels-100');
+          await show(
+            const Scaffold(
+              body: FilterBottomSheet(
+                selectedPeriod: 'All Time',
+                enableReceiptFilters: true,
+                displayCurrency: 'EUR',
+              ),
+            ),
+            'filters-100',
+          );
+        }, () => MockClient((r) async => response(r)));
+      } finally {
+        debugDisableShadows = oldShadows;
+      }
     },
     skip: !const bool.fromEnvironment('SAVE_ADAPTIVE_PREVIEWS'),
   );

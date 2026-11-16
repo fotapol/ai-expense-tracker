@@ -883,7 +883,7 @@ class _FilterBottomSheetState extends State<FilterBottomSheet> {
             color: isSelected ? tone.base : tone.border,
             width: isSelected ? 2 : 1,
           ),
-          labelStyle: TextStyle(
+          labelStyle: Theme.of(context).textTheme.labelLarge!.copyWith(
             color: tone.foreground,
             fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
           ),
@@ -956,6 +956,12 @@ class _FilterBottomSheetState extends State<FilterBottomSheet> {
                   return InputChip(
                     selected: true,
                     showCheckmark: true,
+                    checkmarkColor: ShellStyles.accentTone(context).foreground,
+                    deleteIconColor: ShellStyles.accentTone(context).foreground,
+                    labelStyle: Theme.of(context).textTheme.labelLarge!
+                        .copyWith(
+                          color: ShellStyles.accentTone(context).foreground,
+                        ),
                     selectedColor: ShellStyles.accentTone(context).container,
                     side: BorderSide(
                       color: ShellStyles.accentTone(context).border,
@@ -1005,7 +1011,8 @@ class _FilterBottomSheetState extends State<FilterBottomSheet> {
         return FilterChip(
           label: Text(name),
           selected: isSelected,
-          showCheckmark: false,
+          showCheckmark: true,
+          checkmarkColor: tone.foreground,
           onSelected: (selected) {
             setState(() {
               if (selected) {
@@ -1016,9 +1023,12 @@ class _FilterBottomSheetState extends State<FilterBottomSheet> {
             });
           },
           selectedColor: tone.containerStrong,
-          backgroundColor: tone.container,
-          side: BorderSide(color: isSelected ? tone.base : tone.border),
-          labelStyle: TextStyle(
+          backgroundColor: ShellStyles.surface(context),
+          side: BorderSide(
+            color: isSelected ? tone.base : tone.border,
+            width: isSelected ? 2 : 1,
+          ),
+          labelStyle: Theme.of(context).textTheme.labelLarge!.copyWith(
             color: tone.foreground,
             fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
           ),

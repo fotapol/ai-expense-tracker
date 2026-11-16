@@ -55,6 +55,7 @@ class ReceiptHistoryControls extends StatelessWidget {
           tooltip: '${context.tr('receipts_sort')}: $sortLabel',
           borderRadius: BorderRadius.circular(12),
           position: PopupMenuPosition.under,
+          clipBehavior: Clip.antiAlias,
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(14),
           ),

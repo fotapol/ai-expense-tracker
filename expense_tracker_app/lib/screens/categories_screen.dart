@@ -492,6 +492,7 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
     final isBuiltIn = category['is_default'] == true;
 
     return InkWell(
+      borderRadius: BorderRadius.circular(12),
       onTap: () => _openSubcategories(category),
       child: Padding(
         padding: EdgeInsets.symmetric(
