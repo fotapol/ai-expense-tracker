@@ -25,15 +25,14 @@ class ReceiptHistoryControls extends StatelessWidget {
     final style = Theme.of(
       context,
     ).textTheme.labelLarge!.copyWith(fontSize: 13);
-    final scale = MediaQuery.textScalerOf(context);
     Size measure(String value) {
-      final text = TextPainter(
+      final painter = TextPainter(
         text: TextSpan(text: value, style: style),
         textDirection: Directionality.of(context),
-        textScaler: scale,
+        textScaler: MediaQuery.textScalerOf(context),
       )..layout();
-      final size = text.size;
-      text.dispose();
+      final size = painter.size;
+      painter.dispose();
       return size;
     }
 
@@ -44,14 +43,21 @@ class ReceiptHistoryControls extends StatelessWidget {
       48.0,
       math.max(sortText.height, reviewText.height) + 20,
     );
-    final sortWidth = sortText.width + 24 + 18 + 18 + 16;
-    final reviewWidth = reviewText.width + 24 + 18 + 8;
+    final reviewWidth = reviewText.width + 50;
     final tone = ShellStyles.accentTone(context);
     return LayoutBuilder(
       builder: (context, constraints) {
+        // Keep both actions on one line. At very narrow/accessibility sizes the
+        // review icon retains its selected state, accessible name and tooltip.
+        final compactReview = constraints.maxWidth < reviewWidth + 128;
         final sortControl = PopupMenuButton<String>(
           key: const ValueKey('receipt-sort'),
-          tooltip: context.tr('receipts_sort'),
+          tooltip: '${context.tr('receipts_sort')}: $sortLabel',
+          borderRadius: BorderRadius.circular(12),
+          position: PopupMenuPosition.under,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(14),
+          ),
           initialValue: sort,
           onSelected: onSort,
           itemBuilder: (_) => [
@@ -62,8 +68,8 @@ class ReceiptHistoryControls extends StatelessWidget {
                 child: Text(context.tr(labels[value]!)),
               ),
           ],
-          child: Container(
-            constraints: BoxConstraints(minHeight: height),
+          child: Ink(
+            height: height,
             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
             decoration: ShellStyles.cardDecoration(
               context,
@@ -78,58 +84,68 @@ class ReceiptHistoryControls extends StatelessWidget {
                   color: ShellStyles.textMuted(context),
                 ),
                 const SizedBox(width: 8),
-                Expanded(child: Text(sortLabel, style: style)),
-                const SizedBox(width: 8),
+                Expanded(
+                  child: Text(
+                    sortLabel,
+                    style: style,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ),
+                const SizedBox(width: 4),
                 const Icon(Icons.expand_more, size: 18),
               ],
             ),
           ),
         );
-        final review = Semantics(
-          toggled: reviewOnly,
-          child: OutlinedButton.icon(
-            key: const ValueKey('receipt-review-filter'),
-            onPressed: () => onReview(!reviewOnly),
-            style: OutlinedButton.styleFrom(
-              minimumSize: Size(0, height),
-              textStyle: style,
-              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-              backgroundColor: reviewOnly
-                  ? tone.container
-                  : ShellStyles.surface(context),
-              foregroundColor: reviewOnly
-                  ? tone.foreground
-                  : ShellStyles.textPrimary(context),
-              side: BorderSide(
-                color: reviewOnly ? tone.border : ShellStyles.border(context),
-              ),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(12),
-              ),
-            ),
-            icon: Icon(
-              reviewOnly ? Icons.fact_check : Icons.fact_check_outlined,
-              size: 18,
-            ),
-            label: Text(reviewLabel),
+        final buttonStyle = OutlinedButton.styleFrom(
+          minimumSize: Size(48, height),
+          textStyle: style,
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+          backgroundColor: reviewOnly
+              ? tone.container
+              : ShellStyles.surface(context),
+          foregroundColor: reviewOnly
+              ? tone.foreground
+              : ShellStyles.textPrimary(context),
+          side: BorderSide(
+            color: reviewOnly ? tone.border : ShellStyles.border(context),
+          ),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
           ),
         );
-        if (sortWidth + reviewWidth + 8 <= constraints.maxWidth) {
-          return Row(
-            key: const ValueKey('receipt-controls-inline'),
-            children: [
-              Expanded(child: sortControl),
-              const SizedBox(width: 8),
-              review,
-            ],
-          );
-        }
-        return Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
+        final reviewIcon = Icon(
+          reviewOnly ? Icons.fact_check : Icons.fact_check_outlined,
+          size: 18,
+        );
+        final review = Semantics(
+          toggled: reviewOnly,
+          label: compactReview ? reviewLabel : null,
+          child: compactReview
+              ? Tooltip(
+                  message: reviewLabel,
+                  child: OutlinedButton(
+                    key: const ValueKey('receipt-review-filter'),
+                    onPressed: () => onReview(!reviewOnly),
+                    style: buttonStyle,
+                    child: reviewIcon,
+                  ),
+                )
+              : OutlinedButton.icon(
+                  key: const ValueKey('receipt-review-filter'),
+                  onPressed: () => onReview(!reviewOnly),
+                  style: buttonStyle,
+                  icon: reviewIcon,
+                  label: Text(reviewLabel),
+                ),
+        );
+        return Row(
+          key: const ValueKey('receipt-controls-inline'),
           children: [
-            sortControl,
-            const SizedBox(height: 8),
-            Align(alignment: AlignmentDirectional.centerStart, child: review),
+            Expanded(child: sortControl),
+            const SizedBox(width: 8),
+            review,
           ],
         );
       },

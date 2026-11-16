@@ -89,7 +89,6 @@ class _ReceiptsTabState extends State<ReceiptsTab>
 
   int get _activeFilterCount {
     var count = 0;
-    if (_reviewOnly) count++;
     if (_selectedPeriod != PeriodFilter.allTime) count++;
     if (_search.isNotEmpty) count++;
     if (_selectedCategoryIds.isNotEmpty) count++;
@@ -496,7 +495,7 @@ class _ReceiptsTabState extends State<ReceiptsTab>
         children: [
           if (widget.showTopBar) _buildTopBar(),
           _buildSortControls(),
-          if (_hasScopedFilters) _buildActiveFilterChips(),
+          if (_activeFilterCount > 0) _buildActiveFilterChips(),
           Expanded(child: _buildTransactionList()),
           _buildBottomSummary(),
         ],
@@ -690,15 +689,6 @@ class _ReceiptsTabState extends State<ReceiptsTab>
           icon: Icons.check_circle_outline,
           onDeleted: () {
             setState(() => _statusFilter = null);
-            _fetchTransactions();
-          },
-        ),
-      if (_reviewOnly)
-        _buildFilterChip(
-          context.tr('receipts_filter_needs_review'),
-          icon: Icons.rate_review_outlined,
-          onDeleted: () {
-            setState(() => _reviewOnly = false);
             _fetchTransactions();
           },
         ),
@@ -1034,7 +1024,7 @@ class _ReceiptsTabState extends State<ReceiptsTab>
                   ),
                   // The last month may continue on the next page.
                   if (!_hasMore || row != previousMonth)
-                    Flexible(
+                    Expanded(
                       child: Text(
                         _formatTotals(_expenseTotals(months[row]!)),
                         textAlign: TextAlign.end,
@@ -1540,7 +1530,7 @@ class _ReceiptsTabState extends State<ReceiptsTab>
               ),
             ),
             SizedBox(width: ShellStyles.scaled(context, 12, min: 10, max: 14)),
-            Flexible(
+            Expanded(
               flex: 2,
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.end,
@@ -1555,6 +1545,7 @@ class _ReceiptsTabState extends State<ReceiptsTab>
                         ).formatDecimal(visibleTransactions.length),
                       },
                     ),
+                    textAlign: TextAlign.end,
                     style: TextStyle(
                       color: mutedColor,
                       fontSize: ShellStyles.scaled(
@@ -1569,6 +1560,7 @@ class _ReceiptsTabState extends State<ReceiptsTab>
                   if (savingsByCurrency.isNotEmpty)
                     Text(
                       '$savingsLabel: ${_formatTotals(savingsByCurrency)}',
+                      textAlign: TextAlign.end,
                       style: TextStyle(
                         color: primaryColor,
                         fontSize: ShellStyles.scaled(
@@ -1583,6 +1575,7 @@ class _ReceiptsTabState extends State<ReceiptsTab>
                   else
                     Text(
                       context.tr('receipts_no_discounts'),
+                      textAlign: TextAlign.end,
                       style: TextStyle(
                         color: mutedColor,
                         fontSize: ShellStyles.scaled(

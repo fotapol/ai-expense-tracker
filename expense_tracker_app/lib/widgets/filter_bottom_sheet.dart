@@ -1,6 +1,8 @@
 import 'package:currency_picker/currency_picker.dart';
 import 'package:flutter/material.dart';
 
+import 'anchored_choice_field.dart';
+
 import '../core/api_client.dart';
 import '../core/localized_dates.dart';
 import '../core/period_filter.dart';
@@ -505,8 +507,16 @@ class _FilterBottomSheetState extends State<FilterBottomSheet> {
                               _selectedSubcategoryIds.isNotEmpty ||
                               _selectedLabelIds.isNotEmpty,
                           tilePadding: EdgeInsets.zero,
-                          shape: const Border(),
-                          collapsedShape: const Border(),
+                          expandedCrossAxisAlignment:
+                              CrossAxisAlignment.stretch,
+                          expandedAlignment: AlignmentDirectional.centerStart,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          collapsedShape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          clipBehavior: Clip.antiAlias,
                           title: Text(
                             context.tr('filters_advanced'),
                             style: const TextStyle(fontWeight: FontWeight.w600),
@@ -707,26 +717,13 @@ class _FilterBottomSheetState extends State<FilterBottomSheet> {
     required String? value,
     required Map<String, String> options,
     required ValueChanged<String?> onChanged,
-    String? Function(String?)? validator,
-  }) => KeyedSubtree(
+  }) => AnchoredChoiceField(
     key: ValueKey(id),
-    child: DropdownButtonFormField<String>(
-      key: ValueKey('$id:${value ?? ''}'),
-      initialValue: value ?? '',
-      isExpanded: true,
-      decoration: _inputDecoration(label),
-      items: options.entries
-          .map(
-            (entry) => DropdownMenuItem(
-              value: entry.key,
-              child: Text(entry.value, overflow: TextOverflow.ellipsis),
-            ),
-          )
-          .toList(),
-      validator: validator,
-      onChanged: (selected) =>
-          setState(() => onChanged(selected == '' ? null : selected)),
-    ),
+    label: label,
+    value: value ?? '',
+    options: options,
+    onChanged: (selected) =>
+        setState(() => onChanged(selected == '' ? null : selected)),
   );
 
   InputDecoration _inputDecoration(String label) => InputDecoration(
@@ -819,85 +816,24 @@ class _FilterBottomSheetState extends State<FilterBottomSheet> {
     );
   }
 
-  Widget _buildPeriodChips() {
-    if (widget.enableReceiptFilters) {
-      return DropdownButtonFormField<String>(
-        key: ValueKey('receipt-period-$_selectedPeriod'),
-        initialValue: _selectedPeriod,
-        isExpanded: true,
-        itemHeight: null,
-        selectedItemBuilder: (context) => [
-          for (final period in PeriodFilter.values)
-            Align(
-              alignment: AlignmentDirectional.centerStart,
-              child: Text(
-                context.tr(PeriodFilter.localizationKey(period)),
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-              ),
-            ),
-        ],
-        decoration: const InputDecoration(isDense: true),
-        items: [
-          for (final period in PeriodFilter.values)
-            DropdownMenuItem(
-              value: period,
-              child: Padding(
-                padding: const EdgeInsets.symmetric(vertical: 8),
-                child: Text(context.tr(PeriodFilter.localizationKey(period))),
-              ),
-            ),
-        ],
-        onChanged: (value) {
-          if (value == null) return;
-          if (value == PeriodFilter.custom) {
-            _pickCustomRange();
-            return;
-          }
-          setState(() {
-            _selectedPeriod = value;
-            _selectedCustomRange = null;
-          });
-        },
-      );
-    }
-    return Wrap(
-      spacing: 8,
-      runSpacing: 8,
-      children: PeriodFilter.values.map((period) {
-        final isSelected = _selectedPeriod == period;
-        return FilterChip(
-          label: Text(context.tr(PeriodFilter.localizationKey(period))),
-          selected: isSelected,
-          showCheckmark: false,
-          onSelected: (_) {
-            if (period == PeriodFilter.custom) {
-              _pickCustomRange();
-              return;
-            }
-            setState(() {
-              _selectedPeriod = period;
-              _selectedCustomRange = null;
-            });
-          },
-          selectedColor: ShellStyles.textPrimary(context).withAlpha(18),
-          backgroundColor: ShellStyles.surface(context),
-          side: BorderSide(
-            color: isSelected
-                ? ShellStyles.textPrimary(context)
-                : ShellStyles.border(context),
-          ),
-          labelStyle: TextStyle(
-            color: ShellStyles.textPrimary(context),
-            fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
-          ),
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(999),
-          ),
-        );
-      }).toList(),
-    );
-  }
+  Widget _buildPeriodChips() => AnchoredChoiceField(
+    key: ValueKey('receipt-period-$_selectedPeriod'),
+    value: _selectedPeriod,
+    options: {
+      for (final period in PeriodFilter.values)
+        period: context.tr(PeriodFilter.localizationKey(period)),
+    },
+    onChanged: (value) {
+      if (value == PeriodFilter.custom) {
+        _pickCustomRange();
+      } else {
+        setState(() {
+          _selectedPeriod = value;
+          _selectedCustomRange = null;
+        });
+      }
+    },
+  );
 
   Widget _buildCategoryChips() {
     if (_loadingCats) {
@@ -926,9 +862,11 @@ class _FilterBottomSheetState extends State<FilterBottomSheet> {
         );
 
         return FilterChip(
+          key: ValueKey('filter-category-$id'),
           label: Text(name),
           selected: isSelected,
-          showCheckmark: false,
+          showCheckmark: true,
+          checkmarkColor: tone.foreground,
           onSelected: (selected) {
             setState(() {
               if (selected) {
@@ -940,8 +878,11 @@ class _FilterBottomSheetState extends State<FilterBottomSheet> {
             });
           },
           selectedColor: tone.containerStrong,
-          backgroundColor: tone.container,
-          side: BorderSide(color: isSelected ? tone.base : tone.border),
+          backgroundColor: ShellStyles.surface(context),
+          side: BorderSide(
+            color: isSelected ? tone.base : tone.border,
+            width: isSelected ? 2 : 1,
+          ),
           labelStyle: TextStyle(
             color: tone.foreground,
             fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
@@ -1012,7 +953,13 @@ class _FilterBottomSheetState extends State<FilterBottomSheet> {
                   final name = _localizedCategoryName(
                     subcat as Map<String, dynamic>,
                   );
-                  return Chip(
+                  return InputChip(
+                    selected: true,
+                    showCheckmark: true,
+                    selectedColor: ShellStyles.accentTone(context).container,
+                    side: BorderSide(
+                      color: ShellStyles.accentTone(context).border,
+                    ),
                     label: Text(name),
                     onDeleted: () {
                       setState(() => _selectedSubcategoryIds.remove(id));
