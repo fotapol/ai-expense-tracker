@@ -102,6 +102,7 @@ if app_settings.CORS_ALLOWED_ORIGINS:
         allow_credentials=True,
         allow_methods=["DELETE", "GET", "OPTIONS", "PATCH", "POST", "PUT"],
         allow_headers=["Authorization", "Content-Type", "X-Requested-With"],
+        expose_headers=["Expense-Amount-Filter"],
     )
 app.add_middleware(BackendLoggingMiddleware)
 install_metrics(app)

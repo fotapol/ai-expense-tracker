@@ -6,7 +6,7 @@ import uuid
 from decimal import Decimal
 from typing import Annotated, Any
 
-from fastapi import APIRouter, Depends, HTTPException, Request, status
+from fastapi import APIRouter, Depends, HTTPException, Request, Response, status
 from sqlalchemy import func
 from sqlmodel import Session, select
 
@@ -194,11 +194,13 @@ async def create_transaction(
 @limiter.limit("60/minute")
 async def list_transactions(
     request: Request,
+    response: Response,
     filters: Annotated[TransactionListFilter, Depends()],
     session: Session = Depends(get_session),  # noqa: B008
     current_user: User = Depends(get_current_user),  # noqa: B008
 ):
     """List transactions for the current user."""
+    response.headers["Expense-Amount-Filter"] = "display-v1"
     target_currency = _resolve_target_currency(filters, current_user)
     query = select(Transaction).where(
         _build_transaction_read_visibility_predicate(session, current_user)
@@ -245,12 +247,15 @@ async def list_transactions(
     if filters.needs_review:
         query = query.where(_build_needs_review_predicate())
 
-    query = _apply_transaction_search_filters(query, filters)
-
     rate_snapshot = (
         load_cached_rate_snapshot(session, quote_currency=target_currency)
         if filters.sort_by in {"amount_asc", "amount_desc"}
+        or filters.min_display_amount is not None
+        or filters.max_display_amount is not None
         else None
+    )
+    query = _apply_transaction_search_filters(
+        query, filters, session=session, target_currency=target_currency, rate_snapshot=rate_snapshot
     )
     transactions = list_transaction_page(
         session=session,

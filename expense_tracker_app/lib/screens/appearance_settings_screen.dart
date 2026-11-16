@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../core/app_color_semantics.dart';
 import '../core/redesign_system.dart';
 import '../core/theme_provider.dart';
+import '../core/money_formatter.dart';
 import '../main.dart';
 import '../l10n/app_localizations.dart';
 import '../widgets/compact_text.dart';
@@ -22,7 +23,7 @@ class _AppearanceSettingsScreenState extends State<AppearanceSettingsScreen> {
         _ScaleOption(
           id: '60',
           label: '60%',
-          subtitle: context.tr('extra_compact_text'),
+          subtitle: context.tr('extra_compact_interface'),
         ),
         _ScaleOption(
           id: '80',
@@ -93,7 +94,7 @@ class _AppearanceSettingsScreenState extends State<AppearanceSettingsScreen> {
   Widget _buildThemeModeSection() {
     return SettingsDetailCard(
       radius: 22,
-      padding: const EdgeInsets.fromLTRB(18, 18, 18, 16),
+      padding: const EdgeInsets.all(14),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: <Widget>[
@@ -148,7 +149,7 @@ class _AppearanceSettingsScreenState extends State<AppearanceSettingsScreen> {
 
     return SettingsDetailCard(
       radius: 22,
-      padding: const EdgeInsets.fromLTRB(18, 18, 18, 16),
+      padding: const EdgeInsets.all(14),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: <Widget>[
@@ -177,7 +178,7 @@ class _AppearanceSettingsScreenState extends State<AppearanceSettingsScreen> {
   Widget _buildLabelColorModeSection() {
     return SettingsDetailCard(
       radius: 22,
-      padding: const EdgeInsets.fromLTRB(18, 18, 18, 16),
+      padding: const EdgeInsets.all(14),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: <Widget>[
@@ -271,12 +272,12 @@ class _AppearanceSettingsScreenState extends State<AppearanceSettingsScreen> {
   Widget _buildInterfaceScaleSection() {
     return SettingsDetailCard(
       radius: 22,
-      padding: const EdgeInsets.fromLTRB(18, 18, 18, 18),
+      padding: const EdgeInsets.all(14),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: <Widget>[
           Text(
-            context.tr('settings_font_size'),
+            context.tr('settings_interface_scale'),
             style: TextStyle(
               color: ShellStyles.textPrimary(context),
               fontSize: 16,
@@ -286,54 +287,87 @@ class _AppearanceSettingsScreenState extends State<AppearanceSettingsScreen> {
           const SizedBox(height: 16),
           DropdownButtonFormField<String>(
             initialValue: themeProvider.fontSizeId,
+            isExpanded: true,
+            itemHeight: null,
+            selectedItemBuilder: (context) => [
+              for (final option in _scaleOptions(context))
+                Align(
+                  alignment: AlignmentDirectional.centerStart,
+                  child: Text(
+                    '${option.label} - ${option.subtitle}',
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ),
+            ],
             decoration: InputDecoration(
-              labelText: context.tr('settings_font_size'),
+              labelText: context.tr('settings_interface_scale'),
               isDense: true,
             ),
             items: _scaleOptions(context).map((option) {
               return DropdownMenuItem<String>(
                 value: option.id,
-                child: Text('${option.label} - ${option.subtitle}'),
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 8),
+                  child: Text('${option.label} - ${option.subtitle}'),
+                ),
               );
             }).toList(),
             onChanged: _selectScale,
           ),
           const SizedBox(height: 14),
-          Container(
-            width: double.infinity,
-            padding: const EdgeInsets.all(14),
-            decoration: BoxDecoration(
-              color: ShellStyles.surfaceAlt(context),
-              borderRadius: BorderRadius.circular(16),
-              border: Border.all(color: ShellStyles.border(context)),
+          Text(
+            context.tr('settings_interface_scale_hint'),
+            style: TextStyle(
+              color: ShellStyles.textMuted(context),
+              fontSize: 12,
+              height: 1.4,
             ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: <Widget>[
-                Text(
-                  context.tr('settings_example'),
-                  style: TextStyle(
-                    color: ShellStyles.textMuted(context),
-                    fontSize: 11.5,
-                    fontWeight: FontWeight.w700,
-                    letterSpacing: 0.6,
+          ),
+          const SizedBox(height: 12),
+          Container(
+            key: const ValueKey('interface-scale-preview'),
+            padding: const EdgeInsets.all(12),
+            decoration: ShellStyles.cardDecoration(
+              context,
+              radius: 12,
+              withShadow: false,
+            ),
+            child: Row(
+              children: [
+                Icon(
+                  Icons.receipt_long_outlined,
+                  color: ShellStyles.accent(context),
+                  size: 24,
+                ),
+                const SizedBox(width: 10),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        context.tr('settings_example'),
+                        style: const TextStyle(
+                          fontSize: 14,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        _currentScaleOption(context).label,
+                        style: TextStyle(
+                          fontSize: 12,
+                          color: ShellStyles.textMuted(context),
+                        ),
+                      ),
+                    ],
                   ),
                 ),
-                const SizedBox(height: 8),
                 Text(
-                  _currentScaleOption(context).label,
-                  style: TextStyle(
-                    color: ShellStyles.textPrimary(context),
-                    fontSize: 15,
+                  formatMoney('EUR', 12.5),
+                  style: const TextStyle(
+                    fontSize: 16,
                     fontWeight: FontWeight.w700,
-                  ),
-                ),
-                const SizedBox(height: 8),
-                Text(
-                  _currentScaleOption(context).subtitle,
-                  style: TextStyle(
-                    color: ShellStyles.textMuted(context),
-                    fontSize: 12.5,
                   ),
                 ),
               ],
@@ -346,7 +380,6 @@ class _AppearanceSettingsScreenState extends State<AppearanceSettingsScreen> {
 
   @override
   Widget build(BuildContext context) {
-    // TODO(theme): add Compact Mode when it changes real density and spacing.
     // TODO(theme): add Animations toggle when there is a user-facing motion
     // preference wired across the app.
     return SettingsDetailScaffold(
@@ -354,7 +387,7 @@ class _AppearanceSettingsScreenState extends State<AppearanceSettingsScreen> {
       body: SafeArea(
         top: false,
         child: SingleChildScrollView(
-          padding: const EdgeInsets.fromLTRB(16, 16, 16, 120),
+          padding: const EdgeInsets.fromLTRB(16, 12, 16, 24),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: <Widget>[

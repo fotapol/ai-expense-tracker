@@ -56,7 +56,17 @@ http.Response response(http.Request request) {
 }
 
 Future<void> pickCustomRange(WidgetTester tester) async {
-  await tester.tap(find.text('Custom period'));
+  final receiptPeriod = find.byWidgetPredicate(
+    (widget) =>
+        widget is DropdownButtonFormField<String> &&
+        widget.key is ValueKey<String> &&
+        (widget.key! as ValueKey<String>).value.startsWith('receipt-period-'),
+  );
+  if (receiptPeriod.evaluate().isNotEmpty) {
+    await tester.tap(receiptPeriod);
+    await tester.pumpAndSettle();
+  }
+  await tester.tap(find.text('Custom period').last);
   await tester.pumpAndSettle();
   await tester.tap(find.byTooltip('Switch to input'));
   await tester.pumpAndSettle();

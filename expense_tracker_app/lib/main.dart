@@ -12,6 +12,7 @@ import 'core/api_client.dart';
 import 'core/auth_session.dart';
 import 'core/bill_reminder_notification_service.dart';
 import 'core/item_translation_preferences.dart';
+import 'core/interface_scale.dart';
 import 'core/money_format_preferences.dart';
 import 'core/locale_provider.dart';
 import 'core/premium_refresh.dart';
@@ -131,10 +132,8 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
       darkTheme: themeProvider.darkTheme,
       themeMode: themeProvider.themeMode,
       builder: (context, child) {
-        return MediaQuery(
-          data: MediaQuery.of(context).copyWith(
-            textScaler: TextScaler.linear(themeProvider.fontSizeFactor),
-          ),
+        return InterfaceScale(
+          factor: themeProvider.interfaceScaleFactor,
           child: child ?? const SizedBox.shrink(),
         );
       },

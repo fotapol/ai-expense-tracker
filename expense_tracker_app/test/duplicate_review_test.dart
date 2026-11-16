@@ -137,7 +137,7 @@ void main() {
             findsNothing,
           ); // Reasons are combined into one readable explanation.
           expect(find.textContaining('2 matching items'), findsOneWidget);
-          expect(find.text('View original'), findsNWidgets(2));
+          expect(find.byTooltip('View original'), findsNWidgets(2));
           await reachActions(tester);
           await tester.tap(find.text('Keep both'));
           await tester.pumpAndSettle();

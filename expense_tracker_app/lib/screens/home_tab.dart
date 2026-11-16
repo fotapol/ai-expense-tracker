@@ -648,7 +648,10 @@ class _HomeTabState extends State<HomeTab>
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Row(
+          Wrap(
+            spacing: 12,
+            runSpacing: 8,
+            crossAxisAlignment: WrapCrossAlignment.center,
             children: [
               Text(
                 monthLabel.toUpperCase(),
@@ -659,7 +662,6 @@ class _HomeTabState extends State<HomeTab>
                   letterSpacing: 0.8,
                 ),
               ),
-              const Spacer(),
               if (ratio != null)
                 Container(
                   padding: const EdgeInsets.symmetric(
@@ -703,17 +705,24 @@ class _HomeTabState extends State<HomeTab>
             ],
           ),
           const SizedBox(height: 20),
-          Text(
-            _formatMoney(_currency, _currentMonthTotal),
-            style: TextStyle(
-              color: ShellStyles.textPrimary(context),
-              fontSize: 46,
-              fontWeight: FontWeight.w700,
-              letterSpacing: -1.2,
+          FittedBox(
+            fit: BoxFit.scaleDown,
+            alignment: AlignmentDirectional.centerStart,
+            child: Text(
+              _formatMoney(_currency, _currentMonthTotal),
+              style: TextStyle(
+                color: ShellStyles.textPrimary(context),
+                fontSize: 46,
+                fontWeight: FontWeight.w700,
+                letterSpacing: -1.2,
+              ),
             ),
           ),
           const SizedBox(height: 4),
-          Row(
+          Wrap(
+            spacing: 10,
+            runSpacing: 4,
+            crossAxisAlignment: WrapCrossAlignment.center,
             children: [
               Text(
                 context.tr('home_total_spending_month'),
@@ -722,7 +731,6 @@ class _HomeTabState extends State<HomeTab>
                   fontSize: 14,
                 ),
               ),
-              const SizedBox(width: 10),
               Text(
                 context.tr(
                   'receipts_count',
@@ -741,6 +749,9 @@ class _HomeTabState extends State<HomeTab>
   }
 
   Widget _buildScanCard(BuildContext context) {
+    final showBadges =
+        MediaQuery.sizeOf(context).width >= 360 &&
+        ShellStyles.textScale(context) <= 1.2;
     return InkWell(
       borderRadius: BorderRadius.circular(24),
       onTap: () => _open(context, const ReceiptUploadScreen()),
@@ -772,7 +783,7 @@ class _HomeTabState extends State<HomeTab>
                 size: 26,
               ),
             ),
-            const SizedBox(width: 16),
+            if (showBadges) const SizedBox(width: 16),
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -791,7 +802,7 @@ class _HomeTabState extends State<HomeTab>
                     context.tr('tools_scan_receipt'),
                     style: TextStyle(
                       color: ShellStyles.homeHeroTextPrimary(context),
-                      fontSize: 22,
+                      fontSize: 20,
                       fontWeight: FontWeight.w700,
                     ),
                   ),
@@ -807,23 +818,24 @@ class _HomeTabState extends State<HomeTab>
                 ],
               ),
             ),
-            Container(
-              width: 40,
-              height: 40,
-              alignment: Alignment.center,
-              decoration: BoxDecoration(
-                color: ShellStyles.homeHeroBadgeSurface(context),
-                shape: BoxShape.circle,
-                border: Border.all(
-                  color: ShellStyles.homeHeroBadgeBorder(context),
+            if (showBadges)
+              Container(
+                width: 40,
+                height: 40,
+                alignment: Alignment.center,
+                decoration: BoxDecoration(
+                  color: ShellStyles.homeHeroBadgeSurface(context),
+                  shape: BoxShape.circle,
+                  border: Border.all(
+                    color: ShellStyles.homeHeroBadgeBorder(context),
+                  ),
+                ),
+                child: Icon(
+                  AppIcons.chevronRight,
+                  color: ShellStyles.homeHeroBadgeIcon(context),
+                  size: 18,
                 ),
               ),
-              child: Icon(
-                AppIcons.chevronRight,
-                color: ShellStyles.homeHeroBadgeIcon(context),
-                size: 18,
-              ),
-            ),
           ],
         ),
       ),
@@ -860,7 +872,10 @@ class _HomeTabState extends State<HomeTab>
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Row(
+          Wrap(
+            spacing: 12,
+            runSpacing: 6,
+            crossAxisAlignment: WrapCrossAlignment.center,
             children: [
               Text(
                 context.tr('home_spending_overview'),
@@ -870,7 +885,6 @@ class _HomeTabState extends State<HomeTab>
                   fontWeight: FontWeight.w600,
                 ),
               ),
-              const Spacer(),
               Text(
                 context.tr('period_this_month'),
                 style: TextStyle(
@@ -1043,12 +1057,14 @@ class _HomeTabState extends State<HomeTab>
                 color: ShellStyles.textMuted(context),
               ),
               const SizedBox(width: 10),
-              Text(
-                context.tr('home_smart_insights'),
-                style: TextStyle(
-                  color: ShellStyles.textPrimary(context),
-                  fontSize: 14,
-                  fontWeight: FontWeight.w600,
+              Expanded(
+                child: Text(
+                  context.tr('home_smart_insights'),
+                  style: TextStyle(
+                    color: ShellStyles.textPrimary(context),
+                    fontSize: 14,
+                    fontWeight: FontWeight.w600,
+                  ),
                 ),
               ),
             ],

@@ -222,7 +222,12 @@ class _LabelsScreenState extends State<LabelsScreen> {
         scrolledUnderElevation: 0,
         iconTheme: IconThemeData(color: ShellStyles.textPrimary(context)),
         titleSpacing: 0,
-        toolbarHeight: 74,
+        toolbarHeight:
+            (MediaQuery.textScalerOf(context).scale(18) +
+                    MediaQuery.textScalerOf(context).scale(12) +
+                    16)
+                .clamp(64, double.infinity)
+                .toDouble(),
         title: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -238,6 +243,8 @@ class _LabelsScreenState extends State<LabelsScreen> {
             const SizedBox(height: 2),
             Text(
               _countLabel(),
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
               style: TextStyle(
                 color: ShellStyles.textMuted(context),
                 fontSize: 12,
@@ -274,44 +281,47 @@ class _LabelsScreenState extends State<LabelsScreen> {
       ),
       body: _isLoading
           ? const Center(child: CircularProgressIndicator())
-          : RefreshIndicator(
-              onRefresh: () => _fetchLabels(showLoading: false),
-              child: SingleChildScrollView(
-                physics: const AlwaysScrollableScrollPhysics(),
-                padding: EdgeInsets.fromLTRB(
-                  16,
-                  18,
-                  16,
-                  MediaQuery.of(context).padding.bottom + 32,
-                ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    if (_error != null) ...[
-                      _buildErrorCard(),
-                      const SizedBox(height: 18),
+          : SafeArea(
+              top: false,
+              child: RefreshIndicator(
+                onRefresh: () => _fetchLabels(showLoading: false),
+                child: SingleChildScrollView(
+                  physics: const AlwaysScrollableScrollPhysics(),
+                  padding: EdgeInsets.fromLTRB(
+                    16,
+                    18,
+                    16,
+                    MediaQuery.of(context).padding.bottom + 32,
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      if (_error != null) ...[
+                        _buildErrorCard(),
+                        const SizedBox(height: 18),
+                      ],
+                      AnimatedSwitcher(
+                        duration: const Duration(milliseconds: 220),
+                        child: _showCreateForm
+                            ? Column(
+                                key: const ValueKey('create-form'),
+                                children: [
+                                  _buildCreateCard(),
+                                  const SizedBox(height: 18),
+                                ],
+                              )
+                            : const SizedBox.shrink(
+                                key: ValueKey('create-form-hidden'),
+                              ),
+                      ),
+                      ShellStyles.sectionLabel(
+                        context,
+                        context.tr('labels_title'),
+                      ),
+                      const SizedBox(height: 12),
+                      _buildLabelsList(),
                     ],
-                    AnimatedSwitcher(
-                      duration: const Duration(milliseconds: 220),
-                      child: _showCreateForm
-                          ? Column(
-                              key: const ValueKey('create-form'),
-                              children: [
-                                _buildCreateCard(),
-                                const SizedBox(height: 18),
-                              ],
-                            )
-                          : const SizedBox.shrink(
-                              key: ValueKey('create-form-hidden'),
-                            ),
-                    ),
-                    ShellStyles.sectionLabel(
-                      context,
-                      context.tr('labels_title'),
-                    ),
-                    const SizedBox(height: 12),
-                    _buildLabelsList(),
-                  ],
+                  ),
                 ),
               ),
             ),

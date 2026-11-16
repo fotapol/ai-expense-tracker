@@ -70,6 +70,23 @@ class AppLocalizations {
 
   static const Map<String, Map<String, String>> _translations = {
     'en': {
+      'error_backend_update_required':
+          'Update the backend to use amount filters in your display currency.',
+      'settings_interface_scale': 'Interface scale',
+      'filters_display_amount': 'Amount ({currency})',
+      'filters_display_hint':
+          'Amounts shown in history, converted to {currency}.',
+      'filters_advanced': 'More filters',
+      'duplicates_group_count': 'Receipts in this group: {count}',
+      'duplicates_choose_pair': 'Choose two receipts to compare',
+      'duplicates_receipt_number': 'Receipt {number}',
+      'duplicates_matches': 'Matches',
+      'duplicates_differences': 'Differences',
+      'duplicates_only_receipt': 'Only in receipt {number}',
+      'duplicates_differences_only': 'Differences only',
+      'duplicates_unit_price': 'Unit price',
+      'settings_interface_scale_hint':
+          'Scales text, icons and spacing. Your system text size still applies.',
       'duplicates_reason_item_single': '{count} matching item',
       'filters_search_hint': 'Merchant or item',
       'filters_amount': 'Amount range',
@@ -884,7 +901,7 @@ class AppLocalizations {
       'display_name': 'Display name',
       'email_support': 'Email support',
       'enable_notifications_in_the_app': 'Enable notifications in the app',
-      'extra_compact_text': 'Extra compact text',
+      'extra_compact_interface': 'Extra compact interface',
       'features_tools': 'Features & Tools',
       'follow_your_device_theme_setting': 'Follow your device theme setting',
       'getting_started': 'Getting Started',
@@ -1357,6 +1374,23 @@ class AppLocalizations {
       'delete_reminder_name_confirm': 'Delete "{name}"?',
     },
     'de': {
+      'error_backend_update_required':
+          'Aktualisiere den Server, um Beträge in deiner Anzeigewährung zu filtern.',
+      'settings_interface_scale': 'Oberflächenskalierung',
+      'filters_display_amount': 'Betrag ({currency})',
+      'filters_display_hint':
+          'Beträge wie im Verlauf, umgerechnet in {currency}.',
+      'filters_advanced': 'Weitere Filter',
+      'duplicates_group_count': 'Belege in dieser Gruppe: {count}',
+      'duplicates_choose_pair': 'Zwei Belege zum Vergleich auswählen',
+      'duplicates_receipt_number': 'Beleg {number}',
+      'duplicates_matches': 'Übereinstimmungen',
+      'duplicates_differences': 'Unterschiede',
+      'duplicates_only_receipt': 'Nur in Beleg {number}',
+      'duplicates_differences_only': 'Nur Unterschiede',
+      'duplicates_unit_price': 'Stückpreis',
+      'settings_interface_scale_hint':
+          'Skaliert Text, Symbole und Abstände. Die Systemtextgröße gilt weiterhin.',
       'duplicates_reason_item_single': '{count} übereinstimmender Artikel',
       'upload_selected_body':
           'Prüfen Sie das Bild, wählen Sie ein anderes Foto oder starten Sie die Erkennung.',
@@ -2214,7 +2248,7 @@ class AppLocalizations {
       'email_support': 'E-Mail-Support',
       'enable_notifications_in_the_app':
           'Aktivieren Sie Benachrichtigungen in der App',
-      'extra_compact_text': 'Extra kompakter Text',
+      'extra_compact_interface': 'Extra kompakte Oberfläche',
       'features_tools': 'Funktionen und Tools',
       'follow_your_device_theme_setting':
           'Befolgen Sie die Designeinstellungen Ihres Geräts.',
@@ -2709,6 +2743,23 @@ class AppLocalizations {
       'delete_reminder_name_confirm': '„{name}“ löschen?',
     },
     'fr': {
+      'error_backend_update_required':
+          'Mettez le serveur à jour pour filtrer les montants dans votre devise d’affichage.',
+      'settings_interface_scale': 'Échelle de l’interface',
+      'filters_display_amount': 'Montant ({currency})',
+      'filters_display_hint':
+          'Montants affichés dans l’historique, convertis en {currency}.',
+      'filters_advanced': 'Autres filtres',
+      'duplicates_group_count': 'Reçus dans ce groupe : {count}',
+      'duplicates_choose_pair': 'Choisir deux reçus à comparer',
+      'duplicates_receipt_number': 'Reçu {number}',
+      'duplicates_matches': 'Correspondances',
+      'duplicates_differences': 'Différences',
+      'duplicates_only_receipt': 'Uniquement dans le reçu {number}',
+      'duplicates_differences_only': 'Différences uniquement',
+      'duplicates_unit_price': 'Prix unitaire',
+      'settings_interface_scale_hint':
+          'Redimensionne le texte, les icônes et les espacements. La taille du texte système reste prise en compte.',
       'duplicates_reason_item_single': '{count} article correspondant',
       'upload_selected_body':
           'Vérifiez l’image, choisissez une autre photo ou lancez l’extraction.',
@@ -3552,7 +3603,7 @@ class AppLocalizations {
       'email_support': 'Assistance par e-mail',
       'enable_notifications_in_the_app':
           'Activer les notifications dans l\'application',
-      'extra_compact_text': 'Texte très compact',
+      'extra_compact_interface': 'Interface très compacte',
       'features_tools': 'Fonctionnalités et outils',
       'follow_your_device_theme_setting': 'Suivre le thème de votre appareil',
       'getting_started': 'Premiers pas',
@@ -4051,6 +4102,22 @@ class AppLocalizations {
       'delete_reminder_name_confirm': 'Supprimer "{name}" ?',
     },
     'uk': {
+      'error_backend_update_required':
+          'Оновіть сервер, щоб фільтрувати суми у валюті відображення.',
+      'settings_interface_scale': 'Масштаб інтерфейсу',
+      'filters_display_amount': 'Сума ({currency})',
+      'filters_display_hint': 'Суми як в історії, перераховані у {currency}.',
+      'filters_advanced': 'Додаткові фільтри',
+      'duplicates_group_count': 'Чеків у групі: {count}',
+      'duplicates_choose_pair': 'Виберіть два чеки для порівняння',
+      'duplicates_receipt_number': 'Чек {number}',
+      'duplicates_matches': 'Збіги',
+      'duplicates_differences': 'Відмінності',
+      'duplicates_only_receipt': 'Лише в чеку {number}',
+      'duplicates_differences_only': 'Лише відмінності',
+      'duplicates_unit_price': 'Ціна за одиницю',
+      'settings_interface_scale_hint':
+          'Масштабує текст, значки та відступи. Системний розмір тексту також враховується.',
       'duplicates_reason_item_single': 'Збігається {count} товар',
       'upload_selected_body':
           'Перегляньте зображення, виберіть інше фото або почніть розпізнавання.',
@@ -4876,7 +4943,7 @@ class AppLocalizations {
       'display_name': 'Відображуване ім\'я',
       'email_support': 'Підтримка електронною поштою',
       'enable_notifications_in_the_app': 'Увімкніть сповіщення в додатку',
-      'extra_compact_text': 'Надкомпактний текст',
+      'extra_compact_interface': 'Надкомпактний інтерфейс',
       'features_tools': 'Функції та інструменти',
       'follow_your_device_theme_setting':
           'Дотримуйтеся налаштувань теми свого пристрою',
@@ -5358,6 +5425,23 @@ class AppLocalizations {
       'delete_reminder_name_confirm': 'Видалити "{name}"?',
     },
     'it': {
+      'error_backend_update_required':
+          'Aggiorna il server per filtrare gli importi nella valuta di visualizzazione.',
+      'settings_interface_scale': 'Scala dell’interfaccia',
+      'filters_display_amount': 'Importo ({currency})',
+      'filters_display_hint':
+          'Importi mostrati nella cronologia, convertiti in {currency}.',
+      'filters_advanced': 'Altri filtri',
+      'duplicates_group_count': 'Ricevute nel gruppo: {count}',
+      'duplicates_choose_pair': 'Scegli due ricevute da confrontare',
+      'duplicates_receipt_number': 'Ricevuta {number}',
+      'duplicates_matches': 'Corrispondenze',
+      'duplicates_differences': 'Differenze',
+      'duplicates_only_receipt': 'Solo nella ricevuta {number}',
+      'duplicates_differences_only': 'Solo differenze',
+      'duplicates_unit_price': 'Prezzo unitario',
+      'settings_interface_scale_hint':
+          'Ridimensiona testo, icone e spaziature. La dimensione del testo di sistema resta attiva.',
       'duplicates_reason_item_single': '{count} articolo corrispondente',
       'upload_selected_body':
           'Controlla l’immagine, scegli un’altra foto o avvia l’estrazione.',
@@ -6211,7 +6295,7 @@ class AppLocalizations {
       'display_name': 'Nome visualizzato',
       'email_support': 'Supporto via e-mail',
       'enable_notifications_in_the_app': 'Abilita le notifiche nell\'app',
-      'extra_compact_text': 'Testo estremamente compatto',
+      'extra_compact_interface': 'Interfaccia estremamente compatta',
       'features_tools': 'Funzionalità e strumenti',
       'follow_your_device_theme_setting':
           'Segui l\'impostazione del tema del tuo dispositivo',
@@ -6707,6 +6791,23 @@ class AppLocalizations {
       'delete_reminder_name_confirm': 'Eliminare "{name}"?',
     },
     'pl': {
+      'error_backend_update_required':
+          'Zaktualizuj serwer, aby filtrować kwoty w walucie wyświetlania.',
+      'settings_interface_scale': 'Skala interfejsu',
+      'filters_display_amount': 'Kwota ({currency})',
+      'filters_display_hint':
+          'Kwoty widoczne w historii, przeliczone na {currency}.',
+      'filters_advanced': 'Więcej filtrów',
+      'duplicates_group_count': 'Paragony w tej grupie: {count}',
+      'duplicates_choose_pair': 'Wybierz dwa paragony do porównania',
+      'duplicates_receipt_number': 'Paragon {number}',
+      'duplicates_matches': 'Zgodności',
+      'duplicates_differences': 'Różnice',
+      'duplicates_only_receipt': 'Tylko na paragonie {number}',
+      'duplicates_differences_only': 'Tylko różnice',
+      'duplicates_unit_price': 'Cena jednostkowa',
+      'settings_interface_scale_hint':
+          'Skaluje tekst, ikony i odstępy. Systemowy rozmiar tekstu nadal obowiązuje.',
       'duplicates_reason_item_single': '{count} zgodny produkt',
       'upload_selected_body':
           'Sprawdź obraz, wybierz inne zdjęcie lub rozpocznij odczyt.',
@@ -7550,7 +7651,7 @@ class AppLocalizations {
       'display_name': 'Nazwa wyświetlana',
       'email_support': 'Wsparcie e-mailowe',
       'enable_notifications_in_the_app': 'Włącz powiadomienia w aplikacji',
-      'extra_compact_text': 'Bardzo kompaktowy tekst',
+      'extra_compact_interface': 'Bardzo kompaktowy interfejs',
       'features_tools': 'Funkcje i narzędzia',
       'follow_your_device_theme_setting':
           'Postępuj zgodnie z ustawieniami motywu urządzenia',
@@ -8035,6 +8136,23 @@ class AppLocalizations {
       'delete_reminder_name_confirm': 'Usunąć "{name}"?',
     },
     'sr': {
+      'error_backend_update_required':
+          'Ažurirajte server da biste filtrirali iznose u valuti prikaza.',
+      'settings_interface_scale': 'Razmera interfejsa',
+      'filters_display_amount': 'Iznos ({currency})',
+      'filters_display_hint':
+          'Iznosi prikazani u istoriji, preračunati u {currency}.',
+      'filters_advanced': 'Dodatni filteri',
+      'duplicates_group_count': 'Računi u grupi: {count}',
+      'duplicates_choose_pair': 'Izaberite dva računa za poređenje',
+      'duplicates_receipt_number': 'Račun {number}',
+      'duplicates_matches': 'Podudaranja',
+      'duplicates_differences': 'Razlike',
+      'duplicates_only_receipt': 'Samo na računu {number}',
+      'duplicates_differences_only': 'Samo razlike',
+      'duplicates_unit_price': 'Jedinična cena',
+      'settings_interface_scale_hint':
+          'Menja veličinu teksta, ikona i razmaka. Sistemska veličina teksta i dalje važi.',
       'duplicates_reason_item_single': 'Podudara se {count} artikal',
       'upload_selected_body':
           'Pregledajte sliku, izaberite drugu fotografiju ili pokrenite prepoznavanje.',
@@ -8864,7 +8982,7 @@ class AppLocalizations {
       'display_name': 'Ime za prikaz',
       'email_support': 'Podrška putem e-pošte',
       'enable_notifications_in_the_app': 'Omogućite obaveštenja u aplikaciji',
-      'extra_compact_text': 'Ekstra kompaktan tekst',
+      'extra_compact_interface': 'Ekstra kompaktan interfejs',
       'features_tools': 'Karakteristike i alati',
       'follow_your_device_theme_setting': 'Pratite podešavanja teme uređaja',
       'getting_started': 'Početak rada',
@@ -9346,6 +9464,22 @@ class AppLocalizations {
       'delete_reminder_name_confirm': 'Obriši "{name}"?',
     },
     'ru': {
+      'error_backend_update_required':
+          'Обновите сервер, чтобы фильтровать суммы в валюте отображения.',
+      'settings_interface_scale': 'Масштаб интерфейса',
+      'filters_display_amount': 'Сумма ({currency})',
+      'filters_display_hint': 'Суммы как в истории, с пересчётом в {currency}.',
+      'filters_advanced': 'Другие фильтры',
+      'duplicates_group_count': 'Чеков в группе: {count}',
+      'duplicates_choose_pair': 'Выберите два чека для сравнения',
+      'duplicates_receipt_number': 'Чек {number}',
+      'duplicates_matches': 'Совпадения',
+      'duplicates_differences': 'Различия',
+      'duplicates_only_receipt': 'Только в чеке {number}',
+      'duplicates_differences_only': 'Только различия',
+      'duplicates_unit_price': 'Цена за единицу',
+      'settings_interface_scale_hint':
+          'Масштабирует текст, значки и отступы. Системный размер текста также учитывается.',
       'duplicates_reason_item_single': 'Совпадает {count} товар',
       'upload_selected_body':
           'Проверьте изображение, выберите другое фото или начните распознавание.',
@@ -10178,7 +10312,7 @@ class AppLocalizations {
       'display_name': 'Отображаемое имя',
       'email_support': 'Поддержка по электронной почте',
       'enable_notifications_in_the_app': 'Включить уведомления в приложении',
-      'extra_compact_text': 'Очень компактный текст',
+      'extra_compact_interface': 'Очень компактный интерфейс',
       'features_tools': 'Особенности и инструменты',
       'follow_your_device_theme_setting':
           'Следуйте настройкам темы вашего устройства.',
@@ -10658,6 +10792,23 @@ class AppLocalizations {
       'delete_reminder_name_confirm': 'Удалить "{name}"?',
     },
     'pt': {
+      'error_backend_update_required':
+          'Atualize o servidor para filtrar valores na moeda de exibição.',
+      'settings_interface_scale': 'Escala da interface',
+      'filters_display_amount': 'Valor ({currency})',
+      'filters_display_hint':
+          'Valores exibidos no histórico, convertidos em {currency}.',
+      'filters_advanced': 'Mais filtros',
+      'duplicates_group_count': 'Recibos neste grupo: {count}',
+      'duplicates_choose_pair': 'Escolha dois recibos para comparar',
+      'duplicates_receipt_number': 'Recibo {number}',
+      'duplicates_matches': 'Correspondências',
+      'duplicates_differences': 'Diferenças',
+      'duplicates_only_receipt': 'Apenas no recibo {number}',
+      'duplicates_differences_only': 'Apenas diferenças',
+      'duplicates_unit_price': 'Preço unitário',
+      'settings_interface_scale_hint':
+          'Ajusta texto, ícones e espaçamento. O tamanho de texto do sistema continua ativo.',
       'duplicates_reason_item_single': '{count} artigo correspondente',
       'upload_selected_body':
           'Reveja a imagem, escolha outra fotografia ou inicie a extração.',
@@ -11502,7 +11653,7 @@ class AppLocalizations {
       'display_name': 'Nome de exibição',
       'email_support': 'Suporte por e-mail',
       'enable_notifications_in_the_app': 'Habilite notificações no aplicativo',
-      'extra_compact_text': 'Texto extra compacto',
+      'extra_compact_interface': 'Interface extra compacta',
       'features_tools': 'Recursos e ferramentas',
       'follow_your_device_theme_setting':
           'Siga a configuração do tema do seu dispositivo',
@@ -11993,6 +12144,23 @@ class AppLocalizations {
       'delete_reminder_name_confirm': 'Eliminar "{name}"?',
     },
     'tr': {
+      'error_backend_update_required':
+          'Tutarları görüntüleme para biriminde filtrelemek için sunucuyu güncelleyin.',
+      'settings_interface_scale': 'Arayüz ölçeği',
+      'filters_display_amount': 'Tutar ({currency})',
+      'filters_display_hint':
+          'Geçmişte gösterilen, {currency} cinsine çevrilmiş tutarlar.',
+      'filters_advanced': 'Diğer filtreler',
+      'duplicates_group_count': 'Bu gruptaki fişler: {count}',
+      'duplicates_choose_pair': 'Karşılaştırmak için iki fiş seçin',
+      'duplicates_receipt_number': 'Fiş {number}',
+      'duplicates_matches': 'Eşleşmeler',
+      'duplicates_differences': 'Farklar',
+      'duplicates_only_receipt': 'Yalnızca fiş {number} içinde',
+      'duplicates_differences_only': 'Yalnızca farklar',
+      'duplicates_unit_price': 'Birim fiyat',
+      'settings_interface_scale_hint':
+          'Metni, simgeleri ve boşlukları ölçekler. Sistem metin boyutu uygulanmaya devam eder.',
       'duplicates_reason_item_single': '{count} eşleşen ürün',
       'upload_selected_body':
           'Görüntüyü inceleyin, başka bir fotoğraf seçin veya okumayı başlatın.',
@@ -12821,7 +12989,7 @@ class AppLocalizations {
       'email_support': 'E-posta desteği',
       'enable_notifications_in_the_app':
           'Uygulamada bildirimleri etkinleştirin',
-      'extra_compact_text': 'Ekstra kompakt metin',
+      'extra_compact_interface': 'Ekstra kompakt arayüz',
       'features_tools': 'Özellikler ve Araçlar',
       'follow_your_device_theme_setting': 'Cihazınızın tema ayarını takip edin',
       'getting_started': 'Başlarken',
@@ -13297,6 +13465,23 @@ class AppLocalizations {
       'delete_reminder_name_confirm': '"{name}" silinsin mi?',
     },
     'nl': {
+      'error_backend_update_required':
+          'Werk de server bij om bedragen in je weergavevaluta te filteren.',
+      'settings_interface_scale': 'Interfaceschaal',
+      'filters_display_amount': 'Bedrag ({currency})',
+      'filters_display_hint':
+          'Bedragen zoals in de geschiedenis, omgerekend naar {currency}.',
+      'filters_advanced': 'Meer filters',
+      'duplicates_group_count': 'Bonnen in deze groep: {count}',
+      'duplicates_choose_pair': 'Kies twee bonnen om te vergelijken',
+      'duplicates_receipt_number': 'Bon {number}',
+      'duplicates_matches': 'Overeenkomsten',
+      'duplicates_differences': 'Verschillen',
+      'duplicates_only_receipt': 'Alleen op bon {number}',
+      'duplicates_differences_only': 'Alleen verschillen',
+      'duplicates_unit_price': 'Eenheidsprijs',
+      'settings_interface_scale_hint':
+          'Schaalt tekst, pictogrammen en afstanden. De systeemtekstgrootte blijft gelden.',
       'duplicates_reason_item_single': '{count} overeenkomend artikel',
       'upload_selected_body':
           'Controleer de afbeelding, kies een andere foto of start de herkenning.',
@@ -14138,7 +14323,7 @@ class AppLocalizations {
       'display_name': 'Weergavenaam',
       'email_support': 'E-mailondersteuning',
       'enable_notifications_in_the_app': 'Schakel meldingen in de app in',
-      'extra_compact_text': 'Extra compacte tekst',
+      'extra_compact_interface': 'Extra compacte interface',
       'features_tools': 'Functies en hulpmiddelen',
       'follow_your_device_theme_setting':
           'Volg de thema-instelling van uw apparaat',
@@ -14626,6 +14811,23 @@ class AppLocalizations {
       'delete_reminder_name_confirm': '"{name}" verwijderen?',
     },
     'sv': {
+      'error_backend_update_required':
+          'Uppdatera servern för att filtrera belopp i din visningsvaluta.',
+      'settings_interface_scale': 'Gränssnittsskala',
+      'filters_display_amount': 'Belopp ({currency})',
+      'filters_display_hint':
+          'Belopp som visas i historiken, omräknade till {currency}.',
+      'filters_advanced': 'Fler filter',
+      'duplicates_group_count': 'Kvitton i gruppen: {count}',
+      'duplicates_choose_pair': 'Välj två kvitton att jämföra',
+      'duplicates_receipt_number': 'Kvitto {number}',
+      'duplicates_matches': 'Överensstämmelser',
+      'duplicates_differences': 'Skillnader',
+      'duplicates_only_receipt': 'Endast på kvitto {number}',
+      'duplicates_differences_only': 'Endast skillnader',
+      'duplicates_unit_price': 'Styckpris',
+      'settings_interface_scale_hint':
+          'Skalar text, ikoner och avstånd. Systemets textstorlek gäller fortfarande.',
       'duplicates_reason_item_single': '{count} matchande artikel',
       'upload_selected_body':
           'Granska bilden, välj ett annat foto eller starta tolkningen.',
@@ -15459,7 +15661,7 @@ class AppLocalizations {
       'display_name': 'Visningsnamn',
       'email_support': 'E-postsupport',
       'enable_notifications_in_the_app': 'Aktivera aviseringar i appen',
-      'extra_compact_text': 'Extra kompakt text',
+      'extra_compact_interface': 'Extra kompakt gränssnitt',
       'features_tools': 'Funktioner och verktyg',
       'follow_your_device_theme_setting': 'Följ din enhetstemainställning',
       'getting_started': 'Komma igång',
@@ -15938,6 +16140,23 @@ class AppLocalizations {
       'delete_reminder_name_confirm': 'Radera "{name}"?',
     },
     'cs': {
+      'error_backend_update_required':
+          'Aktualizujte server, abyste mohli filtrovat částky v zobrazované měně.',
+      'settings_interface_scale': 'Měřítko rozhraní',
+      'filters_display_amount': 'Částka ({currency})',
+      'filters_display_hint':
+          'Částky zobrazené v historii, převedené na {currency}.',
+      'filters_advanced': 'Další filtry',
+      'duplicates_group_count': 'Účtenky ve skupině: {count}',
+      'duplicates_choose_pair': 'Vyberte dvě účtenky k porovnání',
+      'duplicates_receipt_number': 'Účtenka {number}',
+      'duplicates_matches': 'Shody',
+      'duplicates_differences': 'Rozdíly',
+      'duplicates_only_receipt': 'Pouze na účtence {number}',
+      'duplicates_differences_only': 'Pouze rozdíly',
+      'duplicates_unit_price': 'Jednotková cena',
+      'settings_interface_scale_hint':
+          'Mění velikost textu, ikon a mezer. Systémová velikost textu zůstává zachována.',
       'duplicates_reason_item_single': '{count} shodná položka',
       'upload_selected_body':
           'Zkontrolujte obrázek, vyberte jinou fotografii nebo spusťte rozpoznávání.',
@@ -16763,7 +16982,7 @@ class AppLocalizations {
       'display_name': 'Zobrazovaný název',
       'email_support': 'E-mailová podpora',
       'enable_notifications_in_the_app': 'Povolte oznámení v aplikaci',
-      'extra_compact_text': 'Extra kompaktní text',
+      'extra_compact_interface': 'Extra kompaktní rozhraní',
       'features_tools': 'Funkce a nástroje',
       'follow_your_device_theme_setting':
           'Postupujte podle nastavení motivu vašeho zařízení',
@@ -17241,6 +17460,23 @@ class AppLocalizations {
       'delete_reminder_name_confirm': 'Smazat "{name}"?',
     },
     'ro': {
+      'error_backend_update_required':
+          'Actualizează serverul pentru a filtra sumele în moneda de afișare.',
+      'settings_interface_scale': 'Scara interfeței',
+      'filters_display_amount': 'Sumă ({currency})',
+      'filters_display_hint':
+          'Sumele afișate în istoric, convertite în {currency}.',
+      'filters_advanced': 'Alte filtre',
+      'duplicates_group_count': 'Bonuri în acest grup: {count}',
+      'duplicates_choose_pair': 'Alege două bonuri pentru comparație',
+      'duplicates_receipt_number': 'Bonul {number}',
+      'duplicates_matches': 'Potriviri',
+      'duplicates_differences': 'Diferențe',
+      'duplicates_only_receipt': 'Doar pe bonul {number}',
+      'duplicates_differences_only': 'Doar diferențele',
+      'duplicates_unit_price': 'Preț unitar',
+      'settings_interface_scale_hint':
+          'Redimensionează textul, pictogramele și spațiile. Dimensiunea textului din sistem rămâne activă.',
       'duplicates_reason_item_single': '{count} articol identic',
       'upload_selected_body':
           'Verificați imaginea, alegeți altă fotografie sau începeți extragerea.',
@@ -18086,7 +18322,7 @@ class AppLocalizations {
       'display_name': 'Nume afișat',
       'email_support': 'Asistență prin e-mail',
       'enable_notifications_in_the_app': 'Activați notificările în aplicație',
-      'extra_compact_text': 'Text extra compact',
+      'extra_compact_interface': 'Interfață extra compactă',
       'features_tools': 'Caracteristici și instrumente',
       'follow_your_device_theme_setting':
           'Urmați setarea temei dispozitivului dvs',
@@ -18580,6 +18816,23 @@ class AppLocalizations {
       'delete_reminder_name_confirm': 'Ștergeți "{name}"?',
     },
     'hu': {
+      'error_backend_update_required':
+          'Frissítse a szervert a megjelenítési pénznemben történő összegszűréshez.',
+      'settings_interface_scale': 'Felület méretezése',
+      'filters_display_amount': 'Összeg ({currency})',
+      'filters_display_hint':
+          'Az előzményekben megjelenő összegek, {currency} pénznemre váltva.',
+      'filters_advanced': 'További szűrők',
+      'duplicates_group_count': 'Nyugták a csoportban: {count}',
+      'duplicates_choose_pair': 'Válasszon két nyugtát az összehasonlításhoz',
+      'duplicates_receipt_number': '{number}. nyugta',
+      'duplicates_matches': 'Egyezések',
+      'duplicates_differences': 'Eltérések',
+      'duplicates_only_receipt': 'Csak a(z) {number}. nyugtán',
+      'duplicates_differences_only': 'Csak eltérések',
+      'duplicates_unit_price': 'Egységár',
+      'settings_interface_scale_hint':
+          'Átméretezi a szöveget, az ikonokat és a térközöket. A rendszer szövegmérete továbbra is érvényes.',
       'duplicates_reason_item_single': '{count} egyező termék',
       'upload_selected_body':
           'Ellenőrizze a képet, válasszon másik fényképet, vagy indítsa el a felismerést.',
@@ -19420,7 +19673,7 @@ class AppLocalizations {
       'email_support': 'E-mailes támogatás',
       'enable_notifications_in_the_app':
           'Engedélyezze az értesítéseket az alkalmazásban',
-      'extra_compact_text': 'Extra kompakt szöveg',
+      'extra_compact_interface': 'Extra kompakt felület',
       'features_tools': 'Jellemzők és eszközök',
       'follow_your_device_theme_setting':
           'Kövesse az eszköz témájának beállításait',
@@ -19901,6 +20154,23 @@ class AppLocalizations {
       'delete_reminder_name_confirm': 'Törli a következőt: "{name}"?',
     },
     'id': {
+      'error_backend_update_required':
+          'Perbarui server untuk memfilter jumlah dalam mata uang tampilan.',
+      'settings_interface_scale': 'Skala antarmuka',
+      'filters_display_amount': 'Jumlah ({currency})',
+      'filters_display_hint':
+          'Jumlah yang ditampilkan di riwayat, dikonversi ke {currency}.',
+      'filters_advanced': 'Filter lainnya',
+      'duplicates_group_count': 'Struk dalam grup ini: {count}',
+      'duplicates_choose_pair': 'Pilih dua struk untuk dibandingkan',
+      'duplicates_receipt_number': 'Struk {number}',
+      'duplicates_matches': 'Kecocokan',
+      'duplicates_differences': 'Perbedaan',
+      'duplicates_only_receipt': 'Hanya di struk {number}',
+      'duplicates_differences_only': 'Hanya perbedaan',
+      'duplicates_unit_price': 'Harga satuan',
+      'settings_interface_scale_hint':
+          'Mengubah ukuran teks, ikon, dan jarak. Ukuran teks sistem tetap berlaku.',
       'duplicates_reason_item_single': '{count} barang cocok',
       'upload_selected_body':
           'Periksa gambar, pilih foto lain, atau mulai ekstraksi.',
@@ -20739,7 +21009,7 @@ class AppLocalizations {
       'display_name': 'Nama tampilan',
       'email_support': 'Dukungan email',
       'enable_notifications_in_the_app': 'Aktifkan notifikasi di aplikasi',
-      'extra_compact_text': 'Teks ekstra ringkas',
+      'extra_compact_interface': 'Antarmuka ekstra ringkas',
       'features_tools': 'Fitur & Alat',
       'follow_your_device_theme_setting':
           'Ikuti pengaturan tema perangkat Anda',
@@ -21218,6 +21488,23 @@ class AppLocalizations {
       'delete_reminder_name_confirm': 'Hapus "{name}"?',
     },
     'ms': {
+      'error_backend_update_required':
+          'Kemas kini pelayan untuk menapis amaun dalam mata wang paparan.',
+      'settings_interface_scale': 'Skala antara muka',
+      'filters_display_amount': 'Amaun ({currency})',
+      'filters_display_hint':
+          'Amaun yang dipaparkan dalam sejarah, ditukar kepada {currency}.',
+      'filters_advanced': 'Penapis lain',
+      'duplicates_group_count': 'Resit dalam kumpulan ini: {count}',
+      'duplicates_choose_pair': 'Pilih dua resit untuk dibandingkan',
+      'duplicates_receipt_number': 'Resit {number}',
+      'duplicates_matches': 'Padanan',
+      'duplicates_differences': 'Perbezaan',
+      'duplicates_only_receipt': 'Hanya dalam resit {number}',
+      'duplicates_differences_only': 'Perbezaan sahaja',
+      'duplicates_unit_price': 'Harga seunit',
+      'settings_interface_scale_hint':
+          'Menskalakan teks, ikon dan jarak. Saiz teks sistem masih digunakan.',
       'duplicates_reason_item_single': '{count} item sepadan',
       'upload_selected_body':
           'Semak imej, pilih foto lain atau mulakan pengekstrakan.',
@@ -22051,7 +22338,7 @@ class AppLocalizations {
       'display_name': 'Nama paparan',
       'email_support': 'Sokongan e-mel',
       'enable_notifications_in_the_app': 'Dayakan pemberitahuan dalam apl',
-      'extra_compact_text': 'Teks tambahan padat',
+      'extra_compact_interface': 'Antara muka sangat padat',
       'features_tools': 'Ciri & Alat',
       'follow_your_device_theme_setting': 'Ikut tetapan tema peranti anda',
       'getting_started': 'Bermula',
@@ -22529,6 +22816,23 @@ class AppLocalizations {
       'delete_reminder_name_confirm': 'Padam "{name}"?',
     },
     'vi': {
+      'error_backend_update_required':
+          'Cập nhật máy chủ để lọc số tiền theo loại tiền hiển thị.',
+      'settings_interface_scale': 'Tỷ lệ giao diện',
+      'filters_display_amount': 'Số tiền ({currency})',
+      'filters_display_hint':
+          'Số tiền hiển thị trong lịch sử, quy đổi sang {currency}.',
+      'filters_advanced': 'Bộ lọc khác',
+      'duplicates_group_count': 'Biên lai trong nhóm: {count}',
+      'duplicates_choose_pair': 'Chọn hai biên lai để so sánh',
+      'duplicates_receipt_number': 'Biên lai {number}',
+      'duplicates_matches': 'Trùng khớp',
+      'duplicates_differences': 'Khác biệt',
+      'duplicates_only_receipt': 'Chỉ có trong biên lai {number}',
+      'duplicates_differences_only': 'Chỉ hiện khác biệt',
+      'duplicates_unit_price': 'Đơn giá',
+      'settings_interface_scale_hint':
+          'Điều chỉnh chữ, biểu tượng và khoảng cách. Cỡ chữ hệ thống vẫn được áp dụng.',
       'duplicates_reason_item_single': '{count} mặt hàng trùng khớp',
       'upload_selected_body':
           'Kiểm tra ảnh, chọn ảnh khác hoặc bắt đầu trích xuất.',
@@ -23359,7 +23663,7 @@ class AppLocalizations {
       'display_name': 'Tên hiển thị',
       'email_support': 'Hỗ trợ qua email',
       'enable_notifications_in_the_app': 'Bật thông báo trong ứng dụng',
-      'extra_compact_text': 'Văn bản cực kỳ nhỏ gọn',
+      'extra_compact_interface': 'Giao diện cực kỳ nhỏ gọn',
       'features_tools': 'Tính năng & Công cụ',
       'follow_your_device_theme_setting':
           'Thực hiện theo cài đặt chủ đề thiết bị của bạn',
@@ -23839,6 +24143,20 @@ class AppLocalizations {
       'delete_reminder_name_confirm': 'Xóa "{name}"?',
     },
     'zh': {
+      'error_backend_update_required': '请更新服务器，以便按显示货币筛选金额。',
+      'settings_interface_scale': '界面缩放',
+      'filters_display_amount': '金额（{currency}）',
+      'filters_display_hint': '按历史记录中显示的金额筛选，已换算为{currency}。',
+      'filters_advanced': '更多筛选',
+      'duplicates_group_count': '此组收据数量：{count}',
+      'duplicates_choose_pair': '选择两张收据进行比较',
+      'duplicates_receipt_number': '收据{number}',
+      'duplicates_matches': '相同项',
+      'duplicates_differences': '差异',
+      'duplicates_only_receipt': '仅收据{number}中有',
+      'duplicates_differences_only': '仅显示差异',
+      'duplicates_unit_price': '单价',
+      'settings_interface_scale_hint': '缩放文字、图标和间距，同时保留系统文字大小设置。',
       'duplicates_reason_item_single': '{count} 项匹配商品',
       'upload_selected_body': '检查图片、选择其他照片，或开始识别。',
       'upload_selected_title': '已选择收据',
@@ -24583,7 +24901,7 @@ class AppLocalizations {
       'display_name': '显示名称',
       'email_support': '邮件支持',
       'enable_notifications_in_the_app': '在应用内启用通知',
-      'extra_compact_text': '超紧凑文本',
+      'extra_compact_interface': '超紧凑界面',
       'features_tools': '功能与工具',
       'follow_your_device_theme_setting': '跟随设备的系统主题设置。',
       'getting_started': '入门指南',
@@ -24943,6 +25261,20 @@ class AppLocalizations {
       'delete_reminder_name_confirm': '删除 "{name}"？',
     },
     'ja': {
+      'error_backend_update_required': '表示通貨で金額を絞り込むには、サーバーを更新してください。',
+      'settings_interface_scale': '画面の拡大率',
+      'filters_display_amount': '金額（{currency}）',
+      'filters_display_hint': '履歴に表示される金額で絞り込みます。{currency}に換算されます。',
+      'filters_advanced': 'その他のフィルター',
+      'duplicates_group_count': 'グループ内のレシート数：{count}',
+      'duplicates_choose_pair': '比較するレシートを2枚選択',
+      'duplicates_receipt_number': 'レシート{number}',
+      'duplicates_matches': '一致',
+      'duplicates_differences': '相違',
+      'duplicates_only_receipt': 'レシート{number}のみ',
+      'duplicates_differences_only': '相違のみ',
+      'duplicates_unit_price': '単価',
+      'settings_interface_scale_hint': '文字、アイコン、余白を拡大縮小します。システムの文字サイズも適用されます。',
       'duplicates_reason_item_single': '一致する商品 {count} 点',
       'upload_selected_body': '画像を確認し、別の写真を選ぶか、読み取りを開始してください。',
       'upload_selected_title': 'レシートを選択しました',
@@ -25698,7 +26030,7 @@ class AppLocalizations {
       'display_name': '表示名',
       'email_support': '電子メールサポート',
       'enable_notifications_in_the_app': 'アプリで通知を有効にする',
-      'extra_compact_text': '非常にコンパクトなテキスト',
+      'extra_compact_interface': '非常にコンパクトなインターフェース',
       'features_tools': '機能とツール',
       'follow_your_device_theme_setting': 'デバイスのテーマ設定に従ってください',
       'getting_started': 'はじめに',
@@ -26088,6 +26420,21 @@ class AppLocalizations {
       'delete_reminder_name_confirm': '「{name}」を削除しますか？',
     },
     'ko': {
+      'error_backend_update_required': '표시 통화로 금액을 필터링하려면 서버를 업데이트하세요.',
+      'settings_interface_scale': '인터페이스 배율',
+      'filters_display_amount': '금액({currency})',
+      'filters_display_hint': '기록에 표시되는 금액으로 필터링합니다. {currency}(으)로 환산됩니다.',
+      'filters_advanced': '추가 필터',
+      'duplicates_group_count': '그룹 내 영수증: {count}',
+      'duplicates_choose_pair': '비교할 영수증 두 개를 선택하세요',
+      'duplicates_receipt_number': '영수증 {number}',
+      'duplicates_matches': '일치',
+      'duplicates_differences': '차이',
+      'duplicates_only_receipt': '영수증 {number}에만 있음',
+      'duplicates_differences_only': '차이만 표시',
+      'duplicates_unit_price': '단가',
+      'settings_interface_scale_hint':
+          '텍스트, 아이콘, 여백의 크기를 조절합니다. 시스템 글자 크기도 적용됩니다.',
       'duplicates_reason_item_single': '일치하는 상품 {count}개',
       'upload_selected_body': '이미지를 확인하거나 다른 사진을 선택하거나 추출을 시작하세요.',
       'upload_selected_title': '영수증 선택됨',
@@ -26851,7 +27198,7 @@ class AppLocalizations {
       'display_name': '표시 이름',
       'email_support': '이메일 지원',
       'enable_notifications_in_the_app': '앱에서 알림 활성화',
-      'extra_compact_text': '매우 컴팩트한 텍스트',
+      'extra_compact_interface': '매우 컴팩트한 인터페이스',
       'features_tools': '기능 및 도구',
       'follow_your_device_theme_setting': '기기 테마 설정을 따르세요.',
       'getting_started': '시작하기',
@@ -27251,6 +27598,23 @@ class AppLocalizations {
       'delete_reminder_name_confirm': '"{name}" 내역을 삭제하시겠습니까?',
     },
     'hi': {
+      'error_backend_update_required':
+          'दिखाई जाने वाली मुद्रा में राशि फ़िल्टर करने के लिए सर्वर अपडेट करें।',
+      'settings_interface_scale': 'इंटरफ़ेस स्केल',
+      'filters_display_amount': 'राशि ({currency})',
+      'filters_display_hint':
+          'इतिहास में दिखाई गई राशियाँ, {currency} में बदली गईं।',
+      'filters_advanced': 'अन्य फ़िल्टर',
+      'duplicates_group_count': 'इस समूह में रसीदें: {count}',
+      'duplicates_choose_pair': 'तुलना के लिए दो रसीदें चुनें',
+      'duplicates_receipt_number': 'रसीद {number}',
+      'duplicates_matches': 'समानताएँ',
+      'duplicates_differences': 'अंतर',
+      'duplicates_only_receipt': 'केवल रसीद {number} में',
+      'duplicates_differences_only': 'केवल अंतर',
+      'duplicates_unit_price': 'इकाई मूल्य',
+      'settings_interface_scale_hint':
+          'टेक्स्ट, आइकन और खाली जगह का आकार बदलता है। सिस्टम का टेक्स्ट आकार भी लागू रहता है।',
       'duplicates_reason_item_single': '{count} मेल खाने वाली वस्तु',
       'upload_selected_body':
           'चित्र की समीक्षा करें, दूसरी फ़ोटो चुनें या जानकारी निकालना शुरू करें।',
@@ -28066,7 +28430,7 @@ class AppLocalizations {
       'display_name': 'प्रदर्शन नाम',
       'email_support': 'ईमेल समर्थन',
       'enable_notifications_in_the_app': 'ऐप में नोटिफिकेशन सक्षम करें',
-      'extra_compact_text': 'अतिरिक्त संक्षिप्त पाठ',
+      'extra_compact_interface': 'अतिरिक्त संक्षिप्त इंटरफ़ेस',
       'features_tools': 'सुविधाएँ एवं उपकरण',
       'follow_your_device_theme_setting': 'अपनी डिवाइस थीम सेटिंग का पालन करें',
       'getting_started': 'आरंभ करना',
@@ -28542,6 +28906,23 @@ class AppLocalizations {
       'delete_reminder_name_confirm': 'क्या "{name}" को हटाना चाहते हैं?',
     },
     'ar': {
+      'error_backend_update_required':
+          'حدّث الخادم لتصفية المبالغ بعملة العرض.',
+      'settings_interface_scale': 'مقياس الواجهة',
+      'filters_display_amount': 'المبلغ ({currency})',
+      'filters_display_hint':
+          'المبالغ المعروضة في السجل بعد تحويلها إلى {currency}.',
+      'filters_advanced': 'فلاتر إضافية',
+      'duplicates_group_count': 'الإيصالات في المجموعة: {count}',
+      'duplicates_choose_pair': 'اختر إيصالين للمقارنة',
+      'duplicates_receipt_number': 'الإيصال {number}',
+      'duplicates_matches': 'التطابقات',
+      'duplicates_differences': 'الاختلافات',
+      'duplicates_only_receipt': 'في الإيصال {number} فقط',
+      'duplicates_differences_only': 'الاختلافات فقط',
+      'duplicates_unit_price': 'سعر الوحدة',
+      'settings_interface_scale_hint':
+          'يغيّر حجم النص والأيقونات والمسافات. يظل حجم نص النظام مطبقًا.',
       'duplicates_reason_item_single': '{count} عنصر متطابق',
       'upload_selected_body':
           'راجع الصورة أو اختر صورة أخرى أو ابدأ الاستخراج.',
@@ -29350,7 +29731,7 @@ class AppLocalizations {
       'display_name': 'اسم العرض',
       'email_support': 'دعم البريد الإلكتروني',
       'enable_notifications_in_the_app': 'تمكين الإخطارات في التطبيق',
-      'extra_compact_text': 'نص مضغوط للغاية',
+      'extra_compact_interface': 'واجهة مضغوطة للغاية',
       'features_tools': 'الميزات والأدوات',
       'follow_your_device_theme_setting': 'اتبع إعداد موضوع جهازك',
       'getting_started': 'البدء',
@@ -29808,6 +30189,23 @@ class AppLocalizations {
       'delete_reminder_name_confirm': 'هل تريد حذف "{name}"؟',
     },
     'es': {
+      'error_backend_update_required':
+          'Actualiza el servidor para filtrar importes en tu moneda de visualización.',
+      'settings_interface_scale': 'Escala de la interfaz',
+      'filters_display_amount': 'Importe ({currency})',
+      'filters_display_hint':
+          'Importes mostrados en el historial, convertidos a {currency}.',
+      'filters_advanced': 'Más filtros',
+      'duplicates_group_count': 'Recibos en este grupo: {count}',
+      'duplicates_choose_pair': 'Elige dos recibos para comparar',
+      'duplicates_receipt_number': 'Recibo {number}',
+      'duplicates_matches': 'Coincidencias',
+      'duplicates_differences': 'Diferencias',
+      'duplicates_only_receipt': 'Solo en el recibo {number}',
+      'duplicates_differences_only': 'Solo diferencias',
+      'duplicates_unit_price': 'Precio unitario',
+      'settings_interface_scale_hint':
+          'Ajusta texto, iconos y espacios. El tamaño de texto del sistema sigue aplicándose.',
       'duplicates_reason_item_single': '{count} artículo coincidente',
       'upload_selected_body':
           'Revisa la imagen, elige otra foto o inicia la extracción.',
@@ -30645,7 +31043,7 @@ class AppLocalizations {
       'email_support': 'Soporte por correo electrónico',
       'enable_notifications_in_the_app':
           'Habilitar notificaciones en la aplicación.',
-      'extra_compact_text': 'Texto extracompacto',
+      'extra_compact_interface': 'Interfaz extracompacta',
       'features_tools': 'Funciones y herramientas',
       'follow_your_device_theme_setting':
           'Siga la configuración del tema de su dispositivo',

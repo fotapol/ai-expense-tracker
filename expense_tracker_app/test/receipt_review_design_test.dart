@@ -28,6 +28,12 @@ const previewFontPath = String.fromEnvironment(
 );
 final previewKey = GlobalKey();
 
+http.Response _backendResponse(String body, int statusCode) => http.Response(
+  body,
+  statusCode,
+  headers: {'expense-amount-filter': 'display-v1'},
+);
+
 Widget reviewApp(
   Widget home, {
   Locale locale = const Locale('en'),
@@ -125,15 +131,15 @@ void phone(WidgetTester tester, {double width = 390, double height = 844}) {
 
 http.Response mockResponse(http.Request request) => switch (request.url.path) {
   '/v1/duplicates' => duplicates.page([duplicates.pair('one', 'two')]),
-  '/v1/transactions/one' => http.Response(
+  '/v1/transactions/one' => _backendResponse(
     jsonEncode(duplicates.transaction('one')),
     200,
   ),
-  '/v1/transactions/two' => http.Response(
+  '/v1/transactions/two' => _backendResponse(
     jsonEncode(duplicates.transaction('two')),
     200,
   ),
-  '/v1/transactions' => http.Response(
+  '/v1/transactions' => _backendResponse(
     jsonEncode([
       history.receipt(1, merchant: 'Fresh Market'),
       history.receipt(2, merchant: 'Coffee & Co.'),
@@ -211,11 +217,11 @@ void main() {
           await tester.pumpAndSettle();
           await tester.tap(find.text(l10n.tr('common_apply')));
           await tester.pumpAndSettle();
-          expect(find.text(l10n.tr('filters_choose_currency')), findsOneWidget);
+          expect(find.text(l10n.tr('filters_choose_currency')), findsNothing);
+          expect(find.byKey(const ValueKey('filter-min-amount')), findsNothing);
           expect(find.text(l10n.tr('filters_invalid_amount')), findsNothing);
           expect(tester.takeException(), isNull);
-          await tester.tap(find.text(l10n.tr('common_cancel')));
-          await tester.pumpAndSettle();
+
           await tester.pumpWidget(const SizedBox.shrink());
         }, () => MockClient((request) async => mockResponse(request)));
       },

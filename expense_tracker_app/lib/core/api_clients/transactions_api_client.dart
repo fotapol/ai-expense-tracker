@@ -197,8 +197,8 @@ class TransactionApiClient {
     final params = <String>['page_size=$pageSize', 'sort_by=$sortBy'];
     for (final entry in {
       'search': search,
-      'min_amount': minAmount,
-      'max_amount': maxAmount,
+      'min_display_amount': minAmount,
+      'max_display_amount': maxAmount,
       'currency': currency,
       'source': source,
       'status': status,
@@ -254,6 +254,10 @@ class TransactionApiClient {
         throw Exception(
           'Failed to list transactions: ${response.statusCode} ${response.body}',
         );
+      }
+      if ((minAmount?.isNotEmpty == true || maxAmount?.isNotEmpty == true) &&
+          response.headers['expense-amount-filter'] != 'display-v1') {
+        throw StateError('display_amount_filter_requires_backend_update');
       }
       final rows = jsonDecode(response.body) as List<dynamic>;
       transactions.addAll(rows);

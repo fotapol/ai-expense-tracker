@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:intl/intl.dart';
 
 import '../core/api_client.dart';
+import '../core/duplicate_comparison.dart';
+import '../widgets/duplicate_details_comparison.dart';
 import '../core/localized_dates.dart';
 import '../core/money_formatter.dart';
 import '../core/redesign_system.dart';
@@ -95,66 +96,74 @@ Widget _confidenceBadge(BuildContext context, Map<String, dynamic> pair) {
   );
 }
 
-Widget _purchaseSummary(BuildContext context, Map<String, dynamic> tx) =>
-    Padding(
-      padding: const EdgeInsets.symmetric(vertical: 10),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Container(
-            padding: const EdgeInsets.all(8),
-            decoration: BoxDecoration(
-              color: ShellStyles.surfaceAlt(context),
-              borderRadius: BorderRadius.circular(10),
+Widget _purchaseSummary(
+  BuildContext context,
+  Map<String, dynamic> tx, {
+  int? number,
+}) => Padding(
+  padding: const EdgeInsets.symmetric(vertical: 10),
+  child: Row(
+    crossAxisAlignment: CrossAxisAlignment.start,
+    children: [
+      Container(
+        padding: const EdgeInsets.all(8),
+        decoration: BoxDecoration(
+          color: ShellStyles.surfaceAlt(context),
+          borderRadius: BorderRadius.circular(10),
+        ),
+        child: number != null
+            ? Text(
+                MaterialLocalizations.of(context).formatDecimal(number),
+                style: const TextStyle(fontWeight: FontWeight.w700),
+              )
+            : Icon(
+                Icons.receipt_long_outlined,
+                color: ShellStyles.textMuted(context),
+                size: 18,
+              ),
+      ),
+      const SizedBox(width: 12),
+      Expanded(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              _merchant(context, tx),
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
+              style: TextStyle(
+                color: ShellStyles.textPrimary(context),
+                fontWeight: FontWeight.w700,
+              ),
             ),
-            child: Icon(
-              Icons.receipt_long_outlined,
-              color: ShellStyles.textMuted(context),
-              size: 18,
-            ),
-          ),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
+            const SizedBox(height: 5),
+            Wrap(
+              spacing: 10,
+              runSpacing: 4,
+              crossAxisAlignment: WrapCrossAlignment.center,
               children: [
                 Text(
-                  _merchant(context, tx),
-                  maxLines: 2,
-                  overflow: TextOverflow.ellipsis,
+                  _money(tx),
                   style: TextStyle(
                     color: ShellStyles.textPrimary(context),
                     fontWeight: FontWeight.w700,
                   ),
                 ),
-                const SizedBox(height: 5),
-                Wrap(
-                  spacing: 10,
-                  runSpacing: 4,
-                  crossAxisAlignment: WrapCrossAlignment.center,
-                  children: [
-                    Text(
-                      _money(tx),
-                      style: TextStyle(
-                        color: ShellStyles.textPrimary(context),
-                        fontWeight: FontWeight.w700,
-                      ),
-                    ),
-                    Text(
-                      _date(context, tx),
-                      style: TextStyle(
-                        color: ShellStyles.textMuted(context),
-                        fontSize: 12,
-                      ),
-                    ),
-                  ],
+                Text(
+                  _date(context, tx),
+                  style: TextStyle(
+                    color: ShellStyles.textMuted(context),
+                    fontSize: 12,
+                  ),
                 ),
               ],
             ),
-          ),
-        ],
+          ],
+        ),
       ),
-    );
+    ],
+  ),
+);
 
 class DuplicateFinderScreen extends StatefulWidget {
   const DuplicateFinderScreen({super.key, this.transactionId});
@@ -233,7 +242,7 @@ class _DuplicateFinderScreenState extends State<DuplicateFinderScreen> {
   }
 
   Widget _intro() => Padding(
-    padding: const EdgeInsets.only(bottom: 20, top: 4),
+    padding: const EdgeInsets.only(bottom: 12, top: 4),
     child: Text(
       context.tr('duplicates_subtitle'),
       style: TextStyle(
@@ -244,24 +253,97 @@ class _DuplicateFinderScreenState extends State<DuplicateFinderScreen> {
     ),
   );
 
-  Widget _pairCard(Map<String, dynamic> pair) {
-    final first = pair['first'] as Map<String, dynamic>;
-    final second = pair['second'] as Map<String, dynamic>;
+  Future<void> _choosePair(List<Map<String, dynamic>> pairs) async {
+    if (pairs.length == 1) {
+      await _review(pairs.single);
+      return;
+    }
+    final members = <String, int>{};
+    for (final pair in pairs) {
+      for (final side in ['first', 'second']) {
+        final id = pair[side]['id'].toString();
+        members.putIfAbsent(id, () => members.length + 1);
+      }
+    }
+    final chosen = await showModalBottomSheet<Map<String, dynamic>>(
+      context: context,
+      isScrollControlled: true,
+      builder: (context) => SafeArea(
+        top: false,
+        child: ConstrainedBox(
+          constraints: BoxConstraints(
+            maxHeight: MediaQuery.sizeOf(context).height * .7,
+          ),
+          child: ListView(
+            shrinkWrap: true,
+            padding: const EdgeInsets.all(16),
+            children: [
+              Text(
+                context.tr('duplicates_choose_pair'),
+                style: const TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.w700,
+                ),
+              ),
+              const SizedBox(height: 8),
+              for (final pair in pairs)
+                ListTile(
+                  contentPadding: EdgeInsets.zero,
+                  title: Text(
+                    '${context.tr('duplicates_receipt_number', params: {'number': members[pair['first']['id']].toString()})} ↔ ${context.tr('duplicates_receipt_number', params: {'number': members[pair['second']['id']].toString()})}',
+                  ),
+                  subtitle: Text(_reasons(context, pair)),
+                  trailing: const Icon(Icons.chevron_right),
+                  onTap: () => Navigator.pop(context, pair),
+                ),
+            ],
+          ),
+        ),
+      ),
+    );
+    if (mounted && chosen != null) {
+      await _review({
+        ...chosen,
+        'first_number': members[chosen['first']['id']],
+        'second_number': members[chosen['second']['id']],
+      });
+    }
+  }
+
+  Widget _groupCard(List<Map<String, dynamic>> pairs) {
+    final members = <String, Map<String, dynamic>>{};
+    for (final pair in pairs) {
+      for (final side in ['first', 'second']) {
+        final tx = Map<String, dynamic>.from(pair[side] as Map);
+        members[tx['id'].toString()] = tx;
+      }
+    }
+    final pair = {
+      ...pairs.first,
+      'confidence': pairs.every((p) => p['confidence'] == 'exact')
+          ? 'exact'
+          : pairs.every((p) => p['confidence'] != 'possible')
+          ? 'high'
+          : 'possible',
+    };
     return Container(
-      margin: const EdgeInsets.only(bottom: 14),
+      key: ValueKey('duplicate-group-${members.keys.toList()..sort()}'),
+      margin: const EdgeInsets.only(bottom: 10),
       decoration: ShellStyles.cardDecoration(
         context,
-        radius: 20,
+        radius: 16,
         withShadow: false,
       ),
       child: Material(
         color: Colors.transparent,
         child: InkWell(
-          key: ValueKey('duplicate-${first['id']}-${second['id']}'),
-          borderRadius: BorderRadius.circular(20),
-          onTap: () => _review(pair),
+          key: ValueKey(
+            'duplicate-${pair['first']['id']}-${pair['second']['id']}',
+          ),
+          borderRadius: BorderRadius.circular(16),
+          onTap: () => _choosePair(pairs),
           child: Padding(
-            padding: const EdgeInsets.all(16),
+            padding: const EdgeInsets.all(12),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
@@ -274,30 +356,44 @@ class _DuplicateFinderScreenState extends State<DuplicateFinderScreen> {
                       ),
                     ),
                     const SizedBox(width: 8),
-                    Icon(
-                      Icons.chevron_right,
-                      color: ShellStyles.textMuted(context),
-                    ),
+                    const Icon(Icons.chevron_right, size: 20),
                   ],
                 ),
-                const SizedBox(height: 8),
-                _purchaseSummary(context, first),
-                Divider(height: 1, color: ShellStyles.border(context)),
-                _purchaseSummary(context, second),
-                const SizedBox(height: 8),
-                Container(
-                  padding: const EdgeInsets.all(12),
-                  decoration: BoxDecoration(
-                    color: ShellStyles.surfaceAlt(context),
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  child: Text(
-                    _reasons(context, pair),
-                    style: TextStyle(
-                      color: ShellStyles.textSecondary(context),
-                      fontSize: 12,
-                      height: 1.5,
+                if (members.length > 2)
+                  Padding(
+                    padding: const EdgeInsets.only(top: 8),
+                    child: Text(
+                      context.tr(
+                        'duplicates_group_count',
+                        params: {
+                          'count': MaterialLocalizations.of(
+                            context,
+                          ).formatDecimal(members.length),
+                        },
+                      ),
+                      style: const TextStyle(
+                        fontSize: 13,
+                        fontWeight: FontWeight.w600,
+                      ),
                     ),
+                  ),
+                for (var i = 0; i < members.length; i++) ...[
+                  if (i > 0)
+                    Divider(height: 1, color: ShellStyles.border(context)),
+                  _purchaseSummary(
+                    context,
+                    members.values.elementAt(i),
+                    number: members.length > 2 ? i + 1 : null,
+                  ),
+                ],
+                Text(
+                  members.length > 2
+                      ? context.tr('duplicates_choose_pair')
+                      : _reasons(context, pair),
+                  style: TextStyle(
+                    color: ShellStyles.textMuted(context),
+                    fontSize: 12,
+                    height: 1.35,
                   ),
                 ),
               ],
@@ -309,121 +405,74 @@ class _DuplicateFinderScreenState extends State<DuplicateFinderScreen> {
   }
 
   @override
-  Widget build(BuildContext context) => PopScope<List<String>>(
-    canPop: false,
-    onPopInvokedWithResult: (didPop, result) {
-      if (!didPop) _finish();
-    },
-    child: Scaffold(
-      backgroundColor: ShellStyles.background(context),
-      appBar: AppBar(
-        title: Text(context.tr('duplicates_title')),
-        leading: BackButton(onPressed: _finish),
-      ),
-      body: RefreshIndicator(
-        onRefresh: () => _load(reset: true),
-        child: _pairs.isEmpty
-            ? LayoutBuilder(
-                builder: (context, constraints) => ListView(
-                  physics: const AlwaysScrollableScrollPhysics(),
-                  padding: const EdgeInsets.all(24),
+  Widget build(BuildContext context) {
+    final groups = duplicateGroups(_pairs);
+    return PopScope<List<String>>(
+      canPop: false,
+      onPopInvokedWithResult: (didPop, result) {
+        if (!didPop) _finish();
+      },
+      child: Scaffold(
+        backgroundColor: ShellStyles.background(context),
+        appBar: AppBar(
+          title: Text(context.tr('duplicates_title')),
+          leading: BackButton(onPressed: _finish),
+        ),
+        body: SafeArea(
+          top: false,
+          child: RefreshIndicator(
+            onRefresh: () => _load(reset: true),
+            child: ListView.builder(
+              key: const ValueKey('duplicate-finder-list'),
+              physics: const AlwaysScrollableScrollPhysics(),
+              padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+              itemCount: groups.length + 2,
+              itemBuilder: (context, index) {
+                if (index == 0) return _intro();
+                if (index <= groups.length) {
+                  return _groupCard(groups[index - 1]);
+                }
+                return Column(
                   children: [
-                    _intro(),
-                    ConstrainedBox(
-                      constraints: BoxConstraints(
-                        minHeight: (constraints.maxHeight - 150).clamp(
-                          0,
-                          double.infinity,
+                    if (_loading)
+                      const Padding(
+                        padding: EdgeInsets.all(32),
+                        child: CircularProgressIndicator(),
+                      ),
+                    if (_error != null || groups.isEmpty && !_loading)
+                      Padding(
+                        padding: const EdgeInsets.symmetric(vertical: 24),
+                        child: Text(
+                          _error ?? context.tr('duplicates_empty'),
+                          textAlign: TextAlign.center,
                         ),
                       ),
-                      child: Center(
-                        child: Column(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            if (_loading)
-                              const CircularProgressIndicator()
-                            else ...[
-                              Container(
-                                padding: const EdgeInsets.all(22),
-                                decoration: ShellStyles.iconBadgeDecoration(
-                                  context,
-                                  color: ShellStyles.surfaceAlt(context),
-                                  radius: 28,
-                                ),
-                                child: Icon(
-                                  _error == null
-                                      ? Icons.check_circle_outline_rounded
-                                      : Icons.error_outline_rounded,
-                                  size: 40,
-                                  color: ShellStyles.textMuted(context),
-                                ),
-                              ),
-                              const SizedBox(height: 20),
-                              Text(
-                                _error ?? context.tr('duplicates_empty'),
-                                textAlign: TextAlign.center,
-                                style: TextStyle(
-                                  color: ShellStyles.textPrimary(context),
-                                  fontSize: 16,
-                                  fontWeight: FontWeight.w600,
-                                  height: 1.5,
-                                ),
-                              ),
-                              if (_error != null) ...[
-                                const SizedBox(height: 12),
-                                OutlinedButton(
-                                  onPressed: () => _load(reset: true),
-                                  child: Text(context.tr('common_retry')),
-                                ),
-                              ],
-                            ],
-                          ],
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              )
-            : ListView.builder(
-                physics: const AlwaysScrollableScrollPhysics(),
-                padding: const EdgeInsets.fromLTRB(16, 0, 16, 24),
-                itemCount: _pairs.length + 2,
-                itemBuilder: (context, index) {
-                  if (index == 0) return _intro();
-                  if (index <= _pairs.length) {
-                    return _pairCard(_pairs[index - 1]);
-                  }
-                  return Column(
-                    children: [
-                      if (_error != null)
-                        Padding(
-                          padding: const EdgeInsets.all(12),
-                          child: Text(_error!, textAlign: TextAlign.center),
-                        ),
-                      if (_loading)
-                        const Center(child: CircularProgressIndicator())
-                      else if (_hasMore || _error != null)
-                        SizedBox(
-                          width: double.infinity,
-                          child: OutlinedButton.icon(
-                            onPressed: () => _load(),
-                            icon: const Icon(Icons.expand_more),
-                            label: Text(
-                              context.tr(
-                                _error == null
-                                    ? 'receipts_load_more'
-                                    : 'common_retry',
-                              ),
+                    if (!_loading && (_hasMore || _error != null))
+                      SizedBox(
+                        width: double.infinity,
+                        child: OutlinedButton.icon(
+                          onPressed: () => _load(),
+                          icon: Icon(
+                            _error == null ? Icons.expand_more : Icons.refresh,
+                          ),
+                          label: Text(
+                            context.tr(
+                              _error == null
+                                  ? 'receipts_load_more'
+                                  : 'common_retry',
                             ),
                           ),
                         ),
-                    ],
-                  );
-                },
-              ),
+                      ),
+                  ],
+                );
+              },
+            ),
+          ),
+        ),
       ),
-    ),
-  );
+    );
+  }
 }
 
 class _DuplicateComparisonScreen extends StatefulWidget {
@@ -566,201 +615,91 @@ class _DuplicateComparisonScreenState
     }
   }
 
-  Widget _card(Map<String, dynamic> tx) {
-    final selected = tx['id'] == _keepId;
-    final tone = ShellStyles.accentTone(context);
-    return Container(
-      margin: const EdgeInsets.only(bottom: 14),
-      decoration: BoxDecoration(
-        color: selected
-            ? tone.container.withAlpha(90)
-            : ShellStyles.surface(context),
-        border: Border.all(
-          color: selected ? tone.base : ShellStyles.border(context),
-          width: selected ? 2 : 1,
-        ),
-        borderRadius: BorderRadius.circular(20),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          Semantics(
-            selected: selected,
-            button: true,
-            child: InkWell(
-              key: ValueKey('select-${tx['id']}'),
-              borderRadius: BorderRadius.circular(20),
-              onTap: _busy
-                  ? null
-                  : () => setState(() => _keepId = tx['id'].toString()),
-              child: Padding(
-                padding: const EdgeInsets.all(16),
-                child: Row(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Icon(
-                      selected
-                          ? Icons.check_circle_rounded
-                          : Icons.radio_button_unchecked,
-                      color: selected
-                          ? tone.base
-                          : ShellStyles.textMuted(context),
-                      size: 24,
-                    ),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            _merchant(context, tx),
-                            style: TextStyle(
-                              color: ShellStyles.textPrimary(context),
-                              fontWeight: FontWeight.w700,
-                              fontSize: 16,
-                            ),
-                          ),
-                          const SizedBox(height: 8),
-                          Text(
-                            _money(tx),
-                            style: TextStyle(
-                              color: ShellStyles.textPrimary(context),
-                              fontWeight: FontWeight.w800,
-                              fontSize: 22,
-                            ),
-                          ),
-                          const SizedBox(height: 5),
-                          Text(
-                            _date(context, tx),
-                            style: TextStyle(
-                              color: ShellStyles.textMuted(context),
-                              fontSize: 12,
-                              height: 1.4,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ),
-          ),
-          if (tx['receipt_id'] != null)
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 12),
-              child: Align(
-                alignment: AlignmentDirectional.centerStart,
-                child: TextButton.icon(
-                  onPressed: _busy ? null : () => _photo(tx),
-                  icon: const Icon(Icons.receipt_long_outlined, size: 18),
-                  label: Text(context.tr('duplicates_view_original')),
-                ),
-              ),
-            ),
-          ExpansionTile(
-            shape: const Border(),
-            collapsedShape: const Border(),
-            title: Text(
-              '${context.tr('transaction_items_heading')} (${MaterialLocalizations.of(context).formatDecimal((tx['items'] as List? ?? []).length)})',
-              style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 14),
-            ),
-            children: [
-              for (final item in tx['items'] as List? ?? [])
-                Padding(
-                  padding: const EdgeInsets.fromLTRB(16, 4, 16, 12),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.stretch,
-                    children: [
-                      Text(item['description']?.toString() ?? ''),
-                      const SizedBox(height: 4),
-                      Wrap(
-                        alignment: WrapAlignment.spaceBetween,
-                        spacing: 12,
-                        runSpacing: 4,
-                        children: [
-                          if (item['qty'] != null)
-                            Text(
-                              '${NumberFormat.decimalPattern(Localizations.localeOf(context).languageCode).format(num.tryParse(item['qty'].toString()) ?? 0)} ${item['unit'] ?? ''}',
-                              style: TextStyle(
-                                color: ShellStyles.textMuted(context),
-                              ),
-                            ),
-                          Text(
-                            formatMoney(
-                              tx['currency'].toString(),
-                              double.tryParse(item['amount'].toString()) ?? 0,
-                            ),
-                            style: const TextStyle(fontWeight: FontWeight.w600),
-                          ),
-                        ],
-                      ),
-                    ],
-                  ),
-                ),
-            ],
-          ),
-        ],
-      ),
-    );
-  }
+  Widget _actions() => LayoutBuilder(
+    builder: (context, constraints) {
+      final selected = _transactions.indexWhere((tx) => tx['id'] == _keepId);
+      final number = selected == 0
+          ? widget.pair['first_number'] ?? 1
+          : widget.pair['second_number'] ?? 2;
+      final selectionLabel = selected < 0
+          ? context.tr('duplicates_choose')
+          : '${context.tr('duplicates_receipt_number', params: {'number': MaterialLocalizations.of(context).formatDecimal(number as int)})} · ${_money(_transactions[selected])}';
+      final style = Theme.of(
+        context,
+      ).textTheme.labelLarge!.copyWith(fontSize: 13);
+      double width(String key) {
+        final painter = TextPainter(
+          text: TextSpan(text: context.tr(key), style: style),
+          textDirection: Directionality.of(context),
+          textScaler: MediaQuery.textScalerOf(context),
+        )..layout();
+        final result = painter.width;
+        painter.dispose();
+        return result;
+      }
 
-  Widget _actions() => Container(
-    padding: EdgeInsets.fromLTRB(
-      16,
-      12,
-      16,
-      12 + MediaQuery.paddingOf(context).bottom,
-    ),
-    decoration: BoxDecoration(
-      color: ShellStyles.surface(context),
-      border: Border(top: BorderSide(color: ShellStyles.border(context))),
-    ),
-    child: Column(
-      mainAxisSize: MainAxisSize.min,
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      children: [
-        Text(
-          context.tr('duplicates_choose'),
-          style: TextStyle(
-            color: ShellStyles.textMuted(context),
-            fontSize: 12,
-            height: 1.4,
-          ),
+      final primaryWidth = width('duplicates_keep_selected') + 60;
+      final secondaryWidth = width('duplicates_keep_both') + 32;
+      final primary = FilledButton.icon(
+        onPressed: _busy || _keepId == null || _error != null
+            ? null
+            : _keepSelected,
+        style: FilledButton.styleFrom(
+          minimumSize: const Size.fromHeight(48),
+          textStyle: style,
         ),
-        const SizedBox(height: 10),
-        FilledButton.icon(
-          onPressed: _busy || _keepId == null || _error != null
-              ? null
-              : _keepSelected,
-          style: FilledButton.styleFrom(
-            minimumSize: const Size.fromHeight(48),
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(14),
+        icon: _busy
+            ? const SizedBox(
+                width: 18,
+                height: 18,
+                child: CircularProgressIndicator(strokeWidth: 2),
+              )
+            : const Icon(Icons.check, size: 20),
+        label: Text(context.tr('duplicates_keep_selected')),
+      );
+      final secondary = OutlinedButton(
+        onPressed: _busy || _transactions.length != 2 ? null : _keepBoth,
+        style: OutlinedButton.styleFrom(
+          minimumSize: const Size.fromHeight(48),
+          textStyle: style,
+        ),
+        child: Text(context.tr('duplicates_keep_both')),
+      );
+      return Container(
+        padding: const EdgeInsets.fromLTRB(16, 10, 16, 12),
+        decoration: BoxDecoration(
+          color: ShellStyles.surface(context),
+          border: Border(top: BorderSide(color: ShellStyles.border(context))),
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Text(
+              selectionLabel,
+              style: TextStyle(
+                color: ShellStyles.textMuted(context),
+                fontSize: 12,
+              ),
             ),
-          ),
-          icon: _busy
-              ? const SizedBox(
-                  width: 18,
-                  height: 18,
-                  child: CircularProgressIndicator(strokeWidth: 2),
-                )
-              : const Icon(Icons.check, size: 20),
-          label: Text(context.tr('duplicates_keep_selected')),
+            const SizedBox(height: 8),
+            if (primaryWidth + secondaryWidth + 8 <= constraints.maxWidth - 32)
+              Row(
+                children: [
+                  Expanded(child: secondary),
+                  const SizedBox(width: 8),
+                  SizedBox(width: primaryWidth, child: primary),
+                ],
+              )
+            else ...[
+              primary,
+              const SizedBox(height: 8),
+              secondary,
+            ],
+          ],
         ),
-        const SizedBox(height: 8),
-        OutlinedButton(
-          onPressed: _busy || _transactions.length != 2 ? null : _keepBoth,
-          style: OutlinedButton.styleFrom(
-            minimumSize: const Size.fromHeight(46),
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(14),
-            ),
-          ),
-          child: Text(context.tr('duplicates_keep_both')),
-        ),
-      ],
-    ),
+      );
+    },
   );
 
   @override
@@ -770,7 +709,7 @@ class _DuplicateComparisonScreenState
       backgroundColor: ShellStyles.background(context),
       appBar: AppBar(title: Text(context.tr('duplicates_review'))),
       bottomNavigationBar: !_loading && _transactions.isNotEmpty
-          ? _actions()
+          ? SafeArea(top: false, child: _actions())
           : null,
       body: _loading
           ? const Center(child: CircularProgressIndicator())
@@ -784,7 +723,7 @@ class _DuplicateComparisonScreenState
                     radius: 18,
                     withShadow: false,
                   ),
-                  padding: const EdgeInsets.all(16),
+                  padding: const EdgeInsets.all(12),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
@@ -814,7 +753,18 @@ class _DuplicateComparisonScreenState
                     child: Text(context.tr('common_retry')),
                   ),
                 ],
-                ..._transactions.map(_card),
+                if (_transactions.length == 2)
+                  DuplicateDetailsComparison(
+                    numbers: [
+                      (widget.pair['first_number'] as int?) ?? 1,
+                      (widget.pair['second_number'] as int?) ?? 2,
+                    ],
+                    transactions: _transactions,
+                    selectedId: _keepId,
+                    busy: _busy,
+                    onSelect: (id) => setState(() => _keepId = id),
+                    onPhoto: _photo,
+                  ),
               ],
             ),
     ),

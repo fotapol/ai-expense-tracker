@@ -660,7 +660,9 @@ def _build_needs_review_predicate():
     )
 
 
-def _apply_transaction_search_filters(query, filters: TransactionListFilter):
+def _apply_transaction_search_filters(
+    query, filters: TransactionListFilter, *, session=None, target_currency=None, rate_snapshot=None
+):
     """Keep history and analytics search scopes identical, before pagination."""
     if filters.min_amount is not None or filters.max_amount is not None:
         if filters.currency is None:
@@ -679,6 +681,24 @@ def _apply_transaction_search_filters(query, filters: TransactionListFilter):
         query = query.where(Transaction.amount_total >= filters.min_amount)
     if filters.max_amount is not None:
         query = query.where(Transaction.amount_total <= filters.max_amount)
+    if filters.min_display_amount is not None or filters.max_display_amount is not None:
+        from app.services.fx_rates import load_cached_rate_snapshot
+        from app.services.transactions.display_amount import displayed_amount_expression
+
+        if (
+            filters.min_display_amount is not None
+            and filters.max_display_amount is not None
+            and filters.min_display_amount > filters.max_display_amount
+        ):
+            raise HTTPException(
+                status_code=422, detail="Minimum amount must not exceed maximum amount."
+            )
+        snapshot = rate_snapshot or load_cached_rate_snapshot(session, quote_currency=target_currency)
+        amount = displayed_amount_expression(snapshot, target_currency)
+        if filters.min_display_amount is not None:
+            query = query.where(amount >= filters.min_display_amount)
+        if filters.max_display_amount is not None:
+            query = query.where(amount <= filters.max_display_amount)
     search = (filters.search or "").strip()
     if search:
         # Search user text literally; '%' and '_' aren't wildcard controls.
@@ -767,7 +787,16 @@ def _build_filtered_transaction_ids_query(
     if filters.needs_review:
         query = query.where(_build_needs_review_predicate())
 
-    return _apply_transaction_search_filters(query, filters)
+    return _apply_transaction_search_filters(
+        query,
+        filters,
+        session=session,
+        target_currency=(
+            _resolve_target_currency(filters, current_user)
+            if filters.min_display_amount is not None or filters.max_display_amount is not None
+            else None
+        ),
+    )
 
 
 def _build_item_scope_query(

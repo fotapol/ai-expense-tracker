@@ -15,6 +15,12 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 import 'support/authenticated_api.dart';
 
+http.Response _backendResponse(String body, int statusCode) => http.Response(
+  body,
+  statusCode,
+  headers: {'expense-amount-filter': 'display-v1'},
+);
+
 Widget historyApp() => MaterialApp(
   locale: const Locale('en'),
   localizationsDelegates: const [
@@ -38,7 +44,7 @@ Map<String, dynamic> receipt(int id, {String? merchant}) => {
   'items': [],
 };
 
-http.Response otherResponse(http.Request request) => http.Response(
+http.Response otherResponse(http.Request request) => _backendResponse(
   request.url.path == '/v1/me' ? '{"default_currency":"EUR"}' : '[]',
   200,
 );
@@ -95,7 +101,7 @@ void main() {
           return otherResponse(request);
         }
         requests++;
-        return http.Response(jsonEncode(List.generate(50, receipt)), 200);
+        return _backendResponse(jsonEncode(List.generate(50, receipt)), 200);
       }),
     );
   });
@@ -118,7 +124,7 @@ void main() {
           if (request.url.path != '/v1/transactions') {
             return otherResponse(request);
           }
-          return http.Response(
+          return _backendResponse(
             jsonEncode([
               {...receipt(1), 'amount_total': 20},
               {...receipt(2), 'amount_total': 100, 'currency': 'USD'},
@@ -163,9 +169,9 @@ void main() {
           pages.add(page);
           if (page == '2' && failNextPage) {
             failNextPage = false;
-            return http.Response('unavailable', 503);
+            return _backendResponse('unavailable', 503);
           }
-          return http.Response(
+          return _backendResponse(
             jsonEncode(
               page == '1' ? List.generate(50, receipt) : [receipt(50)],
             ),
@@ -198,7 +204,7 @@ void main() {
           );
           await tester.pumpAndSettle();
           delayedPage.complete(
-            http.Response(
+            _backendResponse(
               jsonEncode([receipt(999, merchant: 'Stale receipt')]),
               200,
             ),
@@ -218,7 +224,7 @@ void main() {
           }
           requests.add(request);
           if (request.url.queryParameters['sort_by'] == 'amount_desc') {
-            return http.Response(
+            return _backendResponse(
               jsonEncode([receipt(500, merchant: 'Sorted receipt')]),
               200,
             );
@@ -226,7 +232,7 @@ void main() {
           if (request.url.queryParameters['page'] == '2') {
             return delayedPage.future;
           }
-          return http.Response(jsonEncode(List.generate(50, receipt)), 200);
+          return _backendResponse(jsonEncode(List.generate(50, receipt)), 200);
         }),
       );
       expect(tester.takeException(), isNull);
@@ -239,7 +245,7 @@ void main() {
       () async {
         await tester.pumpWidget(historyApp());
         await tester.pumpAndSettle();
-        await tester.tap(find.widgetWithText(FilterChip, 'Needs review'));
+        await tester.tap(find.byKey(const ValueKey('receipt-review-filter')));
         await tester.pumpAndSettle();
         expect(find.text('Old draft'), findsOneWidget);
         expect(requests.last.url.queryParameters['needs_review'], 'true');
@@ -251,7 +257,7 @@ void main() {
           return otherResponse(request);
         }
         requests.add(request);
-        return http.Response(
+        return _backendResponse(
           jsonEncode([
             receipt(
               1,
@@ -300,6 +306,8 @@ void main() {
             await tester.pumpAndSettle();
           }
 
+          await tester.tap(find.text('More filters'));
+          await tester.pumpAndSettle();
           await choose('filter-currency', 'EUR');
           for (final entry in {
             'filter-min-amount': '10,25',
@@ -328,8 +336,9 @@ void main() {
           ]);
           for (final request in filtered) {
             expect(request.url.queryParameters['search'], 'coffee & milk');
-            expect(request.url.queryParameters['min_amount'], '10.25');
-            expect(request.url.queryParameters['max_amount'], '50.50');
+            expect(request.url.queryParameters['target_currency'], 'EUR');
+            expect(request.url.queryParameters['min_display_amount'], '10.25');
+            expect(request.url.queryParameters['max_display_amount'], '50.50');
             expect(request.url.queryParameters['source'], 'MANUAL');
             expect(request.url.queryParameters['status'], 'CONFIRMED');
           }
@@ -351,10 +360,16 @@ void main() {
               .onDeleted!();
           await tester.pumpAndSettle();
           expect(requests.last.url.queryParameters['currency'], isNull);
-          expect(requests.last.url.queryParameters['min_amount'], isNull);
-          expect(requests.last.url.queryParameters['max_amount'], isNull);
+          expect(
+            requests.last.url.queryParameters['min_display_amount'],
+            '10.25',
+          );
+          expect(
+            requests.last.url.queryParameters['max_display_amount'],
+            '50.50',
+          );
           expect(requests.last.url.queryParameters['search'], 'coffee & milk');
-          final clear = find.text('Clear all filters');
+          final clear = find.byTooltip('Clear all filters');
           await tester.tap(clear);
           await tester.pumpAndSettle();
           expect(
@@ -380,7 +395,7 @@ void main() {
             return otherResponse(request);
           }
           requests.add(request);
-          return http.Response(
+          return _backendResponse(
             jsonEncode(
               request.url.queryParameters['page'] == '2'
                   ? [receipt(50)]
@@ -394,77 +409,84 @@ void main() {
     },
   );
 
-  testWidgets('amount filters require currency and reject invalid ranges', (
-    tester,
-  ) async {
-    final requests = <http.Request>[];
-    await http.runWithClient(
-      () async {
-        await tester.pumpWidget(historyApp());
-        await tester.pumpAndSettle();
-        await tester.tap(find.byTooltip('Filter'));
-        await tester.pumpAndSettle();
-        final minimum = find.byKey(const ValueKey('filter-min-amount'));
-        await tester.ensureVisible(minimum);
-        await tester.enterText(minimum, '10.001');
-        tester.testTextInput.hide();
-        await tester.pumpAndSettle();
-        await tester.tap(find.text('Apply'));
-        await tester.pumpAndSettle();
-        expect(
-          find.text('Enter an amount with up to 2 decimal places.'),
-          findsOneWidget,
-        );
-        expect(
-          find.text('Choose a currency for the amount range.'),
-          findsOneWidget,
-        );
-        expect(requests, hasLength(1));
-        await tester.ensureVisible(minimum);
-        await tester.enterText(minimum, '20');
-        tester.testTextInput.hide();
-        await tester.pumpAndSettle();
-        final maximum = find.byKey(const ValueKey('filter-max-amount'));
-        await tester.ensureVisible(maximum);
-        await tester.enterText(maximum, '10');
-        tester.testTextInput.hide();
-        await tester.pumpAndSettle();
-        await tester.tap(find.text('Apply'));
-        await tester.pumpAndSettle();
-        expect(find.text('Minimum must not exceed maximum.'), findsOneWidget);
-        expect(requests, hasLength(1));
-        final clear = find.text('Clear filters');
-        await tester.scrollUntilVisible(
-          clear,
-          250,
-          scrollable: find
-              .descendant(
-                of: find.byType(ListView).last,
-                matching: find.byType(Scrollable),
-              )
-              .first,
-        );
-        await tester.tap(clear);
-        await tester.pumpAndSettle();
-        await tester.tap(find.text('Apply'));
-        await tester.pumpAndSettle();
-        expect(requests, hasLength(2));
-        expect(requests.last.url.queryParameters['min_amount'], isNull);
-        expect(requests.last.url.queryParameters['max_amount'], isNull);
-        await tester.pumpWidget(const SizedBox.shrink());
-      },
-      () => MockClient((request) async {
-        if (request.url.path != '/v1/transactions') {
-          return otherResponse(request);
-        }
-        if (request.url.queryParameters['page_size'] == '50') {
-          requests.add(request);
-        }
-        return http.Response('[]', 200);
-      }),
-    );
-    expect(tester.takeException(), isNull);
-  });
+  testWidgets(
+    'display amount filters reject invalid ranges without requiring original currency',
+    (tester) async {
+      final requests = <http.Request>[];
+      await http.runWithClient(
+        () async {
+          await tester.pumpWidget(historyApp());
+          await tester.pumpAndSettle();
+          await tester.tap(find.byTooltip('Filter'));
+          await tester.pumpAndSettle();
+          final minimum = find.byKey(const ValueKey('filter-min-amount'));
+          await tester.ensureVisible(minimum);
+          await tester.enterText(minimum, '10.001');
+          tester.testTextInput.hide();
+          await tester.pumpAndSettle();
+          await tester.tap(find.text('Apply'));
+          await tester.pumpAndSettle();
+          expect(
+            find.text('Enter an amount with up to 2 decimal places.'),
+            findsOneWidget,
+          );
+          expect(
+            find.text('Choose a currency for the amount range.'),
+            findsNothing,
+          );
+          expect(requests, hasLength(1));
+          await tester.ensureVisible(minimum);
+          await tester.enterText(minimum, '20');
+          tester.testTextInput.hide();
+          await tester.pumpAndSettle();
+          final maximum = find.byKey(const ValueKey('filter-max-amount'));
+          await tester.ensureVisible(maximum);
+          await tester.enterText(maximum, '10');
+          tester.testTextInput.hide();
+          await tester.pumpAndSettle();
+          await tester.tap(find.text('Apply'));
+          await tester.pumpAndSettle();
+          expect(find.text('Minimum must not exceed maximum.'), findsOneWidget);
+          expect(requests, hasLength(1));
+          final clear = find.text('Clear filters');
+          await tester.scrollUntilVisible(
+            clear,
+            250,
+            scrollable: find
+                .descendant(
+                  of: find.byType(ListView).last,
+                  matching: find.byType(Scrollable),
+                )
+                .first,
+          );
+          await tester.tap(clear);
+          await tester.pumpAndSettle();
+          await tester.tap(find.text('Apply'));
+          await tester.pumpAndSettle();
+          expect(requests, hasLength(2));
+          expect(
+            requests.last.url.queryParameters['min_display_amount'],
+            isNull,
+          );
+          expect(
+            requests.last.url.queryParameters['max_display_amount'],
+            isNull,
+          );
+          await tester.pumpWidget(const SizedBox.shrink());
+        },
+        () => MockClient((request) async {
+          if (request.url.path != '/v1/transactions') {
+            return otherResponse(request);
+          }
+          if (request.url.queryParameters['page_size'] == '50') {
+            requests.add(request);
+          }
+          return _backendResponse('[]', 200);
+        }),
+      );
+      expect(tester.takeException(), isNull);
+    },
+  );
 
   testWidgets('clearing a reopened sheet removes its initial amount bounds', (
     tester,

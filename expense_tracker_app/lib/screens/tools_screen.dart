@@ -63,50 +63,16 @@ class ToolsScreen extends StatelessWidget {
                   color: ShellStyles.accentTone(context).base,
                 ),
                 const SizedBox(width: 6),
-                ShellStyles.sectionLabel(
-                  context,
-                  context.tr('tools_most_used'),
+                Expanded(
+                  child: ShellStyles.sectionLabel(
+                    context,
+                    context.tr('tools_most_used'),
+                  ),
                 ),
               ],
             ),
             SizedBox(height: ShellStyles.scaled(context, 10, min: 8, max: 12)),
-            Row(
-              children: [
-                Expanded(
-                  child: _buildShortcutCard(
-                    context,
-                    icon: AppIcons.scan,
-                    title: context.tr('tools_scan_receipt'),
-                    subtitle: context.tr('quick_scan_with_ai_review'),
-                    onTap: () => _open(context, const ReceiptUploadScreen()),
-                  ),
-                ),
-                SizedBox(
-                  width: ShellStyles.scaled(context, 8, min: 6, max: 10),
-                ),
-                Expanded(
-                  child: _buildShortcutCard(
-                    context,
-                    icon: AppIcons.analyticsAlt,
-                    title: context.tr('tools_analytics'),
-                    subtitle: context.tr('view_insights_and_trends'),
-                    onTap: () => _open(context, const AnalyticsScreen()),
-                  ),
-                ),
-                SizedBox(
-                  width: ShellStyles.scaled(context, 8, min: 6, max: 10),
-                ),
-                Expanded(
-                  child: _buildShortcutCard(
-                    context,
-                    icon: AppIcons.receipt,
-                    title: context.tr('tools_receipt_manager'),
-                    subtitle: context.tr('organize_your_receipts'),
-                    onTap: () => _open(context, const ReceiptManagerScreen()),
-                  ),
-                ),
-              ],
-            ),
+            _buildShortcuts(context),
             SizedBox(height: ShellStyles.scaled(context, 22, min: 18, max: 26)),
             ShellStyles.sectionLabel(context, context.tr('tools_all_tools')),
             SizedBox(height: ShellStyles.scaled(context, 12, min: 10, max: 14)),
@@ -225,6 +191,66 @@ class ToolsScreen extends StatelessWidget {
     );
   }
 
+  Widget _buildShortcuts(BuildContext context) {
+    final shortcuts = [
+      _ToolTileData(
+        icon: AppIcons.scan,
+        title: context.tr('tools_scan_receipt'),
+        subtitle: context.tr('quick_scan_with_ai_review'),
+        onTap: () => _open(context, const ReceiptUploadScreen()),
+      ),
+      _ToolTileData(
+        icon: AppIcons.analyticsAlt,
+        title: context.tr('tools_analytics'),
+        subtitle: context.tr('view_insights_and_trends'),
+        onTap: () => _open(context, const AnalyticsScreen()),
+      ),
+      _ToolTileData(
+        icon: AppIcons.receipt,
+        title: context.tr('tools_receipt_manager'),
+        subtitle: context.tr('organize_your_receipts'),
+        onTap: () => _open(context, const ReceiptManagerScreen()),
+      ),
+    ];
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final columns =
+            (constraints.maxWidth / (130 * ShellStyles.textScale(context)))
+                .floor()
+                .clamp(1, 3)
+                .toInt();
+        return Column(
+          children: [
+            for (var start = 0; start < shortcuts.length; start += columns) ...[
+              if (start > 0) const SizedBox(height: 8),
+              IntrinsicHeight(
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    for (var i = 0; i < columns; i++) ...[
+                      if (i > 0) const SizedBox(width: 8),
+                      Expanded(
+                        child: start + i >= shortcuts.length
+                            ? const SizedBox.shrink()
+                            : _buildShortcutCard(
+                                context,
+                                icon: shortcuts[start + i].icon,
+                                title: shortcuts[start + i].title,
+                                subtitle: shortcuts[start + i].subtitle,
+                                onTap: shortcuts[start + i].onTap,
+                              ),
+                      ),
+                    ],
+                  ],
+                ),
+              ),
+            ],
+          ],
+        );
+      },
+    );
+  }
+
   Widget _buildShortcutCard(
     BuildContext context, {
     required IconData icon,
@@ -238,7 +264,7 @@ class ToolsScreen extends StatelessWidget {
       ),
       onTap: onTap,
       child: Container(
-        height: ShellStyles.scaled(context, 120, min: 110, max: 130),
+        constraints: const BoxConstraints(minHeight: 110),
         padding: EdgeInsets.all(
           ShellStyles.scaled(context, 10, min: 9, max: 12),
         ),

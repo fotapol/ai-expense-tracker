@@ -219,19 +219,7 @@ class ThemeProvider extends ChangeNotifier {
   Future<void> toggle() =>
       setThemeMode(isDarkMode ? ThemeMode.light : ThemeMode.dark);
 
-  double get fontSizeFactor {
-    switch (_fontSizeId) {
-      case '60':
-        return 0.7;
-      case '80':
-        return 0.82;
-      case '120':
-        return 1.02;
-      case '100':
-      default:
-        return 0.9;
-    }
-  }
+  double get interfaceScaleFactor => double.parse(_fontSizeId) / 100;
 
   ThemeData get lightTheme => _buildTheme(Brightness.light);
 
@@ -268,6 +256,21 @@ class ThemeProvider extends ChangeNotifier {
 
     return ThemeData(
       brightness: brightness,
+      textTheme:
+          (isDark
+                  ? Typography.material2021().white
+                  : Typography.material2021().black)
+              .copyWith(
+                bodyLarge: const TextStyle(fontSize: 14),
+                titleMedium: const TextStyle(
+                  fontSize: 15,
+                  fontWeight: FontWeight.w600,
+                ),
+                labelLarge: const TextStyle(
+                  fontSize: 13,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
       scaffoldBackgroundColor: palette.pageBackground,
       colorScheme: colorScheme,
       canvasColor: palette.pageBackground,
@@ -357,6 +360,11 @@ class ThemeProvider extends ChangeNotifier {
         ),
       ),
       inputDecorationTheme: InputDecorationTheme(
+        isDense: true,
+        contentPadding: const EdgeInsets.symmetric(
+          horizontal: 12,
+          vertical: 12,
+        ),
         filled: true,
         fillColor: palette.inputSurface,
         labelStyle: TextStyle(color: palette.textMuted),

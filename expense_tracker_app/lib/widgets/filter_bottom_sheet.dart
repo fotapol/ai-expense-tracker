@@ -18,6 +18,7 @@ class FilterBottomSheet extends StatefulWidget {
     this.selectedSubcategoryIds,
     this.selectedLabelIds,
     this.enableReceiptFilters = false,
+    this.displayCurrency = 'EUR',
     this.selectedMinAmount,
     this.selectedMaxAmount,
     this.selectedCurrency,
@@ -31,6 +32,7 @@ class FilterBottomSheet extends StatefulWidget {
   final List<String>? selectedSubcategoryIds;
   final List<String>? selectedLabelIds;
   final bool enableReceiptFilters;
+  final String displayCurrency;
   final String? selectedMinAmount;
   final String? selectedMaxAmount;
   final String? selectedCurrency;
@@ -45,6 +47,7 @@ class FilterBottomSheet extends StatefulWidget {
     List<String>? selectedSubcategoryIds,
     List<String>? selectedLabelIds,
     bool enableReceiptFilters = false,
+    String displayCurrency = 'EUR',
     String? selectedMinAmount,
     String? selectedMaxAmount,
     String? selectedCurrency,
@@ -65,6 +68,7 @@ class FilterBottomSheet extends StatefulWidget {
         selectedSubcategoryIds: selectedSubcategoryIds,
         selectedLabelIds: selectedLabelIds,
         enableReceiptFilters: enableReceiptFilters,
+        displayCurrency: displayCurrency,
         selectedMinAmount: selectedMinAmount,
         selectedMaxAmount: selectedMaxAmount,
         selectedCurrency: selectedCurrency,
@@ -231,6 +235,7 @@ class _FilterBottomSheetState extends State<FilterBottomSheet> {
       'subcategory_ids': _selectedSubcategoryIds.toList(),
       'label_ids': _selectedLabelIds.toList(),
       if (widget.enableReceiptFilters) ...{
+        'display_currency': widget.displayCurrency,
         'min_amount': _normalizedAmount(_minAmount.text),
         'max_amount': _normalizedAmount(_maxAmount.text),
         'currency': _currency,
@@ -487,24 +492,108 @@ class _FilterBottomSheetState extends State<FilterBottomSheet> {
                       _buildReceiptFilters(),
                     ],
                     const SizedBox(height: 12),
-                    _section(
-                      icon: Icons.category_outlined,
-                      title: context.tr('filters_category'),
-                      children: [_buildCategoryChips()],
-                    ),
-                    const SizedBox(height: 12),
-                    _section(
-                      icon: Icons.account_tree_outlined,
-                      title: context.tr('filters_subcategory'),
-                      children: [_buildSubcategoryPicker()],
-                    ),
-                    if (_labels.isNotEmpty) ...[
+                    if (widget.enableReceiptFilters)
+                      _surface(
+                        ExpansionTile(
+                          key: const ValueKey('receipt-advanced-filters'),
+                          maintainState: true,
+                          initiallyExpanded:
+                              _currency != null ||
+                              _source != null ||
+                              _status != null ||
+                              _selectedCategoryIds.isNotEmpty ||
+                              _selectedSubcategoryIds.isNotEmpty ||
+                              _selectedLabelIds.isNotEmpty,
+                          tilePadding: EdgeInsets.zero,
+                          shape: const Border(),
+                          collapsedShape: const Border(),
+                          title: Text(
+                            context.tr('filters_advanced'),
+                            style: const TextStyle(fontWeight: FontWeight.w600),
+                          ),
+                          children: [
+                            _choice(
+                              id: 'filter-currency',
+                              label: context.tr('filters_currency'),
+                              value: _currency,
+                              options: {
+                                '': context.tr('filters_all_currencies'),
+                                for (final code in _currencyCodes) code: code,
+                              },
+                              onChanged: (value) => _currency = value,
+                            ),
+                            const SizedBox(height: 12),
+                            _choice(
+                              id: 'filter-source',
+                              label: context.tr('filters_source'),
+                              value: _source,
+                              options: {
+                                '': context.tr('filters_any_source'),
+                                'RECEIPT': context.tr('filters_scanned'),
+                                'MANUAL': context.tr('filters_manual'),
+                                'IMPORTED': context.tr('filters_imported'),
+                              },
+                              onChanged: (value) => _source = value,
+                            ),
+                            const SizedBox(height: 12),
+                            _choice(
+                              id: 'filter-status',
+                              label: context.tr('filters_status'),
+                              value: _status,
+                              options: {
+                                '': context.tr('filters_any_status'),
+                                'DRAFT': context.tr('receipts_draft'),
+                                'CONFIRMED': context.tr('filters_confirmed'),
+                              },
+                              onChanged: (value) => _status = value,
+                            ),
+                            const SizedBox(height: 16),
+                            _buildSectionTitle(
+                              icon: Icons.category_outlined,
+                              title: context.tr('filters_category'),
+                            ),
+                            const SizedBox(height: 10),
+                            _buildCategoryChips(),
+                            const SizedBox(height: 16),
+                            _buildSectionTitle(
+                              icon: Icons.account_tree_outlined,
+                              title: context.tr('filters_subcategory'),
+                            ),
+                            const SizedBox(height: 10),
+                            _buildSubcategoryPicker(),
+                            if (_labels.isNotEmpty) ...[
+                              const SizedBox(height: 16),
+                              _buildSectionTitle(
+                                icon: Icons.label_outline,
+                                title: context.tr('filters_labels'),
+                              ),
+                              const SizedBox(height: 10),
+                              _buildLabelChips(),
+                            ],
+                          ],
+                        ),
+                      )
+                    else ...[
                       const SizedBox(height: 12),
                       _section(
-                        icon: Icons.label_outline,
-                        title: context.tr('filters_labels'),
-                        children: [_buildLabelChips()],
+                        icon: Icons.category_outlined,
+                        title: context.tr('filters_category'),
+                        children: [_buildCategoryChips()],
                       ),
+                      const SizedBox(height: 12),
+                      _section(
+                        icon: Icons.account_tree_outlined,
+                        title: context.tr('filters_subcategory'),
+                        children: [_buildSubcategoryPicker()],
+                      ),
+                      if (_labels.isNotEmpty) ...[
+                        const SizedBox(height: 12),
+                        _section(
+                          icon: Icons.label_outline,
+                          title: context.tr('filters_labels'),
+                          children: [_buildLabelChips()],
+                        ),
+                      ],
                     ],
                   ],
                 ),
@@ -680,91 +769,31 @@ class _FilterBottomSheetState extends State<FilterBottomSheet> {
 
   Widget _buildReceiptFilters() => Form(
     key: _amountFormKey,
-    child: Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
+    child: _section(
+      icon: Icons.payments_outlined,
+      title: context.tr(
+        'filters_display_amount',
+        params: {'currency': widget.displayCurrency},
+      ),
       children: [
-        _section(
-          key: const ValueKey('filter-amount-section'),
-          icon: Icons.payments_outlined,
-          title: context.tr('filters_amount'),
+        Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            _choice(
-              id: 'filter-currency',
-              label: context.tr('filters_currency'),
-              value: _currency,
-              options: {
-                '': context.tr('filters_all_currencies'),
-                for (final code in _currencyCodes) code: code,
-              },
-              validator: (_) =>
-                  _currency == null &&
-                      (_normalizedAmount(_minAmount.text) != null ||
-                          _normalizedAmount(_maxAmount.text) != null)
-                  ? context.tr('filters_choose_currency')
-                  : null,
-              onChanged: (value) => _currency = value,
-            ),
-            const SizedBox(height: 16),
-            LayoutBuilder(
-              builder: (context, constraints) =>
-                  constraints.maxWidth >= 320 &&
-                      ShellStyles.textScale(context) <= 1.2
-                  ? Row(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Expanded(child: _amountField(minimum: true)),
-                        const SizedBox(width: 12),
-                        Expanded(child: _amountField(minimum: false)),
-                      ],
-                    )
-                  : Column(
-                      children: [
-                        _amountField(minimum: true),
-                        const SizedBox(height: 14),
-                        _amountField(minimum: false),
-                      ],
-                    ),
-            ),
-            const SizedBox(height: 12),
-            Text(
-              context.tr('filters_amount_hint'),
-              style: TextStyle(
-                color: ShellStyles.textMuted(context),
-                fontSize: 12,
-                height: 1.45,
-              ),
-            ),
+            Expanded(child: _amountField(minimum: true)),
+            const SizedBox(width: 12),
+            Expanded(child: _amountField(minimum: false)),
           ],
         ),
-        const SizedBox(height: 12),
-        _surface(
-          Column(
-            children: [
-              _choice(
-                id: 'filter-source',
-                label: context.tr('filters_source'),
-                value: _source,
-                options: {
-                  '': context.tr('filters_any_source'),
-                  'RECEIPT': context.tr('filters_scanned'),
-                  'MANUAL': context.tr('filters_manual'),
-                  'IMPORTED': context.tr('filters_imported'),
-                },
-                onChanged: (value) => _source = value,
-              ),
-              const SizedBox(height: 16),
-              _choice(
-                id: 'filter-status',
-                label: context.tr('filters_status'),
-                value: _status,
-                options: {
-                  '': context.tr('filters_any_status'),
-                  'DRAFT': context.tr('receipts_draft'),
-                  'CONFIRMED': context.tr('filters_confirmed'),
-                },
-                onChanged: (value) => _status = value,
-              ),
-            ],
+        const SizedBox(height: 10),
+        Text(
+          context.tr(
+            'filters_display_hint',
+            params: {'currency': widget.displayCurrency},
+          ),
+          style: TextStyle(
+            color: ShellStyles.textMuted(context),
+            fontSize: 12,
+            height: 1.4,
           ),
         ),
       ],
@@ -791,6 +820,47 @@ class _FilterBottomSheetState extends State<FilterBottomSheet> {
   }
 
   Widget _buildPeriodChips() {
+    if (widget.enableReceiptFilters) {
+      return DropdownButtonFormField<String>(
+        key: ValueKey('receipt-period-$_selectedPeriod'),
+        initialValue: _selectedPeriod,
+        isExpanded: true,
+        itemHeight: null,
+        selectedItemBuilder: (context) => [
+          for (final period in PeriodFilter.values)
+            Align(
+              alignment: AlignmentDirectional.centerStart,
+              child: Text(
+                context.tr(PeriodFilter.localizationKey(period)),
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+              ),
+            ),
+        ],
+        decoration: const InputDecoration(isDense: true),
+        items: [
+          for (final period in PeriodFilter.values)
+            DropdownMenuItem(
+              value: period,
+              child: Padding(
+                padding: const EdgeInsets.symmetric(vertical: 8),
+                child: Text(context.tr(PeriodFilter.localizationKey(period))),
+              ),
+            ),
+        ],
+        onChanged: (value) {
+          if (value == null) return;
+          if (value == PeriodFilter.custom) {
+            _pickCustomRange();
+            return;
+          }
+          setState(() {
+            _selectedPeriod = value;
+            _selectedCustomRange = null;
+          });
+        },
+      );
+    }
     return Wrap(
       spacing: 8,
       runSpacing: 8,

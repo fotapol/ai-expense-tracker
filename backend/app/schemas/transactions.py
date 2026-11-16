@@ -346,6 +346,8 @@ class TransactionListFilter(PaginationParams):
     search: str | None = Field(default=None, max_length=200)
     min_amount: Amount2DP | None = None
     max_amount: Amount2DP | None = None
+    min_display_amount: Amount2DP | None = None
+    max_display_amount: Amount2DP | None = None
     user_id: UUID | None = None
     from_occurred_at: dt.datetime | None = None
     to_occurred_at: dt.datetime | None = None

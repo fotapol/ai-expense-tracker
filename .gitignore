@@ -253,3 +253,8 @@ infra/k8s/overlays/production/generated/postgres-backup-image-patch.yaml
 infra/k8s/generated/
 infra/k8s/**/generated/config.env
 infra/k8s/**/generated/secret.env
+
+# Personal financial backup files
+*.mmbackup
+expense-tracker-backup*.zip
+ai_expense_tracker_export_*.json
