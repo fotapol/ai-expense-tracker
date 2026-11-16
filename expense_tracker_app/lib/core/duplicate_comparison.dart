@@ -37,6 +37,57 @@ List<List<Map<String, dynamic>>> duplicateGroups(
   return groups.values.toList();
 }
 
+/// Match the precision shown in the comparison: money has two decimals,
+/// quantities three, unit prices four. Ignore JSON formatting and float noise.
+bool comparisonNumberSame(Object? a, Object? b, {int decimals = 2}) {
+  if (a == null || b == null) return a == b;
+  final left = num.tryParse(a.toString()), right = num.tryParse(b.toString());
+  if (left == null || right == null || !left.isFinite || !right.isFinite) {
+    return a == b;
+  }
+  return left.toStringAsFixed(decimals) == right.toStringAsFixed(decimals);
+}
+
+String comparisonText(Object? value) => (value?.toString() ?? '')
+    .trim()
+    .toLowerCase()
+    .replaceAll(RegExp(r'\s+'), ' ');
+
+bool samePurchaseMinute(Object? first, Object? second) {
+  final a = DateTime.tryParse(first?.toString() ?? '');
+  final b = DateTime.tryParse(second?.toString() ?? '');
+  if (a == null || b == null)
+    return comparisonText(first) == comparisonText(second);
+  return a.millisecondsSinceEpoch ~/ 60000 == b.millisecondsSinceEpoch ~/ 60000;
+}
+
+String comparisonUnit(Object? value) => switch (comparisonText(value)) {
+  'pcs' || 'piece' || 'pieces' || 'pc' || 'kom' => 'pc',
+  'kilogram' || 'kilograms' || 'kg' => 'kg',
+  'gram' || 'grams' || 'g' => 'g',
+  'liter' || 'litre' || 'liters' || 'litres' || 'l' => 'l',
+  'milliliter' || 'millilitre' || 'ml' => 'ml',
+  final unit => unit,
+};
+
+num? _number(Object? value) {
+  final number = num.tryParse(value?.toString() ?? '');
+  return number?.isFinite == true ? number : null;
+}
+
+num? comparisonUnitPrice(Map<String, dynamic>? item) {
+  if (item == null) return null;
+  final explicit = _number(item['unit_price']);
+  if (explicit != null) return explicit;
+  final quantity = _number(item['qty']);
+  final amount = _number(item['amount']);
+  if (quantity == null || quantity <= 0 || amount == null) return null;
+  final beforeDiscount =
+      _number(item['amount_before_discount']) ??
+      amount + (_number(item['discount_amount']) ?? 0);
+  return beforeDiscount / quantity;
+}
+
 class ComparedItem {
   const ComparedItem(this.first, this.second);
   final Map<String, dynamic>? first, second;
@@ -44,19 +95,23 @@ class ComparedItem {
   bool same(String field) {
     if (first == null || second == null) return false;
     final a = first![field], b = second![field];
-    final na = num.tryParse(a?.toString() ?? '');
-    final nb = num.tryParse(b?.toString() ?? '');
-    if (na != null && nb != null) return (na - nb).abs() < 0.000001;
-    return a?.toString().trim().toLowerCase() ==
-        b?.toString().trim().toLowerCase();
+    return switch (field) {
+      'amount' => comparisonNumberSame(a, b),
+      'qty' => comparisonNumberSame(a, b, decimals: 3),
+      'unit_price' => comparisonNumberSame(
+        comparisonUnitPrice(first),
+        comparisonUnitPrice(second),
+        decimals: 4,
+      ),
+      'unit' => comparisonUnit(a) == comparisonUnit(b),
+      _ => comparisonText(a) == comparisonText(b),
+    };
   }
 
   bool get identical =>
       first != null &&
       second != null &&
-      _normalize(first!['description']?.toString() ?? '') ==
-          _normalize(second!['description']?.toString() ?? '') &&
-      ['amount', 'qty', 'unit', 'unit_price'].every(same);
+      ['description', 'amount', 'qty', 'unit', 'unit_price'].every(same);
 }
 
 String _normalize(String value) => value

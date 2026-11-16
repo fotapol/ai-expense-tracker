@@ -3,7 +3,6 @@ import 'package:intl/intl.dart';
 
 import '../core/duplicate_comparison.dart';
 import '../core/localized_dates.dart';
-import '../core/money_formatter.dart';
 import '../core/redesign_system.dart';
 import '../l10n/app_localizations.dart';
 
@@ -55,46 +54,52 @@ class _ComparisonState extends State<DuplicateDetailsComparison> {
     },
   );
 
-  String _amount(
-    Map<String, dynamic>? item,
-    String currency, {
-    String field = 'amount',
-  }) => item?[field] == null
-      ? '—'
-      : formatMoney(
-          currency,
-          num.tryParse(item![field].toString())?.toDouble() ?? 0,
-        );
+  String _amount(Object? value, String currency, {bool unitPrice = false}) {
+    final amount = num.tryParse(value?.toString() ?? '');
+    if (amount == null || !amount.isFinite) return '—';
+    // Comparison always shows financial precision, even with rounded totals enabled.
+    final format = NumberFormat(
+      unitPrice ? '#,##0.00##' : '#,##0.00',
+      Localizations.localeOf(context).languageCode,
+    );
+    return '${currency.trim().toUpperCase()} ${format.format(amount)}';
+  }
 
   String _quantity(Map<String, dynamic>? item) {
     final qty = num.tryParse(item?['qty']?.toString() ?? '');
-    return qty == null
-        ? '—'
-        : '${NumberFormat.decimalPattern(Localizations.localeOf(context).languageCode).format(qty)} ${item?['unit'] ?? ''}'
-              .trim();
+    if (qty == null) return '—';
+    final format = NumberFormat(
+      '#,##0.###',
+      Localizations.localeOf(context).languageCode,
+    );
+    return '${format.format(qty)} ${comparisonUnit(item?['unit'])}'.trim();
   }
 
-  Color _mark(bool same) => same
-      ? (ShellStyles.isDark(context)
-            ? Colors.green.shade200
-            : Colors.green.shade800)
-      : (ShellStyles.isDark(context)
-            ? Colors.amber.shade200
-            : Colors.brown.shade700);
+  Color get _differenceColor => ShellStyles.isDark(context)
+      ? Colors.amber.shade200
+      : Colors.brown.shade700;
 
-  Widget _value(String text, {bool? same, bool strong = false}) => Container(
+  Widget _value(
+    String text, {
+    bool different = false,
+    bool strong = false,
+  }) => Container(
+    key: different ? const ValueKey('comparison-difference') : null,
     padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
     decoration: BoxDecoration(
-      color: same == null ? Colors.transparent : _mark(same).withAlpha(18),
+      color: different ? _differenceColor.withAlpha(20) : Colors.transparent,
       borderRadius: BorderRadius.circular(8),
+      border: different
+          ? Border.all(color: _differenceColor.withAlpha(80))
+          : null,
     ),
     child: Text(
       text,
       style: TextStyle(
-        color: same == null ? ShellStyles.textPrimary(context) : _mark(same),
+        color: different ? _differenceColor : ShellStyles.textPrimary(context),
         fontWeight: strong ? FontWeight.w700 : FontWeight.w500,
         fontSize: 13,
-        height: 1.3,
+        height: 1.35,
       ),
     ),
   );
@@ -108,26 +113,28 @@ class _ComparisonState extends State<DuplicateDetailsComparison> {
     ],
   );
 
+  String _date(Object? value) {
+    final date = DateTime.tryParse(value?.toString() ?? '');
+    return date == null
+        ? '—'
+        : formatLocalizedDayMonthYearTime(context, date.toLocal());
+  }
+
   Widget _receiptHeader(int index) {
     final tx = widget.transactions[index],
         other = widget.transactions[1 - index];
     final selected = widget.selectedId == tx['id'];
     final tone = ShellStyles.accentTone(context);
-    final sameCurrency = tx['currency'] == other['currency'];
     final totalMatches =
-        sameCurrency &&
-        num.tryParse(tx['amount_total'].toString()) ==
-            num.tryParse(other['amount_total'].toString());
-    final date = DateTime.tryParse(tx['occurred_at']?.toString() ?? '');
-    final dateText = date == null
-        ? '—'
-        : formatLocalizedDayMonthYearTime(context, date.toLocal());
+        comparisonText(tx['currency']) == comparisonText(other['currency']) &&
+        comparisonNumberSame(tx['amount_total'], other['amount_total']);
     return Material(
       color: selected
           ? tone.container.withAlpha(80)
           : ShellStyles.surface(context),
+      clipBehavior: Clip.antiAlias,
       shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(14),
         side: BorderSide(
           color: selected ? tone.base : ShellStyles.border(context),
           width: selected ? 2 : 1,
@@ -135,13 +142,13 @@ class _ComparisonState extends State<DuplicateDetailsComparison> {
       ),
       child: InkWell(
         key: ValueKey('select-${tx['id']}'),
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(14),
         onTap: widget.busy ? null : () => widget.onSelect(tx['id'].toString()),
         child: Semantics(
           selected: selected,
           button: true,
           child: Padding(
-            padding: const EdgeInsets.all(10),
+            padding: const EdgeInsets.all(8),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
@@ -166,33 +173,51 @@ class _ComparisonState extends State<DuplicateDetailsComparison> {
                         ),
                       ),
                     ),
-                    if (tx['receipt_id'] != null)
-                      IconButton(
-                        tooltip: context.tr('duplicates_view_original'),
-                        onPressed: widget.busy
-                            ? null
-                            : () => widget.onPhoto(tx),
-                        icon: const Icon(Icons.receipt_long_outlined, size: 18),
-                      ),
                   ],
                 ),
+                const SizedBox(height: 8),
                 _value(
                   tx['merchant_name']?.toString() ?? '—',
-                  same: tx['merchant_name'] == other['merchant_name'],
+                  different:
+                      comparisonText(tx['merchant_name']) !=
+                      comparisonText(other['merchant_name']),
                 ),
-                const SizedBox(height: 4),
                 _value(
-                  _amount({
-                    'amount': tx['amount_total'],
-                  }, tx['currency'].toString()),
-                  same: totalMatches,
+                  _amount(tx['amount_total'], tx['currency'].toString()),
+                  different: !totalMatches,
                   strong: true,
                 ),
-                const SizedBox(height: 4),
                 _value(
-                  dateText,
-                  same: tx['occurred_at'] == other['occurred_at'],
+                  _date(tx['occurred_at']),
+                  different: !samePurchaseMinute(
+                    tx['occurred_at'],
+                    other['occurred_at'],
+                  ),
                 ),
+                if (tx['created_at'] != null)
+                  Padding(
+                    padding: const EdgeInsets.fromLTRB(8, 4, 8, 4),
+                    child: Text(
+                      context.tr(
+                        'duplicates_added_at',
+                        params: {'date': _date(tx['created_at'])},
+                      ),
+                      style: TextStyle(
+                        fontSize: 11,
+                        height: 1.4,
+                        color: ShellStyles.textMuted(context),
+                      ),
+                    ),
+                  ),
+                if (tx['receipt_id'] != null)
+                  Align(
+                    alignment: AlignmentDirectional.centerStart,
+                    child: IconButton(
+                      tooltip: context.tr('duplicates_view_original'),
+                      onPressed: widget.busy ? null : () => widget.onPhoto(tx),
+                      icon: const Icon(Icons.receipt_long_outlined, size: 20),
+                    ),
+                  ),
               ],
             ),
           ),
@@ -201,54 +226,83 @@ class _ComparisonState extends State<DuplicateDetailsComparison> {
     );
   }
 
+  Widget _field(
+    String label,
+    String first,
+    String second, {
+    required bool different,
+    bool strong = false,
+  }) => Padding(
+    padding: const EdgeInsets.only(top: 8),
+    child: Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        Text(
+          label,
+          style: TextStyle(
+            fontSize: 11,
+            fontWeight: FontWeight.w600,
+            color: ShellStyles.textMuted(context),
+          ),
+        ),
+        const SizedBox(height: 3),
+        _cells(
+          _value(first, different: different, strong: strong),
+          _value(second, different: different, strong: strong),
+        ),
+      ],
+    ),
+  );
+
   Widget _item(ComparedItem row, int index) {
     final a = row.first, b = row.second;
     final both = a != null && b != null;
-    final firstCurrency = widget.transactions[0]['currency'].toString();
-    final secondCurrency = widget.transactions[1]['currency'].toString();
-    final sameCurrency = firstCurrency == secondCurrency;
-    final identical = row.identical && sameCurrency;
-    final title = (a ?? b)!['description']?.toString() ?? '';
-    Widget priceLabel() => Text(
-      context.tr('duplicates_unit_price'),
-      style: TextStyle(fontSize: 11, color: ShellStyles.textMuted(context)),
-    );
-
+    final currencies = [
+      for (final tx in widget.transactions) tx['currency']?.toString() ?? '',
+    ];
+    final sameCurrency =
+        comparisonText(currencies[0]) == comparisonText(currencies[1]);
+    final differentName = both && !row.same('description');
+    final prices = [comparisonUnitPrice(a), comparisonUnitPrice(b)];
+    final showUnitPrice =
+        prices.any((price) => price != null) &&
+        !(comparisonNumberSame(a?['qty'], 1, decimals: 3) &&
+            comparisonNumberSame(b?['qty'], 1, decimals: 3) &&
+            comparisonNumberSame(prices[0], a?['amount'], decimals: 4) &&
+            comparisonNumberSame(prices[1], b?['amount'], decimals: 4));
     return Container(
       key: ValueKey('compared-item-$index'),
-      margin: const EdgeInsets.only(top: 8),
-      padding: const EdgeInsets.all(10),
-      decoration: BoxDecoration(
-        color: ShellStyles.surface(context),
-        border: Border.all(color: ShellStyles.border(context)),
-        borderRadius: BorderRadius.circular(12),
+      margin: const EdgeInsets.only(top: 10),
+      padding: const EdgeInsets.all(12),
+      decoration: ShellStyles.cardDecoration(
+        context,
+        radius: 14,
+        withShadow: false,
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Icon(
-                identical ? Icons.check_circle_outline : Icons.compare_arrows,
-                size: 16,
-                color: identical ? _mark(true) : ShellStyles.textMuted(context),
+          if (differentName)
+            _cells(
+              _value(
+                a['description']?.toString() ?? '—',
+                different: true,
+                strong: true,
               ),
-              const SizedBox(width: 6),
-              Expanded(
-                child: Text(
-                  title,
-                  style: const TextStyle(
-                    fontSize: 13,
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
+              _value(
+                b['description']?.toString() ?? '—',
+                different: true,
+                strong: true,
               ),
-            ],
-          ),
+            )
+          else
+            Text(
+              (a ?? b)!['description']?.toString() ?? '—',
+              style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w700),
+            ),
           if (!both)
             Padding(
-              padding: const EdgeInsets.only(top: 3),
+              padding: const EdgeInsets.only(top: 4),
               child: Text(
                 context.tr(
                   'duplicates_only_receipt',
@@ -256,60 +310,28 @@ class _ComparisonState extends State<DuplicateDetailsComparison> {
                     'number': widget.numbers[a == null ? 1 : 0].toString(),
                   },
                 ),
-                style: TextStyle(
-                  fontSize: 11,
-                  color: ShellStyles.textMuted(context),
-                ),
+                style: TextStyle(fontSize: 11, color: _differenceColor),
               ),
             ),
-          if (both && a['description'] != b['description'])
-            Padding(
-              padding: const EdgeInsets.only(top: 3),
-              child: Text(
-                b['description']?.toString() ?? '',
-                style: TextStyle(
-                  fontSize: 12,
-                  color: ShellStyles.textMuted(context),
-                ),
-              ),
-            ),
-          const SizedBox(height: 6),
-          _cells(
-            _value(
-              _quantity(a),
-              same: both ? row.same('qty') && row.same('unit') : null,
-            ),
-            _value(
-              _quantity(b),
-              same: both ? row.same('qty') && row.same('unit') : null,
-            ),
+          _field(
+            context.tr('duplicates_quantity'),
+            _quantity(a),
+            _quantity(b),
+            different: !both || !row.same('qty') || !row.same('unit'),
           ),
-          if (a?['unit_price'] != null || b?['unit_price'] != null) ...[
-            const SizedBox(height: 3),
-            _cells(priceLabel(), priceLabel()),
-            _cells(
-              _value(
-                _amount(a, firstCurrency, field: 'unit_price'),
-                same: both ? row.same('unit_price') && sameCurrency : null,
-              ),
-              _value(
-                _amount(b, secondCurrency, field: 'unit_price'),
-                same: both ? row.same('unit_price') && sameCurrency : null,
-              ),
+          if (showUnitPrice)
+            _field(
+              context.tr('duplicates_unit_price'),
+              _amount(prices[0], currencies[0], unitPrice: true),
+              _amount(prices[1], currencies[1], unitPrice: true),
+              different: !both || !sameCurrency || !row.same('unit_price'),
             ),
-          ],
-          const SizedBox(height: 3),
-          _cells(
-            _value(
-              _amount(a, firstCurrency),
-              same: both ? row.same('amount') && sameCurrency : null,
-              strong: true,
-            ),
-            _value(
-              _amount(b, secondCurrency),
-              same: both ? row.same('amount') && sameCurrency : null,
-              strong: true,
-            ),
+          _field(
+            context.tr('duplicates_line_total'),
+            _amount(a?['amount'], currencies[0]),
+            _amount(b?['amount'], currencies[1]),
+            different: !both || !sameCurrency || !row.same('amount'),
+            strong: true,
           ),
         ],
       ),
@@ -319,24 +341,32 @@ class _ComparisonState extends State<DuplicateDetailsComparison> {
   @override
   Widget build(BuildContext context) {
     if (widget.transactions.length != 2) return const SizedBox.shrink();
-    final a = widget.transactions[0], b = widget.transactions[1];
-    final rows = _rows;
+    final sameCurrency =
+        comparisonText(widget.transactions[0]['currency']) ==
+        comparisonText(widget.transactions[1]['currency']);
+    final visibleRows = [
+      for (var i = 0; i < _rows.length; i++)
+        if (!_differencesOnly || !_rows[i].identical || !sameCurrency) i,
+    ];
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         _cells(_receiptHeader(0), _receiptHeader(1)),
-        const SizedBox(height: 8),
-        Wrap(
-          spacing: 12,
-          runSpacing: 4,
+        const SizedBox(height: 12),
+        Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(
-              '✓ ${context.tr('duplicates_matches')}',
-              style: TextStyle(fontSize: 12, color: _mark(true)),
-            ),
-            Text(
-              '↔ ${context.tr('duplicates_differences')}',
-              style: TextStyle(fontSize: 12, color: _mark(false)),
+            Icon(Icons.difference_outlined, color: _differenceColor, size: 16),
+            const SizedBox(width: 6),
+            Expanded(
+              child: Text(
+                context.tr('duplicates_highlight_hint'),
+                style: TextStyle(
+                  fontSize: 12,
+                  height: 1.4,
+                  color: ShellStyles.textMuted(context),
+                ),
+              ),
             ),
           ],
         ),
@@ -345,10 +375,13 @@ class _ComparisonState extends State<DuplicateDetailsComparison> {
           context.tr('transaction_items_heading'),
           style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w700),
         ),
-        const SizedBox(height: 4),
         CheckboxListTile(
+          key: const ValueKey('duplicate-differences-only'),
           dense: true,
           contentPadding: EdgeInsets.zero,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
+          ),
           controlAffinity: ListTileControlAffinity.leading,
           value: _differencesOnly,
           onChanged: (value) =>
@@ -358,17 +391,32 @@ class _ComparisonState extends State<DuplicateDetailsComparison> {
             style: const TextStyle(fontSize: 13),
           ),
         ),
-        _cells(
-          Text(_label(0), textAlign: TextAlign.center),
-          Text(_label(1), textAlign: TextAlign.center),
-        ),
-        for (var i = 0; i < rows.length; i++)
-          if (!_differencesOnly ||
-              !rows[i].identical ||
-              a['currency'] != b['currency'])
-            _item(rows[i], i),
-        if (rows.isEmpty)
-          const Padding(padding: EdgeInsets.all(12), child: Text('—')),
+        if (visibleRows.isNotEmpty)
+          _cells(
+            Text(_label(0), textAlign: TextAlign.center),
+            Text(_label(1), textAlign: TextAlign.center),
+          ),
+        for (final i in visibleRows) _item(_rows[i], i),
+        if (visibleRows.isEmpty)
+          Container(
+            margin: const EdgeInsets.only(top: 8),
+            padding: const EdgeInsets.all(16),
+            decoration: ShellStyles.cardDecoration(
+              context,
+              radius: 14,
+              withShadow: false,
+            ),
+            child: Text(
+              _differencesOnly
+                  ? context.tr('duplicates_no_item_differences')
+                  : '—',
+              style: TextStyle(
+                color: ShellStyles.textMuted(context),
+                fontSize: 13,
+                height: 1.4,
+              ),
+            ),
+          ),
       ],
     );
   }

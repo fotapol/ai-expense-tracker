@@ -226,10 +226,12 @@ class _DuplicateFinderScreenState extends State<DuplicateFinderScreen> {
 
   void _finish() => Navigator.pop(context, _deletedIds.toList());
 
-  Future<void> _review(Map<String, dynamic> pair) async {
+  Future<void> _review(List<Map<String, dynamic>> pairs) async {
     final result = await Navigator.push<String>(
       context,
-      MaterialPageRoute(builder: (_) => _DuplicateComparisonScreen(pair: pair)),
+      MaterialPageRoute(
+        builder: (_) => _DuplicateComparisonScreen(pairs: pairs),
+      ),
     );
     if (!mounted || result == null) return;
     if (result.isNotEmpty) _deletedIds.add(result);
@@ -340,11 +342,7 @@ class _DuplicateFinderScreenState extends State<DuplicateFinderScreen> {
     ),
   );
 
-  Future<void> _choosePair(List<Map<String, dynamic>> pairs) async {
-    if (pairs.length == 1) {
-      await _review(pairs.single);
-      return;
-    }
+  Future<void> _reviewGroup(List<Map<String, dynamic>> pairs) async {
     final members = <String, int>{};
     for (final pair in pairs) {
       for (final side in ['first', 'second']) {
@@ -352,49 +350,21 @@ class _DuplicateFinderScreenState extends State<DuplicateFinderScreen> {
         members.putIfAbsent(id, () => members.length + 1);
       }
     }
-    final chosen = await showModalBottomSheet<Map<String, dynamic>>(
-      context: context,
-      isScrollControlled: true,
-      builder: (context) => SafeArea(
-        top: false,
-        child: ConstrainedBox(
-          constraints: BoxConstraints(
-            maxHeight: MediaQuery.sizeOf(context).height * .7,
-          ),
-          child: ListView(
-            shrinkWrap: true,
-            padding: const EdgeInsets.all(16),
-            children: [
-              Text(
-                context.tr('duplicates_choose_pair'),
-                style: const TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.w700,
-                ),
-              ),
-              const SizedBox(height: 8),
-              for (final pair in pairs)
-                ListTile(
-                  contentPadding: EdgeInsets.zero,
-                  title: Text(
-                    '${context.tr('duplicates_receipt_number', params: {'number': members[pair['first']['id']].toString()})} ↔ ${context.tr('duplicates_receipt_number', params: {'number': members[pair['second']['id']].toString()})}',
-                  ),
-                  subtitle: Text(_reasons(context, pair)),
-                  trailing: const Icon(Icons.chevron_right),
-                  onTap: () => Navigator.pop(context, pair),
-                ),
-            ],
-          ),
-        ),
-      ),
-    );
-    if (mounted && chosen != null) {
-      await _review({
-        ...chosen,
-        'first_number': members[chosen['first']['id']],
-        'second_number': members[chosen['second']['id']],
-      });
-    }
+    final numbered = [
+      for (final pair in pairs)
+        {
+          ...pair,
+          'first_number': members[pair['first']['id'].toString()],
+          'second_number': members[pair['second']['id'].toString()],
+        },
+    ];
+    int strength(Map<String, dynamic> pair) => switch (pair['confidence']) {
+      'exact' => 0,
+      'high' => 1,
+      _ => 2,
+    };
+    numbered.sort((a, b) => strength(a).compareTo(strength(b)));
+    await _review(numbered);
   }
 
   Widget _groupCard(List<Map<String, dynamic>> pairs) {
@@ -428,7 +398,7 @@ class _DuplicateFinderScreenState extends State<DuplicateFinderScreen> {
             'duplicate-${pair['first']['id']}-${pair['second']['id']}',
           ),
           borderRadius: BorderRadius.circular(16),
-          onTap: () => _choosePair(pairs),
+          onTap: () => _reviewGroup(pairs),
           child: Padding(
             padding: const EdgeInsets.all(12),
             child: Column(
@@ -475,7 +445,7 @@ class _DuplicateFinderScreenState extends State<DuplicateFinderScreen> {
                 ],
                 Text(
                   members.length > 2
-                      ? context.tr('duplicates_choose_pair')
+                      ? context.tr('duplicates_review')
                       : _reasons(context, pair),
                   style: TextStyle(
                     color: ShellStyles.textMuted(context),
@@ -583,8 +553,8 @@ class _DuplicateFinderScreenState extends State<DuplicateFinderScreen> {
 }
 
 class _DuplicateComparisonScreen extends StatefulWidget {
-  const _DuplicateComparisonScreen({required this.pair});
-  final Map<String, dynamic> pair;
+  const _DuplicateComparisonScreen({required this.pairs});
+  final List<Map<String, dynamic>> pairs;
   @override
   State<_DuplicateComparisonScreen> createState() =>
       _DuplicateComparisonScreenState();
@@ -597,6 +567,9 @@ class _DuplicateComparisonScreenState
   String? _error;
   bool _loading = true;
   bool _busy = false;
+  int _pairIndex = 0;
+  int _request = 0;
+  Map<String, dynamic> get _pair => widget.pairs[_pairIndex];
 
   @override
   void initState() {
@@ -605,24 +578,27 @@ class _DuplicateComparisonScreenState
   }
 
   Future<void> _load() async {
+    final request = ++_request;
+    final pair = _pair;
     setState(() {
+      _transactions = [];
       _loading = true;
       _error = null;
       _keepId = null;
     });
     try {
       final rows = await Future.wait([
-        ApiClient.getTransaction(widget.pair['first']['id'].toString()),
-        ApiClient.getTransaction(widget.pair['second']['id'].toString()),
+        ApiClient.getTransaction(pair['first']['id'].toString()),
+        ApiClient.getTransaction(pair['second']['id'].toString()),
       ]);
-      if (!mounted) return;
+      if (!mounted || request != _request) return;
       setState(() {
         _transactions = rows;
         _loading = false;
       });
     } catch (e) {
       if (await maybeHandleExpiredSession(e)) return;
-      if (mounted) {
+      if (mounted && request == _request) {
         setState(() {
           _error = context.tr('duplicates_error');
           _loading = false;
@@ -726,8 +702,8 @@ class _DuplicateComparisonScreenState
     builder: (context, constraints) {
       final selected = _transactions.indexWhere((tx) => tx['id'] == _keepId);
       final number = selected == 0
-          ? widget.pair['first_number'] ?? 1
-          : widget.pair['second_number'] ?? 2;
+          ? _pair['first_number'] ?? 1
+          : _pair['second_number'] ?? 2;
       final selectionLabel = selected < 0
           ? context.tr('duplicates_choose')
           : '${context.tr('duplicates_receipt_number', params: {'number': MaterialLocalizations.of(context).formatDecimal(number as int)})} · ${_money(_transactions[selected])}';
@@ -814,7 +790,68 @@ class _DuplicateComparisonScreenState
     canPop: !_busy,
     child: Scaffold(
       backgroundColor: ShellStyles.background(context),
-      appBar: AppBar(title: Text(context.tr('duplicates_review'))),
+      appBar: AppBar(
+        title: Text(context.tr('duplicates_review')),
+        bottom: widget.pairs.length > 1
+            ? PreferredSize(
+                preferredSize: const Size.fromHeight(56),
+                child: Padding(
+                  padding: const EdgeInsets.fromLTRB(16, 0, 16, 8),
+                  child: Row(
+                    children: [
+                      IconButton(
+                        key: const ValueKey('duplicate-previous-comparison'),
+                        tooltip: MaterialLocalizations.of(
+                          context,
+                        ).previousPageTooltip,
+                        onPressed: _busy || _pairIndex == 0
+                            ? null
+                            : () {
+                                setState(() => _pairIndex--);
+                                _load();
+                              },
+                        icon: const Icon(Icons.chevron_left),
+                      ),
+                      Expanded(
+                        child: Text(
+                          context.tr(
+                            'duplicates_comparison_count',
+                            params: {
+                              'current': MaterialLocalizations.of(
+                                context,
+                              ).formatDecimal(_pairIndex + 1),
+                              'count': MaterialLocalizations.of(
+                                context,
+                              ).formatDecimal(widget.pairs.length),
+                            },
+                          ),
+                          textAlign: TextAlign.center,
+                          style: const TextStyle(
+                            fontSize: 12,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      ),
+                      IconButton(
+                        key: const ValueKey('duplicate-next-comparison'),
+                        tooltip: MaterialLocalizations.of(
+                          context,
+                        ).nextPageTooltip,
+                        onPressed:
+                            _busy || _pairIndex == widget.pairs.length - 1
+                            ? null
+                            : () {
+                                setState(() => _pairIndex++);
+                                _load();
+                              },
+                        icon: const Icon(Icons.chevron_right),
+                      ),
+                    ],
+                  ),
+                ),
+              )
+            : null,
+      ),
       bottomNavigationBar: !_loading && _transactions.isNotEmpty
           ? SafeArea(top: false, child: _actions())
           : null,
@@ -834,10 +871,10 @@ class _DuplicateComparisonScreenState
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      _confidenceBadge(context, widget.pair),
+                      _confidenceBadge(context, _pair),
                       const SizedBox(height: 12),
                       Text(
-                        _reasons(context, widget.pair),
+                        _reasons(context, _pair),
                         style: TextStyle(
                           color: ShellStyles.textSecondary(context),
                           height: 1.5,
@@ -863,8 +900,8 @@ class _DuplicateComparisonScreenState
                 if (_transactions.length == 2)
                   DuplicateDetailsComparison(
                     numbers: [
-                      (widget.pair['first_number'] as int?) ?? 1,
-                      (widget.pair['second_number'] as int?) ?? 2,
+                      (_pair['first_number'] as int?) ?? 1,
+                      (_pair['second_number'] as int?) ?? 2,
                     ],
                     transactions: _transactions,
                     selectedId: _keepId,

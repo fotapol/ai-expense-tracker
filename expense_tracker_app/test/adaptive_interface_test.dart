@@ -703,8 +703,6 @@ void main() {
           await tester.pumpAndSettle();
           await tester.tap(find.byKey(const ValueKey('duplicate-one-two')));
           await tester.pumpAndSettle();
-          await tester.tap(find.byType(ListTile).first);
-          await tester.pumpAndSettle();
           await tester.tap(find.byKey(const ValueKey('select-one')));
           await capture(tester, 'comparison-top');
           await tester.ensureVisible(find.byType(CheckboxListTile));
