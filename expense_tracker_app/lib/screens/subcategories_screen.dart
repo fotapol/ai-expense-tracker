@@ -535,10 +535,10 @@ class _SubcategoriesScreenState extends State<SubcategoriesScreen> {
                 : () => _deleteOrDisable(category),
             emphasized: disabled,
             icon: disabled
-                ? Icons.visibility_outlined
+                ? AppIcons.eye
                 : isBuiltIn
-                ? Icons.visibility_off_outlined
-                : Icons.delete_outline,
+                ? AppIcons.eyeOff
+                : AppIcons.trash2,
           ),
         ],
       ),

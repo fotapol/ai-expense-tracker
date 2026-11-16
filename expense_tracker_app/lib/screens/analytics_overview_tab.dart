@@ -266,7 +266,7 @@ class _AnalyticsOverviewTabState extends State<AnalyticsOverviewTab> {
           ],
           if (isEmptyOverview)
             AnalyticsEmptyCard(
-              icon: Icons.insights_outlined,
+              icon: AppIcons.chartNoAxesCombined,
               title: context.tr('no_overview_yet'),
               message: context.tr('analytics_empty_overview_message'),
             )
@@ -304,7 +304,7 @@ class _AnalyticsOverviewTabState extends State<AnalyticsOverviewTab> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   const Icon(
-                    Icons.info_outline,
+                    AppIcons.info,
                     color: ShellColors.softRed,
                     size: 18,
                   ),
@@ -494,17 +494,17 @@ class _AnalyticsOverviewTabState extends State<AnalyticsOverviewTab> {
               AnalyticsMetric(
                 label: context.tr('analytics_total_transactions'),
                 value: '$totalTransactions',
-                icon: Icons.receipt_long_outlined,
+                icon: AppIcons.receiptText,
               ),
               AnalyticsMetric(
                 label: context.tr('analytics_average_per_day'),
                 value: formatMoney(currency, dailyAverage),
-                icon: Icons.calendar_today_outlined,
+                icon: AppIcons.calendar,
               ),
               AnalyticsMetric(
                 label: context.tr('analytics_total_savings'),
                 value: formatMoney(currency, totalSavings),
-                icon: Icons.sell_outlined,
+                icon: AppIcons.tag,
                 valueColor: totalSavings > 0
                     ? ShellStyles.success(context)
                     : null,
@@ -774,7 +774,7 @@ class _AnalyticsOverviewTabState extends State<AnalyticsOverviewTab> {
   }) {
     if (previousTotal == null) {
       return _OverviewComparisonCopy(
-        icon: Icons.timeline_outlined,
+        icon: AppIcons.chartNoAxesCombined,
         title: context.tr(
           widget.filters.period == PeriodFilter.allTime
               ? 'analytics_compare_select_period'
@@ -784,24 +784,24 @@ class _AnalyticsOverviewTabState extends State<AnalyticsOverviewTab> {
     }
     if (previousTotal == 0) {
       return _OverviewComparisonCopy(
-        icon: Icons.remove_circle_outline,
+        icon: AppIcons.circleMinus,
         title: context.tr('analytics_comparison_zero'),
       );
     }
     if (previousTotal < 0 || changePercentage == null) {
       return _OverviewComparisonCopy(
-        icon: Icons.info_outline,
+        icon: AppIcons.info,
         title: context.tr('analytics_comparison_unavailable'),
       );
     }
     if (changePercentage == 0) {
       return _OverviewComparisonCopy(
-        icon: Icons.compare_arrows_outlined,
+        icon: AppIcons.arrowLeftRight,
         title: context.tr('analytics_change_flat'),
       );
     }
     return _OverviewComparisonCopy(
-      icon: changePercentage > 0 ? Icons.trending_up : Icons.trending_down,
+      icon: changePercentage > 0 ? AppIcons.trendingUp : AppIcons.trendingDown,
       title: context.tr(
         changePercentage > 0
             ? 'analytics_change_more'

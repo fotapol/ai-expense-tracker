@@ -56,11 +56,7 @@ extension _TransactionEditScreenWidgets on _TransactionEditScreenState {
               ),
               child: Row(
                 children: [
-                  Icon(
-                    Icons.calendar_today_outlined,
-                    size: 15,
-                    color: _mutedColor,
-                  ),
+                  Icon(AppIcons.calendar, size: 15, color: _mutedColor),
                   const SizedBox(width: 8),
                   Expanded(
                     child: Text(
@@ -343,7 +339,7 @@ extension _TransactionEditScreenWidgets on _TransactionEditScreenState {
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Icon(Icons.warning_amber_rounded, color: _warningColor, size: 18),
+          Icon(AppIcons.triangleAlert, color: _warningColor, size: 18),
           const SizedBox(width: 8),
           Expanded(
             child: Text(
@@ -443,7 +439,7 @@ extension _TransactionEditScreenWidgets on _TransactionEditScreenState {
           color: _dangerColor,
           borderRadius: BorderRadius.circular(18),
         ),
-        child: Icon(Icons.delete_outline_rounded, color: Colors.white),
+        child: Icon(AppIcons.trash2, color: Colors.white),
       ),
       child: _buildItemCard(item, mismatch, showDivider: showDivider),
     );
@@ -809,7 +805,7 @@ extension _TransactionEditScreenWidgets on _TransactionEditScreenState {
                 ),
                 if (_canEditTransaction) ...[
                   const SizedBox(width: 10),
-                  Icon(Icons.edit_outlined, size: 16, color: _mutedColor),
+                  Icon(AppIcons.pencil, size: 16, color: _mutedColor),
                 ],
               ],
             ),

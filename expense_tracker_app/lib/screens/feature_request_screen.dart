@@ -555,8 +555,8 @@ class _FeatureRequestScreenState extends State<FeatureRequestScreen> {
                         )
                       : Icon(
                           item.viewerHasVoted
-                              ? Icons.thumb_up_alt
-                              : Icons.thumb_up_alt_outlined,
+                              ? AppIcons.thumbsUp
+                              : AppIcons.thumbsUp,
                           color: item.viewerHasVoted
                               ? ShellStyles.textPrimary(context)
                               : ShellStyles.textMuted(context),

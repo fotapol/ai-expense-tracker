@@ -7,6 +7,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'firebase_options.dart';
 import 'core/app_env.dart';
+import 'core/third_party_licenses.dart';
 import 'core/app_navigation.dart';
 import 'core/api_client.dart';
 import 'core/auth_session.dart';
@@ -27,6 +28,7 @@ final localeProvider = LocaleProvider();
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  registerThirdPartyLicenses();
   await AppEnv.load();
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
   await GoogleSignIn.instance.initialize();

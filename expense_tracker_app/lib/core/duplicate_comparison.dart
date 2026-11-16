@@ -56,8 +56,9 @@ String comparisonText(Object? value) => (value?.toString() ?? '')
 bool samePurchaseMinute(Object? first, Object? second) {
   final a = DateTime.tryParse(first?.toString() ?? '');
   final b = DateTime.tryParse(second?.toString() ?? '');
-  if (a == null || b == null)
+  if (a == null || b == null) {
     return comparisonText(first) == comparisonText(second);
+  }
   return a.millisecondsSinceEpoch ~/ 60000 == b.millisecondsSinceEpoch ~/ 60000;
 }
 

@@ -82,7 +82,7 @@ class AnalyticsErrorState extends StatelessWidget {
           mainAxisSize: MainAxisSize.min,
           children: [
             const Icon(
-              Icons.error_outline,
+              AppIcons.circleAlert,
               color: ShellColors.softRed,
               size: 42,
             ),

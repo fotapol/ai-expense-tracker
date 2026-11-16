@@ -362,7 +362,7 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
       ..._filters.categoryIds.map(
         (id) => _buildFilterChip(
           _categoryNamesById[id] ?? context.tr('filters_category'),
-          icon: Icons.category_outlined,
+          icon: AppIcons.shapes,
           tone: ShellStyles.categoryTone(
             context,
             code: _categoryCodesById[id],
@@ -383,7 +383,7 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
       ..._filters.subcategoryIds.map(
         (id) => _buildFilterChip(
           _categoryNamesById[id] ?? context.tr('filters_subcategory'),
-          icon: Icons.account_tree_outlined,
+          icon: AppIcons.network,
           tone: ShellStyles.categoryTone(
             context,
             code: _categoryCodesById[id],
@@ -404,7 +404,7 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
       ..._filters.labelIds.map(
         (id) => _buildFilterChip(
           _labelNamesById[id] ?? context.tr('filters_labels'),
-          icon: Icons.label_outline,
+          icon: AppIcons.tag,
           tone: ShellStyles.labelTone(
             context,
             labelId: id,
@@ -588,7 +588,11 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
         child: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(Icons.tune, size: 16, color: ShellStyles.textPrimary(context)),
+            Icon(
+              AppIcons.slidersHorizontal,
+              size: 16,
+              color: ShellStyles.textPrimary(context),
+            ),
             const SizedBox(width: 8),
             Text(
               context.tr('filters_title'),
@@ -636,7 +640,7 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
                         const SizedBox(height: 8),
                         TextButton.icon(
                           onPressed: _openFilters,
-                          icon: const Icon(Icons.date_range_outlined, size: 18),
+                          icon: const Icon(AppIcons.calendarRange, size: 18),
                           label: Text(
                             formatLocalizedDateRange(
                               context,

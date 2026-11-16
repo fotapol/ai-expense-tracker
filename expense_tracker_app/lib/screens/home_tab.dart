@@ -2,7 +2,6 @@ import 'dart:async';
 
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:fl_chart/fl_chart.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 
 import '../core/app_navigation.dart';
@@ -564,7 +563,6 @@ class _HomeTabState extends State<HomeTab>
                 child: CrownIcon(
                   color: ShellColors.gold,
                   size: ShellStyles.scaled(context, 17, min: 15, max: 18),
-                  strokeWidth: 1.7,
                 ),
                 onTap: () => _openSubscriptionScreen(context),
               )
@@ -680,8 +678,8 @@ class _HomeTabState extends State<HomeTab>
                     children: [
                       Icon(
                         positiveDelta
-                            ? CupertinoIcons.arrow_down_right
-                            : CupertinoIcons.arrow_up_right,
+                            ? AppIcons.arrowDownRight
+                            : AppIcons.arrowUpRight,
                         size: 12,
                         color: positiveDelta
                             ? ShellColors.softGreen
@@ -1225,11 +1223,7 @@ class _HomeTabState extends State<HomeTab>
       decoration: ShellStyles.cardDecoration(context),
       child: Column(
         children: [
-          Icon(
-            CupertinoIcons.exclamationmark_circle,
-            color: ShellColors.softRed,
-            size: 42,
-          ),
+          Icon(AppIcons.circleAlert, color: ShellColors.softRed, size: 42),
           const SizedBox(height: 10),
           Text(
             _error ?? context.tr('home_refresh_error'),

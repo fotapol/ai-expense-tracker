@@ -17,6 +17,8 @@ import 'package:expense_tracker_app/screens/receipts_tab.dart';
 import 'package:expense_tracker_app/screens/home_tab.dart';
 import 'package:expense_tracker_app/screens/tools_screen.dart';
 import 'package:expense_tracker_app/screens/analytics_screen.dart';
+import 'package:expense_tracker_app/screens/analytics_trends_tab.dart';
+import 'package:expense_tracker_app/core/analytics_filters.dart';
 import 'package:expense_tracker_app/widgets/app_tab_footer.dart';
 import 'package:expense_tracker_app/widgets/filter_bottom_sheet.dart';
 import 'package:expense_tracker_app/widgets/duplicate_details_comparison.dart';
@@ -633,8 +635,8 @@ void main() {
           for (final font in {
             'DejaVuSans': '/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf',
             'Roboto': '/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf',
-            'packages/cupertino_icons/CupertinoIcons':
-                '/home/kirill/.pub-cache/hosted/pub.dev/cupertino_icons-1.0.8/assets/CupertinoIcons.ttf',
+            'packages/lucide_icons_flutter/Lucide':
+                '/home/kirill/.pub-cache/hosted/pub.dev/lucide_icons_flutter-4.0.3/assets/lucide.ttf',
             'MaterialIcons':
                 '/home/kirill/.local/flutter-sdks/flutter/bin/cache/artifacts/material_fonts/MaterialIcons-Regular.otf',
           }.entries) {
@@ -690,6 +692,64 @@ void main() {
             dark: false,
           );
           await show(const DuplicateFinderScreen(), 'duplicate-group');
+          await http.runWithClient(
+            () async {
+              for (final locale in [const Locale('en'), const Locale('de')]) {
+                await show(
+                  const Scaffold(
+                    body: AnalyticsTrendsTab(filters: AnalyticsFilters()),
+                  ),
+                  'final-trends-${locale.languageCode}-100',
+                  locale: locale,
+                  dark: false,
+                );
+              }
+            },
+            () => MockClient((request) async {
+              if (request.url.path.endsWith('/trends')) {
+                return http.Response(
+                  jsonEncode({
+                    'currency': 'EUR',
+                    'total_amount': 1004,
+                    'previous_total_amount': 0,
+                    'change_percentage': null,
+                    'bucket_unit': 'month',
+                    'buckets': [
+                      {
+                        'label': 'Sep',
+                        'start_date': '2026-09-01',
+                        'end_date': '2026-09-30',
+                        'amount': 1004,
+                        'transaction_count': 1,
+                      },
+                      {
+                        'label': 'Oct',
+                        'start_date': '2026-10-01',
+                        'end_date': '2026-10-31',
+                        'amount': 0,
+                        'transaction_count': 0,
+                      },
+                      {
+                        'label': 'Nov',
+                        'start_date': '2026-11-01',
+                        'end_date': '2026-11-30',
+                        'amount': 0,
+                        'transaction_count': 0,
+                      },
+                    ],
+                  }),
+                  200,
+                );
+              }
+              if (request.url.path.endsWith('/summary')) {
+                return http.Response(
+                  '{"currency":"EUR","total_amount":1004,"total_transactions":1,"breakdown":[]}',
+                  200,
+                );
+              }
+              return response(request);
+            }),
+          );
           await tester.pumpWidget(
             RepaintBoundary(
               key: _previewKey,

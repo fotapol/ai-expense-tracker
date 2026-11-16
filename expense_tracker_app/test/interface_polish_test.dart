@@ -1,3 +1,4 @@
+import 'package:expense_tracker_app/core/app_icons.dart';
 import 'package:expense_tracker_app/l10n/app_localizations.dart';
 import 'package:expense_tracker_app/main.dart' show themeProvider;
 import 'package:expense_tracker_app/screens/home_tab.dart';
@@ -78,9 +79,9 @@ void main() {
             find.byKey(const ValueKey('duplicate-finder-status')),
             findsOneWidget,
           );
-          await tester.ensureVisible(find.byIcon(Icons.refresh));
+          await tester.ensureVisible(find.byIcon(AppIcons.refreshCw));
           await tester.pumpAndSettle();
-          await tester.tap(find.byIcon(Icons.refresh));
+          await tester.tap(find.byIcon(AppIcons.refreshCw));
           await tester.pumpAndSettle();
           expect(requests, 2);
           expect(

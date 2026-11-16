@@ -1,4 +1,5 @@
 import 'package:expense_tracker_app/l10n/app_localizations.dart';
+import 'package:expense_tracker_app/core/app_icons.dart';
 import 'package:expense_tracker_app/main.dart' show themeProvider;
 import 'package:expense_tracker_app/screens/tools_screen.dart';
 import 'package:flutter/material.dart';
@@ -57,6 +58,23 @@ void main() {
     ]);
     expect(tool('duplicates'), findsOneWidget);
     expect(find.text('Duplicate finder'), findsOneWidget);
+    expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('long press on the pin glyph also unpins the tool', (
+    tester,
+  ) async {
+    await showTools(tester);
+    final pin = find.descendant(
+      of: tool('scan'),
+      matching: find.byIcon(AppIcons.pin),
+    );
+    await tester.longPress(pin);
+    await tester.pumpAndSettle();
+    expect((await SharedPreferences.getInstance()).getStringList(prefsKey), [
+      'receipts',
+      'analytics',
+    ]);
     expect(tester.takeException(), isNull);
   });
 

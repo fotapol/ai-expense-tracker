@@ -144,7 +144,7 @@ class _LoginScreenState extends State<LoginScreen> {
                         if (_sessionNotice != null) ...[
                           const SizedBox(height: 14),
                           _LoginMessageCard(
-                            icon: Icons.info_outline,
+                            icon: AppIcons.info,
                             message: _sessionNotice!,
                             tone: _LoginMessageTone.info,
                           ),
@@ -152,7 +152,7 @@ class _LoginScreenState extends State<LoginScreen> {
                         if (_errorMessage != null) ...[
                           const SizedBox(height: 14),
                           _LoginMessageCard(
-                            icon: Icons.error_outline,
+                            icon: AppIcons.circleAlert,
                             message: _errorMessage!,
                             tone: _LoginMessageTone.error,
                           ),

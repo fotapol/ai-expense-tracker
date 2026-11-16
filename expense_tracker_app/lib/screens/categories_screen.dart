@@ -541,10 +541,10 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
                   : () => _deleteOrDisableCategory(category),
               emphasized: disabled,
               icon: disabled
-                  ? Icons.visibility_outlined
+                  ? AppIcons.eye
                   : isBuiltIn
-                  ? Icons.visibility_off_outlined
-                  : Icons.delete_outline,
+                  ? AppIcons.eyeOff
+                  : AppIcons.trash2,
             ),
             const SizedBox(width: 8),
             Icon(

@@ -1,4 +1,3 @@
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 
 import '../core/api_client.dart';
@@ -341,7 +340,7 @@ class _LabelsScreenState extends State<LabelsScreen> {
         children: [
           Row(
             children: [
-              const Icon(CupertinoIcons.exclamationmark_triangle),
+              const Icon(AppIcons.triangleAlert),
               const SizedBox(width: 10),
               Expanded(
                 child: Text(
@@ -597,11 +596,7 @@ class _LabelsScreenState extends State<LabelsScreen> {
                           max: 14,
                         ),
                       ),
-                      child: Icon(
-                        CupertinoIcons.tag,
-                        color: tone.onSolid,
-                        size: 18,
-                      ),
+                      child: Icon(AppIcons.tag, color: tone.onSolid, size: 18),
                     ),
                     const SizedBox(width: 12),
                     Expanded(
@@ -625,7 +620,7 @@ class _LabelsScreenState extends State<LabelsScreen> {
                       child: Padding(
                         padding: const EdgeInsets.all(6),
                         child: Icon(
-                          CupertinoIcons.xmark,
+                          AppIcons.x,
                           color: ShellColors.softRed,
                           size: 16,
                         ),

@@ -1,3 +1,4 @@
+import 'package:expense_tracker_app/core/app_icons.dart';
 import 'package:expense_tracker_app/core/period_filter.dart';
 import 'package:expense_tracker_app/l10n/app_localizations.dart';
 import 'package:expense_tracker_app/widgets/filter_bottom_sheet.dart';
@@ -148,7 +149,7 @@ void main() {
       expect(find.text('Benutzerdefinierter Zeitraum'), findsOneWidget);
       expect(tester.takeException(), isNull);
       await tester.scrollUntilVisible(
-        find.byIcon(Icons.edit_calendar_outlined),
+        find.byIcon(AppIcons.calendarCog),
         200,
         scrollable: find
             .descendant(
@@ -158,7 +159,7 @@ void main() {
             .first,
       );
       await tester.pumpAndSettle();
-      await tester.tap(find.byIcon(Icons.edit_calendar_outlined));
+      await tester.tap(find.byIcon(AppIcons.calendarCog));
       await tester.pumpAndSettle();
       expect(find.byType(DateRangePickerDialog), findsOneWidget);
       expect(tester.takeException(), isNull);
@@ -280,7 +281,7 @@ void main() {
     );
     await choosePeriod(tester, 'Last 7 Days');
     await tester.pumpAndSettle();
-    expect(find.byIcon(Icons.edit_calendar_outlined), findsNothing);
+    expect(find.byIcon(AppIcons.calendarCog), findsNothing);
     await tester.tap(find.text('Apply'));
     await tester.pumpAndSettle();
     expect(result?['period'], PeriodFilter.last7Days);

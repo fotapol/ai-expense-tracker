@@ -339,7 +339,7 @@ class _FilterBottomSheetState extends State<FilterBottomSheet> {
                     TextField(
                       decoration: InputDecoration(
                         hintText: context.tr('filters_search_subcategory'),
-                        prefixIcon: const Icon(Icons.search),
+                        prefixIcon: const Icon(AppIcons.search),
                       ),
                       onChanged: (value) => setModalState(() => search = value),
                     ),
@@ -454,7 +454,7 @@ class _FilterBottomSheetState extends State<FilterBottomSheet> {
                 IconButton(
                   onPressed: () => Navigator.pop(context),
                   tooltip: context.tr('common_cancel'),
-                  icon: const Icon(Icons.close),
+                  icon: const Icon(AppIcons.x),
                 ),
               ],
             ),
@@ -468,7 +468,7 @@ class _FilterBottomSheetState extends State<FilterBottomSheet> {
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
                     _section(
-                      icon: Icons.calendar_today_outlined,
+                      icon: AppIcons.calendar,
                       title: context.tr('filters_period'),
                       children: [
                         _buildPeriodChips(),
@@ -477,7 +477,7 @@ class _FilterBottomSheetState extends State<FilterBottomSheet> {
                           const SizedBox(height: 8),
                           TextButton.icon(
                             onPressed: _pickCustomRange,
-                            icon: const Icon(Icons.edit_calendar_outlined),
+                            icon: const Icon(AppIcons.calendarCog),
                             label: Text(
                               formatLocalizedDateRange(
                                 context,
@@ -559,14 +559,14 @@ class _FilterBottomSheetState extends State<FilterBottomSheet> {
                             ),
                             const SizedBox(height: 16),
                             _buildSectionTitle(
-                              icon: Icons.category_outlined,
+                              icon: AppIcons.shapes,
                               title: context.tr('filters_category'),
                             ),
                             const SizedBox(height: 10),
                             _buildCategoryChips(),
                             const SizedBox(height: 16),
                             _buildSectionTitle(
-                              icon: Icons.account_tree_outlined,
+                              icon: AppIcons.network,
                               title: context.tr('filters_subcategory'),
                             ),
                             const SizedBox(height: 10),
@@ -574,7 +574,7 @@ class _FilterBottomSheetState extends State<FilterBottomSheet> {
                             if (_labels.isNotEmpty) ...[
                               const SizedBox(height: 16),
                               _buildSectionTitle(
-                                icon: Icons.label_outline,
+                                icon: AppIcons.tag,
                                 title: context.tr('filters_labels'),
                               ),
                               const SizedBox(height: 10),
@@ -586,20 +586,20 @@ class _FilterBottomSheetState extends State<FilterBottomSheet> {
                     else ...[
                       const SizedBox(height: 12),
                       _section(
-                        icon: Icons.category_outlined,
+                        icon: AppIcons.shapes,
                         title: context.tr('filters_category'),
                         children: [_buildCategoryChips()],
                       ),
                       const SizedBox(height: 12),
                       _section(
-                        icon: Icons.account_tree_outlined,
+                        icon: AppIcons.network,
                         title: context.tr('filters_subcategory'),
                         children: [_buildSubcategoryPicker()],
                       ),
                       if (_labels.isNotEmpty) ...[
                         const SizedBox(height: 12),
                         _section(
-                          icon: Icons.label_outline,
+                          icon: AppIcons.tag,
                           title: context.tr('filters_labels'),
                           children: [_buildLabelChips()],
                         ),
@@ -631,10 +631,7 @@ class _FilterBottomSheetState extends State<FilterBottomSheet> {
                     Expanded(
                       child: TextButton.icon(
                         onPressed: _clearAll,
-                        icon: const Icon(
-                          Icons.filter_alt_off_outlined,
-                          size: 18,
-                        ),
+                        icon: const Icon(AppIcons.filterX, size: 18),
                         label: Text(context.tr('common_clear_filters')),
                       ),
                     ),
@@ -659,7 +656,7 @@ class _FilterBottomSheetState extends State<FilterBottomSheet> {
                         borderRadius: BorderRadius.circular(14),
                       ),
                     ),
-                    icon: const Icon(Icons.check, size: 20),
+                    icon: const Icon(AppIcons.check, size: 20),
                     label: Text(context.tr('common_apply')),
                   ),
                 ),
@@ -767,7 +764,7 @@ class _FilterBottomSheetState extends State<FilterBottomSheet> {
   Widget _buildReceiptFilters() => Form(
     key: _amountFormKey,
     child: _section(
-      icon: Icons.payments_outlined,
+      icon: AppIcons.banknote,
       title: context.tr(
         'filters_display_amount',
         params: {'currency': widget.displayCurrency},
@@ -927,7 +924,7 @@ class _FilterBottomSheetState extends State<FilterBottomSheet> {
               borderRadius: BorderRadius.circular(16),
             ),
           ),
-          icon: const Icon(Icons.arrow_drop_down),
+          icon: const Icon(AppIcons.chevronDown),
           label: Text(
             _selectedSubcategoryIds.isEmpty
                 ? context.tr('filters_select_subcategories')

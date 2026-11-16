@@ -383,8 +383,8 @@ class _CurrencySettingsScreenState extends State<CurrencySettingsScreen> {
                                   const SizedBox(width: 4),
                                   Icon(
                                     _showAll
-                                        ? Icons.keyboard_arrow_up
-                                        : Icons.keyboard_arrow_down,
+                                        ? AppIcons.chevronUp
+                                        : AppIcons.chevronDown,
                                     color: ShellColors.softBlue,
                                     size: 18,
                                   ),

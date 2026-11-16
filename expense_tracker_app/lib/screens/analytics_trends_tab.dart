@@ -225,7 +225,7 @@ class _AnalyticsTrendsTabState extends State<AnalyticsTrendsTab> {
           ],
           if (isEmptyTrends)
             AnalyticsEmptyCard(
-              icon: Icons.show_chart,
+              icon: AppIcons.chartLine,
               title: context.tr('no_trend_data_yet'),
               message: context.tr('analytics_trends_empty_subtitle'),
             )
@@ -266,7 +266,7 @@ class _AnalyticsTrendsTabState extends State<AnalyticsTrendsTab> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   const Icon(
-                    Icons.info_outline,
+                    AppIcons.info,
                     color: ShellColors.softRed,
                     size: 18,
                   ),
@@ -332,21 +332,21 @@ class _AnalyticsTrendsTabState extends State<AnalyticsTrendsTab> {
         metric(
           context.tr('total_spent'),
           formatMoney(currency, totalSpent),
-          Icons.account_balance_wallet_outlined,
+          AppIcons.wallet,
           totalSpent,
           previousTotalSpent,
         ),
         metric(
           context.tr('analytics_trends_transactions'),
           MaterialLocalizations.of(context).formatDecimal(totalTransactions),
-          Icons.receipt_long_outlined,
+          AppIcons.receiptText,
           totalTransactions.toDouble(),
           previousTransactions?.toDouble(),
         ),
         metric(
           context.tr('daily_avg'),
           formatMoney(currency, dailyAverage),
-          Icons.calendar_today_outlined,
+          AppIcons.calendar,
           dailyAverage,
           previousDailyAverage,
         ),
@@ -423,7 +423,7 @@ class _AnalyticsTrendsTabState extends State<AnalyticsTrendsTab> {
                   value: lowestPoint == null
                       ? context.tr('analytics_no_data')
                       : '${formatMoney(currency, lowestPoint.amount)} - ${lowestPoint.label}',
-                  icon: Icons.south_east,
+                  icon: AppIcons.arrowDownRight,
                   tint: ShellStyles.success(context).withAlpha(20),
                   iconColor: ShellStyles.success(context),
                 ),
@@ -435,7 +435,7 @@ class _AnalyticsTrendsTabState extends State<AnalyticsTrendsTab> {
                   value: highestPoint == null
                       ? context.tr('analytics_no_data')
                       : '${formatMoney(currency, highestPoint.amount)} - ${highestPoint.label}',
-                  icon: Icons.north_east,
+                  icon: AppIcons.arrowUpRight,
                   tint: ShellStyles.error(context).withAlpha(20),
                   iconColor: ShellStyles.error(context),
                 ),
@@ -512,7 +512,7 @@ class _AnalyticsTrendsTabState extends State<AnalyticsTrendsTab> {
         mainAxisSize: MainAxisSize.min,
         children: [
           Icon(
-            Icons.calendar_today_outlined,
+            AppIcons.calendar,
             size: 13,
             color: ShellStyles.textMuted(context),
           ),

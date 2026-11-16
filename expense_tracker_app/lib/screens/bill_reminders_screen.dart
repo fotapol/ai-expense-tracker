@@ -849,7 +849,7 @@ class _BillRemindersScreenState extends State<BillRemindersScreen> {
                             color: ShellColors.softRed,
                           ),
                         )
-                      : Icon(Icons.delete_outline, color: ShellColors.softRed),
+                      : Icon(AppIcons.trash2, color: ShellColors.softRed),
                 ),
             ],
           ),
@@ -886,7 +886,7 @@ class _BillRemindersScreenState extends State<BillRemindersScreen> {
           Row(
             children: [
               Icon(
-                Icons.calendar_today_outlined,
+                AppIcons.calendar,
                 size: 15,
                 color: ShellStyles.textMuted(context),
               ),
@@ -953,7 +953,7 @@ class _BillRemindersScreenState extends State<BillRemindersScreen> {
                           height: 14,
                           child: CircularProgressIndicator(strokeWidth: 2),
                         )
-                      : const Icon(Icons.check, size: 16),
+                      : const Icon(AppIcons.check, size: 16),
                   label: Text(context.tr('bill_reminders_mark_paid')),
                 ),
               ],
@@ -1011,7 +1011,7 @@ class _BillRemindersScreenState extends State<BillRemindersScreen> {
           mainAxisSize: MainAxisSize.min,
           children: [
             Icon(
-              Icons.swap_vert_rounded,
+              AppIcons.arrowDownUp,
               size: 16,
               color: ShellStyles.textPrimary(context),
             ),
@@ -1079,9 +1079,7 @@ class _BillRemindersScreenState extends State<BillRemindersScreen> {
                     ),
                   ),
                   child: Icon(
-                    isShowingHistory
-                        ? Icons.schedule_outlined
-                        : Icons.history_outlined,
+                    isShowingHistory ? AppIcons.clock : AppIcons.history,
                     size: 18,
                     color: isShowingHistory
                         ? accentTone.foreground

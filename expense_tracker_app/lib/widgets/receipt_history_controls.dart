@@ -6,11 +6,11 @@ import '../core/redesign_system.dart';
 import '../l10n/app_localizations.dart';
 
 IconData receiptSortIcon(String sort) => switch (sort) {
-  'oldest' => Icons.arrow_upward,
-  'amount_asc' => Icons.trending_up,
-  'amount_desc' => Icons.trending_down,
-  'merchant_asc' => Icons.sort_by_alpha,
-  _ => Icons.arrow_downward,
+  'oldest' => AppIcons.calendarArrowUp,
+  'amount_asc' => AppIcons.trendingUp,
+  'amount_desc' => AppIcons.trendingDown,
+  'merchant_asc' => AppIcons.arrowDownAZ,
+  _ => AppIcons.calendarArrowDown,
 };
 
 class ReceiptHistoryControls extends StatelessWidget {
@@ -102,7 +102,7 @@ class ReceiptHistoryControls extends StatelessWidget {
                   ),
                 ),
                 const SizedBox(width: 4),
-                const Icon(Icons.expand_more, size: 18),
+                const Icon(AppIcons.chevronDown, size: 18),
               ],
             ),
           ),
@@ -125,7 +125,7 @@ class ReceiptHistoryControls extends StatelessWidget {
           ),
         );
         final reviewIcon = Icon(
-          reviewOnly ? Icons.fact_check : Icons.fact_check_outlined,
+          reviewOnly ? AppIcons.clipboardCheck : AppIcons.clipboardCheck,
           size: 18,
         );
         final review = Semantics(

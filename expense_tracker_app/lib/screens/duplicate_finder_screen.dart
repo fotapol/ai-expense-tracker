@@ -74,9 +74,7 @@ Widget _confidenceBadge(BuildContext context, Map<String, dynamic> pair) {
       mainAxisSize: MainAxisSize.min,
       children: [
         Icon(
-          pair['confidence'] == 'exact'
-              ? Icons.verified_outlined
-              : Icons.content_copy_outlined,
+          pair['confidence'] == 'exact' ? AppIcons.badgeCheck : AppIcons.copy,
           size: 16,
           color: tone.foreground,
         ),
@@ -117,7 +115,7 @@ Widget _purchaseSummary(
                 style: const TextStyle(fontWeight: FontWeight.w700),
               )
             : Icon(
-                Icons.receipt_long_outlined,
+                AppIcons.receiptText,
                 color: ShellStyles.textMuted(context),
                 size: 18,
               ),
@@ -260,7 +258,7 @@ class _DuplicateFinderScreenState extends State<DuplicateFinderScreen> {
             borderRadius: BorderRadius.circular(12),
           ),
           child: Icon(
-            Icons.content_copy_outlined,
+            AppIcons.copy,
             size: 22,
             color: ShellStyles.accentTone(context).foreground,
           ),
@@ -307,9 +305,7 @@ class _DuplicateFinderScreenState extends State<DuplicateFinderScreen> {
                 shape: BoxShape.circle,
               ),
               child: Icon(
-                _error == null
-                    ? Icons.check_circle_outline
-                    : Icons.cloud_off_outlined,
+                _error == null ? AppIcons.circleCheck : AppIcons.cloudOff,
                 size: 36,
                 color: ShellStyles.accentTone(context).foreground,
               ),
@@ -327,7 +323,7 @@ class _DuplicateFinderScreenState extends State<DuplicateFinderScreen> {
             const SizedBox(height: 20),
             OutlinedButton.icon(
               onPressed: () => _load(reset: true),
-              icon: const Icon(Icons.refresh, size: 18),
+              icon: const Icon(AppIcons.refreshCw, size: 18),
               label: Text(
                 _error == null
                     ? MaterialLocalizations.of(
@@ -413,7 +409,7 @@ class _DuplicateFinderScreenState extends State<DuplicateFinderScreen> {
                       ),
                     ),
                     const SizedBox(width: 8),
-                    const Icon(Icons.chevron_right, size: 20),
+                    const Icon(AppIcons.chevronRight, size: 20),
                   ],
                 ),
                 if (members.length > 2)
@@ -526,8 +522,8 @@ class _DuplicateFinderScreenState extends State<DuplicateFinderScreen> {
                                 onPressed: () => _load(),
                                 icon: Icon(
                                   _error == null
-                                      ? Icons.expand_more
-                                      : Icons.refresh,
+                                      ? AppIcons.chevronDown
+                                      : AppIcons.refreshCw,
                                 ),
                                 label: Text(
                                   context.tr(
@@ -737,7 +733,7 @@ class _DuplicateComparisonScreenState
                 height: 18,
                 child: CircularProgressIndicator(strokeWidth: 2),
               )
-            : const Icon(Icons.check, size: 20),
+            : const Icon(AppIcons.check, size: 20),
         label: Text(context.tr('duplicates_keep_selected')),
       );
       final secondary = OutlinedButton(
@@ -810,7 +806,7 @@ class _DuplicateComparisonScreenState
                                 setState(() => _pairIndex--);
                                 _load();
                               },
-                        icon: const Icon(Icons.chevron_left),
+                        icon: const Icon(AppIcons.chevronLeft),
                       ),
                       Expanded(
                         child: Text(
@@ -844,7 +840,7 @@ class _DuplicateComparisonScreenState
                                 setState(() => _pairIndex++);
                                 _load();
                               },
-                        icon: const Icon(Icons.chevron_right),
+                        icon: const Icon(AppIcons.chevronRight),
                       ),
                     ],
                   ),

@@ -257,6 +257,12 @@ class ThemeProvider extends ChangeNotifier {
     );
 
     return ThemeData(
+      actionIconTheme: ActionIconThemeData(
+        backButtonIconBuilder: (_) => const Icon(AppIcons.arrowLeft),
+        closeButtonIconBuilder: (_) => const Icon(AppIcons.x),
+        drawerButtonIconBuilder: (_) => const Icon(AppIcons.menu),
+        endDrawerButtonIconBuilder: (_) => const Icon(AppIcons.panelLeftClose),
+      ),
       brightness: brightness,
       pageTransitionsTheme: PageTransitionsTheme(
         builders: {

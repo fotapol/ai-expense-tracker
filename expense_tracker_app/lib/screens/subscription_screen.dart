@@ -732,7 +732,6 @@ class _SubscriptionScreenState extends State<SubscriptionScreen> {
                 child: CrownIcon(
                   color: ShellStyles.warningPremium(context),
                   size: 24,
-                  strokeWidth: 1.8,
                 ),
               ),
               SizedBox(width: 14),
@@ -874,7 +873,7 @@ class _SubscriptionScreenState extends State<SubscriptionScreen> {
             alignment: Alignment.centerLeft,
             child: OutlinedButton.icon(
               onPressed: _openPlaySubscriptionManagement,
-              icon: const Icon(Icons.open_in_new, size: 18),
+              icon: const Icon(AppIcons.externalLink, size: 18),
               label: Text(context.tr('settings_manage_subscription')),
               style: OutlinedButton.styleFrom(
                 foregroundColor: ShellStyles.heroTextPrimary(context),

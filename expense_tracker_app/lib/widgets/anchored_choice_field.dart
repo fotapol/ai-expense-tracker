@@ -93,7 +93,7 @@ class AnchoredChoiceField extends StatelessWidget {
                     : Colors.transparent,
               ),
               leadingIcon: option.key == value
-                  ? const Icon(Icons.check, size: 18)
+                  ? const Icon(AppIcons.check, size: 18)
                   : const SizedBox(width: 18),
               child: Text(option.value, style: const TextStyle(fontSize: 13)),
             ),
@@ -140,7 +140,7 @@ class AnchoredChoiceField extends StatelessWidget {
                       ),
                     ),
                     const SizedBox(width: 8),
-                    const Icon(Icons.expand_more, size: 20),
+                    const Icon(AppIcons.chevronDown, size: 20),
                   ],
                 ),
               ),

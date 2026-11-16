@@ -293,7 +293,7 @@ class _AnalyticsTabState extends State<AnalyticsTab>
           ],
           if (isEmptyAnalytics)
             AnalyticsEmptyCard(
-              icon: Icons.pie_chart_outline,
+              icon: AppIcons.chartPie,
               title: context.tr('no_category_insights_yet'),
               message: context.tr('analytics_empty_categories_message'),
             )
@@ -327,7 +327,7 @@ class _AnalyticsTabState extends State<AnalyticsTab>
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   const Icon(
-                    Icons.info_outline,
+                    AppIcons.info,
                     color: ShellColors.softRed,
                     size: 18,
                   ),
@@ -736,7 +736,7 @@ class _AnalyticsTabState extends State<AnalyticsTab>
                     ),
                     const SizedBox(width: 2),
                     Icon(
-                      Icons.chevron_right,
+                      AppIcons.chevronRight,
                       color: ShellStyles.textMuted(context),
                       size: 16,
                     ),
@@ -788,7 +788,7 @@ class _AnalyticsTabState extends State<AnalyticsTab>
                 radius: 14,
               ),
               child: const Icon(
-                Icons.sell_outlined,
+                AppIcons.tag,
                 size: 18,
                 color: ShellColors.softGreen,
               ),
@@ -801,7 +801,7 @@ class _AnalyticsTabState extends State<AnalyticsTab>
                 child: AnalyticsMiniStatTile(
                   label: context.tr('analytics_total_savings'),
                   value: formatMoney(currency, totalSavings),
-                  icon: Icons.sell_outlined,
+                  icon: AppIcons.tag,
                   valueColor: ShellColors.softGreen,
                 ),
               ),
@@ -810,7 +810,7 @@ class _AnalyticsTabState extends State<AnalyticsTab>
                 child: AnalyticsMiniStatTile(
                   label: context.tr('analytics_items_with_discount'),
                   value: '$itemsWithDiscount',
-                  icon: Icons.local_offer_outlined,
+                  icon: AppIcons.tag,
                 ),
               ),
             ],
@@ -838,7 +838,7 @@ class _AnalyticsTabState extends State<AnalyticsTab>
                       border: Border.all(color: ShellStyles.border(context)),
                     ),
                     child: const Icon(
-                      Icons.local_offer_outlined,
+                      AppIcons.tag,
                       size: 18,
                       color: ShellColors.softGreen,
                     ),

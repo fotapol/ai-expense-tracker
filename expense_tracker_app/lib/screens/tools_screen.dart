@@ -117,7 +117,7 @@ class _ToolsScreenState extends State<ToolsScreen> {
           ),
           _ToolTileData(
             id: 'duplicates',
-            icon: Icons.content_copy_outlined,
+            icon: AppIcons.copy,
             title: context.tr('duplicates_title'),
             subtitle: context.tr('duplicates_subtitle'),
             onTap: () => _open(context, const DuplicateFinderScreen()),
@@ -359,9 +359,10 @@ class _ToolsScreenState extends State<ToolsScreen> {
             if (pinned) ...[
               const SizedBox(width: 8),
               Tooltip(
+                triggerMode: TooltipTriggerMode.manual,
                 message: pinLabel,
                 child: Icon(
-                  Icons.push_pin_outlined,
+                  AppIcons.pin,
                   size: 18,
                   color: ShellStyles.accentTone(context).foreground,
                 ),

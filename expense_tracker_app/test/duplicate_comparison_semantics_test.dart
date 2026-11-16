@@ -200,7 +200,7 @@ void main() {
         },
         () => MockClient((request) async {
           requested.add(request.url.path);
-          if (request.url.path == '/v1/duplicates')
+          if (request.url.path == '/v1/duplicates') {
             return http.Response(
               jsonEncode({
                 'items': resolved
@@ -216,6 +216,7 @@ void main() {
               }),
               200,
             );
+          }
           if (request.url.path.endsWith('/resolve')) {
             mutations.add(jsonDecode(request.body));
             resolved = true;

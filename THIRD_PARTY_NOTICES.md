@@ -15,6 +15,25 @@ Primary dependency manifests:
 Before publishing a formal release, generate a dependency license report from
 the current lockfiles and attach it to this file or release artifacts.
 
+## Interface Icons
+
+App-owned interface icons use [Lucide](https://lucide.dev), maintained by Lucide
+Icons and Contributors, through the
+[`lucide_icons_flutter`](https://pub.dev/packages/lucide_icons_flutter) adapter.
+Lucide is licensed under ISC (copyright © 2026 Lucide Icons and Contributors).
+Icons derived from Feather also retain the MIT notice (copyright © 2013–present
+Cole Bemis). The complete upstream notices are bundled in
+`expense_tracker_app/assets/licenses/lucide-LICENSE` and available through
+Settings → About → Licenses in the app.
+
+The Flutter adapter is MIT licensed (copyright © 2024 vqhapp); its license is
+included by Flutter's dependency license registry. Flutter's native controls
+and their bundled Material assets retain their own licenses, available on the
+same Licenses page. The Lucide license does not replace Flutter's notices.
+
+See the [official Lucide license](https://lucide.dev/license) and
+[adapter license](https://pub.dev/packages/lucide_icons_flutter/license).
+
 ## Brand And Platform Assets
 
 The Google sign-in mark under `expense_tracker_app/assets/auth/google_g.png`

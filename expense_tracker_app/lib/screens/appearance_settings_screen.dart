@@ -315,7 +315,7 @@ class _AppearanceSettingsScreenState extends State<AppearanceSettingsScreen> {
             child: Row(
               children: [
                 Icon(
-                  Icons.receipt_long_outlined,
+                  AppIcons.receiptText,
                   color: ShellStyles.accent(context),
                   size: 24,
                 ),

@@ -4,6 +4,7 @@ import 'package:url_launcher/url_launcher.dart';
 
 import '../core/app_env.dart';
 import '../core/app_release_notes.dart';
+import '../core/third_party_licenses.dart';
 import '../core/redesign_system.dart';
 import 'settings_detail_scaffold.dart';
 import '../l10n/app_localizations.dart';
@@ -299,6 +300,25 @@ class _AboutScreenState extends State<AboutScreen> {
                       title: context.tr('terms_of_service'),
                       subtitle: AppEnv.termsUrl,
                       onTap: () => _openUrl(AppEnv.termsUrl),
+                    ),
+                    Divider(
+                      height: 1,
+                      color: ShellStyles.border(context),
+                      indent: 14,
+                      endIndent: 14,
+                    ),
+                    _buildLinkRow(
+                      title: MaterialLocalizations.of(
+                        context,
+                      ).licensesPageTitle,
+                      subtitle: 'Lucide · ISC / MIT',
+                      onTap: () {
+                        registerThirdPartyLicenses();
+                        showLicensePage(
+                          context: context,
+                          applicationName: 'AI Expense Tracker',
+                        );
+                      },
                     ),
                     Divider(
                       height: 1,

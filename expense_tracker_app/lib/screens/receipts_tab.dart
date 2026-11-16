@@ -529,7 +529,7 @@ class _ReceiptsTabState extends State<ReceiptsTab>
                 decoration: InputDecoration(
                   hintText: context.tr('filters_search_hint'),
                   prefixIcon: Icon(
-                    Icons.search,
+                    AppIcons.search,
                     color: ShellStyles.textMuted(context),
                   ),
                   border: InputBorder.none,
@@ -559,14 +559,14 @@ class _ReceiptsTabState extends State<ReceiptsTab>
             icon: Badge(
               isLabelVisible: _activeFilterCount > 0,
               label: Text('$_activeFilterCount'),
-              child: const Icon(Icons.tune),
+              child: const Icon(AppIcons.slidersHorizontal),
             ),
             onTap: _openFilters,
             tooltip: context.tr('common_filter'),
           ),
           const SizedBox(width: 8),
           _buildTopActionButton(
-            icon: const Icon(Icons.add_circle_outline),
+            icon: const Icon(AppIcons.circlePlus),
             onTap: () {
               Navigator.push(
                 context,
@@ -640,7 +640,7 @@ class _ReceiptsTabState extends State<ReceiptsTab>
       if (_currencyFilter != null)
         _buildFilterChip(
           _currencyFilter!,
-          icon: Icons.currency_exchange,
+          icon: AppIcons.arrowRightLeft,
           onDeleted: () {
             setState(() {
               _currencyFilter = null;
@@ -656,7 +656,7 @@ class _ReceiptsTabState extends State<ReceiptsTab>
             minimum: _minAmount,
             maximum: _maxAmount,
           ),
-          icon: Icons.payments_outlined,
+          icon: AppIcons.banknote,
           onDeleted: () {
             setState(() {
               _minAmount = null;
@@ -675,7 +675,7 @@ class _ReceiptsTabState extends State<ReceiptsTab>
                 ? 'filters_manual'
                 : 'filters_imported',
           ),
-          icon: Icons.input,
+          icon: AppIcons.logIn,
           onDeleted: () {
             setState(() => _sourceFilter = null);
             _fetchTransactions();
@@ -686,7 +686,7 @@ class _ReceiptsTabState extends State<ReceiptsTab>
           context.tr(
             _statusFilter == 'DRAFT' ? 'receipts_draft' : 'filters_confirmed',
           ),
-          icon: Icons.check_circle_outline,
+          icon: AppIcons.circleCheck,
           onDeleted: () {
             setState(() => _statusFilter = null);
             _fetchTransactions();
@@ -701,7 +701,7 @@ class _ReceiptsTabState extends State<ReceiptsTab>
                   _selectedCustomRange!.end!,
                 )
               : context.tr(PeriodFilter.localizationKey(_selectedPeriod)),
-          icon: Icons.calendar_today_outlined,
+          icon: AppIcons.calendar,
           onDeleted: () {
             setState(() {
               _selectedPeriod = PeriodFilter.allTime;
@@ -713,7 +713,7 @@ class _ReceiptsTabState extends State<ReceiptsTab>
       if (_search.isNotEmpty)
         _buildFilterChip(
           _search,
-          icon: Icons.search,
+          icon: AppIcons.search,
           onDeleted: () {
             _searchController.clear();
             setState(() => _search = '');
@@ -726,7 +726,7 @@ class _ReceiptsTabState extends State<ReceiptsTab>
             'filters_categories_count',
             params: {'count': _selectedCategoryIds.length.toString()},
           ),
-          icon: Icons.category_outlined,
+          icon: AppIcons.shapes,
           onDeleted: () {
             setState(() {
               _selectedCategoryIds.clear();
@@ -741,7 +741,7 @@ class _ReceiptsTabState extends State<ReceiptsTab>
             'filters_subcategories_count',
             params: {'count': _selectedSubcategoryIds.length.toString()},
           ),
-          icon: Icons.account_tree_outlined,
+          icon: AppIcons.network,
           onDeleted: () {
             setState(() => _selectedSubcategoryIds.clear());
             _fetchTransactions();
@@ -753,7 +753,7 @@ class _ReceiptsTabState extends State<ReceiptsTab>
             'filters_labels_count',
             params: {'count': _selectedLabelIds.length.toString()},
           ),
-          icon: Icons.label_outline,
+          icon: AppIcons.tag,
           onDeleted: () {
             setState(() => _selectedLabelIds.clear());
             _fetchTransactions();
@@ -776,7 +776,7 @@ class _ReceiptsTabState extends State<ReceiptsTab>
             key: const ValueKey('receipt-clear-all-filters'),
             tooltip: context.tr('analytics_clear_all_filters'),
             onPressed: _clearAllFilters,
-            icon: const Icon(Icons.filter_alt_off_outlined, size: 20),
+            icon: const Icon(AppIcons.filterX, size: 20),
           ),
         ],
       ),
@@ -793,9 +793,7 @@ class _ReceiptsTabState extends State<ReceiptsTab>
       avatar: Icon(icon, size: 16, color: tone.foreground),
       label: Text(
         label,
-        textDirection: icon == Icons.payments_outlined
-            ? TextDirection.ltr
-            : null,
+        textDirection: icon == AppIcons.banknote ? TextDirection.ltr : null,
         style: TextStyle(
           color: tone.foreground,
           fontSize: 12,
@@ -821,7 +819,7 @@ class _ReceiptsTabState extends State<ReceiptsTab>
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            const Icon(Icons.error_outline, color: Colors.red, size: 48),
+            const Icon(AppIcons.circleAlert, color: Colors.red, size: 48),
             const SizedBox(height: 16),
             Text(
               _error ?? context.tr('receipts_history_load_error'),
@@ -857,7 +855,7 @@ class _ReceiptsTabState extends State<ReceiptsTab>
                     radius: ShellStyles.scaled(context, 22, min: 20, max: 24),
                   ),
                   child: Icon(
-                    Icons.receipt_long,
+                    AppIcons.receiptText,
                     size: ShellStyles.scaled(context, 32, min: 28, max: 36),
                     color: ShellStyles.textMuted(context),
                   ),
@@ -892,7 +890,7 @@ class _ReceiptsTabState extends State<ReceiptsTab>
                       ),
                     );
                   },
-                  icon: const Icon(Icons.document_scanner_outlined),
+                  icon: const Icon(AppIcons.scanLine),
                   label: Text(context.tr('receipts_scan_first_action')),
                 ),
               ],
@@ -922,7 +920,7 @@ class _ReceiptsTabState extends State<ReceiptsTab>
                     radius: ShellStyles.scaled(context, 22, min: 20, max: 24),
                   ),
                   child: Icon(
-                    Icons.filter_alt_off_outlined,
+                    AppIcons.filterX,
                     size: ShellStyles.scaled(context, 30, min: 26, max: 34),
                     color: ShellStyles.textMuted(context),
                   ),
@@ -1066,7 +1064,7 @@ class _ReceiptsTabState extends State<ReceiptsTab>
                 ),
               ),
               onPressed: _isRefreshing ? null : _loadMore,
-              icon: const Icon(Icons.expand_more),
+              icon: const Icon(AppIcons.chevronDown),
               label: Text(
                 context.tr(
                   _loadMoreError == null
@@ -1134,7 +1132,7 @@ class _ReceiptsTabState extends State<ReceiptsTab>
     final iconColor = categoryTone.base;
     final iconData = hasCategoryHint
         ? CategoryStyle.iconForCode(categoryCode)
-        : Icons.shopping_bag;
+        : AppIcons.shoppingBag;
 
     final allLabelsRaw = tx['labels'];
     final allLabels = allLabelsRaw is List
@@ -1202,7 +1200,7 @@ class _ReceiptsTabState extends State<ReceiptsTab>
             ShellStyles.scaled(context, 16, min: 14, max: 18),
           ),
         ),
-        child: const Icon(Icons.delete, color: Colors.white),
+        child: const Icon(AppIcons.trash2, color: Colors.white),
       ),
       child: GestureDetector(
         onTap: () {
@@ -1282,7 +1280,7 @@ class _ReceiptsTabState extends State<ReceiptsTab>
                               txCategoryLabel.isNotEmpty)
                             _buildMetaChip(
                               label: txCategoryLabel,
-                              icon: Icons.category_outlined,
+                              icon: AppIcons.shapes,
                               color: iconColor,
                             ),
                           ...labelsToRender.map((label) {
@@ -1298,7 +1296,7 @@ class _ReceiptsTabState extends State<ReceiptsTab>
                             );
                             return _buildMetaChip(
                               label: labelName,
-                              icon: Icons.push_pin_outlined,
+                              icon: AppIcons.pin,
                               color: labelTone.base,
                             );
                           }),
@@ -1403,7 +1401,7 @@ class _ReceiptsTabState extends State<ReceiptsTab>
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(Icons.rate_review_outlined, size: 12, color: color),
+          Icon(AppIcons.messageSquareText, size: 12, color: color),
           const SizedBox(width: 4),
           Text(
             label,

@@ -155,9 +155,7 @@ class _ComparisonState extends State<DuplicateDetailsComparison> {
                 Row(
                   children: [
                     Icon(
-                      selected
-                          ? Icons.check_circle
-                          : Icons.radio_button_unchecked,
+                      selected ? AppIcons.circleCheck : AppIcons.circle,
                       size: 20,
                       color: selected
                           ? tone.base
@@ -215,7 +213,7 @@ class _ComparisonState extends State<DuplicateDetailsComparison> {
                     child: IconButton(
                       tooltip: context.tr('duplicates_view_original'),
                       onPressed: widget.busy ? null : () => widget.onPhoto(tx),
-                      icon: const Icon(Icons.receipt_long_outlined, size: 20),
+                      icon: const Icon(AppIcons.receiptText, size: 20),
                     ),
                   ),
               ],
@@ -356,7 +354,7 @@ class _ComparisonState extends State<DuplicateDetailsComparison> {
         Row(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Icon(Icons.difference_outlined, color: _differenceColor, size: 16),
+            Icon(AppIcons.diff, color: _differenceColor, size: 16),
             const SizedBox(width: 6),
             Expanded(
               child: Text(

@@ -119,8 +119,7 @@ class _BudgetCalculatorScreenState extends State<BudgetCalculatorScreen> {
       setState(() {
         _error = friendlyLaunchErrorMessage(
           error,
-          fallback:
-              context.tr('budget_load_error'),
+          fallback: context.tr('budget_load_error'),
         );
         _isLoading = false;
       });
@@ -266,8 +265,7 @@ class _BudgetCalculatorScreenState extends State<BudgetCalculatorScreen> {
       _showMessage(
         friendlyLaunchErrorMessage(
           error,
-          fallback:
-              context.tr('budget_save_error'),
+          fallback: context.tr('budget_save_error'),
         ),
         isError: true,
       );
@@ -424,7 +422,7 @@ class _BudgetCalculatorScreenState extends State<BudgetCalculatorScreen> {
               IconButton(
                 onPressed: () => _removeCategory(category.categoryId),
                 icon: Icon(
-                  Icons.close,
+                  AppIcons.x,
                   size: 18,
                   color: ShellStyles.textMuted(context),
                 ),
@@ -653,7 +651,14 @@ class _BudgetCalculatorScreenState extends State<BudgetCalculatorScreen> {
                                         ),
                                       ),
                                       child: Text(
-                                        context.tr('budget_allocated_amount', params: {'amount': _formatCurrency(allocatedCategoryBudget)}),
+                                        context.tr(
+                                          'budget_allocated_amount',
+                                          params: {
+                                            'amount': _formatCurrency(
+                                              allocatedCategoryBudget,
+                                            ),
+                                          },
+                                        ),
                                         style: TextStyle(
                                           color: ShellStyles.textPrimary(
                                             context,
@@ -668,7 +673,7 @@ class _BudgetCalculatorScreenState extends State<BudgetCalculatorScreen> {
                               );
                               final addButton = TextButton.icon(
                                 onPressed: _addCategory,
-                                icon: const Icon(Icons.add, size: 16),
+                                icon: const Icon(AppIcons.plus, size: 16),
                                 label: Text(context.tr('budget_add_category')),
                               );
                               if (constraints.maxWidth < 440) {

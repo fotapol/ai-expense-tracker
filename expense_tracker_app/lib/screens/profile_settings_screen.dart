@@ -525,11 +525,7 @@ class _ProfileSettingsScreenState extends State<ProfileSettingsScreen> {
               color: ShellColors.gold.withAlpha(18),
               borderRadius: BorderRadius.circular(12),
             ),
-            child: const CrownIcon(
-              color: ShellColors.gold,
-              size: 20,
-              strokeWidth: 1.7,
-            ),
+            child: const CrownIcon(color: ShellColors.gold, size: 20),
           ),
           const SizedBox(width: 12),
           Expanded(
@@ -556,7 +552,7 @@ class _ProfileSettingsScreenState extends State<ProfileSettingsScreen> {
                 const SizedBox(height: 12),
                 OutlinedButton.icon(
                   onPressed: _openPlaySubscriptionManagement,
-                  icon: const Icon(Icons.open_in_new, size: 18),
+                  icon: const Icon(AppIcons.externalLink, size: 18),
                   label: Text(context.tr('settings_manage_subscription')),
                 ),
               ],
@@ -583,7 +579,7 @@ class _ProfileSettingsScreenState extends State<ProfileSettingsScreen> {
               color: dangerColor.withAlpha(18),
               borderRadius: BorderRadius.circular(12),
             ),
-            child: Icon(Icons.delete_outline, color: dangerColor, size: 20),
+            child: Icon(AppIcons.trash2, color: dangerColor, size: 20),
           ),
           const SizedBox(width: 12),
           Expanded(
