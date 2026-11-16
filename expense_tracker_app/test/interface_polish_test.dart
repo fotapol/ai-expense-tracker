@@ -2,9 +2,12 @@ import 'package:expense_tracker_app/l10n/app_localizations.dart';
 import 'package:expense_tracker_app/main.dart' show themeProvider;
 import 'package:expense_tracker_app/screens/home_tab.dart';
 import 'package:expense_tracker_app/screens/tools_screen.dart';
+import 'package:expense_tracker_app/screens/duplicate_finder_screen.dart';
 import 'package:expense_tracker_app/widgets/anchored_choice_field.dart';
 import 'package:expense_tracker_app/widgets/receipt_history_controls.dart';
 import 'package:expense_tracker_app/core/period_filter.dart';
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -22,6 +25,52 @@ void main() {
     SharedPreferences.setMockInitialValues({'accent_migration_version': 1});
     await themeProvider.load();
   });
+
+  testWidgets(
+    'empty duplicate finder is designed, scrollable and can refresh',
+    (tester) async {
+      fixture.phone(tester, width: 320);
+      var requests = 0;
+      await http.runWithClient(
+        () async {
+          await tester.pumpWidget(
+            fixture.app(
+              const DuplicateFinderScreen(),
+              factor: 1.2,
+              systemText: 1.3,
+              locale: const Locale('de'),
+            ),
+          );
+          await tester.pumpAndSettle();
+          expect(
+            find.byKey(const ValueKey('duplicate-finder-status')),
+            findsOneWidget,
+          );
+          await tester.ensureVisible(find.byIcon(Icons.refresh));
+          await tester.pumpAndSettle();
+          await tester.tap(find.byIcon(Icons.refresh));
+          await tester.pumpAndSettle();
+          expect(requests, 2);
+          expect(
+            find.byKey(const ValueKey('duplicate-finder-status')),
+            findsNothing,
+          );
+          expect(find.text('Sample Market'), findsNWidgets(2));
+          expect(tester.takeException(), isNull);
+        },
+        () => MockClient((request) async {
+          requests++;
+          return http.Response(
+            jsonEncode({
+              'items': requests == 1 ? [] : [fixture.pair('one', 'two')],
+              'has_more': false,
+            }),
+            200,
+          );
+        }),
+      );
+    },
+  );
 
   for (final factor in [.6, .8, 1.0, 1.2]) {
     testWidgets(

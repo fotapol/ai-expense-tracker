@@ -241,14 +241,101 @@ class _DuplicateFinderScreenState extends State<DuplicateFinderScreen> {
     }
   }
 
-  Widget _intro() => Padding(
-    padding: const EdgeInsets.only(bottom: 12, top: 4),
-    child: Text(
-      context.tr('duplicates_subtitle'),
-      style: TextStyle(
-        color: ShellStyles.textMuted(context),
-        fontSize: 14,
-        height: 1.5,
+  Widget _intro() => Container(
+    margin: const EdgeInsets.only(top: 8, bottom: 16),
+    padding: const EdgeInsets.all(14),
+    decoration: ShellStyles.cardDecoration(
+      context,
+      radius: 18,
+      withShadow: false,
+    ),
+    child: Row(
+      children: [
+        Container(
+          padding: const EdgeInsets.all(10),
+          decoration: BoxDecoration(
+            color: ShellStyles.accentTone(context).container,
+            borderRadius: BorderRadius.circular(12),
+          ),
+          child: Icon(
+            Icons.content_copy_outlined,
+            size: 22,
+            color: ShellStyles.accentTone(context).foreground,
+          ),
+        ),
+        const SizedBox(width: 12),
+        Expanded(
+          child: Text(
+            context.tr('duplicates_subtitle'),
+            style: TextStyle(
+              color: ShellStyles.textSecondary(context),
+              fontSize: 13,
+              height: 1.4,
+            ),
+          ),
+        ),
+      ],
+    ),
+  );
+
+  Widget _emptyState() => Center(
+    child: Container(
+      key: const ValueKey('duplicate-finder-status'),
+      width: double.infinity,
+      margin: const EdgeInsets.only(bottom: 24),
+      padding: const EdgeInsets.all(24),
+      decoration: ShellStyles.cardDecoration(
+        context,
+        radius: 22,
+        withShadow: false,
+      ),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          if (_loading)
+            const Padding(
+              padding: EdgeInsets.all(20),
+              child: CircularProgressIndicator(),
+            )
+          else ...[
+            Container(
+              padding: const EdgeInsets.all(18),
+              decoration: BoxDecoration(
+                color: ShellStyles.accentTone(context).container,
+                shape: BoxShape.circle,
+              ),
+              child: Icon(
+                _error == null
+                    ? Icons.check_circle_outline
+                    : Icons.cloud_off_outlined,
+                size: 36,
+                color: ShellStyles.accentTone(context).foreground,
+              ),
+            ),
+            const SizedBox(height: 20),
+            Text(
+              _error ?? context.tr('duplicates_empty'),
+              textAlign: TextAlign.center,
+              style: const TextStyle(
+                fontSize: 16,
+                height: 1.4,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+            const SizedBox(height: 20),
+            OutlinedButton.icon(
+              onPressed: () => _load(reset: true),
+              icon: const Icon(Icons.refresh, size: 18),
+              label: Text(
+                _error == null
+                    ? MaterialLocalizations.of(
+                        context,
+                      ).refreshIndicatorSemanticLabel
+                    : context.tr('common_retry'),
+              ),
+            ),
+          ],
+        ],
       ),
     ),
   );
@@ -422,51 +509,71 @@ class _DuplicateFinderScreenState extends State<DuplicateFinderScreen> {
           top: false,
           child: RefreshIndicator(
             onRefresh: () => _load(reset: true),
-            child: ListView.builder(
+            child: CustomScrollView(
               key: const ValueKey('duplicate-finder-list'),
               physics: const AlwaysScrollableScrollPhysics(),
-              padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
-              itemCount: groups.length + 2,
-              itemBuilder: (context, index) {
-                if (index == 0) return _intro();
-                if (index <= groups.length) {
-                  return _groupCard(groups[index - 1]);
-                }
-                return Column(
-                  children: [
-                    if (_loading)
-                      const Padding(
-                        padding: EdgeInsets.all(32),
-                        child: CircularProgressIndicator(),
-                      ),
-                    if (_error != null || groups.isEmpty && !_loading)
-                      Padding(
-                        padding: const EdgeInsets.symmetric(vertical: 24),
-                        child: Text(
-                          _error ?? context.tr('duplicates_empty'),
-                          textAlign: TextAlign.center,
-                        ),
-                      ),
-                    if (!_loading && (_hasMore || _error != null))
-                      SizedBox(
-                        width: double.infinity,
-                        child: OutlinedButton.icon(
-                          onPressed: () => _load(),
-                          icon: Icon(
-                            _error == null ? Icons.expand_more : Icons.refresh,
-                          ),
-                          label: Text(
-                            context.tr(
-                              _error == null
-                                  ? 'receipts_load_more'
-                                  : 'common_retry',
+              slivers: [
+                SliverPadding(
+                  padding: const EdgeInsets.symmetric(horizontal: 16),
+                  sliver: SliverToBoxAdapter(child: _intro()),
+                ),
+                if (groups.isEmpty)
+                  SliverPadding(
+                    padding: const EdgeInsets.symmetric(horizontal: 16),
+                    sliver: SliverFillRemaining(
+                      hasScrollBody: false,
+                      child: _emptyState(),
+                    ),
+                  )
+                else ...[
+                  SliverPadding(
+                    padding: const EdgeInsets.symmetric(horizontal: 16),
+                    sliver: SliverList.builder(
+                      itemCount: groups.length,
+                      itemBuilder: (context, index) =>
+                          _groupCard(groups[index]),
+                    ),
+                  ),
+                  SliverPadding(
+                    padding: const EdgeInsets.fromLTRB(16, 0, 16, 24),
+                    sliver: SliverToBoxAdapter(
+                      child: Column(
+                        children: [
+                          if (_loading)
+                            const Padding(
+                              padding: EdgeInsets.all(24),
+                              child: CircularProgressIndicator(),
                             ),
-                          ),
-                        ),
+                          if (_error != null)
+                            Padding(
+                              padding: const EdgeInsets.all(12),
+                              child: Text(_error!, textAlign: TextAlign.center),
+                            ),
+                          if (!_loading && (_hasMore || _error != null))
+                            SizedBox(
+                              width: double.infinity,
+                              child: OutlinedButton.icon(
+                                onPressed: () => _load(),
+                                icon: Icon(
+                                  _error == null
+                                      ? Icons.expand_more
+                                      : Icons.refresh,
+                                ),
+                                label: Text(
+                                  context.tr(
+                                    _error == null
+                                        ? 'receipts_load_more'
+                                        : 'common_retry',
+                                  ),
+                                ),
+                              ),
+                            ),
+                        ],
                       ),
-                  ],
-                );
-              },
+                    ),
+                  ),
+                ],
+              ],
             ),
           ),
         ),
