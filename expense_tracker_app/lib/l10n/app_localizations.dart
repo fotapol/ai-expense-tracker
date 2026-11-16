@@ -70,6 +70,12 @@ class AppLocalizations {
 
   static const Map<String, Map<String, String>> _translations = {
     'en': {
+      'analytics_previous_period': 'Previous period',
+      'analytics_comparison_zero':
+          'Percentage change needs a nonzero previous total.',
+      'analytics_compare_select_period':
+          'Choose a date range to compare spending.',
+      'analytics_comparison_unavailable': 'Comparison unavailable.',
       'error_backend_update_required':
           'Update the backend to use amount filters in your display currency.',
       'settings_interface_scale': 'Interface scale',
@@ -1374,6 +1380,12 @@ class AppLocalizations {
       'delete_reminder_name_confirm': 'Delete "{name}"?',
     },
     'de': {
+      'analytics_previous_period': 'Vorheriger Zeitraum',
+      'analytics_comparison_zero':
+          'Bei einem vorherigen Betrag von null gibt es keine Prozentänderung.',
+      'analytics_compare_select_period':
+          'Wähle einen Zeitraum, um Ausgaben zu vergleichen.',
+      'analytics_comparison_unavailable': 'Vergleich nicht verfügbar.',
       'error_backend_update_required':
           'Aktualisiere den Server, um Beträge in deiner Anzeigewährung zu filtern.',
       'settings_interface_scale': 'Oberflächenskalierung',
@@ -2743,6 +2755,12 @@ class AppLocalizations {
       'delete_reminder_name_confirm': '„{name}“ löschen?',
     },
     'fr': {
+      'analytics_previous_period': 'Période précédente',
+      'analytics_comparison_zero':
+          'Un total précédent nul ne permet pas de calculer un pourcentage.',
+      'analytics_compare_select_period':
+          'Choisissez une période pour comparer les dépenses.',
+      'analytics_comparison_unavailable': 'Comparaison indisponible.',
       'error_backend_update_required':
           'Mettez le serveur à jour pour filtrer les montants dans votre devise d’affichage.',
       'settings_interface_scale': 'Échelle de l’interface',
@@ -4102,6 +4120,12 @@ class AppLocalizations {
       'delete_reminder_name_confirm': 'Supprimer "{name}" ?',
     },
     'uk': {
+      'analytics_previous_period': 'Попередній період',
+      'analytics_comparison_zero':
+          'За нульового попереднього підсумку зміна у відсотках не розраховується.',
+      'analytics_compare_select_period':
+          'Виберіть період для порівняння витрат.',
+      'analytics_comparison_unavailable': 'Порівняння недоступне.',
       'error_backend_update_required':
           'Оновіть сервер, щоб фільтрувати суми у валюті відображення.',
       'settings_interface_scale': 'Масштаб інтерфейсу',
@@ -5425,6 +5449,12 @@ class AppLocalizations {
       'delete_reminder_name_confirm': 'Видалити "{name}"?',
     },
     'it': {
+      'analytics_previous_period': 'Periodo precedente',
+      'analytics_comparison_zero':
+          'La variazione percentuale richiede un totale precedente diverso da zero.',
+      'analytics_compare_select_period':
+          'Scegli un periodo per confrontare le spese.',
+      'analytics_comparison_unavailable': 'Confronto non disponibile.',
       'error_backend_update_required':
           'Aggiorna il server per filtrare gli importi nella valuta di visualizzazione.',
       'settings_interface_scale': 'Scala dell’interfaccia',
@@ -6791,6 +6821,11 @@ class AppLocalizations {
       'delete_reminder_name_confirm': 'Eliminare "{name}"?',
     },
     'pl': {
+      'analytics_previous_period': 'Poprzedni okres',
+      'analytics_comparison_zero':
+          'Zmiana procentowa wymaga poprzedniej sumy różnej od zera.',
+      'analytics_compare_select_period': 'Wybierz okres, aby porównać wydatki.',
+      'analytics_comparison_unavailable': 'Porównanie niedostępne.',
       'error_backend_update_required':
           'Zaktualizuj serwer, aby filtrować kwoty w walucie wyświetlania.',
       'settings_interface_scale': 'Skala interfejsu',
@@ -8136,6 +8171,12 @@ class AppLocalizations {
       'delete_reminder_name_confirm': 'Usunąć "{name}"?',
     },
     'sr': {
+      'analytics_previous_period': 'Prethodni period',
+      'analytics_comparison_zero':
+          'Procentualna promena se ne računa kada je prethodni zbir nula.',
+      'analytics_compare_select_period':
+          'Izaberite period za poređenje troškova.',
+      'analytics_comparison_unavailable': 'Poređenje nije dostupno.',
       'error_backend_update_required':
           'Ažurirajte server da biste filtrirali iznose u valuti prikaza.',
       'settings_interface_scale': 'Razmera interfejsa',
@@ -9464,6 +9505,12 @@ class AppLocalizations {
       'delete_reminder_name_confirm': 'Obriši "{name}"?',
     },
     'ru': {
+      'analytics_previous_period': 'Предыдущий период',
+      'analytics_comparison_zero':
+          'При нулевом прошлом итоге изменение в процентах не рассчитывается.',
+      'analytics_compare_select_period':
+          'Выберите период для сравнения расходов.',
+      'analytics_comparison_unavailable': 'Сравнение недоступно.',
       'error_backend_update_required':
           'Обновите сервер, чтобы фильтровать суммы в валюте отображения.',
       'settings_interface_scale': 'Масштаб интерфейса',
@@ -10792,6 +10839,12 @@ class AppLocalizations {
       'delete_reminder_name_confirm': 'Удалить "{name}"?',
     },
     'pt': {
+      'analytics_previous_period': 'Período anterior',
+      'analytics_comparison_zero':
+          'A variação percentual requer um total anterior diferente de zero.',
+      'analytics_compare_select_period':
+          'Escolha um período para comparar despesas.',
+      'analytics_comparison_unavailable': 'Comparação indisponível.',
       'error_backend_update_required':
           'Atualize o servidor para filtrar valores na moeda de exibição.',
       'settings_interface_scale': 'Escala da interface',
@@ -12144,6 +12197,12 @@ class AppLocalizations {
       'delete_reminder_name_confirm': 'Eliminar "{name}"?',
     },
     'tr': {
+      'analytics_previous_period': 'Önceki dönem',
+      'analytics_comparison_zero':
+          'Yüzde değişimi için önceki toplamın sıfırdan farklı olması gerekir.',
+      'analytics_compare_select_period':
+          'Harcamaları karşılaştırmak için bir tarih aralığı seçin.',
+      'analytics_comparison_unavailable': 'Karşılaştırma kullanılamıyor.',
       'error_backend_update_required':
           'Tutarları görüntüleme para biriminde filtrelemek için sunucuyu güncelleyin.',
       'settings_interface_scale': 'Arayüz ölçeği',
@@ -13465,6 +13524,12 @@ class AppLocalizations {
       'delete_reminder_name_confirm': '"{name}" silinsin mi?',
     },
     'nl': {
+      'analytics_previous_period': 'Vorige periode',
+      'analytics_comparison_zero':
+          'Een procentuele verandering vereist een vorig totaal dat niet nul is.',
+      'analytics_compare_select_period':
+          'Kies een periode om uitgaven te vergelijken.',
+      'analytics_comparison_unavailable': 'Vergelijking niet beschikbaar.',
       'error_backend_update_required':
           'Werk de server bij om bedragen in je weergavevaluta te filteren.',
       'settings_interface_scale': 'Interfaceschaal',
@@ -14811,6 +14876,12 @@ class AppLocalizations {
       'delete_reminder_name_confirm': '"{name}" verwijderen?',
     },
     'sv': {
+      'analytics_previous_period': 'Föregående period',
+      'analytics_comparison_zero':
+          'Procentuell förändring kräver att föregående totalsumma inte är noll.',
+      'analytics_compare_select_period':
+          'Välj en period för att jämföra utgifter.',
+      'analytics_comparison_unavailable': 'Jämförelsen är inte tillgänglig.',
       'error_backend_update_required':
           'Uppdatera servern för att filtrera belopp i din visningsvaluta.',
       'settings_interface_scale': 'Gränssnittsskala',
@@ -16140,6 +16211,11 @@ class AppLocalizations {
       'delete_reminder_name_confirm': 'Radera "{name}"?',
     },
     'cs': {
+      'analytics_previous_period': 'Předchozí období',
+      'analytics_comparison_zero':
+          'Procentní změnu nelze vypočítat, pokud je předchozí součet nulový.',
+      'analytics_compare_select_period': 'Vyberte období pro porovnání výdajů.',
+      'analytics_comparison_unavailable': 'Porovnání není k dispozici.',
       'error_backend_update_required':
           'Aktualizujte server, abyste mohli filtrovat částky v zobrazované měně.',
       'settings_interface_scale': 'Měřítko rozhraní',
@@ -17460,6 +17536,12 @@ class AppLocalizations {
       'delete_reminder_name_confirm': 'Smazat "{name}"?',
     },
     'ro': {
+      'analytics_previous_period': 'Perioada anterioară',
+      'analytics_comparison_zero':
+          'Variația procentuală necesită un total anterior diferit de zero.',
+      'analytics_compare_select_period':
+          'Alege o perioadă pentru a compara cheltuielile.',
+      'analytics_comparison_unavailable': 'Comparația nu este disponibilă.',
       'error_backend_update_required':
           'Actualizează serverul pentru a filtra sumele în moneda de afișare.',
       'settings_interface_scale': 'Scara interfeței',
@@ -18816,6 +18898,12 @@ class AppLocalizations {
       'delete_reminder_name_confirm': 'Ștergeți "{name}"?',
     },
     'hu': {
+      'analytics_previous_period': 'Előző időszak',
+      'analytics_comparison_zero':
+          'A százalékos változás csak nem nulla előző összeghez számítható.',
+      'analytics_compare_select_period':
+          'Válasszon időszakot a kiadások összehasonlításához.',
+      'analytics_comparison_unavailable': 'Az összehasonlítás nem érhető el.',
       'error_backend_update_required':
           'Frissítse a szervert a megjelenítési pénznemben történő összegszűréshez.',
       'settings_interface_scale': 'Felület méretezése',
@@ -20154,6 +20242,12 @@ class AppLocalizations {
       'delete_reminder_name_confirm': 'Törli a következőt: "{name}"?',
     },
     'id': {
+      'analytics_previous_period': 'Periode sebelumnya',
+      'analytics_comparison_zero':
+          'Perubahan persentase memerlukan total sebelumnya yang tidak nol.',
+      'analytics_compare_select_period':
+          'Pilih rentang tanggal untuk membandingkan pengeluaran.',
+      'analytics_comparison_unavailable': 'Perbandingan tidak tersedia.',
       'error_backend_update_required':
           'Perbarui server untuk memfilter jumlah dalam mata uang tampilan.',
       'settings_interface_scale': 'Skala antarmuka',
@@ -21488,6 +21582,12 @@ class AppLocalizations {
       'delete_reminder_name_confirm': 'Hapus "{name}"?',
     },
     'ms': {
+      'analytics_previous_period': 'Tempoh sebelumnya',
+      'analytics_comparison_zero':
+          'Perubahan peratus memerlukan jumlah sebelumnya yang bukan sifar.',
+      'analytics_compare_select_period':
+          'Pilih julat tarikh untuk membandingkan perbelanjaan.',
+      'analytics_comparison_unavailable': 'Perbandingan tidak tersedia.',
       'error_backend_update_required':
           'Kemas kini pelayan untuk menapis amaun dalam mata wang paparan.',
       'settings_interface_scale': 'Skala antara muka',
@@ -22816,6 +22916,12 @@ class AppLocalizations {
       'delete_reminder_name_confirm': 'Padam "{name}"?',
     },
     'vi': {
+      'analytics_previous_period': 'Kỳ trước',
+      'analytics_comparison_zero':
+          'Chỉ tính được thay đổi phần trăm khi tổng kỳ trước khác 0.',
+      'analytics_compare_select_period':
+          'Chọn khoảng ngày để so sánh chi tiêu.',
+      'analytics_comparison_unavailable': 'Không có dữ liệu so sánh.',
       'error_backend_update_required':
           'Cập nhật máy chủ để lọc số tiền theo loại tiền hiển thị.',
       'settings_interface_scale': 'Tỷ lệ giao diện',
@@ -24143,6 +24249,10 @@ class AppLocalizations {
       'delete_reminder_name_confirm': 'Xóa "{name}"?',
     },
     'zh': {
+      'analytics_previous_period': '上一时段',
+      'analytics_comparison_zero': '上一时段合计不为零时才能计算百分比变化。',
+      'analytics_compare_select_period': '请选择日期范围以比较支出。',
+      'analytics_comparison_unavailable': '暂时无法比较。',
       'error_backend_update_required': '请更新服务器，以便按显示货币筛选金额。',
       'settings_interface_scale': '界面缩放',
       'filters_display_amount': '金额（{currency}）',
@@ -25261,6 +25371,10 @@ class AppLocalizations {
       'delete_reminder_name_confirm': '删除 "{name}"？',
     },
     'ja': {
+      'analytics_previous_period': '前の期間',
+      'analytics_comparison_zero': '前の期間の合計がゼロの場合、変化率は計算できません。',
+      'analytics_compare_select_period': '支出を比較する期間を選択してください。',
+      'analytics_comparison_unavailable': '比較できません。',
       'error_backend_update_required': '表示通貨で金額を絞り込むには、サーバーを更新してください。',
       'settings_interface_scale': '画面の拡大率',
       'filters_display_amount': '金額（{currency}）',
@@ -26420,6 +26534,10 @@ class AppLocalizations {
       'delete_reminder_name_confirm': '「{name}」を削除しますか？',
     },
     'ko': {
+      'analytics_previous_period': '이전 기간',
+      'analytics_comparison_zero': '이전 합계가 0이면 변동률을 계산할 수 없습니다.',
+      'analytics_compare_select_period': '지출을 비교할 기간을 선택하세요.',
+      'analytics_comparison_unavailable': '비교할 수 없습니다.',
       'error_backend_update_required': '표시 통화로 금액을 필터링하려면 서버를 업데이트하세요.',
       'settings_interface_scale': '인터페이스 배율',
       'filters_display_amount': '금액({currency})',
@@ -27598,6 +27716,12 @@ class AppLocalizations {
       'delete_reminder_name_confirm': '"{name}" 내역을 삭제하시겠습니까?',
     },
     'hi': {
+      'analytics_previous_period': 'पिछली अवधि',
+      'analytics_comparison_zero':
+          'प्रतिशत बदलाव की गणना के लिए पिछला कुल शून्य से अलग होना चाहिए।',
+      'analytics_compare_select_period':
+          'खर्च की तुलना के लिए तारीखों की सीमा चुनें।',
+      'analytics_comparison_unavailable': 'तुलना उपलब्ध नहीं है।',
       'error_backend_update_required':
           'दिखाई जाने वाली मुद्रा में राशि फ़िल्टर करने के लिए सर्वर अपडेट करें।',
       'settings_interface_scale': 'इंटरफ़ेस स्केल',
@@ -28906,6 +29030,11 @@ class AppLocalizations {
       'delete_reminder_name_confirm': 'क्या "{name}" को हटाना चाहते हैं?',
     },
     'ar': {
+      'analytics_previous_period': 'الفترة السابقة',
+      'analytics_comparison_zero':
+          'لا يمكن حساب التغير المئوي عندما يكون الإجمالي السابق صفرًا.',
+      'analytics_compare_select_period': 'اختر نطاقًا زمنيًا لمقارنة الإنفاق.',
+      'analytics_comparison_unavailable': 'المقارنة غير متاحة.',
       'error_backend_update_required':
           'حدّث الخادم لتصفية المبالغ بعملة العرض.',
       'settings_interface_scale': 'مقياس الواجهة',
@@ -30189,6 +30318,12 @@ class AppLocalizations {
       'delete_reminder_name_confirm': 'هل تريد حذف "{name}"؟',
     },
     'es': {
+      'analytics_previous_period': 'Período anterior',
+      'analytics_comparison_zero':
+          'El cambio porcentual requiere un total anterior distinto de cero.',
+      'analytics_compare_select_period':
+          'Elige un período para comparar gastos.',
+      'analytics_comparison_unavailable': 'Comparación no disponible.',
       'error_backend_update_required':
           'Actualiza el servidor para filtrar importes en tu moneda de visualización.',
       'settings_interface_scale': 'Escala de la interfaz',

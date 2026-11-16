@@ -348,3 +348,175 @@ class AnalyticsMiniStatTile extends StatelessWidget {
     );
   }
 }
+
+class AnalyticsMetric {
+  const AnalyticsMetric({
+    required this.label,
+    required this.value,
+    required this.icon,
+    this.valueColor,
+  });
+  final String label, value;
+  final IconData icon;
+  final Color? valueColor;
+}
+
+/// Equal metric surfaces with complete labels at each locale and text size.
+/// Narrow screens use rows; wide layouts use aligned columns.
+class AnalyticsMetricGroup extends StatelessWidget {
+  const AnalyticsMetricGroup({super.key, required this.metrics});
+  final List<AnalyticsMetric> metrics;
+
+  @override
+  Widget build(BuildContext context) => LayoutBuilder(
+    builder: (context, constraints) {
+      final labelStyle = Theme.of(context).textTheme.bodyMedium!.copyWith(
+        fontSize: 12,
+        height: 1.35,
+        fontWeight: FontWeight.w600,
+        color: ShellStyles.textSecondary(context),
+      );
+      final valueStyle = Theme.of(context).textTheme.titleMedium!.copyWith(
+        fontSize: 17,
+        height: 1.25,
+        fontWeight: FontWeight.w800,
+      );
+      Size measure(
+        String text,
+        TextStyle style, {
+        double maxWidth = double.infinity,
+      }) {
+        final painter = TextPainter(
+          text: TextSpan(text: text, style: style),
+          textDirection: Directionality.of(context),
+          textScaler: MediaQuery.textScalerOf(context),
+        )..layout(maxWidth: maxWidth);
+        final size = painter.size;
+        painter.dispose();
+        return size;
+      }
+
+      var valueWidth = 0.0, valueHeight = 0.0;
+      for (final metric in metrics) {
+        final size = measure(metric.value, valueStyle);
+        if (size.width > valueWidth) valueWidth = size.width;
+        if (size.height > valueHeight) valueHeight = size.height;
+      }
+      final columns =
+          constraints.maxWidth >=
+          120 * metrics.length * ShellStyles.textScale(context) +
+              10 * (metrics.length - 1);
+      final tileWidth = columns
+          ? (constraints.maxWidth - 10 * (metrics.length - 1)) / metrics.length
+          : constraints.maxWidth;
+      valueWidth = valueWidth.clamp(0, tileWidth * .45);
+      const padding = 12.0;
+      const borderWidth = 1.0;
+      const insets = 2 * (padding + borderWidth);
+      final horizontal =
+          !columns && tileWidth - insets - 34 - valueWidth >= 100;
+      final labelWidth =
+          tileWidth - insets - 26 - (horizontal ? valueWidth + 8 : 0);
+      var labelHeight = 18.0;
+      for (final metric in metrics) {
+        final height = measure(
+          metric.label,
+          labelStyle,
+          maxWidth: labelWidth,
+        ).height;
+        if (height > labelHeight) labelHeight = height;
+      }
+      final contentHeight = horizontal
+          ? (labelHeight > valueHeight ? labelHeight : valueHeight)
+          : labelHeight + 8 + valueHeight;
+      final height = contentHeight + insets;
+      Widget tile(AnalyticsMetric metric, int index) {
+        final label = Text(metric.label, style: labelStyle);
+        final icon = Icon(
+          metric.icon,
+          size: 18,
+          color: ShellStyles.textMuted(context),
+        );
+        final value = SizedBox(
+          width: horizontal ? valueWidth : null,
+          height: valueHeight,
+          child: Align(
+            alignment: horizontal
+                ? AlignmentDirectional.centerEnd
+                : AlignmentDirectional.centerStart,
+            child: FittedBox(
+              fit: BoxFit.scaleDown,
+              child: Text(
+                metric.value,
+                style: valueStyle.copyWith(
+                  color: metric.valueColor ?? ShellStyles.textPrimary(context),
+                ),
+              ),
+            ),
+          ),
+        );
+        return Container(
+          key: ValueKey('analytics-metric-$index'),
+          height: height,
+          padding: const EdgeInsets.all(padding),
+          decoration: BoxDecoration(
+            color: ShellStyles.surfaceAlt(context),
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(
+              color: ShellStyles.border(context),
+              width: borderWidth,
+            ),
+          ),
+          child: horizontal
+              ? Row(
+                  children: [
+                    icon,
+                    const SizedBox(width: 8),
+                    Expanded(child: label),
+                    const SizedBox(width: 8),
+                    value,
+                  ],
+                )
+              : Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    SizedBox(
+                      height: labelHeight,
+                      child: Row(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          icon,
+                          const SizedBox(width: 8),
+                          Expanded(child: label),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    value,
+                  ],
+                ),
+        );
+      }
+
+      if (columns) {
+        return Row(
+          children: [
+            for (var i = 0; i < metrics.length; i++) ...[
+              if (i > 0) const SizedBox(width: 10),
+              Expanded(child: tile(metrics[i], i)),
+            ],
+          ],
+        );
+      }
+      return Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          for (var i = 0; i < metrics.length; i++) ...[
+            if (i > 0) const SizedBox(height: 8),
+            tile(metrics[i], i),
+          ],
+        ],
+      );
+    },
+  );
+}
