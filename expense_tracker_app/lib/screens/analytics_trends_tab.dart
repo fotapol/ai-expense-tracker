@@ -312,16 +312,32 @@ class _AnalyticsTrendsTabState extends State<AnalyticsTrendsTab> {
         previous: previous,
         lowerIsBetter: true,
       );
+      final roundedChange = change == null
+          ? null
+          : double.parse(change.percent.toStringAsFixed(1));
+      var supporting = context.tr('analytics_trends_no_prior');
+      if (change != null && roundedChange != null) {
+        final percentage = NumberFormat.decimalPercentPattern(
+          locale: Localizations.localeOf(context).languageCode,
+          decimalDigits: roundedChange == roundedChange.roundToDouble() ? 0 : 1,
+        );
+        supporting = percentage.format(
+          roundedChange == 0
+              ? 0
+              : (change.isDownward ? -1 : 1) * roundedChange / 100,
+        );
+        if (roundedChange > 0 && !change.isDownward) {
+          supporting = '+$supporting';
+        }
+      }
       return AnalyticsMetric(
         label: label,
         value: value,
         icon: icon,
-        supporting: change == null
-            ? context.tr('analytics_trends_no_prior')
-            : '${change.isDownward ? '−' : '+'}${MaterialLocalizations.of(context).formatDecimal(change.percent.round())}%',
-        supportingColor: change == null
+        supporting: supporting,
+        supportingColor: roundedChange == null || roundedChange == 0
             ? null
-            : change.isPositive
+            : change!.isPositive
             ? ShellStyles.success(context)
             : ShellStyles.error(context),
       );
@@ -415,30 +431,26 @@ class _AnalyticsTrendsTabState extends State<AnalyticsTrendsTab> {
               ),
             ),
           const AnalyticsFullBleedDivider(topSpacing: 16, bottomSpacing: 16),
-          Row(
-            children: [
-              Expanded(
-                child: _RangeInsightTile(
-                  label: context.tr('analytics_trends_lowest'),
-                  value: lowestPoint == null
-                      ? context.tr('analytics_no_data')
-                      : '${formatMoney(currency, lowestPoint.amount)} - ${lowestPoint.label}',
-                  icon: AppIcons.arrowDownRight,
-                  tint: ShellStyles.success(context).withAlpha(20),
-                  iconColor: ShellStyles.success(context),
-                ),
+          AnalyticsMetricGroup(
+            keyPrefix: 'trends-range',
+            metrics: [
+              AnalyticsMetric(
+                label: context.tr('analytics_trends_lowest'),
+                value: lowestPoint == null
+                    ? context.tr('analytics_no_data')
+                    : formatMoney(currency, lowestPoint.amount),
+                supporting: lowestPoint?.label,
+                icon: AppIcons.arrowDownRight,
+                valueColor: ShellStyles.success(context),
               ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: _RangeInsightTile(
-                  label: context.tr('analytics_trends_highest'),
-                  value: highestPoint == null
-                      ? context.tr('analytics_no_data')
-                      : '${formatMoney(currency, highestPoint.amount)} - ${highestPoint.label}',
-                  icon: AppIcons.arrowUpRight,
-                  tint: ShellStyles.error(context).withAlpha(20),
-                  iconColor: ShellStyles.error(context),
-                ),
+              AnalyticsMetric(
+                label: context.tr('analytics_trends_highest'),
+                value: highestPoint == null
+                    ? context.tr('analytics_no_data')
+                    : formatMoney(currency, highestPoint.amount),
+                supporting: highestPoint?.label,
+                icon: AppIcons.arrowUpRight,
+                valueColor: ShellStyles.error(context),
               ),
             ],
           ),
@@ -1081,72 +1093,6 @@ class _AnalyticsTrendsTabState extends State<AnalyticsTrendsTab> {
     }
 
     return '$symbol$compactValue';
-  }
-}
-
-class _RangeInsightTile extends StatelessWidget {
-  const _RangeInsightTile({
-    required this.label,
-    required this.value,
-    required this.icon,
-    required this.tint,
-    required this.iconColor,
-  });
-
-  final String label;
-  final String value;
-  final IconData icon;
-  final Color tint;
-  final Color iconColor;
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.all(14),
-      decoration: BoxDecoration(
-        color: ShellStyles.surfaceAlt(context),
-        borderRadius: BorderRadius.circular(18),
-        border: Border.all(color: ShellStyles.border(context)),
-      ),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Container(
-            width: 26,
-            height: 26,
-            decoration: BoxDecoration(color: tint, shape: BoxShape.circle),
-            alignment: Alignment.center,
-            child: Icon(icon, size: 14, color: iconColor),
-          ),
-          const SizedBox(width: 10),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  label,
-                  style: TextStyle(
-                    color: ShellStyles.textMuted(context),
-                    fontSize: 11,
-                    fontWeight: FontWeight.w700,
-                  ),
-                ),
-                const SizedBox(height: 4),
-                Text(
-                  value,
-                  style: TextStyle(
-                    color: ShellStyles.textPrimary(context),
-                    fontSize: 13,
-                    fontWeight: FontWeight.w800,
-                    height: 1.3,
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ],
-      ),
-    );
   }
 }
 

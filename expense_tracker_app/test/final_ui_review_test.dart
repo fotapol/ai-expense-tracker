@@ -92,9 +92,20 @@ void main() {
       ];
       expect(sizes[0], sizes[1]);
       expect(sizes[1], sizes[2]);
+      expect(
+        tester.getSize(find.byKey(const ValueKey('trends-range-0'))),
+        tester.getSize(find.byKey(const ValueKey('trends-range-1'))),
+      );
       expect(tester.takeException(), isNull);
     }, () => MockClient((request) async => response(request)));
   }
+
+  testWidgets('zero change has no negative sign', (tester) async {
+    await checkTrends(tester, const Locale('en'), 1, text: 1);
+    expect(find.text('0%'), findsNWidgets(3));
+    expect(find.text('−0%'), findsNothing);
+    expect(find.text('-0%'), findsNothing);
+  });
 
   for (final locale in AppLocalizations.supportedLocales) {
     testWidgets(

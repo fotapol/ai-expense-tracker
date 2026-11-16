@@ -368,8 +368,13 @@ class AnalyticsMetric {
 /// Equal metric surfaces with complete labels at each locale and text size.
 /// Narrow screens use rows; wide layouts use aligned columns.
 class AnalyticsMetricGroup extends StatelessWidget {
-  const AnalyticsMetricGroup({super.key, required this.metrics});
+  const AnalyticsMetricGroup({
+    super.key,
+    required this.metrics,
+    this.keyPrefix = 'analytics-metric',
+  });
   final List<AnalyticsMetric> metrics;
+  final String keyPrefix;
 
   @override
   Widget build(BuildContext context) => LayoutBuilder(
@@ -490,7 +495,7 @@ class AnalyticsMetricGroup extends StatelessWidget {
           ),
         );
         return Container(
-          key: ValueKey('analytics-metric-$index'),
+          key: ValueKey('$keyPrefix-$index'),
           height: height,
           padding: const EdgeInsets.all(padding),
           decoration: BoxDecoration(

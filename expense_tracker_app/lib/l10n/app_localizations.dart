@@ -2271,7 +2271,7 @@ class AppLocalizations {
       'create_category': 'Kategorie erstellen',
       'create_label': 'Etikett erstellen',
       'create_subcategory': 'Unterkategorie erstellen',
-      'daily_avg': 'Täglicher Durchschn',
+      'daily_avg': 'Tagesdurchschnitt',
       'delete_reminder': 'Erinnerung löschen',
       'discount_must_be_zero_or_higher':
           'Der Rabatt muss Null oder höher sein.',

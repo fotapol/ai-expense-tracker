@@ -909,7 +909,7 @@ void main() {
                 enableReceiptFilters: true,
                 displayCurrency: 'EUR',
                 selectedCategoryIds: ['food'],
-                selectedSubcategoryIds: ['sub-0'],
+                selectedSubcategoryIds: ['sub-0', 'sub-1', 'sub-3'],
               ),
             ),
             'polish-selected-categories',
