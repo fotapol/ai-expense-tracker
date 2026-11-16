@@ -70,6 +70,16 @@ class AppLocalizations {
 
   static const Map<String, Map<String, String>> _translations = {
     'en': {
+      'tools_pin_hint': 'Hold a tool to pin or unpin it.',
+      'tools_pinned': 'Pinned',
+      'tools_pin': 'Pin tool',
+      'tools_unpin': 'Unpin tool',
+      'duplicates_line_total': 'Line total',
+      'duplicates_quantity': 'Quantity',
+      'duplicates_no_item_differences': 'No item differences found.',
+      'duplicates_added_at': 'Added {date}',
+      'duplicates_comparison_count': 'Comparison {current} of {count}',
+      'duplicates_highlight_hint': 'Highlighted values differ.',
       'analytics_previous_period': 'Previous period',
       'analytics_comparison_zero':
           'Percentage change needs a nonzero previous total.',
@@ -1380,6 +1390,17 @@ class AppLocalizations {
       'delete_reminder_name_confirm': 'Delete "{name}"?',
     },
     'de': {
+      'tools_pin_hint':
+          'Werkzeug gedrückt halten, um es anzuheften oder zu lösen.',
+      'tools_pinned': 'Angeheftet',
+      'tools_pin': 'Werkzeug anheften',
+      'tools_unpin': 'Werkzeug lösen',
+      'duplicates_line_total': 'Positionssumme',
+      'duplicates_quantity': 'Menge',
+      'duplicates_no_item_differences': 'Keine Artikelunterschiede gefunden.',
+      'duplicates_added_at': 'Hinzugefügt: {date}',
+      'duplicates_comparison_count': 'Vergleich {current} von {count}',
+      'duplicates_highlight_hint': 'Hervorgehobene Werte unterscheiden sich.',
       'analytics_previous_period': 'Vorheriger Zeitraum',
       'analytics_comparison_zero':
           'Bei einem vorherigen Betrag von null gibt es keine Prozentänderung.',
@@ -2755,6 +2776,16 @@ class AppLocalizations {
       'delete_reminder_name_confirm': '„{name}“ löschen?',
     },
     'fr': {
+      'tools_pin_hint': 'Maintenez un outil pour l’épingler ou le détacher.',
+      'tools_pinned': 'Épinglés',
+      'tools_pin': 'Épingler l’outil',
+      'tools_unpin': 'Détacher l’outil',
+      'duplicates_line_total': 'Total de la ligne',
+      'duplicates_quantity': 'Quantité',
+      'duplicates_no_item_differences': 'Aucune différence entre les articles.',
+      'duplicates_added_at': 'Ajouté le {date}',
+      'duplicates_comparison_count': 'Comparaison {current} sur {count}',
+      'duplicates_highlight_hint': 'Les valeurs surlignées diffèrent.',
       'analytics_previous_period': 'Période précédente',
       'analytics_comparison_zero':
           'Un total précédent nul ne permet pas de calculer un pourcentage.',
@@ -4120,6 +4151,17 @@ class AppLocalizations {
       'delete_reminder_name_confirm': 'Supprimer "{name}" ?',
     },
     'uk': {
+      'tools_pin_hint':
+          'Утримуйте інструмент, щоб закріпити або відкріпити його.',
+      'tools_pinned': 'Закріплені',
+      'tools_pin': 'Закріпити інструмент',
+      'tools_unpin': 'Відкріпити інструмент',
+      'duplicates_line_total': 'Сума позиції',
+      'duplicates_quantity': 'Кількість',
+      'duplicates_no_item_differences': 'Відмінностей у товарах не знайдено.',
+      'duplicates_added_at': 'Додано: {date}',
+      'duplicates_comparison_count': 'Порівняння {current} з {count}',
+      'duplicates_highlight_hint': 'Виділені значення відрізняються.',
       'analytics_previous_period': 'Попередній період',
       'analytics_comparison_zero':
           'За нульового попереднього підсумку зміна у відсотках не розраховується.',
@@ -5449,6 +5491,17 @@ class AppLocalizations {
       'delete_reminder_name_confirm': 'Видалити "{name}"?',
     },
     'it': {
+      'tools_pin_hint':
+          'Tieni premuto uno strumento per fissarlo o rimuoverlo dai preferiti.',
+      'tools_pinned': 'Fissati',
+      'tools_pin': 'Fissa strumento',
+      'tools_unpin': 'Rimuovi strumento fissato',
+      'duplicates_line_total': 'Totale riga',
+      'duplicates_quantity': 'Quantità',
+      'duplicates_no_item_differences': 'Nessuna differenza tra gli articoli.',
+      'duplicates_added_at': 'Aggiunto il {date}',
+      'duplicates_comparison_count': 'Confronto {current} di {count}',
+      'duplicates_highlight_hint': 'I valori evidenziati differiscono.',
       'analytics_previous_period': 'Periodo precedente',
       'analytics_comparison_zero':
           'La variazione percentuale richiede un totale precedente diverso da zero.',
@@ -6821,6 +6874,16 @@ class AppLocalizations {
       'delete_reminder_name_confirm': 'Eliminare "{name}"?',
     },
     'pl': {
+      'tools_pin_hint': 'Przytrzymaj narzędzie, aby je przypiąć lub odpiąć.',
+      'tools_pinned': 'Przypięte',
+      'tools_pin': 'Przypnij narzędzie',
+      'tools_unpin': 'Odepnij narzędzie',
+      'duplicates_line_total': 'Suma pozycji',
+      'duplicates_quantity': 'Ilość',
+      'duplicates_no_item_differences': 'Nie znaleziono różnic w pozycjach.',
+      'duplicates_added_at': 'Dodano: {date}',
+      'duplicates_comparison_count': 'Porównanie {current} z {count}',
+      'duplicates_highlight_hint': 'Wyróżnione wartości różnią się.',
       'analytics_previous_period': 'Poprzedni okres',
       'analytics_comparison_zero':
           'Zmiana procentowa wymaga poprzedniej sumy różnej od zera.',
@@ -8170,6 +8233,16 @@ class AppLocalizations {
       'delete_reminder_name_confirm': 'Usunąć "{name}"?',
     },
     'sr': {
+      'tools_pin_hint': 'Zadržite alat da biste ga zakačili ili otkačili.',
+      'tools_pinned': 'Zakačeno',
+      'tools_pin': 'Zakači alat',
+      'tools_unpin': 'Otkači alat',
+      'duplicates_line_total': 'Ukupno za stavku',
+      'duplicates_quantity': 'Količina',
+      'duplicates_no_item_differences': 'Nisu pronađene razlike u stavkama.',
+      'duplicates_added_at': 'Dodato: {date}',
+      'duplicates_comparison_count': 'Poređenje {current} od {count}',
+      'duplicates_highlight_hint': 'Istaknute vrednosti se razlikuju.',
       'analytics_previous_period': 'Prethodni period',
       'analytics_comparison_zero':
           'Procentualna promena se ne računa kada je prethodni zbir nula.',
@@ -9502,6 +9575,17 @@ class AppLocalizations {
       'delete_reminder_name_confirm': 'Obriši "{name}"?',
     },
     'ru': {
+      'tools_pin_hint':
+          'Удерживайте инструмент, чтобы закрепить или открепить его.',
+      'tools_pinned': 'Закреплённые',
+      'tools_pin': 'Закрепить инструмент',
+      'tools_unpin': 'Открепить инструмент',
+      'duplicates_line_total': 'Сумма позиции',
+      'duplicates_quantity': 'Количество',
+      'duplicates_no_item_differences': 'Различий в товарах не найдено.',
+      'duplicates_added_at': 'Добавлен: {date}',
+      'duplicates_comparison_count': 'Сравнение {current} из {count}',
+      'duplicates_highlight_hint': 'Выделенные значения различаются.',
       'analytics_previous_period': 'Предыдущий период',
       'analytics_comparison_zero':
           'При нулевом прошлом итоге изменение в процентах не рассчитывается.',
@@ -10836,6 +10920,17 @@ class AppLocalizations {
       'delete_reminder_name_confirm': 'Удалить "{name}"?',
     },
     'pt': {
+      'tools_pin_hint':
+          'Mantenha uma ferramenta pressionada para fixá-la ou desafixá-la.',
+      'tools_pinned': 'Fixadas',
+      'tools_pin': 'Fixar ferramenta',
+      'tools_unpin': 'Desafixar ferramenta',
+      'duplicates_line_total': 'Total do item',
+      'duplicates_quantity': 'Quantidade',
+      'duplicates_no_item_differences': 'Nenhuma diferença entre os itens.',
+      'duplicates_added_at': 'Adicionado em {date}',
+      'duplicates_comparison_count': 'Comparação {current} de {count}',
+      'duplicates_highlight_hint': 'Os valores destacados são diferentes.',
       'analytics_previous_period': 'Período anterior',
       'analytics_comparison_zero':
           'A variação percentual requer um total anterior diferente de zero.',
@@ -12194,6 +12289,17 @@ class AppLocalizations {
       'delete_reminder_name_confirm': 'Eliminar "{name}"?',
     },
     'tr': {
+      'tools_pin_hint':
+          'Bir aracı sabitlemek veya kaldırmak için basılı tutun.',
+      'tools_pinned': 'Sabitlenenler',
+      'tools_pin': 'Aracı sabitle',
+      'tools_unpin': 'Sabitlemeyi kaldır',
+      'duplicates_line_total': 'Satır toplamı',
+      'duplicates_quantity': 'Miktar',
+      'duplicates_no_item_differences': 'Ürünler arasında fark bulunamadı.',
+      'duplicates_added_at': 'Eklenme: {date}',
+      'duplicates_comparison_count': 'Karşılaştırma {current} / {count}',
+      'duplicates_highlight_hint': 'Vurgulanan değerler farklıdır.',
       'analytics_previous_period': 'Önceki dönem',
       'analytics_comparison_zero':
           'Yüzde değişimi için önceki toplamın sıfırdan farklı olması gerekir.',
@@ -13520,6 +13626,18 @@ class AppLocalizations {
       'delete_reminder_name_confirm': '"{name}" silinsin mi?',
     },
     'nl': {
+      'tools_pin_hint':
+          'Houd een hulpmiddel ingedrukt om het vast of los te maken.',
+      'tools_pinned': 'Vastgezet',
+      'tools_pin': 'Hulpmiddel vastzetten',
+      'tools_unpin': 'Hulpmiddel losmaken',
+      'duplicates_line_total': 'Regeltotaal',
+      'duplicates_quantity': 'Aantal',
+      'duplicates_no_item_differences':
+          'Geen verschillen tussen artikelen gevonden.',
+      'duplicates_added_at': 'Toegevoegd: {date}',
+      'duplicates_comparison_count': 'Vergelijking {current} van {count}',
+      'duplicates_highlight_hint': 'Gemarkeerde waarden verschillen.',
       'analytics_previous_period': 'Vorige periode',
       'analytics_comparison_zero':
           'Een procentuele verandering vereist een vorig totaal dat niet nul is.',
@@ -14871,6 +14989,16 @@ class AppLocalizations {
       'delete_reminder_name_confirm': '"{name}" verwijderen?',
     },
     'sv': {
+      'tools_pin_hint': 'Håll inne ett verktyg för att fästa eller lossa det.',
+      'tools_pinned': 'Fästa',
+      'tools_pin': 'Fäst verktyg',
+      'tools_unpin': 'Lossa verktyg',
+      'duplicates_line_total': 'Radsumma',
+      'duplicates_quantity': 'Antal',
+      'duplicates_no_item_differences': 'Inga skillnader mellan artiklarna.',
+      'duplicates_added_at': 'Tillagd {date}',
+      'duplicates_comparison_count': 'Jämförelse {current} av {count}',
+      'duplicates_highlight_hint': 'Markerade värden skiljer sig.',
       'analytics_previous_period': 'Föregående period',
       'analytics_comparison_zero':
           'Procentuell förändring kräver att föregående totalsumma inte är noll.',
@@ -16205,6 +16333,16 @@ class AppLocalizations {
       'delete_reminder_name_confirm': 'Radera "{name}"?',
     },
     'cs': {
+      'tools_pin_hint': 'Podržením nástroj připnete nebo odepnete.',
+      'tools_pinned': 'Připnuté',
+      'tools_pin': 'Připnout nástroj',
+      'tools_unpin': 'Odepnout nástroj',
+      'duplicates_line_total': 'Celkem za položku',
+      'duplicates_quantity': 'Množství',
+      'duplicates_no_item_differences': 'Nebyly nalezeny rozdíly v položkách.',
+      'duplicates_added_at': 'Přidáno: {date}',
+      'duplicates_comparison_count': 'Porovnání {current} z {count}',
+      'duplicates_highlight_hint': 'Zvýrazněné hodnoty se liší.',
       'analytics_previous_period': 'Předchozí období',
       'analytics_comparison_zero':
           'Procentní změnu nelze vypočítat, pokud je předchozí součet nulový.',
@@ -17529,6 +17667,18 @@ class AppLocalizations {
       'delete_reminder_name_confirm': 'Smazat "{name}"?',
     },
     'ro': {
+      'tools_pin_hint':
+          'Ține apăsat un instrument pentru a-l fixa sau desprinde.',
+      'tools_pinned': 'Fixate',
+      'tools_pin': 'Fixează instrumentul',
+      'tools_unpin': 'Desprinde instrumentul',
+      'duplicates_line_total': 'Total articol',
+      'duplicates_quantity': 'Cantitate',
+      'duplicates_no_item_differences':
+          'Nu s-au găsit diferențe între articole.',
+      'duplicates_added_at': 'Adăugat: {date}',
+      'duplicates_comparison_count': 'Comparația {current} din {count}',
+      'duplicates_highlight_hint': 'Valorile evidențiate diferă.',
       'analytics_previous_period': 'Perioada anterioară',
       'analytics_comparison_zero':
           'Variația procentuală necesită un total anterior diferit de zero.',
@@ -18890,6 +19040,17 @@ class AppLocalizations {
       'delete_reminder_name_confirm': 'Ștergeți "{name}"?',
     },
     'hu': {
+      'tools_pin_hint':
+          'Tartsd nyomva az eszközt a rögzítéshez vagy feloldáshoz.',
+      'tools_pinned': 'Rögzített',
+      'tools_pin': 'Eszköz rögzítése',
+      'tools_unpin': 'Rögzítés feloldása',
+      'duplicates_line_total': 'Tétel összege',
+      'duplicates_quantity': 'Mennyiség',
+      'duplicates_no_item_differences': 'Nincs eltérés a tételek között.',
+      'duplicates_added_at': 'Hozzáadva: {date}',
+      'duplicates_comparison_count': 'Összehasonlítás: {current}/{count}',
+      'duplicates_highlight_hint': 'A kiemelt értékek eltérnek.',
       'analytics_previous_period': 'Előző időszak',
       'analytics_comparison_zero':
           'A százalékos változás csak nem nulla előző összeghez számítható.',
@@ -20234,6 +20395,16 @@ class AppLocalizations {
       'delete_reminder_name_confirm': 'Törli a következőt: "{name}"?',
     },
     'id': {
+      'tools_pin_hint': 'Tekan lama alat untuk menyematkan atau melepasnya.',
+      'tools_pinned': 'Disematkan',
+      'tools_pin': 'Sematkan alat',
+      'tools_unpin': 'Lepas sematan alat',
+      'duplicates_line_total': 'Total item',
+      'duplicates_quantity': 'Jumlah',
+      'duplicates_no_item_differences': 'Tidak ada perbedaan item.',
+      'duplicates_added_at': 'Ditambahkan {date}',
+      'duplicates_comparison_count': 'Perbandingan {current} dari {count}',
+      'duplicates_highlight_hint': 'Nilai yang disorot berbeda.',
       'analytics_previous_period': 'Periode sebelumnya',
       'analytics_comparison_zero':
           'Perubahan persentase memerlukan total sebelumnya yang tidak nol.',
@@ -21573,6 +21744,17 @@ class AppLocalizations {
       'delete_reminder_name_confirm': 'Hapus "{name}"?',
     },
     'ms': {
+      'tools_pin_hint':
+          'Tekan lama alat untuk menyemat atau menyahsematkannya.',
+      'tools_pinned': 'Disematkan',
+      'tools_pin': 'Semat alat',
+      'tools_unpin': 'Nyahsemat alat',
+      'duplicates_line_total': 'Jumlah item',
+      'duplicates_quantity': 'Kuantiti',
+      'duplicates_no_item_differences': 'Tiada perbezaan item ditemui.',
+      'duplicates_added_at': 'Ditambah {date}',
+      'duplicates_comparison_count': 'Perbandingan {current} daripada {count}',
+      'duplicates_highlight_hint': 'Nilai yang diserlahkan berbeza.',
       'analytics_previous_period': 'Tempoh sebelumnya',
       'analytics_comparison_zero':
           'Perubahan peratus memerlukan jumlah sebelumnya yang bukan sifar.',
@@ -22906,6 +23088,16 @@ class AppLocalizations {
       'delete_reminder_name_confirm': 'Padam "{name}"?',
     },
     'vi': {
+      'tools_pin_hint': 'Nhấn giữ công cụ để ghim hoặc bỏ ghim.',
+      'tools_pinned': 'Đã ghim',
+      'tools_pin': 'Ghim công cụ',
+      'tools_unpin': 'Bỏ ghim công cụ',
+      'duplicates_line_total': 'Thành tiền',
+      'duplicates_quantity': 'Số lượng',
+      'duplicates_no_item_differences': 'Không có khác biệt giữa các mặt hàng.',
+      'duplicates_added_at': 'Đã thêm {date}',
+      'duplicates_comparison_count': 'So sánh {current} trên {count}',
+      'duplicates_highlight_hint': 'Các giá trị được tô sáng khác nhau.',
       'analytics_previous_period': 'Kỳ trước',
       'analytics_comparison_zero':
           'Chỉ tính được thay đổi phần trăm khi tổng kỳ trước khác 0.',
@@ -24237,6 +24429,16 @@ class AppLocalizations {
       'delete_reminder_name_confirm': 'Xóa "{name}"?',
     },
     'zh': {
+      'tools_pin_hint': '长按工具可固定或取消固定。',
+      'tools_pinned': '已固定',
+      'tools_pin': '固定工具',
+      'tools_unpin': '取消固定工具',
+      'duplicates_line_total': '商品合计',
+      'duplicates_quantity': '数量',
+      'duplicates_no_item_differences': '未发现商品差异。',
+      'duplicates_added_at': '添加于 {date}',
+      'duplicates_comparison_count': '第 {current} 项比较，共 {count} 项',
+      'duplicates_highlight_hint': '高亮的数值存在差异。',
       'analytics_previous_period': '上一时段',
       'analytics_comparison_zero': '上一时段合计不为零时才能计算百分比变化。',
       'analytics_compare_select_period': '请选择日期范围以比较支出。',
@@ -25359,6 +25561,16 @@ class AppLocalizations {
       'delete_reminder_name_confirm': '删除 "{name}"？',
     },
     'ja': {
+      'tools_pin_hint': 'ツールを長押しすると固定・解除できます。',
+      'tools_pinned': '固定済み',
+      'tools_pin': 'ツールを固定',
+      'tools_unpin': '固定を解除',
+      'duplicates_line_total': '明細合計',
+      'duplicates_quantity': '数量',
+      'duplicates_no_item_differences': '商品の違いはありません。',
+      'duplicates_added_at': '追加日時：{date}',
+      'duplicates_comparison_count': '比較 {current} / {count}',
+      'duplicates_highlight_hint': '強調表示された値は異なります。',
       'analytics_previous_period': '前の期間',
       'analytics_comparison_zero': '前の期間の合計がゼロの場合、変化率は計算できません。',
       'analytics_compare_select_period': '支出を比較する期間を選択してください。',
@@ -26522,6 +26734,16 @@ class AppLocalizations {
       'delete_reminder_name_confirm': '「{name}」を削除しますか？',
     },
     'ko': {
+      'tools_pin_hint': '도구를 길게 눌러 고정하거나 해제하세요.',
+      'tools_pinned': '고정됨',
+      'tools_pin': '도구 고정',
+      'tools_unpin': '도구 고정 해제',
+      'duplicates_line_total': '항목 합계',
+      'duplicates_quantity': '수량',
+      'duplicates_no_item_differences': '상품 차이가 없습니다.',
+      'duplicates_added_at': '추가일: {date}',
+      'duplicates_comparison_count': '비교 {current}/{count}',
+      'duplicates_highlight_hint': '강조된 값은 서로 다릅니다.',
       'analytics_previous_period': '이전 기간',
       'analytics_comparison_zero': '이전 합계가 0이면 변동률을 계산할 수 없습니다.',
       'analytics_compare_select_period': '지출을 비교할 기간을 선택하세요.',
@@ -27704,6 +27926,16 @@ class AppLocalizations {
       'delete_reminder_name_confirm': '"{name}" 내역을 삭제하시겠습니까?',
     },
     'hi': {
+      'tools_pin_hint': 'टूल को पिन करने या हटाने के लिए दबाकर रखें।',
+      'tools_pinned': 'पिन किए गए',
+      'tools_pin': 'टूल पिन करें',
+      'tools_unpin': 'टूल अनपिन करें',
+      'duplicates_line_total': 'आइटम का कुल',
+      'duplicates_quantity': 'मात्रा',
+      'duplicates_no_item_differences': 'आइटम में कोई अंतर नहीं मिला।',
+      'duplicates_added_at': 'जोड़ा गया: {date}',
+      'duplicates_comparison_count': 'तुलना {current} / {count}',
+      'duplicates_highlight_hint': 'हाइलाइट किए गए मान अलग हैं।',
       'analytics_previous_period': 'पिछली अवधि',
       'analytics_comparison_zero':
           'प्रतिशत बदलाव की गणना के लिए पिछला कुल शून्य से अलग होना चाहिए।',
@@ -29018,6 +29250,17 @@ class AppLocalizations {
       'delete_reminder_name_confirm': 'क्या "{name}" को हटाना चाहते हैं?',
     },
     'ar': {
+      'tools_pin_hint': 'اضغط مطولاً على الأداة لتثبيتها أو إلغاء تثبيتها.',
+      'tools_pinned': 'المثبتة',
+      'tools_pin': 'تثبيت الأداة',
+      'tools_unpin': 'إلغاء تثبيت الأداة',
+      'duplicates_line_total': 'إجمالي الصنف',
+      'duplicates_quantity': 'الكمية',
+      'duplicates_no_item_differences':
+          'لم يتم العثور على اختلافات بين الأصناف.',
+      'duplicates_added_at': 'أُضيف في {date}',
+      'duplicates_comparison_count': 'المقارنة {current} من {count}',
+      'duplicates_highlight_hint': 'القيم المميزة مختلفة.',
       'analytics_previous_period': 'الفترة السابقة',
       'analytics_comparison_zero':
           'لا يمكن حساب التغير المئوي عندما يكون الإجمالي السابق صفرًا.',
@@ -30306,6 +30549,18 @@ class AppLocalizations {
       'delete_reminder_name_confirm': 'هل تريد حذف "{name}"؟',
     },
     'es': {
+      'tools_pin_hint':
+          'Mantén pulsada una herramienta para fijarla o desfijarla.',
+      'tools_pinned': 'Fijadas',
+      'tools_pin': 'Fijar herramienta',
+      'tools_unpin': 'Desfijar herramienta',
+      'duplicates_line_total': 'Total de la línea',
+      'duplicates_quantity': 'Cantidad',
+      'duplicates_no_item_differences':
+          'No hay diferencias entre los artículos.',
+      'duplicates_added_at': 'Añadido el {date}',
+      'duplicates_comparison_count': 'Comparación {current} de {count}',
+      'duplicates_highlight_hint': 'Los valores resaltados son diferentes.',
       'analytics_previous_period': 'Período anterior',
       'analytics_comparison_zero':
           'El cambio porcentual requiere un total anterior distinto de cero.',

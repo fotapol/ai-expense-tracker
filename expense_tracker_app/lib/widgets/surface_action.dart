@@ -8,12 +8,14 @@ class SurfaceAction extends StatelessWidget {
     super.key,
     required this.onTap,
     required this.child,
+    this.onLongPress,
     this.radius = 16,
     this.padding = const EdgeInsets.all(12),
     this.highlighted = false,
   });
 
   final VoidCallback? onTap;
+  final VoidCallback? onLongPress;
   final Widget child;
   final double radius;
   final EdgeInsetsGeometry padding;
@@ -36,6 +38,7 @@ class SurfaceAction extends StatelessWidget {
         child: InkWell(
           borderRadius: BorderRadius.circular(radius),
           onTap: onTap,
+          onLongPress: onLongPress,
           child: Padding(padding: padding, child: child),
         ),
       ),
