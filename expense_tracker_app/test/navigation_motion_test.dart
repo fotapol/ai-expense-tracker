@@ -88,6 +88,7 @@ void main() {
     'analytics indicator moves with the page and saves the final section',
     (tester) async {
       fixture.phone(tester);
+      final requests = <http.Request>[];
       await http.runWithClient(() async {
         await tester.pumpWidget(fixture.app(const AnalyticsScreen()));
         await tester.pumpAndSettle();
@@ -108,6 +109,20 @@ void main() {
         );
         final preferences = await SharedPreferences.getInstance();
         expect(preferences.getString('analytics_section'), 'categories');
+        final beforeReturn = requests.length;
+        await tester.tap(
+          find.byKey(const ValueKey('analytics-section-overview')),
+        );
+        await tester.pumpAndSettle();
+        expect(
+          requests.length,
+          beforeReturn,
+          reason: 'A visited overview retains its loaded data',
+        );
+        await tester.tap(
+          find.byKey(const ValueKey('analytics-section-categories')),
+        );
+        await tester.pumpAndSettle();
         await tester.drag(find.byType(PageView), const Offset(320, 0));
         await tester.pumpAndSettle();
         expect(preferences.getString('analytics_section'), 'trends');

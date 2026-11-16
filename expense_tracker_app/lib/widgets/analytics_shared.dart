@@ -402,17 +402,23 @@ class AnalyticsMetricGroup extends StatelessWidget {
         if (size.width > valueWidth) valueWidth = size.width;
         if (size.height > valueHeight) valueHeight = size.height;
       }
+      const padding = 12.0;
+      const borderWidth = 1.0;
+      const insets = 2 * (padding + borderWidth);
+      var minimumColumnWidth = 120 * ShellStyles.textScale(context);
+      for (final metric in metrics) {
+        for (final word in metric.label.split(RegExp(r'\s+'))) {
+          final width = measure(word, labelStyle).width + insets + 26;
+          if (width > minimumColumnWidth) minimumColumnWidth = width;
+        }
+      }
       final columns =
           constraints.maxWidth >=
-          120 * metrics.length * ShellStyles.textScale(context) +
-              10 * (metrics.length - 1);
+          minimumColumnWidth * metrics.length + 10 * (metrics.length - 1);
       final tileWidth = columns
           ? (constraints.maxWidth - 10 * (metrics.length - 1)) / metrics.length
           : constraints.maxWidth;
       valueWidth = valueWidth.clamp(0, tileWidth * .45);
-      const padding = 12.0;
-      const borderWidth = 1.0;
-      const insets = 2 * (padding + borderWidth);
       final horizontal =
           !columns && tileWidth - insets - 34 - valueWidth >= 100;
       final labelWidth =

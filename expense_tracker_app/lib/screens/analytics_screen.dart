@@ -16,6 +16,7 @@ import '../core/subscription_confirmation.dart';
 import '../core/taxonomy_localization.dart';
 import '../l10n/app_localizations.dart';
 import '../widgets/app_tab_footer.dart';
+import '../widgets/keep_alive_tab.dart';
 import '../widgets/analytics_shared.dart';
 import '../widgets/filter_bottom_sheet.dart';
 import 'analytics_overview_tab.dart';
@@ -284,7 +285,7 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
               child: AnimatedDefaultTextStyle(
                 duration: AppMotion.duration(context),
                 curve: AppMotion.curve,
-                style: TextStyle(
+                style: Theme.of(context).textTheme.labelLarge!.copyWith(
                   color: selected
                       ? ShellStyles.accentTone(context).foreground
                       : ShellStyles.textMuted(context),
@@ -514,7 +515,7 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
         final painter = TextPainter(
           text: TextSpan(
             text: context.tr(_sectionLabelKey(section)),
-            style: const TextStyle(
+            style: Theme.of(context).textTheme.labelLarge!.copyWith(
               fontSize: 13,
               height: 1.3,
               fontWeight: FontWeight.w700,
@@ -689,7 +690,7 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
                               ? _buildActiveFiltersBar
                               : null,
                         ),
-                      ],
+                      ].map((child) => KeepAliveTab(child: child)).toList(),
                     ),
                   ),
                 ),

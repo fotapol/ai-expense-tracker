@@ -6,6 +6,7 @@ import 'package:expense_tracker_app/l10n/app_localizations.dart';
 import 'package:expense_tracker_app/main.dart' show themeProvider;
 import 'package:expense_tracker_app/screens/analytics_overview_tab.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/rendering.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:http/http.dart' as http;
 import 'package:http/testing.dart';
@@ -84,6 +85,39 @@ void main() {
       },
     );
   }
+
+  testWidgets(
+    'compact overview does not break long metric words into fragments',
+    (tester) async {
+      fixture.phone(tester);
+      await http.runWithClient(() async {
+        await tester.pumpWidget(
+          fixture.app(
+            const Scaffold(
+              body: AnalyticsOverviewTab(filters: AnalyticsFilters()),
+            ),
+            locale: const Locale('de'),
+            factor: .8,
+          ),
+        );
+        await tester.pumpAndSettle();
+        final label = AppLocalizations.lookup(
+          'analytics_total_transactions',
+          languageCode: 'de',
+        );
+        final paragraph = tester.renderObject<RenderParagraph>(
+          find.text(label),
+        );
+        expect(
+          paragraph.getBoxesForSelection(
+            TextSelection(baseOffset: 0, extentOffset: label.length),
+          ),
+          hasLength(1),
+        );
+        expect(tester.takeException(), isNull);
+      }, () => MockClient((request) async => analyticsResponse(request)));
+    },
+  );
 
   for (final factor in [.6, .8, 1.0, 1.2]) {
     testWidgets(
