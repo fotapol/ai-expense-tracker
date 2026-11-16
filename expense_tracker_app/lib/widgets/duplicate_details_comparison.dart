@@ -324,6 +324,14 @@ class _ComparisonState extends State<DuplicateDetailsComparison> {
               _amount(prices[1], currencies[1], unitPrice: true),
               different: !both || !sameCurrency || !row.same('unit_price'),
             ),
+          if ((comparisonDiscount(a) ?? 0) != 0 ||
+              (comparisonDiscount(b) ?? 0) != 0)
+            _field(
+              context.tr('duplicates_discount'),
+              _amount(comparisonDiscount(a), currencies[0]),
+              _amount(comparisonDiscount(b), currencies[1]),
+              different: !both || !sameCurrency || !row.same('discount_amount'),
+            ),
           _field(
             context.tr('duplicates_line_total'),
             _amount(a?['amount'], currencies[0]),

@@ -70,6 +70,8 @@ class AppLocalizations {
 
   static const Map<String, Map<String, String>> _translations = {
     'en': {
+      'duplicates_discount': 'Discount',
+      'tools_pin_save_error': 'Could not save pinned tools. Please try again.',
       'tools_pin_hint': 'Hold a tool to pin or unpin it.',
       'tools_pinned': 'Pinned',
       'tools_pin': 'Pin tool',
@@ -1390,6 +1392,9 @@ class AppLocalizations {
       'delete_reminder_name_confirm': 'Delete "{name}"?',
     },
     'de': {
+      'duplicates_discount': 'Rabatt',
+      'tools_pin_save_error':
+          'Angeheftete Werkzeuge konnten nicht gespeichert werden. Bitte erneut versuchen.',
       'tools_pin_hint':
           'Werkzeug gedrückt halten, um es anzuheften oder zu lösen.',
       'tools_pinned': 'Angeheftet',
@@ -2776,6 +2781,9 @@ class AppLocalizations {
       'delete_reminder_name_confirm': '„{name}“ löschen?',
     },
     'fr': {
+      'duplicates_discount': 'Remise',
+      'tools_pin_save_error':
+          'Impossible d’enregistrer les outils épinglés. Réessayez.',
       'tools_pin_hint': 'Maintenez un outil pour l’épingler ou le détacher.',
       'tools_pinned': 'Épinglés',
       'tools_pin': 'Épingler l’outil',
@@ -4151,6 +4159,9 @@ class AppLocalizations {
       'delete_reminder_name_confirm': 'Supprimer "{name}" ?',
     },
     'uk': {
+      'duplicates_discount': 'Знижка',
+      'tools_pin_save_error':
+          'Не вдалося зберегти закріплені інструменти. Спробуйте ще раз.',
       'tools_pin_hint':
           'Утримуйте інструмент, щоб закріпити або відкріпити його.',
       'tools_pinned': 'Закріплені',
@@ -5491,6 +5502,9 @@ class AppLocalizations {
       'delete_reminder_name_confirm': 'Видалити "{name}"?',
     },
     'it': {
+      'duplicates_discount': 'Sconto',
+      'tools_pin_save_error':
+          'Impossibile salvare gli strumenti fissati. Riprova.',
       'tools_pin_hint':
           'Tieni premuto uno strumento per fissarlo o rimuoverlo dai preferiti.',
       'tools_pinned': 'Fissati',
@@ -6874,6 +6888,9 @@ class AppLocalizations {
       'delete_reminder_name_confirm': 'Eliminare "{name}"?',
     },
     'pl': {
+      'duplicates_discount': 'Rabat',
+      'tools_pin_save_error':
+          'Nie udało się zapisać przypiętych narzędzi. Spróbuj ponownie.',
       'tools_pin_hint': 'Przytrzymaj narzędzie, aby je przypiąć lub odpiąć.',
       'tools_pinned': 'Przypięte',
       'tools_pin': 'Przypnij narzędzie',
@@ -8233,6 +8250,9 @@ class AppLocalizations {
       'delete_reminder_name_confirm': 'Usunąć "{name}"?',
     },
     'sr': {
+      'duplicates_discount': 'Popust',
+      'tools_pin_save_error':
+          'Nije moguće sačuvati zakačene alate. Pokušajte ponovo.',
       'tools_pin_hint': 'Zadržite alat da biste ga zakačili ili otkačili.',
       'tools_pinned': 'Zakačeno',
       'tools_pin': 'Zakači alat',
@@ -9575,6 +9595,9 @@ class AppLocalizations {
       'delete_reminder_name_confirm': 'Obriši "{name}"?',
     },
     'ru': {
+      'duplicates_discount': 'Скидка',
+      'tools_pin_save_error':
+          'Не удалось сохранить закреплённые инструменты. Повторите попытку.',
       'tools_pin_hint':
           'Удерживайте инструмент, чтобы закрепить или открепить его.',
       'tools_pinned': 'Закреплённые',
@@ -10920,6 +10943,9 @@ class AppLocalizations {
       'delete_reminder_name_confirm': 'Удалить "{name}"?',
     },
     'pt': {
+      'duplicates_discount': 'Desconto',
+      'tools_pin_save_error':
+          'Não foi possível salvar as ferramentas fixadas. Tente novamente.',
       'tools_pin_hint':
           'Mantenha uma ferramenta pressionada para fixá-la ou desafixá-la.',
       'tools_pinned': 'Fixadas',
@@ -12289,6 +12315,9 @@ class AppLocalizations {
       'delete_reminder_name_confirm': 'Eliminar "{name}"?',
     },
     'tr': {
+      'duplicates_discount': 'İndirim',
+      'tools_pin_save_error':
+          'Sabitlenen araçlar kaydedilemedi. Lütfen tekrar deneyin.',
       'tools_pin_hint':
           'Bir aracı sabitlemek veya kaldırmak için basılı tutun.',
       'tools_pinned': 'Sabitlenenler',
@@ -13626,6 +13655,9 @@ class AppLocalizations {
       'delete_reminder_name_confirm': '"{name}" silinsin mi?',
     },
     'nl': {
+      'duplicates_discount': 'Korting',
+      'tools_pin_save_error':
+          'Vastgezette hulpmiddelen konden niet worden opgeslagen. Probeer het opnieuw.',
       'tools_pin_hint':
           'Houd een hulpmiddel ingedrukt om het vast of los te maken.',
       'tools_pinned': 'Vastgezet',
@@ -14989,6 +15021,9 @@ class AppLocalizations {
       'delete_reminder_name_confirm': '"{name}" verwijderen?',
     },
     'sv': {
+      'duplicates_discount': 'Rabatt',
+      'tools_pin_save_error':
+          'Det gick inte att spara fästa verktyg. Försök igen.',
       'tools_pin_hint': 'Håll inne ett verktyg för att fästa eller lossa det.',
       'tools_pinned': 'Fästa',
       'tools_pin': 'Fäst verktyg',
@@ -16333,6 +16368,9 @@ class AppLocalizations {
       'delete_reminder_name_confirm': 'Radera "{name}"?',
     },
     'cs': {
+      'duplicates_discount': 'Sleva',
+      'tools_pin_save_error':
+          'Připnuté nástroje se nepodařilo uložit. Zkuste to znovu.',
       'tools_pin_hint': 'Podržením nástroj připnete nebo odepnete.',
       'tools_pinned': 'Připnuté',
       'tools_pin': 'Připnout nástroj',
@@ -17667,6 +17705,9 @@ class AppLocalizations {
       'delete_reminder_name_confirm': 'Smazat "{name}"?',
     },
     'ro': {
+      'duplicates_discount': 'Reducere',
+      'tools_pin_save_error':
+          'Instrumentele fixate nu au putut fi salvate. Încearcă din nou.',
       'tools_pin_hint':
           'Ține apăsat un instrument pentru a-l fixa sau desprinde.',
       'tools_pinned': 'Fixate',
@@ -19040,6 +19081,9 @@ class AppLocalizations {
       'delete_reminder_name_confirm': 'Ștergeți "{name}"?',
     },
     'hu': {
+      'duplicates_discount': 'Kedvezmény',
+      'tools_pin_save_error':
+          'A rögzített eszközök mentése sikertelen. Próbáld újra.',
       'tools_pin_hint':
           'Tartsd nyomva az eszközt a rögzítéshez vagy feloldáshoz.',
       'tools_pinned': 'Rögzített',
@@ -20395,6 +20439,9 @@ class AppLocalizations {
       'delete_reminder_name_confirm': 'Törli a következőt: "{name}"?',
     },
     'id': {
+      'duplicates_discount': 'Diskon',
+      'tools_pin_save_error':
+          'Alat yang disematkan tidak dapat disimpan. Coba lagi.',
       'tools_pin_hint': 'Tekan lama alat untuk menyematkan atau melepasnya.',
       'tools_pinned': 'Disematkan',
       'tools_pin': 'Sematkan alat',
@@ -21744,6 +21791,9 @@ class AppLocalizations {
       'delete_reminder_name_confirm': 'Hapus "{name}"?',
     },
     'ms': {
+      'duplicates_discount': 'Diskaun',
+      'tools_pin_save_error':
+          'Alat yang disematkan tidak dapat disimpan. Sila cuba lagi.',
       'tools_pin_hint':
           'Tekan lama alat untuk menyemat atau menyahsematkannya.',
       'tools_pinned': 'Disematkan',
@@ -23088,6 +23138,9 @@ class AppLocalizations {
       'delete_reminder_name_confirm': 'Padam "{name}"?',
     },
     'vi': {
+      'duplicates_discount': 'Giảm giá',
+      'tools_pin_save_error':
+          'Không thể lưu các công cụ đã ghim. Vui lòng thử lại.',
       'tools_pin_hint': 'Nhấn giữ công cụ để ghim hoặc bỏ ghim.',
       'tools_pinned': 'Đã ghim',
       'tools_pin': 'Ghim công cụ',
@@ -24429,6 +24482,8 @@ class AppLocalizations {
       'delete_reminder_name_confirm': 'Xóa "{name}"?',
     },
     'zh': {
+      'duplicates_discount': '折扣',
+      'tools_pin_save_error': '无法保存已固定的工具，请重试。',
       'tools_pin_hint': '长按工具可固定或取消固定。',
       'tools_pinned': '已固定',
       'tools_pin': '固定工具',
@@ -25561,6 +25616,8 @@ class AppLocalizations {
       'delete_reminder_name_confirm': '删除 "{name}"？',
     },
     'ja': {
+      'duplicates_discount': '割引',
+      'tools_pin_save_error': '固定したツールを保存できませんでした。もう一度お試しください。',
       'tools_pin_hint': 'ツールを長押しすると固定・解除できます。',
       'tools_pinned': '固定済み',
       'tools_pin': 'ツールを固定',
@@ -26734,6 +26791,8 @@ class AppLocalizations {
       'delete_reminder_name_confirm': '「{name}」を削除しますか？',
     },
     'ko': {
+      'duplicates_discount': '할인',
+      'tools_pin_save_error': '고정한 도구를 저장하지 못했습니다. 다시 시도하세요.',
       'tools_pin_hint': '도구를 길게 눌러 고정하거나 해제하세요.',
       'tools_pinned': '고정됨',
       'tools_pin': '도구 고정',
@@ -27926,6 +27985,9 @@ class AppLocalizations {
       'delete_reminder_name_confirm': '"{name}" 내역을 삭제하시겠습니까?',
     },
     'hi': {
+      'duplicates_discount': 'छूट',
+      'tools_pin_save_error':
+          'पिन किए गए टूल सहेजे नहीं जा सके। फिर से कोशिश करें।',
       'tools_pin_hint': 'टूल को पिन करने या हटाने के लिए दबाकर रखें।',
       'tools_pinned': 'पिन किए गए',
       'tools_pin': 'टूल पिन करें',
@@ -29250,6 +29312,9 @@ class AppLocalizations {
       'delete_reminder_name_confirm': 'क्या "{name}" को हटाना चाहते हैं?',
     },
     'ar': {
+      'duplicates_discount': 'الخصم',
+      'tools_pin_save_error':
+          'تعذّر حفظ الأدوات المثبتة. يرجى المحاولة مجدداً.',
       'tools_pin_hint': 'اضغط مطولاً على الأداة لتثبيتها أو إلغاء تثبيتها.',
       'tools_pinned': 'المثبتة',
       'tools_pin': 'تثبيت الأداة',
@@ -30549,6 +30614,9 @@ class AppLocalizations {
       'delete_reminder_name_confirm': 'هل تريد حذف "{name}"؟',
     },
     'es': {
+      'duplicates_discount': 'Descuento',
+      'tools_pin_save_error':
+          'No se pudieron guardar las herramientas fijadas. Inténtalo de nuevo.',
       'tools_pin_hint':
           'Mantén pulsada una herramienta para fijarla o desfijarla.',
       'tools_pinned': 'Fijadas',

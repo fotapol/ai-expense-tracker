@@ -76,6 +76,18 @@ num? _number(Object? value) {
   return number?.isFinite == true ? number : null;
 }
 
+num? comparisonDiscount(Map<String, dynamic>? item) {
+  if (item == null) return null;
+  final explicit = _number(item['discount_amount']);
+  if (explicit != null) return explicit;
+  final before = _number(item['amount_before_discount']);
+  final amount = _number(item['amount']);
+  // Only use recorded amounts, never infer a discount from a unit-price mismatch.
+  return before != null && amount != null && before > amount
+      ? before - amount
+      : 0;
+}
+
 num? comparisonUnitPrice(Map<String, dynamic>? item) {
   if (item == null) return null;
   final explicit = _number(item['unit_price']);
@@ -85,7 +97,7 @@ num? comparisonUnitPrice(Map<String, dynamic>? item) {
   if (quantity == null || quantity <= 0 || amount == null) return null;
   final beforeDiscount =
       _number(item['amount_before_discount']) ??
-      amount + (_number(item['discount_amount']) ?? 0);
+      amount + (comparisonDiscount(item) ?? 0);
   return beforeDiscount / quantity;
 }
 
@@ -99,6 +111,10 @@ class ComparedItem {
     return switch (field) {
       'amount' => comparisonNumberSame(a, b),
       'qty' => comparisonNumberSame(a, b, decimals: 3),
+      'discount_amount' => comparisonNumberSame(
+        comparisonDiscount(first),
+        comparisonDiscount(second),
+      ),
       'unit_price' => comparisonNumberSame(
         comparisonUnitPrice(first),
         comparisonUnitPrice(second),
@@ -112,7 +128,14 @@ class ComparedItem {
   bool get identical =>
       first != null &&
       second != null &&
-      ['description', 'amount', 'qty', 'unit', 'unit_price'].every(same);
+      [
+        'description',
+        'amount',
+        'qty',
+        'unit',
+        'unit_price',
+        'discount_amount',
+      ].every(same);
 }
 
 String _normalize(String value) => value

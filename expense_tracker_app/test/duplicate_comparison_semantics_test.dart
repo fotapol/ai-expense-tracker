@@ -78,6 +78,7 @@ void main() {
   Future<void> showComparison(
     WidgetTester tester, {
     bool changedPrice = false,
+    bool discounted = false,
   }) async {
     fixture.phone(tester);
     final a = {
@@ -88,7 +89,20 @@ void main() {
       ...fixture.tx('two'),
       'amount_total': a['amount_total'],
       'occurred_at': '2026-01-10T13:30:45+01:00',
-      'items': [item(unit: 'pieces', price: changedPrice ? 5.0001 : null)],
+      'items': [
+        {
+          ...item(
+            unit: 'pieces',
+            price: changedPrice
+                ? 5.0001
+                : discounted
+                ? 5
+                : null,
+            total: discounted ? 8 : 10,
+          ),
+          if (discounted) 'discount_amount': 2,
+        },
+      ],
     };
     await tester.pumpWidget(
       fixture.app(
@@ -151,6 +165,27 @@ void main() {
       expect(tester.takeException(), isNull);
     },
   );
+
+  testWidgets('recorded discounts have their own labeled comparison row', (
+    tester,
+  ) async {
+    await showComparison(tester, discounted: true);
+    await tester.ensureVisible(
+      find.byKey(const ValueKey('duplicate-differences-only')),
+    );
+    await tester.tap(find.byKey(const ValueKey('duplicate-differences-only')));
+    await tester.pumpAndSettle();
+    expect(find.text('Discount'), findsOneWidget);
+    expect(find.text('RSD 2.00'), findsOneWidget);
+    expect(find.text('RSD 8.00'), findsOneWidget);
+    expect(find.text('Unit price'), findsOneWidget);
+    expect(find.text('Line total'), findsOneWidget);
+    expect(
+      find.byKey(const ValueKey('comparison-difference')),
+      findsNWidgets(4),
+    );
+    expect(tester.takeException(), isNull);
+  });
 
   testWidgets(
     'three receipts open direct comparisons and resolve only a real selected pair',

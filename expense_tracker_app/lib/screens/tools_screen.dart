@@ -76,7 +76,7 @@ class _ToolsScreenState extends State<ToolsScreen> {
         setState(() => _pins = List.of(_savedPins));
         ScaffoldMessenger.of(
           context,
-        ).showSnackBar(SnackBar(content: Text(context.tr('error_generic'))));
+        ).showSnackBar(SnackBar(content: Text(context.tr('tools_pin_save_error'))));
       }
     });
   }
