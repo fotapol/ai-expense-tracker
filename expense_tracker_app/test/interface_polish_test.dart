@@ -26,6 +26,38 @@ void main() {
     await themeProvider.load();
   });
 
+  test(
+    'home introduction uses the selected locale rather than Italian filler',
+    () {
+      for (final language in [
+        'pl',
+        'sr',
+        'pt',
+        'tr',
+        'nl',
+        'sv',
+        'cs',
+        'ro',
+        'hu',
+        'id',
+        'ms',
+        'vi',
+      ]) {
+        for (final key in [
+          'home_greeting_morning',
+          'home_start_subtitle',
+          'home_add_expense',
+        ]) {
+          expect(
+            AppLocalizations.lookup(key, languageCode: language),
+            isNot(AppLocalizations.lookup(key, languageCode: 'it')),
+            reason: '$language:$key',
+          );
+        }
+      }
+    },
+  );
+
   testWidgets(
     'empty duplicate finder is designed, scrollable and can refresh',
     (tester) async {
