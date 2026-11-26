@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../core/redesign_system.dart';
 import '../l10n/app_localizations.dart';
+import 'text_measurement.dart';
 
 class AnalyticsSurfaceCard extends StatelessWidget {
   const AnalyticsSurfaceCard({
@@ -395,24 +396,9 @@ class AnalyticsMetricGroup extends StatelessWidget {
         height: 1.35,
         color: ShellStyles.textMuted(context),
       );
-      Size measure(
-        String text,
-        TextStyle style, {
-        double maxWidth = double.infinity,
-      }) {
-        final painter = TextPainter(
-          text: TextSpan(text: text, style: style),
-          textDirection: Directionality.of(context),
-          textScaler: MediaQuery.textScalerOf(context),
-        )..layout(maxWidth: maxWidth);
-        final size = painter.size;
-        painter.dispose();
-        return size;
-      }
-
       var valueWidth = 0.0, valueHeight = 0.0;
       for (final metric in metrics) {
-        final size = measure(metric.value, valueStyle);
+        final size = measureTextLayout(context, metric.value, valueStyle);
         if (size.width > valueWidth) valueWidth = size.width;
         if (size.height > valueHeight) valueHeight = size.height;
       }
@@ -423,11 +409,17 @@ class AnalyticsMetricGroup extends StatelessWidget {
       if (valueWidth + insets > minimumColumnWidth) {
         minimumColumnWidth = valueWidth + insets;
       }
+      var labelMinWidth = 0.0;
       for (final metric in metrics) {
-        for (final word in metric.label.split(RegExp(r'\s+'))) {
-          final width = measure(word, labelStyle).width + insets + 26;
-          if (width > minimumColumnWidth) minimumColumnWidth = width;
-        }
+        final width = measureTextLayout(
+          context,
+          metric.label,
+          labelStyle,
+        ).minWidth.ceilToDouble();
+        if (width > labelMinWidth) labelMinWidth = width;
+      }
+      if (labelMinWidth + insets + 26 > minimumColumnWidth) {
+        minimumColumnWidth = labelMinWidth + insets + 26;
       }
       final columns =
           constraints.maxWidth >=
@@ -440,12 +432,14 @@ class AnalyticsMetricGroup extends StatelessWidget {
       final horizontal =
           !columns &&
           naturalValueWidth <= valueWidth &&
+          tileWidth - insets - 34 - valueWidth >= labelMinWidth &&
           tileWidth - insets - 34 - valueWidth >= 100;
       final labelWidth =
           tileWidth - insets - 26 - (horizontal ? valueWidth + 8 : 0);
       var labelHeight = 18.0;
       for (final metric in metrics) {
-        final height = measure(
+        final height = measureTextLayout(
+          context,
           metric.label,
           labelStyle,
           maxWidth: labelWidth,
@@ -458,7 +452,8 @@ class AnalyticsMetricGroup extends StatelessWidget {
       var supportingHeight = 0.0;
       for (final metric in metrics) {
         if (metric.supporting == null) continue;
-        final height = measure(
+        final height = measureTextLayout(
+          context,
           metric.supporting!,
           supportingStyle,
           maxWidth: tileWidth - insets,

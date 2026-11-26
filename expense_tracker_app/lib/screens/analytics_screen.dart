@@ -1,3 +1,6 @@
+import 'dart:math' as math;
+import 'dart:ui' show lerpDouble;
+
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -19,6 +22,8 @@ import '../widgets/app_tab_footer.dart';
 import '../widgets/keep_alive_tab.dart';
 import '../widgets/analytics_shared.dart';
 import '../widgets/filter_bottom_sheet.dart';
+import '../widgets/compact_text.dart';
+import '../widgets/text_measurement.dart';
 import 'analytics_overview_tab.dart';
 import 'analytics_tab.dart';
 import 'analytics_trends_tab.dart';
@@ -36,6 +41,8 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
   static const int _collapsedActiveFilterLimit = 4;
 
   late final PageController _pageController;
+  final _sectionScroll = ScrollController();
+  final _sectionKeys = [for (final _ in AnalyticsSection.values) GlobalKey()];
   bool _isLoading = true;
   String? _error;
   AnalyticsSection _selectedSection = AnalyticsSection.overview;
@@ -61,6 +68,7 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
   @override
   void dispose() {
     _pageController.dispose();
+    _sectionScroll.dispose();
     super.dispose();
   }
 
@@ -177,6 +185,7 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
         _featureCodes = featureCodes;
         _isLoading = false;
       });
+      _revealSelectedSection();
       WidgetsBinding.instance.addPostFrameCallback((_) {
         if (!mounted || !_pageController.hasClients) return;
         _pageController.jumpToPage(_selectedSection.index);
@@ -237,6 +246,7 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
       _selectedSection = section;
       _animatingSection = true;
     });
+    _revealSelectedSection();
     if (_pageController.hasClients) {
       if (MediaQuery.disableAnimationsOf(context)) {
         _pageController.jumpToPage(section.index);
@@ -258,6 +268,7 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
     final section = AnalyticsSection.values[index];
     if (section == _selectedSection) return;
     setState(() => _selectedSection = section);
+    _revealSelectedSection();
     _saveSection();
   }
 
@@ -268,9 +279,34 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
     }
   }
 
-  Widget _buildSectionChip(AnalyticsSection section, double height) {
+  void _revealSelectedSection() {
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted || !_sectionScroll.hasClients) return;
+      final target = _sectionKeys[_selectedSection.index].currentContext
+          ?.findRenderObject();
+      if (target == null || !target.attached) return;
+      _sectionScroll.position.ensureVisible(
+        target,
+        alignment: .5,
+        duration: AppMotion.duration(context),
+        curve: AppMotion.curve,
+      );
+    });
+  }
+
+  TextStyle _sectionStyle(BuildContext context) => Theme.of(context)
+      .textTheme
+      .labelLarge!
+      .copyWith(fontSize: 13, height: 1.3, fontWeight: FontWeight.w700);
+
+  Widget _buildSectionChip(
+    AnalyticsSection section,
+    double height,
+    double horizontalPadding,
+  ) {
     final selected = _selectedSection == section;
     return Semantics(
+      key: _sectionKeys[section.index],
       selected: selected,
       button: true,
       child: InkWell(
@@ -280,23 +316,18 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
         child: SizedBox(
           height: height,
           child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 8),
+            padding: EdgeInsets.symmetric(horizontal: horizontalPadding),
             child: Center(
               child: AnimatedDefaultTextStyle(
                 duration: AppMotion.duration(context),
                 curve: AppMotion.curve,
-                style: Theme.of(context).textTheme.labelLarge!.copyWith(
+                style: _sectionStyle(context).copyWith(
                   color: selected
                       ? ShellStyles.accentTone(context).foreground
                       : ShellStyles.textMuted(context),
-                  fontSize: 13,
-                  height: 1.3,
                   fontWeight: selected ? FontWeight.w700 : FontWeight.w600,
                 ),
-                child: Text(
-                  context.tr(_sectionLabelKey(section)),
-                  textAlign: TextAlign.center,
-                ),
+                child: CompactText(context.tr(_sectionLabelKey(section))),
               ),
             ),
           ),
@@ -508,25 +539,48 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
 
   Widget _buildSectionSelector() => LayoutBuilder(
     builder: (context, constraints) {
+      const inset = 6.0;
       final sections = AnalyticsSection.values;
-      final width = (constraints.maxWidth - 12) / sections.length;
-      var height = 48.0;
-      for (final section in sections) {
-        final painter = TextPainter(
-          text: TextSpan(
-            text: context.tr(_sectionLabelKey(section)),
-            style: Theme.of(context).textTheme.labelLarge!.copyWith(
-              fontSize: 13,
-              height: 1.3,
-              fontWeight: FontWeight.w700,
-            ),
+      final availableWidth = math.max(1.0, constraints.maxWidth - 2 * inset);
+      final text = [
+        for (final section in sections)
+          measureTextLayout(
+            context,
+            context.tr(_sectionLabelKey(section)),
+            _sectionStyle(context),
           ),
-          textDirection: Directionality.of(context),
-          textScaler: MediaQuery.textScalerOf(context),
-        )..layout(maxWidth: width - 16);
-        if (painter.height + 20 > height) height = painter.height + 20;
-        painter.dispose();
+      ];
+      final labelWidths = [
+        for (final label in text) label.width.ceilToDouble(),
+      ];
+      // Keep full labels on screen by tightening gaps before enabling scroll.
+      final labelTotal = labelWidths.reduce((a, b) => a + b);
+      final horizontalPadding =
+          ((availableWidth - labelTotal) / (2 * sections.length)).clamp(
+            4.0,
+            8.0,
+          );
+      final preferredWidths = [
+        for (final width in labelWidths)
+          math.min(
+            availableWidth,
+            math.max(48.0, width + horizontalPadding * 2),
+          ),
+      ];
+      final total = preferredWidths.reduce((a, b) => a + b);
+      final extra = math.max(0.0, availableWidth - total) / sections.length;
+      final widths = [for (final width in preferredWidths) width + extra];
+      var offset = 0.0;
+      final starts = <double>[];
+      for (final width in widths) {
+        starts.add(offset);
+        offset += width;
       }
+      final height = text.fold(
+        48.0,
+        (height, label) => math.max(height, label.height.ceilToDouble() + 20),
+      );
+
       return DecoratedBox(
         decoration: ShellStyles.cardDecoration(context, radius: 20),
         child: Material(
@@ -534,39 +588,61 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
           borderRadius: BorderRadius.circular(20),
           clipBehavior: Clip.antiAlias,
           child: Padding(
-            padding: const EdgeInsets.all(6),
-            child: Stack(
-              children: [
-                AnimatedBuilder(
-                  animation: _pageController,
-                  builder: (context, child) {
-                    final position =
-                        _pageController.hasClients &&
-                            _pageController.position.hasContentDimensions
-                        ? _pageController.page ??
-                              _selectedSection.index.toDouble()
-                        : _selectedSection.index.toDouble();
-                    return PositionedDirectional(
-                      start: position * width,
-                      child: Container(
-                        key: const ValueKey('analytics-tab-indicator'),
-                        width: width,
-                        height: height,
-                        decoration: BoxDecoration(
-                          color: ShellStyles.accentTone(context).container,
-                          borderRadius: BorderRadius.circular(14),
+            padding: const EdgeInsets.all(inset),
+            child: SingleChildScrollView(
+              key: const ValueKey('analytics-section-strip'),
+              controller: _sectionScroll,
+              scrollDirection: Axis.horizontal,
+              physics: total > availableWidth
+                  ? null
+                  : const NeverScrollableScrollPhysics(),
+              child: Stack(
+                children: [
+                  AnimatedBuilder(
+                    animation: _pageController,
+                    builder: (context, child) {
+                      final page =
+                          _pageController.hasClients &&
+                              _pageController.position.hasContentDimensions
+                          ? _pageController.page
+                          : null;
+                      final position =
+                          (page ?? _selectedSection.index.toDouble()).clamp(
+                            0.0,
+                            (sections.length - 1).toDouble(),
+                          );
+                      final from = position.floor();
+                      final to = position.ceil();
+                      final progress = position - from;
+                      return PositionedDirectional(
+                        start: lerpDouble(starts[from], starts[to], progress)!,
+                        child: Container(
+                          key: const ValueKey('analytics-tab-indicator'),
+                          width: lerpDouble(widths[from], widths[to], progress),
+                          height: height,
+                          decoration: BoxDecoration(
+                            color: ShellStyles.accentTone(context).container,
+                            borderRadius: BorderRadius.circular(14),
+                          ),
                         ),
-                      ),
-                    );
-                  },
-                ),
-                Row(
-                  children: [
-                    for (final section in sections)
-                      Expanded(child: _buildSectionChip(section, height)),
-                  ],
-                ),
-              ],
+                      );
+                    },
+                  ),
+                  Row(
+                    children: [
+                      for (final section in sections)
+                        SizedBox(
+                          width: widths[section.index],
+                          child: _buildSectionChip(
+                            section,
+                            height,
+                            horizontalPadding,
+                          ),
+                        ),
+                    ],
+                  ),
+                ],
+              ),
             ),
           ),
         ),

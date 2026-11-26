@@ -15,6 +15,7 @@ import 'package:expense_tracker_app/screens/labels_screen.dart';
 import 'package:expense_tracker_app/screens/duplicate_finder_screen.dart';
 import 'package:expense_tracker_app/screens/receipts_tab.dart';
 import 'package:expense_tracker_app/screens/home_tab.dart';
+import 'package:expense_tracker_app/screens/login_screen.dart';
 import 'package:expense_tracker_app/screens/tools_screen.dart';
 import 'package:expense_tracker_app/screens/analytics_screen.dart';
 import 'package:expense_tracker_app/screens/analytics_trends_tab.dart';
@@ -657,22 +658,39 @@ void main() {
       debugDisableShadows = false;
       try {
         await tester.runAsync(() async {
+          final materialFonts = Uri.file(
+            Platform.resolvedExecutable,
+          ).resolve('../../material_fonts/');
+          final roboto = [
+            for (final weight in ['Regular', 'Medium', 'Bold'])
+              File.fromUri(materialFonts.resolve('Roboto-$weight.ttf')),
+          ];
+          final dejaVu = [
+            for (final name in ['DejaVuSans', 'DejaVuSans-Bold'])
+              File('/usr/share/fonts/truetype/dejavu/$name.ttf'),
+          ];
           for (final font in {
-            'DejaVuSans': '/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf',
-            'Roboto': '/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf',
-            'packages/lucide_icons_flutter/Lucide':
-                '/home/kirill/.pub-cache/hosted/pub.dev/lucide_icons_flutter-4.0.3/assets/lucide.ttf',
-            'MaterialIcons':
-                '/home/kirill/.local/flutter-sdks/flutter/bin/cache/artifacts/material_fonts/MaterialIcons-Regular.otf',
+            'DejaVuSans': dejaVu.every((file) => file.existsSync())
+                ? dejaVu
+                : roboto,
+            'Roboto': roboto,
           }.entries) {
-            if (await File(font.value).exists()) {
-              await (FontLoader(font.key)..addFont(
-                    File(
-                      font.value,
-                    ).readAsBytes().then((b) => b.buffer.asByteData()),
-                  ))
-                  .load();
+            final loader = FontLoader(font.key);
+            for (final file in font.value) {
+              loader.addFont(
+                file.readAsBytes().then((b) => ByteData.sublistView(b)),
+              );
             }
+            await loader.load();
+          }
+          for (final asset in {
+            'packages/lucide_icons_flutter/Lucide':
+                'packages/lucide_icons_flutter/assets/lucide.ttf',
+            'MaterialIcons': 'fonts/MaterialIcons-Regular.otf',
+          }.entries) {
+            await (FontLoader(
+              asset.key,
+            )..addFont(rootBundle.load(asset.value))).load();
           }
         });
         await http.runWithClient(() async {
@@ -700,6 +718,24 @@ void main() {
                 ),
               ),
             );
+            if (home is LoginScreen) {
+              await tester.pumpAndSettle();
+              final context = tester.element(find.byType(LoginScreen));
+              await tester.runAsync(() async {
+                await precacheImage(
+                  AssetImage(
+                    dark
+                        ? 'assets/brand/logo-login-white.png'
+                        : 'assets/brand/logo-login-black.png',
+                  ),
+                  context,
+                );
+                await precacheImage(
+                  const AssetImage('assets/auth/google_g.png'),
+                  context,
+                );
+              });
+            }
             if (reveal != null) {
               await tester.pumpAndSettle();
               final target = find.text(reveal);
@@ -734,6 +770,46 @@ void main() {
                 boldText: true,
                 reveal: 'Spending Overview',
               );
+            },
+            () => MockClient((request) async => homeSpendingResponse(request)),
+          );
+          tester.view.physicalSize = const Size(360, 800);
+          await http.runWithClient(
+            () async {
+              final pages = <String, Widget>{
+                'login': const LoginScreen(),
+                'analytics': const AnalyticsScreen(),
+                'receipts': const Scaffold(body: ReceiptsTab()),
+                'filters': const Scaffold(
+                  body: FilterBottomSheet(
+                    selectedPeriod: 'All Time',
+                    enableReceiptFilters: true,
+                    displayCurrency: 'RSD',
+                  ),
+                ),
+                'tools': const Scaffold(body: ToolsScreen()),
+                'appearance': const AppearanceSettingsScreen(),
+                'duplicates': const DuplicateFinderScreen(),
+              };
+              for (final page in pages.entries) {
+                await show(
+                  page.value,
+                  'large-bold-${page.key}',
+                  dark: false,
+                  systemText: 1.45,
+                  boldText: true,
+                );
+              }
+              final prefs = await SharedPreferences.getInstance();
+              await prefs.setString('analytics_section', 'categories');
+              await show(
+                const AnalyticsScreen(),
+                'large-bold-analytics-categories',
+                dark: false,
+                systemText: 1.45,
+                boldText: true,
+              );
+              await prefs.remove('analytics_section');
             },
             () => MockClient((request) async => homeSpendingResponse(request)),
           );

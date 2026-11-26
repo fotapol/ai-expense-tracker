@@ -288,7 +288,7 @@ void main() {
             .data
             .centerSpaceRadius;
         final chartTotal = find.descendant(
-          of: find.byKey(const ValueKey('home-chart-total')),
+          of: find.byKey(const ValueKey('spending-chart-total')),
           matching: find.text('RSD 6856'),
         );
         final totalBounds = tester.getRect(chartTotal);

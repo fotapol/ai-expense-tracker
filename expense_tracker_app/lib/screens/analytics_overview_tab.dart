@@ -1,3 +1,5 @@
+import 'dart:math' as math;
+
 import 'package:flutter/material.dart';
 
 import '../core/analytics_filters.dart';
@@ -10,6 +12,8 @@ import '../core/redesign_system.dart';
 import '../core/session_invalidation.dart';
 import '../core/taxonomy_localization.dart';
 import '../l10n/app_localizations.dart';
+import '../widgets/compact_text.dart';
+import '../widgets/text_measurement.dart';
 import '../widgets/analytics_shared.dart';
 
 class AnalyticsOverviewTab extends StatefulWidget {
@@ -598,83 +602,18 @@ class _AnalyticsOverviewTabState extends State<AnalyticsOverviewTab> {
     required String currency,
     required _MerchantInsight merchant,
   }) {
-    return Row(
-      children: [
-        Container(
-          width: 32,
-          height: 32,
-          alignment: Alignment.center,
-          decoration: BoxDecoration(
-            color: ShellStyles.surfaceAlt(context),
-            borderRadius: BorderRadius.circular(12),
-            border: Border.all(color: ShellStyles.border(context)),
-          ),
-          child: Text(
-            '$rank',
-            style: TextStyle(
-              color: ShellStyles.textPrimary(context),
-              fontSize: 13,
-              fontWeight: FontWeight.w700,
+    return _buildRankedSpendRow(
+      context,
+      rank: rank,
+      name: merchant.name,
+      detail: merchant.count == 1
+          ? context.tr('analytics_transactions_count_single')
+          : context.tr(
+              'analytics_transactions_count_plural',
+              params: {'count': merchant.count.toString()},
             ),
-          ),
-        ),
-        const SizedBox(width: 12),
-        Expanded(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                merchant.name,
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-                style: TextStyle(
-                  color: ShellStyles.textPrimary(context),
-                  fontSize: 15,
-                  fontWeight: FontWeight.w700,
-                ),
-              ),
-              const SizedBox(height: 3),
-              Text(
-                merchant.count == 1
-                    ? context.tr('analytics_transactions_count_single')
-                    : context.tr(
-                        'analytics_transactions_count_plural',
-                        params: {'count': merchant.count.toString()},
-                      ),
-                style: TextStyle(
-                  color: ShellStyles.textMuted(context),
-                  fontSize: 12,
-                ),
-              ),
-            ],
-          ),
-        ),
-        const SizedBox(width: 12),
-        Column(
-          crossAxisAlignment: CrossAxisAlignment.end,
-          children: [
-            Text(
-              formatMoney(currency, merchant.amount),
-              style: TextStyle(
-                color: ShellStyles.textPrimary(context),
-                fontSize: 15,
-                fontWeight: FontWeight.w800,
-              ),
-            ),
-            const SizedBox(height: 3),
-            Text(
-              context.tr(
-                'analytics_spend_share',
-                params: {'percent': (merchant.share * 100).round().toString()},
-              ),
-              style: TextStyle(
-                color: ShellStyles.textMuted(context),
-                fontSize: 11,
-              ),
-            ),
-          ],
-        ),
-      ],
+      amount: formatMoney(currency, merchant.amount),
+      share: merchant.share,
     );
   }
 
@@ -684,86 +623,124 @@ class _AnalyticsOverviewTabState extends State<AnalyticsOverviewTab> {
     required String currency,
     required _CategoryInsight category,
   }) {
-    final tone = ShellStyles.categoryTone(
+    return _buildRankedSpendRow(
       context,
-      code: category.code,
+      rank: rank,
       name: category.name,
-      rawHex: category.color,
+      amount: formatMoney(currency, category.amount),
+      share: category.share,
+      dotColor: ShellStyles.categoryTone(
+        context,
+        code: category.code,
+        name: category.name,
+        rawHex: category.color,
+      ).base,
     );
-    return Row(
-      children: [
-        Container(
-          width: 32,
-          height: 32,
-          alignment: Alignment.center,
-          decoration: BoxDecoration(
-            color: ShellStyles.surfaceAlt(context),
-            borderRadius: BorderRadius.circular(12),
-            border: Border.all(color: ShellStyles.border(context)),
-          ),
-          child: Text(
-            '$rank',
-            style: TextStyle(
-              color: ShellStyles.textPrimary(context),
-              fontSize: 13,
-              fontWeight: FontWeight.w700,
-            ),
-          ),
-        ),
-        const SizedBox(width: 12),
-        Expanded(
-          child: Row(
-            children: [
-              Container(
-                width: 10,
-                height: 10,
-                decoration: BoxDecoration(
-                  color: tone.base,
-                  shape: BoxShape.circle,
-                ),
-              ),
-              const SizedBox(width: 10),
-              Expanded(
-                child: Text(
-                  category.name,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: TextStyle(
-                    color: ShellStyles.textPrimary(context),
-                    fontSize: 15,
-                    fontWeight: FontWeight.w700,
-                  ),
-                ),
-              ),
-            ],
-          ),
-        ),
-        const SizedBox(width: 12),
-        Column(
+  }
+
+  Widget _buildRankedSpendRow(
+    BuildContext context, {
+    required int rank,
+    required String name,
+    required String amount,
+    required double share,
+    String? detail,
+    Color? dotColor,
+  }) {
+    final titleStyle = TextStyle(
+      color: ShellStyles.textPrimary(context),
+      fontSize: 15,
+      fontWeight: FontWeight.w700,
+    );
+    final detailStyle = TextStyle(
+      color: ShellStyles.textMuted(context),
+      fontSize: 12,
+    );
+    final shareStyle = detailStyle.copyWith(fontSize: 11);
+    final shareLabel = context.tr(
+      'analytics_spend_share',
+      params: {'percent': (share * 100).round().toString()},
+    );
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        const rankSize = 32.0;
+        const gap = 12.0;
+        final nameWidth =
+            measureTextLayout(context, name, titleStyle).minWidth +
+            (dotColor == null ? 0 : 20);
+        final valueWidth = math
+            .max(
+              measureTextLayout(context, amount, titleStyle).width,
+              measureTextLayout(context, shareLabel, shareStyle).width,
+            )
+            .ceilToDouble();
+        final inline =
+            constraints.maxWidth >=
+            rankSize + 2 * gap + math.max(90, nameWidth) + valueWidth;
+        final trailing = Column(
           crossAxisAlignment: CrossAxisAlignment.end,
           children: [
-            Text(
-              formatMoney(currency, category.amount),
-              style: TextStyle(
-                color: ShellStyles.textPrimary(context),
-                fontSize: 15,
-                fontWeight: FontWeight.w800,
-              ),
-            ),
+            CompactText(amount, style: titleStyle),
             const SizedBox(height: 3),
-            Text(
-              context.tr(
-                'analytics_spend_share',
-                params: {'percent': (category.share * 100).round().toString()},
+            Text(shareLabel, style: shareStyle, textAlign: TextAlign.end),
+          ],
+        );
+        return Row(
+          crossAxisAlignment: inline
+              ? CrossAxisAlignment.center
+              : CrossAxisAlignment.start,
+          children: [
+            Container(
+              width: rankSize,
+              height: rankSize,
+              padding: const EdgeInsets.all(4),
+              alignment: Alignment.center,
+              decoration: BoxDecoration(
+                color: ShellStyles.surfaceAlt(context),
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(color: ShellStyles.border(context)),
               ),
-              style: TextStyle(
-                color: ShellStyles.textMuted(context),
-                fontSize: 11,
+              child: CompactText(
+                '$rank',
+                style: titleStyle.copyWith(fontSize: 13),
               ),
             ),
+            const SizedBox(width: gap),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  if (dotColor == null)
+                    Text(name, style: titleStyle)
+                  else
+                    Row(
+                      children: [
+                        DecoratedBox(
+                          decoration: BoxDecoration(
+                            color: dotColor,
+                            shape: BoxShape.circle,
+                          ),
+                          child: const SizedBox.square(dimension: 10),
+                        ),
+                        const SizedBox(width: 10),
+                        Expanded(child: Text(name, style: titleStyle)),
+                      ],
+                    ),
+                  if (detail != null) ...[
+                    const SizedBox(height: 3),
+                    Text(detail, style: detailStyle),
+                  ],
+                  if (!inline) ...[const SizedBox(height: 6), trailing],
+                ],
+              ),
+            ),
+            if (inline) ...[
+              const SizedBox(width: gap),
+              SizedBox(width: valueWidth, child: trailing),
+            ],
           ],
-        ),
-      ],
+        );
+      },
     );
   }
 

@@ -2,7 +2,6 @@ import 'dart:async';
 import 'dart:math' as math;
 
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
 
 import '../core/app_navigation.dart';
@@ -19,6 +18,8 @@ import '../core/taxonomy_localization.dart';
 import '../l10n/app_localizations.dart';
 import '../widgets/compact_text.dart';
 import '../widgets/surface_action.dart';
+import '../widgets/spending_chart.dart';
+import '../widgets/text_measurement.dart';
 import 'analytics_screen.dart';
 import 'receipt_manager_screen.dart';
 import 'receipt_upload_screen.dart';
@@ -747,29 +748,6 @@ class _HomeTabState extends State<HomeTab>
     );
   }
 
-  ({double wordWidth, double lineWidth}) _measureText(
-    BuildContext context,
-    String text,
-    TextStyle style,
-  ) {
-    var effectiveStyle = DefaultTextStyle.of(context).style.merge(style);
-    if (MediaQuery.boldTextOf(context)) {
-      effectiveStyle = effectiveStyle.copyWith(fontWeight: FontWeight.bold);
-    }
-    final painter = TextPainter(
-      text: TextSpan(text: text, style: effectiveStyle),
-      textDirection: Directionality.of(context),
-      textScaler: MediaQuery.textScalerOf(context),
-      locale: Localizations.maybeLocaleOf(context),
-    )..layout();
-    final widths = (
-      wordWidth: painter.minIntrinsicWidth,
-      lineWidth: painter.maxIntrinsicWidth,
-    );
-    painter.dispose();
-    return widths;
-  }
-
   Widget _buildScanCard(BuildContext context) {
     final eyebrow = context.tr('home_primary_action');
     final title = context.tr('tools_scan_receipt');
@@ -806,19 +784,16 @@ class _HomeTabState extends State<HomeTab>
         child: LayoutBuilder(
           builder: (context, constraints) {
             const chevronSize = 40.0;
-            final titleWidth = _measureText(context, title, titleStyle);
+            final titleWidth = measureTextLayout(context, title, titleStyle);
             final wordWidth = math.max(
-              titleWidth.wordWidth,
+              titleWidth.minWidth,
               math.max(
-                _measureText(context, eyebrow, eyebrowStyle).wordWidth,
-                _measureText(context, subtitle, subtitleStyle).wordWidth,
+                measureTextLayout(context, eyebrow, eyebrowStyle).minWidth,
+                measureTextLayout(context, subtitle, subtitleStyle).minWidth,
               ),
             );
             final width = constraints.maxWidth;
-            final preferredTextWidth = math.max(
-              titleWidth.lineWidth,
-              wordWidth,
-            );
+            final preferredTextWidth = math.max(titleWidth.width, wordWidth);
             final compact = width < 58 + 16 + preferredTextWidth;
             final badgeSize = compact ? 44.0 : 58.0;
             final gap = compact ? 12.0 : 16.0;
@@ -893,227 +868,18 @@ class _HomeTabState extends State<HomeTab>
     );
   }
 
-  Widget _buildOverviewChart(
-    BuildContext context,
-    List<_OverviewSlice> slices,
-  ) {
-    return LayoutBuilder(
-      builder: (context, constraints) {
-        final preferredDiameter = (180 * ShellStyles.textScale(context)).clamp(
-          180.0,
-          220.0,
-        );
-        final diameter = math.min(constraints.maxWidth, preferredDiameter);
-        final innerRadius = diameter * .37;
-        final ringThickness = diameter * .11;
-        return Center(
-          child: SizedBox.square(
-            dimension: diameter,
-            child: Stack(
-              alignment: Alignment.center,
-              children: [
-                PieChart(
-                  PieChartData(
-                    sectionsSpace: 4,
-                    centerSpaceRadius: innerRadius,
-                    startDegreeOffset: -90,
-                    sections: [
-                      if (slices.isEmpty)
-                        PieChartSectionData(
-                          value: 1,
-                          color: ShellStyles.border(context),
-                          showTitle: false,
-                          radius: ringThickness,
-                        )
-                      else
-                        for (final slice in slices)
-                          PieChartSectionData(
-                            value: slice.amount,
-                            color: slice.color,
-                            showTitle: false,
-                            radius: ringThickness,
-                          ),
-                    ],
-                  ),
-                ),
-                // The bounding box fits inside the hole even at its corners.
-                SizedBox(
-                  width: innerRadius * 1.6,
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      ConstrainedBox(
-                        constraints: BoxConstraints(
-                          maxHeight: innerRadius * .34,
-                        ),
-                        child: CompactText(
-                          context.tr('analytics_total_spent').toUpperCase(),
-                          style: TextStyle(
-                            color: ShellStyles.textMuted(context),
-                            fontSize: 11,
-                            fontWeight: FontWeight.w700,
-                            letterSpacing: .7,
-                          ),
-                        ),
-                      ),
-                      const SizedBox(height: 2),
-                      ConstrainedBox(
-                        constraints: BoxConstraints(
-                          maxHeight: innerRadius * .55,
-                        ),
-                        child: CompactText(
-                          _formatMoney(_currency, _currentMonthTotal),
-                          key: const ValueKey('home-chart-total'),
-                          style: TextStyle(
-                            color: ShellStyles.textPrimary(context),
-                            fontSize: 22,
-                            fontWeight: FontWeight.w700,
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ],
-            ),
-          ),
-        );
-      },
-    );
-  }
-
-  Widget _buildOverviewLegend(
-    BuildContext context,
-    List<_OverviewSlice> slices,
-  ) {
-    final nameStyle = TextStyle(
-      color: ShellStyles.textPrimary(context),
-      fontSize: 14,
-      fontWeight: FontWeight.w500,
-    );
-    final percentageStyle = TextStyle(
-      color: ShellStyles.textMuted(context),
-      fontSize: 13,
-    );
-    final amountStyle = TextStyle(
-      color: ShellStyles.textPrimary(context),
-      fontSize: 14,
-      fontWeight: FontWeight.w600,
-    );
-    final rows = [
-      for (final slice in slices)
-        (
-          slice: slice,
-          percentage: '${slice.percentage.round()}%',
-          amount: _formatMoney(_currency, slice.amount),
-        ),
-    ];
-    return LayoutBuilder(
-      builder: (context, constraints) {
-        const gap = 12.0;
-        const dotSize = 10.0;
-        var nameWordWidth = 0.0;
-        var percentageWidth = 0.0;
-        var amountWidth = 0.0;
-        for (final row in rows) {
-          nameWordWidth = math.max(
-            nameWordWidth,
-            _measureText(context, row.slice.name, nameStyle).wordWidth,
-          );
-          percentageWidth = math.max(
-            percentageWidth,
-            _measureText(context, row.percentage, percentageStyle).lineWidth,
-          );
-          amountWidth = math.max(
-            amountWidth,
-            _measureText(context, row.amount, amountStyle).lineWidth,
-          );
-        }
-        final inline =
-            constraints.maxWidth >=
-            dotSize +
-                3 * gap +
-                nameWordWidth.ceil() +
-                percentageWidth.ceil() +
-                amountWidth.ceil();
-        return Column(
-          children: [
-            for (final row in rows)
-              Padding(
-                padding: const EdgeInsets.only(bottom: 16),
-                child: Row(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Padding(
-                      padding: const EdgeInsets.only(top: 4),
-                      child: DecoratedBox(
-                        decoration: BoxDecoration(
-                          color: row.slice.color,
-                          shape: BoxShape.circle,
-                        ),
-                        child: const SizedBox.square(dimension: dotSize),
-                      ),
-                    ),
-                    const SizedBox(width: gap),
-                    if (inline) ...[
-                      Expanded(child: Text(row.slice.name, style: nameStyle)),
-                      const SizedBox(width: gap),
-                      SizedBox(
-                        width: percentageWidth.ceilToDouble(),
-                        child: Text(
-                          row.percentage,
-                          style: percentageStyle,
-                          textAlign: TextAlign.end,
-                          softWrap: false,
-                        ),
-                      ),
-                      const SizedBox(width: gap),
-                      SizedBox(
-                        width: amountWidth.ceilToDouble(),
-                        child: Text(
-                          row.amount,
-                          style: amountStyle,
-                          textAlign: TextAlign.end,
-                          softWrap: false,
-                        ),
-                      ),
-                    ] else
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(row.slice.name, style: nameStyle),
-                            const SizedBox(height: 4),
-                            Row(
-                              children: [
-                                Text(row.percentage, style: percentageStyle),
-                                const SizedBox(width: gap),
-                                Expanded(
-                                  child: Align(
-                                    alignment: AlignmentDirectional.centerEnd,
-                                    child: CompactText(
-                                      row.amount,
-                                      style: amountStyle,
-                                    ),
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ],
-                        ),
-                      ),
-                  ],
-                ),
-              ),
-          ],
-        );
-      },
-    );
-  }
-
   Widget _buildOverviewCard(BuildContext context) {
-    final slices = _overviewSlices(context);
-    final hasChartData = slices.isNotEmpty && _currentMonthTotal > 0;
+    final slices = [
+      if (_currentMonthTotal > 0)
+        for (final slice in _overviewSlices(context))
+          SpendingSlice(
+            name: slice.name,
+            value: slice.amount,
+            amountLabel: _formatMoney(_currency, slice.amount),
+            percentageLabel: '${slice.percentage.round()}%',
+            color: slice.color,
+          ),
+    ];
 
     return Container(
       padding: const EdgeInsets.all(24),
@@ -1144,10 +910,13 @@ class _HomeTabState extends State<HomeTab>
             ],
           ),
           const SizedBox(height: 32),
-          _buildOverviewChart(context, hasChartData ? slices : const []),
+          SpendingDonut(
+            slices: slices,
+            total: _formatMoney(_currency, _currentMonthTotal),
+          ),
           const SizedBox(height: 32),
-          if (hasChartData)
-            _buildOverviewLegend(context, slices)
+          if (slices.isNotEmpty)
+            SpendingLegend(slices: slices)
           else
             Padding(
               padding: const EdgeInsets.symmetric(vertical: 16),
@@ -1284,7 +1053,7 @@ class _HomeTabState extends State<HomeTab>
       builder: (context, constraints) {
         final widths = [
           for (final action in actions)
-            _measureText(context, action.label, style).lineWidth + 64,
+            measureTextLayout(context, action.label, style).width + 64,
         ];
         Widget row(List<int> indices) => IntrinsicHeight(
           child: Row(

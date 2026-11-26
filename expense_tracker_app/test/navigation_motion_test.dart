@@ -94,18 +94,23 @@ void main() {
         await tester.pumpAndSettle();
         final indicator = find.byKey(const ValueKey('analytics-tab-indicator'));
         final initial = tester.getRect(indicator);
-        await tester.tap(
-          find.byKey(const ValueKey('analytics-section-categories')),
+        final categories = find.byKey(
+          const ValueKey('analytics-section-categories'),
         );
+        await tester.tap(categories);
         await tester.pump();
         await tester.pump(const Duration(milliseconds: 100));
         final moving = tester.getRect(indicator);
         expect(moving.left, greaterThan(initial.left));
-        expect(moving.left, lessThan(initial.left + 2 * initial.width));
+        expect(moving.left, lessThan(tester.getRect(categories).left));
         await tester.pumpAndSettle();
         expect(
           tester.getRect(indicator).left,
-          closeTo(initial.left + 2 * initial.width, 1),
+          closeTo(tester.getRect(categories).left, 1),
+        );
+        expect(
+          tester.getRect(indicator).width,
+          closeTo(tester.getRect(categories).width, 1),
         );
         final preferences = await SharedPreferences.getInstance();
         expect(preferences.getString('analytics_section'), 'categories');
