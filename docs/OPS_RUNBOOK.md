@@ -37,7 +37,7 @@ kubectl -n nginx-ingress get pods -o wide
 kubectl -n nginx-ingress logs daemonset/nginx-ingress-nginx-ingress --tail=200
 ```
 
-Confirm the controller started cleanly after binding the HTTPS listener on `8443`.
+Confirm the controller started cleanly after binding the HTTPS listener on `2053`.
 
 ## Verify Worker Health
 
@@ -65,7 +65,7 @@ kubectl -n nginx-ingress logs daemonset/nginx-ingress-nginx-ingress --tail=200
 
 The storage route should preserve `Host: storage.example.com` when
 forwarding presigned S3 upload requests to MinIO. Do not append the origin
-port here when Cloudflare rewrites the public hostname to origin port `8443`;
+port here when Cloudflare routes the public hostname to origin port `2053`;
 the S3 presigned signature includes the public `Host` value.
 
 If the app shows the generic receipt upload failure immediately after tapping
