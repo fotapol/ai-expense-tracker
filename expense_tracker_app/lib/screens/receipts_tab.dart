@@ -1,3 +1,5 @@
+import 'dart:math' as math;
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import '../core/auto_refresh_state_mixin.dart';
@@ -14,6 +16,8 @@ import '../l10n/app_localizations.dart';
 import '../core/period_filter.dart';
 import '../widgets/filter_bottom_sheet.dart';
 import '../widgets/receipt_history_controls.dart';
+import '../widgets/compact_text.dart';
+import '../widgets/text_measurement.dart';
 import 'receipt_upload_screen.dart';
 import 'transaction_edit_screen.dart';
 
@@ -515,7 +519,9 @@ class _ReceiptsTabState extends State<ReceiptsTab>
         children: [
           Expanded(
             child: Container(
-              height: ShellStyles.minTapTarget(context, base: 48),
+              constraints: BoxConstraints(
+                minHeight: ShellStyles.minTapTarget(context, base: 48),
+              ),
               decoration: ShellStyles.cardDecoration(
                 context,
                 radius: ShellStyles.scaled(context, 18, min: 16, max: 20),
@@ -528,6 +534,7 @@ class _ReceiptsTabState extends State<ReceiptsTab>
                 inputFormatters: [LengthLimitingTextInputFormatter(200)],
                 decoration: InputDecoration(
                   hintText: context.tr('filters_search_hint'),
+                  hintMaxLines: 2,
                   prefixIcon: Icon(
                     AppIcons.search,
                     color: ShellStyles.textMuted(context),
@@ -1181,6 +1188,35 @@ class _ReceiptsTabState extends State<ReceiptsTab>
     final rate = sourceAmount > 0 ? displayAmount / sourceAmount : 1.0;
     final receiptSavings = receiptSavingsSource * rate;
 
+    final merchantStyle = TextStyle(
+      color: ShellStyles.textPrimary(context),
+      fontWeight: FontWeight.w500,
+      fontSize: 14,
+    );
+    final secondaryAmountStyle = TextStyle(
+      color: ShellStyles.textMuted(context),
+      fontSize: ShellStyles.scaled(context, 11.5, min: 11, max: 12.5),
+    );
+    final displayedAmounts = [
+      (
+        text: _formatMoney(displayCurrency, displayAmount),
+        style: merchantStyle.copyWith(fontWeight: FontWeight.w700),
+      ),
+      if (showOriginal)
+        (
+          text: _formatMoney(sourceCurrency, sourceAmount),
+          style: secondaryAmountStyle,
+        ),
+      if (receiptSavings > 0)
+        (
+          text: '- ${_formatMoney(displayCurrency, receiptSavings)}',
+          style: secondaryAmountStyle.copyWith(
+            color: Theme.of(context).colorScheme.primary,
+            fontWeight: FontWeight.w600,
+          ),
+        ),
+    ];
+
     return Dismissible(
       key: Key(tx['id'] ?? ''),
       direction: DismissDirection.endToStart,
@@ -1223,9 +1259,36 @@ class _ReceiptsTabState extends State<ReceiptsTab>
             color: ShellStyles.surface(context),
             withShadow: false,
           ),
-          child: Row(
-            children: [
-              Container(
+          child: LayoutBuilder(
+            builder: (context, constraints) {
+              const gap = 12.0;
+              var amountsWidth = 0.0;
+              for (final amount in displayedAmounts) {
+                amountsWidth = math.max(
+                  amountsWidth,
+                  measureTextLayout(
+                    context,
+                    amount.text,
+                    amount.style,
+                  ).width.ceilToDouble(),
+                );
+              }
+              final merchantWidth = measureTextLayout(
+                context,
+                storeName,
+                merchantStyle,
+              ).minWidth;
+              final inline =
+                  constraints.maxWidth >=
+                  36 + 2 * gap + math.max(100, merchantWidth) + amountsWidth;
+              final amounts = Column(
+                crossAxisAlignment: CrossAxisAlignment.end,
+                children: [
+                  for (final amount in displayedAmounts)
+                    CompactText(amount.text, style: amount.style),
+                ],
+              );
+              final icon = Container(
                 width: 36.0,
                 height: 36.0,
                 decoration: ShellStyles.semanticBadgeDecoration(
@@ -1234,92 +1297,15 @@ class _ReceiptsTabState extends State<ReceiptsTab>
                   radius: 12.0,
                 ),
                 child: Icon(iconData, color: categoryTone.foreground),
-              ),
-              SizedBox(
-                width: ShellStyles.scaled(context, 12, min: 10, max: 14),
-              ),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      storeName,
-                      style: TextStyle(
-                        color: ShellStyles.textPrimary(context),
-                        fontWeight: FontWeight.w500,
-                        fontSize: 14,
-                      ),
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                    const SizedBox(height: 4),
-                    if (formattedTime.isNotEmpty)
-                      Text(
-                        formattedTime,
-                        style: TextStyle(
-                          color: ShellStyles.textMuted(context),
-                          fontSize: ShellStyles.scaled(
-                            context,
-                            11.5,
-                            min: 11,
-                            max: 12.5,
-                          ),
-                        ),
-                      ),
-                    if (hasMetaRow) ...[
-                      SizedBox(
-                        height: ShellStyles.scaled(context, 8, min: 6, max: 10),
-                      ),
-                      Wrap(
-                        spacing: 6,
-                        runSpacing: 6,
-                        children: [
-                          if (needsReview)
-                            _buildReviewChip(label: _reviewLabel(tx)),
-                          if (txCategoryLabel != null &&
-                              txCategoryLabel.isNotEmpty)
-                            _buildMetaChip(
-                              label: txCategoryLabel,
-                              icon: AppIcons.shapes,
-                              color: iconColor,
-                            ),
-                          ...labelsToRender.map((label) {
-                            final labelName = label['name']?.toString() ?? '';
-                            if (labelName.isEmpty) {
-                              return const SizedBox.shrink();
-                            }
-                            final labelTone = ShellStyles.labelTone(
-                              context,
-                              labelId: label['id']?.toString(),
-                              name: labelName,
-                              rawHex: label['color']?.toString(),
-                            );
-                            return _buildMetaChip(
-                              label: labelName,
-                              icon: AppIcons.pin,
-                              color: labelTone.base,
-                            );
-                          }),
-                        ],
-                      ),
-                    ],
-                  ],
-                ),
-              ),
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.end,
+              );
+              final details = Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(
-                    _formatMoney(displayCurrency, displayAmount),
-                    style: TextStyle(
-                      color: ShellStyles.textPrimary(context),
-                      fontWeight: FontWeight.bold,
-                      fontSize: 14,
-                    ),
-                  ),
-                  if (showOriginal)
+                  Text(storeName, style: merchantStyle),
+                  const SizedBox(height: 4),
+                  if (formattedTime.isNotEmpty)
                     Text(
-                      _formatMoney(sourceCurrency, sourceAmount),
+                      formattedTime,
                       style: TextStyle(
                         color: ShellStyles.textMuted(context),
                         fontSize: ShellStyles.scaled(
@@ -1330,23 +1316,68 @@ class _ReceiptsTabState extends State<ReceiptsTab>
                         ),
                       ),
                     ),
-                  if (receiptSavings > 0)
-                    Text(
-                      '- ${_formatMoney(displayCurrency, receiptSavings)}',
-                      style: TextStyle(
-                        color: Theme.of(context).colorScheme.primary,
-                        fontSize: ShellStyles.scaled(
-                          context,
-                          11.5,
-                          min: 11,
-                          max: 12.5,
-                        ),
-                        fontWeight: FontWeight.w600,
-                      ),
+                  if (hasMetaRow) ...[
+                    SizedBox(
+                      height: ShellStyles.scaled(context, 8, min: 6, max: 10),
                     ),
+                    Wrap(
+                      spacing: 6,
+                      runSpacing: 6,
+                      children: [
+                        if (needsReview)
+                          _buildReviewChip(label: _reviewLabel(tx)),
+                        if (txCategoryLabel != null &&
+                            txCategoryLabel.isNotEmpty)
+                          _buildMetaChip(
+                            label: txCategoryLabel,
+                            icon: AppIcons.shapes,
+                            color: iconColor,
+                          ),
+                        ...labelsToRender.map((label) {
+                          final labelName = label['name']?.toString() ?? '';
+                          if (labelName.isEmpty) {
+                            return const SizedBox.shrink();
+                          }
+                          final labelTone = ShellStyles.labelTone(
+                            context,
+                            labelId: label['id']?.toString(),
+                            name: labelName,
+                            rawHex: label['color']?.toString(),
+                          );
+                          return _buildMetaChip(
+                            label: labelName,
+                            icon: AppIcons.pin,
+                            color: labelTone.base,
+                          );
+                        }),
+                      ],
+                    ),
+                  ],
                 ],
-              ),
-            ],
+              );
+              return Row(
+                crossAxisAlignment: inline
+                    ? CrossAxisAlignment.center
+                    : CrossAxisAlignment.start,
+                children: [
+                  icon,
+                  const SizedBox(width: gap),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                        details,
+                        if (!inline) ...[const SizedBox(height: 8), amounts],
+                      ],
+                    ),
+                  ),
+                  if (inline) ...[
+                    const SizedBox(width: gap),
+                    SizedBox(width: amountsWidth, child: amounts),
+                  ],
+                ],
+              );
+            },
           ),
         ),
       ),
@@ -1373,12 +1404,14 @@ class _ReceiptsTabState extends State<ReceiptsTab>
         children: [
           Icon(icon, size: 12, color: color),
           const SizedBox(width: 4),
-          Text(
-            label,
-            style: TextStyle(
-              color: color,
-              fontSize: 11,
-              fontWeight: FontWeight.w600,
+          Flexible(
+            child: Text(
+              label,
+              style: TextStyle(
+                color: color,
+                fontSize: 11,
+                fontWeight: FontWeight.w600,
+              ),
             ),
           ),
         ],
@@ -1403,12 +1436,14 @@ class _ReceiptsTabState extends State<ReceiptsTab>
         children: [
           Icon(AppIcons.messageSquareText, size: 12, color: color),
           const SizedBox(width: 4),
-          Text(
-            label,
-            style: TextStyle(
-              color: color,
-              fontSize: 11,
-              fontWeight: FontWeight.w700,
+          Flexible(
+            child: Text(
+              label,
+              style: TextStyle(
+                color: color,
+                fontSize: 11,
+                fontWeight: FontWeight.w700,
+              ),
             ),
           ),
         ],
@@ -1486,20 +1521,86 @@ class _ReceiptsTabState extends State<ReceiptsTab>
           color: ShellStyles.surface(context),
           border: Border(top: BorderSide(color: ShellStyles.border(context))),
         ),
-        child: Row(
+        child: Wrap(
+          alignment: WrapAlignment.spaceBetween,
+          runSpacing: 8,
+          spacing: ShellStyles.scaled(context, 12, min: 10, max: 14),
           children: [
-            Expanded(
-              flex: 3,
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                mainAxisSize: MainAxisSize.min,
-                children: [
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(
+                  _hasMore
+                      ? context.tr('receipts_loaded_total')
+                      : _selectedPeriod == PeriodFilter.allTime
+                      ? context.tr('receipts_history_total')
+                      : context.tr('receipts_total_for_period'),
+                  style: TextStyle(
+                    color: mutedColor,
+                    fontSize: ShellStyles.scaled(
+                      context,
+                      11.5,
+                      min: 11,
+                      max: 12.5,
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 3),
+                Text(
+                  _formatTotals(_expenseTotals(visibleTransactions)),
+                  style: TextStyle(
+                    color: ShellStyles.textPrimary(context),
+                    fontWeight: FontWeight.w700,
+                    fontSize: ShellStyles.scaled(context, 17, min: 16, max: 18),
+                  ),
+                ),
+              ],
+            ),
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.end,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(
+                  context.tr(
+                    _hasMore ? 'receipts_loaded_count' : 'receipts_count',
+                    params: {
+                      'count': MaterialLocalizations.of(
+                        context,
+                      ).formatDecimal(visibleTransactions.length),
+                    },
+                  ),
+                  textAlign: TextAlign.end,
+                  style: TextStyle(
+                    color: mutedColor,
+                    fontSize: ShellStyles.scaled(
+                      context,
+                      12,
+                      min: 11.5,
+                      max: 13,
+                    ),
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+                if (savingsByCurrency.isNotEmpty)
                   Text(
-                    _hasMore
-                        ? context.tr('receipts_loaded_total')
-                        : _selectedPeriod == PeriodFilter.allTime
-                        ? context.tr('receipts_history_total')
-                        : context.tr('receipts_total_for_period'),
+                    '$savingsLabel: ${_formatTotals(savingsByCurrency)}',
+                    textAlign: TextAlign.end,
+                    style: TextStyle(
+                      color: primaryColor,
+                      fontSize: ShellStyles.scaled(
+                        context,
+                        11.5,
+                        min: 11,
+                        max: 12.5,
+                      ),
+                      fontWeight: FontWeight.w700,
+                    ),
+                  )
+                else
+                  Text(
+                    context.tr('receipts_no_discounts'),
+                    textAlign: TextAlign.end,
                     style: TextStyle(
                       color: mutedColor,
                       fontSize: ShellStyles.scaled(
@@ -1510,82 +1611,7 @@ class _ReceiptsTabState extends State<ReceiptsTab>
                       ),
                     ),
                   ),
-                  const SizedBox(height: 3),
-                  Text(
-                    _formatTotals(_expenseTotals(visibleTransactions)),
-                    style: TextStyle(
-                      color: ShellStyles.textPrimary(context),
-                      fontWeight: FontWeight.w700,
-                      fontSize: ShellStyles.scaled(
-                        context,
-                        17,
-                        min: 16,
-                        max: 18,
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            SizedBox(width: ShellStyles.scaled(context, 12, min: 10, max: 14)),
-            Expanded(
-              flex: 2,
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.end,
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Text(
-                    context.tr(
-                      _hasMore ? 'receipts_loaded_count' : 'receipts_count',
-                      params: {
-                        'count': MaterialLocalizations.of(
-                          context,
-                        ).formatDecimal(visibleTransactions.length),
-                      },
-                    ),
-                    textAlign: TextAlign.end,
-                    style: TextStyle(
-                      color: mutedColor,
-                      fontSize: ShellStyles.scaled(
-                        context,
-                        12,
-                        min: 11.5,
-                        max: 13,
-                      ),
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                  if (savingsByCurrency.isNotEmpty)
-                    Text(
-                      '$savingsLabel: ${_formatTotals(savingsByCurrency)}',
-                      textAlign: TextAlign.end,
-                      style: TextStyle(
-                        color: primaryColor,
-                        fontSize: ShellStyles.scaled(
-                          context,
-                          11.5,
-                          min: 11,
-                          max: 12.5,
-                        ),
-                        fontWeight: FontWeight.w700,
-                      ),
-                    )
-                  else
-                    Text(
-                      context.tr('receipts_no_discounts'),
-                      textAlign: TextAlign.end,
-                      style: TextStyle(
-                        color: mutedColor,
-                        fontSize: ShellStyles.scaled(
-                          context,
-                          11.5,
-                          min: 11,
-                          max: 12.5,
-                        ),
-                      ),
-                    ),
-                ],
-              ),
+              ],
             ),
           ],
         ),

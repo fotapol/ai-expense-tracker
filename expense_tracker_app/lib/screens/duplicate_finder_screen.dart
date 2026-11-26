@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../core/api_client.dart';
 import '../core/duplicate_comparison.dart';
+import '../widgets/text_measurement.dart';
 import '../widgets/duplicate_details_comparison.dart';
 import '../core/localized_dates.dart';
 import '../core/money_formatter.dart';
@@ -706,19 +707,11 @@ class _DuplicateComparisonScreenState
       final style = Theme.of(
         context,
       ).textTheme.labelLarge!.copyWith(fontSize: 13);
-      double width(String key) {
-        final painter = TextPainter(
-          text: TextSpan(text: context.tr(key), style: style),
-          textDirection: Directionality.of(context),
-          textScaler: MediaQuery.textScalerOf(context),
-        )..layout();
-        final result = painter.width;
-        painter.dispose();
-        return result;
-      }
-
-      final primaryWidth = width('duplicates_keep_selected') + 60;
-      final secondaryWidth = width('duplicates_keep_both') + 32;
+      double width(String key) =>
+          measureTextLayout(context, context.tr(key), style).width;
+      final primaryWidth =
+          width('duplicates_keep_selected').ceilToDouble() + 64;
+      final secondaryWidth = width('duplicates_keep_both').ceilToDouble() + 40;
       final primary = FilledButton.icon(
         onPressed: _busy || _keepId == null || _error != null
             ? null

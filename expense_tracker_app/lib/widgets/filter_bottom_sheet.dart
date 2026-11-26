@@ -2,6 +2,7 @@ import 'package:currency_picker/currency_picker.dart';
 import 'package:flutter/material.dart';
 
 import 'anchored_choice_field.dart';
+import 'text_measurement.dart';
 
 import '../core/api_client.dart';
 import '../core/localized_dates.dart';
@@ -723,8 +724,7 @@ class _FilterBottomSheetState extends State<FilterBottomSheet> {
         setState(() => onChanged(selected == '' ? null : selected)),
   );
 
-  InputDecoration _inputDecoration(String label) => InputDecoration(
-    labelText: label,
+  InputDecoration _inputDecoration() => InputDecoration(
     filled: true,
     fillColor: ShellStyles.surfaceAlt(context),
     contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 16),
@@ -739,26 +739,38 @@ class _FilterBottomSheetState extends State<FilterBottomSheet> {
     ),
   );
 
-  Widget _amountField({required bool minimum}) => TextFormField(
-    key: ValueKey(minimum ? 'filter-min-amount' : 'filter-max-amount'),
-    controller: minimum ? _minAmount : _maxAmount,
-    keyboardType: const TextInputType.numberWithOptions(
-      decimal: true,
-      signed: true,
-    ),
-    decoration: _inputDecoration(
-      context.tr(minimum ? 'filters_min_amount' : 'filters_max_amount'),
-    ).copyWith(floatingLabelBehavior: FloatingLabelBehavior.always),
-    validator: (value) {
-      final error = _validateAmount(value);
-      if (minimum || error != null) return error;
-      final min = num.tryParse(_normalizedAmount(_minAmount.text) ?? '');
-      final max = num.tryParse(_normalizedAmount(value ?? '') ?? '');
-      return min != null && max != null && min > max
-          ? context.tr('filters_invalid_range')
-          : null;
-    },
-    onChanged: (_) => setState(() {}),
+  Widget _amountField({
+    required bool minimum,
+    required String label,
+    required TextStyle labelStyle,
+  }) => Column(
+    crossAxisAlignment: CrossAxisAlignment.start,
+    children: [
+      ExcludeSemantics(child: Text(label, style: labelStyle)),
+      const SizedBox(height: 5),
+      Semantics(
+        label: label,
+        child: TextFormField(
+          key: ValueKey(minimum ? 'filter-min-amount' : 'filter-max-amount'),
+          controller: minimum ? _minAmount : _maxAmount,
+          keyboardType: const TextInputType.numberWithOptions(
+            decimal: true,
+            signed: true,
+          ),
+          decoration: _inputDecoration(),
+          validator: (value) {
+            final error = _validateAmount(value);
+            if (minimum || error != null) return error;
+            final min = num.tryParse(_normalizedAmount(_minAmount.text) ?? '');
+            final max = num.tryParse(_normalizedAmount(value ?? '') ?? '');
+            return min != null && max != null && min > max
+                ? context.tr('filters_invalid_range')
+                : null;
+          },
+          onChanged: (_) => setState(() {}),
+        ),
+      ),
+    ],
   );
 
   Widget _buildReceiptFilters() => Form(
@@ -770,13 +782,49 @@ class _FilterBottomSheetState extends State<FilterBottomSheet> {
         params: {'currency': widget.displayCurrency},
       ),
       children: [
-        Row(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Expanded(child: _amountField(minimum: true)),
-            const SizedBox(width: 12),
-            Expanded(child: _amountField(minimum: false)),
-          ],
+        LayoutBuilder(
+          builder: (context, constraints) {
+            const gap = 12.0;
+            final minLabel = context.tr('filters_min_amount');
+            final maxLabel = context.tr('filters_max_amount');
+            final style = TextStyle(
+              color: ShellStyles.textMuted(context),
+              fontSize: 12,
+              fontWeight: FontWeight.w600,
+            );
+            final fieldWidth = (constraints.maxWidth - gap) / 2;
+            final fits =
+                fieldWidth >= 100 &&
+                measureTextLayout(context, minLabel, style).width <=
+                    fieldWidth &&
+                measureTextLayout(context, maxLabel, style).width <= fieldWidth;
+            final minField = _amountField(
+              minimum: true,
+              label: minLabel,
+              labelStyle: style,
+            );
+            final maxField = _amountField(
+              minimum: false,
+              label: maxLabel,
+              labelStyle: style,
+            );
+            return fits
+                ? Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Expanded(child: minField),
+                      const SizedBox(width: gap),
+                      Expanded(child: maxField),
+                    ],
+                  )
+                : Column(
+                    children: [
+                      minField,
+                      const SizedBox(height: gap),
+                      maxField,
+                    ],
+                  );
+          },
         ),
         const SizedBox(height: 10),
         Text(

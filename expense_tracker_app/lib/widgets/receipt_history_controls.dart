@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 
 import '../core/redesign_system.dart';
 import '../l10n/app_localizations.dart';
+import 'text_measurement.dart';
 
 IconData receiptSortIcon(String sort) => switch (sort) {
   'oldest' => AppIcons.calendarArrowUp,
@@ -33,31 +34,22 @@ class ReceiptHistoryControls extends StatelessWidget {
     final style = Theme.of(
       context,
     ).textTheme.labelLarge!.copyWith(fontSize: 13);
-    Size measure(String value) {
-      final painter = TextPainter(
-        text: TextSpan(text: value, style: style),
-        textDirection: Directionality.of(context),
-        textScaler: MediaQuery.textScalerOf(context),
-      )..layout();
-      final size = painter.size;
-      painter.dispose();
-      return size;
-    }
-
     final sortLabel = context.tr(labels[sort]!);
     final reviewLabel = context.tr('receipts_filter_needs_review');
-    final sortText = measure(sortLabel), reviewText = measure(reviewLabel);
+    final sortText = measureTextLayout(context, sortLabel, style);
+    final reviewText = measureTextLayout(context, reviewLabel, style);
     final height = math.max(
       48.0,
       math.max(sortText.height, reviewText.height) + 20,
     );
-    final reviewWidth = reviewText.width + 50;
+    final reviewWidth = reviewText.width.ceilToDouble() + 50;
     final tone = ShellStyles.accentTone(context);
     return LayoutBuilder(
       builder: (context, constraints) {
         // Keep both actions on one line. At very narrow/accessibility sizes the
         // review icon retains its selected state, accessible name and tooltip.
-        final compactReview = constraints.maxWidth < reviewWidth + 128;
+        final compactReview =
+            constraints.maxWidth < reviewWidth + sortText.width + 76;
         final sortControl = PopupMenuButton<String>(
           key: const ValueKey('receipt-sort'),
           tooltip: '${context.tr('receipts_sort')}: $sortLabel',
@@ -124,10 +116,7 @@ class ReceiptHistoryControls extends StatelessWidget {
             borderRadius: BorderRadius.circular(12),
           ),
         );
-        final reviewIcon = Icon(
-          reviewOnly ? AppIcons.clipboardCheck : AppIcons.clipboardCheck,
-          size: 18,
-        );
+        final reviewIcon = Icon(AppIcons.clipboardCheck, size: 18);
         final review = Semantics(
           toggled: reviewOnly,
           label: compactReview ? reviewLabel : null,
