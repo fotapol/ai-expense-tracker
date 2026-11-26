@@ -1502,15 +1502,58 @@ class _ReceiptsTabState extends State<ReceiptsTab>
       }
     }
 
-    final primaryColor = Theme.of(context).colorScheme.primary;
+    final hasSavings = savingsByCurrency.isNotEmpty;
     final mutedColor = ShellStyles.textMuted(context);
+    final secondaryStyle = TextStyle(
+      color: mutedColor,
+      fontSize: ShellStyles.scaled(context, 11.5, min: 11, max: 12.5),
+    );
     final savingsLabel = context
         .tr('transaction_total_savings')
         .replaceFirst(RegExp(r'[:：]\s*$'), '');
+    final title = Text(
+      _hasMore
+          ? context.tr('receipts_loaded_total')
+          : _selectedPeriod == PeriodFilter.allTime
+          ? context.tr('receipts_history_total')
+          : context.tr('receipts_total_for_period'),
+      style: secondaryStyle,
+    );
+    final amount = Text(
+      _formatTotals(_expenseTotals(visibleTransactions)),
+      style: TextStyle(
+        color: ShellStyles.textPrimary(context),
+        fontWeight: FontWeight.w700,
+        fontSize: ShellStyles.scaled(context, 17, min: 16, max: 18),
+      ),
+    );
+    final count = Text(
+      context.tr(
+        _hasMore ? 'receipts_loaded_count' : 'receipts_count',
+        params: {
+          'count': MaterialLocalizations.of(
+            context,
+          ).formatDecimal(visibleTransactions.length),
+        },
+      ),
+      style: secondaryStyle.copyWith(fontWeight: FontWeight.w600),
+    );
+    final savings = Text(
+      hasSavings
+          ? '$savingsLabel: ${_formatTotals(savingsByCurrency)}'
+          : context.tr('receipts_no_discounts'),
+      style: hasSavings
+          ? secondaryStyle.copyWith(
+              color: Theme.of(context).colorScheme.primary,
+              fontWeight: FontWeight.w700,
+            )
+          : secondaryStyle,
+    );
 
     return SafeArea(
       top: false,
       child: Container(
+        width: double.infinity,
         padding: EdgeInsets.fromLTRB(
           ShellStyles.scaled(context, 16, min: 14, max: 18),
           ShellStyles.scaled(context, 10, min: 8, max: 12),
@@ -1521,99 +1564,50 @@ class _ReceiptsTabState extends State<ReceiptsTab>
           color: ShellStyles.surface(context),
           border: Border(top: BorderSide(color: ShellStyles.border(context))),
         ),
-        child: Wrap(
-          alignment: WrapAlignment.spaceBetween,
-          runSpacing: 8,
-          spacing: ShellStyles.scaled(context, 12, min: 10, max: 14),
-          children: [
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
+        child: LayoutBuilder(
+          builder: (context, constraints) {
+            const gap = 12.0;
+            double widthOf(Text text) => measureTextLayout(
+              context,
+              text.data!,
+              text.style!,
+            ).width.ceilToDouble();
+            final totalWidth = math.max(widthOf(title), widthOf(amount));
+            final detailWidth = math.max(widthOf(count), widthOf(savings));
+            if (totalWidth + detailWidth + gap <= constraints.maxWidth) {
+              return Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisSize: MainAxisSize.min,
+                    children: [title, const SizedBox(height: 3), amount],
+                  ),
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.end,
+                    mainAxisSize: MainAxisSize.min,
+                    children: [count, savings],
+                  ),
+                ],
+              );
+            }
+            return Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
               mainAxisSize: MainAxisSize.min,
               children: [
-                Text(
-                  _hasMore
-                      ? context.tr('receipts_loaded_total')
-                      : _selectedPeriod == PeriodFilter.allTime
-                      ? context.tr('receipts_history_total')
-                      : context.tr('receipts_total_for_period'),
-                  style: TextStyle(
-                    color: mutedColor,
-                    fontSize: ShellStyles.scaled(
-                      context,
-                      11.5,
-                      min: 11,
-                      max: 12.5,
-                    ),
-                  ),
-                ),
+                title,
                 const SizedBox(height: 3),
-                Text(
-                  _formatTotals(_expenseTotals(visibleTransactions)),
-                  style: TextStyle(
-                    color: ShellStyles.textPrimary(context),
-                    fontWeight: FontWeight.w700,
-                    fontSize: ShellStyles.scaled(context, 17, min: 16, max: 18),
-                  ),
+                Wrap(
+                  alignment: WrapAlignment.spaceBetween,
+                  crossAxisAlignment: WrapCrossAlignment.center,
+                  spacing: gap,
+                  runSpacing: 3,
+                  children: [amount, count],
                 ),
+                savings,
               ],
-            ),
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.end,
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Text(
-                  context.tr(
-                    _hasMore ? 'receipts_loaded_count' : 'receipts_count',
-                    params: {
-                      'count': MaterialLocalizations.of(
-                        context,
-                      ).formatDecimal(visibleTransactions.length),
-                    },
-                  ),
-                  textAlign: TextAlign.end,
-                  style: TextStyle(
-                    color: mutedColor,
-                    fontSize: ShellStyles.scaled(
-                      context,
-                      12,
-                      min: 11.5,
-                      max: 13,
-                    ),
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
-                if (savingsByCurrency.isNotEmpty)
-                  Text(
-                    '$savingsLabel: ${_formatTotals(savingsByCurrency)}',
-                    textAlign: TextAlign.end,
-                    style: TextStyle(
-                      color: primaryColor,
-                      fontSize: ShellStyles.scaled(
-                        context,
-                        11.5,
-                        min: 11,
-                        max: 12.5,
-                      ),
-                      fontWeight: FontWeight.w700,
-                    ),
-                  )
-                else
-                  Text(
-                    context.tr('receipts_no_discounts'),
-                    textAlign: TextAlign.end,
-                    style: TextStyle(
-                      color: mutedColor,
-                      fontSize: ShellStyles.scaled(
-                        context,
-                        11.5,
-                        min: 11,
-                        max: 12.5,
-                      ),
-                    ),
-                  ),
-              ],
-            ),
-          ],
+            );
+          },
         ),
       ),
     );
