@@ -9,6 +9,7 @@ import 'package:expense_tracker_app/widgets/receipt_history_controls.dart';
 import 'package:expense_tracker_app/core/period_filter.dart';
 import 'dart:convert';
 
+import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -256,4 +257,76 @@ void main() {
       },
     );
   }
+
+  testWidgets('bold text fits the home spending chart and category rows', (
+    tester,
+  ) async {
+    fixture.phone(tester, width: 360);
+    await http.runWithClient(
+      () async {
+        await tester.pumpWidget(
+          fixture.app(
+            const Scaffold(body: HomeTab()),
+            systemText: 1.25,
+            boldText: true,
+          ),
+        );
+        await tester.pumpAndSettle();
+
+        final badge = tester.getRect(
+          find.byKey(const ValueKey('home-scan-badge')),
+        );
+        final scanTitle = tester.getRect(find.text('Scan Receipt'));
+        expect(scanTitle.left - badge.right, greaterThanOrEqualTo(12));
+
+        final chart = find.byType(PieChart);
+        await tester.scrollUntilVisible(chart, 120);
+        await tester.pumpAndSettle();
+        final chartCenter = tester.getCenter(chart);
+        final innerRadius = tester
+            .widget<PieChart>(chart)
+            .data
+            .centerSpaceRadius;
+        final chartTotal = find.descendant(
+          of: find.byKey(const ValueKey('home-chart-total')),
+          matching: find.text('RSD 6856'),
+        );
+        final totalBounds = tester.getRect(chartTotal);
+        for (final corner in [totalBounds.topLeft, totalBounds.bottomRight]) {
+          expect((corner - chartCenter).distance, lessThan(innerRadius));
+        }
+        expect(
+          tester
+              .renderObject<RenderParagraph>(chartTotal)
+              .text
+              .style
+              ?.fontWeight,
+          FontWeight.bold,
+        );
+
+        List<TextBox> lineBoxes(String text) => tester
+            .renderObject<RenderParagraph>(find.text(text))
+            .getBoxesForSelection(
+              TextSelection(baseOffset: 0, extentOffset: text.length),
+            );
+
+        await tester.scrollUntilVisible(find.text('RSD 400'), 120);
+        await tester.pumpAndSettle();
+        expect(
+          lineBoxes('Entertainment').map((box) => box.top).toSet(),
+          hasLength(1),
+        );
+        expect(
+          lineBoxes('RSD 400').map((box) => box.top).toSet(),
+          hasLength(1),
+        );
+        final share = tester.getRect(find.text('6%'));
+        final amount = tester.getRect(find.text('RSD 400'));
+        expect(amount.left - share.right, greaterThanOrEqualTo(12));
+        expect(tester.takeException(), isNull);
+      },
+      () =>
+          MockClient((request) async => fixture.homeSpendingResponse(request)),
+    );
+  });
 }

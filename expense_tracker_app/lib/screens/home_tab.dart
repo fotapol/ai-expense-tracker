@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:math' as math;
 
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:fl_chart/fl_chart.dart';
@@ -16,6 +17,7 @@ import '../core/session_invalidation.dart';
 import '../core/subscription_confirmation.dart';
 import '../core/taxonomy_localization.dart';
 import '../l10n/app_localizations.dart';
+import '../widgets/compact_text.dart';
 import '../widgets/surface_action.dart';
 import 'analytics_screen.dart';
 import 'receipt_manager_screen.dart';
@@ -515,8 +517,6 @@ class _HomeTabState extends State<HomeTab>
             children: [
               Text(
                 '${_greetingLabel(context)}, ${_resolveDisplayName(context)}',
-                maxLines: 2,
-                overflow: TextOverflow.ellipsis,
                 style: TextStyle(
                   color: ShellStyles.textPrimary(context),
                   fontSize: 22,
@@ -585,9 +585,9 @@ class _HomeTabState extends State<HomeTab>
                         radius: counterSize / 2,
                       ),
                       alignment: Alignment.center,
-                      child: Text(
+                      padding: const EdgeInsets.all(5),
+                      child: CompactText(
                         _uploadCounterLabel(),
-                        textAlign: TextAlign.center,
                         style: TextStyle(
                           color: ShellStyles.textPrimary(context),
                           fontSize: ShellStyles.scaled(
@@ -686,14 +686,16 @@ class _HomeTabState extends State<HomeTab>
                             : ShellColors.softRed,
                       ),
                       const SizedBox(width: 4),
-                      Text(
-                        _changeLabel(context),
-                        style: TextStyle(
-                          color: positiveDelta
-                              ? ShellColors.softGreen
-                              : ShellColors.softRed,
-                          fontSize: 12,
-                          fontWeight: FontWeight.w700,
+                      Flexible(
+                        child: Text(
+                          _changeLabel(context),
+                          style: TextStyle(
+                            color: positiveDelta
+                                ? ShellColors.softGreen
+                                : ShellColors.softRed,
+                            fontSize: 12,
+                            fontWeight: FontWeight.w700,
+                          ),
                         ),
                       ),
                     ],
@@ -745,31 +747,92 @@ class _HomeTabState extends State<HomeTab>
     );
   }
 
+  ({double wordWidth, double lineWidth}) _measureText(
+    BuildContext context,
+    String text,
+    TextStyle style,
+  ) {
+    var effectiveStyle = DefaultTextStyle.of(context).style.merge(style);
+    if (MediaQuery.boldTextOf(context)) {
+      effectiveStyle = effectiveStyle.copyWith(fontWeight: FontWeight.bold);
+    }
+    final painter = TextPainter(
+      text: TextSpan(text: text, style: effectiveStyle),
+      textDirection: Directionality.of(context),
+      textScaler: MediaQuery.textScalerOf(context),
+      locale: Localizations.maybeLocaleOf(context),
+    )..layout();
+    final widths = (
+      wordWidth: painter.minIntrinsicWidth,
+      lineWidth: painter.maxIntrinsicWidth,
+    );
+    painter.dispose();
+    return widths;
+  }
+
   Widget _buildScanCard(BuildContext context) {
-    final showBadges =
-        MediaQuery.sizeOf(context).width >= 360 &&
-        ShellStyles.textScale(context) <= 1.2;
+    final eyebrow = context.tr('home_primary_action');
+    final title = context.tr('tools_scan_receipt');
+    final subtitle = context.tr('home_scan_receipt_subtitle');
+    final mutedColor = ShellStyles.homeHeroTextSecondary(context);
+    final eyebrowStyle = TextStyle(
+      color: mutedColor,
+      fontSize: 11,
+      fontWeight: FontWeight.w700,
+      letterSpacing: 0.7,
+    );
+    final titleStyle = TextStyle(
+      color: ShellStyles.homeHeroTextPrimary(context),
+      fontSize: 20,
+      fontWeight: FontWeight.w700,
+    );
+    final subtitleStyle = TextStyle(
+      color: mutedColor,
+      fontSize: 14,
+      fontWeight: FontWeight.w500,
+    );
     return InkWell(
       borderRadius: BorderRadius.circular(24),
       onTap: () => _open(context, const ReceiptUploadScreen()),
       child: Container(
         key: const Key('home_scan_hero'),
         width: double.infinity,
-        padding: const EdgeInsets.fromLTRB(22, 22, 22, 22),
+        padding: const EdgeInsets.all(22),
         decoration: ShellStyles.heroCardDecoration(
           context,
           radius: 24,
           tone: ShellStyles.homeHeroTone(context),
         ),
-        child: Row(
-          children: [
-            Container(
-              width: 58,
-              height: 58,
+        child: LayoutBuilder(
+          builder: (context, constraints) {
+            const chevronSize = 40.0;
+            final titleWidth = _measureText(context, title, titleStyle);
+            final wordWidth = math.max(
+              titleWidth.wordWidth,
+              math.max(
+                _measureText(context, eyebrow, eyebrowStyle).wordWidth,
+                _measureText(context, subtitle, subtitleStyle).wordWidth,
+              ),
+            );
+            final width = constraints.maxWidth;
+            final preferredTextWidth = math.max(
+              titleWidth.lineWidth,
+              wordWidth,
+            );
+            final compact = width < 58 + 16 + preferredTextWidth;
+            final badgeSize = compact ? 44.0 : 58.0;
+            final gap = compact ? 12.0 : 16.0;
+            final inline = width >= badgeSize + gap + wordWidth;
+            final showChevron =
+                width >= badgeSize + 2 * gap + preferredTextWidth + chevronSize;
+            final icon = Container(
+              key: const ValueKey('home-scan-badge'),
+              width: badgeSize,
+              height: badgeSize,
               alignment: Alignment.center,
               decoration: BoxDecoration(
                 color: ShellStyles.homeHeroBadgeSurface(context),
-                borderRadius: BorderRadius.circular(18),
+                borderRadius: BorderRadius.circular(compact ? 14 : 18),
                 border: Border.all(
                   color: ShellStyles.homeHeroBadgeBorder(context),
                 ),
@@ -777,91 +840,280 @@ class _HomeTabState extends State<HomeTab>
               child: Icon(
                 AppIcons.scan,
                 color: ShellStyles.homeHeroBadgeIcon(context),
-                size: 26,
+                size: compact ? 22 : 26,
               ),
-            ),
-            if (showBadges) const SizedBox(width: 16),
-            Expanded(
-              child: Column(
+            );
+            final copy = Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(eyebrow, style: eyebrowStyle),
+                const SizedBox(height: 6),
+                Text(title, style: titleStyle),
+                const SizedBox(height: 4),
+                Text(subtitle, style: subtitleStyle),
+              ],
+            );
+            if (!inline) {
+              return Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    context.tr('home_primary_action'),
-                    style: TextStyle(
-                      color: ShellStyles.homeHeroTextSecondary(context),
-                      fontSize: 11,
-                      fontWeight: FontWeight.w700,
-                      letterSpacing: 0.7,
+                children: [icon, const SizedBox(height: 12), copy],
+              );
+            }
+            return Row(
+              children: [
+                icon,
+                SizedBox(width: gap),
+                Expanded(child: copy),
+                if (showChevron) ...[
+                  SizedBox(width: gap),
+                  Container(
+                    width: chevronSize,
+                    height: chevronSize,
+                    alignment: Alignment.center,
+                    decoration: BoxDecoration(
+                      color: ShellStyles.homeHeroBadgeSurface(context),
+                      shape: BoxShape.circle,
+                      border: Border.all(
+                        color: ShellStyles.homeHeroBadgeBorder(context),
+                      ),
                     ),
-                  ),
-                  const SizedBox(height: 6),
-                  Text(
-                    context.tr('tools_scan_receipt'),
-                    style: TextStyle(
-                      color: ShellStyles.homeHeroTextPrimary(context),
-                      fontSize: 20,
-                      fontWeight: FontWeight.w700,
-                    ),
-                  ),
-                  const SizedBox(height: 4),
-                  Text(
-                    context.tr('home_scan_receipt_subtitle'),
-                    style: TextStyle(
-                      color: ShellStyles.homeHeroTextSecondary(context),
-                      fontSize: 14,
-                      fontWeight: FontWeight.w500,
+                    child: Icon(
+                      AppIcons.chevronRight,
+                      color: ShellStyles.homeHeroBadgeIcon(context),
+                      size: 18,
                     ),
                   ),
                 ],
-              ),
-            ),
-            if (showBadges)
-              Container(
-                width: 40,
-                height: 40,
-                alignment: Alignment.center,
-                decoration: BoxDecoration(
-                  color: ShellStyles.homeHeroBadgeSurface(context),
-                  shape: BoxShape.circle,
-                  border: Border.all(
-                    color: ShellStyles.homeHeroBadgeBorder(context),
+              ],
+            );
+          },
+        ),
+      ),
+    );
+  }
+
+  Widget _buildOverviewChart(
+    BuildContext context,
+    List<_OverviewSlice> slices,
+  ) {
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final preferredDiameter = (180 * ShellStyles.textScale(context)).clamp(
+          180.0,
+          220.0,
+        );
+        final diameter = math.min(constraints.maxWidth, preferredDiameter);
+        final innerRadius = diameter * .37;
+        final ringThickness = diameter * .11;
+        return Center(
+          child: SizedBox.square(
+            dimension: diameter,
+            child: Stack(
+              alignment: Alignment.center,
+              children: [
+                PieChart(
+                  PieChartData(
+                    sectionsSpace: 4,
+                    centerSpaceRadius: innerRadius,
+                    startDegreeOffset: -90,
+                    sections: [
+                      if (slices.isEmpty)
+                        PieChartSectionData(
+                          value: 1,
+                          color: ShellStyles.border(context),
+                          showTitle: false,
+                          radius: ringThickness,
+                        )
+                      else
+                        for (final slice in slices)
+                          PieChartSectionData(
+                            value: slice.amount,
+                            color: slice.color,
+                            showTitle: false,
+                            radius: ringThickness,
+                          ),
+                    ],
                   ),
                 ),
-                child: Icon(
-                  AppIcons.chevronRight,
-                  color: ShellStyles.homeHeroBadgeIcon(context),
-                  size: 18,
+                // The bounding box fits inside the hole even at its corners.
+                SizedBox(
+                  width: innerRadius * 1.6,
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      ConstrainedBox(
+                        constraints: BoxConstraints(
+                          maxHeight: innerRadius * .34,
+                        ),
+                        child: CompactText(
+                          context.tr('analytics_total_spent').toUpperCase(),
+                          style: TextStyle(
+                            color: ShellStyles.textMuted(context),
+                            fontSize: 11,
+                            fontWeight: FontWeight.w700,
+                            letterSpacing: .7,
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 2),
+                      ConstrainedBox(
+                        constraints: BoxConstraints(
+                          maxHeight: innerRadius * .55,
+                        ),
+                        child: CompactText(
+                          _formatMoney(_currency, _currentMonthTotal),
+                          key: const ValueKey('home-chart-total'),
+                          style: TextStyle(
+                            color: ShellStyles.textPrimary(context),
+                            fontSize: 22,
+                            fontWeight: FontWeight.w700,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _buildOverviewLegend(
+    BuildContext context,
+    List<_OverviewSlice> slices,
+  ) {
+    final nameStyle = TextStyle(
+      color: ShellStyles.textPrimary(context),
+      fontSize: 14,
+      fontWeight: FontWeight.w500,
+    );
+    final percentageStyle = TextStyle(
+      color: ShellStyles.textMuted(context),
+      fontSize: 13,
+    );
+    final amountStyle = TextStyle(
+      color: ShellStyles.textPrimary(context),
+      fontSize: 14,
+      fontWeight: FontWeight.w600,
+    );
+    final rows = [
+      for (final slice in slices)
+        (
+          slice: slice,
+          percentage: '${slice.percentage.round()}%',
+          amount: _formatMoney(_currency, slice.amount),
+        ),
+    ];
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        const gap = 12.0;
+        const dotSize = 10.0;
+        var nameWordWidth = 0.0;
+        var percentageWidth = 0.0;
+        var amountWidth = 0.0;
+        for (final row in rows) {
+          nameWordWidth = math.max(
+            nameWordWidth,
+            _measureText(context, row.slice.name, nameStyle).wordWidth,
+          );
+          percentageWidth = math.max(
+            percentageWidth,
+            _measureText(context, row.percentage, percentageStyle).lineWidth,
+          );
+          amountWidth = math.max(
+            amountWidth,
+            _measureText(context, row.amount, amountStyle).lineWidth,
+          );
+        }
+        final inline =
+            constraints.maxWidth >=
+            dotSize +
+                3 * gap +
+                nameWordWidth.ceil() +
+                percentageWidth.ceil() +
+                amountWidth.ceil();
+        return Column(
+          children: [
+            for (final row in rows)
+              Padding(
+                padding: const EdgeInsets.only(bottom: 16),
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Padding(
+                      padding: const EdgeInsets.only(top: 4),
+                      child: DecoratedBox(
+                        decoration: BoxDecoration(
+                          color: row.slice.color,
+                          shape: BoxShape.circle,
+                        ),
+                        child: const SizedBox.square(dimension: dotSize),
+                      ),
+                    ),
+                    const SizedBox(width: gap),
+                    if (inline) ...[
+                      Expanded(child: Text(row.slice.name, style: nameStyle)),
+                      const SizedBox(width: gap),
+                      SizedBox(
+                        width: percentageWidth.ceilToDouble(),
+                        child: Text(
+                          row.percentage,
+                          style: percentageStyle,
+                          textAlign: TextAlign.end,
+                          softWrap: false,
+                        ),
+                      ),
+                      const SizedBox(width: gap),
+                      SizedBox(
+                        width: amountWidth.ceilToDouble(),
+                        child: Text(
+                          row.amount,
+                          style: amountStyle,
+                          textAlign: TextAlign.end,
+                          softWrap: false,
+                        ),
+                      ),
+                    ] else
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(row.slice.name, style: nameStyle),
+                            const SizedBox(height: 4),
+                            Row(
+                              children: [
+                                Text(row.percentage, style: percentageStyle),
+                                const SizedBox(width: gap),
+                                Expanded(
+                                  child: Align(
+                                    alignment: AlignmentDirectional.centerEnd,
+                                    child: CompactText(
+                                      row.amount,
+                                      style: amountStyle,
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ],
+                        ),
+                      ),
+                  ],
                 ),
               ),
           ],
-        ),
-      ),
+        );
+      },
     );
   }
 
   Widget _buildOverviewCard(BuildContext context) {
     final slices = _overviewSlices(context);
     final hasChartData = slices.isNotEmpty && _currentMonthTotal > 0;
-
-    final pieSections = hasChartData
-        ? slices
-              .map(
-                (slice) => PieChartSectionData(
-                  value: slice.amount,
-                  color: slice.color,
-                  title: '',
-                  radius: 20,
-                ),
-              )
-              .toList()
-        : [
-            PieChartSectionData(
-              value: 1,
-              color: ShellStyles.border(context),
-              title: '',
-              radius: 20,
-            ),
-          ];
 
     return Container(
       padding: const EdgeInsets.all(24),
@@ -892,99 +1144,11 @@ class _HomeTabState extends State<HomeTab>
             ],
           ),
           const SizedBox(height: 32),
-          SizedBox(
-            height: 180,
-            child: Stack(
-              alignment: Alignment.center,
-              children: [
-                PieChart(
-                  PieChartData(
-                    sectionsSpace: 4,
-                    centerSpaceRadius: 65,
-                    startDegreeOffset: -90,
-                    sections: pieSections,
-                  ),
-                ),
-                Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Text(
-                      context.tr('analytics_total_spent').toUpperCase(),
-                      style: TextStyle(
-                        color: ShellStyles.textMuted(context),
-                        fontSize: 11,
-                        fontWeight: FontWeight.w700,
-                        letterSpacing: 0.7,
-                      ),
-                    ),
-                    const SizedBox(height: 2),
-                    Text(
-                      _formatMoney(_currency, _currentMonthTotal),
-                      style: TextStyle(
-                        color: ShellStyles.textPrimary(context),
-                        fontSize: 22,
-                        fontWeight: FontWeight.w700,
-                      ),
-                    ),
-                  ],
-                ),
-              ],
-            ),
-          ),
+          _buildOverviewChart(context, hasChartData ? slices : const []),
           const SizedBox(height: 32),
-          if (hasChartData) ...[
-            for (final slice in slices)
-              Padding(
-                padding: const EdgeInsets.only(bottom: 16),
-                child: Row(
-                  children: [
-                    Container(
-                      width: 10,
-                      height: 10,
-                      decoration: BoxDecoration(
-                        color: slice.color,
-                        shape: BoxShape.circle,
-                      ),
-                    ),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      flex: 5,
-                      child: Text(
-                        slice.name,
-                        style: TextStyle(
-                          color: ShellStyles.textPrimary(context),
-                          fontSize: 14,
-                          fontWeight: FontWeight.w500,
-                        ),
-                      ),
-                    ),
-                    Expanded(
-                      flex: 2,
-                      child: Text(
-                        '${slice.percentage.round()}%',
-                        textAlign: TextAlign.right,
-                        style: TextStyle(
-                          color: ShellStyles.textMuted(context),
-                          fontSize: 13,
-                        ),
-                      ),
-                    ),
-                    Expanded(
-                      flex: 3,
-                      child: Text(
-                        _formatMoney(_currency, slice.amount),
-                        textAlign: TextAlign.right,
-                        style: TextStyle(
-                          color: ShellStyles.textPrimary(context),
-                          fontSize: 14,
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-          ] else
+          if (hasChartData)
+            _buildOverviewLegend(context, slices)
+          else
             Padding(
               padding: const EdgeInsets.symmetric(vertical: 16),
               child: Center(
@@ -1118,16 +1282,10 @@ class _HomeTabState extends State<HomeTab>
     );
     return LayoutBuilder(
       builder: (context, constraints) {
-        final widths = actions.map((action) {
-          final painter = TextPainter(
-            text: TextSpan(text: action.label, style: style),
-            textDirection: Directionality.of(context),
-            textScaler: MediaQuery.textScalerOf(context),
-          )..layout();
-          final width = painter.width + 64;
-          painter.dispose();
-          return width;
-        }).toList();
+        final widths = [
+          for (final action in actions)
+            _measureText(context, action.label, style).lineWidth + 64,
+        ];
         Widget row(List<int> indices) => IntrinsicHeight(
           child: Row(
             crossAxisAlignment: CrossAxisAlignment.stretch,

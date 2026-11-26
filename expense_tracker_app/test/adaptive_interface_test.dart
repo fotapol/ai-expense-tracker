@@ -48,6 +48,7 @@ Widget app(
   double factor = 1,
   Locale locale = const Locale('en'),
   double systemText = 1,
+  bool boldText = false,
   bool dark = false,
 }) => MaterialApp(
   debugShowCheckedModeBanner: false,
@@ -63,7 +64,7 @@ Widget app(
   builder: (context, child) => MediaQuery(
     data: MediaQuery.of(
       context,
-    ).copyWith(textScaler: TextScaler.linear(systemText)),
+    ).copyWith(textScaler: TextScaler.linear(systemText), boldText: boldText),
     child: InterfaceScale(factor: factor, child: child!),
   ),
   home: home,
@@ -215,6 +216,30 @@ http.Response response(http.Request request) {
     );
   }
   return http.Response('[]', 200);
+}
+
+http.Response homeSpendingResponse(http.Request request) {
+  if (request.url.path == '/v1/me') {
+    return http.Response(
+      '{"default_currency":"RSD","profile":{"display_name":"Sample Shopper"}}',
+      200,
+    );
+  }
+  if (request.url.path.endsWith('/summary')) {
+    return http.Response(
+      jsonEncode({
+        'currency': 'RSD',
+        'total_amount': 6856,
+        'breakdown': [
+          {'code': 'FOOD', 'amount': 6241, 'percentage': 91},
+          {'code': 'ENTERTAINMENT', 'amount': 400, 'percentage': 6},
+          {'code': 'PERSONAL_CARE', 'amount': 215, 'percentage': 3},
+        ],
+      }),
+      200,
+    );
+  }
+  return response(request);
 }
 
 Future<void> capture(WidgetTester tester, String name) async {
@@ -658,6 +683,7 @@ void main() {
             Locale locale = const Locale('en'),
             bool dark = true,
             double systemText = 1,
+            bool boldText = false,
             String? reveal,
           }) async {
             await themeProvider.setFontSize((factor * 100).round().toString());
@@ -670,18 +696,48 @@ void main() {
                   locale: locale,
                   dark: dark,
                   systemText: systemText,
+                  boldText: boldText,
                 ),
               ),
             );
             if (reveal != null) {
               await tester.pumpAndSettle();
-              await tester.ensureVisible(find.text(reveal));
+              final target = find.text(reveal);
+              if (target.evaluate().isEmpty) {
+                await tester.scrollUntilVisible(target, 140);
+              } else {
+                await tester.ensureVisible(target);
+              }
               await tester.pumpAndSettle();
             }
             await capture(tester, name);
             await tester.pumpWidget(const SizedBox.shrink());
             await tester.pumpAndSettle();
           }
+
+          tester.view.physicalSize = const Size(320, 844);
+          await http.runWithClient(
+            () async {
+              const home = Scaffold(body: HomeTab());
+              await show(
+                home,
+                'home-bold-narrow',
+                dark: false,
+                systemText: 1.35,
+                boldText: true,
+              );
+              await show(
+                home,
+                'home-bold-spending',
+                dark: false,
+                systemText: 1.35,
+                boldText: true,
+                reveal: 'Spending Overview',
+              );
+            },
+            () => MockClient((request) async => homeSpendingResponse(request)),
+          );
+          tester.view.physicalSize = const Size(390, 844);
 
           await show(const Scaffold(body: ReceiptsTab()), 'history-100');
           await show(
