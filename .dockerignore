@@ -71,3 +71,11 @@ build/
 *.iml
 .DS_Store
 Thumbs.db
+
+# Personal financial backup files
+*.mmbackup
+expense-tracker-backup*.zip
+ai_expense_tracker_export_*.json
+
+# Operator scripts are not application build inputs
+/scripts/

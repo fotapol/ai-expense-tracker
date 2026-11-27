@@ -126,12 +126,12 @@ class _ReceiptUploadScreenState extends State<ReceiptUploadScreen> {
           ),
           child: isComplete
               ? Icon(
-                  Icons.check,
+                  AppIcons.check,
                   size: 14,
                   color: Theme.of(context).colorScheme.onPrimary,
                 )
               : Icon(
-                  isActive ? Icons.more_horiz : Icons.circle_outlined,
+                  isActive ? AppIcons.ellipsis : AppIcons.circle,
                   size: 14,
                   color: isActive ? accent : ShellStyles.textMuted(context),
                 ),
@@ -510,7 +510,7 @@ class _ReceiptUploadScreenState extends State<ReceiptUploadScreen> {
                               ),
                             ),
                             child: Icon(
-                              Icons.photo_camera_outlined,
+                              AppIcons.camera,
                               size: ShellStyles.scaled(
                                 context,
                                 28,
@@ -758,7 +758,7 @@ class _ReceiptUploadScreenState extends State<ReceiptUploadScreen> {
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Icon(Icons.info_outline, color: ShellColors.softRed, size: 22),
+          Icon(AppIcons.info, color: ShellColors.softRed, size: 22),
           const SizedBox(width: 10),
           Expanded(
             child: Column(
@@ -828,7 +828,7 @@ class _ReceiptUploadScreenState extends State<ReceiptUploadScreen> {
                       ShellStyles.minTapTarget(context),
                     ),
                   ),
-                  icon: const Icon(Icons.photo_camera_outlined),
+                  icon: const Icon(AppIcons.camera),
                   label: Text(context.tr('upload_camera')),
                 ),
                 const SizedBox(height: 10),
@@ -841,7 +841,7 @@ class _ReceiptUploadScreenState extends State<ReceiptUploadScreen> {
                       ShellStyles.minTapTarget(context),
                     ),
                   ),
-                  icon: const Icon(Icons.photo_library_outlined),
+                  icon: const Icon(AppIcons.images),
                   label: Text(context.tr('upload_gallery')),
                 )
               else
@@ -852,7 +852,7 @@ class _ReceiptUploadScreenState extends State<ReceiptUploadScreen> {
                       ShellStyles.minTapTarget(context),
                     ),
                   ),
-                  icon: const Icon(Icons.photo_library_outlined),
+                  icon: const Icon(AppIcons.images),
                   label: Text(context.tr('upload_gallery')),
                 ),
             ] else ...[
@@ -869,7 +869,7 @@ class _ReceiptUploadScreenState extends State<ReceiptUploadScreen> {
                     ShellStyles.minTapTarget(context),
                   ),
                 ),
-                icon: const Icon(Icons.cloud_upload_outlined),
+                icon: const Icon(AppIcons.cloudUpload),
                 label: Text(context.tr('upload_action_extract')),
               ),
               const SizedBox(height: 10),
@@ -884,7 +884,7 @@ class _ReceiptUploadScreenState extends State<ReceiptUploadScreen> {
                             ShellStyles.minTapTarget(context),
                           ),
                         ),
-                        icon: const Icon(Icons.photo_camera_outlined),
+                        icon: const Icon(AppIcons.camera),
                         label: Text(context.tr('upload_camera')),
                       ),
                     ),
@@ -897,7 +897,7 @@ class _ReceiptUploadScreenState extends State<ReceiptUploadScreen> {
                             ShellStyles.minTapTarget(context),
                           ),
                         ),
-                        icon: const Icon(Icons.photo_library_outlined),
+                        icon: const Icon(AppIcons.images),
                         label: Text(context.tr('upload_gallery')),
                       ),
                     ),
@@ -911,7 +911,7 @@ class _ReceiptUploadScreenState extends State<ReceiptUploadScreen> {
                       ShellStyles.minTapTarget(context),
                     ),
                   ),
-                  icon: const Icon(Icons.photo_library_outlined),
+                  icon: const Icon(AppIcons.images),
                   label: Text(context.tr('upload_gallery')),
                 ),
               ],

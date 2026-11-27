@@ -225,7 +225,7 @@ class _AnalyticsTrendsTabState extends State<AnalyticsTrendsTab> {
           ],
           if (isEmptyTrends)
             AnalyticsEmptyCard(
-              icon: Icons.show_chart,
+              icon: AppIcons.chartLine,
               title: context.tr('no_trend_data_yet'),
               message: context.tr('analytics_trends_empty_subtitle'),
             )
@@ -266,7 +266,7 @@ class _AnalyticsTrendsTabState extends State<AnalyticsTrendsTab> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   const Icon(
-                    Icons.info_outline,
+                    AppIcons.info,
                     color: ShellColors.softRed,
                     size: 18,
                   ),
@@ -300,55 +300,73 @@ class _AnalyticsTrendsTabState extends State<AnalyticsTrendsTab> {
     required int? previousTransactions,
     required double? previousDailyAverage,
   }) {
-    return LayoutBuilder(
-      builder: (context, constraints) {
-        final useTwoColumns = constraints.maxWidth < 320;
-        final tileWidth = useTwoColumns
-            ? (constraints.maxWidth - 10) / 2
-            : (constraints.maxWidth - 20) / 3;
-        return Wrap(
-          spacing: 10,
-          runSpacing: 10,
-          children: [
-            SizedBox(
-              width: tileWidth,
-              child: _TrendMetricCard(
-                label: context.tr('total_spent'),
-                value: formatMoney(currency, totalSpent),
-                change: _buildMetricChange(
-                  current: totalSpent,
-                  previous: previousTotalSpent,
-                  lowerIsBetter: true,
-                ),
-              ),
-            ),
-            SizedBox(
-              width: tileWidth,
-              child: _TrendMetricCard(
-                label: context.tr('analytics_trends_transactions'),
-                value: '$totalTransactions',
-                change: _buildMetricChange(
-                  current: totalTransactions.toDouble(),
-                  previous: previousTransactions?.toDouble(),
-                  lowerIsBetter: true,
-                ),
-              ),
-            ),
-            SizedBox(
-              width: tileWidth,
-              child: _TrendMetricCard(
-                label: context.tr('daily_avg'),
-                value: formatMoney(currency, dailyAverage),
-                change: _buildMetricChange(
-                  current: dailyAverage,
-                  previous: previousDailyAverage,
-                  lowerIsBetter: true,
-                ),
-              ),
-            ),
-          ],
+    AnalyticsMetric metric(
+      String label,
+      String value,
+      IconData icon,
+      double current,
+      double? previous,
+    ) {
+      final change = _buildMetricChange(
+        current: current,
+        previous: previous,
+        lowerIsBetter: true,
+      );
+      final roundedChange = change == null
+          ? null
+          : double.parse(change.percent.toStringAsFixed(1));
+      var supporting = context.tr('analytics_trends_no_prior');
+      if (change != null && roundedChange != null) {
+        final percentage = NumberFormat.decimalPercentPattern(
+          locale: Localizations.localeOf(context).languageCode,
+          decimalDigits: roundedChange == roundedChange.roundToDouble() ? 0 : 1,
         );
-      },
+        supporting = percentage.format(
+          roundedChange == 0
+              ? 0
+              : (change.isDownward ? -1 : 1) * roundedChange / 100,
+        );
+        if (roundedChange > 0 && !change.isDownward) {
+          supporting = '+$supporting';
+        }
+      }
+      return AnalyticsMetric(
+        label: label,
+        value: value,
+        icon: icon,
+        supporting: supporting,
+        supportingColor: roundedChange == null || roundedChange == 0
+            ? null
+            : change!.isPositive
+            ? ShellStyles.success(context)
+            : ShellStyles.error(context),
+      );
+    }
+
+    return AnalyticsMetricGroup(
+      metrics: [
+        metric(
+          context.tr('total_spent'),
+          formatMoney(currency, totalSpent),
+          AppIcons.wallet,
+          totalSpent,
+          previousTotalSpent,
+        ),
+        metric(
+          context.tr('analytics_trends_transactions'),
+          MaterialLocalizations.of(context).formatDecimal(totalTransactions),
+          AppIcons.receiptText,
+          totalTransactions.toDouble(),
+          previousTransactions?.toDouble(),
+        ),
+        metric(
+          context.tr('daily_avg'),
+          formatMoney(currency, dailyAverage),
+          AppIcons.calendar,
+          dailyAverage,
+          previousDailyAverage,
+        ),
+      ],
     );
   }
 
@@ -365,16 +383,17 @@ class _AnalyticsTrendsTabState extends State<AnalyticsTrendsTab> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Row(
+          Wrap(
+            spacing: 12,
+            runSpacing: 10,
+            crossAxisAlignment: WrapCrossAlignment.center,
             children: [
-              Expanded(
-                child: Text(
-                  context.tr('analytics_trends_title'),
-                  style: TextStyle(
-                    color: ShellStyles.textPrimary(context),
-                    fontSize: 18,
-                    fontWeight: FontWeight.w800,
-                  ),
+              Text(
+                context.tr('analytics_trends_title'),
+                style: TextStyle(
+                  color: ShellStyles.textPrimary(context),
+                  fontSize: 18,
+                  fontWeight: FontWeight.w800,
                 ),
               ),
               _buildCardPeriodPill(context),
@@ -412,30 +431,26 @@ class _AnalyticsTrendsTabState extends State<AnalyticsTrendsTab> {
               ),
             ),
           const AnalyticsFullBleedDivider(topSpacing: 16, bottomSpacing: 16),
-          Row(
-            children: [
-              Expanded(
-                child: _RangeInsightTile(
-                  label: context.tr('analytics_trends_lowest'),
-                  value: lowestPoint == null
-                      ? context.tr('analytics_no_data')
-                      : '${formatMoney(currency, lowestPoint.amount)} - ${lowestPoint.label}',
-                  icon: Icons.south_east,
-                  tint: ShellStyles.success(context).withAlpha(20),
-                  iconColor: ShellStyles.success(context),
-                ),
+          AnalyticsMetricGroup(
+            keyPrefix: 'trends-range',
+            metrics: [
+              AnalyticsMetric(
+                label: context.tr('analytics_trends_lowest'),
+                value: lowestPoint == null
+                    ? context.tr('analytics_no_data')
+                    : formatMoney(currency, lowestPoint.amount),
+                supporting: lowestPoint?.label,
+                icon: AppIcons.arrowDownRight,
+                valueColor: ShellStyles.success(context),
               ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: _RangeInsightTile(
-                  label: context.tr('analytics_trends_highest'),
-                  value: highestPoint == null
-                      ? context.tr('analytics_no_data')
-                      : '${formatMoney(currency, highestPoint.amount)} - ${highestPoint.label}',
-                  icon: Icons.north_east,
-                  tint: ShellStyles.error(context).withAlpha(20),
-                  iconColor: ShellStyles.error(context),
-                ),
+              AnalyticsMetric(
+                label: context.tr('analytics_trends_highest'),
+                value: highestPoint == null
+                    ? context.tr('analytics_no_data')
+                    : formatMoney(currency, highestPoint.amount),
+                supporting: highestPoint?.label,
+                icon: AppIcons.arrowUpRight,
+                valueColor: ShellStyles.error(context),
               ),
             ],
           ),
@@ -509,17 +524,19 @@ class _AnalyticsTrendsTabState extends State<AnalyticsTrendsTab> {
         mainAxisSize: MainAxisSize.min,
         children: [
           Icon(
-            Icons.calendar_today_outlined,
+            AppIcons.calendar,
             size: 13,
             color: ShellStyles.textMuted(context),
           ),
           const SizedBox(width: 6),
-          Text(
-            _trendCardPeriodLabel(context),
-            style: TextStyle(
-              color: ShellStyles.textMuted(context),
-              fontSize: 11,
-              fontWeight: FontWeight.w700,
+          Flexible(
+            child: Text(
+              _trendCardPeriodLabel(context),
+              style: TextStyle(
+                color: ShellStyles.textMuted(context),
+                fontSize: 11,
+                fontWeight: FontWeight.w700,
+              ),
             ),
           ),
         ],
@@ -1076,158 +1093,6 @@ class _AnalyticsTrendsTabState extends State<AnalyticsTrendsTab> {
     }
 
     return '$symbol$compactValue';
-  }
-}
-
-class _TrendMetricCard extends StatelessWidget {
-  const _TrendMetricCard({
-    required this.label,
-    required this.value,
-    required this.change,
-  });
-
-  final String label;
-  final String value;
-  final _MetricChange? change;
-
-  @override
-  Widget build(BuildContext context) {
-    final changeColor = change == null
-        ? ShellStyles.textMuted(context)
-        : change!.isPositive
-        ? ShellColors.softGreen
-        : ShellColors.softRed;
-    return Container(
-      padding: const EdgeInsets.fromLTRB(12, 12, 12, 13),
-      decoration: ShellStyles.cardDecoration(
-        context,
-        radius: 18,
-        color: ShellStyles.surface(context),
-        withShadow: false,
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            label.toUpperCase(),
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
-            style: TextStyle(
-              color: ShellStyles.textMuted(context),
-              fontSize: 10.5,
-              fontWeight: FontWeight.w700,
-              letterSpacing: 0.6,
-            ),
-          ),
-          const SizedBox(height: 8),
-          Text(
-            value,
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
-            style: TextStyle(
-              color: ShellStyles.textPrimary(context),
-              fontSize: 17,
-              fontWeight: FontWeight.w800,
-            ),
-          ),
-          const SizedBox(height: 8),
-          if (change == null)
-            Text(
-              context.tr('analytics_trends_no_prior'),
-              style: TextStyle(
-                color: ShellStyles.textMuted(context),
-                fontSize: 10.5,
-                fontWeight: FontWeight.w600,
-              ),
-            )
-          else
-            Row(
-              children: [
-                Icon(
-                  change!.isDownward ? Icons.south_east : Icons.north_east,
-                  size: 13,
-                  color: changeColor,
-                ),
-                const SizedBox(width: 4),
-                Text(
-                  '${change!.percent.round()}%',
-                  style: TextStyle(
-                    color: changeColor,
-                    fontSize: 10.5,
-                    fontWeight: FontWeight.w700,
-                  ),
-                ),
-              ],
-            ),
-        ],
-      ),
-    );
-  }
-}
-
-class _RangeInsightTile extends StatelessWidget {
-  const _RangeInsightTile({
-    required this.label,
-    required this.value,
-    required this.icon,
-    required this.tint,
-    required this.iconColor,
-  });
-
-  final String label;
-  final String value;
-  final IconData icon;
-  final Color tint;
-  final Color iconColor;
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.all(14),
-      decoration: BoxDecoration(
-        color: ShellStyles.surfaceAlt(context),
-        borderRadius: BorderRadius.circular(18),
-        border: Border.all(color: ShellStyles.border(context)),
-      ),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Container(
-            width: 26,
-            height: 26,
-            decoration: BoxDecoration(color: tint, shape: BoxShape.circle),
-            alignment: Alignment.center,
-            child: Icon(icon, size: 14, color: iconColor),
-          ),
-          const SizedBox(width: 10),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  label,
-                  style: TextStyle(
-                    color: ShellStyles.textMuted(context),
-                    fontSize: 11,
-                    fontWeight: FontWeight.w700,
-                  ),
-                ),
-                const SizedBox(height: 4),
-                Text(
-                  value,
-                  style: TextStyle(
-                    color: ShellStyles.textPrimary(context),
-                    fontSize: 13,
-                    fontWeight: FontWeight.w800,
-                    height: 1.3,
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ],
-      ),
-    );
   }
 }
 

@@ -49,6 +49,7 @@ class _LanguageSettingsScreenState extends State<LanguageSettingsScreen> {
   Widget _buildRow(AppLanguage language, bool hasDivider) {
     final selected = localeProvider.locale.languageCode == language.code;
     return InkWell(
+      borderRadius: BorderRadius.circular(12),
       onTap: () => _selectLanguage(language),
       child: Column(
         children: [
@@ -80,7 +81,11 @@ class _LanguageSettingsScreenState extends State<LanguageSettingsScreen> {
                   ),
                 ),
                 if (selected)
-                  Icon(AppIcons.check, color: ShellStyles.textPrimary(context), size: 18),
+                  Icon(
+                    AppIcons.check,
+                    color: ShellStyles.textPrimary(context),
+                    size: 18,
+                  ),
               ],
             ),
           ),

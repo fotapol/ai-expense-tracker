@@ -8,7 +8,7 @@ from decimal import Decimal
 from types import SimpleNamespace
 
 import pytest
-from fastapi import HTTPException
+from fastapi import HTTPException, Response
 from pydantic import ValidationError
 from sqlalchemy import JSON, Column, MetaData, Table, Uuid, event, insert
 from sqlalchemy.dialects.postgresql import JSONB
@@ -278,6 +278,7 @@ def test_route_uses_same_cached_snapshot_for_amount_order_and_item_display(
     result = asyncio.run(
         endpoint(
             request=None,
+            response=Response(),
             filters=TransactionListFilter(sort_by=sort_by),
             session=ItemSession(),
             current_user=SimpleNamespace(
@@ -554,7 +555,14 @@ def test_http_history_search_and_validation_match_analytics_scope(session, monke
             assert [row["id"] for row in response.json()] == [
                 str(row.id) for row in page(session, **params)
             ]
+            assert response.headers["Expense-Amount-Filter"] == "display-v1"
+            display = dict(search="coffee", min_display_amount="10.25", max_display_amount="10.25", target_currency="EUR")
+            response = await client.get("/v1/transactions", params=display)
+            assert response.status_code == 200, response.text
+            assert [row["id"] for row in response.json()] == [str(row.id) for row in page(session, **display)]
             for invalid in (
+                dict(min_display_amount="1.001"),
+                dict(min_display_amount="20", max_display_amount="10"),
                 dict(min_amount="0"),
                 dict(max_amount="0"),
                 dict(currency="EUR", min_amount="10", max_amount="9"),
@@ -565,3 +573,48 @@ def test_http_history_search_and_validation_match_analytics_scope(session, monke
                 assert response.status_code == 422, response.text
 
     asyncio.run(check())
+
+
+def test_display_amount_bounds_match_visible_values_across_original_currencies(session, monkeypatch):
+    monkeypatch.setattr(fx_rates, "_fetch_rate_from_provider", reject_live_fx)
+    add_rate(session, "USD", "0.5")
+    add_rate(session, "RSD", "0.01")
+    add(session, 1, amount="5")
+    add(session, 2, currency="USD", amount="10")
+    add(session, 3, currency="RSD", amount="1000")
+    add(session, 4, amount="5.01")
+    add(session, 5, currency="JPY", amount="5")
+    add(session, 6, amount=None)
+    add(session, 7, currency="eur", amount="5")
+    session.commit()
+    rows = page(session, min_display_amount="5", max_display_amount="5", target_currency="EUR")
+    assert {row.id.int for row in rows} == {1, 2, 7}
+    rows = page(session, min_display_amount="5", max_display_amount="10", target_currency="EUR")
+    assert {row.id.int for row in rows} == {1, 2, 3, 4, 7}
+    # Original currency is an independent optional constraint, not required.
+    rows = page(session, min_display_amount="5", max_display_amount="10", currency="RSD", target_currency="EUR")
+    assert [row.id.int for row in rows] == [3]
+
+
+def test_display_bounds_use_rounded_totals_and_allow_refunds_and_zero(session):
+    add_rate(session, "USD", "0.33333333")
+    add(session, 1, currency="USD", amount="3")
+    add(session, 2, amount="0")
+    add(session, 3, amount="-10")
+    add(session, 4, amount=None)
+    session.commit()
+    assert [r.id.int for r in page(session, min_display_amount="1", max_display_amount="1", target_currency="EUR")] == [1]
+    assert {r.id.int for r in page(session, min_display_amount="-10", max_display_amount="0", target_currency="EUR")} == {2, 3}
+
+
+def test_display_amount_filter_precedes_paging_and_validates_range(session):
+    for i in range(1, 126):
+        add(session, i, amount=str(i))
+    session.commit()
+    rows = page(session, min_display_amount="10", max_display_amount="70", target_currency="EUR", page_size=50)
+    assert len(rows) == 50 and all(Decimal("10") <= r.amount_total <= Decimal("70") for r in rows)
+    rows2 = page(session, min_display_amount="10", max_display_amount="70", target_currency="EUR", page_size=50, page=2)
+    assert len(rows2) == 11 and not {r.id for r in rows} & {r.id for r in rows2}
+    with pytest.raises(HTTPException) as error:
+        page(session, min_display_amount="20", max_display_amount="10", target_currency="EUR")
+    assert error.value.status_code == 422

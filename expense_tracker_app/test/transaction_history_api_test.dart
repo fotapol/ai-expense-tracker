@@ -7,9 +7,32 @@ import 'package:http/testing.dart';
 
 import 'support/authenticated_api.dart';
 
+http.Response _backendResponse(String body, int statusCode) => http.Response(
+  body,
+  statusCode,
+  headers: {'expense-amount-filter': 'display-v1'},
+);
+
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
   setUp(installAuthenticatedApiUser);
+
+  test(
+    'an older backend cannot silently ignore displayed amount bounds',
+    () async {
+      await http.runWithClient(
+        () async {
+          await expectLater(
+            ApiClient.listTransactions(minAmount: '5', page: 1),
+            throwsStateError,
+          );
+        },
+        () => MockClient(
+          (_) async => http.Response('[{"id":"outside-range"}]', 200),
+        ),
+      );
+    },
+  );
 
   test('existing callers load every page and preserve filters', () async {
     final requests = <http.Request>[];
@@ -30,7 +53,7 @@ void main() {
       () => MockClient((request) async {
         requests.add(request);
         final page = int.parse(request.url.queryParameters['page']!);
-        return http.Response(
+        return _backendResponse(
           jsonEncode([
             for (var i = (page - 1) * 50; i < page * 50 && i < 125; i++)
               {'id': i},
@@ -46,8 +69,8 @@ void main() {
       expect(request.url.queryParameters['merchant_name_search'], 'A & B');
       expect(request.url.queryParameters['category_ids'], 'category');
       expect(request.url.queryParameters['search'], '50% milk & coffee_\\');
-      expect(request.url.queryParameters['min_amount'], '-0.25');
-      expect(request.url.queryParameters['max_amount'], '99.99');
+      expect(request.url.queryParameters['min_display_amount'], '-0.25');
+      expect(request.url.queryParameters['max_display_amount'], '99.99');
       expect(request.url.queryParameters['currency'], 'EUR');
       expect(request.url.queryParameters['source'], 'MANUAL');
       expect(request.url.queryParameters['status'], 'CONFIRMED');
@@ -66,7 +89,7 @@ void main() {
       () => MockClient((request) async {
         calls++;
         expect(request.url.queryParameters['page'], '2');
-        return http.Response(
+        return _backendResponse(
           jsonEncode(List.generate(50, (i) => {'id': i})),
           200,
         );
@@ -85,8 +108,8 @@ void main() {
         ),
         () => MockClient((request) async {
           return request.url.queryParameters['page'] == '1'
-              ? http.Response('[{"id": 1}]', 200)
-              : http.Response('unavailable', 503);
+              ? _backendResponse('[{"id": 1}]', 200)
+              : _backendResponse('unavailable', 503);
         }),
       );
     },

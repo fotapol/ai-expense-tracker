@@ -233,11 +233,11 @@ class _ReceiptPhotoViewScreenState extends State<ReceiptPhotoViewScreen> {
         actions: [
           IconButton(
             onPressed: () => _downloadFile(context),
-            icon: const Icon(Icons.download_outlined),
+            icon: const Icon(AppIcons.download),
           ),
           IconButton(
             onPressed: () => _openExternally(context),
-            icon: const Icon(Icons.open_in_new),
+            icon: const Icon(AppIcons.externalLink),
           ),
         ],
       ),
@@ -297,7 +297,7 @@ class _ReceiptPhotoViewScreenState extends State<ReceiptPhotoViewScreen> {
                             mainAxisAlignment: MainAxisAlignment.center,
                             children: [
                               Icon(
-                                Icons.broken_image_outlined,
+                                AppIcons.imageOff,
                                 color: ShellStyles.textMuted(context),
                                 size: 56,
                               ),
@@ -312,7 +312,7 @@ class _ReceiptPhotoViewScreenState extends State<ReceiptPhotoViewScreen> {
                               const SizedBox(height: 16),
                               FilledButton.icon(
                                 onPressed: () => _openExternally(context),
-                                icon: const Icon(Icons.open_in_new),
+                                icon: const Icon(AppIcons.externalLink),
                                 label: Text(
                                   context.tr('receipt_photo_open_external'),
                                 ),
@@ -367,7 +367,7 @@ class _ReceiptPhotoViewScreenState extends State<ReceiptPhotoViewScreen> {
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              const Icon(Icons.insert_drive_file_outlined, size: 56),
+              const Icon(AppIcons.file, size: 56),
               const SizedBox(height: 16),
               Text(
                 context.tr('receipt_photo_non_image_hint'),
@@ -381,13 +381,13 @@ class _ReceiptPhotoViewScreenState extends State<ReceiptPhotoViewScreen> {
               const SizedBox(height: 20),
               FilledButton.icon(
                 onPressed: () => _downloadFile(context),
-                icon: const Icon(Icons.download_outlined),
+                icon: const Icon(AppIcons.download),
                 label: Text(context.tr('receipt_photo_download')),
               ),
               const SizedBox(height: 12),
               FilledButton.icon(
                 onPressed: () => _openExternally(context),
-                icon: const Icon(Icons.open_in_new),
+                icon: const Icon(AppIcons.externalLink),
                 label: Text(context.tr('receipt_photo_open_external')),
               ),
             ],

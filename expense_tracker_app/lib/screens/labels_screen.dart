@@ -1,4 +1,3 @@
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 
 import '../core/api_client.dart';
@@ -222,7 +221,12 @@ class _LabelsScreenState extends State<LabelsScreen> {
         scrolledUnderElevation: 0,
         iconTheme: IconThemeData(color: ShellStyles.textPrimary(context)),
         titleSpacing: 0,
-        toolbarHeight: 74,
+        toolbarHeight:
+            (MediaQuery.textScalerOf(context).scale(18) +
+                    MediaQuery.textScalerOf(context).scale(12) +
+                    16)
+                .clamp(64, double.infinity)
+                .toDouble(),
         title: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -238,6 +242,8 @@ class _LabelsScreenState extends State<LabelsScreen> {
             const SizedBox(height: 2),
             Text(
               _countLabel(),
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
               style: TextStyle(
                 color: ShellStyles.textMuted(context),
                 fontSize: 12,
@@ -274,44 +280,47 @@ class _LabelsScreenState extends State<LabelsScreen> {
       ),
       body: _isLoading
           ? const Center(child: CircularProgressIndicator())
-          : RefreshIndicator(
-              onRefresh: () => _fetchLabels(showLoading: false),
-              child: SingleChildScrollView(
-                physics: const AlwaysScrollableScrollPhysics(),
-                padding: EdgeInsets.fromLTRB(
-                  16,
-                  18,
-                  16,
-                  MediaQuery.of(context).padding.bottom + 32,
-                ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    if (_error != null) ...[
-                      _buildErrorCard(),
-                      const SizedBox(height: 18),
+          : SafeArea(
+              top: false,
+              child: RefreshIndicator(
+                onRefresh: () => _fetchLabels(showLoading: false),
+                child: SingleChildScrollView(
+                  physics: const AlwaysScrollableScrollPhysics(),
+                  padding: EdgeInsets.fromLTRB(
+                    16,
+                    18,
+                    16,
+                    MediaQuery.of(context).padding.bottom + 32,
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      if (_error != null) ...[
+                        _buildErrorCard(),
+                        const SizedBox(height: 18),
+                      ],
+                      AnimatedSwitcher(
+                        duration: const Duration(milliseconds: 220),
+                        child: _showCreateForm
+                            ? Column(
+                                key: const ValueKey('create-form'),
+                                children: [
+                                  _buildCreateCard(),
+                                  const SizedBox(height: 18),
+                                ],
+                              )
+                            : const SizedBox.shrink(
+                                key: ValueKey('create-form-hidden'),
+                              ),
+                      ),
+                      ShellStyles.sectionLabel(
+                        context,
+                        context.tr('labels_title'),
+                      ),
+                      const SizedBox(height: 12),
+                      _buildLabelsList(),
                     ],
-                    AnimatedSwitcher(
-                      duration: const Duration(milliseconds: 220),
-                      child: _showCreateForm
-                          ? Column(
-                              key: const ValueKey('create-form'),
-                              children: [
-                                _buildCreateCard(),
-                                const SizedBox(height: 18),
-                              ],
-                            )
-                          : const SizedBox.shrink(
-                              key: ValueKey('create-form-hidden'),
-                            ),
-                    ),
-                    ShellStyles.sectionLabel(
-                      context,
-                      context.tr('labels_title'),
-                    ),
-                    const SizedBox(height: 12),
-                    _buildLabelsList(),
-                  ],
+                  ),
                 ),
               ),
             ),
@@ -331,7 +340,7 @@ class _LabelsScreenState extends State<LabelsScreen> {
         children: [
           Row(
             children: [
-              const Icon(CupertinoIcons.exclamationmark_triangle),
+              const Icon(AppIcons.triangleAlert),
               const SizedBox(width: 10),
               Expanded(
                 child: Text(
@@ -587,11 +596,7 @@ class _LabelsScreenState extends State<LabelsScreen> {
                           max: 14,
                         ),
                       ),
-                      child: Icon(
-                        CupertinoIcons.tag,
-                        color: tone.onSolid,
-                        size: 18,
-                      ),
+                      child: Icon(AppIcons.tag, color: tone.onSolid, size: 18),
                     ),
                     const SizedBox(width: 12),
                     Expanded(
@@ -615,7 +620,7 @@ class _LabelsScreenState extends State<LabelsScreen> {
                       child: Padding(
                         padding: const EdgeInsets.all(6),
                         child: Icon(
-                          CupertinoIcons.xmark,
+                          AppIcons.x,
                           color: ShellColors.softRed,
                           size: 16,
                         ),

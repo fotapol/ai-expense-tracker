@@ -6,11 +6,11 @@ controller:
   hostPort:
     enable: true
     http: 80
-    https: 8443
+    https: 2053
 
   containerPort:
     http: 80
-    https: 8443
+    https: 2053
 
   service:
     create: false
@@ -25,17 +25,14 @@ controller:
     name: nginx
 
   defaultHTTPListenerPort: 80
-  defaultHTTPSListenerPort: 8443
+  defaultHTTPSListenerPort: 2053
 
   globalConfiguration:
     create: true
     spec:
       listeners:
-        - name: http-80
-          port: 80
-          protocol: HTTP
-        - name: https-8443
-          port: 8443
+        - name: https-2053
+          port: 2053
           protocol: HTTP
           ssl: true
 

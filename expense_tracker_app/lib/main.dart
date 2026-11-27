@@ -7,11 +7,13 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'firebase_options.dart';
 import 'core/app_env.dart';
+import 'core/third_party_licenses.dart';
 import 'core/app_navigation.dart';
 import 'core/api_client.dart';
 import 'core/auth_session.dart';
 import 'core/bill_reminder_notification_service.dart';
 import 'core/item_translation_preferences.dart';
+import 'core/interface_scale.dart';
 import 'core/money_format_preferences.dart';
 import 'core/locale_provider.dart';
 import 'core/premium_refresh.dart';
@@ -26,6 +28,7 @@ final localeProvider = LocaleProvider();
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  registerThirdPartyLicenses();
   await AppEnv.load();
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
   await GoogleSignIn.instance.initialize();
@@ -131,10 +134,8 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
       darkTheme: themeProvider.darkTheme,
       themeMode: themeProvider.themeMode,
       builder: (context, child) {
-        return MediaQuery(
-          data: MediaQuery.of(context).copyWith(
-            textScaler: TextScaler.linear(themeProvider.fontSizeFactor),
-          ),
+        return InterfaceScale(
+          factor: themeProvider.interfaceScaleFactor,
           child: child ?? const SizedBox.shrink(),
         );
       },

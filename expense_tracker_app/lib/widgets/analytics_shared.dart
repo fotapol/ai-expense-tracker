@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../core/redesign_system.dart';
 import '../l10n/app_localizations.dart';
+import 'text_measurement.dart';
 
 class AnalyticsSurfaceCard extends StatelessWidget {
   const AnalyticsSurfaceCard({
@@ -82,7 +83,7 @@ class AnalyticsErrorState extends StatelessWidget {
           mainAxisSize: MainAxisSize.min,
           children: [
             const Icon(
-              Icons.error_outline,
+              AppIcons.circleAlert,
               color: ShellColors.softRed,
               size: 42,
             ),
@@ -347,4 +348,229 @@ class AnalyticsMiniStatTile extends StatelessWidget {
       ),
     );
   }
+}
+
+class AnalyticsMetric {
+  const AnalyticsMetric({
+    required this.label,
+    required this.value,
+    required this.icon,
+    this.valueColor,
+    this.supporting,
+    this.supportingColor,
+  });
+  final String label, value;
+  final IconData icon;
+  final Color? valueColor;
+  final String? supporting;
+  final Color? supportingColor;
+}
+
+/// Equal metric surfaces with complete labels at each locale and text size.
+/// Narrow screens use rows; wide layouts use aligned columns.
+class AnalyticsMetricGroup extends StatelessWidget {
+  const AnalyticsMetricGroup({
+    super.key,
+    required this.metrics,
+    this.keyPrefix = 'analytics-metric',
+  });
+  final List<AnalyticsMetric> metrics;
+  final String keyPrefix;
+
+  @override
+  Widget build(BuildContext context) => LayoutBuilder(
+    builder: (context, constraints) {
+      final labelStyle = Theme.of(context).textTheme.bodyMedium!.copyWith(
+        fontSize: 12,
+        height: 1.35,
+        fontWeight: FontWeight.w600,
+        color: ShellStyles.textSecondary(context),
+      );
+      final valueStyle = Theme.of(context).textTheme.titleMedium!.copyWith(
+        fontSize: 17,
+        height: 1.25,
+        fontWeight: FontWeight.w800,
+      );
+      final supportingStyle = Theme.of(context).textTheme.bodySmall!.copyWith(
+        fontSize: 11.5,
+        height: 1.35,
+        color: ShellStyles.textMuted(context),
+      );
+      var valueWidth = 0.0, valueHeight = 0.0;
+      for (final metric in metrics) {
+        final size = measureTextLayout(context, metric.value, valueStyle);
+        if (size.width > valueWidth) valueWidth = size.width;
+        if (size.height > valueHeight) valueHeight = size.height;
+      }
+      const padding = 12.0;
+      const borderWidth = 1.0;
+      const insets = 2 * (padding + borderWidth);
+      var minimumColumnWidth = 120 * ShellStyles.textScale(context);
+      if (valueWidth + insets > minimumColumnWidth) {
+        minimumColumnWidth = valueWidth + insets;
+      }
+      var labelMinWidth = 0.0;
+      for (final metric in metrics) {
+        final width = measureTextLayout(
+          context,
+          metric.label,
+          labelStyle,
+        ).minWidth.ceilToDouble();
+        if (width > labelMinWidth) labelMinWidth = width;
+      }
+      if (labelMinWidth + insets + 26 > minimumColumnWidth) {
+        minimumColumnWidth = labelMinWidth + insets + 26;
+      }
+      final columns =
+          constraints.maxWidth >=
+          minimumColumnWidth * metrics.length + 10 * (metrics.length - 1);
+      final tileWidth = columns
+          ? (constraints.maxWidth - 10 * (metrics.length - 1)) / metrics.length
+          : constraints.maxWidth;
+      final naturalValueWidth = valueWidth;
+      valueWidth = valueWidth.clamp(0, tileWidth * .45);
+      final horizontal =
+          !columns &&
+          naturalValueWidth <= valueWidth &&
+          tileWidth - insets - 34 - valueWidth >= labelMinWidth &&
+          tileWidth - insets - 34 - valueWidth >= 100;
+      final labelWidth =
+          tileWidth - insets - 26 - (horizontal ? valueWidth + 8 : 0);
+      var labelHeight = 18.0;
+      for (final metric in metrics) {
+        final height = measureTextLayout(
+          context,
+          metric.label,
+          labelStyle,
+          maxWidth: labelWidth,
+        ).height;
+        if (height > labelHeight) labelHeight = height;
+      }
+      final contentHeight = horizontal
+          ? (labelHeight > valueHeight ? labelHeight : valueHeight)
+          : labelHeight + 8 + valueHeight;
+      var supportingHeight = 0.0;
+      for (final metric in metrics) {
+        if (metric.supporting == null) continue;
+        final height = measureTextLayout(
+          context,
+          metric.supporting!,
+          supportingStyle,
+          maxWidth: tileWidth - insets,
+        ).height;
+        if (height > supportingHeight) supportingHeight = height;
+      }
+      final height =
+          contentHeight +
+          insets +
+          (supportingHeight > 0 ? supportingHeight + 6 : 0);
+      Widget tile(AnalyticsMetric metric, int index) {
+        final label = Text(metric.label, style: labelStyle);
+        final icon = Icon(
+          metric.icon,
+          size: 18,
+          color: ShellStyles.textMuted(context),
+        );
+        final value = SizedBox(
+          width: horizontal ? valueWidth : null,
+          height: valueHeight,
+          child: Align(
+            alignment: horizontal
+                ? AlignmentDirectional.centerEnd
+                : AlignmentDirectional.centerStart,
+            child: FittedBox(
+              fit: BoxFit.scaleDown,
+              child: Text(
+                metric.value,
+                style: valueStyle.copyWith(
+                  color: metric.valueColor ?? ShellStyles.textPrimary(context),
+                ),
+              ),
+            ),
+          ),
+        );
+        return Container(
+          key: ValueKey('$keyPrefix-$index'),
+          height: height,
+          padding: const EdgeInsets.all(padding),
+          decoration: BoxDecoration(
+            color: ShellStyles.surfaceAlt(context),
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(
+              color: ShellStyles.border(context),
+              width: borderWidth,
+            ),
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              SizedBox(
+                height: contentHeight,
+                child: horizontal
+                    ? Row(
+                        children: [
+                          icon,
+                          const SizedBox(width: 8),
+                          Expanded(child: label),
+                          const SizedBox(width: 8),
+                          value,
+                        ],
+                      )
+                    : Column(
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                        children: [
+                          SizedBox(
+                            height: labelHeight,
+                            child: Row(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                icon,
+                                const SizedBox(width: 8),
+                                Expanded(child: label),
+                              ],
+                            ),
+                          ),
+                          const SizedBox(height: 8),
+                          value,
+                        ],
+                      ),
+              ),
+              if (supportingHeight > 0) ...[
+                const SizedBox(height: 6),
+                SizedBox(
+                  height: supportingHeight,
+                  child: Text(
+                    metric.supporting ?? '',
+                    style: supportingStyle.copyWith(
+                      color: metric.supportingColor,
+                    ),
+                  ),
+                ),
+              ],
+            ],
+          ),
+        );
+      }
+
+      if (columns) {
+        return Row(
+          children: [
+            for (var i = 0; i < metrics.length; i++) ...[
+              if (i > 0) const SizedBox(width: 10),
+              Expanded(child: tile(metrics[i], i)),
+            ],
+          ],
+        );
+      }
+      return Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          for (var i = 0; i < metrics.length; i++) ...[
+            if (i > 0) const SizedBox(height: 8),
+            tile(metrics[i], i),
+          ],
+        ],
+      );
+    },
+  );
 }

@@ -406,7 +406,7 @@ class _AnalyticsSubcategoryItemsScreenState
                     height: 40,
                     decoration: ShellStyles.iconBadgeDecoration(context),
                     child: Icon(
-                      Icons.shopping_bag_outlined,
+                      AppIcons.shoppingBag,
                       size: 18,
                       color: ShellStyles.textPrimary(context),
                     ),

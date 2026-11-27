@@ -913,7 +913,7 @@ class _TransactionEditScreenState extends State<TransactionEditScreen> {
                         Navigator.pop(context);
                         await _createAndAssignLabel();
                       },
-                      icon: Icon(Icons.add),
+                      icon: Icon(AppIcons.plus),
                       label: Text(context.tr('common_new')),
                     ),
                   ],
@@ -1246,7 +1246,7 @@ class _TransactionEditScreenState extends State<TransactionEditScreen> {
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                Icon(Icons.error_outline, color: Colors.redAccent, size: 42),
+                Icon(AppIcons.circleAlert, color: Colors.redAccent, size: 42),
                 const SizedBox(height: 12),
                 Text(_error!, textAlign: TextAlign.center),
                 const SizedBox(height: 16),
@@ -1284,7 +1284,7 @@ class _TransactionEditScreenState extends State<TransactionEditScreen> {
           scrolledUnderElevation: 0,
           centerTitle: true,
           leading: IconButton(
-            icon: Icon(Icons.arrow_back_ios_new_rounded, color: _textColor),
+            icon: Icon(AppIcons.chevronLeft, color: _textColor),
             onPressed: _handleBackPressed,
           ),
           title: InkWell(
@@ -1311,7 +1311,7 @@ class _TransactionEditScreenState extends State<TransactionEditScreen> {
                   ),
                   if (_canEditTransaction) ...[
                     const SizedBox(width: 6),
-                    Icon(Icons.edit_outlined, size: 16, color: _mutedColor),
+                    Icon(AppIcons.pencil, size: 16, color: _mutedColor),
                   ],
                 ],
               ),
@@ -1346,7 +1346,7 @@ class _TransactionEditScreenState extends State<TransactionEditScreen> {
                           ),
                         ),
                       )
-                    : Icon(Icons.check_rounded, size: 20),
+                    : Icon(AppIcons.check, size: 20),
               ),
             ),
           ],
@@ -1377,7 +1377,7 @@ class _TransactionEditScreenState extends State<TransactionEditScreen> {
                         Text(context.tr('duplicates_save_first')),
                       TextButton.icon(
                         onPressed: _hasLocalEdits ? null : _reviewDuplicates,
-                        icon: const Icon(Icons.content_copy_outlined),
+                        icon: const Icon(AppIcons.copy),
                         label: Text(context.tr('duplicates_review')),
                       ),
                     ],

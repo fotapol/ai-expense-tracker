@@ -40,7 +40,7 @@ Reason:
 
 - `22/tcp` for SSH
 - `80/tcp` optionally, if you want HTTP redirect / edge handling
-- `8443/tcp` for public HTTPS because `443` is already occupied on this VPS
+- `2053/tcp` for HTTPS connections from Cloudflare to the ingress controller
 - `6443/tcp` only if you need remote Kubernetes API access
   Restrict this to operator IPs or a VPN. Do not expose it broadly.
 
@@ -66,7 +66,7 @@ Edit `infra/k8s/addons/nginx-ingress-values.yaml` first:
 
 - replace `REPLACE_WITH_TRUSTED_PROXY_CIDRS` with Cloudflare IPv4 and IPv6 CIDRs
 - keep the ingress class as `nginx`
-- keep the committed `hostPort`, `containerPort`, and `defaultHTTPSListenerPort` values on `8443`
+- keep the committed `hostPort`, `containerPort`, and `defaultHTTPSListenerPort` values on `2053`
 - keep `client-max-body-size` at least as large as the backend receipt upload limit
 
 Install the controller:
@@ -93,20 +93,16 @@ Use:
 - SSL/TLS mode: `Full (strict)`
 - proxied orange-cloud DNS records
 - free-plan assumptions only
-- an Origin Rule for `example.com` that rewrites the destination port to
-  `8443`, so public users can open `https://example.com` without typing the
-  origin port
-- API public URL with the explicit alternate HTTPS port:
-  `https://api.example.com`
-- Storage public URL with the explicit alternate HTTPS port:
-  `https://storage.example.com`
+- an Origin Rule matching `example.com`, `api.example.com`, and
+  `storage.example.com` that sends requests to destination port `2053` while
+  preserving the public hostnames
+- API public URL `https://api.example.com`
+- Storage public URL `https://storage.example.com`
 - the public site URL you set in `PUBLIC_APP_BASE_URL`, for example
   `https://example.com`
 
-Cloudflare supports proxied HTTPS traffic on `8443`, and Origin Rules can route
-clean edge URLs on port `443` to a non-standard origin port. Keep API and
-storage presigned URLs on the explicit `:8443` host unless you deliberately add
-and test a Cloudflare Origin Rule for the clean storage hostname.
+Clients use the default HTTPS port `443`. Cloudflare connects to the ingress
+controller on `2053` using the matching Origin Rule.
 
 ### 5. Create The Origin TLS Secret
 
@@ -274,17 +270,20 @@ kubectl apply -k infra/k8s/overlays/production
 ```
 
 The production API, site, and storage routes use F5 NGINX `VirtualServer`
-resources with the `https-8443` listener. Do not reintroduce ordinary
+resources with the `https-2053` listener. Do not reintroduce ordinary
 Kubernetes `Ingress` objects for these public routes unless the custom HTTPS
 listener strategy is deliberately migrated.
 
 The F5 NGINX controller values pin the public HTTPS listener to:
 
-- `containerPort: 8443`
-- `hostPort: 8443`
-- `defaultHTTPSListenerPort: 8443`
+- `containerPort: 2053`
+- `hostPort: 2053`
+- `defaultHTTPSListenerPort: 2053`
 
-Do not change those listener values unless you also move the public HTTPS listener back off `8443`.
+Keep the controller values, the three `VirtualServer` listener references,
+and the Cloudflare Origin Rule in sync when changing the origin port.
+The controller reserves HTTP port `80`, so `GlobalConfiguration` declares
+only the custom HTTPS listener.
 
 ## Traffic Path
 
@@ -331,10 +330,10 @@ Verify presigned upload and download URLs from the app or backend.
 
 Do not expose the MinIO console publicly.
 
-The storage `VirtualServer` must preserve the original `Host` header, including
-`:8443`, when proxying presigned S3 requests to MinIO. S3 signatures include the
-request host, so removing the non-default port can cause direct receipt uploads
-to fail with a generic app upload error.
+The storage `VirtualServer` must preserve the public `Host` header when proxying
+presigned S3 requests to MinIO. S3 signatures include the request host. For
+`https://storage.example.com`, preserve `storage.example.com` without appending
+the origin port.
 
 The NGINX controller must also allow receipt bodies larger than the default
 upload ceiling. The committed controller values set `client-max-body-size` to
@@ -369,9 +368,8 @@ Expected launch state:
 - `prod-storage/receipts` has no automatic expiry lifecycle rule.
 - old database backup objects are pruned by the backup job after
   `POSTGRES_BACKUP_RETENTION_DAYS`, not by a bucket-wide receipt expiry rule.
-- `S3_EXTERNAL_ENDPOINT` remains the canonical public storage endpoint, for
-  example `https://storage.example.com`, unless a clean-host Cloudflare
-  Origin Rule has been deliberately added and tested.
+- `S3_EXTERNAL_ENDPOINT` is the canonical public storage endpoint, for example
+  `https://storage.example.com`, covered by the Cloudflare Origin Rule.
 
 ### Monitoring
 

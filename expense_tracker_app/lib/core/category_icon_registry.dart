@@ -1,3 +1,4 @@
+import 'app_icons.dart';
 import 'package:flutter/material.dart';
 
 class CategoryIconOption {
@@ -11,26 +12,26 @@ class CategoryIconRegistry {
   CategoryIconRegistry._();
 
   static const List<CategoryIconOption> options = [
-    CategoryIconOption(key: 'restaurant', icon: Icons.restaurant_outlined),
-    CategoryIconOption(key: 'car', icon: Icons.directions_car_outlined),
-    CategoryIconOption(key: 'bag', icon: Icons.shopping_bag_outlined),
-    CategoryIconOption(key: 'movie', icon: Icons.movie_outlined),
-    CategoryIconOption(key: 'health', icon: Icons.health_and_safety_outlined),
-    CategoryIconOption(key: 'bolt', icon: Icons.bolt_outlined),
-    CategoryIconOption(key: 'school', icon: Icons.school_outlined),
-    CategoryIconOption(key: 'shirt', icon: Icons.checkroom_outlined),
-    CategoryIconOption(key: 'devices', icon: Icons.devices_outlined),
-    CategoryIconOption(key: 'home', icon: Icons.house_outlined),
-    CategoryIconOption(key: 'flight', icon: Icons.flight_outlined),
-    CategoryIconOption(key: 'gift', icon: Icons.card_giftcard_outlined),
-    CategoryIconOption(key: 'shield', icon: Icons.shield_outlined),
-    CategoryIconOption(key: 'sparkle', icon: Icons.auto_awesome_outlined),
-    CategoryIconOption(key: 'pets', icon: Icons.pets_outlined),
-    CategoryIconOption(key: 'work', icon: Icons.work_outline),
-    CategoryIconOption(key: 'cafe', icon: Icons.local_cafe_outlined),
-    CategoryIconOption(key: 'fitness', icon: Icons.fitness_center_outlined),
-    CategoryIconOption(key: 'beauty', icon: Icons.self_improvement_outlined),
-    CategoryIconOption(key: 'tag', icon: Icons.sell_outlined),
+    CategoryIconOption(key: 'restaurant', icon: AppIcons.utensils),
+    CategoryIconOption(key: 'car', icon: AppIcons.car),
+    CategoryIconOption(key: 'bag', icon: AppIcons.shoppingBag),
+    CategoryIconOption(key: 'movie', icon: AppIcons.clapperboard),
+    CategoryIconOption(key: 'health', icon: AppIcons.heartPulse),
+    CategoryIconOption(key: 'bolt', icon: AppIcons.zap),
+    CategoryIconOption(key: 'school', icon: AppIcons.graduationCap),
+    CategoryIconOption(key: 'shirt', icon: AppIcons.shirt),
+    CategoryIconOption(key: 'devices', icon: AppIcons.monitorSmartphone),
+    CategoryIconOption(key: 'home', icon: AppIcons.house),
+    CategoryIconOption(key: 'flight', icon: AppIcons.plane),
+    CategoryIconOption(key: 'gift', icon: AppIcons.gift),
+    CategoryIconOption(key: 'shield', icon: AppIcons.shield),
+    CategoryIconOption(key: 'sparkle', icon: AppIcons.sparkles),
+    CategoryIconOption(key: 'pets', icon: AppIcons.pawPrint),
+    CategoryIconOption(key: 'work', icon: AppIcons.briefcaseBusiness),
+    CategoryIconOption(key: 'cafe', icon: AppIcons.coffee),
+    CategoryIconOption(key: 'fitness', icon: AppIcons.dumbbell),
+    CategoryIconOption(key: 'beauty', icon: AppIcons.accessibility),
+    CategoryIconOption(key: 'tag', icon: AppIcons.tag),
   ];
 
   static IconData resolve(String? iconKey, {String? code}) {
@@ -43,35 +44,35 @@ class CategoryIconRegistry {
 
     switch ((code ?? '').trim().toUpperCase()) {
       case 'FOOD':
-        return Icons.restaurant_outlined;
+        return AppIcons.utensils;
       case 'TRANSPORT':
-        return Icons.directions_car_outlined;
+        return AppIcons.car;
       case 'SHOPPING':
       case 'CLOTHING':
-        return Icons.shopping_bag_outlined;
+        return AppIcons.shoppingBag;
       case 'ENTERTAINMENT':
-        return Icons.movie_outlined;
+        return AppIcons.clapperboard;
       case 'HEALTH':
-        return Icons.health_and_safety_outlined;
+        return AppIcons.heartPulse;
       case 'UTILITIES':
-        return Icons.bolt_outlined;
+        return AppIcons.zap;
       case 'EDUCATION':
-        return Icons.school_outlined;
+        return AppIcons.graduationCap;
       case 'ELECTRONICS':
-        return Icons.devices_outlined;
+        return AppIcons.monitorSmartphone;
       case 'HOME':
-        return Icons.house_outlined;
+        return AppIcons.house;
       case 'TRAVEL':
-        return Icons.flight_outlined;
+        return AppIcons.plane;
       case 'GIFTS':
       case 'GIFTS_DONATIONS':
-        return Icons.card_giftcard_outlined;
+        return AppIcons.gift;
       case 'INSURANCE':
-        return Icons.shield_outlined;
+        return AppIcons.shield;
       case 'PERSONAL_CARE':
-        return Icons.self_improvement_outlined;
+        return AppIcons.accessibility;
       default:
-        return Icons.sell_outlined;
+        return AppIcons.tag;
     }
   }
 }

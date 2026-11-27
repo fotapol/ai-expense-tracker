@@ -39,7 +39,7 @@ class SettingsDetailScaffold extends StatelessWidget {
         ),
         actions: actions,
       ),
-      body: body,
+      body: SafeArea(top: false, child: body),
       floatingActionButton: showScanAction
           ? FloatingActionButton(
               onPressed: () => _openScan(context),

@@ -1,14 +1,19 @@
+import 'dart:math' as math;
+
 import 'package:flutter/material.dart';
 
 import '../core/analytics_filters.dart';
 import '../core/api_client.dart';
 import '../core/launch_error_copy.dart';
+import '../core/localized_dates.dart';
 import '../core/money_formatter.dart';
 import '../core/period_filter.dart';
 import '../core/redesign_system.dart';
 import '../core/session_invalidation.dart';
 import '../core/taxonomy_localization.dart';
 import '../l10n/app_localizations.dart';
+import '../widgets/compact_text.dart';
+import '../widgets/text_measurement.dart';
 import '../widgets/analytics_shared.dart';
 
 class AnalyticsOverviewTab extends StatefulWidget {
@@ -28,6 +33,7 @@ class AnalyticsOverviewTab extends StatefulWidget {
 class _AnalyticsOverviewTabState extends State<AnalyticsOverviewTab> {
   bool _isLoading = true;
   String? _error;
+  PeriodDateRange? _loadedDateRange;
   int _dataRequest = 0;
   Map<String, dynamic>? _summaryData;
   Map<String, dynamic>? _trendsData;
@@ -103,6 +109,7 @@ class _AnalyticsOverviewTabState extends State<AnalyticsOverviewTab> {
       ]);
       if (!mounted || request != _dataRequest) return;
       setState(() {
+        _loadedDateRange = range;
         _summaryData = results[0] as Map<String, dynamic>;
         _trendsData = results[1] as Map<String, dynamic>;
         _transactions = results[2] as List<dynamic>;
@@ -263,7 +270,7 @@ class _AnalyticsOverviewTabState extends State<AnalyticsOverviewTab> {
           ],
           if (isEmptyOverview)
             AnalyticsEmptyCard(
-              icon: Icons.insights_outlined,
+              icon: AppIcons.chartNoAxesCombined,
               title: context.tr('no_overview_yet'),
               message: context.tr('analytics_empty_overview_message'),
             )
@@ -301,7 +308,7 @@ class _AnalyticsOverviewTabState extends State<AnalyticsOverviewTab> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   const Icon(
-                    Icons.info_outline,
+                    AppIcons.info,
                     color: ShellColors.softRed,
                     size: 18,
                   ),
@@ -340,176 +347,173 @@ class _AnalyticsOverviewTabState extends State<AnalyticsOverviewTab> {
       previousTotal: previousTotal,
       changePercentage: changePercentage,
     );
+    final range = _loadedDateRange ?? widget.filters.dateRange;
+    PeriodDateRange? previous;
+    if (range.start != null && range.end != null) {
+      final end = range.start!.toUtc().subtract(
+        const Duration(microseconds: 1),
+      );
+      previous = PeriodDateRange(
+        start: end
+            .subtract(range.end!.toUtc().difference(range.start!.toUtc()))
+            .toLocal(),
+        end: end.toLocal(),
+      );
+    }
     return AnalyticsSurfaceCard(
-      padding: const EdgeInsets.all(20),
-      radius: 26,
+      padding: const EdgeInsets.all(18),
+      radius: 24,
       child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
+        crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
+          Wrap(
+            alignment: WrapAlignment.spaceBetween,
+            spacing: 8,
+            runSpacing: 8,
+            crossAxisAlignment: WrapCrossAlignment.center,
             children: [
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      context.tr('analytics_total_spent').toUpperCase(),
-                      style: TextStyle(
-                        color: ShellStyles.textMuted(context),
-                        fontSize: 11,
-                        fontWeight: FontWeight.w700,
-                        letterSpacing: 0.8,
-                      ),
-                    ),
-                    const SizedBox(height: 10),
-                    Text(
-                      formatMoney(currency, totalAmount),
-                      style: TextStyle(
-                        color: ShellStyles.textPrimary(context),
-                        fontSize: ShellStyles.scaled(
-                          context,
-                          30,
-                          min: 28,
-                          max: 34,
-                        ),
-                        fontWeight: FontWeight.w800,
-                      ),
-                    ),
-                  ],
+              Text(
+                context.tr('analytics_total_spent'),
+                style: TextStyle(
+                  color: ShellStyles.textMuted(context),
+                  fontSize: 12,
+                  fontWeight: FontWeight.w600,
                 ),
               ),
-              Container(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 12,
-                  vertical: 8,
-                ),
-                decoration: BoxDecoration(
-                  color: ShellStyles.surfaceAlt(context),
-                  borderRadius: BorderRadius.circular(999),
-                  border: Border.all(color: ShellStyles.border(context)),
-                ),
-                child: Text(
-                  context
-                      .tr(PeriodFilter.localizationKey(widget.filters.period))
-                      .toUpperCase(),
-                  style: TextStyle(
-                    color: ShellStyles.textMuted(context),
-                    fontSize: 11,
-                    fontWeight: FontWeight.w700,
-                    letterSpacing: 0.7,
-                  ),
+              Text(
+                context.tr(PeriodFilter.localizationKey(widget.filters.period)),
+                style: TextStyle(
+                  color: ShellStyles.textMuted(context),
+                  fontSize: 12,
                 ),
               ),
             ],
           ),
+          const SizedBox(height: 10),
+          Align(
+            alignment: AlignmentDirectional.centerStart,
+            child: FittedBox(
+              fit: BoxFit.scaleDown,
+              child: Text(
+                formatMoney(currency, totalAmount),
+                style: TextStyle(
+                  color: ShellStyles.textPrimary(context),
+                  fontSize: 30,
+                  fontWeight: FontWeight.w800,
+                ),
+              ),
+            ),
+          ),
+          if (range.start != null && range.end != null) ...[
+            const SizedBox(height: 6),
+            Text(
+              formatLocalizedDateRange(context, range.start!, range.end!),
+              style: TextStyle(
+                color: ShellStyles.textMuted(context),
+                fontSize: 12,
+              ),
+            ),
+          ],
           const SizedBox(height: 16),
           Container(
-            width: double.infinity,
-            padding: const EdgeInsets.all(14),
+            padding: const EdgeInsets.all(12),
             decoration: BoxDecoration(
               color: ShellStyles.surfaceAlt(context),
-              borderRadius: BorderRadius.circular(18),
+              borderRadius: BorderRadius.circular(16),
               border: Border.all(color: ShellStyles.border(context)),
             ),
-            child: Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                Container(
-                  width: 36,
-                  height: 36,
-                  alignment: Alignment.center,
-                  decoration: BoxDecoration(
-                    color: ShellStyles.surface(context),
-                    borderRadius: BorderRadius.circular(12),
-                    border: Border.all(color: ShellStyles.border(context)),
-                  ),
-                  child: Icon(
-                    comparison.icon,
-                    size: 18,
-                    color: comparison.color ?? ShellStyles.textPrimary(context),
-                  ),
-                ),
-                const SizedBox(width: 10),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
+                Wrap(
+                  alignment: WrapAlignment.spaceBetween,
+                  spacing: 12,
+                  runSpacing: 6,
+                  children: [
+                    Text(
+                      context.tr('analytics_previous_period'),
+                      style: const TextStyle(
+                        fontSize: 13,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                    if (previousTotal != null)
                       Text(
-                        comparison.title,
-                        style: TextStyle(
-                          color: ShellStyles.textPrimary(context),
-                          fontSize: 13,
+                        formatMoney(currency, previousTotal),
+                        style: const TextStyle(
+                          fontSize: 14,
                           fontWeight: FontWeight.w700,
                         ),
                       ),
-                      if (comparison.supporting != null) ...[
-                        const SizedBox(height: 4),
-                        Text(
-                          comparison.supporting!,
-                          style: TextStyle(
-                            color: ShellStyles.textMuted(context),
-                            fontSize: 12,
-                            height: 1.35,
-                          ),
-                        ),
-                      ],
-                    ],
-                  ),
+                  ],
                 ),
-                if (previousTotal != null)
+                if (previous != null) ...[
+                  const SizedBox(height: 4),
                   Text(
-                    formatMoney(currency, previousTotal),
+                    formatLocalizedDateRange(
+                      context,
+                      previous.start!,
+                      previous.end!,
+                    ),
                     style: TextStyle(
                       color: ShellStyles.textMuted(context),
                       fontSize: 12,
-                      fontWeight: FontWeight.w600,
                     ),
                   ),
+                ],
+                const SizedBox(height: 10),
+                Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Padding(
+                      padding: const EdgeInsets.only(top: 1),
+                      child: Icon(
+                        comparison.icon,
+                        size: 18,
+                        color:
+                            comparison.color ?? ShellStyles.textMuted(context),
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: Text(
+                        comparison.title,
+                        style: TextStyle(
+                          color:
+                              comparison.color ??
+                              ShellStyles.textSecondary(context),
+                          fontSize: 12,
+                          height: 1.4,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
               ],
             ),
           ),
           const SizedBox(height: 16),
-          LayoutBuilder(
-            builder: (context, constraints) {
-              final useTwoColumns = constraints.maxWidth < 320;
-              final tileWidth = useTwoColumns
-                  ? (constraints.maxWidth - 10) / 2
-                  : (constraints.maxWidth - 20) / 3;
-              return Wrap(
-                spacing: 10,
-                runSpacing: 10,
-                children: [
-                  SizedBox(
-                    width: tileWidth,
-                    child: AnalyticsMiniStatTile(
-                      label: context.tr('analytics_total_transactions'),
-                      value: '$totalTransactions',
-                      icon: Icons.receipt_long_outlined,
-                    ),
-                  ),
-                  SizedBox(
-                    width: tileWidth,
-                    child: AnalyticsMiniStatTile(
-                      label: context.tr('analytics_average_per_day'),
-                      value: formatMoney(currency, dailyAverage),
-                      icon: Icons.calendar_today_outlined,
-                    ),
-                  ),
-                  SizedBox(
-                    width: tileWidth,
-                    child: AnalyticsMiniStatTile(
-                      label: context.tr('analytics_total_savings'),
-                      value: formatMoney(currency, totalSavings),
-                      icon: Icons.sell_outlined,
-                      valueColor: totalSavings > 0
-                          ? ShellColors.softGreen
-                          : null,
-                    ),
-                  ),
-                ],
-              );
-            },
+          AnalyticsMetricGroup(
+            metrics: [
+              AnalyticsMetric(
+                label: context.tr('analytics_total_transactions'),
+                value: '$totalTransactions',
+                icon: AppIcons.receiptText,
+              ),
+              AnalyticsMetric(
+                label: context.tr('analytics_average_per_day'),
+                value: formatMoney(currency, dailyAverage),
+                icon: AppIcons.calendar,
+              ),
+              AnalyticsMetric(
+                label: context.tr('analytics_total_savings'),
+                value: formatMoney(currency, totalSavings),
+                icon: AppIcons.tag,
+                valueColor: totalSavings > 0
+                    ? ShellStyles.success(context)
+                    : null,
+              ),
+            ],
           ),
         ],
       ),
@@ -598,83 +602,18 @@ class _AnalyticsOverviewTabState extends State<AnalyticsOverviewTab> {
     required String currency,
     required _MerchantInsight merchant,
   }) {
-    return Row(
-      children: [
-        Container(
-          width: 32,
-          height: 32,
-          alignment: Alignment.center,
-          decoration: BoxDecoration(
-            color: ShellStyles.surfaceAlt(context),
-            borderRadius: BorderRadius.circular(12),
-            border: Border.all(color: ShellStyles.border(context)),
-          ),
-          child: Text(
-            '$rank',
-            style: TextStyle(
-              color: ShellStyles.textPrimary(context),
-              fontSize: 13,
-              fontWeight: FontWeight.w700,
+    return _buildRankedSpendRow(
+      context,
+      rank: rank,
+      name: merchant.name,
+      detail: merchant.count == 1
+          ? context.tr('analytics_transactions_count_single')
+          : context.tr(
+              'analytics_transactions_count_plural',
+              params: {'count': merchant.count.toString()},
             ),
-          ),
-        ),
-        const SizedBox(width: 12),
-        Expanded(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                merchant.name,
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-                style: TextStyle(
-                  color: ShellStyles.textPrimary(context),
-                  fontSize: 15,
-                  fontWeight: FontWeight.w700,
-                ),
-              ),
-              const SizedBox(height: 3),
-              Text(
-                merchant.count == 1
-                    ? context.tr('analytics_transactions_count_single')
-                    : context.tr(
-                        'analytics_transactions_count_plural',
-                        params: {'count': merchant.count.toString()},
-                      ),
-                style: TextStyle(
-                  color: ShellStyles.textMuted(context),
-                  fontSize: 12,
-                ),
-              ),
-            ],
-          ),
-        ),
-        const SizedBox(width: 12),
-        Column(
-          crossAxisAlignment: CrossAxisAlignment.end,
-          children: [
-            Text(
-              formatMoney(currency, merchant.amount),
-              style: TextStyle(
-                color: ShellStyles.textPrimary(context),
-                fontSize: 15,
-                fontWeight: FontWeight.w800,
-              ),
-            ),
-            const SizedBox(height: 3),
-            Text(
-              context.tr(
-                'analytics_spend_share',
-                params: {'percent': (merchant.share * 100).round().toString()},
-              ),
-              style: TextStyle(
-                color: ShellStyles.textMuted(context),
-                fontSize: 11,
-              ),
-            ),
-          ],
-        ),
-      ],
+      amount: formatMoney(currency, merchant.amount),
+      share: merchant.share,
     );
   }
 
@@ -684,86 +623,124 @@ class _AnalyticsOverviewTabState extends State<AnalyticsOverviewTab> {
     required String currency,
     required _CategoryInsight category,
   }) {
-    final tone = ShellStyles.categoryTone(
+    return _buildRankedSpendRow(
       context,
-      code: category.code,
+      rank: rank,
       name: category.name,
-      rawHex: category.color,
+      amount: formatMoney(currency, category.amount),
+      share: category.share,
+      dotColor: ShellStyles.categoryTone(
+        context,
+        code: category.code,
+        name: category.name,
+        rawHex: category.color,
+      ).base,
     );
-    return Row(
-      children: [
-        Container(
-          width: 32,
-          height: 32,
-          alignment: Alignment.center,
-          decoration: BoxDecoration(
-            color: ShellStyles.surfaceAlt(context),
-            borderRadius: BorderRadius.circular(12),
-            border: Border.all(color: ShellStyles.border(context)),
-          ),
-          child: Text(
-            '$rank',
-            style: TextStyle(
-              color: ShellStyles.textPrimary(context),
-              fontSize: 13,
-              fontWeight: FontWeight.w700,
-            ),
-          ),
-        ),
-        const SizedBox(width: 12),
-        Expanded(
-          child: Row(
-            children: [
-              Container(
-                width: 10,
-                height: 10,
-                decoration: BoxDecoration(
-                  color: tone.base,
-                  shape: BoxShape.circle,
-                ),
-              ),
-              const SizedBox(width: 10),
-              Expanded(
-                child: Text(
-                  category.name,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: TextStyle(
-                    color: ShellStyles.textPrimary(context),
-                    fontSize: 15,
-                    fontWeight: FontWeight.w700,
-                  ),
-                ),
-              ),
-            ],
-          ),
-        ),
-        const SizedBox(width: 12),
-        Column(
+  }
+
+  Widget _buildRankedSpendRow(
+    BuildContext context, {
+    required int rank,
+    required String name,
+    required String amount,
+    required double share,
+    String? detail,
+    Color? dotColor,
+  }) {
+    final titleStyle = TextStyle(
+      color: ShellStyles.textPrimary(context),
+      fontSize: 15,
+      fontWeight: FontWeight.w700,
+    );
+    final detailStyle = TextStyle(
+      color: ShellStyles.textMuted(context),
+      fontSize: 12,
+    );
+    final shareStyle = detailStyle.copyWith(fontSize: 11);
+    final shareLabel = context.tr(
+      'analytics_spend_share',
+      params: {'percent': (share * 100).round().toString()},
+    );
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        const rankSize = 32.0;
+        const gap = 12.0;
+        final nameWidth =
+            measureTextLayout(context, name, titleStyle).minWidth +
+            (dotColor == null ? 0 : 20);
+        final valueWidth = math
+            .max(
+              measureTextLayout(context, amount, titleStyle).width,
+              measureTextLayout(context, shareLabel, shareStyle).width,
+            )
+            .ceilToDouble();
+        final inline =
+            constraints.maxWidth >=
+            rankSize + 2 * gap + math.max(90, nameWidth) + valueWidth;
+        final trailing = Column(
           crossAxisAlignment: CrossAxisAlignment.end,
           children: [
-            Text(
-              formatMoney(currency, category.amount),
-              style: TextStyle(
-                color: ShellStyles.textPrimary(context),
-                fontSize: 15,
-                fontWeight: FontWeight.w800,
-              ),
-            ),
+            CompactText(amount, style: titleStyle),
             const SizedBox(height: 3),
-            Text(
-              context.tr(
-                'analytics_spend_share',
-                params: {'percent': (category.share * 100).round().toString()},
+            Text(shareLabel, style: shareStyle, textAlign: TextAlign.end),
+          ],
+        );
+        return Row(
+          crossAxisAlignment: inline
+              ? CrossAxisAlignment.center
+              : CrossAxisAlignment.start,
+          children: [
+            Container(
+              width: rankSize,
+              height: rankSize,
+              padding: const EdgeInsets.all(4),
+              alignment: Alignment.center,
+              decoration: BoxDecoration(
+                color: ShellStyles.surfaceAlt(context),
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(color: ShellStyles.border(context)),
               ),
-              style: TextStyle(
-                color: ShellStyles.textMuted(context),
-                fontSize: 11,
+              child: CompactText(
+                '$rank',
+                style: titleStyle.copyWith(fontSize: 13),
               ),
             ),
+            const SizedBox(width: gap),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  if (dotColor == null)
+                    Text(name, style: titleStyle)
+                  else
+                    Row(
+                      children: [
+                        DecoratedBox(
+                          decoration: BoxDecoration(
+                            color: dotColor,
+                            shape: BoxShape.circle,
+                          ),
+                          child: const SizedBox.square(dimension: 10),
+                        ),
+                        const SizedBox(width: 10),
+                        Expanded(child: Text(name, style: titleStyle)),
+                      ],
+                    ),
+                  if (detail != null) ...[
+                    const SizedBox(height: 3),
+                    Text(detail, style: detailStyle),
+                  ],
+                  if (!inline) ...[const SizedBox(height: 6), trailing],
+                ],
+              ),
+            ),
+            if (inline) ...[
+              const SizedBox(width: gap),
+              SizedBox(width: valueWidth, child: trailing),
+            ],
           ],
-        ),
-      ],
+        );
+      },
     );
   }
 
@@ -774,32 +751,41 @@ class _AnalyticsOverviewTabState extends State<AnalyticsOverviewTab> {
   }) {
     if (previousTotal == null) {
       return _OverviewComparisonCopy(
-        icon: Icons.timeline_outlined,
-        title: context.tr('previous_comparison_is_unavailable_for_t'),
+        icon: AppIcons.chartNoAxesCombined,
+        title: context.tr(
+          widget.filters.period == PeriodFilter.allTime
+              ? 'analytics_compare_select_period'
+              : 'analytics_comparison_unavailable',
+        ),
       );
     }
-    if (previousTotal <= 0) {
+    if (previousTotal == 0) {
       return _OverviewComparisonCopy(
-        icon: Icons.remove_circle_outline,
-        title: context.tr('no_spend_was_recorded_in_the_matching_pr'),
+        icon: AppIcons.circleMinus,
+        title: context.tr('analytics_comparison_zero'),
       );
     }
-    if (changePercentage == null || changePercentage == 0) {
+    if (previousTotal < 0 || changePercentage == null) {
       return _OverviewComparisonCopy(
-        icon: Icons.compare_arrows_outlined,
+        icon: AppIcons.info,
+        title: context.tr('analytics_comparison_unavailable'),
+      );
+    }
+    if (changePercentage == 0) {
+      return _OverviewComparisonCopy(
+        icon: AppIcons.arrowLeftRight,
         title: context.tr('analytics_change_flat'),
       );
     }
     return _OverviewComparisonCopy(
-      icon: changePercentage > 0 ? Icons.trending_up : Icons.trending_down,
+      icon: changePercentage > 0 ? AppIcons.trendingUp : AppIcons.trendingDown,
       title: context.tr(
         changePercentage > 0
             ? 'analytics_change_more'
             : 'analytics_change_less',
         params: {'percent': changePercentage.abs().round().toString()},
       ),
-      supporting: context.tr('analytics_comparison_subtitle'),
-      color: changePercentage > 0 ? ShellColors.softRed : ShellColors.softGreen,
+      color: ShellStyles.textSecondary(context),
     );
   }
 }
@@ -830,13 +816,11 @@ class _OverviewComparisonCopy {
   const _OverviewComparisonCopy({
     required this.icon,
     required this.title,
-    this.supporting,
     this.color,
   });
 
   final IconData icon;
   final String title;
-  final String? supporting;
   final Color? color;
 }
 

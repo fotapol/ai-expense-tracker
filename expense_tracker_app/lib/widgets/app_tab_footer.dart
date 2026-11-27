@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../core/redesign_system.dart';
 import '../l10n/app_localizations.dart';
+import 'compact_text.dart';
 
 class AppTabFooter extends StatelessWidget {
   const AppTabFooter({
@@ -79,7 +80,7 @@ class _AppTabFooterItem extends StatelessWidget {
         borderRadius: BorderRadius.circular(18),
         onTap: onTap,
         child: Padding(
-          padding: const EdgeInsets.symmetric(vertical: 2),
+          padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
@@ -88,7 +89,7 @@ class _AppTabFooterItem extends StatelessWidget {
                 color: selected ? selectedColor : unselectedColor,
               ),
               const SizedBox(height: 4),
-              Text(
+              CompactText(
                 label,
                 style: TextStyle(
                   color: selected ? selectedColor : unselectedColor,

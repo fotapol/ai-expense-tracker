@@ -1,8 +1,7 @@
 import 'dart:async';
+import 'dart:math' as math;
 
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:fl_chart/fl_chart.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 
 import '../core/app_navigation.dart';
@@ -17,6 +16,10 @@ import '../core/session_invalidation.dart';
 import '../core/subscription_confirmation.dart';
 import '../core/taxonomy_localization.dart';
 import '../l10n/app_localizations.dart';
+import '../widgets/compact_text.dart';
+import '../widgets/surface_action.dart';
+import '../widgets/spending_chart.dart';
+import '../widgets/text_measurement.dart';
 import 'analytics_screen.dart';
 import 'receipt_manager_screen.dart';
 import 'receipt_upload_screen.dart';
@@ -515,8 +518,6 @@ class _HomeTabState extends State<HomeTab>
             children: [
               Text(
                 '${_greetingLabel(context)}, ${_resolveDisplayName(context)}',
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
                 style: TextStyle(
                   color: ShellStyles.textPrimary(context),
                   fontSize: 22,
@@ -539,8 +540,6 @@ class _HomeTabState extends State<HomeTab>
                     Flexible(
                       child: Text(
                         _reviewSubtitle(context),
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
                         style: TextStyle(color: subtitleColor, fontSize: 13),
                       ),
                     ),
@@ -565,7 +564,6 @@ class _HomeTabState extends State<HomeTab>
                 child: CrownIcon(
                   color: ShellColors.gold,
                   size: ShellStyles.scaled(context, 17, min: 15, max: 18),
-                  strokeWidth: 1.7,
                 ),
                 onTap: () => _openSubscriptionScreen(context),
               )
@@ -588,9 +586,9 @@ class _HomeTabState extends State<HomeTab>
                         radius: counterSize / 2,
                       ),
                       alignment: Alignment.center,
-                      child: Text(
+                      padding: const EdgeInsets.all(5),
+                      child: CompactText(
                         _uploadCounterLabel(),
-                        textAlign: TextAlign.center,
                         style: TextStyle(
                           color: ShellStyles.textPrimary(context),
                           fontSize: ShellStyles.scaled(
@@ -648,7 +646,10 @@ class _HomeTabState extends State<HomeTab>
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Row(
+          Wrap(
+            spacing: 12,
+            runSpacing: 8,
+            crossAxisAlignment: WrapCrossAlignment.center,
             children: [
               Text(
                 monthLabel.toUpperCase(),
@@ -659,7 +660,6 @@ class _HomeTabState extends State<HomeTab>
                   letterSpacing: 0.8,
                 ),
               ),
-              const Spacer(),
               if (ratio != null)
                 Container(
                   padding: const EdgeInsets.symmetric(
@@ -679,22 +679,24 @@ class _HomeTabState extends State<HomeTab>
                     children: [
                       Icon(
                         positiveDelta
-                            ? CupertinoIcons.arrow_down_right
-                            : CupertinoIcons.arrow_up_right,
+                            ? AppIcons.arrowDownRight
+                            : AppIcons.arrowUpRight,
                         size: 12,
                         color: positiveDelta
                             ? ShellColors.softGreen
                             : ShellColors.softRed,
                       ),
                       const SizedBox(width: 4),
-                      Text(
-                        _changeLabel(context),
-                        style: TextStyle(
-                          color: positiveDelta
-                              ? ShellColors.softGreen
-                              : ShellColors.softRed,
-                          fontSize: 12,
-                          fontWeight: FontWeight.w700,
+                      Flexible(
+                        child: Text(
+                          _changeLabel(context),
+                          style: TextStyle(
+                            color: positiveDelta
+                                ? ShellColors.softGreen
+                                : ShellColors.softRed,
+                            fontSize: 12,
+                            fontWeight: FontWeight.w700,
+                          ),
                         ),
                       ),
                     ],
@@ -703,17 +705,24 @@ class _HomeTabState extends State<HomeTab>
             ],
           ),
           const SizedBox(height: 20),
-          Text(
-            _formatMoney(_currency, _currentMonthTotal),
-            style: TextStyle(
-              color: ShellStyles.textPrimary(context),
-              fontSize: 46,
-              fontWeight: FontWeight.w700,
-              letterSpacing: -1.2,
+          FittedBox(
+            fit: BoxFit.scaleDown,
+            alignment: AlignmentDirectional.centerStart,
+            child: Text(
+              _formatMoney(_currency, _currentMonthTotal),
+              style: TextStyle(
+                color: ShellStyles.textPrimary(context),
+                fontSize: 46,
+                fontWeight: FontWeight.w700,
+                letterSpacing: -1.2,
+              ),
             ),
           ),
           const SizedBox(height: 4),
-          Row(
+          Wrap(
+            spacing: 10,
+            runSpacing: 4,
+            crossAxisAlignment: WrapCrossAlignment.center,
             children: [
               Text(
                 context.tr('home_total_spending_month'),
@@ -722,7 +731,6 @@ class _HomeTabState extends State<HomeTab>
                   fontSize: 14,
                 ),
               ),
-              const SizedBox(width: 10),
               Text(
                 context.tr(
                   'receipts_count',
@@ -741,27 +749,65 @@ class _HomeTabState extends State<HomeTab>
   }
 
   Widget _buildScanCard(BuildContext context) {
+    final eyebrow = context.tr('home_primary_action');
+    final title = context.tr('tools_scan_receipt');
+    final subtitle = context.tr('home_scan_receipt_subtitle');
+    final mutedColor = ShellStyles.homeHeroTextSecondary(context);
+    final eyebrowStyle = TextStyle(
+      color: mutedColor,
+      fontSize: 11,
+      fontWeight: FontWeight.w700,
+      letterSpacing: 0.7,
+    );
+    final titleStyle = TextStyle(
+      color: ShellStyles.homeHeroTextPrimary(context),
+      fontSize: 20,
+      fontWeight: FontWeight.w700,
+    );
+    final subtitleStyle = TextStyle(
+      color: mutedColor,
+      fontSize: 14,
+      fontWeight: FontWeight.w500,
+    );
     return InkWell(
       borderRadius: BorderRadius.circular(24),
       onTap: () => _open(context, const ReceiptUploadScreen()),
       child: Container(
         key: const Key('home_scan_hero'),
         width: double.infinity,
-        padding: const EdgeInsets.fromLTRB(22, 22, 22, 22),
+        padding: const EdgeInsets.all(22),
         decoration: ShellStyles.heroCardDecoration(
           context,
           radius: 24,
           tone: ShellStyles.homeHeroTone(context),
         ),
-        child: Row(
-          children: [
-            Container(
-              width: 58,
-              height: 58,
+        child: LayoutBuilder(
+          builder: (context, constraints) {
+            const chevronSize = 40.0;
+            final titleWidth = measureTextLayout(context, title, titleStyle);
+            final wordWidth = math.max(
+              titleWidth.minWidth,
+              math.max(
+                measureTextLayout(context, eyebrow, eyebrowStyle).minWidth,
+                measureTextLayout(context, subtitle, subtitleStyle).minWidth,
+              ),
+            );
+            final width = constraints.maxWidth;
+            final preferredTextWidth = math.max(titleWidth.width, wordWidth);
+            final compact = width < 58 + 16 + preferredTextWidth;
+            final badgeSize = compact ? 44.0 : 58.0;
+            final gap = compact ? 12.0 : 16.0;
+            final inline = width >= badgeSize + gap + wordWidth;
+            final showChevron =
+                width >= badgeSize + 2 * gap + preferredTextWidth + chevronSize;
+            final icon = Container(
+              key: const ValueKey('home-scan-badge'),
+              width: badgeSize,
+              height: badgeSize,
               alignment: Alignment.center,
               decoration: BoxDecoration(
                 color: ShellStyles.homeHeroBadgeSurface(context),
-                borderRadius: BorderRadius.circular(18),
+                borderRadius: BorderRadius.circular(compact ? 14 : 18),
                 border: Border.all(
                   color: ShellStyles.homeHeroBadgeBorder(context),
                 ),
@@ -769,90 +815,71 @@ class _HomeTabState extends State<HomeTab>
               child: Icon(
                 AppIcons.scan,
                 color: ShellStyles.homeHeroBadgeIcon(context),
-                size: 26,
+                size: compact ? 22 : 26,
               ),
-            ),
-            const SizedBox(width: 16),
-            Expanded(
-              child: Column(
+            );
+            final copy = Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(eyebrow, style: eyebrowStyle),
+                const SizedBox(height: 6),
+                Text(title, style: titleStyle),
+                const SizedBox(height: 4),
+                Text(subtitle, style: subtitleStyle),
+              ],
+            );
+            if (!inline) {
+              return Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    context.tr('home_primary_action'),
-                    style: TextStyle(
-                      color: ShellStyles.homeHeroTextSecondary(context),
-                      fontSize: 11,
-                      fontWeight: FontWeight.w700,
-                      letterSpacing: 0.7,
+                children: [icon, const SizedBox(height: 12), copy],
+              );
+            }
+            return Row(
+              children: [
+                icon,
+                SizedBox(width: gap),
+                Expanded(child: copy),
+                if (showChevron) ...[
+                  SizedBox(width: gap),
+                  Container(
+                    width: chevronSize,
+                    height: chevronSize,
+                    alignment: Alignment.center,
+                    decoration: BoxDecoration(
+                      color: ShellStyles.homeHeroBadgeSurface(context),
+                      shape: BoxShape.circle,
+                      border: Border.all(
+                        color: ShellStyles.homeHeroBadgeBorder(context),
+                      ),
                     ),
-                  ),
-                  const SizedBox(height: 6),
-                  Text(
-                    context.tr('tools_scan_receipt'),
-                    style: TextStyle(
-                      color: ShellStyles.homeHeroTextPrimary(context),
-                      fontSize: 22,
-                      fontWeight: FontWeight.w700,
-                    ),
-                  ),
-                  const SizedBox(height: 4),
-                  Text(
-                    context.tr('home_scan_receipt_subtitle'),
-                    style: TextStyle(
-                      color: ShellStyles.homeHeroTextSecondary(context),
-                      fontSize: 14,
-                      fontWeight: FontWeight.w500,
+                    child: Icon(
+                      AppIcons.chevronRight,
+                      color: ShellStyles.homeHeroBadgeIcon(context),
+                      size: 18,
                     ),
                   ),
                 ],
-              ),
-            ),
-            Container(
-              width: 40,
-              height: 40,
-              alignment: Alignment.center,
-              decoration: BoxDecoration(
-                color: ShellStyles.homeHeroBadgeSurface(context),
-                shape: BoxShape.circle,
-                border: Border.all(
-                  color: ShellStyles.homeHeroBadgeBorder(context),
-                ),
-              ),
-              child: Icon(
-                AppIcons.chevronRight,
-                color: ShellStyles.homeHeroBadgeIcon(context),
-                size: 18,
-              ),
-            ),
-          ],
+              ],
+            );
+          },
         ),
       ),
     );
   }
 
   Widget _buildOverviewCard(BuildContext context) {
-    final slices = _overviewSlices(context);
-    final hasChartData = slices.isNotEmpty && _currentMonthTotal > 0;
-
-    final pieSections = hasChartData
-        ? slices
-              .map(
-                (slice) => PieChartSectionData(
-                  value: slice.amount,
-                  color: slice.color,
-                  title: '',
-                  radius: 20,
-                ),
-              )
-              .toList()
-        : [
-            PieChartSectionData(
-              value: 1,
-              color: ShellStyles.border(context),
-              title: '',
-              radius: 20,
-            ),
-          ];
+    final slices = [
+      if (_currentMonthTotal > 0)
+        for (final slice in _overviewSlices(context))
+          SpendingSlice(
+            name: slice.name,
+            value: slice.amount,
+            amountLabel: _formatMoney(_currency, slice.amount),
+            percentageLabel: '${slice.percentage.round()}%',
+            color: slice.color,
+          ),
+    ];
 
     return Container(
       padding: const EdgeInsets.all(24),
@@ -860,7 +887,10 @@ class _HomeTabState extends State<HomeTab>
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Row(
+          Wrap(
+            spacing: 12,
+            runSpacing: 6,
+            crossAxisAlignment: WrapCrossAlignment.center,
             children: [
               Text(
                 context.tr('home_spending_overview'),
@@ -870,7 +900,6 @@ class _HomeTabState extends State<HomeTab>
                   fontWeight: FontWeight.w600,
                 ),
               ),
-              const Spacer(),
               Text(
                 context.tr('period_this_month'),
                 style: TextStyle(
@@ -881,99 +910,14 @@ class _HomeTabState extends State<HomeTab>
             ],
           ),
           const SizedBox(height: 32),
-          SizedBox(
-            height: 180,
-            child: Stack(
-              alignment: Alignment.center,
-              children: [
-                PieChart(
-                  PieChartData(
-                    sectionsSpace: 4,
-                    centerSpaceRadius: 65,
-                    startDegreeOffset: -90,
-                    sections: pieSections,
-                  ),
-                ),
-                Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Text(
-                      context.tr('analytics_total_spent').toUpperCase(),
-                      style: TextStyle(
-                        color: ShellStyles.textMuted(context),
-                        fontSize: 11,
-                        fontWeight: FontWeight.w700,
-                        letterSpacing: 0.7,
-                      ),
-                    ),
-                    const SizedBox(height: 2),
-                    Text(
-                      _formatMoney(_currency, _currentMonthTotal),
-                      style: TextStyle(
-                        color: ShellStyles.textPrimary(context),
-                        fontSize: 22,
-                        fontWeight: FontWeight.w700,
-                      ),
-                    ),
-                  ],
-                ),
-              ],
-            ),
+          SpendingDonut(
+            slices: slices,
+            total: _formatMoney(_currency, _currentMonthTotal),
           ),
           const SizedBox(height: 32),
-          if (hasChartData) ...[
-            for (final slice in slices)
-              Padding(
-                padding: const EdgeInsets.only(bottom: 16),
-                child: Row(
-                  children: [
-                    Container(
-                      width: 10,
-                      height: 10,
-                      decoration: BoxDecoration(
-                        color: slice.color,
-                        shape: BoxShape.circle,
-                      ),
-                    ),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      flex: 5,
-                      child: Text(
-                        slice.name,
-                        style: TextStyle(
-                          color: ShellStyles.textPrimary(context),
-                          fontSize: 14,
-                          fontWeight: FontWeight.w500,
-                        ),
-                      ),
-                    ),
-                    Expanded(
-                      flex: 2,
-                      child: Text(
-                        '${slice.percentage.round()}%',
-                        textAlign: TextAlign.right,
-                        style: TextStyle(
-                          color: ShellStyles.textMuted(context),
-                          fontSize: 13,
-                        ),
-                      ),
-                    ),
-                    Expanded(
-                      flex: 3,
-                      child: Text(
-                        _formatMoney(_currency, slice.amount),
-                        textAlign: TextAlign.right,
-                        style: TextStyle(
-                          color: ShellStyles.textPrimary(context),
-                          fontSize: 14,
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-          ] else
+          if (slices.isNotEmpty)
+            SpendingLegend(slices: slices)
+          else
             Padding(
               padding: const EdgeInsets.symmetric(vertical: 16),
               child: Center(
@@ -988,29 +932,19 @@ class _HomeTabState extends State<HomeTab>
             ),
           const SizedBox(height: 8),
           Center(
-            child: InkWell(
-              onTap: () => _open(context, const AnalyticsScreen()),
-              child: Padding(
-                padding: const EdgeInsets.all(8.0),
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Text(
-                      context.tr('home_view_all'),
-                      style: TextStyle(
-                        color: ShellStyles.textMuted(context),
-                        fontSize: 13,
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
-                    const SizedBox(width: 4),
-                    Icon(
-                      AppIcons.chevronRight,
-                      size: 12,
-                      color: ShellStyles.textMuted(context),
-                    ),
-                  ],
+            child: TextButton.icon(
+              onPressed: () => _open(context, const AnalyticsScreen()),
+              style: TextButton.styleFrom(
+                foregroundColor: ShellStyles.textMuted(context),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
                 ),
+              ),
+              iconAlignment: IconAlignment.end,
+              icon: const Icon(AppIcons.chevronRight, size: 14),
+              label: Text(
+                context.tr('home_view_all'),
+                textAlign: TextAlign.center,
               ),
             ),
           ),
@@ -1043,12 +977,14 @@ class _HomeTabState extends State<HomeTab>
                 color: ShellStyles.textMuted(context),
               ),
               const SizedBox(width: 10),
-              Text(
-                context.tr('home_smart_insights'),
-                style: TextStyle(
-                  color: ShellStyles.textPrimary(context),
-                  fontSize: 14,
-                  fontWeight: FontWeight.w600,
+              Expanded(
+                child: Text(
+                  context.tr('home_smart_insights'),
+                  style: TextStyle(
+                    color: ShellStyles.textPrimary(context),
+                    fontSize: 14,
+                    fontWeight: FontWeight.w600,
+                  ),
                 ),
               ),
             ],
@@ -1108,18 +1044,46 @@ class _HomeTabState extends State<HomeTab>
       ),
     ];
 
+    final style = Theme.of(context).textTheme.bodyMedium!.copyWith(
+      fontSize: 13,
+      height: 1.3,
+      fontWeight: FontWeight.w600,
+    );
     return LayoutBuilder(
       builder: (context, constraints) {
-        final cardWidth = (constraints.maxWidth - 16) / 3;
-        return Wrap(
-          spacing: 8,
-          runSpacing: 8,
+        final widths = [
+          for (final action in actions)
+            measureTextLayout(context, action.label, style).width + 64,
+        ];
+        Widget row(List<int> indices) => IntrinsicHeight(
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              for (final index in indices) ...[
+                if (index != indices.first) const SizedBox(width: 8),
+                Expanded(
+                  flex: widths[index].ceil(),
+                  child: _buildQuickActionCard(context, actions[index]),
+                ),
+              ],
+            ],
+          ),
+        );
+        if (widths.reduce((a, b) => a + b) + 16 <= constraints.maxWidth) {
+          return row([0, 1, 2]);
+        }
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            for (final action in actions)
-              SizedBox(
-                width: cardWidth,
-                child: _buildQuickActionCard(context, action),
-              ),
+            _buildQuickActionCard(context, actions[0]),
+            const SizedBox(height: 8),
+            if (widths[1] + widths[2] + 8 <= constraints.maxWidth)
+              row([1, 2])
+            else ...[
+              _buildQuickActionCard(context, actions[1]),
+              const SizedBox(height: 8),
+              _buildQuickActionCard(context, actions[2]),
+            ],
           ],
         );
       },
@@ -1127,42 +1091,29 @@ class _HomeTabState extends State<HomeTab>
   }
 
   Widget _buildQuickActionCard(BuildContext context, _QuickAction action) {
-    return InkWell(
-      borderRadius: BorderRadius.circular(16),
+    return SurfaceAction(
       onTap: action.onTap,
-      child: Container(
-        height: 84,
-        padding: const EdgeInsets.fromLTRB(10, 12, 10, 10),
-        decoration: ShellStyles.cardDecoration(context, radius: 16),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+      child: ConstrainedBox(
+        constraints: const BoxConstraints(minHeight: 30),
+        child: Row(
           children: [
-            Container(
-              width: 30,
-              height: 30,
-              alignment: Alignment.center,
-              decoration: BoxDecoration(
-                color: ShellStyles.surfaceAlt(context),
-                shape: BoxShape.circle,
-              ),
-              child: Icon(
-                action.icon,
-                color: ShellStyles.textMuted(context),
-                size: 15,
-              ),
+            Icon(
+              action.icon,
+              color: ShellStyles.accentTone(context).foreground,
+              size: 20,
             ),
-            const SizedBox(height: 10),
-            Text(
-              action.label,
-              textAlign: TextAlign.center,
-              style: TextStyle(
-                color: ShellStyles.textPrimary(context),
-                fontSize: 12.5,
-                height: 1.2,
-                fontWeight: FontWeight.w700,
+            const SizedBox(width: 8),
+            Expanded(
+              child: Text(
+                action.label,
+                style: TextStyle(
+                  color: ShellStyles.textPrimary(context),
+                  fontSize: 13,
+                  height: 1.3,
+                  fontWeight: FontWeight.w600,
+                ),
               ),
-              maxLines: 2,
-              overflow: TextOverflow.ellipsis,
             ),
           ],
         ),
@@ -1199,11 +1150,7 @@ class _HomeTabState extends State<HomeTab>
       decoration: ShellStyles.cardDecoration(context),
       child: Column(
         children: [
-          Icon(
-            CupertinoIcons.exclamationmark_circle,
-            color: ShellColors.softRed,
-            size: 42,
-          ),
+          Icon(AppIcons.circleAlert, color: ShellColors.softRed, size: 42),
           const SizedBox(height: 10),
           Text(
             _error ?? context.tr('home_refresh_error'),

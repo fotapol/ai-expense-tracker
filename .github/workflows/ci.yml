@@ -13,6 +13,20 @@ jobs:
   backend:
     name: Backend Checks
     runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_USER: expense_tests
+          POSTGRES_PASSWORD: expense_tests
+          POSTGRES_DB: expense_tests
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U expense_tests -d expense_tests"
+          --health-interval 5s --health-timeout 5s --health-retries 10
+    env:
+      TEST_POSTGRES_DSN: postgresql+psycopg://expense_tests:expense_tests@localhost:5432/expense_tests
     defaults:
       run:
         shell: bash

@@ -403,11 +403,7 @@ class _MeScreenState extends State<MeScreen> {
                       color: ShellColors.gold.withAlpha(18),
                       borderRadius: BorderRadius.circular(9),
                     ),
-                    child: const CrownIcon(
-                      color: ShellColors.gold,
-                      size: 16,
-                      strokeWidth: 1.6,
-                    ),
+                    child: const CrownIcon(color: ShellColors.gold, size: 16),
                   ),
                   title: context.tr('settings_subscription'),
                   subtitle: _subscriptionStatusSubtitle(),
@@ -632,7 +628,6 @@ class _MeScreenState extends State<MeScreen> {
             child: CrownIcon(
               color: ShellStyles.warningPremium(context),
               size: 24,
-              strokeWidth: 1.8,
             ),
           ),
           const SizedBox(width: 14),

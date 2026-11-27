@@ -461,35 +461,15 @@ class _SubcategoriesScreenState extends State<SubcategoriesScreen> {
     required String label,
     required VoidCallback onTap,
     required bool emphasized,
-  }) {
-    return InkWell(
-      borderRadius: BorderRadius.circular(999),
-      onTap: onTap,
-      child: Container(
-        padding: EdgeInsets.symmetric(
-          horizontal: ShellStyles.scaled(context, 10, min: 9, max: 12),
-          vertical: ShellStyles.scaled(context, 7, min: 6, max: 8),
-        ),
-        decoration: BoxDecoration(
-          color: emphasized
-              ? ShellStyles.textPrimary(context)
-              : ShellStyles.surfaceAlt(context),
-          borderRadius: BorderRadius.circular(999),
-          border: Border.all(color: ShellStyles.border(context)),
-        ),
-        child: Text(
-          label,
-          style: TextStyle(
-            color: emphasized
-                ? ShellStyles.surface(context)
-                : ShellStyles.textMuted(context),
-            fontSize: ShellStyles.scaled(context, 11.5, min: 11, max: 12.5),
-            fontWeight: FontWeight.w600,
-          ),
-        ),
-      ),
-    );
-  }
+    required IconData icon,
+  }) => IconButton(
+    tooltip: label,
+    onPressed: onTap,
+    color: emphasized
+        ? ShellStyles.accent(context)
+        : ShellStyles.textMuted(context),
+    icon: Icon(icon, size: 20),
+  );
 
   Widget _buildSubcategoryRow(
     Map<String, dynamic> category, {
@@ -511,13 +491,13 @@ class _SubcategoriesScreenState extends State<SubcategoriesScreen> {
     return Padding(
       padding: EdgeInsets.symmetric(
         horizontal: ShellStyles.scaled(context, 14, min: 12, max: 16),
-        vertical: ShellStyles.scaled(context, 12, min: 10, max: 14),
+        vertical: 2,
       ),
       child: Row(
         children: [
           Container(
-            width: ShellStyles.scaled(context, 36, min: 34, max: 40),
-            height: ShellStyles.scaled(context, 36, min: 34, max: 40),
+            width: 32.0,
+            height: 32.0,
             decoration: ShellStyles.semanticBadgeDecoration(
               context,
               tone: tone,
@@ -539,7 +519,7 @@ class _SubcategoriesScreenState extends State<SubcategoriesScreen> {
                 color: disabled
                     ? ShellStyles.textMuted(context)
                     : ShellStyles.textPrimary(context),
-                fontSize: ShellStyles.scaled(context, 14, min: 13, max: 15),
+                fontSize: 14,
                 fontWeight: FontWeight.w600,
               ),
             ),
@@ -554,6 +534,11 @@ class _SubcategoriesScreenState extends State<SubcategoriesScreen> {
                 ? () => _restore(category)
                 : () => _deleteOrDisable(category),
             emphasized: disabled,
+            icon: disabled
+                ? AppIcons.eye
+                : isBuiltIn
+                ? AppIcons.eyeOff
+                : AppIcons.trash2,
           ),
         ],
       ),
@@ -881,13 +866,20 @@ class _SubcategoriesScreenState extends State<SubcategoriesScreen> {
         scrolledUnderElevation: 0,
         iconTheme: IconThemeData(color: ShellStyles.textPrimary(context)),
         titleSpacing: 0,
-        toolbarHeight: 74,
+        toolbarHeight:
+            (MediaQuery.textScalerOf(context).scale(18) +
+                    MediaQuery.textScalerOf(context).scale(12) +
+                    16)
+                .clamp(64, double.infinity)
+                .toDouble(),
         title: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
               widget.parentName,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
               style: TextStyle(
                 color: ShellStyles.textPrimary(context),
                 fontSize: 18,
@@ -897,6 +889,8 @@ class _SubcategoriesScreenState extends State<SubcategoriesScreen> {
             const SizedBox(height: 2),
             Text(
               _countLabel(),
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
               style: TextStyle(
                 color: ShellStyles.textMuted(context),
                 fontSize: 12,
@@ -933,71 +927,74 @@ class _SubcategoriesScreenState extends State<SubcategoriesScreen> {
       ),
       body: _isLoading
           ? const Center(child: CircularProgressIndicator())
-          : RefreshIndicator(
-              onRefresh: () => _fetchSubcategories(showLoading: false),
-              child: SingleChildScrollView(
-                physics: const AlwaysScrollableScrollPhysics(),
-                padding: EdgeInsets.fromLTRB(
-                  16,
-                  18,
-                  16,
-                  MediaQuery.of(context).padding.bottom + 32,
-                ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    if (_error != null) ...[
-                      _buildErrorCard(),
-                      const SizedBox(height: 18),
-                    ],
-                    if (!_customSubcategoriesUnlimited) ...[
-                      _buildLimitHintCard(),
-                      const SizedBox(height: 18),
-                    ],
-                    AnimatedSwitcher(
-                      duration: const Duration(milliseconds: 220),
-                      child: _showCreateForm
-                          ? Column(
-                              key: const ValueKey('create-form'),
-                              children: [
-                                _buildCreateCard(),
-                                const SizedBox(height: 18),
-                              ],
-                            )
-                          : const SizedBox.shrink(
-                              key: ValueKey('create-form-hidden'),
-                            ),
-                    ),
-                    if (widget.parentIsDefault) ...[
-                      ShellStyles.sectionLabel(
-                        context,
-                        context.tr('subcategories_default_section'),
+          : SafeArea(
+              top: false,
+              child: RefreshIndicator(
+                onRefresh: () => _fetchSubcategories(showLoading: false),
+                child: SingleChildScrollView(
+                  physics: const AlwaysScrollableScrollPhysics(),
+                  padding: EdgeInsets.fromLTRB(
+                    16,
+                    18,
+                    16,
+                    MediaQuery.of(context).padding.bottom + 32,
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      if (_error != null) ...[
+                        _buildErrorCard(),
+                        const SizedBox(height: 18),
+                      ],
+                      if (!_customSubcategoriesUnlimited) ...[
+                        _buildLimitHintCard(),
+                        const SizedBox(height: 18),
+                      ],
+                      AnimatedSwitcher(
+                        duration: const Duration(milliseconds: 220),
+                        child: _showCreateForm
+                            ? Column(
+                                key: const ValueKey('create-form'),
+                                children: [
+                                  _buildCreateCard(),
+                                  const SizedBox(height: 18),
+                                ],
+                              )
+                            : const SizedBox.shrink(
+                                key: ValueKey('create-form-hidden'),
+                              ),
                       ),
-                      const SizedBox(height: 12),
-                      _buildCardList(
-                        _builtInSubcategories,
-                        emptyText: context.tr(
-                          'subcategories_default_empty_for_parent',
-                          params: {'name': widget.parentName},
+                      if (widget.parentIsDefault) ...[
+                        ShellStyles.sectionLabel(
+                          context,
+                          context.tr('subcategories_default_section'),
                         ),
-                      ),
-                    ],
-                    if (!widget.parentIsDefault ||
-                        _customSubcategories.isNotEmpty) ...[
+                        const SizedBox(height: 12),
+                        _buildCardList(
+                          _builtInSubcategories,
+                          emptyText: context.tr(
+                            'subcategories_default_empty_for_parent',
+                            params: {'name': widget.parentName},
+                          ),
+                        ),
+                      ],
+                      if (!widget.parentIsDefault ||
+                          _customSubcategories.isNotEmpty) ...[
+                        const SizedBox(height: 22),
+                        ShellStyles.sectionLabel(
+                          context,
+                          context.tr('subcategories_custom_section'),
+                        ),
+                        const SizedBox(height: 12),
+                        _buildCardList(
+                          _customSubcategories,
+                          emptyText: context.tr('subcategories_custom_empty'),
+                        ),
+                      ],
                       const SizedBox(height: 22),
-                      ShellStyles.sectionLabel(
-                        context,
-                        context.tr('subcategories_custom_section'),
-                      ),
-                      const SizedBox(height: 12),
-                      _buildCardList(
-                        _customSubcategories,
-                        emptyText: context.tr('subcategories_custom_empty'),
-                      ),
+                      _buildInfoCard(),
                     ],
-                    const SizedBox(height: 22),
-                    _buildInfoCard(),
-                  ],
+                  ),
                 ),
               ),
             ),

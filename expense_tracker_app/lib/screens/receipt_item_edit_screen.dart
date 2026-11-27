@@ -466,9 +466,7 @@ class _ReceiptItemEditScreenState extends State<ReceiptItemEditScreen> {
                             ),
                           ),
                           trailing: Icon(
-                            selected
-                                ? Icons.radio_button_checked
-                                : Icons.radio_button_off,
+                            selected ? AppIcons.circleDot : AppIcons.circle,
                             color: selected ? _accentColor : _mutedColor,
                           ),
                           onTap: () {
@@ -549,7 +547,7 @@ class _ReceiptItemEditScreenState extends State<ReceiptItemEditScreen> {
                 ),
               ),
               trailing: Icon(
-                selected ? Icons.radio_button_checked : Icons.radio_button_off,
+                selected ? AppIcons.circleDot : AppIcons.circle,
                 color: selected ? _accentColor : _mutedColor,
               ),
               onTap: () => Navigator.pop(context, categoryId),
@@ -842,7 +840,7 @@ class _ReceiptItemEditScreenState extends State<ReceiptItemEditScreen> {
                     onPressed: widget.canEdit ? _save : null,
                     tooltip: context.tr('common_save'),
                     icon: Icon(
-                      Icons.check_rounded,
+                      AppIcons.check,
                       color: widget.canEdit ? _accentColor : _mutedColor,
                       size: 22,
                     ),
@@ -917,7 +915,7 @@ class _ReceiptItemEditScreenState extends State<ReceiptItemEditScreen> {
                                         isExpanded: true,
                                         dropdownColor: _surfaceColor,
                                         icon: Icon(
-                                          Icons.keyboard_arrow_down_rounded,
+                                          AppIcons.chevronDown,
                                           color: _textColor,
                                         ),
                                         style: TextStyle(
