@@ -1,3 +1,6 @@
+import 'dart:math' as math;
+import 'dart:ui' show lerpDouble;
+
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -6,6 +9,7 @@ import '../core/analytics_filter_preferences.dart';
 import '../core/api_client.dart';
 import '../core/app_color_semantics.dart';
 import '../core/app_navigation.dart';
+import '../core/app_motion.dart';
 import '../core/launch_error_copy.dart';
 import '../core/localized_dates.dart';
 import '../core/period_filter.dart';
@@ -15,8 +19,11 @@ import '../core/subscription_confirmation.dart';
 import '../core/taxonomy_localization.dart';
 import '../l10n/app_localizations.dart';
 import '../widgets/app_tab_footer.dart';
+import '../widgets/keep_alive_tab.dart';
 import '../widgets/analytics_shared.dart';
 import '../widgets/filter_bottom_sheet.dart';
+import '../widgets/compact_text.dart';
+import '../widgets/text_measurement.dart';
 import 'analytics_overview_tab.dart';
 import 'analytics_tab.dart';
 import 'analytics_trends_tab.dart';
@@ -34,10 +41,14 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
   static const int _collapsedActiveFilterLimit = 4;
 
   late final PageController _pageController;
+  final _sectionScroll = ScrollController();
+  final _sectionKeys = [for (final _ in AnalyticsSection.values) GlobalKey()];
   bool _isLoading = true;
   String? _error;
   AnalyticsSection _selectedSection = AnalyticsSection.overview;
   bool _showAllActiveFilters = false;
+  int _sectionTransition = 0;
+  bool _animatingSection = false;
   AnalyticsFilters _filters = const AnalyticsFilters();
   Map<String, String> _categoryNamesById = {};
   Map<String, String> _categoryCodesById = {};
@@ -57,6 +68,7 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
   @override
   void dispose() {
     _pageController.dispose();
+    _sectionScroll.dispose();
     super.dispose();
   }
 
@@ -173,6 +185,7 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
         _featureCodes = featureCodes;
         _isLoading = false;
       });
+      _revealSelectedSection();
       WidgetsBinding.instance.addPostFrameCallback((_) {
         if (!mounted || !_pageController.hasClients) return;
         _pageController.jumpToPage(_selectedSection.index);
@@ -226,23 +239,36 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
     await _saveFilters();
   }
 
-  void _selectSection(AnalyticsSection section) {
+  Future<void> _selectSection(AnalyticsSection section) async {
     if (section == _selectedSection) return;
-    setState(() => _selectedSection = section);
+    final request = ++_sectionTransition;
+    setState(() {
+      _selectedSection = section;
+      _animatingSection = true;
+    });
+    _revealSelectedSection();
     if (_pageController.hasClients) {
-      _pageController.animateToPage(
-        section.index,
-        duration: const Duration(milliseconds: 220),
-        curve: Curves.easeOutCubic,
-      );
+      if (MediaQuery.disableAnimationsOf(context)) {
+        _pageController.jumpToPage(section.index);
+      } else {
+        await _pageController.animateToPage(
+          section.index,
+          duration: AppMotion.duration(context),
+          curve: AppMotion.curve,
+        );
+      }
     }
+    if (!mounted || request != _sectionTransition) return;
+    _animatingSection = false;
     _saveSection();
   }
 
   void _handlePageChanged(int index) {
+    if (_animatingSection) return;
     final section = AnalyticsSection.values[index];
     if (section == _selectedSection) return;
     setState(() => _selectedSection = section);
+    _revealSelectedSection();
     _saveSection();
   }
 
@@ -253,40 +279,57 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
     }
   }
 
-  Widget _buildSectionChip(AnalyticsSection section) {
-    final isSelected = _selectedSection == section;
-    final accentTone = ShellStyles.accentTone(context);
-    return InkWell(
-      borderRadius: BorderRadius.circular(16),
-      onTap: () => _selectSection(section),
-      child: AnimatedContainer(
-        duration: const Duration(milliseconds: 180),
-        alignment: Alignment.center,
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
-        decoration: BoxDecoration(
-          color: isSelected ? accentTone.container : Colors.transparent,
-          borderRadius: BorderRadius.circular(16),
-          boxShadow: isSelected
-              ? [
-                  BoxShadow(
-                    color: Colors.black.withAlpha(
-                      ShellStyles.isDark(context) ? 20 : 12,
-                    ),
-                    blurRadius: 12,
-                    offset: const Offset(0, 6),
-                  ),
-                ]
-              : const [],
-        ),
-        child: Text(
-          context.tr(_sectionLabelKey(section)),
-          textAlign: TextAlign.center,
-          style: TextStyle(
-            color: isSelected
-                ? accentTone.foreground
-                : ShellStyles.textMuted(context),
-            fontSize: 14,
-            fontWeight: isSelected ? FontWeight.w700 : FontWeight.w600,
+  void _revealSelectedSection() {
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted || !_sectionScroll.hasClients) return;
+      final target = _sectionKeys[_selectedSection.index].currentContext
+          ?.findRenderObject();
+      if (target == null || !target.attached) return;
+      _sectionScroll.position.ensureVisible(
+        target,
+        alignment: .5,
+        duration: AppMotion.duration(context),
+        curve: AppMotion.curve,
+      );
+    });
+  }
+
+  TextStyle _sectionStyle(BuildContext context) => Theme.of(context)
+      .textTheme
+      .labelLarge!
+      .copyWith(fontSize: 13, height: 1.3, fontWeight: FontWeight.w700);
+
+  Widget _buildSectionChip(
+    AnalyticsSection section,
+    double height,
+    double horizontalPadding,
+  ) {
+    final selected = _selectedSection == section;
+    return Semantics(
+      key: _sectionKeys[section.index],
+      selected: selected,
+      button: true,
+      child: InkWell(
+        key: ValueKey('analytics-section-${section.name}'),
+        borderRadius: BorderRadius.circular(14),
+        onTap: () => _selectSection(section),
+        child: SizedBox(
+          height: height,
+          child: Padding(
+            padding: EdgeInsets.symmetric(horizontal: horizontalPadding),
+            child: Center(
+              child: AnimatedDefaultTextStyle(
+                duration: AppMotion.duration(context),
+                curve: AppMotion.curve,
+                style: _sectionStyle(context).copyWith(
+                  color: selected
+                      ? ShellStyles.accentTone(context).foreground
+                      : ShellStyles.textMuted(context),
+                  fontWeight: selected ? FontWeight.w700 : FontWeight.w600,
+                ),
+                child: CompactText(context.tr(_sectionLabelKey(section))),
+              ),
+            ),
           ),
         ),
       ),
@@ -350,7 +393,7 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
       ..._filters.categoryIds.map(
         (id) => _buildFilterChip(
           _categoryNamesById[id] ?? context.tr('filters_category'),
-          icon: Icons.category_outlined,
+          icon: AppIcons.shapes,
           tone: ShellStyles.categoryTone(
             context,
             code: _categoryCodesById[id],
@@ -371,7 +414,7 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
       ..._filters.subcategoryIds.map(
         (id) => _buildFilterChip(
           _categoryNamesById[id] ?? context.tr('filters_subcategory'),
-          icon: Icons.account_tree_outlined,
+          icon: AppIcons.network,
           tone: ShellStyles.categoryTone(
             context,
             code: _categoryCodesById[id],
@@ -392,7 +435,7 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
       ..._filters.labelIds.map(
         (id) => _buildFilterChip(
           _labelNamesById[id] ?? context.tr('filters_labels'),
-          icon: Icons.label_outline,
+          icon: AppIcons.tag,
           tone: ShellStyles.labelTone(
             context,
             labelId: id,
@@ -494,26 +537,118 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
     );
   }
 
-  Widget _buildSectionSelector() {
-    final sections = AnalyticsSection.values;
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.all(8),
-      decoration: BoxDecoration(
-        color: ShellStyles.sectionBackground(context),
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: ShellStyles.border(context)),
-      ),
-      child: Row(
-        children: [
-          for (var index = 0; index < sections.length; index++) ...[
-            Expanded(child: _buildSectionChip(sections[index])),
-            if (index != sections.length - 1) const SizedBox(width: 8),
-          ],
-        ],
-      ),
-    );
-  }
+  Widget _buildSectionSelector() => LayoutBuilder(
+    builder: (context, constraints) {
+      const inset = 6.0;
+      final sections = AnalyticsSection.values;
+      final availableWidth = math.max(1.0, constraints.maxWidth - 2 * inset);
+      final text = [
+        for (final section in sections)
+          measureTextLayout(
+            context,
+            context.tr(_sectionLabelKey(section)),
+            _sectionStyle(context),
+          ),
+      ];
+      final labelWidths = [
+        for (final label in text) label.width.ceilToDouble(),
+      ];
+      // Keep full labels on screen by tightening gaps before enabling scroll.
+      final labelTotal = labelWidths.reduce((a, b) => a + b);
+      final horizontalPadding =
+          ((availableWidth - labelTotal) / (2 * sections.length)).clamp(
+            4.0,
+            8.0,
+          );
+      final preferredWidths = [
+        for (final width in labelWidths)
+          math.min(
+            availableWidth,
+            math.max(48.0, width + horizontalPadding * 2),
+          ),
+      ];
+      final total = preferredWidths.reduce((a, b) => a + b);
+      final extra = math.max(0.0, availableWidth - total) / sections.length;
+      final widths = [for (final width in preferredWidths) width + extra];
+      var offset = 0.0;
+      final starts = <double>[];
+      for (final width in widths) {
+        starts.add(offset);
+        offset += width;
+      }
+      final height = text.fold(
+        48.0,
+        (height, label) => math.max(height, label.height.ceilToDouble() + 20),
+      );
+
+      return DecoratedBox(
+        decoration: ShellStyles.cardDecoration(context, radius: 20),
+        child: Material(
+          color: ShellStyles.surface(context),
+          borderRadius: BorderRadius.circular(20),
+          clipBehavior: Clip.antiAlias,
+          child: Padding(
+            padding: const EdgeInsets.all(inset),
+            child: SingleChildScrollView(
+              key: const ValueKey('analytics-section-strip'),
+              controller: _sectionScroll,
+              scrollDirection: Axis.horizontal,
+              physics: total > availableWidth
+                  ? null
+                  : const NeverScrollableScrollPhysics(),
+              child: Stack(
+                children: [
+                  AnimatedBuilder(
+                    animation: _pageController,
+                    builder: (context, child) {
+                      final page =
+                          _pageController.hasClients &&
+                              _pageController.position.hasContentDimensions
+                          ? _pageController.page
+                          : null;
+                      final position =
+                          (page ?? _selectedSection.index.toDouble()).clamp(
+                            0.0,
+                            (sections.length - 1).toDouble(),
+                          );
+                      final from = position.floor();
+                      final to = position.ceil();
+                      final progress = position - from;
+                      return PositionedDirectional(
+                        start: lerpDouble(starts[from], starts[to], progress)!,
+                        child: Container(
+                          key: const ValueKey('analytics-tab-indicator'),
+                          width: lerpDouble(widths[from], widths[to], progress),
+                          height: height,
+                          decoration: BoxDecoration(
+                            color: ShellStyles.accentTone(context).container,
+                            borderRadius: BorderRadius.circular(14),
+                          ),
+                        ),
+                      );
+                    },
+                  ),
+                  Row(
+                    children: [
+                      for (final section in sections)
+                        SizedBox(
+                          width: widths[section.index],
+                          child: _buildSectionChip(
+                            section,
+                            height,
+                            horizontalPadding,
+                          ),
+                        ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
+      );
+    },
+  );
 
   Widget _buildFilterAction() {
     return InkWell(
@@ -529,7 +664,11 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
         child: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(Icons.tune, size: 16, color: ShellStyles.textPrimary(context)),
+            Icon(
+              AppIcons.slidersHorizontal,
+              size: 16,
+              color: ShellStyles.textPrimary(context),
+            ),
             const SizedBox(width: 8),
             Text(
               context.tr('filters_title'),
@@ -568,24 +707,8 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
             )
           : Column(
               children: [
-                Container(
-                  width: double.infinity,
-                  padding: const EdgeInsets.fromLTRB(20, 12, 20, 10),
-                  decoration: BoxDecoration(
-                    color: ShellStyles.sectionBackground(context),
-                    border: Border(
-                      bottom: BorderSide(color: ShellStyles.divider(context)),
-                    ),
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.black.withAlpha(
-                          ShellStyles.isDark(context) ? 18 : 6,
-                        ),
-                        blurRadius: 10,
-                        offset: const Offset(0, 4),
-                      ),
-                    ],
-                  ),
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(16, 10, 16, 12),
                   child: Column(
                     children: [
                       _buildSectionSelector(),
@@ -593,7 +716,7 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
                         const SizedBox(height: 8),
                         TextButton.icon(
                           onPressed: _openFilters,
-                          icon: const Icon(Icons.date_range_outlined, size: 18),
+                          icon: const Icon(AppIcons.calendarRange, size: 18),
                           label: Text(
                             formatLocalizedDateRange(
                               context,
@@ -608,31 +731,47 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
                   ),
                 ),
                 Expanded(
-                  child: PageView(
-                    controller: _pageController,
-                    onPageChanged: _handlePageChanged,
-                    children: [
-                      AnalyticsOverviewTab(
-                        filters: _filters,
-                        activeFiltersBuilder: _filters.hasScopedFilters
-                            ? _buildActiveFiltersBar
-                            : null,
-                      ),
-                      AnalyticsTrendsTab(
-                        filters: _filters,
-                        activeFiltersBuilder: _filters.hasScopedFilters
-                            ? _buildActiveFiltersBar
-                            : null,
-                      ),
-                      AnalyticsTab(
-                        filters: _filters,
-                        featureCodes: _featureCodes,
-                        onPremiumStatusChanged: _refreshFeatureCodes,
-                        activeFiltersBuilder: _filters.hasScopedFilters
-                            ? _buildActiveFiltersBar
-                            : null,
-                      ),
-                    ],
+                  child: NotificationListener<ScrollNotification>(
+                    onNotification: (notification) {
+                      if (notification.depth == 0 &&
+                          notification.metrics.axis == Axis.horizontal) {
+                        if (notification is ScrollStartNotification &&
+                            notification.dragDetails != null) {
+                          _sectionTransition++;
+                          _animatingSection = false;
+                        } else if (notification is ScrollEndNotification &&
+                            !_animatingSection) {
+                          _handlePageChanged(_pageController.page!.round());
+                        }
+                      }
+                      return false;
+                    },
+                    child: PageView(
+                      controller: _pageController,
+                      onPageChanged: _handlePageChanged,
+                      children: [
+                        AnalyticsOverviewTab(
+                          filters: _filters,
+                          activeFiltersBuilder: _filters.hasScopedFilters
+                              ? _buildActiveFiltersBar
+                              : null,
+                        ),
+                        AnalyticsTrendsTab(
+                          filters: _filters,
+                          activeFiltersBuilder: _filters.hasScopedFilters
+                              ? _buildActiveFiltersBar
+                              : null,
+                        ),
+                        AnalyticsTab(
+                          filters: _filters,
+                          featureCodes: _featureCodes,
+                          onPremiumStatusChanged: _refreshFeatureCodes,
+                          activeFiltersBuilder: _filters.hasScopedFilters
+                              ? _buildActiveFiltersBar
+                              : null,
+                        ),
+                      ].map((child) => KeepAliveTab(child: child)).toList(),
+                    ),
                   ),
                 ),
               ],

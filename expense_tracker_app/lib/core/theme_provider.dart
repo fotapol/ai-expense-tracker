@@ -1,6 +1,8 @@
 import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
+
+import 'app_motion.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import 'app_color_semantics.dart';
@@ -219,19 +221,7 @@ class ThemeProvider extends ChangeNotifier {
   Future<void> toggle() =>
       setThemeMode(isDarkMode ? ThemeMode.light : ThemeMode.dark);
 
-  double get fontSizeFactor {
-    switch (_fontSizeId) {
-      case '60':
-        return 0.7;
-      case '80':
-        return 0.82;
-      case '120':
-        return 1.02;
-      case '100':
-      default:
-        return 0.9;
-    }
-  }
+  double get interfaceScaleFactor => double.parse(_fontSizeId) / 100;
 
   ThemeData get lightTheme => _buildTheme(Brightness.light);
 
@@ -267,7 +257,37 @@ class ThemeProvider extends ChangeNotifier {
     );
 
     return ThemeData(
+      actionIconTheme: ActionIconThemeData(
+        backButtonIconBuilder: (_) => const Icon(AppIcons.arrowLeft),
+        closeButtonIconBuilder: (_) => const Icon(AppIcons.x),
+        drawerButtonIconBuilder: (_) => const Icon(AppIcons.menu),
+        endDrawerButtonIconBuilder: (_) => const Icon(AppIcons.panelLeftClose),
+      ),
       brightness: brightness,
+      pageTransitionsTheme: PageTransitionsTheme(
+        builders: {
+          ...const PageTransitionsTheme().builders,
+          TargetPlatform.android: const AppPageTransitionsBuilder(),
+          TargetPlatform.fuchsia: const AppPageTransitionsBuilder(),
+          TargetPlatform.linux: const AppPageTransitionsBuilder(),
+          TargetPlatform.windows: const AppPageTransitionsBuilder(),
+        },
+      ),
+      textTheme:
+          (isDark
+                  ? Typography.material2021().white
+                  : Typography.material2021().black)
+              .copyWith(
+                bodyLarge: const TextStyle(fontSize: 14),
+                titleMedium: const TextStyle(
+                  fontSize: 15,
+                  fontWeight: FontWeight.w600,
+                ),
+                labelLarge: const TextStyle(
+                  fontSize: 13,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
       scaffoldBackgroundColor: palette.pageBackground,
       colorScheme: colorScheme,
       canvasColor: palette.pageBackground,
@@ -357,6 +377,11 @@ class ThemeProvider extends ChangeNotifier {
         ),
       ),
       inputDecorationTheme: InputDecorationTheme(
+        isDense: true,
+        contentPadding: const EdgeInsets.symmetric(
+          horizontal: 12,
+          vertical: 12,
+        ),
         filled: true,
         fillColor: palette.inputSurface,
         labelStyle: TextStyle(color: palette.textMuted),

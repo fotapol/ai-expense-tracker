@@ -1,9 +1,11 @@
 import 'dart:math' as math;
 
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 
 import 'app_color_semantics.dart';
+import 'app_icons.dart';
+
+export 'app_icons.dart';
 import '../l10n/app_localizations.dart';
 
 class ShellColors {
@@ -608,52 +610,6 @@ class ShellStyles {
   }
 }
 
-class AppIcons {
-  static const IconData premium = CupertinoIcons.sparkles;
-  static const IconData scan = CupertinoIcons.viewfinder;
-  static const IconData scanFab = CupertinoIcons.viewfinder;
-  static const IconData home = Icons.home_outlined;
-  static const IconData homeFilled = Icons.home;
-  static const IconData tools = Icons.build_outlined;
-  static const IconData toolsFilled = Icons.build;
-  static const IconData settings = Icons.settings_outlined;
-  static const IconData settingsFilled = Icons.settings;
-  static const IconData group = CupertinoIcons.group;
-  static const IconData person = CupertinoIcons.person;
-  static const IconData lock = CupertinoIcons.lock;
-  static const IconData appearance = CupertinoIcons.paintbrush;
-  static const IconData notifications = CupertinoIcons.bell;
-  static const IconData language = CupertinoIcons.globe;
-  static const IconData currency = CupertinoIcons.money_dollar;
-  static const IconData translate = Icons.translate;
-  static const IconData help = CupertinoIcons.question_circle;
-  static const IconData feature = CupertinoIcons.wand_stars;
-  static const IconData privacy = CupertinoIcons.shield;
-  static const IconData document = CupertinoIcons.doc_text;
-  static const IconData info = CupertinoIcons.info_circle;
-  static const IconData logout = CupertinoIcons.square_arrow_right;
-  static const IconData search = CupertinoIcons.search;
-  static const IconData chevronRight = CupertinoIcons.chevron_right;
-  static const IconData chevronDown = CupertinoIcons.chevron_down;
-  static const IconData check = Icons.check;
-  static const IconData checkCircle = CupertinoIcons.check_mark_circled_solid;
-  static const IconData add = CupertinoIcons.add;
-  static const IconData receipt = CupertinoIcons.doc_text;
-  static const IconData analytics = CupertinoIcons.chart_bar;
-  static const IconData analyticsAlt = CupertinoIcons.chart_pie;
-  static const IconData category = CupertinoIcons.tag;
-  static const IconData labels = Icons.label_outlined;
-  static const IconData budget = CupertinoIcons.plusminus;
-  static const IconData export = CupertinoIcons.tray_arrow_down;
-  static const IconData importData = CupertinoIcons.tray_arrow_up;
-  static const IconData photo = CupertinoIcons.photo_camera;
-  static const IconData sun = CupertinoIcons.sun_max;
-  static const IconData moon = CupertinoIcons.moon;
-  static const IconData auto = CupertinoIcons.desktopcomputer;
-  static const IconData refresh = CupertinoIcons.arrow_clockwise;
-  static const IconData insight = CupertinoIcons.wand_stars;
-}
-
 class CurrencyDisplay {
   static String symbolForCode(String code) {
     switch (code.toUpperCase()) {
@@ -704,56 +660,10 @@ class CurrencyDisplay {
 }
 
 class CrownIcon extends StatelessWidget {
-  const CrownIcon({
-    super.key,
-    required this.color,
-    this.size = 20,
-    this.strokeWidth = 1.8,
-  });
-
+  const CrownIcon({super.key, required this.color, this.size = 20});
   final Color color;
   final double size;
-  final double strokeWidth;
-
   @override
-  Widget build(BuildContext context) {
-    return CustomPaint(
-      size: Size(size, size),
-      painter: _CrownPainter(color, strokeWidth),
-    );
-  }
-}
-
-class _CrownPainter extends CustomPainter {
-  const _CrownPainter(this.color, this.strokeWidth);
-
-  final Color color;
-  final double strokeWidth;
-
-  @override
-  void paint(Canvas canvas, Size size) {
-    final paint = Paint()
-      ..color = color
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = strokeWidth
-      ..strokeJoin = StrokeJoin.round
-      ..strokeCap = StrokeCap.round;
-
-    final path = Path()
-      ..moveTo(size.width * 0.15, size.height * 0.25)
-      ..lineTo(size.width * 0.15, size.height * 0.8)
-      ..lineTo(size.width * 0.85, size.height * 0.8)
-      ..lineTo(size.width * 0.85, size.height * 0.25)
-      ..lineTo(size.width * 0.65, size.height * 0.5)
-      ..lineTo(size.width * 0.5, size.height * 0.15)
-      ..lineTo(size.width * 0.35, size.height * 0.5)
-      ..close();
-
-    canvas.drawPath(path, paint);
-  }
-
-  @override
-  bool shouldRepaint(covariant _CrownPainter oldDelegate) {
-    return oldDelegate.color != color || oldDelegate.strokeWidth != strokeWidth;
-  }
+  Widget build(BuildContext context) =>
+      Icon(AppIcons.crown, size: size, color: color);
 }

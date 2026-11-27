@@ -125,6 +125,7 @@ class _HelpCenterScreenState extends State<HelpCenterScreen> {
                 return Column(
                   children: [
                     InkWell(
+                      borderRadius: BorderRadius.circular(12),
                       onTap: () => _toggleAnswer(item),
                       child: Padding(
                         padding: const EdgeInsets.symmetric(

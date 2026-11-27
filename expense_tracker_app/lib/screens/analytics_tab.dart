@@ -1,4 +1,5 @@
-import 'package:fl_chart/fl_chart.dart';
+import 'dart:math' as math;
+
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -14,6 +15,9 @@ import '../core/session_invalidation.dart';
 import '../core/taxonomy_localization.dart';
 import '../l10n/app_localizations.dart';
 import '../widgets/analytics_shared.dart';
+import '../widgets/spending_chart.dart';
+import '../widgets/compact_text.dart';
+import '../widgets/text_measurement.dart';
 import 'analytics_category_detail_screen.dart';
 import 'analytics_subcategory_items_screen.dart';
 import 'subscription_screen.dart';
@@ -293,7 +297,7 @@ class _AnalyticsTabState extends State<AnalyticsTab>
           ],
           if (isEmptyAnalytics)
             AnalyticsEmptyCard(
-              icon: Icons.pie_chart_outline,
+              icon: AppIcons.chartPie,
               title: context.tr('no_category_insights_yet'),
               message: context.tr('analytics_empty_categories_message'),
             )
@@ -327,7 +331,7 @@ class _AnalyticsTabState extends State<AnalyticsTab>
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   const Icon(
-                    Icons.info_outline,
+                    AppIcons.info,
                     color: ShellColors.softRed,
                     size: 18,
                   ),
@@ -361,39 +365,19 @@ class _AnalyticsTabState extends State<AnalyticsTab>
     final categories = breakdown.whereType<Map<String, dynamic>>().toList(
       growable: false,
     );
-    final hasData = categories.isNotEmpty && totalAmount > 0;
-    final sections = hasData
-        ? categories.map((category) {
-            final amount = (category['amount'] as num?)?.toDouble() ?? 0;
-            final percentage =
-                (category['percentage'] as num?)?.toDouble() ?? 0;
-            final tone = ShellStyles.categoryTone(
-              context,
-              code: category['code']?.toString(),
-              parentCode: category['parent_category_code']?.toString(),
-              name: category['name']?.toString(),
-              rawHex: category['color']?.toString(),
-            );
-            return PieChartSectionData(
-              color: tone.base,
-              value: amount,
-              title: percentage >= 9 ? '${percentage.toStringAsFixed(0)}%' : '',
-              radius: 58,
-              titleStyle: TextStyle(
-                color: tone.onSolid,
-                fontSize: 11,
-                fontWeight: FontWeight.w700,
-              ),
-            );
-          }).toList()
-        : [
-            PieChartSectionData(
-              color: ShellStyles.surfaceAlt(context),
-              value: 1,
-              title: '',
-              radius: 58,
+    final slices = [
+      if (totalAmount > 0)
+        for (final category in categories)
+          if (category['amount'] is num && (category['amount'] as num) > 0)
+            SpendingSlice(
+              name: _breakdownName(category),
+              value: (category['amount'] as num).toDouble(),
+              amountLabel: formatMoney(currency, category['amount'] as num),
+              percentageLabel:
+                  "${((category['percentage'] as num?) ?? 0).round()}%",
+              color: _categoryColor(category),
             ),
-          ];
+    ];
 
     return AnalyticsSurfaceCard(
       padding: const EdgeInsets.all(20),
@@ -408,52 +392,14 @@ class _AnalyticsTabState extends State<AnalyticsTab>
             trailing: _buildBreakdownToggle(),
           ),
           const SizedBox(height: 20),
-          Padding(
-            padding: const EdgeInsets.symmetric(vertical: 10),
-            child: SizedBox(
-              height: 236,
-              child: Stack(
-                alignment: Alignment.center,
-                children: [
-                  PieChart(
-                    PieChartData(
-                      sectionsSpace: 3,
-                      centerSpaceRadius: 70,
-                      sections: sections,
-                    ),
-                  ),
-                  Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Text(
-                        context.tr('analytics_total_spent').toUpperCase(),
-                        style: TextStyle(
-                          color: ShellStyles.textMuted(context),
-                          fontSize: 11,
-                          fontWeight: FontWeight.w700,
-                          letterSpacing: 0.6,
-                        ),
-                      ),
-                      const SizedBox(height: 4),
-                      Text(
-                        hasData
-                            ? formatMoney(currency, totalAmount)
-                            : context.tr('analytics_no_data'),
-                        textAlign: TextAlign.center,
-                        style: TextStyle(
-                          color: ShellStyles.textPrimary(context),
-                          fontSize: hasData ? 18 : 20,
-                          fontWeight: FontWeight.w800,
-                        ),
-                      ),
-                    ],
-                  ),
-                ],
-              ),
-            ),
+          SpendingDonut(
+            slices: slices,
+            total: slices.isEmpty
+                ? context.tr('analytics_no_data')
+                : formatMoney(currency, totalAmount),
           ),
           const SizedBox(height: 26),
-          if (!hasData)
+          if (slices.isEmpty)
             Text(
               context.tr(
                 isSubcategoryMode
@@ -466,62 +412,7 @@ class _AnalyticsTabState extends State<AnalyticsTab>
               ),
             )
           else
-            Column(
-              children: categories.map((category) {
-                final amount = (category['amount'] as num?)?.toDouble() ?? 0;
-                final percentage =
-                    (category['percentage'] as num?)?.toDouble() ?? 0;
-                return Padding(
-                  padding: const EdgeInsets.only(bottom: 10),
-                  child: Row(
-                    children: [
-                      Container(
-                        width: 10,
-                        height: 10,
-                        decoration: BoxDecoration(
-                          color: _categoryColor(category),
-                          shape: BoxShape.circle,
-                        ),
-                      ),
-                      const SizedBox(width: 10),
-                      Expanded(
-                        child: Text(
-                          _breakdownName(category),
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                          style: TextStyle(
-                            color: ShellStyles.textPrimary(context),
-                            fontSize: 14,
-                            fontWeight: FontWeight.w600,
-                          ),
-                        ),
-                      ),
-                      const SizedBox(width: 12),
-                      Text(
-                        '${percentage.toStringAsFixed(0)}%',
-                        style: TextStyle(
-                          color: ShellStyles.textMuted(context),
-                          fontSize: 12,
-                        ),
-                      ),
-                      const SizedBox(width: 12),
-                      SizedBox(
-                        width: 90,
-                        child: Text(
-                          formatMoney(currency, amount),
-                          textAlign: TextAlign.right,
-                          style: TextStyle(
-                            color: ShellStyles.textPrimary(context),
-                            fontSize: 13,
-                            fontWeight: FontWeight.w700,
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                );
-              }).toList(),
-            ),
+            SpendingLegend(slices: slices),
         ],
       ),
     );
@@ -564,12 +455,14 @@ class _AnalyticsTabState extends State<AnalyticsTab>
                 ),
                 const SizedBox(width: 4),
               ],
-              Text(
-                label,
-                style: TextStyle(
-                  color: foreground,
-                  fontSize: 12,
-                  fontWeight: isSelected ? FontWeight.w700 : FontWeight.w600,
+              Flexible(
+                child: Text(
+                  label,
+                  style: TextStyle(
+                    color: foreground,
+                    fontSize: 12,
+                    fontWeight: isSelected ? FontWeight.w700 : FontWeight.w600,
+                  ),
                 ),
               ),
             ],
@@ -578,14 +471,14 @@ class _AnalyticsTabState extends State<AnalyticsTab>
       );
     }
 
-    return Row(
-      mainAxisSize: MainAxisSize.min,
+    return Wrap(
+      spacing: 8,
+      runSpacing: 8,
       children: [
         option(
           mode: _modeCategory,
           label: context.tr('analytics_breakdown_categories'),
         ),
-        const SizedBox(width: 8),
         option(
           mode: _modeSubcategory,
           label: context.tr('analytics_breakdown_subcategories'),
@@ -664,6 +557,18 @@ class _AnalyticsTabState extends State<AnalyticsTab>
     );
     final icon = CategoryStyle.iconForCode(code);
 
+    final name = _breakdownName(category);
+    final total = formatMoney(currency, amount);
+    final share = '${percentage.round()}%';
+    final nameStyle = TextStyle(
+      color: ShellStyles.textPrimary(context),
+      fontSize: 15,
+      fontWeight: FontWeight.w700,
+    );
+    final mutedStyle = TextStyle(
+      color: ShellStyles.textMuted(context),
+      fontSize: 12,
+    );
     return InkWell(
       borderRadius: BorderRadius.circular(18),
       onTap: () => isSubcategoryMode
@@ -671,80 +576,84 @@ class _AnalyticsTabState extends State<AnalyticsTab>
           : _openCategoryDetails(category),
       child: Padding(
         padding: const EdgeInsets.symmetric(vertical: 8),
-        child: Row(
-          children: [
-            Container(
-              width: 42,
-              height: 42,
-              alignment: Alignment.center,
-              decoration: ShellStyles.semanticBadgeDecoration(
-                context,
-                tone: tone,
-                radius: 14,
-              ),
-              child: Icon(icon, color: tone.foreground, size: 19),
-            ),
-            const SizedBox(width: 12),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    _breakdownName(category),
-                    style: TextStyle(
-                      color: ShellStyles.textPrimary(context),
-                      fontSize: 15,
-                      fontWeight: FontWeight.w700,
-                    ),
-                  ),
-                  const SizedBox(height: 4),
-                  Text(
-                    context.tr(
-                      'analytics_purchases_count',
-                      params: {'count': itemCount.toString()},
-                    ),
-                    style: TextStyle(
-                      color: ShellStyles.textMuted(context),
-                      fontSize: 12,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            const SizedBox(width: 12),
-            Column(
+        child: LayoutBuilder(
+          builder: (context, constraints) {
+            const gap = 12.0;
+            const iconSize = 42.0;
+            final valueWidth = math
+                .max(
+                  measureTextLayout(context, total, nameStyle).width,
+                  measureTextLayout(context, share, mutedStyle).width + 18,
+                )
+                .ceilToDouble();
+            final nameWidth = measureTextLayout(
+              context,
+              name,
+              nameStyle,
+            ).minWidth;
+            final inline =
+                constraints.maxWidth >=
+                iconSize + 2 * gap + math.max(90, nameWidth) + valueWidth;
+            final amounts = Column(
               crossAxisAlignment: CrossAxisAlignment.end,
               children: [
-                Text(
-                  formatMoney(currency, amount),
-                  style: TextStyle(
-                    color: ShellStyles.textPrimary(context),
-                    fontSize: 15,
-                    fontWeight: FontWeight.w800,
-                  ),
-                ),
+                CompactText(total, style: nameStyle),
                 const SizedBox(height: 3),
                 Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    Text(
-                      '${percentage.toStringAsFixed(0)}%',
-                      style: TextStyle(
-                        color: ShellStyles.textMuted(context),
-                        fontSize: 12,
-                      ),
-                    ),
+                    CompactText(share, style: mutedStyle),
                     const SizedBox(width: 2),
                     Icon(
-                      Icons.chevron_right,
-                      color: ShellStyles.textMuted(context),
+                      AppIcons.chevronRight,
+                      color: mutedStyle.color,
                       size: 16,
                     ),
                   ],
                 ),
               ],
-            ),
-          ],
+            );
+            return Row(
+              crossAxisAlignment: inline
+                  ? CrossAxisAlignment.center
+                  : CrossAxisAlignment.start,
+              children: [
+                Container(
+                  width: iconSize,
+                  height: iconSize,
+                  alignment: Alignment.center,
+                  decoration: ShellStyles.semanticBadgeDecoration(
+                    context,
+                    tone: tone,
+                    radius: 14,
+                  ),
+                  child: Icon(icon, color: tone.foreground, size: 19),
+                ),
+                const SizedBox(width: gap),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      Text(name, style: nameStyle),
+                      const SizedBox(height: 4),
+                      Text(
+                        context.tr(
+                          'analytics_purchases_count',
+                          params: {'count': itemCount.toString()},
+                        ),
+                        style: mutedStyle,
+                      ),
+                      if (!inline) ...[const SizedBox(height: 8), amounts],
+                    ],
+                  ),
+                ),
+                if (inline) ...[
+                  const SizedBox(width: gap),
+                  SizedBox(width: valueWidth, child: amounts),
+                ],
+              ],
+            );
+          },
         ),
       ),
     );
@@ -788,7 +697,7 @@ class _AnalyticsTabState extends State<AnalyticsTab>
                 radius: 14,
               ),
               child: const Icon(
-                Icons.sell_outlined,
+                AppIcons.tag,
                 size: 18,
                 color: ShellColors.softGreen,
               ),
@@ -801,7 +710,7 @@ class _AnalyticsTabState extends State<AnalyticsTab>
                 child: AnalyticsMiniStatTile(
                   label: context.tr('analytics_total_savings'),
                   value: formatMoney(currency, totalSavings),
-                  icon: Icons.sell_outlined,
+                  icon: AppIcons.tag,
                   valueColor: ShellColors.softGreen,
                 ),
               ),
@@ -810,7 +719,7 @@ class _AnalyticsTabState extends State<AnalyticsTab>
                 child: AnalyticsMiniStatTile(
                   label: context.tr('analytics_items_with_discount'),
                   value: '$itemsWithDiscount',
-                  icon: Icons.local_offer_outlined,
+                  icon: AppIcons.tag,
                 ),
               ),
             ],
@@ -838,7 +747,7 @@ class _AnalyticsTabState extends State<AnalyticsTab>
                       border: Border.all(color: ShellStyles.border(context)),
                     ),
                     child: const Icon(
-                      Icons.local_offer_outlined,
+                      AppIcons.tag,
                       size: 18,
                       color: ShellColors.softGreen,
                     ),

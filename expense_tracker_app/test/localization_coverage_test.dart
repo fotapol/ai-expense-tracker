@@ -7,6 +7,25 @@ void main() {
     test('every supported locale resolves core runtime keys', () {
       const keys = <String>[
         'app_title',
+        'filters_search_hint',
+        'filters_amount',
+        'filters_min_amount',
+        'filters_max_amount',
+        'filters_amount_hint',
+        'filters_invalid_amount',
+        'filters_invalid_range',
+        'filters_choose_currency',
+        'filters_currency',
+        'filters_all_currencies',
+        'filters_source',
+        'filters_any_source',
+        'filters_scanned',
+        'filters_manual',
+        'filters_imported',
+        'filters_status',
+        'filters_any_status',
+        'filters_confirmed',
+
         'common_cancel',
         'common_delete',
         'common_retry',
@@ -26,6 +45,41 @@ void main() {
         'home_start_subtitle',
         'receipts_filter_needs_review',
         'receipts_history_total',
+        'receipts_sort',
+        'receipts_sort_newest',
+        'receipts_sort_oldest',
+        'receipts_sort_amount_desc',
+        'receipts_sort_amount_asc',
+        'receipts_sort_merchant_asc',
+        'receipts_load_more',
+        'receipts_loaded_total',
+        'receipts_loaded_count',
+        'receipts_amount_sort_hint',
+        'duplicates_title',
+        'duplicates_subtitle',
+        'duplicates_exact',
+        'duplicates_high',
+        'duplicates_possible',
+        'duplicates_reason_image',
+        'duplicates_reason_total',
+        'duplicates_reason_date',
+        'duplicates_reason_nearby',
+        'duplicates_reason_merchant',
+        'duplicates_reason_items',
+        'duplicates_reason_item_single',
+        'upload_selected_title',
+        'upload_selected_body',
+        'duplicates_empty',
+        'duplicates_error',
+        'duplicates_stale',
+        'duplicates_view_original',
+        'duplicates_keep_selected',
+        'duplicates_delete_confirm',
+        'duplicates_keep_both',
+        'duplicates_review',
+        'duplicates_choose',
+        'duplicates_banner',
+        'duplicates_save_first',
         'upload_status_preparing_scan',
         'upload_status_preparing_scan_body',
         'transaction_review_receipt',
@@ -65,6 +119,9 @@ void main() {
           'transaction_receipt_photo_subtitle',
           'transaction_warning_accepts_edits',
           'transaction_open_receipt_error',
+          'duplicates_title',
+          'duplicates_keep_both',
+          'duplicates_error',
         ];
 
         final english = AppLocalizations(const Locale('en'));
@@ -80,6 +137,28 @@ void main() {
               reason:
                   '${locale.languageCode} should not fall back to English '
                   'for $key.',
+            );
+          }
+        }
+      },
+    );
+
+    test(
+      'review labels do not reuse legacy Italian placeholders in other locales',
+      () {
+        const placeholders = {
+          'transaction_items_heading': 'Elementi',
+          'receipts_filter_needs_review': 'Necessita di revisione',
+        };
+        for (final locale in AppLocalizations.supportedLocales.where(
+          (locale) => locale.languageCode != 'it',
+        )) {
+          for (final entry in placeholders.entries) {
+            expect(
+              AppLocalizations(locale).tr(entry.key),
+              isNot(entry.value),
+              reason:
+                  '${locale.languageCode}/${entry.key} must use its own language',
             );
           }
         }

@@ -4,6 +4,7 @@ import 'package:url_launcher/url_launcher.dart';
 
 import '../core/app_env.dart';
 import '../core/app_release_notes.dart';
+import '../core/third_party_licenses.dart';
 import '../core/redesign_system.dart';
 import 'settings_detail_scaffold.dart';
 import '../l10n/app_localizations.dart';
@@ -182,6 +183,7 @@ class _AboutScreenState extends State<AboutScreen> {
     required VoidCallback onTap,
   }) {
     return InkWell(
+      borderRadius: BorderRadius.circular(12),
       onTap: onTap,
       child: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
@@ -239,13 +241,15 @@ class _AboutScreenState extends State<AboutScreen> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: <Widget>[
               _buildHero(),
-              const SizedBox(height: 16),
-              ShellStyles.sectionLabel(
-                context,
-                context.tr('about_whats_new_section'),
-              ),
-              const SizedBox(height: 8),
-              _buildWhatIsNewCard(releaseNotes),
+              if (releaseNotes != null) ...[
+                const SizedBox(height: 16),
+                ShellStyles.sectionLabel(
+                  context,
+                  context.tr('about_whats_new_section'),
+                ),
+                const SizedBox(height: 8),
+                _buildWhatIsNewCard(releaseNotes),
+              ],
               const SizedBox(height: 16),
               ShellStyles.sectionLabel(
                 context,
@@ -306,6 +310,24 @@ class _AboutScreenState extends State<AboutScreen> {
                       endIndent: 14,
                     ),
                     _buildLinkRow(
+                      title: MaterialLocalizations.of(
+                        context,
+                      ).licensesPageTitle,
+                      subtitle: context.tr('about_licenses_subtitle'),
+                      onTap: () => Navigator.of(context).push<void>(
+                        MaterialPageRoute(
+                          builder: (_) =>
+                              _LicenseOverview(version: packageInfo?.version),
+                        ),
+                      ),
+                    ),
+                    Divider(
+                      height: 1,
+                      color: ShellStyles.border(context),
+                      indent: 14,
+                      endIndent: 14,
+                    ),
+                    _buildLinkRow(
                       title: context.tr('email_support'),
                       subtitle: AppEnv.supportEmail,
                       onTap: _openSupportEmail,
@@ -316,6 +338,57 @@ class _AboutScreenState extends State<AboutScreen> {
             ],
           ),
         ),
+      ),
+    );
+  }
+}
+
+class _LicenseOverview extends StatelessWidget {
+  const _LicenseOverview({required this.version});
+
+  final String? version;
+
+  @override
+  Widget build(BuildContext context) {
+    return SettingsDetailScaffold(
+      title: MaterialLocalizations.of(context).licensesPageTitle,
+      body: ListView(
+        padding: const EdgeInsets.all(16),
+        children: [
+          SettingsDetailCard(
+            padding: EdgeInsets.zero,
+            child: Column(
+              children: [
+                ListTile(
+                  leading: const Icon(AppIcons.fileText),
+                  title: Text(context.tr('app_title')),
+                  subtitle: const Text('MIT'),
+                ),
+                Divider(height: 1, color: ShellStyles.border(context)),
+                const ListTile(
+                  leading: Icon(AppIcons.sparkles),
+                  title: Text('Lucide / Feather'),
+                  subtitle: Text('ISC / MIT'),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 16),
+          OutlinedButton(
+            onPressed: () {
+              registerThirdPartyLicenses();
+              showLicensePage(
+                context: context,
+                applicationName: context.tr('app_title'),
+                applicationVersion: version,
+              );
+            },
+            child: Text(
+              context.tr('about_licenses_full'),
+              textAlign: TextAlign.center,
+            ),
+          ),
+        ],
       ),
     );
   }

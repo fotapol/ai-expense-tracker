@@ -1,3 +1,4 @@
+import 'app_icons.dart';
 import 'package:flutter/material.dart';
 
 class CategoryStyle {
@@ -6,32 +7,32 @@ class CategoryStyle {
   static IconData iconForCode(String? code) {
     switch ((code ?? '').trim().toUpperCase()) {
       case 'FOOD':
-        return Icons.restaurant;
+        return AppIcons.utensils;
       case 'CLOTHING':
-        return Icons.checkroom;
+        return AppIcons.shirt;
       case 'TRANSPORT':
-        return Icons.directions_car;
+        return AppIcons.car;
       case 'UTILITIES':
-        return Icons.bolt;
+        return AppIcons.zap;
       case 'HEALTH':
-        return Icons.favorite;
+        return AppIcons.heart;
       case 'ENTERTAINMENT':
-        return Icons.movie;
+        return AppIcons.clapperboard;
       case 'HOME':
-        return Icons.home;
+        return AppIcons.house;
       case 'ELECTRONICS':
-        return Icons.devices;
+        return AppIcons.monitorSmartphone;
       case 'EDUCATION':
-        return Icons.school;
+        return AppIcons.graduationCap;
       case 'PERSONAL_CARE':
-        return Icons.spa;
+        return AppIcons.leaf;
       case 'FLOWERS':
-        return Icons.local_florist;
+        return AppIcons.flower2;
       case 'OTHER':
       case 'UNCATEGORIZED':
-        return Icons.more_horiz;
+        return AppIcons.ellipsis;
       default:
-        return Icons.shopping_bag;
+        return AppIcons.shoppingBag;
     }
   }
 }

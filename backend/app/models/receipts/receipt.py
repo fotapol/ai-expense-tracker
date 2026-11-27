@@ -17,6 +17,7 @@ class ReceiptBase(SQLModel):
     mime_type: str = Field(max_length=100, nullable=False)
     original_filename: str = Field(max_length=255, nullable=False)
     sha256: str = Field(max_length=64, nullable=False, index=True)
+    sha256_verified: bool = Field(default=False, nullable=False)
     size_bytes: int = Field(nullable=False)
 
     page_count: int | None = Field(default=None)
@@ -34,6 +35,7 @@ class Receipt(ReceiptBase, TimestampedModel, table=True):
     __tablename__ = "receipts"
     __table_args__ = (
         Index("ix_receipts_user_id_status", "user_id", "status"),
+        Index("ix_receipts_user_verified_sha256", "user_id", "sha256_verified", "sha256"),
     )
 
     id: uuid.UUID = Field(default_factory=uuid.uuid4, primary_key=True)

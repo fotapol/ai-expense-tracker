@@ -5,10 +5,13 @@ namespace="${NAMESPACE:-expense-tracker}"
 source_deployment="${MIGRATION_SOURCE_DEPLOYMENT:-expense-tracker-api}"
 job_name="${MIGRATION_JOB_NAME:-expense-tracker-migrate-$(date -u +%Y%m%d%H%M%S)}"
 
-image="$(
-  kubectl -n "${namespace}" get deployment "${source_deployment}" \
-    -o jsonpath='{.spec.template.spec.containers[?(@.name=="api")].image}'
-)"
+image="${MIGRATION_IMAGE:-}"
+if [[ -z "${image}" ]]; then
+  image="$(
+    kubectl -n "${namespace}" get deployment "${source_deployment}" \
+      -o jsonpath='{.spec.template.spec.containers[?(@.name=="api")].image}'
+  )"
+fi
 
 if [[ -z "${image}" ]]; then
   echo "Could not determine API image from deployment/${source_deployment}" >&2

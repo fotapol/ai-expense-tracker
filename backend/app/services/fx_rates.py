@@ -4,10 +4,12 @@ from __future__ import annotations
 
 import datetime as dt
 import logging
-from collections.abc import Callable
+from bisect import bisect_right
+from collections.abc import Callable, Mapping
 from dataclasses import dataclass
 from decimal import Decimal, InvalidOperation
 from functools import lru_cache
+from types import MappingProxyType
 
 import httpx
 from sqlalchemy.exc import OperationalError, ProgrammingError
@@ -38,6 +40,91 @@ class FxRateLookup:
     rate: Decimal | None
     effective_date: dt.date | None
     is_fallback: bool
+
+
+RateLookup = Callable[..., FxRateLookup]
+
+
+@dataclass(frozen=True, slots=True)
+class _CachedFxRateSeries:
+    dates: tuple[dt.date, ...]
+    rates: tuple[FxRateLookup, ...]
+
+
+@dataclass(frozen=True, slots=True)
+class CachedFxRateSnapshot:
+    """One request's cached rates, with no database or provider work during lookup."""
+
+    quote_currency: str
+    rates_by_base: Mapping[str, _CachedFxRateSeries]
+
+    def lookup(
+        self,
+        session: Session,
+        *,
+        base_currency: str,
+        quote_currency: str,
+        target_date: dt.date,
+    ) -> FxRateLookup:
+        del session
+        base = normalize_currency_code(base_currency)
+        quote = normalize_currency_code(quote_currency)
+        if base == quote:
+            return FxRateLookup(rate=Decimal("1"), effective_date=target_date, is_fallback=False)
+        series = self.rates_by_base.get(base) if quote == self.quote_currency else None
+        if series is None:
+            return FxRateLookup(rate=None, effective_date=None, is_fallback=True)
+        # Match lookup_rate's cached exact -> previous -> latest fallback order.
+        index = bisect_right(series.dates, target_date) - 1
+        selected = series.rates[index if index >= 0 else -1]
+        return FxRateLookup(
+            rate=selected.rate,
+            effective_date=selected.effective_date,
+            is_fallback=selected.is_fallback or selected.effective_date != target_date,
+        )
+
+
+def load_cached_rate_snapshot(
+    session: Session,
+    *,
+    quote_currency: str,
+) -> CachedFxRateSnapshot:
+    """Load historical rates once for consistent, network-free amount sorting."""
+
+    quote = normalize_currency_code(quote_currency)
+    query = (
+        select(
+            ExchangeRate.base_currency,
+            ExchangeRate.rate_date,
+            ExchangeRate.rate,
+            ExchangeRate.is_fallback,
+        )
+        .where(ExchangeRate.provider == _PROVIDER, ExchangeRate.quote_currency == quote)
+        .order_by(ExchangeRate.base_currency, ExchangeRate.rate_date)
+    )
+    try:
+        rows = session.exec(query).all()
+    except (ProgrammingError, OperationalError) as exc:
+        if not _is_missing_exchange_rates_table(exc):
+            raise
+        session.rollback()
+        logger.warning("Skipping FX snapshot because exchange_rates table is missing.")
+        rows = []
+    grouped: dict[str, list[FxRateLookup]] = {}
+    for base, date, rate, is_fallback in rows:
+        grouped.setdefault(base, []).append(FxRateLookup(rate, date, is_fallback))
+    return CachedFxRateSnapshot(
+        quote_currency=quote,
+        rates_by_base=MappingProxyType(
+            {
+                base: _CachedFxRateSeries(
+                    dates=tuple(row.effective_date for row in rates),
+                    rates=tuple(rates),
+                )
+                for base, rates in grouped.items()
+            }
+        ),
+    )
 
 
 @dataclass(slots=True)
@@ -414,6 +501,7 @@ def _convert_with_rate(
     target_date: dt.date,
     session: Session,
     quantizer: Callable[[Decimal], Decimal],
+    rate_lookup: RateLookup | None = None,
 ) -> FxConvertedAmount:
     normalized_target = normalize_currency_code(target_currency)
     normalized_base = normalize_currency_code(base_currency)
@@ -434,7 +522,7 @@ def _convert_with_rate(
             rate_fallback=False,
         )
 
-    lookup = lookup_rate(
+    lookup = (rate_lookup or lookup_rate)(
         session,
         base_currency=normalized_base,
         quote_currency=normalized_target,
@@ -465,6 +553,7 @@ def convert_amount(
     target_date: dt.date,
     session: Session,
     quantizer: Callable[[Decimal], Decimal],
+    rate_lookup: RateLookup | None = None,
 ) -> FxConvertedAmount:
     """Convert a money amount into target currency using historical FX."""
 
@@ -475,4 +564,5 @@ def convert_amount(
         target_date=target_date,
         session=session,
         quantizer=quantizer,
+        rate_lookup=rate_lookup,
     )

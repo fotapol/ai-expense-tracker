@@ -1,58 +1,20 @@
 # AI Expense Tracker
 
-AI Expense Tracker is a full-stack open-source application that turns receipt images
-into structured expense records using a Flutter mobile client, a FastAPI
-backend, an asynchronous worker, object storage, and a vision LLM pipeline.
+AI Expense Tracker is an open-source mobile app for recording expenses,
+digitizing receipts, and reviewing spending. It uses Flutter for the app and
+FastAPI and Google Gemini for receipt processing.
 
-The project combines applied AI engineering, backend architecture, mobile
-product development, security boundaries, and production operations in one
-coherent system.
+## Using the app
 
-## Problem Statement
-
-Personal expense tracking usually fails because manual entry is tedious and
-receipt data is messy. Receipts can contain inconsistent layouts, mixed
-languages, discounts, tax lines, item-level totals, and unclear category
-signals.
-
-This project solves that workflow by letting a user upload or scan a receipt,
-extracting structured data with AI, validating the result, classifying the
-expense, and saving normalized transactions for review and analytics.
-
-## Key Features
-
-### Product
-
-- Google/Firebase authentication.
-- Receipt upload and scan flow from the Flutter app.
-- Transaction, item, category, label, analytics, and planning screens.
-- Subscription entitlement plumbing through RevenueCat.
-- Account deletion and data export/import support.
-
-### Backend
-
-- FastAPI API with Pydantic/SQLModel validation.
-- PostgreSQL persistence with Alembic migrations.
-- Direct-to-object-storage receipt uploads through presigned URLs.
-- RabbitMQ-backed asynchronous receipt processing.
-- Redis-backed runtime support.
-- User ownership checks and protected API routes.
-
-### AI
-
-- Mobile document scanning and image preparation before upload.
-- Vision LLM receipt parsing through Google Gemini.
-- Structured output into typed backend schemas.
-- Merchant, date, currency, totals, tax, discount, and line-item extraction.
-- Category classification against the application's taxonomy.
-- Backend-computed validation warnings for mismatched totals.
-
-### Operations
-
-- Docker Compose for local development.
-- Production-oriented Kubernetes manifests.
-- Network policies, health checks, metrics, and backup/restore tooling.
-- GitHub Actions for backend, Flutter, image, dependency, and secret checks.
+- Scan or upload a receipt and review the extracted merchant, totals, and line
+  items. You can also add an expense manually.
+- Find receipts by merchant or item, sort them, and filter amounts in your
+  display currency. Organize expenses with categories and labels.
+- Compare possible duplicate receipts before deciding which records to keep.
+- Use Analytics to see spending by category and compare periods.
+- Use **Tools → Export Data** and **Tools → Import Data** to transfer expense
+  data using the app's JSON format. Exports from other apps, including Money
+  Manager `.mmbackup` files, require conversion before import.
 
 ## App Preview
 
@@ -62,7 +24,7 @@ expense, and saving normalized transactions for review and analytics.
   <img src="docs/assets/tools.png" alt="Financial toolkit" width="31%">
 </p>
 
-<p align="center"><em>Secure sign-in | Home overview | Financial toolkit</em></p>
+<p align="center"><em>Sign-in, home, and tools shown with sample data</em></p>
 
 ## Architecture
 
@@ -121,7 +83,7 @@ flowchart TD
 - Docker and Docker Compose
 - Python 3.11+
 - `uv`
-- Flutter stable
+- Flutter with Dart 3.12 or later in the 3.x release series
 - Firebase project for real authentication
 - Google AI API key for real receipt extraction
 
@@ -129,26 +91,31 @@ flowchart TD
 
 ```bash
 cp .env.example .env
+mkdir -p backend/.secrets
+```
+
+Before starting Compose, place your Firebase Admin service account file at
+`backend/.secrets/firebase_sa.json` and set `GOOGLE_API_KEY` in `.env` for receipt
+extraction. Use the same Firebase project for the backend and the mobile app.
+
+```bash
 docker compose up --build
 ```
 
 The local public site runs on `http://localhost:3000`.
-The backend API runs on `http://localhost:8000`.
+The backend API runs on `http://localhost:8000`, with interactive API docs at
+`http://localhost:8000/docs`.
 
 Run migrations manually when needed:
 
 ```bash
-docker exec -it fastapi uv run alembic upgrade head
+docker compose exec backend uv run alembic upgrade head
 ```
 
 ### Backend Without Docker
 
-```bash
-cd backend
-uv sync --frozen --all-groups
-uv run alembic upgrade head
-uv run uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
-```
+See the [backend guide](backend/README.md) for running the API locally while
+keeping its data services in Docker.
 
 ### Flutter App
 
@@ -158,8 +125,12 @@ flutter pub get
 flutter run --dart-define=API_BASE_URL=http://10.0.2.2:8000
 ```
 
-Use `10.0.2.2` for an Android emulator. For a physical phone, use your
-development machine's LAN IP.
+The example configuration uses `10.0.2.2` for the Android emulator. For a
+physical phone, pass your development machine's LAN IP in the `API_BASE_URL`
+build define. In `.env`, use the same IP for `PUBLIC_API_BASE_URL` and
+`S3_EXTERNAL_ENDPOINT`, add it to `TRUSTED_HOSTS`, and restart the Compose
+services. See the [Flutter setup guide](expense_tracker_app/README.md) for
+Firebase configuration.
 
 ## Environment Variables
 
@@ -195,7 +166,10 @@ Build the public site:
 docker build -f site/Dockerfile -t ai-expense-tracker-site:local .
 ```
 
-For production Compose, combine the base and production override:
+For a single host behind a reverse proxy, the production Compose override
+publishes ports on loopback. Use Docker Compose 2.24.4 or later and configure
+production credentials, public URLs, and trusted hosts in `.env` before
+starting the services.
 
 ```bash
 docker compose -f docker-compose.yaml -f docker-compose.prod.yaml up -d
@@ -258,23 +232,9 @@ gitleaks detect --source . --config .gitleaks.toml --redact --verbose
 
 More detail is available in [DESIGN.md](DESIGN.md).
 
-## AI Evaluation
+## Contributing and security
 
-It defines anonymized receipt fixtures, expected structured outputs, entity
-accuracy, numeric tolerances, classification metrics, and quality gates for
-future prompt/model changes.
-
-## Future Improvements
-
-- Add an automated offline evaluation runner for anonymized receipt fixtures.
-- Add provider abstraction for multiple vision LLMs.
-- Add prompt version tracking and regression reports.
-- Add more production hardening for multi-replica deployments.
-- Split the largest API/mobile modules once behavior is stable.
-- Add a public demo mode with synthetic data.
-
-## Security And License
-
-This project is released under the MIT license. See `LICENSE`.
-
-Security reporting and secret-handling guidance are in `SECURITY.md`.
+See [CONTRIBUTING.md](CONTRIBUTING.md) for development and pull request guidance
+and [SECURITY.md](SECURITY.md) for vulnerability reporting. The project is
+licensed under the [MIT License](LICENSE). See the
+[third-party notices](THIRD_PARTY_NOTICES.md) for dependency and asset licenses.

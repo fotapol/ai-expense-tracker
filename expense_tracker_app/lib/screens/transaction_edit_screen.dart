@@ -18,6 +18,7 @@ import '../l10n/app_localizations.dart';
 import '../main.dart';
 import 'receipt_item_edit_screen.dart';
 import 'receipt_photo_view_screen.dart';
+import 'duplicate_finder_screen.dart';
 import 'transaction_edit/transaction_edit_controller.dart';
 
 part 'transaction_edit/transaction_edit_screen_widgets.dart';
@@ -48,6 +49,43 @@ class _TransactionEditScreenState extends State<TransactionEditScreen> {
   Color get _successColor => ShellStyles.success(context);
 
   final TransactionEditController _controller = TransactionEditController();
+  bool _hasDuplicates = false;
+  int _duplicateRequest = 0;
+
+  Future<void> _loadDuplicates() async {
+    final id = _transactionId;
+    final request = ++_duplicateRequest;
+    if (id == null) return;
+    try {
+      final data = await ApiClient.listDuplicates(transactionId: id);
+      if (!mounted || request != _duplicateRequest) return;
+      setState(
+        () => _hasDuplicates = (data['items'] as List? ?? []).isNotEmpty,
+      );
+    } catch (_) {
+      // Optional review must not prevent opening or editing a transaction.
+      if (mounted && request == _duplicateRequest) {
+        setState(() => _hasDuplicates = false);
+      }
+    }
+  }
+
+  Future<void> _reviewDuplicates() async {
+    if (_hasLocalEdits) return;
+    final deletedIds = await Navigator.push<List<String>>(
+      context,
+      MaterialPageRoute(
+        builder: (_) => DuplicateFinderScreen(transactionId: _transactionId),
+      ),
+    );
+    if (!mounted) return;
+    if (deletedIds?.contains(_transactionId) == true) {
+      _hasLocalEdits = false;
+      Navigator.pop(context, true);
+    } else {
+      await _loadDuplicates();
+    }
+  }
 
   bool get _isLoading => _controller.isLoading;
   set _isLoading(bool value) => _controller.isLoading = value;
@@ -190,6 +228,7 @@ class _TransactionEditScreenState extends State<TransactionEditScreen> {
       });
 
       unawaited(_loadReceiptPreview());
+      unawaited(_loadDuplicates());
 
       if (effectiveItemsLanguage.isNotEmpty) {
         unawaited(
@@ -250,6 +289,7 @@ class _TransactionEditScreenState extends State<TransactionEditScreen> {
             content: Text(context.tr('transaction_created_successfully')),
           ),
         );
+        unawaited(_loadDuplicates());
         return;
       }
 
@@ -748,7 +788,7 @@ class _TransactionEditScreenState extends State<TransactionEditScreen> {
     } catch (e) {
       _showEditorError(
         e,
-        fallback: 'We could not update labels right now. Please try again.',
+        fallback: context.tr('transaction_labels_save_error'),
       );
     }
   }
@@ -814,15 +854,16 @@ class _TransactionEditScreenState extends State<TransactionEditScreen> {
     try {
       final created = await ApiClient.createLabel(name);
       final newId = created['id']?.toString();
-      if (newId == null || newId.isEmpty) return;
+      if (!mounted || newId == null || newId.isEmpty) return;
       setState(() {
         _controller.appendLabel(created);
       });
       await _toggleLabel(labelId: newId, selected: true);
     } catch (e) {
+      if (!mounted) return;
       _showEditorError(
         e,
-        fallback: 'We could not create that label right now. Please try again.',
+        fallback: context.tr('transaction_labels_save_error'),
       );
     }
   }
@@ -873,7 +914,7 @@ class _TransactionEditScreenState extends State<TransactionEditScreen> {
                         Navigator.pop(context);
                         await _createAndAssignLabel();
                       },
-                      icon: Icon(Icons.add),
+                      icon: Icon(AppIcons.plus),
                       label: Text(context.tr('common_new')),
                     ),
                   ],
@@ -1206,7 +1247,7 @@ class _TransactionEditScreenState extends State<TransactionEditScreen> {
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                Icon(Icons.error_outline, color: Colors.redAccent, size: 42),
+                Icon(AppIcons.circleAlert, color: Colors.redAccent, size: 42),
                 const SizedBox(height: 12),
                 Text(_error!, textAlign: TextAlign.center),
                 const SizedBox(height: 16),
@@ -1244,7 +1285,7 @@ class _TransactionEditScreenState extends State<TransactionEditScreen> {
           scrolledUnderElevation: 0,
           centerTitle: true,
           leading: IconButton(
-            icon: Icon(Icons.arrow_back_ios_new_rounded, color: _textColor),
+            icon: Icon(AppIcons.chevronLeft, color: _textColor),
             onPressed: _handleBackPressed,
           ),
           title: InkWell(
@@ -1271,7 +1312,7 @@ class _TransactionEditScreenState extends State<TransactionEditScreen> {
                   ),
                   if (_canEditTransaction) ...[
                     const SizedBox(width: 6),
-                    Icon(Icons.edit_outlined, size: 16, color: _mutedColor),
+                    Icon(AppIcons.pencil, size: 16, color: _mutedColor),
                   ],
                 ],
               ),
@@ -1306,7 +1347,7 @@ class _TransactionEditScreenState extends State<TransactionEditScreen> {
                           ),
                         ),
                       )
-                    : Icon(Icons.check_rounded, size: 20),
+                    : Icon(AppIcons.check, size: 20),
               ),
             ),
           ],
@@ -1324,6 +1365,27 @@ class _TransactionEditScreenState extends State<TransactionEditScreen> {
               const SizedBox(height: 10),
             ],
             _buildTopControlRow(),
+            if (_hasDuplicates) ...[
+              const SizedBox(height: 10),
+              Card(
+                child: Padding(
+                  padding: const EdgeInsets.all(12),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(context.tr('duplicates_banner')),
+                      if (_hasLocalEdits)
+                        Text(context.tr('duplicates_save_first')),
+                      TextButton.icon(
+                        onPressed: _hasLocalEdits ? null : _reviewDuplicates,
+                        icon: const Icon(AppIcons.copy),
+                        label: Text(context.tr('duplicates_review')),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ],
             if (hasWarnings) ...[
               const SizedBox(height: 10),
               _buildWarningsBanner(

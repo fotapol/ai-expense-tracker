@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:math' as math;
 
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/foundation.dart';
@@ -12,6 +13,8 @@ import '../core/redesign_system.dart';
 import '../core/revenuecat_service.dart';
 import '../core/session_invalidation.dart';
 import '../l10n/app_localizations.dart';
+import '../widgets/compact_text.dart';
+import '../widgets/text_measurement.dart';
 import 'main_screen.dart';
 
 class LoginScreen extends StatefulWidget {
@@ -112,59 +115,69 @@ class _LoginScreenState extends State<LoginScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final compactHeight = MediaQuery.sizeOf(context).height < 690;
     final bottomSafePadding = MediaQuery.viewPaddingOf(context).bottom;
+    final safePadding = MediaQuery.paddingOf(context);
+    final horizontalPadding =
+        20.0 + math.max(safePadding.left, safePadding.right);
 
     return Scaffold(
       backgroundColor: ShellStyles.background(context),
       body: SafeArea(
+        left: false,
+        right: false,
         bottom: false,
         child: LayoutBuilder(
           builder: (context, constraints) {
             return SingleChildScrollView(
               child: ConstrainedBox(
                 constraints: BoxConstraints(minHeight: constraints.maxHeight),
-                child: IntrinsicHeight(
-                  child: Padding(
-                    padding: EdgeInsets.fromLTRB(
-                      20,
-                      compactHeight ? 28 : 64,
-                      20,
-                      bottomSafePadding + 24,
-                    ),
-                    child: Column(
-                      children: [
-                        SizedBox(height: compactHeight ? 8 : 80),
-                        const _BrandLockup(),
-                        SizedBox(height: compactHeight ? 24 : 32),
-                        _SignInCard(
-                          isLoading: _isLoading,
-                          onSignIn: _isLoading ? null : _signInWithGoogle,
-                        ),
-                        if (_sessionNotice != null) ...[
-                          const SizedBox(height: 14),
-                          _LoginMessageCard(
-                            icon: Icons.info_outline,
-                            message: _sessionNotice!,
-                            tone: _LoginMessageTone.info,
+                child: Padding(
+                  padding: EdgeInsets.fromLTRB(
+                    horizontalPadding,
+                    24,
+                    horizontalPadding,
+                    bottomSafePadding + 24,
+                  ),
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      // Share the spare space above and below the sign-in group.
+                      const SizedBox.shrink(),
+                      Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          const _BrandLockup(),
+                          const SizedBox(height: 24),
+                          _SignInCard(
+                            isLoading: _isLoading,
+                            onSignIn: _isLoading ? null : _signInWithGoogle,
                           ),
+                          if (_sessionNotice != null) ...[
+                            const SizedBox(height: 14),
+                            _LoginMessageCard(
+                              icon: AppIcons.info,
+                              message: _sessionNotice!,
+                              tone: _LoginMessageTone.info,
+                            ),
+                          ],
+                          if (_errorMessage != null) ...[
+                            const SizedBox(height: 14),
+                            _LoginMessageCard(
+                              icon: AppIcons.circleAlert,
+                              message: _errorMessage!,
+                              tone: _LoginMessageTone.error,
+                            ),
+                          ],
                         ],
-                        if (_errorMessage != null) ...[
-                          const SizedBox(height: 14),
-                          _LoginMessageCard(
-                            icon: Icons.error_outline,
-                            message: _errorMessage!,
-                            tone: _LoginMessageTone.error,
-                          ),
-                        ],
-                        const Spacer(),
-                        SizedBox(height: compactHeight ? 42 : 88),
-                        _LegalFooter(
+                      ),
+                      Padding(
+                        padding: const EdgeInsets.only(top: 24),
+                        child: _LegalFooter(
                           onOpenTerms: _openTerms,
                           onOpenPrivacy: _openPrivacy,
                         ),
-                      ],
-                    ),
+                      ),
+                    ],
                   ),
                 ),
               ),
@@ -310,16 +323,6 @@ class _SignInCard extends StatelessWidget {
         ),
         child: Column(
           children: [
-            // Text(
-            //   // 'Get started',
-            //   style: TextStyle(
-            //     color: ShellStyles.textPrimary(context),
-            //     fontSize: 16,
-            //     fontWeight: FontWeight.w800,
-            //     letterSpacing: -0.1,
-            //   ),
-            // ),
-            const SizedBox(height: 12),
             _GoogleSignInButton(isLoading: isLoading, onPressed: onSignIn),
             const SizedBox(height: 18),
             _LoginBenefit(text: context.tr('login_benefit_1')),
@@ -341,10 +344,13 @@ class _GoogleSignInButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final foreground = ShellStyles.textPrimary(context);
+    final label = context.tr('login_continue_google');
+    final labelStyle = Theme.of(
+      context,
+    ).textTheme.labelLarge!.copyWith(fontSize: 15, fontWeight: FontWeight.w600);
 
     return SizedBox(
       width: double.infinity,
-      height: 50,
       child: OutlinedButton(
         onPressed: onPressed,
         style: OutlinedButton.styleFrom(
@@ -357,7 +363,9 @@ class _GoogleSignInButton extends StatelessWidget {
             borderRadius: BorderRadius.circular(10),
           ),
           elevation: 0,
-          textStyle: const TextStyle(fontSize: 15, fontWeight: FontWeight.w700),
+          minimumSize: const Size(0, 50),
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+          textStyle: labelStyle,
         ),
         child: AnimatedSwitcher(
           duration: const Duration(milliseconds: 180),
@@ -371,14 +379,37 @@ class _GoogleSignInButton extends StatelessWidget {
                     color: ShellStyles.accent(context),
                   ),
                 )
-              : Row(
+              : LayoutBuilder(
                   key: const ValueKey('login-google-label'),
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    const _GoogleLogo(),
-                    const SizedBox(width: 12),
-                    Text(context.tr('login_continue_google')),
-                  ],
+                  builder: (context, constraints) {
+                    final wordWidth = measureTextLayout(
+                      context,
+                      label,
+                      labelStyle,
+                    ).minWidth;
+                    final text = Text(label, textAlign: TextAlign.center);
+                    if (wordWidth + 31 <= constraints.maxWidth) {
+                      return Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          const _GoogleLogo(),
+                          const SizedBox(width: 12),
+                          Flexible(child: text),
+                        ],
+                      );
+                    }
+                    return Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        const _GoogleLogo(),
+                        const SizedBox(height: 8),
+                        if (wordWidth <= constraints.maxWidth)
+                          text
+                        else
+                          CompactText(label),
+                      ],
+                    );
+                  },
                 ),
         ),
       ),

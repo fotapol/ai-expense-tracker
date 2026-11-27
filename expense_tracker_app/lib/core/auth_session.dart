@@ -1,3 +1,4 @@
+import 'app_icons.dart';
 import 'package:flutter/material.dart';
 
 import '../l10n/app_localizations.dart';
@@ -127,7 +128,7 @@ class SessionRestoreLoadingScreen extends StatelessWidget {
                       ),
                     ),
                     child: const Icon(
-                      Icons.receipt_long_rounded,
+                      AppIcons.receiptText,
                       size: 36,
                       color: Color(0xFF200532),
                     ),

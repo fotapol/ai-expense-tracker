@@ -1,20 +1,101 @@
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/semantics.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 import '../core/data_transfer_actions.dart';
 import '../core/redesign_system.dart';
 import '../core/single_user_launch.dart';
 import '../l10n/app_localizations.dart';
+import '../widgets/surface_action.dart';
 import 'analytics_screen.dart';
 import 'bill_reminders_screen.dart';
 import 'budget_calculator_screen.dart';
 import 'categories_screen.dart';
+import 'duplicate_finder_screen.dart';
 import 'labels_screen.dart';
 import 'receipt_manager_screen.dart';
 import 'receipt_upload_screen.dart';
 
-class ToolsScreen extends StatelessWidget {
+class ToolsScreen extends StatefulWidget {
   const ToolsScreen({super.key});
+  @override
+  State<ToolsScreen> createState() => _ToolsScreenState();
+}
+
+class _ToolsScreenState extends State<ToolsScreen> {
+  static const _prefsKey = 'tools_pinned_ids_v1';
+  static const _pinHintDismissedKey = 'tools_pin_hint_dismissed';
+  List<String> _pins = ['scan', 'receipts', 'analytics'];
+  List<String> _savedPins = ['scan', 'receipts', 'analytics'];
+  bool _ready = false;
+  bool _showPinHint = false;
+  int _revision = 0;
+  Future<void> _writes = Future.value();
+
+  @override
+  void initState() {
+    super.initState();
+    _loadPins();
+  }
+
+  Future<void> _loadPins() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final pins = prefs.getStringList(_prefsKey);
+      if (!mounted) return;
+      setState(() {
+        if (pins != null) _pins = pins.toSet().toList();
+        _savedPins = List.of(_pins);
+        _showPinHint =
+            pins == null && prefs.getBool(_pinHintDismissedKey) != true;
+        _ready = true;
+      });
+    } catch (_) {
+      if (mounted) setState(() => _ready = true);
+    }
+  }
+
+  Future<void> _dismissPinHint() async {
+    if (!_showPinHint) return;
+    setState(() => _showPinHint = false);
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setBool(_pinHintDismissedKey, true);
+    } catch (_) {
+      // The hint stays dismissed for this session if preferences fail to save.
+    }
+  }
+
+  void _togglePin(String id) {
+    if (!_ready) return;
+    _dismissPinHint();
+    final revision = ++_revision;
+    setState(() {
+      _pins = List.of(_pins);
+      if (_pins.contains(id)) {
+        _pins.remove(id);
+      } else {
+        _pins.add(id);
+      }
+    });
+    final snapshot = List<String>.of(_pins);
+    // Serialize snapshots so a slower write cannot overwrite a newer order.
+    _writes = _writes.then((_) async {
+      try {
+        final prefs = await SharedPreferences.getInstance();
+        if (!await prefs.setStringList(_prefsKey, snapshot)) {
+          throw StateError('Tool preferences were not saved');
+        }
+        _savedPins = snapshot;
+      } catch (_) {
+        if (!mounted || revision != _revision) return;
+        setState(() => _pins = List.of(_savedPins));
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(context.tr('tools_pin_save_error'))),
+        );
+      }
+    });
+  }
 
   void _open(BuildContext context, Widget screen) {
     Navigator.push(context, MaterialPageRoute(builder: (_) => screen));
@@ -25,6 +106,102 @@ class ToolsScreen extends StatelessWidget {
     final horizontalPadding = ShellStyles.scaled(context, 12, min: 12, max: 16);
     final bottomPadding = MediaQuery.of(context).padding.bottom + 104;
 
+    final sections = <(String, List<_ToolTileData>)>[
+      (
+        context.tr('tools_core'),
+        [
+          _ToolTileData(
+            id: 'scan',
+            icon: AppIcons.scan,
+            title: context.tr('tools_scan_receipt'),
+            subtitle: context.tr('quick_scan_with_ai_review'),
+            onTap: () => _open(context, const ReceiptUploadScreen()),
+          ),
+          _ToolTileData(
+            id: 'receipts',
+            icon: AppIcons.receipt,
+            title: context.tr('tools_receipt_manager'),
+            subtitle: context.tr('tools_receipt_manager_subtitle'),
+            onTap: () => _open(context, const ReceiptManagerScreen()),
+          ),
+          _ToolTileData(
+            id: 'analytics',
+            icon: AppIcons.analyticsAlt,
+            title: context.tr('tools_analytics'),
+            subtitle: context.tr('tools_analytics_subtitle'),
+            onTap: () => _open(context, const AnalyticsScreen()),
+          ),
+          _ToolTileData(
+            id: 'duplicates',
+            icon: AppIcons.copy,
+            title: context.tr('duplicates_title'),
+            subtitle: context.tr('duplicates_subtitle'),
+            onTap: () => _open(context, const DuplicateFinderScreen()),
+          ),
+          _ToolTileData(
+            id: 'categories',
+            icon: AppIcons.category,
+            title: context.tr('tools_categories'),
+            subtitle: context.tr('tools_categories_subtitle'),
+            onTap: () => _open(context, const CategoriesScreen()),
+          ),
+          _ToolTileData(
+            id: 'labels',
+            icon: AppIcons.labels,
+            title: context.tr('settings_labels'),
+            subtitle: context.tr('settings_manage_labels'),
+            onTap: () => _open(context, const LabelsScreen()),
+          ),
+        ],
+      ),
+      (
+        context.tr('tools_planning'),
+        [
+          _ToolTileData(
+            id: 'budget',
+            icon: AppIcons.budget,
+            title: context.tr('tools_budget_calculator'),
+            subtitle: context.tr('tools_budget_calculator_subtitle'),
+            onTap: () => _open(context, const BudgetCalculatorScreen()),
+          ),
+          _ToolTileData(
+            id: 'reminders',
+            icon: AppIcons.notifications,
+            title: context.tr('tools_bill_reminders'),
+            subtitle: context.tr('tools_bill_reminders_subtitle'),
+            onTap: () => _open(context, const BillRemindersScreen()),
+          ),
+        ],
+      ),
+      if (launchEnableDataTransferTools)
+        (
+          context.tr('tools_data'),
+          [
+            _ToolTileData(
+              id: 'export',
+              icon: AppIcons.export,
+              title: context.tr('tools_export_data'),
+              subtitle: context.tr('tools_export_data_subtitle'),
+              onTap: () => DataTransferActions.exportData(context),
+            ),
+            _ToolTileData(
+              id: 'import',
+              icon: AppIcons.importData,
+              title: context.tr('tools_import_data'),
+              subtitle: context.tr('tools_import_data_subtitle'),
+              onTap: () => DataTransferActions.importData(context),
+            ),
+          ],
+        ),
+    ];
+    final tools = {
+      for (final section in sections)
+        for (final tile in section.$2) tile.id: tile,
+    };
+    final pinned = [
+      for (final id in _pins)
+        if (tools.containsKey(id)) tools[id]!,
+    ];
     return SafeArea(
       child: SingleChildScrollView(
         padding: EdgeInsets.fromLTRB(
@@ -44,139 +221,59 @@ class ToolsScreen extends StatelessWidget {
                 fontWeight: FontWeight.w800,
               ),
             ),
-            SizedBox(height: ShellStyles.scaled(context, 4, min: 3, max: 6)),
-            Text(
-              context.tr('tools_subtitle'),
-              style: TextStyle(
-                color: ShellStyles.textMuted(context),
-                fontSize: ShellStyles.scaled(context, 12.5, min: 12, max: 13.5),
-                height: 1.3,
+            const SizedBox(height: 16),
+            if (_showPinHint) ...[
+              Container(
+                padding: const EdgeInsetsDirectional.only(start: 12, end: 4),
+                decoration: ShellStyles.cardDecoration(context, radius: 16),
+                child: Row(
+                  children: [
+                    Icon(
+                      AppIcons.pin,
+                      color: ShellStyles.accentTone(context).foreground,
+                      size: 18,
+                    ),
+                    const SizedBox(width: 10),
+                    Expanded(
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(vertical: 10),
+                        child: Text(
+                          context.tr('tools_pin_hint'),
+                          style: Theme.of(context).textTheme.bodySmall,
+                        ),
+                      ),
+                    ),
+                    IconButton(
+                      tooltip: MaterialLocalizations.of(
+                        context,
+                      ).closeButtonTooltip,
+                      onPressed: _dismissPinHint,
+                      icon: const Icon(AppIcons.x, size: 18),
+                    ),
+                  ],
+                ),
               ),
-            ),
-            SizedBox(height: ShellStyles.scaled(context, 18, min: 14, max: 20)),
-            Row(
-              children: [
-                Icon(
-                  CupertinoIcons.pin_fill,
-                  size: ShellStyles.scaled(context, 12, min: 11, max: 13),
-                  color: ShellStyles.accentTone(context).base,
-                ),
-                const SizedBox(width: 6),
-                ShellStyles.sectionLabel(
-                  context,
-                  context.tr('tools_most_used'),
-                ),
-              ],
-            ),
-            SizedBox(height: ShellStyles.scaled(context, 10, min: 8, max: 12)),
-            Row(
-              children: [
-                Expanded(
-                  child: _buildShortcutCard(
-                    context,
-                    icon: AppIcons.scan,
-                    title: context.tr('tools_scan_receipt'),
-                    subtitle: context.tr('quick_scan_with_ai_review'),
-                    onTap: () => _open(context, const ReceiptUploadScreen()),
-                  ),
-                ),
-                SizedBox(width: ShellStyles.scaled(context, 8, min: 6, max: 10)),
-                Expanded(
-                  child: _buildShortcutCard(
-                    context,
-                    icon: AppIcons.analyticsAlt,
-                    title: context.tr('tools_analytics'),
-                    subtitle: context.tr('view_insights_and_trends'),
-                    onTap: () => _open(context, const AnalyticsScreen()),
-                  ),
-                ),
-                SizedBox(width: ShellStyles.scaled(context, 8, min: 6, max: 10)),
-                Expanded(
-                  child: _buildShortcutCard(
-                    context,
-                    icon: AppIcons.receipt,
-                    title: context.tr('tools_receipt_manager'),
-                    subtitle: context.tr('organize_your_receipts'),
-                    onTap: () => _open(context, const ReceiptManagerScreen()),
-                  ),
-                ),
-              ],
-            ),
-            SizedBox(height: ShellStyles.scaled(context, 22, min: 18, max: 26)),
-            ShellStyles.sectionLabel(context, context.tr('tools_all_tools')),
-            SizedBox(height: ShellStyles.scaled(context, 12, min: 10, max: 14)),
-            _buildToolSection(
-              context,
-              title: context.tr('tools_core'),
-              tiles: [
-                _ToolTileData(
-                  icon: AppIcons.receipt,
-                  title: context.tr('tools_receipt_manager'),
-                  subtitle: context.tr('tools_receipt_manager_subtitle'),
-                  onTap: () => _open(context, const ReceiptManagerScreen()),
-                ),
-                _ToolTileData(
-                  icon: AppIcons.analyticsAlt,
-                  title: context.tr('tools_analytics'),
-                  subtitle: context.tr('tools_analytics_subtitle'),
-                  onTap: () => _open(context, const AnalyticsScreen()),
-                ),
-                _ToolTileData(
-                  icon: AppIcons.category,
-                  title: context.tr('tools_categories'),
-                  subtitle: context.tr('tools_categories_subtitle'),
-                  onTap: () => _open(context, const CategoriesScreen()),
-                ),
-                _ToolTileData(
-                  icon: AppIcons.labels,
-                  title: context.tr('settings_labels'),
-                  subtitle: context.tr('settings_manage_labels'),
-                  onTap: () => _open(context, const LabelsScreen()),
-                ),
-              ],
-            ),
-            SizedBox(height: ShellStyles.scaled(context, 16, min: 14, max: 20)),
-            _buildToolSection(
-              context,
-              title: context.tr('tools_planning'),
-              tiles: [
-                _ToolTileData(
-                  icon: AppIcons.budget,
-                  title: context.tr('tools_budget_calculator'),
-                  subtitle: context.tr('tools_budget_calculator_subtitle'),
-                  onTap: () => _open(context, const BudgetCalculatorScreen()),
-                ),
-                _ToolTileData(
-                  icon: AppIcons.notifications,
-                  title: context.tr('tools_bill_reminders'),
-                  subtitle: context.tr('tools_bill_reminders_subtitle'),
-                  onTap: () => _open(context, const BillRemindersScreen()),
-                ),
-              ],
-            ),
-            if (launchEnableDataTransferTools) ...[
-              SizedBox(
-                height: ShellStyles.scaled(context, 16, min: 14, max: 20),
-              ),
+              const SizedBox(height: 12),
+            ],
+            if (pinned.isNotEmpty) ...[
               _buildToolSection(
                 context,
-                title: context.tr('tools_data'),
-                tiles: [
-                  _ToolTileData(
-                    icon: AppIcons.export,
-                    title: context.tr('tools_export_data'),
-                    subtitle: context.tr('tools_export_data_subtitle'),
-                    onTap: () => DataTransferActions.exportData(context),
-                  ),
-                  _ToolTileData(
-                    icon: AppIcons.importData,
-                    title: context.tr('tools_import_data'),
-                    subtitle: context.tr('tools_import_data_subtitle'),
-                    onTap: () => DataTransferActions.importData(context),
-                  ),
-                ],
+                title: context.tr('tools_pinned'),
+                tiles: pinned,
               ),
+              const SizedBox(height: 16),
             ],
+            for (final section in sections)
+              if (section.$2.any((tile) => !_pins.contains(tile.id))) ...[
+                _buildToolSection(
+                  context,
+                  title: section.$1,
+                  tiles: section.$2
+                      .where((tile) => !_pins.contains(tile.id))
+                      .toList(),
+                ),
+                const SizedBox(height: 16),
+              ],
           ],
         ),
       ),
@@ -192,8 +289,8 @@ class ToolsScreen extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Padding(
-          padding: EdgeInsets.only(
-            left: ShellStyles.scaled(context, 2, min: 0, max: 4),
+          padding: EdgeInsetsDirectional.only(
+            start: ShellStyles.scaled(context, 2, min: 0, max: 4),
             bottom: ShellStyles.scaled(context, 8, min: 6, max: 10),
           ),
           child: Text(
@@ -214,97 +311,20 @@ class ToolsScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildShortcutCard(
-    BuildContext context, {
-    required IconData icon,
-    required String title,
-    required String subtitle,
-    required VoidCallback onTap,
-  }) {
-    return InkWell(
-      borderRadius: BorderRadius.circular(
-        ShellStyles.scaled(context, 16, min: 14, max: 18),
-      ),
-      onTap: onTap,
-      child: Container(
-        height: ShellStyles.scaled(context, 120, min: 110, max: 130),
-        padding: EdgeInsets.all(
-          ShellStyles.scaled(context, 10, min: 9, max: 12),
-        ),
-        decoration: ShellStyles.cardDecoration(
-          context,
-          radius: ShellStyles.scaled(context, 16, min: 14, max: 18),
-          color: ShellStyles.surface(context),
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Container(
-              width: ShellStyles.scaled(context, 36, min: 32, max: 40),
-              height: ShellStyles.scaled(context, 36, min: 32, max: 40),
-              alignment: Alignment.center,
-              decoration: BoxDecoration(
-                color: ShellStyles.accentTone(context).base,
-                borderRadius: BorderRadius.circular(
-                  ShellStyles.scaled(context, 12, min: 10, max: 13),
-                ),
-              ),
-              child: Icon(
-                icon,
-                size: ShellStyles.scaled(context, 18, min: 16, max: 20),
-                color: ShellStyles.accentTone(context).onSolid,
-              ),
-            ),
-            SizedBox(height: ShellStyles.scaled(context, 12, min: 10, max: 14)),
-            Text(
-              title,
-              maxLines: 2,
-              overflow: TextOverflow.ellipsis,
-              style: TextStyle(
-                color: ShellStyles.textPrimary(context),
-                fontSize: ShellStyles.scaled(context, 12.5, min: 11, max: 13.5),
-                height: 1.15,
-                fontWeight: FontWeight.w700,
-              ),
-            ),
-            SizedBox(height: ShellStyles.scaled(context, 3, min: 2, max: 5)),
-            Text(
-              subtitle,
-              maxLines: 2,
-              overflow: TextOverflow.ellipsis,
-              style: TextStyle(
-                color: ShellStyles.textMuted(context),
-                fontSize: ShellStyles.scaled(
-                  context,
-                  10.5,
-                  min: 9.5,
-                  max: 11.5,
-                ),
-                height: 1.2,
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
   Widget _buildListTile(BuildContext context, _ToolTileData tile) {
-    return InkWell(
-      onTap: tile.onTap,
-      borderRadius: BorderRadius.circular(
-        ShellStyles.scaled(context, 18, min: 16, max: 20),
-      ),
-      child: Container(
-        decoration: ShellStyles.cardDecoration(
-          context,
-          radius: ShellStyles.scaled(context, 18, min: 16, max: 20),
-          color: ShellStyles.surface(context),
-        ),
-        padding: EdgeInsets.symmetric(
-          horizontal: ShellStyles.scaled(context, 14, min: 12, max: 16),
-          vertical: ShellStyles.scaled(context, 14, min: 12, max: 16),
-        ),
+    final pinned = _pins.contains(tile.id);
+    final pinLabel = context.tr(pinned ? 'tools_unpin' : 'tools_pin');
+    return Semantics(
+      customSemanticsActions: {
+        CustomSemanticsAction(label: pinLabel): () => _togglePin(tile.id),
+      },
+      child: SurfaceAction(
+        key: ValueKey('tool-${tile.id}'),
+        onTap: tile.onTap,
+        onLongPress: _ready ? () => _togglePin(tile.id) : null,
+        radius: 18,
+        highlighted: pinned,
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
         child: Row(
           children: [
             Container(
@@ -312,15 +332,21 @@ class ToolsScreen extends StatelessWidget {
               height: ShellStyles.scaled(context, 38, min: 34, max: 42),
               alignment: Alignment.center,
               decoration: BoxDecoration(
-                color: ShellStyles.accentTone(context).container,
+                color: pinned
+                    ? ShellStyles.accentTone(context).base
+                    : ShellStyles.accentTone(context).container,
                 borderRadius: BorderRadius.circular(
                   ShellStyles.scaled(context, 12, min: 10, max: 14),
                 ),
-                border: Border.all(color: ShellStyles.accentTone(context).border),
+                border: Border.all(
+                  color: ShellStyles.accentTone(context).border,
+                ),
               ),
               child: Icon(
                 tile.icon,
-                color: ShellStyles.accentTone(context).foreground,
+                color: pinned
+                    ? ShellStyles.accentTone(context).onSolid
+                    : ShellStyles.accentTone(context).foreground,
                 size: ShellStyles.scaled(context, 18, min: 16, max: 20),
               ),
             ),
@@ -331,8 +357,6 @@ class ToolsScreen extends StatelessWidget {
                 children: [
                   Text(
                     tile.title,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
                     style: TextStyle(
                       color: ShellStyles.textPrimary(context),
                       fontSize: ShellStyles.scaled(
@@ -349,8 +373,6 @@ class ToolsScreen extends StatelessWidget {
                   ),
                   Text(
                     tile.subtitle,
-                    maxLines: 2,
-                    overflow: TextOverflow.ellipsis,
                     style: TextStyle(
                       color: ShellStyles.textMuted(context),
                       fontSize: ShellStyles.scaled(
@@ -365,6 +387,18 @@ class ToolsScreen extends StatelessWidget {
                 ],
               ),
             ),
+            if (pinned) ...[
+              const SizedBox(width: 8),
+              Tooltip(
+                triggerMode: TooltipTriggerMode.manual,
+                message: pinLabel,
+                child: Icon(
+                  AppIcons.pin,
+                  size: 18,
+                  color: ShellStyles.accentTone(context).foreground,
+                ),
+              ),
+            ],
             SizedBox(width: ShellStyles.scaled(context, 10, min: 8, max: 12)),
             Icon(
               AppIcons.chevronRight,
@@ -380,12 +414,14 @@ class ToolsScreen extends StatelessWidget {
 
 class _ToolTileData {
   const _ToolTileData({
+    required this.id,
     required this.icon,
     required this.title,
     required this.subtitle,
     required this.onTap,
   });
 
+  final String id;
   final IconData icon;
   final String title;
   final String subtitle;

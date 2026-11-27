@@ -9,7 +9,7 @@ from typing import Any
 
 from fastapi import HTTPException, status
 from pydantic import TypeAdapter
-from sqlalchemy import or_
+from sqlalchemy import case, func, or_
 from sqlmodel import Session, select
 
 from app.models.labels.label import Label
@@ -39,7 +39,7 @@ from app.schemas.transactions import (
     TransactionRead,
     TransactionUserSnippetRead,
 )
-from app.services.fx_rates import convert_amount, resolve_conversion_date
+from app.services.fx_rates import RateLookup, convert_amount, resolve_conversion_date
 
 logger = logging.getLogger(__name__)
 
@@ -49,10 +49,12 @@ _warnings_adapter = TypeAdapter(list[ExtractionWarning])
 
 __all__ = [
     "_apply_display_conversion",
+    "_apply_transaction_search_filters",
     "_build_analytics_scope",
     "_build_category_filter_predicate",
     "_build_filtered_transaction_ids_query",
     "_build_item_scope_query",
+    "_build_needs_review_predicate",
     "_build_previous_period_filters",
     "_build_subcategory_filter_predicate",
     "_build_transaction_read",
@@ -643,6 +645,90 @@ def _resolve_subcategory_filter_ids(
     return valid_subcategory_ids
 
 
+def _build_needs_review_predicate():
+    warnings = ReceiptExtraction.structured_json["warnings"]
+    warning_count = case(
+        (func.jsonb_typeof(warnings) == "array", func.jsonb_array_length(warnings)),
+        else_=0,
+    )
+    return or_(
+        Transaction.status == "DRAFT",
+        select(ReceiptExtraction.id).where(
+            ReceiptExtraction.receipt_id == Transaction.receipt_id,
+            warning_count > 0,
+        ).exists(),
+    )
+
+
+def _apply_transaction_search_filters(
+    query, filters: TransactionListFilter, *, session=None, target_currency=None, rate_snapshot=None
+):
+    """Keep history and analytics search scopes identical, before pagination."""
+    if filters.min_amount is not None or filters.max_amount is not None:
+        if filters.currency is None:
+            raise HTTPException(
+                status_code=422, detail="Choose an original currency for amount filters."
+            )
+        if (
+            filters.min_amount is not None
+            and filters.max_amount is not None
+            and filters.min_amount > filters.max_amount
+        ):
+            raise HTTPException(
+                status_code=422, detail="Minimum amount must not exceed maximum amount."
+            )
+    if filters.min_amount is not None:
+        query = query.where(Transaction.amount_total >= filters.min_amount)
+    if filters.max_amount is not None:
+        query = query.where(Transaction.amount_total <= filters.max_amount)
+    if filters.min_display_amount is not None or filters.max_display_amount is not None:
+        from app.services.fx_rates import load_cached_rate_snapshot
+        from app.services.transactions.display_amount import displayed_amount_expression
+
+        if (
+            filters.min_display_amount is not None
+            and filters.max_display_amount is not None
+            and filters.min_display_amount > filters.max_display_amount
+        ):
+            raise HTTPException(
+                status_code=422, detail="Minimum amount must not exceed maximum amount."
+            )
+        snapshot = rate_snapshot or load_cached_rate_snapshot(session, quote_currency=target_currency)
+        amount = displayed_amount_expression(snapshot, target_currency)
+        if filters.min_display_amount is not None:
+            query = query.where(amount >= filters.min_display_amount)
+        if filters.max_display_amount is not None:
+            query = query.where(amount <= filters.max_display_amount)
+    search = (filters.search or "").strip()
+    if search:
+        # Search user text literally; '%' and '_' aren't wildcard controls.
+        escaped = search.replace("\\", "\\\\").replace("%", "\\%").replace("_", "\\_")
+        pattern = f"%{escaped}%"
+        item_match = (
+            select(TransactionItem.id)
+            .where(
+                TransactionItem.transaction_id == Transaction.id,
+                or_(
+                    *[
+                        column.ilike(pattern, escape="\\")
+                        for column in (
+                            TransactionItem.description,
+                            TransactionItem.raw_name,
+                            TransactionItem.translatable_name,
+                            TransactionItem.expanded_name,
+                            TransactionItem.normalized_display_name,
+                            TransactionItem.brand_name,
+                            TransactionItem.product_type,
+                        )
+                    ]
+                ),
+            )
+            .exists()
+        )
+        query = query.where(or_(Transaction.merchant_name.ilike(pattern, escape="\\"), item_match))
+    return query
+
+
 def _build_filtered_transaction_ids_query(
     *,
     session: Session,
@@ -698,8 +784,19 @@ def _build_filtered_transaction_ids_query(
         query = query.where(Transaction.source == filters.source)
     if filters.currency:
         query = query.where(Transaction.currency == filters.currency)
+    if filters.needs_review:
+        query = query.where(_build_needs_review_predicate())
 
-    return query
+    return _apply_transaction_search_filters(
+        query,
+        filters,
+        session=session,
+        target_currency=(
+            _resolve_target_currency(filters, current_user)
+            if filters.min_display_amount is not None or filters.max_display_amount is not None
+            else None
+        ),
+    )
 
 
 def _build_item_scope_query(
@@ -1086,6 +1183,7 @@ def _apply_display_conversion(
     read: TransactionRead,
     session: Session,
     target_currency: str,
+    rate_lookup: RateLookup | None = None,
 ) -> None:
     conversion_date = resolve_conversion_date(read.occurred_at, read.created_at)
     tx_converted = convert_amount(
@@ -1095,6 +1193,7 @@ def _apply_display_conversion(
         target_date=conversion_date,
         session=session,
         quantizer=quantize_amount,
+        rate_lookup=rate_lookup,
     )
 
     read.display_currency = tx_converted.currency
@@ -1110,6 +1209,7 @@ def _apply_display_conversion(
             target_date=conversion_date,
             session=session,
             quantizer=quantize_amount,
+            rate_lookup=rate_lookup,
         )
         unit_price_converted = convert_amount(
             amount=item.unit_price,
@@ -1118,6 +1218,7 @@ def _apply_display_conversion(
             target_date=conversion_date,
             session=session,
             quantizer=quantize_unit_price,
+            rate_lookup=rate_lookup,
         )
         item.display_amount = amount_converted.value
         item.display_unit_price = unit_price_converted.value

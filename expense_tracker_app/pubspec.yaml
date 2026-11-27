@@ -16,10 +16,10 @@ publish_to: 'none' # Remove this line if you wish to publish to pub.dev
 # https://developer.apple.com/library/archive/documentation/General/Reference/InfoPlistKeyReference/Articles/CoreFoundationKeys.html
 # In Windows, build-name is used as the major, minor, and patch parts
 # of the product and file versions while build-number is used as the build suffix.
-version: 1.0.0+1
+version: 1.1.0+2
 
 environment:
-  sdk: ^3.11.0
+  sdk: ^3.12.0
 
 # Dependencies specify other packages that your package needs in order to work.
 # To automatically upgrade your package dependencies to the latest versions
@@ -33,9 +33,6 @@ dependencies:
   flutter_localizations:
     sdk: flutter
 
-  # The following adds the Cupertino Icons font to your application.
-  # Use with the CupertinoIcons class for iOS style icons.
-  cupertino_icons: ^1.0.8
   firebase_core: ^4.14.0
   firebase_auth: ^6.2.0
   google_sign_in: ^7.2.0
@@ -46,11 +43,11 @@ dependencies:
   image: ^4.8.0
   intl: ^0.20.2
   fl_chart: ^1.1.1
-  shared_preferences: ^2.5.4
+  shared_preferences: ^2.5.6
   currency_picker: ^2.0.22
   purchases_flutter: ^10.3.0
   google_mlkit_translation: ^0.15.1
-  google_mlkit_language_id: ^0.13.1
+  google_mlkit_language_id: ^0.15.1
   file_picker: ^11.0.2
   share_plus: ^12.0.1
   path_provider: ^2.1.6
@@ -58,9 +55,10 @@ dependencies:
   url_launcher: ^6.3.2
   flutter_local_notifications: ^22.0.1
   flutter_timezone: ^5.1.0
-  timezone: ^0.11.0
+  timezone: ^0.11.2
   package_info_plus: ^9.0.1
-  flutter_dotenv: ^5.2.1
+  flutter_dotenv: ^6.0.1
+  lucide_icons_flutter: ^4.0.3
 
 dev_dependencies:
   firebase_auth_platform_interface: ^9.0.7
@@ -81,14 +79,13 @@ dev_dependencies:
 # The following section is specific to Flutter packages.
 flutter:
 
-  # The following line ensures that the Material Icons font is
-  # included with your application, so that you can use the icons in
-  # the material Icons class.
+  # Flutter's native controls still use Material glyphs. App-owned icons use Lucide.
   uses-material-design: true
 
   assets:
     - assets/brand/
     - assets/auth/
+    - assets/licenses/
 
   # An image asset can refer to one or more resolution-specific "variants", see
   # https://flutter.dev/to/resolution-aware-images

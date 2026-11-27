@@ -1,46 +1,14 @@
 # Deployment
 
-This repository now targets a single-VPS Kubernetes deployment with:
-
-- K3s as the chosen cluster bootstrap path
-- F5 NGINX Ingress Controller as the maintained NGINX-based edge layer
-- Cloudflare in front of the public site, API, and storage hostnames
-- PostgreSQL, Redis, RabbitMQ, MinIO, Prometheus, and Grafana running in-cluster
-
-## Cluster Bootstrap Decision
-
-### Compared Options
-
-1. `kubeadm`
-   - best when the primary goal is upstream Kubernetes learning and maximum control
-   - highest operator overhead on a single VPS
-   - more setup work for networking, addons, and upgrades
-
-2. `K3s`
-   - easiest day-2 path for a solo operator on one VPS
-   - still Kubernetes-native, so the repo manifests stay portable
-   - simple install, simple upgrades, and easy to disable the default Traefik ingress
-
-3. another distribution such as MicroK8s
-   - workable, but more opinionated packaging for this repo than necessary
-   - less attractive than K3s for this specific single-node, solo-operator setup
-
-### Chosen Path
-
-Choose `K3s`.
-
-Reason:
-
-- it fits the single-VPS reality best
-- it keeps the repo Kubernetes-native
-- it avoids locking the application manifests to a distro-specific layout
-- it keeps learning value without making cluster operations the hardest part of launch
+This guide deploys AI Expense Tracker to a single VPS with K3s, F5 NGINX
+Ingress Controller, and Cloudflare in front of the public hostnames. PostgreSQL,
+Redis, RabbitMQ, MinIO, Prometheus, and Grafana run inside the cluster.
 
 ## Required Open Ports
 
 - `22/tcp` for SSH
 - `80/tcp` optionally, if you want HTTP redirect / edge handling
-- `8443/tcp` for public HTTPS because `443` is already occupied on this VPS
+- `2053/tcp` for HTTPS connections from Cloudflare to the ingress controller
 - `6443/tcp` only if you need remote Kubernetes API access
   Restrict this to operator IPs or a VPN. Do not expose it broadly.
 
@@ -66,7 +34,7 @@ Edit `infra/k8s/addons/nginx-ingress-values.yaml` first:
 
 - replace `REPLACE_WITH_TRUSTED_PROXY_CIDRS` with Cloudflare IPv4 and IPv6 CIDRs
 - keep the ingress class as `nginx`
-- keep the committed `hostPort`, `containerPort`, and `defaultHTTPSListenerPort` values on `8443`
+- keep the committed `hostPort`, `containerPort`, and `defaultHTTPSListenerPort` values on `2053`
 - keep `client-max-body-size` at least as large as the backend receipt upload limit
 
 Install the controller:
@@ -92,21 +60,16 @@ Use:
 
 - SSL/TLS mode: `Full (strict)`
 - proxied orange-cloud DNS records
-- free-plan assumptions only
-- an Origin Rule for `example.com` that rewrites the destination port to
-  `8443`, so public users can open `https://example.com` without typing the
-  origin port
-- API public URL with the explicit alternate HTTPS port:
-  `https://api.example.com`
-- Storage public URL with the explicit alternate HTTPS port:
-  `https://storage.example.com`
+- an Origin Rule matching `example.com`, `api.example.com`, and
+  `storage.example.com` that sends requests to destination port `2053` while
+  preserving the public hostnames
+- API public URL `https://api.example.com`
+- Storage public URL `https://storage.example.com`
 - the public site URL you set in `PUBLIC_APP_BASE_URL`, for example
   `https://example.com`
 
-Cloudflare supports proxied HTTPS traffic on `8443`, and Origin Rules can route
-clean edge URLs on port `443` to a non-standard origin port. Keep API and
-storage presigned URLs on the explicit `:8443` host unless you deliberately add
-and test a Cloudflare Origin Rule for the clean storage hostname.
+Clients use the default HTTPS port `443`. Cloudflare connects to the ingress
+controller on `2053` using the matching Origin Rule.
 
 ### 5. Create The Origin TLS Secret
 
@@ -166,7 +129,7 @@ Copy `.env.production.example` to `.env.production` and fill:
 
 The image values must point to pullable registry images before you deploy.
 The render script rejects placeholder `ghcr.io/example/...` images and
-production app images tagged `:latest`. The current public site image value is:
+production app images tagged `:latest`. A site image can use a release tag.
 
 ```bash
 SITE_IMAGE=ghcr.io/your-github-org/ai-expense-tracker-site:prod-1
@@ -199,6 +162,10 @@ from MinIO, restores it into an ephemeral PostgreSQL data directory inside that
 job, prints the result, and deletes the job unless `KEEP_JOB=true` is set. It
 must not be pointed at production Postgres.
 
+Use fully qualified image names with a tag or digest for each of the three
+image variables. The API and worker share `BACKEND_IMAGE`. Confirm that the
+cluster can pull the configured images before rolling out.
+
 ### 8. Render Kubernetes Inputs
 
 ```bash
@@ -206,7 +173,7 @@ python infra/k8s/scripts/render_k8s_env.py --env-file .env.production
 ```
 
 `UVICORN_FORWARDED_ALLOW_IPS` must not be `*` in production. To discover the
-right value after deploying the diagnostics build, temporarily set:
+right value using proxy diagnostics, temporarily set:
 
 ```env
 PROXY_DIAGNOSTICS_ENABLED=true
@@ -223,22 +190,27 @@ kubectl -n expense-tracker logs deploy/expense-tracker-api --tail=200 | \
 ```
 
 Set `UVICORN_FORWARDED_ALLOW_IPS` to the observed F5 NGINX source IP or CIDR,
-set `PROXY_DIAGNOSTICS_ENABLED=false`, render again, and redeploy. The Host
-header should be `api.example.com` or `api.example.com`.
+set `PROXY_DIAGNOSTICS_ENABLED=false`, render again, and redeploy. Verify that
+the request retains the public host, such as `api.example.com`.
 
 ### 9. Run Database Migrations
 
-When `RUN_STARTUP_MIGRATIONS=false`, run the repo-defined migration job before
-the API rollout:
+When `RUN_STARTUP_MIGRATIONS=false`, run migrations using the new backend image
+before upgrading an existing deployment. Use the same image reference you set
+for `BACKEND_IMAGE`.
 
 ```bash
-bash scripts/run_k8s_migrations.sh
+MIGRATION_IMAGE=ghcr.io/your-github-org/ai-expense-tracker-backend:prod-1 \
+  bash scripts/run_k8s_migrations.sh
 ```
 
-The script creates a temporary Kubernetes `Job` from the currently deployed API
-image, injects the same generated ConfigMap/Secret, runs `alembic upgrade head`,
-waits for completion, and prints the migration logs. Do not point migration
-commands at a production database outside this namespace workflow.
+The script creates a Kubernetes Job that reads the API ConfigMap and Secret,
+runs `alembic upgrade head`, and prints the migration logs. If you omit
+`MIGRATION_IMAGE`, it uses the image from the current API deployment.
+
+For a new cluster, apply the overlay in the next step to create the required
+resources, wait for PostgreSQL to become ready, then run the migration job
+before verifying the API and worker.
 
 ### 10. Apply The Production Overlay
 
@@ -247,17 +219,20 @@ kubectl apply -k infra/k8s/overlays/production
 ```
 
 The production API, site, and storage routes use F5 NGINX `VirtualServer`
-resources with the `https-8443` listener. Do not reintroduce ordinary
+resources with the `https-2053` listener. Do not reintroduce ordinary
 Kubernetes `Ingress` objects for these public routes unless the custom HTTPS
 listener strategy is deliberately migrated.
 
 The F5 NGINX controller values pin the public HTTPS listener to:
 
-- `containerPort: 8443`
-- `hostPort: 8443`
-- `defaultHTTPSListenerPort: 8443`
+- `containerPort: 2053`
+- `hostPort: 2053`
+- `defaultHTTPSListenerPort: 2053`
 
-Do not change those listener values unless you also move the public HTTPS listener back off `8443`.
+Keep the controller values, the three `VirtualServer` listener references,
+and the Cloudflare Origin Rule in sync when changing the origin port.
+The controller reserves HTTP port `80`, so `GlobalConfiguration` declares
+only the custom HTTPS listener.
 
 ## Traffic Path
 
@@ -304,10 +279,10 @@ Verify presigned upload and download URLs from the app or backend.
 
 Do not expose the MinIO console publicly.
 
-The storage `VirtualServer` must preserve the original `Host` header, including
-`:8443`, when proxying presigned S3 requests to MinIO. S3 signatures include the
-request host, so removing the non-default port can cause direct receipt uploads
-to fail with a generic app upload error.
+The storage `VirtualServer` must preserve the public `Host` header when proxying
+presigned S3 requests to MinIO. S3 signatures include the request host. For
+`https://storage.example.com`, preserve `storage.example.com` without appending
+the origin port.
 
 The NGINX controller must also allow receipt bodies larger than the default
 upload ceiling. The committed controller values set `client-max-body-size` to
@@ -342,9 +317,8 @@ Expected launch state:
 - `prod-storage/receipts` has no automatic expiry lifecycle rule.
 - old database backup objects are pruned by the backup job after
   `POSTGRES_BACKUP_RETENTION_DAYS`, not by a bucket-wide receipt expiry rule.
-- `S3_EXTERNAL_ENDPOINT` remains the canonical public storage endpoint, for
-  example `https://storage.example.com`, unless a clean-host Cloudflare
-  Origin Rule has been deliberately added and tested.
+- `S3_EXTERNAL_ENDPOINT` is the canonical public storage endpoint, for example
+  `https://storage.example.com`, covered by the Cloudflare Origin Rule.
 
 ### Monitoring
 
@@ -394,8 +368,8 @@ The worker must show startup, RabbitMQ connection, and receipt job logs.
 
 ## Related Docs
 
-- `docs/ENVIRONMENT_VARIABLES.md`
-- `docs/MONITORING.md`
-- `docs/BACKUPS.md`
-- `docs/WEBHOOKS.md`
-- `docs/OPS_RUNBOOK.md`
+- [Environment variables](ENVIRONMENT_VARIABLES.md)
+- [Monitoring](MONITORING.md)
+- [Backups](BACKUPS.md)
+- [Webhooks](WEBHOOKS.md)
+- [Operations runbook](OPS_RUNBOOK.md)

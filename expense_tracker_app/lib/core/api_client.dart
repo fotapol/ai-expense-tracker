@@ -11,6 +11,7 @@ import 'session_invalidation.dart';
 
 part 'api_clients/billing_api_client.dart';
 part 'api_clients/data_transfer_api_client.dart';
+part 'api_clients/duplicates_api_client.dart';
 part 'api_clients/feature_requests_api_client.dart';
 part 'api_clients/item_translations_api_client.dart';
 part 'api_clients/labels_api_client.dart';
@@ -40,6 +41,26 @@ class ApiCategoryLimitException implements Exception {
 }
 
 class ApiClient {
+  static Future<Map<String, dynamic>> listDuplicates({
+    int page = 1,
+    String? transactionId,
+  }) => DuplicatesApiClient.list(page: page, transactionId: transactionId);
+
+  static Future<void> dismissDuplicate(String firstId, String secondId) =>
+      DuplicatesApiClient.dismiss(firstId, secondId);
+
+  static Future<Map<String, dynamic>> resolveDuplicate({
+    required String keepId,
+    required String discardId,
+    required String keepUpdatedAt,
+    required String discardUpdatedAt,
+  }) => DuplicatesApiClient.resolve(
+    keepId: keepId,
+    discardId: discardId,
+    keepUpdatedAt: keepUpdatedAt,
+    discardUpdatedAt: discardUpdatedAt,
+  );
+
   static const String apiBaseUrl = String.fromEnvironment(
     'API_BASE_URL',
     defaultValue: 'http://10.0.2.2:8000',
@@ -301,20 +322,40 @@ class ApiClient {
     DateTime? fromDate,
     DateTime? toDate,
     String? merchantNameSearch,
+    String? search,
+    String? minAmount,
+    String? maxAmount,
+    String? currency,
+    String? source,
+    String? status,
     List<String>? categoryIds,
     List<String>? subcategoryIds,
     List<String>? labelIds,
     String? labelId,
     String? targetCurrency,
+    int? page,
+    int pageSize = 200,
+    String sortBy = 'newest',
+    bool needsReview = false,
   }) => TransactionApiClient.listTransactions(
     fromDate: fromDate,
     toDate: toDate,
     merchantNameSearch: merchantNameSearch,
+    search: search,
+    minAmount: minAmount,
+    maxAmount: maxAmount,
+    currency: currency,
+    source: source,
+    status: status,
     categoryIds: categoryIds,
     subcategoryIds: subcategoryIds,
     labelIds: labelIds,
     labelId: labelId,
     targetCurrency: targetCurrency,
+    page: page,
+    pageSize: pageSize,
+    sortBy: sortBy,
+    needsReview: needsReview,
   );
 
   static Future<Map<String, dynamic>> getTransactionsSummary({

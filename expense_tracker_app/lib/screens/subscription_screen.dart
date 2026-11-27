@@ -11,7 +11,6 @@ import '../core/revenuecat_service.dart';
 import '../core/session_invalidation.dart';
 import '../core/subscription_confirmation.dart';
 import '../l10n/app_localizations.dart';
-import '../main.dart';
 import 'settings_detail_scaffold.dart';
 
 class SubscriptionScreen extends StatefulWidget {
@@ -660,7 +659,6 @@ class _SubscriptionScreenState extends State<SubscriptionScreen> {
   }
 
   Widget _buildActivePlanHero(BuildContext context) {
-    final uiScale = themeProvider.fontSizeFactor.clamp(0.75, 1.15).toDouble();
     final usageValue = _receiptScanUnlimited
         ? context.tr('billing_usage_unlimited')
         : context.tr(
@@ -674,7 +672,7 @@ class _SubscriptionScreenState extends State<SubscriptionScreen> {
     Widget metric({required String label, required String value}) {
       return Expanded(
         child: Container(
-          padding: EdgeInsets.all(14 * uiScale),
+          padding: EdgeInsets.all(14),
           decoration: BoxDecoration(
             color: ShellStyles.heroBadgeSurface(context),
             borderRadius: BorderRadius.circular(16),
@@ -687,17 +685,17 @@ class _SubscriptionScreenState extends State<SubscriptionScreen> {
                 label.toUpperCase(),
                 style: TextStyle(
                   color: ShellStyles.heroTextSecondary(context),
-                  fontSize: 10.5 * uiScale,
+                  fontSize: 10.5,
                   fontWeight: FontWeight.w700,
                   letterSpacing: 0.8,
                 ),
               ),
-              SizedBox(height: 6 * uiScale),
+              SizedBox(height: 6),
               Text(
                 value,
                 style: TextStyle(
                   color: ShellStyles.heroTextPrimary(context),
-                  fontSize: 16 * uiScale,
+                  fontSize: 16,
                   fontWeight: FontWeight.w800,
                 ),
               ),
@@ -708,7 +706,7 @@ class _SubscriptionScreenState extends State<SubscriptionScreen> {
     }
 
     return Container(
-      padding: EdgeInsets.all(20 * uiScale),
+      padding: EdgeInsets.all(20),
       decoration: ShellStyles.heroCardDecoration(
         context,
         radius: 24,
@@ -721,8 +719,8 @@ class _SubscriptionScreenState extends State<SubscriptionScreen> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Container(
-                width: 46 * uiScale,
-                height: 46 * uiScale,
+                width: 46,
+                height: 46,
                 alignment: Alignment.center,
                 decoration: BoxDecoration(
                   color: ShellStyles.heroBadgeSurface(context),
@@ -733,11 +731,10 @@ class _SubscriptionScreenState extends State<SubscriptionScreen> {
                 ),
                 child: CrownIcon(
                   color: ShellStyles.warningPremium(context),
-                  size: 24 * uiScale,
-                  strokeWidth: 1.8,
+                  size: 24,
                 ),
               ),
-              SizedBox(width: 14 * uiScale),
+              SizedBox(width: 14),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -746,16 +743,16 @@ class _SubscriptionScreenState extends State<SubscriptionScreen> {
                       _currentPlanTitle(context),
                       style: TextStyle(
                         color: ShellStyles.heroTextPrimary(context),
-                        fontSize: 20 * uiScale,
+                        fontSize: 20,
                         fontWeight: FontWeight.w800,
                       ),
                     ),
-                    SizedBox(height: 4 * uiScale),
+                    SizedBox(height: 4),
                     Text(
                       _currentPlanSubtitle(context),
                       style: TextStyle(
                         color: ShellStyles.heroTextSecondary(context),
-                        fontSize: 12.5 * uiScale,
+                        fontSize: 12.5,
                         height: 1.35,
                       ),
                     ),
@@ -763,10 +760,7 @@ class _SubscriptionScreenState extends State<SubscriptionScreen> {
                 ),
               ),
               Container(
-                padding: EdgeInsets.symmetric(
-                  horizontal: 10 * uiScale,
-                  vertical: 6 * uiScale,
-                ),
+                padding: EdgeInsets.symmetric(horizontal: 10, vertical: 6),
                 decoration: BoxDecoration(
                   color: ShellStyles.warningPremium(context).withAlpha(18),
                   borderRadius: BorderRadius.circular(999),
@@ -778,7 +772,7 @@ class _SubscriptionScreenState extends State<SubscriptionScreen> {
                   context.tr('billing_badge_active'),
                   style: TextStyle(
                     color: ShellStyles.warningPremium(context),
-                    fontSize: 10.5 * uiScale,
+                    fontSize: 10.5,
                     fontWeight: FontWeight.w800,
                     letterSpacing: 0.8,
                   ),
@@ -786,18 +780,18 @@ class _SubscriptionScreenState extends State<SubscriptionScreen> {
               ),
             ],
           ),
-          SizedBox(height: 18 * uiScale),
+          SizedBox(height: 18),
           Row(
             children: [
               metric(label: context.tr('receipt_scans'), value: usageValue),
-              SizedBox(width: 12 * uiScale),
+              SizedBox(width: 12),
               metric(label: context.tr('billing_date'), value: renewalValue),
             ],
           ),
-          SizedBox(height: 16 * uiScale),
+          SizedBox(height: 16),
           Container(
             width: double.infinity,
-            padding: EdgeInsets.all(16 * uiScale),
+            padding: EdgeInsets.all(16),
             decoration: BoxDecoration(
               color: ShellStyles.heroBadgeSurface(context),
               borderRadius: BorderRadius.circular(18),
@@ -810,33 +804,33 @@ class _SubscriptionScreenState extends State<SubscriptionScreen> {
                   context.tr('billing_included_with_premium'),
                   style: TextStyle(
                     color: ShellStyles.heroTextSecondary(context),
-                    fontSize: 11.5 * uiScale,
+                    fontSize: 11.5,
                     fontWeight: FontWeight.w700,
                     letterSpacing: 0.7,
                   ),
                 ),
-                SizedBox(height: 10 * uiScale),
+                SizedBox(height: 10),
                 ..._currentAccessLines().map((text) {
                   return Padding(
-                    padding: EdgeInsets.only(bottom: 8 * uiScale),
+                    padding: EdgeInsets.only(bottom: 8),
                     child: Row(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Padding(
-                          padding: EdgeInsets.only(top: 2 * uiScale),
+                          padding: EdgeInsets.only(top: 2),
                           child: Icon(
                             AppIcons.checkCircle,
                             color: ShellStyles.success(context),
-                            size: 16 * uiScale,
+                            size: 16,
                           ),
                         ),
-                        SizedBox(width: 8 * uiScale),
+                        SizedBox(width: 8),
                         Expanded(
                           child: Text(
                             text,
                             style: TextStyle(
                               color: ShellStyles.heroTextPrimary(context),
-                              fontSize: 13 * uiScale,
+                              fontSize: 13,
                               height: 1.35,
                             ),
                           ),
@@ -849,7 +843,7 @@ class _SubscriptionScreenState extends State<SubscriptionScreen> {
             ),
           ),
           if (_receiptScanResetAtUtc != null) ...[
-            SizedBox(height: 12 * uiScale),
+            SizedBox(height: 12),
             Text(
               context.tr(
                 'billing_resets_on',
@@ -861,25 +855,25 @@ class _SubscriptionScreenState extends State<SubscriptionScreen> {
               ),
               style: TextStyle(
                 color: ShellStyles.heroTextSecondary(context),
-                fontSize: 11.5 * uiScale,
+                fontSize: 11.5,
               ),
             ),
           ],
-          SizedBox(height: 8 * uiScale),
+          SizedBox(height: 8),
           Text(
             context.tr('billing_restore_sync_note'),
             style: TextStyle(
               color: ShellStyles.heroTextSecondary(context),
-              fontSize: 11.5 * uiScale,
+              fontSize: 11.5,
               height: 1.35,
             ),
           ),
-          SizedBox(height: 14 * uiScale),
+          SizedBox(height: 14),
           Align(
             alignment: Alignment.centerLeft,
             child: OutlinedButton.icon(
               onPressed: _openPlaySubscriptionManagement,
-              icon: const Icon(Icons.open_in_new, size: 18),
+              icon: const Icon(AppIcons.externalLink, size: 18),
               label: Text(context.tr('settings_manage_subscription')),
               style: OutlinedButton.styleFrom(
                 foregroundColor: ShellStyles.heroTextPrimary(context),
@@ -1318,7 +1312,7 @@ class _SubscriptionScreenState extends State<SubscriptionScreen> {
             onPressed: _isDevActionLoading
                 ? null
                 : () => _applyDevAction('revoke'),
-            child: const Text('Revoke'),
+            child: Text(context.tr('billing_dev_revoke')),
           ),
         ],
       ),
@@ -1427,9 +1421,6 @@ class _SubscriptionScreenState extends State<SubscriptionScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final detailTextScale = themeProvider.fontSizeFactor < 0.9
-        ? 0.9
-        : themeProvider.fontSizeFactor;
     return PopScope<bool>(
       canPop: false,
       onPopInvokedWithResult: (didPop, result) {
@@ -1446,12 +1437,7 @@ class _SubscriptionScreenState extends State<SubscriptionScreen> {
             icon: const Icon(AppIcons.refresh),
           ),
         ],
-        body: MediaQuery(
-          data: MediaQuery.of(
-            context,
-          ).copyWith(textScaler: TextScaler.linear(detailTextScale)),
-          child: _buildBody(),
-        ),
+        body: _buildBody(),
       ),
     );
   }

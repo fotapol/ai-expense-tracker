@@ -1,11 +1,12 @@
 """Transaction route handlers."""
 
+import datetime as dt
 import logging
 import uuid
 from decimal import Decimal
 from typing import Annotated, Any
 
-from fastapi import APIRouter, Depends, HTTPException, Request, status
+from fastapi import APIRouter, Depends, HTTPException, Request, Response, status
 from sqlalchemy import func
 from sqlmodel import Session, select
 
@@ -29,9 +30,13 @@ from app.schemas.transactions import (
     TransactionRead,
     TransactionUpdateRequest,
 )
+from app.services.fx_rates import load_cached_rate_snapshot
+from app.services.transactions.listing import list_transaction_page
 from app.services.transactions.read_models import (
     _apply_display_conversion,
+    _apply_transaction_search_filters,
     _build_category_filter_predicate,
+    _build_needs_review_predicate,
     _build_subcategory_filter_predicate,
     _build_transaction_read,
     _build_transaction_read_visibility_predicate,
@@ -189,11 +194,13 @@ async def create_transaction(
 @limiter.limit("60/minute")
 async def list_transactions(
     request: Request,
+    response: Response,
     filters: Annotated[TransactionListFilter, Depends()],
     session: Session = Depends(get_session),  # noqa: B008
     current_user: User = Depends(get_current_user),  # noqa: B008
 ):
     """List transactions for the current user."""
+    response.headers["Expense-Amount-Filter"] = "display-v1"
     target_currency = _resolve_target_currency(filters, current_user)
     query = select(Transaction).where(
         _build_transaction_read_visibility_predicate(session, current_user)
@@ -237,12 +244,26 @@ async def list_transactions(
         query = query.where(Transaction.source == filters.source)
     if filters.currency:
         query = query.where(Transaction.currency == filters.currency)
+    if filters.needs_review:
+        query = query.where(_build_needs_review_predicate())
 
-    # Apply pagination
-    query = query.order_by(Transaction.occurred_at.desc())
-    query = query.offset(filters.offset).limit(filters.page_size)
-
-    transactions = session.exec(query).all()
+    rate_snapshot = (
+        load_cached_rate_snapshot(session, quote_currency=target_currency)
+        if filters.sort_by in {"amount_asc", "amount_desc"}
+        or filters.min_display_amount is not None
+        or filters.max_display_amount is not None
+        else None
+    )
+    query = _apply_transaction_search_filters(
+        query, filters, session=session, target_currency=target_currency, rate_snapshot=rate_snapshot
+    )
+    transactions = list_transaction_page(
+        session=session,
+        query=query,
+        filters=filters,
+        target_currency=target_currency,
+        rate_lookup=rate_snapshot.lookup if rate_snapshot is not None else None,
+    )
 
     # We could optionally eagerly load or fetch items here, but a list view
     # typically doesn't need every internal item payload.
@@ -316,6 +337,7 @@ async def list_transactions(
                 read=read,
                 session=session,
                 target_currency=target_currency,
+                rate_lookup=rate_snapshot.lookup if rate_snapshot is not None else None,
             )
             results.append(read)
 
@@ -369,7 +391,7 @@ async def update_transaction(
         select(Transaction).where(
             Transaction.id == transaction_id,
             _build_transaction_write_visibility_predicate(session, current_user),
-        )
+        ).with_for_update()
     ).first()
 
     if transaction is None:
@@ -417,6 +439,8 @@ async def update_transaction(
     )
     for key, value in update_data.items():
         setattr(transaction, key, value)
+    # Version child edits too: a stale comparison must not remove edited items.
+    transaction.updated_at = dt.datetime.now(dt.UTC)
     _clear_extraction_warnings_after_user_confirmation(
         session,
         transaction=transaction,
@@ -546,7 +570,7 @@ async def delete_transaction_item(
         select(Transaction).where(
             Transaction.id == transaction_id,
             _build_transaction_write_visibility_predicate(session, current_user),
-        )
+        ).with_for_update()
     ).first()
     if transaction is None:
         raise HTTPException(
@@ -575,6 +599,7 @@ async def delete_transaction_item(
         )
     ).first()
     transaction.amount_total = quantize_amount(remaining_total or Decimal("0.00"))
+    transaction.updated_at = dt.datetime.now(dt.UTC)
     session.add(transaction)
     session.commit()
     return None

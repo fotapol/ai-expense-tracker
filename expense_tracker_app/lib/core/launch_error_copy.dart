@@ -17,6 +17,12 @@ String friendlyLaunchErrorMessage(
   }
 
   final normalized = raw.toLowerCase();
+  if (normalized.contains('display_amount_filter_requires_backend_update')) {
+    return AppLocalizations.lookup(
+      'error_backend_update_required',
+      languageCode: languageCode,
+    );
+  }
 
   if (normalized.contains('socketexception') ||
       normalized.contains('failed host lookup') ||

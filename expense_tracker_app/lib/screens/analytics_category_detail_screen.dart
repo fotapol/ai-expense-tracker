@@ -266,7 +266,7 @@ class _AnalyticsCategoryDetailScreenState
                           tone: tone,
                         ),
                         child: Icon(
-                          Icons.account_tree_outlined,
+                          AppIcons.network,
                           size: 18,
                           color: tone.foreground,
                         ),
@@ -314,7 +314,7 @@ class _AnalyticsCategoryDetailScreenState
                           ),
                           const SizedBox(height: 2),
                           Icon(
-                            Icons.chevron_right,
+                            AppIcons.chevronRight,
                             color: ShellStyles.textMuted(context),
                           ),
                         ],

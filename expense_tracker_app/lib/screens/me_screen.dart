@@ -168,8 +168,7 @@ class _MeScreenState extends State<MeScreen> {
         _billingCardReady = true;
         _billingError = friendlyLaunchErrorMessage(
           e,
-          fallback:
-              'Subscription details are unavailable right now. Please try again.',
+          fallback: context.tr('billing_load_error'),
         );
       });
     }
@@ -263,7 +262,7 @@ class _MeScreenState extends State<MeScreen> {
       setState(() {
         _error = friendlyLaunchErrorMessage(
           e,
-          fallback: 'Your settings could not load right now. Please try again.',
+          fallback: context.tr('profile_load_error'),
         );
         _isLoading = false;
       });
@@ -403,11 +402,7 @@ class _MeScreenState extends State<MeScreen> {
                       color: ShellColors.gold.withAlpha(18),
                       borderRadius: BorderRadius.circular(9),
                     ),
-                    child: const CrownIcon(
-                      color: ShellColors.gold,
-                      size: 16,
-                      strokeWidth: 1.6,
-                    ),
+                    child: const CrownIcon(color: ShellColors.gold, size: 16),
                   ),
                   title: context.tr('settings_subscription'),
                   subtitle: _subscriptionStatusSubtitle(),
@@ -424,7 +419,7 @@ class _MeScreenState extends State<MeScreen> {
                     const ProfileSettingsScreen(),
                     refreshProfile: true,
                     refreshBilling: true,
-                    successMessage: 'Profile updated.',
+                    successMessage: context.tr('settings_profile_saved'),
                   ),
                 ),
               ],
@@ -632,7 +627,6 @@ class _MeScreenState extends State<MeScreen> {
             child: CrownIcon(
               color: ShellStyles.warningPremium(context),
               size: 24,
-              strokeWidth: 1.8,
             ),
           ),
           const SizedBox(width: 14),

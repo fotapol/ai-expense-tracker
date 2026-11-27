@@ -65,8 +65,11 @@ pg_restore \
   backup.dump
 ```
 
-## Honest Limitations
+## Backup scope
 
-- backups stay in the same MinIO cluster unless the operator replicates that bucket elsewhere
-- this phase does not add PITR or WAL archiving
-- restore must still be run manually by the operator
+- The CronJob stores PostgreSQL dumps in MinIO on the same cluster. Keep a copy
+  outside that cluster to recover from loss of the VPS or its disks.
+- The dumps contain database records. Back up the receipt image bucket separately
+  if you need to recover receipt images as well.
+- This workflow supports restoring a specific dump. Point-in-time recovery
+  requires WAL archiving and a separate restore procedure.

@@ -18,7 +18,8 @@ COPY site/nginx/default.conf.template /etc/nginx/templates/default.conf.template
 COPY site/docker/40-render-site-config.sh /docker-entrypoint.d/40-render-site-config.sh
 COPY --from=builder /workspace/site/dist/ /usr/share/nginx/html/
 
-RUN chmod +x /docker-entrypoint.d/40-render-site-config.sh \
+RUN sed -i 's/\r$//' /docker-entrypoint.d/40-render-site-config.sh \
+    && chmod +x /docker-entrypoint.d/40-render-site-config.sh \
     && chown -R nginx:nginx /usr/share/nginx/html
 
 USER nginx

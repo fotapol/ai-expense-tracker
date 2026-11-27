@@ -1,3 +1,4 @@
+import 'package:expense_tracker_app/core/app_icons.dart';
 import 'package:expense_tracker_app/core/period_filter.dart';
 import 'package:expense_tracker_app/l10n/app_localizations.dart';
 import 'package:expense_tracker_app/widgets/filter_bottom_sheet.dart';
@@ -57,8 +58,23 @@ Future<void> openFilters(
   await tester.pumpAndSettle();
 }
 
+Future<void> choosePeriod(WidgetTester tester, String label) async {
+  final field = find.byWidgetPredicate(
+    (widget) =>
+        widget.key is ValueKey<String> &&
+        (widget.key! as ValueKey<String>).value.startsWith('receipt-period-'),
+  );
+  await tester.tap(field);
+  await tester.pumpAndSettle();
+  final option = find.widgetWithText(MenuItemButton, label);
+  await tester.ensureVisible(option);
+  await tester.pumpAndSettle();
+  await tester.tap(option);
+  await tester.pumpAndSettle();
+}
+
 Future<void> selectRange(WidgetTester tester, {bool singleDay = false}) async {
-  await tester.tap(find.text('Custom period'));
+  await choosePeriod(tester, 'Custom period');
   await tester.pumpAndSettle();
   expect(find.byType(DateRangePickerDialog), findsOneWidget);
   final dialog = tester.widget<DateRangePickerDialog>(
@@ -78,6 +94,7 @@ Future<void> selectRange(WidgetTester tester, {bool singleDay = false}) async {
 }
 
 void main() {
+  setUp(() => WidgetController.hitTestWarningShouldBeFatal = true);
   testWidgets('scoped clearing retains the selected custom period', (
     tester,
   ) async {
@@ -93,7 +110,7 @@ void main() {
       onResult: (value) => result = value,
     );
     await tester.scrollUntilVisible(
-      find.text('Clear scoped filters'),
+      find.text('Clear filters'),
       200,
       scrollable: find
           .descendant(
@@ -102,7 +119,7 @@ void main() {
           )
           .first,
     );
-    await tester.tap(find.text('Clear scoped filters'));
+    await tester.tap(find.text('Clear filters'));
     await tester.tap(find.text('Apply'));
     await tester.pumpAndSettle();
     expect(result?['period'], PeriodFilter.custom);
@@ -132,7 +149,7 @@ void main() {
       expect(find.text('Benutzerdefinierter Zeitraum'), findsOneWidget);
       expect(tester.takeException(), isNull);
       await tester.scrollUntilVisible(
-        find.byIcon(Icons.edit_calendar_outlined),
+        find.byIcon(AppIcons.calendarCog),
         200,
         scrollable: find
             .descendant(
@@ -141,7 +158,8 @@ void main() {
             )
             .first,
       );
-      await tester.tap(find.byIcon(Icons.edit_calendar_outlined));
+      await tester.pumpAndSettle();
+      await tester.tap(find.byIcon(AppIcons.calendarCog));
       await tester.pumpAndSettle();
       expect(find.byType(DateRangePickerDialog), findsOneWidget);
       expect(tester.takeException(), isNull);
@@ -180,7 +198,7 @@ void main() {
         period: PeriodFilter.thisMonth,
         onResult: (value) => result = value,
       );
-      await tester.tap(find.text('Custom period'));
+      await choosePeriod(tester, 'Custom period');
       await tester.pumpAndSettle();
       await tester.tap(find.byTooltip('Close'));
       await tester.pumpAndSettle();
@@ -224,7 +242,7 @@ void main() {
         range: range,
         onResult: (value) => result = value,
       );
-      await tester.tap(find.text('Custom period'));
+      await choosePeriod(tester, 'Custom period');
       await tester.pumpAndSettle();
       final dialog = tester.widget<DateRangePickerDialog>(
         find.byType(DateRangePickerDialog),
@@ -261,9 +279,9 @@ void main() {
       themeMode: ThemeMode.dark,
       onResult: (value) => result = value,
     );
-    await tester.tap(find.text('Last 7 Days'));
+    await choosePeriod(tester, 'Last 7 Days');
     await tester.pumpAndSettle();
-    expect(find.byIcon(Icons.edit_calendar_outlined), findsNothing);
+    expect(find.byIcon(AppIcons.calendarCog), findsNothing);
     await tester.tap(find.text('Apply'));
     await tester.pumpAndSettle();
     expect(result?['period'], PeriodFilter.last7Days);

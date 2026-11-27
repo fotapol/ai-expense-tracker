@@ -248,7 +248,8 @@ class _ReceiptItemEditScreenState extends State<ReceiptItemEditScreen> {
     }
   }
 
-  String _unitLabel(String unit) => unit == 'pc' ? 'pcs' : unit;
+  String _unitLabel(String unit) =>
+      unit == 'pc' ? context.tr('item_editor_pieces') : unit;
 
   String _formatMoney(String currency, double amount) {
     return formatMoney(currency, amount);
@@ -371,37 +372,6 @@ class _ReceiptItemEditScreenState extends State<ReceiptItemEditScreen> {
     return subcategories;
   }
 
-  List<String> _itemCategoryTags(String? categoryId) {
-    final category = _findCategoryById(categoryId);
-    if (category == null) return [context.tr('transaction_select_category')];
-
-    final childName = localizeCategoryByCode(
-      context,
-      code: category['code']?.toString(),
-      fallbackName: category['name']?.toString(),
-    ).trim();
-    if (childName.isEmpty) {
-      return [context.tr('transaction_select_category')];
-    }
-
-    final parentId = category['parent_id']?.toString();
-    if (parentId == null || parentId.isEmpty) {
-      return [childName];
-    }
-
-    final parent = _findCategoryById(parentId);
-    final parentName = localizeCategoryByCode(
-      context,
-      code: parent?['code']?.toString(),
-      fallbackName: parent?['name']?.toString(),
-    ).trim();
-    if (parentName.isEmpty) {
-      return [childName];
-    }
-
-    return [parentName, childName];
-  }
-
   Future<String?> _pickParentCategory(String? selectedParentId) {
     final topLevel = _topLevelItemCategories();
     if (topLevel.isEmpty) {
@@ -466,9 +436,7 @@ class _ReceiptItemEditScreenState extends State<ReceiptItemEditScreen> {
                             ),
                           ),
                           trailing: Icon(
-                            selected
-                                ? Icons.radio_button_checked
-                                : Icons.radio_button_off,
+                            selected ? AppIcons.circleDot : AppIcons.circle,
                             color: selected ? _accentColor : _mutedColor,
                           ),
                           onTap: () {
@@ -549,7 +517,7 @@ class _ReceiptItemEditScreenState extends State<ReceiptItemEditScreen> {
                 ),
               ),
               trailing: Icon(
-                selected ? Icons.radio_button_checked : Icons.radio_button_off,
+                selected ? AppIcons.circleDot : AppIcons.circle,
                 color: selected ? _accentColor : _mutedColor,
               ),
               onTap: () => Navigator.pop(context, categoryId),
@@ -795,15 +763,13 @@ class _ReceiptItemEditScreenState extends State<ReceiptItemEditScreen> {
     final discountAmount = _actualDiscountAmount();
     final computedUnitPrice = _computedUnitPrice();
     final hasDiscount = _discountEnabled && discountAmount > 0;
-    final categoryTags = _itemCategoryTags(_selectedCategoryId);
-    final categoryValue = categoryTags.join(' | ');
     final currentCategory = _findCategoryById(_selectedCategoryId);
     final parentId = currentCategory?['parent_id']?.toString();
     final topLevelCategory = parentId == null || parentId.isEmpty
         ? currentCategory
         : _findCategoryById(parentId);
     final subcategoryValue = parentId == null || parentId.isEmpty
-        ? 'Select subcategory'
+        ? context.tr('item_editor_choose_subcategory')
         : _localizedCategoryName(currentCategory!);
 
     return Scaffold(
@@ -823,13 +789,15 @@ class _ReceiptItemEditScreenState extends State<ReceiptItemEditScreen> {
                   TextButton(
                     onPressed: () => Navigator.pop(context),
                     child: Text(
-                      'Cancel',
+                      context.tr('common_cancel'),
                       style: TextStyle(color: _mutedColor, fontSize: 16),
                     ),
                   ),
                   Expanded(
                     child: Text(
-                      widget.isNew ? 'New Item' : 'Edit Item',
+                      context.tr(
+                        widget.isNew ? 'item_editor_new' : 'item_editor_edit',
+                      ),
                       textAlign: TextAlign.center,
                       style: TextStyle(
                         color: _textColor,
@@ -842,7 +810,7 @@ class _ReceiptItemEditScreenState extends State<ReceiptItemEditScreen> {
                     onPressed: widget.canEdit ? _save : null,
                     tooltip: context.tr('common_save'),
                     icon: Icon(
-                      Icons.check_rounded,
+                      AppIcons.check,
                       color: widget.canEdit ? _accentColor : _mutedColor,
                       size: 22,
                     ),
@@ -862,7 +830,9 @@ class _ReceiptItemEditScreenState extends State<ReceiptItemEditScreen> {
                   Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      _sectionTitle('ITEM NAME, QUANTITY'),
+                      _sectionTitle(
+                        context.tr('transaction_item').toUpperCase(),
+                      ),
                       const SizedBox(height: 12),
                       Container(
                         decoration: _cardDecoration(),
@@ -917,7 +887,7 @@ class _ReceiptItemEditScreenState extends State<ReceiptItemEditScreen> {
                                         isExpanded: true,
                                         dropdownColor: _surfaceColor,
                                         icon: Icon(
-                                          Icons.keyboard_arrow_down_rounded,
+                                          AppIcons.chevronDown,
                                           color: _textColor,
                                         ),
                                         style: TextStyle(
@@ -954,7 +924,9 @@ class _ReceiptItemEditScreenState extends State<ReceiptItemEditScreen> {
                   Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      _sectionTitle('PRICE'),
+                      _sectionTitle(
+                        context.tr('item_editor_price').toUpperCase(),
+                      ),
                       const SizedBox(height: 12),
                       Container(
                         decoration: _cardDecoration(),
@@ -974,30 +946,41 @@ class _ReceiptItemEditScreenState extends State<ReceiptItemEditScreen> {
                             ),
                             const SizedBox(height: 10),
                             Text(
-                              _discountEnabled
-                                  ? 'Price before discount'
-                                  : 'Price',
+                              context.tr(
+                                _discountEnabled
+                                    ? 'item_editor_before_discount'
+                                    : 'item_editor_price',
+                              ),
                               style: TextStyle(
                                 color: _mutedColor,
                                 fontSize: 13,
                                 fontWeight: FontWeight.w600,
                               ),
                             ),
-                            const SizedBox(height: 10),
-                            Text(
-                              widget.displayCurrency.toUpperCase() ==
-                                      widget.sourceCurrency.toUpperCase()
-                                  ? 'Matches the receipt currency.'
-                                  : 'Converted: ${_formatMoney(widget.displayCurrency, displayAmount)}',
-                              style: TextStyle(
-                                color: _mutedColor,
-                                fontSize: 13,
+                            if (widget.displayCurrency.toUpperCase() !=
+                                widget.sourceCurrency.toUpperCase()) ...[
+                              const SizedBox(height: 10),
+                              Text(
+                                context.tr(
+                                  'item_editor_converted_price',
+                                  params: {
+                                    'amount': _formatMoney(
+                                      widget.displayCurrency,
+                                      displayAmount,
+                                    ),
+                                  },
+                                ),
+                                style: TextStyle(
+                                  color: _mutedColor,
+                                  fontSize: 13,
+                                ),
                               ),
-                            ),
+                            ],
                             if (computedUnitPrice != null) ...[
                               const SizedBox(height: 12),
                               Text(
-                                'About ${_formatMoney(widget.sourceCurrency, computedUnitPrice)} per ${_unitLabel(_unit)}',
+                                '${context.tr('duplicates_unit_price')}: '
+                                '${_formatMoney(widget.sourceCurrency, computedUnitPrice)} / ${_unitLabel(_unit)}',
                                 style: TextStyle(
                                   color: _mutedColor,
                                   fontSize: 13,
@@ -1009,7 +992,7 @@ class _ReceiptItemEditScreenState extends State<ReceiptItemEditScreen> {
                               children: [
                                 Expanded(
                                   child: Text(
-                                    'Discount',
+                                    context.tr('duplicates_discount'),
                                     style: TextStyle(
                                       color: _textColor,
                                       fontSize: 15,
@@ -1107,9 +1090,11 @@ class _ReceiptItemEditScreenState extends State<ReceiptItemEditScreen> {
                               ),
                               const SizedBox(height: 10),
                               Text(
-                                _discountMode == _discountModePercent
-                                    ? 'Enter the percent taken off this line item.'
-                                    : 'Enter the discount amount taken off this line item.',
+                                context.tr(
+                                  _discountMode == _discountModePercent
+                                      ? 'item_editor_discount_percent'
+                                      : 'item_editor_discount_amount',
+                                ),
                                 style: TextStyle(
                                   color: _mutedColor,
                                   fontSize: 13,
@@ -1129,7 +1114,7 @@ class _ReceiptItemEditScreenState extends State<ReceiptItemEditScreen> {
                               ),
                               const SizedBox(height: 10),
                               Text(
-                                'Final price',
+                                context.tr('item_editor_final_price'),
                                 style: TextStyle(
                                   color: _mutedColor,
                                   fontSize: 13,
@@ -1140,7 +1125,8 @@ class _ReceiptItemEditScreenState extends State<ReceiptItemEditScreen> {
                             if (hasDiscount) ...[
                               const SizedBox(height: 14),
                               Text(
-                                'Original price: ${_formatMoney(widget.sourceCurrency, originalAmount)}',
+                                '${context.tr('item_editor_before_discount')}: '
+                                '${_formatMoney(widget.sourceCurrency, originalAmount)}',
                                 style: TextStyle(
                                   color: _textColor,
                                   fontSize: 13,
@@ -1150,7 +1136,10 @@ class _ReceiptItemEditScreenState extends State<ReceiptItemEditScreen> {
                               ),
                               const SizedBox(height: 6),
                               Text(
-                                'Discount: ${_formatMoney(widget.sourceCurrency, discountAmount)}. Final price: ${_formatMoney(widget.sourceCurrency, finalAmount)}.',
+                                '${context.tr('duplicates_discount')}: '
+                                '${_formatMoney(widget.sourceCurrency, discountAmount)}\n'
+                                '${context.tr('item_editor_final_price')}: '
+                                '${_formatMoney(widget.sourceCurrency, finalAmount)}',
                                 style: TextStyle(
                                   color: _mutedColor,
                                   fontSize: 13,
@@ -1189,7 +1178,9 @@ class _ReceiptItemEditScreenState extends State<ReceiptItemEditScreen> {
                   Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      _sectionTitle('CATEGORY'),
+                      _sectionTitle(
+                        context.tr('filters_category').toUpperCase(),
+                      ),
                       const SizedBox(height: 12),
                       Container(
                         decoration: _cardDecoration(),
@@ -1197,7 +1188,7 @@ class _ReceiptItemEditScreenState extends State<ReceiptItemEditScreen> {
                         child: Column(
                           children: [
                             _pickerField(
-                              label: 'Category',
+                              label: context.tr('filters_category'),
                               value: topLevelCategory == null
                                   ? context.tr('transaction_select_category')
                                   : _localizedCategoryName(topLevelCategory),
@@ -1207,10 +1198,8 @@ class _ReceiptItemEditScreenState extends State<ReceiptItemEditScreen> {
                             ),
                             const SizedBox(height: 12),
                             _pickerField(
-                              label: 'Subcategory',
-                              value: parentId == null || parentId.isEmpty
-                                  ? categoryValue
-                                  : subcategoryValue,
+                              label: context.tr('filters_subcategory'),
+                              value: subcategoryValue,
                               onTap: widget.canEdit
                                   ? _showCategoryPicker
                                   : null,

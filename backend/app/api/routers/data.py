@@ -367,6 +367,7 @@ async def import_data(
             )
 
             if existing_tx:
+                existing_tx.updated_at = dt.datetime.now(dt.UTC)
                 existing_tx.merchant_name = actual_merchant_name
                 existing_tx.occurred_at = tx_data.occurred_at
                 existing_tx.amount_total = tx_data.amount_total
