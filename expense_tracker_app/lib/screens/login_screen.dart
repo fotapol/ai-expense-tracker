@@ -130,7 +130,10 @@ class _LoginScreenState extends State<LoginScreen> {
           builder: (context, constraints) {
             return SingleChildScrollView(
               child: ConstrainedBox(
-                constraints: BoxConstraints(minHeight: constraints.maxHeight),
+                constraints: BoxConstraints(
+                  minWidth: constraints.maxWidth,
+                  minHeight: constraints.maxHeight,
+                ),
                 child: Padding(
                   padding: EdgeInsets.fromLTRB(
                     horizontalPadding,
@@ -139,43 +142,34 @@ class _LoginScreenState extends State<LoginScreen> {
                     bottomSafePadding + 24,
                   ),
                   child: Column(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      // Share the spare space above and below the sign-in group.
-                      const SizedBox.shrink(),
-                      Column(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          const _BrandLockup(),
-                          const SizedBox(height: 24),
-                          _SignInCard(
-                            isLoading: _isLoading,
-                            onSignIn: _isLoading ? null : _signInWithGoogle,
-                          ),
-                          if (_sessionNotice != null) ...[
-                            const SizedBox(height: 14),
-                            _LoginMessageCard(
-                              icon: AppIcons.info,
-                              message: _sessionNotice!,
-                              tone: _LoginMessageTone.info,
-                            ),
-                          ],
-                          if (_errorMessage != null) ...[
-                            const SizedBox(height: 14),
-                            _LoginMessageCard(
-                              icon: AppIcons.circleAlert,
-                              message: _errorMessage!,
-                              tone: _LoginMessageTone.error,
-                            ),
-                          ],
-                        ],
+                      const _BrandLockup(),
+                      const SizedBox(height: 24),
+                      _SignInCard(
+                        isLoading: _isLoading,
+                        onSignIn: _isLoading ? null : _signInWithGoogle,
                       ),
-                      Padding(
-                        padding: const EdgeInsets.only(top: 24),
-                        child: _LegalFooter(
-                          onOpenTerms: _openTerms,
-                          onOpenPrivacy: _openPrivacy,
+                      if (_sessionNotice != null) ...[
+                        const SizedBox(height: 14),
+                        _LoginMessageCard(
+                          icon: AppIcons.info,
+                          message: _sessionNotice!,
+                          tone: _LoginMessageTone.info,
                         ),
+                      ],
+                      if (_errorMessage != null) ...[
+                        const SizedBox(height: 14),
+                        _LoginMessageCard(
+                          icon: AppIcons.circleAlert,
+                          message: _errorMessage!,
+                          tone: _LoginMessageTone.error,
+                        ),
+                      ],
+                      const SizedBox(height: 16),
+                      _LegalFooter(
+                        onOpenTerms: _openTerms,
+                        onOpenPrivacy: _openPrivacy,
                       ),
                     ],
                   ),
@@ -524,6 +518,7 @@ class _LegalFooter extends StatelessWidget {
     return ConstrainedBox(
       constraints: const BoxConstraints(maxWidth: 338),
       child: Wrap(
+        spacing: 2,
         alignment: WrapAlignment.center,
         crossAxisAlignment: WrapCrossAlignment.center,
         children: [

@@ -40,6 +40,29 @@ void main() {
     expect(tester.takeException(), isNull);
   });
 
+  testWidgets('terms links stay close to the sign-in card on a tall screen', (
+    tester,
+  ) async {
+    fixture.phone(tester);
+    tester.view.physicalSize = const Size(390, 960);
+    await tester.pumpWidget(fixture.app(const LoginScreen()));
+    await tester.pumpAndSettle();
+
+    final strings = AppLocalizations(const Locale('en'));
+    final benefit = find.text(strings.tr('login_benefit_3'));
+    final terms = find.text(strings.tr('login_legal_prefix'));
+    final gap = tester.getTopLeft(terms).dy - tester.getBottomLeft(benefit).dy;
+    expect(gap, inInclusiveRange(16, 55));
+
+    for (final width in [390.0, 768.0]) {
+      tester.view.physicalSize = Size(width, 960);
+      await tester.pumpAndSettle();
+      final button = tester.getRect(find.byType(OutlinedButton));
+      expect(button.center.dx, closeTo(width / 2, .01));
+    }
+    expect(tester.takeException(), isNull);
+  });
+
   for (final locale in [
     const Locale('en'),
     const Locale('de'),
