@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:math' as math;
 
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/foundation.dart';
@@ -114,14 +115,16 @@ class _LoginScreenState extends State<LoginScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final compactHeight =
-        MediaQuery.sizeOf(context).height < 690 ||
-        MediaQuery.textScalerOf(context).scale(14) > 18;
     final bottomSafePadding = MediaQuery.viewPaddingOf(context).bottom;
+    final safePadding = MediaQuery.paddingOf(context);
+    final horizontalPadding =
+        20.0 + math.max(safePadding.left, safePadding.right);
 
     return Scaffold(
       backgroundColor: ShellStyles.background(context),
       body: SafeArea(
+        left: false,
+        right: false,
         bottom: false,
         child: LayoutBuilder(
           builder: (context, constraints) {
@@ -130,19 +133,21 @@ class _LoginScreenState extends State<LoginScreen> {
                 constraints: BoxConstraints(minHeight: constraints.maxHeight),
                 child: Padding(
                   padding: EdgeInsets.fromLTRB(
-                    20,
-                    compactHeight ? 36 : 144,
-                    20,
+                    horizontalPadding,
+                    24,
+                    horizontalPadding,
                     bottomSafePadding + 24,
                   ),
                   child: Column(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
+                      // Share the spare space above and below the sign-in group.
+                      const SizedBox.shrink(),
                       Column(
                         mainAxisSize: MainAxisSize.min,
                         children: [
                           const _BrandLockup(),
-                          SizedBox(height: compactHeight ? 24 : 32),
+                          const SizedBox(height: 24),
                           _SignInCard(
                             isLoading: _isLoading,
                             onSignIn: _isLoading ? null : _signInWithGoogle,
@@ -166,7 +171,7 @@ class _LoginScreenState extends State<LoginScreen> {
                         ],
                       ),
                       Padding(
-                        padding: EdgeInsets.only(top: compactHeight ? 32 : 72),
+                        padding: const EdgeInsets.only(top: 24),
                         child: _LegalFooter(
                           onOpenTerms: _openTerms,
                           onOpenPrivacy: _openPrivacy,

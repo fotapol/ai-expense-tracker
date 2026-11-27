@@ -818,6 +818,8 @@ void main() {
           tester.view.physicalSize = const Size(390, 844);
 
           await show(const LoginScreen(), 'readme-login');
+          final previewPrefs = await SharedPreferences.getInstance();
+          await previewPrefs.setBool('tools_pin_hint_dismissed', true);
           await http.runWithClient(
             () async {
               selectRootTab(0);
@@ -827,19 +829,55 @@ void main() {
               selectRootTab(0);
             },
             () => MockClient((request) async {
+              const breakdown = {
+                'FOOD': 624,
+                'ENTERTAINMENT': 40,
+                'PERSONAL_CARE': 22,
+              };
+              if (request.url.path == '/v1/me') {
+                return http.Response(
+                  '{"default_currency":"EUR","profile":{"display_name":"Sample Shopper"}}',
+                  200,
+                );
+              }
+              if (request.url.path.endsWith('/summary')) {
+                return http.Response(
+                  jsonEncode({
+                    'currency': 'EUR',
+                    'total_amount': 686,
+                    'breakdown': [
+                      for (final entry in breakdown.entries)
+                        {
+                          'code': entry.key,
+                          'amount': entry.value,
+                          'percentage': 100 * entry.value / 686,
+                        },
+                    ],
+                  }),
+                  200,
+                );
+              }
               if (request.url.path == '/v1/transactions') {
                 final occurredAt = DateTime.now().toUtc().toIso8601String();
                 return http.Response(
                   jsonEncode([
-                    for (final id in ['one', 'two', 'three'])
-                      {...tx(id), 'occurred_at': occurredAt},
+                    for (final entry in breakdown.entries)
+                      {
+                        ...tx(entry.key),
+                        'occurred_at': occurredAt,
+                        'category_code': entry.key,
+                        'amount_total': entry.value,
+                        'display_amount_total': entry.value,
+                        'currency': 'EUR',
+                      },
                   ]),
                   200,
                 );
               }
-              return homeSpendingResponse(request);
+              return response(request);
             }),
           );
+          await previewPrefs.remove('tools_pin_hint_dismissed');
 
           await show(const Scaffold(body: ReceiptsTab()), 'history-100');
           await show(

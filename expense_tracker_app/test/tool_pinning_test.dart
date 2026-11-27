@@ -24,6 +24,20 @@ void main() {
     await themeProvider.load();
   });
 
+  testWidgets('pin guidance does not return after dismissal', (tester) async {
+    await showTools(tester);
+    final hint = find.text('Hold a tool to pin or unpin it.');
+    expect(hint, findsOneWidget);
+    await tester.tap(find.byIcon(AppIcons.x));
+    await tester.pumpAndSettle();
+    expect(hint, findsNothing);
+
+    await tester.pumpWidget(const SizedBox.shrink());
+    await tester.pumpWidget(fixture.app(const Scaffold(body: ToolsScreen())));
+    await tester.pumpAndSettle();
+    expect(hint, findsNothing);
+  });
+
   testWidgets('long press pins once, unpins, and remembers pin order', (
     tester,
   ) async {
