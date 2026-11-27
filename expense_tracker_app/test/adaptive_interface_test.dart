@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'dart:io';
 import 'dart:ui' as ui;
 
+import 'package:expense_tracker_app/core/app_navigation.dart';
 import 'package:expense_tracker_app/core/duplicate_comparison.dart';
 import 'package:expense_tracker_app/core/interface_scale.dart';
 import 'package:expense_tracker_app/core/money_formatter.dart';
@@ -16,6 +17,7 @@ import 'package:expense_tracker_app/screens/duplicate_finder_screen.dart';
 import 'package:expense_tracker_app/screens/receipts_tab.dart';
 import 'package:expense_tracker_app/screens/home_tab.dart';
 import 'package:expense_tracker_app/screens/login_screen.dart';
+import 'package:expense_tracker_app/screens/main_screen.dart';
 import 'package:expense_tracker_app/screens/tools_screen.dart';
 import 'package:expense_tracker_app/screens/analytics_screen.dart';
 import 'package:expense_tracker_app/screens/analytics_trends_tab.dart';
@@ -814,6 +816,30 @@ void main() {
             () => MockClient((request) async => homeSpendingResponse(request)),
           );
           tester.view.physicalSize = const Size(390, 844);
+
+          await show(const LoginScreen(), 'readme-login');
+          await http.runWithClient(
+            () async {
+              selectRootTab(0);
+              await show(const MainScreen(), 'readme-home');
+              selectRootTab(1);
+              await show(const MainScreen(), 'readme-tools');
+              selectRootTab(0);
+            },
+            () => MockClient((request) async {
+              if (request.url.path == '/v1/transactions') {
+                final occurredAt = DateTime.now().toUtc().toIso8601String();
+                return http.Response(
+                  jsonEncode([
+                    for (final id in ['one', 'two', 'three'])
+                      {...tx(id), 'occurred_at': occurredAt},
+                  ]),
+                  200,
+                );
+              }
+              return homeSpendingResponse(request);
+            }),
+          );
 
           await show(const Scaffold(body: ReceiptsTab()), 'history-100');
           await show(

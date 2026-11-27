@@ -49,8 +49,7 @@ AI Expense Tracker keeps the layout minimal and finance-focused. Large surfaces 
 - Monochrome alternative for users who want a calmer interface.
 - Selected controls still have clear active styling, but the palette stays grayscale.
 - Category and label themed colors are remapped to black, white, and gray slots.
-- Category charts and trend charts use a true grayscale palette with more separation than the previous repeated ramp.
-- Neutral must feel designed, not like color was disabled.
+- Category charts and trend charts use distinct grayscale tones.
 
 ### Purple
 - Keeps the same layout and information hierarchy as Mix and Neutral.
@@ -125,7 +124,7 @@ AI Expense Tracker keeps the layout minimal and finance-focused. Large surfaces 
 - Future multi-series charts should keep using the ordered trend palette from the same semantic source.
 
 ### Neutral chart rules
-- Neutral charts use true grayscale slots with stronger separation than the old 6-step ramp.
+- Neutral charts use the shared grayscale palette.
 - Do not repeat nearly identical shades when there are enough slots available.
 - Donut, bar, and category micro-chart states must remain readable in both light and dark mode.
 
@@ -181,7 +180,16 @@ AI Expense Tracker keeps the layout minimal and finance-focused. Large surfaces 
 - `expense_tracker_app/lib/core/redesign_system.dart`
   - Shared context-based accessors for semantic tones and hero styling
 
-## Guardrails For Future Work
+## Layout and accessibility
+
+- Let translated labels wrap at word boundaries and let cards grow with their
+  content.
+- Use the available width and effective text size to decide when controls or
+  amounts need a separate row.
+- Preserve system font scaling and bold text. Preview layouts on narrow screens
+  with long translations, large text, and right-to-left direction.
+
+## Extending the design system
 - Do not add new accent themes unless they can be meaningfully applied across semantic colors, charts, and selected controls.
 - Do not add widget-local category or label color maps.
 - Do not reintroduce grayscale hashing for category charts.

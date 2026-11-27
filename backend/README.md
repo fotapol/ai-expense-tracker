@@ -18,20 +18,25 @@ surface consumed by the Flutter app and receipt worker.
 
 ## Local Setup
 
-From the repository root:
+Follow the [root setup instructions](../README.md#local-backend-and-services)
+to run the full stack. To run the API directly on your machine, start its
+dependencies from the repository root.
 
 ```bash
-cp .env.example .env
-docker compose up --build
+docker compose up -d postgres redis rabbitmq minio
 ```
 
-Direct backend workflow:
+In `.env`, use `127.0.0.1` for `POSTGRES_HOST`, `REDIS_HOST`, and
+`RABBITMQ_HOST`, set `S3_ENDPOINT=http://127.0.0.1:9000`, and set
+`FIREBASE_SERVICE_ACCOUNT_PATH` to the absolute path of your local Firebase
+Admin JSON file. Use the Compose service hostnames if you switch back to running
+the API in Docker.
 
 ```bash
 cd backend
 uv sync --frozen --all-groups
-uv run alembic upgrade head
-uv run uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
+uv run --env-file ../.env alembic upgrade head
+uv run --env-file ../.env uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
 ```
 
 ## Testing
@@ -57,7 +62,7 @@ Use `.env.example` for local development and
 [docs/ENVIRONMENT_VARIABLES.md](../docs/ENVIRONMENT_VARIABLES.md) for the full
 reference. Never commit real environment files.
 
-## Security Notes
+## Service behavior
 
 - Protected routes require Firebase authentication.
 - Receipt and transaction reads are scoped to the current user.

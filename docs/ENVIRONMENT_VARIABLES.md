@@ -8,7 +8,8 @@ For Kubernetes, the operator workflow is:
 1. Copy `.env.production.example` to `.env.production`.
 2. Fill real values.
 3. Run `python infra/k8s/scripts/render_k8s_env.py --env-file .env.production`.
-4. Run `bash scripts/run_k8s_migrations.sh` when `RUN_STARTUP_MIGRATIONS=false`.
+4. Follow the [migration procedure](DEPLOYMENT.md#9-run-database-migrations)
+   when `RUN_STARTUP_MIGRATIONS=false`.
 5. Apply `kubectl apply -k infra/k8s/overlays/production`.
 
 The render script writes:
@@ -17,9 +18,14 @@ The render script writes:
 - `infra/k8s/overlays/production/generated/secret.env`
 - `infra/k8s/overlays/production/generated/postgres-backup-schedule-patch.yaml`
 - `infra/k8s/overlays/production/generated/prometheus.yml`
-- `infra/k8s/overlays/production/generated/image-overrides-patch.yaml`
+- `infra/k8s/overlays/production/generated/api-image-patch.yaml`
+- `infra/k8s/overlays/production/generated/worker-image-patch.yaml`
+- `infra/k8s/overlays/production/generated/site-image-patch.yaml`
+- `infra/k8s/overlays/production/generated/postgres-backup-image-patch.yaml`
 
-Those generated files are the only inputs the production Kustomize overlay uses for `ConfigMap` and `Secret` generation.
+The generated `config.env` and `secret.env` supply the production ConfigMap
+and Secret. The YAML files configure the backup schedule, Prometheus, and
+workload images.
 
 ## Core App And Routing
 
@@ -147,7 +153,7 @@ These values are part of the overall operator-facing config. They are used by th
 | `APP_TERMS_URL` | External terms-of-service link shown in the app. | Optional | `https://example.com/terms` | Set this to your real hosted terms page before publishing mobile builds. The bundled static site does not generate a terms page. | No |
 | `APP_DELETE_ACCOUNT_URL` | Account-deletion instruction link shown in app/legal surfaces. | Required for production mobile builds | `http://localhost:3000/delete-account` | Production Android builds require `https://example.com/delete-account`. If omitted in production rendering, it falls back to `APP_WEBSITE_URL + /delete-account`. | No |
 | `APP_PLAY_SUBSCRIPTIONS_URL` | Google Play subscription management link opened for active Android subscribers. | Optional | `https://play.google.com/store/account/subscriptions?package=com.nexavend.expense_tracker_app` | Override only if the package-specific Play management URL changes. | No |
-| `APP_GITHUB_URL` | Repository/support code link shown in the app. | Optional | `https://github.com/expense-tracker/ai-expense-tracker` | Adjust if the public repo URL changes. | No |
+| `APP_GITHUB_URL` | Repository URL for client configuration. | Optional | `https://github.com/fotapol/ai-expense-tracker` | Set this to your repository URL if you maintain a fork. | No |
 | `APP_SUPPORT_EMAIL` | Support email displayed in the app and rendered into the public site support CTA. | Optional | `support@example.com` | Use the real operator support mailbox. | No |
 | `APP_SUPPORT_SUBJECT` | Default support email subject for mailto links. | Optional | `Expense Tracker Support` | Keep human-friendly. | No |
 | `SITE_APP_STORE_URL` | Optional App Store button target on the public site. | Optional | blank | When blank, the App Store button is hidden. | No |
