@@ -1,44 +1,41 @@
-# Production Docker Compose Override
-# Usage:
-#   docker compose -f docker-compose.yaml -f docker-compose.prod.yaml up -d
-#
-# This file restricts infrastructure ports to 127.0.0.1 to avoid exposing 
-# them to the public internet, and sets APP_ENV to production.
+# Production Compose override for a host with a reverse proxy.
+# Compose 2.24.4 or later is required for !override.
 
 services:
   site:
     environment:
       APP_ENV: production
-    ports:
+    ports: !override
       - "127.0.0.1:3000:8080"
 
   backend:
     environment:
       APP_ENV: production
-    # Backend SHOULD be exposed publically (e.g. through a reverse proxy)
-    # The default exposes it to 0.0.0.0:8000 which might be fine locally
-    # but in production, we bind it to 127.0.0.1:8000 to be proxied.
-    ports:
+    command: ["/app/.venv/bin/python", "-m", "uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000"]
+    volumes: !override
+      - ./backend/.secrets/firebase_sa.json:/run/secrets/firebase_sa.json:ro
+    ports: !override
       - "127.0.0.1:8000:8000"
 
   worker:
     environment:
       APP_ENV: production
+    command: ["/app/.venv/bin/python", "-m", "app.worker.receipt_processor"]
+    volumes: !override
+      - ./backend/.secrets/firebase_sa.json:/run/secrets/firebase_sa.json:ro
 
   postgres:
-    ports:
+    ports: !override
       - "127.0.0.1:5432:5432"
 
   redis:
-    ports:
+    ports: !override
       - "127.0.0.1:6379:6379"
 
   minio:
-    ports:
+    ports: !override
       - "127.0.0.1:9000:9000"
-      # Exclude the web console port entirely (9001)
 
   rabbitmq:
-    ports:
+    ports: !override
       - "127.0.0.1:5672:5672"
-      # Exclude the management UI port entirely (15672)

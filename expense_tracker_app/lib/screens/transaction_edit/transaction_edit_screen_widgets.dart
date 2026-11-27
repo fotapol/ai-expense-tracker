@@ -283,12 +283,11 @@ extension _TransactionEditScreenWidgets on _TransactionEditScreenState {
   }
 
   String _labelsSummaryText(List<dynamic> selectedLabels) {
-    if (selectedLabels.isEmpty) return 'Add labels';
     final names = selectedLabels
         .map((raw) => (raw as Map<String, dynamic>)['name']?.toString() ?? '')
         .where((name) => name.trim().isNotEmpty)
         .toList();
-    if (names.isEmpty) return 'Add labels';
+    if (names.isEmpty) return context.tr('transaction_select_labels');
     if (names.length <= 2) return names.join(', ');
     return '${names.take(2).join(', ')} +${names.length - 2}';
   }

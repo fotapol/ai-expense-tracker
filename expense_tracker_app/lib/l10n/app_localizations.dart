@@ -70,6 +70,29 @@ class AppLocalizations {
 
   static const Map<String, Map<String, String>> _translations = {
     'en': {
+      'item_editor_choose_subcategory': 'Select subcategory',
+      'item_editor_new': 'New item',
+      'item_editor_edit': 'Edit item',
+      'item_editor_price': 'Price',
+      'item_editor_before_discount': 'Price before discount',
+      'item_editor_converted_price': 'Converted price: {amount}',
+      'item_editor_discount_percent': 'Enter the discount percentage.',
+      'item_editor_discount_amount': 'Enter the discount amount.',
+      'item_editor_final_price': 'Final price',
+      'item_editor_pieces': 'pcs',
+      'transaction_labels_save_error':
+          'Could not save labels. Please try again.',
+      'billing_dev_revoke': 'Revoke access',
+      'legal_last_updated': 'Last updated: {date}',
+      'about_licenses_subtitle': 'Open-source notices',
+      'about_licenses_full': 'View all license notices',
+      'about_release_receipts_and_tools': 'Receipts and tools',
+      'about_release_receipt_filters':
+          'Search, sort, and filter receipts by amount in your display currency.',
+      'about_release_duplicate_review':
+          'Compare duplicate receipts side by side and choose which to keep.',
+      'about_release_tools_and_text':
+          'Pin your favorite tools and use layouts that adapt to larger text.',
       'duplicates_discount': 'Discount',
       'tools_pin_save_error': 'Could not save pinned tools. Please try again.',
       'tools_pin_hint': 'Hold a tool to pin or unpin it.',
@@ -1392,6 +1415,29 @@ class AppLocalizations {
       'delete_reminder_name_confirm': 'Delete "{name}"?',
     },
     'de': {
+      'item_editor_choose_subcategory': 'Unterkategorie auswählen',
+      'item_editor_new': 'Neuer Artikel',
+      'item_editor_edit': 'Artikel bearbeiten',
+      'item_editor_price': 'Preis',
+      'item_editor_before_discount': 'Preis vor Rabatt',
+      'item_editor_converted_price': 'Umgerechneter Preis: {amount}',
+      'item_editor_discount_percent': 'Rabatt in Prozent eingeben.',
+      'item_editor_discount_amount': 'Rabattbetrag eingeben.',
+      'item_editor_final_price': 'Endpreis',
+      'item_editor_pieces': 'Stk.',
+      'transaction_labels_save_error':
+          'Etiketten konnten nicht gespeichert werden. Bitte versuche es erneut.',
+      'billing_dev_revoke': 'Zugriff entziehen',
+      'legal_last_updated': 'Zuletzt aktualisiert: {date}',
+      'about_licenses_subtitle': 'Open-Source-Hinweise',
+      'about_licenses_full': 'Alle Lizenzhinweise anzeigen',
+      'about_release_receipts_and_tools': 'Belege und Werkzeuge',
+      'about_release_receipt_filters':
+          'Suche und sortiere Belege und filtere sie nach Betrag in deiner Anzeigewährung.',
+      'about_release_duplicate_review':
+          'Vergleiche doppelte Belege nebeneinander und wähle aus, welche du behalten möchtest.',
+      'about_release_tools_and_text':
+          'Hefte deine Lieblingswerkzeuge an und nutze Ansichten, die sich an größere Schrift anpassen.',
       'duplicates_discount': 'Rabatt',
       'tools_pin_save_error':
           'Angeheftete Werkzeuge konnten nicht gespeichert werden. Bitte erneut versuchen.',
@@ -2781,6 +2827,29 @@ class AppLocalizations {
       'delete_reminder_name_confirm': '„{name}“ löschen?',
     },
     'fr': {
+      'item_editor_choose_subcategory': 'Choisir une sous-catégorie',
+      'item_editor_new': 'Nouvel article',
+      'item_editor_edit': 'Modifier l’article',
+      'item_editor_price': 'Prix',
+      'item_editor_before_discount': 'Prix avant remise',
+      'item_editor_converted_price': 'Prix converti : {amount}',
+      'item_editor_discount_percent': 'Saisissez le pourcentage de remise.',
+      'item_editor_discount_amount': 'Saisissez le montant de la remise.',
+      'item_editor_final_price': 'Prix final',
+      'item_editor_pieces': 'pièces',
+      'transaction_labels_save_error':
+          'Impossible d’enregistrer les étiquettes. Réessayez.',
+      'billing_dev_revoke': 'Révoquer l’accès',
+      'legal_last_updated': 'Dernière mise à jour : {date}',
+      'about_licenses_subtitle': 'Mentions open source',
+      'about_licenses_full': 'Voir toutes les mentions de licence',
+      'about_release_receipts_and_tools': 'Reçus et outils',
+      'about_release_receipt_filters':
+          'Recherchez et triez les reçus, puis filtrez-les par montant dans votre devise d’affichage.',
+      'about_release_duplicate_review':
+          'Comparez les reçus en double côte à côte et choisissez ceux à conserver.',
+      'about_release_tools_and_text':
+          'Épinglez vos outils favoris et profitez d’une interface adaptée aux grands caractères.',
       'duplicates_discount': 'Remise',
       'tools_pin_save_error':
           'Impossible d’enregistrer les outils épinglés. Réessayez.',
@@ -4159,6 +4228,29 @@ class AppLocalizations {
       'delete_reminder_name_confirm': 'Supprimer "{name}" ?',
     },
     'uk': {
+      'item_editor_choose_subcategory': 'Виберіть підкатегорію',
+      'item_editor_new': 'Нова позиція',
+      'item_editor_edit': 'Редагувати позицію',
+      'item_editor_price': 'Ціна',
+      'item_editor_before_discount': 'Ціна до знижки',
+      'item_editor_converted_price': 'Перерахована ціна: {amount}',
+      'item_editor_discount_percent': 'Введіть відсоток знижки.',
+      'item_editor_discount_amount': 'Введіть суму знижки.',
+      'item_editor_final_price': 'Кінцева ціна',
+      'item_editor_pieces': 'шт.',
+      'transaction_labels_save_error':
+          'Не вдалося зберегти мітки. Спробуйте ще раз.',
+      'billing_dev_revoke': 'Відкликати доступ',
+      'legal_last_updated': 'Останнє оновлення: {date}',
+      'about_licenses_subtitle': 'Відомості про відкритий код',
+      'about_licenses_full': 'Переглянути всі ліцензійні повідомлення',
+      'about_release_receipts_and_tools': 'Чеки й інструменти',
+      'about_release_receipt_filters':
+          'Шукайте й сортуйте чеки та фільтруйте їх за сумою у валюті відображення.',
+      'about_release_duplicate_review':
+          'Порівнюйте дублікати чеків поруч і вибирайте, які залишити.',
+      'about_release_tools_and_text':
+          'Закріплюйте улюблені інструменти й користуйтеся інтерфейсом, що підлаштовується під більший текст.',
       'duplicates_discount': 'Знижка',
       'tools_pin_save_error':
           'Не вдалося зберегти закріплені інструменти. Спробуйте ще раз.',
@@ -5502,6 +5594,29 @@ class AppLocalizations {
       'delete_reminder_name_confirm': 'Видалити "{name}"?',
     },
     'it': {
+      'item_editor_choose_subcategory': 'Seleziona sottocategoria',
+      'item_editor_new': 'Nuovo articolo',
+      'item_editor_edit': 'Modifica articolo',
+      'item_editor_price': 'Prezzo',
+      'item_editor_before_discount': 'Prezzo prima dello sconto',
+      'item_editor_converted_price': 'Prezzo convertito: {amount}',
+      'item_editor_discount_percent': 'Inserisci la percentuale di sconto.',
+      'item_editor_discount_amount': 'Inserisci l’importo dello sconto.',
+      'item_editor_final_price': 'Prezzo finale',
+      'item_editor_pieces': 'pz.',
+      'transaction_labels_save_error':
+          'Impossibile salvare le etichette. Riprova.',
+      'billing_dev_revoke': 'Revoca accesso',
+      'legal_last_updated': 'Ultimo aggiornamento: {date}',
+      'about_licenses_subtitle': 'Informazioni sulle licenze open source',
+      'about_licenses_full': 'Mostra tutte le licenze',
+      'about_release_receipts_and_tools': 'Scontrini e strumenti',
+      'about_release_receipt_filters':
+          'Cerca e ordina gli scontrini e filtrali per importo nella valuta di visualizzazione.',
+      'about_release_duplicate_review':
+          'Confronta gli scontrini duplicati fianco a fianco e scegli quali conservare.',
+      'about_release_tools_and_text':
+          'Fissa gli strumenti preferiti e usa un’interfaccia che si adatta al testo più grande.',
       'duplicates_discount': 'Sconto',
       'tools_pin_save_error':
           'Impossibile salvare gli strumenti fissati. Riprova.',
@@ -6888,6 +7003,29 @@ class AppLocalizations {
       'delete_reminder_name_confirm': 'Eliminare "{name}"?',
     },
     'pl': {
+      'item_editor_choose_subcategory': 'Wybierz podkategorię',
+      'item_editor_new': 'Nowa pozycja',
+      'item_editor_edit': 'Edytuj pozycję',
+      'item_editor_price': 'Cena',
+      'item_editor_before_discount': 'Cena przed rabatem',
+      'item_editor_converted_price': 'Przeliczona cena: {amount}',
+      'item_editor_discount_percent': 'Wpisz procent rabatu.',
+      'item_editor_discount_amount': 'Wpisz kwotę rabatu.',
+      'item_editor_final_price': 'Cena końcowa',
+      'item_editor_pieces': 'szt.',
+      'transaction_labels_save_error':
+          'Nie udało się zapisać etykiet. Spróbuj ponownie.',
+      'billing_dev_revoke': 'Odbierz dostęp',
+      'legal_last_updated': 'Ostatnia aktualizacja: {date}',
+      'about_licenses_subtitle': 'Informacje o otwartym oprogramowaniu',
+      'about_licenses_full': 'Pokaż wszystkie informacje o licencjach',
+      'about_release_receipts_and_tools': 'Paragony i narzędzia',
+      'about_release_receipt_filters':
+          'Wyszukuj i sortuj paragony oraz filtruj je według kwoty w walucie wyświetlania.',
+      'about_release_duplicate_review':
+          'Porównuj zduplikowane paragony obok siebie i wybieraj, które zachować.',
+      'about_release_tools_and_text':
+          'Przypinaj ulubione narzędzia i korzystaj z układów dostosowanych do większego tekstu.',
       'duplicates_discount': 'Rabat',
       'tools_pin_save_error':
           'Nie udało się zapisać przypiętych narzędzi. Spróbuj ponownie.',
@@ -8250,6 +8388,29 @@ class AppLocalizations {
       'delete_reminder_name_confirm': 'Usunąć "{name}"?',
     },
     'sr': {
+      'item_editor_choose_subcategory': 'Izaberite potkategoriju',
+      'item_editor_new': 'Nova stavka',
+      'item_editor_edit': 'Izmeni stavku',
+      'item_editor_price': 'Cena',
+      'item_editor_before_discount': 'Cena pre popusta',
+      'item_editor_converted_price': 'Preračunata cena: {amount}',
+      'item_editor_discount_percent': 'Unesite procenat popusta.',
+      'item_editor_discount_amount': 'Unesite iznos popusta.',
+      'item_editor_final_price': 'Konačna cena',
+      'item_editor_pieces': 'kom.',
+      'transaction_labels_save_error':
+          'Oznake nisu sačuvane. Pokušajte ponovo.',
+      'billing_dev_revoke': 'Ukini pristup',
+      'legal_last_updated': 'Poslednje ažuriranje: {date}',
+      'about_licenses_subtitle': 'Obaveštenja o otvorenom kodu',
+      'about_licenses_full': 'Prikaži sva obaveštenja o licencama',
+      'about_release_receipts_and_tools': 'Računi i alati',
+      'about_release_receipt_filters':
+          'Pretražujte i sortirajte račune i filtrirajte ih po iznosu u valuti prikaza.',
+      'about_release_duplicate_review':
+          'Uporedite duplirane račune jedan pored drugog i izaberite koje ćete zadržati.',
+      'about_release_tools_and_text':
+          'Zakačite omiljene alate i koristite prikaz koji se prilagođava većem tekstu.',
       'duplicates_discount': 'Popust',
       'tools_pin_save_error':
           'Nije moguće sačuvati zakačene alate. Pokušajte ponovo.',
@@ -9595,6 +9756,29 @@ class AppLocalizations {
       'delete_reminder_name_confirm': 'Obriši "{name}"?',
     },
     'ru': {
+      'item_editor_choose_subcategory': 'Выберите подкатегорию',
+      'item_editor_new': 'Новая позиция',
+      'item_editor_edit': 'Редактировать позицию',
+      'item_editor_price': 'Цена',
+      'item_editor_before_discount': 'Цена до скидки',
+      'item_editor_converted_price': 'Цена после пересчёта: {amount}',
+      'item_editor_discount_percent': 'Введите процент скидки.',
+      'item_editor_discount_amount': 'Введите сумму скидки.',
+      'item_editor_final_price': 'Итоговая цена',
+      'item_editor_pieces': 'шт.',
+      'transaction_labels_save_error':
+          'Не удалось сохранить ярлыки. Попробуйте ещё раз.',
+      'billing_dev_revoke': 'Отозвать доступ',
+      'legal_last_updated': 'Последнее обновление: {date}',
+      'about_licenses_subtitle': 'Лицензии открытого ПО',
+      'about_licenses_full': 'Посмотреть все лицензии',
+      'about_release_receipts_and_tools': 'Чеки и инструменты',
+      'about_release_receipt_filters':
+          'Ищите и сортируйте чеки и фильтруйте их по сумме в валюте отображения.',
+      'about_release_duplicate_review':
+          'Сравнивайте дубликаты чеков рядом и выбирайте, какие оставить.',
+      'about_release_tools_and_text':
+          'Закрепляйте любимые инструменты и пользуйтесь интерфейсом, который адаптируется к крупному тексту.',
       'duplicates_discount': 'Скидка',
       'tools_pin_save_error':
           'Не удалось сохранить закреплённые инструменты. Повторите попытку.',
@@ -10943,6 +11127,29 @@ class AppLocalizations {
       'delete_reminder_name_confirm': 'Удалить "{name}"?',
     },
     'pt': {
+      'item_editor_choose_subcategory': 'Selecionar subcategoria',
+      'item_editor_new': 'Novo artigo',
+      'item_editor_edit': 'Editar artigo',
+      'item_editor_price': 'Preço',
+      'item_editor_before_discount': 'Preço antes do desconto',
+      'item_editor_converted_price': 'Preço convertido: {amount}',
+      'item_editor_discount_percent': 'Introduza a percentagem de desconto.',
+      'item_editor_discount_amount': 'Introduza o valor do desconto.',
+      'item_editor_final_price': 'Preço final',
+      'item_editor_pieces': 'un.',
+      'transaction_labels_save_error':
+          'Não foi possível guardar as etiquetas. Tente novamente.',
+      'billing_dev_revoke': 'Revogar acesso',
+      'legal_last_updated': 'Última atualização: {date}',
+      'about_licenses_subtitle': 'Avisos de código aberto',
+      'about_licenses_full': 'Ver todos os avisos de licença',
+      'about_release_receipts_and_tools': 'Recibos e ferramentas',
+      'about_release_receipt_filters':
+          'Pesquise e ordene recibos e filtre-os por valor na moeda de apresentação.',
+      'about_release_duplicate_review':
+          'Compare recibos duplicados lado a lado e escolha quais guardar.',
+      'about_release_tools_and_text':
+          'Fixe as suas ferramentas favoritas e use ecrãs que se adaptam a texto maior.',
       'duplicates_discount': 'Desconto',
       'tools_pin_save_error':
           'Não foi possível salvar as ferramentas fixadas. Tente novamente.',
@@ -12315,6 +12522,29 @@ class AppLocalizations {
       'delete_reminder_name_confirm': 'Eliminar "{name}"?',
     },
     'tr': {
+      'item_editor_choose_subcategory': 'Alt kategori seçin',
+      'item_editor_new': 'Yeni kalem',
+      'item_editor_edit': 'Kalemi düzenle',
+      'item_editor_price': 'Fiyat',
+      'item_editor_before_discount': 'İndirimden önceki fiyat',
+      'item_editor_converted_price': 'Dönüştürülmüş fiyat: {amount}',
+      'item_editor_discount_percent': 'İndirim yüzdesini girin.',
+      'item_editor_discount_amount': 'İndirim tutarını girin.',
+      'item_editor_final_price': 'Son fiyat',
+      'item_editor_pieces': 'adet',
+      'transaction_labels_save_error':
+          'Etiketler kaydedilemedi. Lütfen tekrar deneyin.',
+      'billing_dev_revoke': 'Erişimi iptal et',
+      'legal_last_updated': 'Son güncelleme: {date}',
+      'about_licenses_subtitle': 'Açık kaynak bildirimleri',
+      'about_licenses_full': 'Tüm lisans bildirimlerini gör',
+      'about_release_receipts_and_tools': 'Fişler ve araçlar',
+      'about_release_receipt_filters':
+          'Fişleri arayın, sıralayın ve gösterim para birimindeki tutara göre filtreleyin.',
+      'about_release_duplicate_review':
+          'Yinelenen fişleri yan yana karşılaştırın ve hangilerini saklayacağınızı seçin.',
+      'about_release_tools_and_text':
+          'Favori araçlarınızı sabitleyin ve daha büyük metne uyum sağlayan düzenleri kullanın.',
       'duplicates_discount': 'İndirim',
       'tools_pin_save_error':
           'Sabitlenen araçlar kaydedilemedi. Lütfen tekrar deneyin.',
@@ -13655,6 +13885,29 @@ class AppLocalizations {
       'delete_reminder_name_confirm': '"{name}" silinsin mi?',
     },
     'nl': {
+      'item_editor_choose_subcategory': 'Subcategorie kiezen',
+      'item_editor_new': 'Nieuw artikel',
+      'item_editor_edit': 'Artikel bewerken',
+      'item_editor_price': 'Prijs',
+      'item_editor_before_discount': 'Prijs vóór korting',
+      'item_editor_converted_price': 'Omgerekende prijs: {amount}',
+      'item_editor_discount_percent': 'Voer het kortingspercentage in.',
+      'item_editor_discount_amount': 'Voer het kortingsbedrag in.',
+      'item_editor_final_price': 'Eindprijs',
+      'item_editor_pieces': 'st.',
+      'transaction_labels_save_error':
+          'Labels konden niet worden opgeslagen. Probeer het opnieuw.',
+      'billing_dev_revoke': 'Toegang intrekken',
+      'legal_last_updated': 'Laatst bijgewerkt: {date}',
+      'about_licenses_subtitle': 'Opensourcevermeldingen',
+      'about_licenses_full': 'Alle licentievermeldingen bekijken',
+      'about_release_receipts_and_tools': 'Bonnen en hulpmiddelen',
+      'about_release_receipt_filters':
+          'Zoek en sorteer bonnen en filter ze op bedrag in je weergavevaluta.',
+      'about_release_duplicate_review':
+          'Vergelijk dubbele bonnen naast elkaar en kies welke je wilt bewaren.',
+      'about_release_tools_and_text':
+          'Zet je favoriete hulpmiddelen vast en gebruik een indeling die zich aan grotere tekst aanpast.',
       'duplicates_discount': 'Korting',
       'tools_pin_save_error':
           'Vastgezette hulpmiddelen konden niet worden opgeslagen. Probeer het opnieuw.',
@@ -15021,6 +15274,29 @@ class AppLocalizations {
       'delete_reminder_name_confirm': '"{name}" verwijderen?',
     },
     'sv': {
+      'item_editor_choose_subcategory': 'Välj underkategori',
+      'item_editor_new': 'Ny artikel',
+      'item_editor_edit': 'Redigera artikel',
+      'item_editor_price': 'Pris',
+      'item_editor_before_discount': 'Pris före rabatt',
+      'item_editor_converted_price': 'Omräknat pris: {amount}',
+      'item_editor_discount_percent': 'Ange rabattprocenten.',
+      'item_editor_discount_amount': 'Ange rabattbeloppet.',
+      'item_editor_final_price': 'Slutpris',
+      'item_editor_pieces': 'st.',
+      'transaction_labels_save_error':
+          'Det gick inte att spara etiketterna. Försök igen.',
+      'billing_dev_revoke': 'Återkalla åtkomst',
+      'legal_last_updated': 'Senast uppdaterad: {date}',
+      'about_licenses_subtitle': 'Information om öppen källkod',
+      'about_licenses_full': 'Visa alla licensmeddelanden',
+      'about_release_receipts_and_tools': 'Kvitton och verktyg',
+      'about_release_receipt_filters':
+          'Sök och sortera kvitton och filtrera dem efter belopp i visningsvalutan.',
+      'about_release_duplicate_review':
+          'Jämför dubbletter av kvitton sida vid sida och välj vilka du vill behålla.',
+      'about_release_tools_and_text':
+          'Fäst dina favoritverktyg och använd layouter som anpassar sig till större text.',
       'duplicates_discount': 'Rabatt',
       'tools_pin_save_error':
           'Det gick inte att spara fästa verktyg. Försök igen.',
@@ -16368,6 +16644,29 @@ class AppLocalizations {
       'delete_reminder_name_confirm': 'Radera "{name}"?',
     },
     'cs': {
+      'item_editor_choose_subcategory': 'Vyberte podkategorii',
+      'item_editor_new': 'Nová položka',
+      'item_editor_edit': 'Upravit položku',
+      'item_editor_price': 'Cena',
+      'item_editor_before_discount': 'Cena před slevou',
+      'item_editor_converted_price': 'Přepočtená cena: {amount}',
+      'item_editor_discount_percent': 'Zadejte procento slevy.',
+      'item_editor_discount_amount': 'Zadejte částku slevy.',
+      'item_editor_final_price': 'Konečná cena',
+      'item_editor_pieces': 'ks',
+      'transaction_labels_save_error':
+          'Štítky se nepodařilo uložit. Zkuste to znovu.',
+      'billing_dev_revoke': 'Odebrat přístup',
+      'legal_last_updated': 'Poslední aktualizace: {date}',
+      'about_licenses_subtitle': 'Informace o otevřeném softwaru',
+      'about_licenses_full': 'Zobrazit všechna licenční oznámení',
+      'about_release_receipts_and_tools': 'Účtenky a nástroje',
+      'about_release_receipt_filters':
+          'Vyhledávejte a řaďte účtenky a filtrujte je podle částky v měně zobrazení.',
+      'about_release_duplicate_review':
+          'Porovnejte duplicitní účtenky vedle sebe a vyberte, které ponechat.',
+      'about_release_tools_and_text':
+          'Připněte si oblíbené nástroje a používejte rozhraní, které se přizpůsobí většímu textu.',
       'duplicates_discount': 'Sleva',
       'tools_pin_save_error':
           'Připnuté nástroje se nepodařilo uložit. Zkuste to znovu.',
@@ -17705,6 +18004,29 @@ class AppLocalizations {
       'delete_reminder_name_confirm': 'Smazat "{name}"?',
     },
     'ro': {
+      'item_editor_choose_subcategory': 'Selectează subcategoria',
+      'item_editor_new': 'Articol nou',
+      'item_editor_edit': 'Editează articolul',
+      'item_editor_price': 'Preț',
+      'item_editor_before_discount': 'Preț înainte de reducere',
+      'item_editor_converted_price': 'Preț convertit: {amount}',
+      'item_editor_discount_percent': 'Introdu procentul reducerii.',
+      'item_editor_discount_amount': 'Introdu valoarea reducerii.',
+      'item_editor_final_price': 'Preț final',
+      'item_editor_pieces': 'buc.',
+      'transaction_labels_save_error':
+          'Etichetele nu au putut fi salvate. Încearcă din nou.',
+      'billing_dev_revoke': 'Revocă accesul',
+      'legal_last_updated': 'Ultima actualizare: {date}',
+      'about_licenses_subtitle': 'Notificări privind codul sursă deschis',
+      'about_licenses_full': 'Vezi toate notificările de licență',
+      'about_release_receipts_and_tools': 'Bonuri și instrumente',
+      'about_release_receipt_filters':
+          'Caută și sortează bonurile și filtrează-le după sumă în moneda de afișare.',
+      'about_release_duplicate_review':
+          'Compară bonurile duplicate alăturat și alege pe care să le păstrezi.',
+      'about_release_tools_and_text':
+          'Fixează instrumentele preferate și folosește o interfață care se adaptează la text mai mare.',
       'duplicates_discount': 'Reducere',
       'tools_pin_save_error':
           'Instrumentele fixate nu au putut fi salvate. Încearcă din nou.',
@@ -19081,6 +19403,29 @@ class AppLocalizations {
       'delete_reminder_name_confirm': 'Ștergeți "{name}"?',
     },
     'hu': {
+      'item_editor_choose_subcategory': 'Alkategória kiválasztása',
+      'item_editor_new': 'Új tétel',
+      'item_editor_edit': 'Tétel szerkesztése',
+      'item_editor_price': 'Ár',
+      'item_editor_before_discount': 'Kedvezmény előtti ár',
+      'item_editor_converted_price': 'Átváltott ár: {amount}',
+      'item_editor_discount_percent': 'Add meg a kedvezmény százalékát.',
+      'item_editor_discount_amount': 'Add meg a kedvezmény összegét.',
+      'item_editor_final_price': 'Végső ár',
+      'item_editor_pieces': 'db',
+      'transaction_labels_save_error':
+          'Nem sikerült menteni a címkéket. Próbáld újra.',
+      'billing_dev_revoke': 'Hozzáférés visszavonása',
+      'legal_last_updated': 'Utolsó frissítés: {date}',
+      'about_licenses_subtitle': 'Nyílt forráskódú összetevők',
+      'about_licenses_full': 'Az összes licenc megtekintése',
+      'about_release_receipts_and_tools': 'Nyugták és eszközök',
+      'about_release_receipt_filters':
+          'Keress és rendezz nyugtákat, és szűrd őket összeg szerint a megjelenítési pénznemben.',
+      'about_release_duplicate_review':
+          'Hasonlítsd össze egymás mellett a duplikált nyugtákat, és válaszd ki, melyiket tartod meg.',
+      'about_release_tools_and_text':
+          'Rögzítsd kedvenc eszközeidet, és használd a nagyobb szöveghez alkalmazkodó felületet.',
       'duplicates_discount': 'Kedvezmény',
       'tools_pin_save_error':
           'A rögzített eszközök mentése sikertelen. Próbáld újra.',
@@ -20439,6 +20784,28 @@ class AppLocalizations {
       'delete_reminder_name_confirm': 'Törli a következőt: "{name}"?',
     },
     'id': {
+      'item_editor_choose_subcategory': 'Pilih subkategori',
+      'item_editor_new': 'Item baru',
+      'item_editor_edit': 'Ubah item',
+      'item_editor_price': 'Harga',
+      'item_editor_before_discount': 'Harga sebelum diskon',
+      'item_editor_converted_price': 'Harga hasil konversi: {amount}',
+      'item_editor_discount_percent': 'Masukkan persentase diskon.',
+      'item_editor_discount_amount': 'Masukkan jumlah diskon.',
+      'item_editor_final_price': 'Harga akhir',
+      'item_editor_pieces': 'buah',
+      'transaction_labels_save_error': 'Label tidak dapat disimpan. Coba lagi.',
+      'billing_dev_revoke': 'Cabut akses',
+      'legal_last_updated': 'Terakhir diperbarui: {date}',
+      'about_licenses_subtitle': 'Pemberitahuan sumber terbuka',
+      'about_licenses_full': 'Lihat semua pemberitahuan lisensi',
+      'about_release_receipts_and_tools': 'Struk dan alat',
+      'about_release_receipt_filters':
+          'Cari, urutkan, dan filter struk menurut jumlah dalam mata uang tampilan.',
+      'about_release_duplicate_review':
+          'Bandingkan struk duplikat secara berdampingan dan pilih yang ingin disimpan.',
+      'about_release_tools_and_text':
+          'Sematkan alat favorit dan gunakan tata letak yang menyesuaikan dengan teks yang lebih besar.',
       'duplicates_discount': 'Diskon',
       'tools_pin_save_error':
           'Alat yang disematkan tidak dapat disimpan. Coba lagi.',
@@ -21791,6 +22158,28 @@ class AppLocalizations {
       'delete_reminder_name_confirm': 'Hapus "{name}"?',
     },
     'ms': {
+      'item_editor_choose_subcategory': 'Pilih subkategori',
+      'item_editor_new': 'Item baharu',
+      'item_editor_edit': 'Sunting item',
+      'item_editor_price': 'Harga',
+      'item_editor_before_discount': 'Harga sebelum diskaun',
+      'item_editor_converted_price': 'Harga ditukar: {amount}',
+      'item_editor_discount_percent': 'Masukkan peratus diskaun.',
+      'item_editor_discount_amount': 'Masukkan amaun diskaun.',
+      'item_editor_final_price': 'Harga akhir',
+      'item_editor_pieces': 'unit',
+      'transaction_labels_save_error': 'Label tidak dapat disimpan. Cuba lagi.',
+      'billing_dev_revoke': 'Tarik balik akses',
+      'legal_last_updated': 'Terakhir dikemas kini: {date}',
+      'about_licenses_subtitle': 'Notis sumber terbuka',
+      'about_licenses_full': 'Lihat semua notis lesen',
+      'about_release_receipts_and_tools': 'Resit dan alatan',
+      'about_release_receipt_filters':
+          'Cari dan susun resit serta tapis mengikut amaun dalam mata wang paparan.',
+      'about_release_duplicate_review':
+          'Bandingkan resit pendua bersebelahan dan pilih yang mahu disimpan.',
+      'about_release_tools_and_text':
+          'Sematkan alatan kegemaran dan gunakan susun atur yang menyesuaikan diri dengan teks yang lebih besar.',
       'duplicates_discount': 'Diskaun',
       'tools_pin_save_error':
           'Alat yang disematkan tidak dapat disimpan. Sila cuba lagi.',
@@ -23138,6 +23527,28 @@ class AppLocalizations {
       'delete_reminder_name_confirm': 'Padam "{name}"?',
     },
     'vi': {
+      'item_editor_choose_subcategory': 'Chọn danh mục con',
+      'item_editor_new': 'Mặt hàng mới',
+      'item_editor_edit': 'Chỉnh sửa mặt hàng',
+      'item_editor_price': 'Giá',
+      'item_editor_before_discount': 'Giá trước giảm',
+      'item_editor_converted_price': 'Giá quy đổi: {amount}',
+      'item_editor_discount_percent': 'Nhập tỷ lệ phần trăm giảm giá.',
+      'item_editor_discount_amount': 'Nhập số tiền giảm giá.',
+      'item_editor_final_price': 'Giá cuối cùng',
+      'item_editor_pieces': 'cái',
+      'transaction_labels_save_error': 'Không thể lưu nhãn. Vui lòng thử lại.',
+      'billing_dev_revoke': 'Thu hồi quyền truy cập',
+      'legal_last_updated': 'Cập nhật lần cuối: {date}',
+      'about_licenses_subtitle': 'Thông báo mã nguồn mở',
+      'about_licenses_full': 'Xem tất cả thông báo giấy phép',
+      'about_release_receipts_and_tools': 'Hóa đơn và công cụ',
+      'about_release_receipt_filters':
+          'Tìm kiếm, sắp xếp và lọc hóa đơn theo số tiền trong đơn vị tiền tệ hiển thị.',
+      'about_release_duplicate_review':
+          'So sánh các hóa đơn trùng lặp cạnh nhau và chọn hóa đơn muốn giữ.',
+      'about_release_tools_and_text':
+          'Ghim công cụ yêu thích và dùng bố cục thích ứng với chữ lớn hơn.',
       'duplicates_discount': 'Giảm giá',
       'tools_pin_save_error':
           'Không thể lưu các công cụ đã ghim. Vui lòng thử lại.',
@@ -24482,6 +24893,25 @@ class AppLocalizations {
       'delete_reminder_name_confirm': 'Xóa "{name}"?',
     },
     'zh': {
+      'item_editor_choose_subcategory': '选择子类别',
+      'item_editor_new': '新增商品',
+      'item_editor_edit': '编辑商品',
+      'item_editor_price': '价格',
+      'item_editor_before_discount': '折扣前价格',
+      'item_editor_converted_price': '换算后价格：{amount}',
+      'item_editor_discount_percent': '输入折扣百分比。',
+      'item_editor_discount_amount': '输入折扣金额。',
+      'item_editor_final_price': '最终价格',
+      'item_editor_pieces': '件',
+      'transaction_labels_save_error': '无法保存标签。请重试。',
+      'billing_dev_revoke': '撤销访问权限',
+      'legal_last_updated': '最后更新：{date}',
+      'about_licenses_subtitle': '开源许可声明',
+      'about_licenses_full': '查看所有许可声明',
+      'about_release_receipts_and_tools': '小票与工具',
+      'about_release_receipt_filters': '搜索、排序小票，并按显示货币的金额筛选。',
+      'about_release_duplicate_review': '并排比较重复的小票，然后选择要保留的小票。',
+      'about_release_tools_and_text': '置顶常用工具，界面会适应较大的文字。',
       'duplicates_discount': '折扣',
       'tools_pin_save_error': '无法保存已固定的工具，请重试。',
       'tools_pin_hint': '长按工具可固定或取消固定。',
@@ -25616,6 +26046,25 @@ class AppLocalizations {
       'delete_reminder_name_confirm': '删除 "{name}"？',
     },
     'ja': {
+      'item_editor_choose_subcategory': 'サブカテゴリを選択',
+      'item_editor_new': '新規品目',
+      'item_editor_edit': '品目を編集',
+      'item_editor_price': '価格',
+      'item_editor_before_discount': '割引前の価格',
+      'item_editor_converted_price': '換算後の価格：{amount}',
+      'item_editor_discount_percent': '割引率を入力してください。',
+      'item_editor_discount_amount': '割引額を入力してください。',
+      'item_editor_final_price': '最終価格',
+      'item_editor_pieces': '個',
+      'transaction_labels_save_error': 'ラベルを保存できませんでした。もう一度お試しください。',
+      'billing_dev_revoke': 'アクセスを取り消す',
+      'legal_last_updated': '最終更新：{date}',
+      'about_licenses_subtitle': 'オープンソースの通知',
+      'about_licenses_full': 'すべてのライセンス通知を表示',
+      'about_release_receipts_and_tools': 'レシートとツール',
+      'about_release_receipt_filters': 'レシートを検索・並べ替えし、表示通貨の金額で絞り込めます。',
+      'about_release_duplicate_review': '重複するレシートを並べて比較し、残すものを選べます。',
+      'about_release_tools_and_text': 'お気に入りのツールを固定でき、文字を大きくしても画面が読みやすくなります。',
       'duplicates_discount': '割引',
       'tools_pin_save_error': '固定したツールを保存できませんでした。もう一度お試しください。',
       'tools_pin_hint': 'ツールを長押しすると固定・解除できます。',
@@ -26791,6 +27240,27 @@ class AppLocalizations {
       'delete_reminder_name_confirm': '「{name}」を削除しますか？',
     },
     'ko': {
+      'item_editor_choose_subcategory': '하위 카테고리 선택',
+      'item_editor_new': '새 품목',
+      'item_editor_edit': '품목 수정',
+      'item_editor_price': '가격',
+      'item_editor_before_discount': '할인 전 가격',
+      'item_editor_converted_price': '환산 가격: {amount}',
+      'item_editor_discount_percent': '할인율을 입력하세요.',
+      'item_editor_discount_amount': '할인 금액을 입력하세요.',
+      'item_editor_final_price': '최종 가격',
+      'item_editor_pieces': '개',
+      'transaction_labels_save_error': '라벨을 저장하지 못했습니다. 다시 시도해 주세요.',
+      'billing_dev_revoke': '액세스 권한 취소',
+      'legal_last_updated': '마지막 업데이트: {date}',
+      'about_licenses_subtitle': '오픈 소스 고지',
+      'about_licenses_full': '모든 라이선스 고지 보기',
+      'about_release_receipts_and_tools': '영수증 및 도구',
+      'about_release_receipt_filters':
+          '영수증을 검색하고 정렬하거나 표시 통화의 금액으로 필터링할 수 있습니다.',
+      'about_release_duplicate_review': '중복 영수증을 나란히 비교하고 보관할 영수증을 선택할 수 있습니다.',
+      'about_release_tools_and_text':
+          '자주 쓰는 도구를 고정하고 큰 글자에 맞춰 조정되는 화면을 사용할 수 있습니다.',
       'duplicates_discount': '할인',
       'tools_pin_save_error': '고정한 도구를 저장하지 못했습니다. 다시 시도하세요.',
       'tools_pin_hint': '도구를 길게 눌러 고정하거나 해제하세요.',
@@ -27985,6 +28455,29 @@ class AppLocalizations {
       'delete_reminder_name_confirm': '"{name}" 내역을 삭제하시겠습니까?',
     },
     'hi': {
+      'item_editor_choose_subcategory': 'उपश्रेणी चुनें',
+      'item_editor_new': 'नई वस्तु',
+      'item_editor_edit': 'वस्तु संपादित करें',
+      'item_editor_price': 'कीमत',
+      'item_editor_before_discount': 'छूट से पहले की कीमत',
+      'item_editor_converted_price': 'बदली हुई कीमत: {amount}',
+      'item_editor_discount_percent': 'छूट का प्रतिशत डालें।',
+      'item_editor_discount_amount': 'छूट की राशि डालें।',
+      'item_editor_final_price': 'अंतिम कीमत',
+      'item_editor_pieces': 'नग',
+      'transaction_labels_save_error':
+          'लेबल सेव नहीं हो सके। दोबारा कोशिश करें।',
+      'billing_dev_revoke': 'ऐक्सेस रद्द करें',
+      'legal_last_updated': 'आखिरी अपडेट: {date}',
+      'about_licenses_subtitle': 'ओपन सोर्स सूचनाएँ',
+      'about_licenses_full': 'सभी लाइसेंस सूचनाएँ देखें',
+      'about_release_receipts_and_tools': 'रसीदें और टूल',
+      'about_release_receipt_filters':
+          'रसीदें खोजें, क्रम में लगाएँ और दिखाई जाने वाली मुद्रा में राशि के अनुसार फ़िल्टर करें।',
+      'about_release_duplicate_review':
+          'डुप्लिकेट रसीदों की साथ-साथ तुलना करें और चुनें कि किन्हें रखना है।',
+      'about_release_tools_and_text':
+          'पसंदीदा टूल पिन करें और बड़े टेक्स्ट के अनुकूल लेआउट का इस्तेमाल करें।',
       'duplicates_discount': 'छूट',
       'tools_pin_save_error':
           'पिन किए गए टूल सहेजे नहीं जा सके। फिर से कोशिश करें।',
@@ -29312,6 +29805,29 @@ class AppLocalizations {
       'delete_reminder_name_confirm': 'क्या "{name}" को हटाना चाहते हैं?',
     },
     'ar': {
+      'item_editor_choose_subcategory': 'اختر فئة فرعية',
+      'item_editor_new': 'عنصر جديد',
+      'item_editor_edit': 'تعديل العنصر',
+      'item_editor_price': 'السعر',
+      'item_editor_before_discount': 'السعر قبل الخصم',
+      'item_editor_converted_price': 'السعر بعد التحويل: {amount}',
+      'item_editor_discount_percent': 'أدخل نسبة الخصم.',
+      'item_editor_discount_amount': 'أدخل مبلغ الخصم.',
+      'item_editor_final_price': 'السعر النهائي',
+      'item_editor_pieces': 'قطعة',
+      'transaction_labels_save_error':
+          'تعذّر حفظ التسميات. يُرجى المحاولة مرة أخرى.',
+      'billing_dev_revoke': 'إلغاء الوصول',
+      'legal_last_updated': 'آخر تحديث: {date}',
+      'about_licenses_subtitle': 'إشعارات المصادر المفتوحة',
+      'about_licenses_full': 'عرض جميع إشعارات التراخيص',
+      'about_release_receipts_and_tools': 'الإيصالات والأدوات',
+      'about_release_receipt_filters':
+          'ابحث عن الإيصالات ورتّبها وصفّها حسب المبلغ بعملة العرض.',
+      'about_release_duplicate_review':
+          'قارن الإيصالات المكررة جنبًا إلى جنب واختر ما تريد الاحتفاظ به.',
+      'about_release_tools_and_text':
+          'ثبّت أدواتك المفضلة واستخدم واجهة تتكيف مع النص الأكبر.',
       'duplicates_discount': 'الخصم',
       'tools_pin_save_error':
           'تعذّر حفظ الأدوات المثبتة. يرجى المحاولة مجدداً.',
@@ -30614,6 +31130,29 @@ class AppLocalizations {
       'delete_reminder_name_confirm': 'هل تريد حذف "{name}"؟',
     },
     'es': {
+      'item_editor_choose_subcategory': 'Seleccionar subcategoría',
+      'item_editor_new': 'Nuevo artículo',
+      'item_editor_edit': 'Editar artículo',
+      'item_editor_price': 'Precio',
+      'item_editor_before_discount': 'Precio antes del descuento',
+      'item_editor_converted_price': 'Precio convertido: {amount}',
+      'item_editor_discount_percent': 'Introduce el porcentaje de descuento.',
+      'item_editor_discount_amount': 'Introduce el importe del descuento.',
+      'item_editor_final_price': 'Precio final',
+      'item_editor_pieces': 'uds.',
+      'transaction_labels_save_error':
+          'No se pudieron guardar las etiquetas. Inténtalo de nuevo.',
+      'billing_dev_revoke': 'Revocar acceso',
+      'legal_last_updated': 'Última actualización: {date}',
+      'about_licenses_subtitle': 'Avisos de código abierto',
+      'about_licenses_full': 'Ver todos los avisos de licencia',
+      'about_release_receipts_and_tools': 'Recibos y herramientas',
+      'about_release_receipt_filters':
+          'Busca y ordena los recibos y fíltralos por importe en tu moneda de visualización.',
+      'about_release_duplicate_review':
+          'Compara recibos duplicados en paralelo y elige cuáles conservar.',
+      'about_release_tools_and_text':
+          'Fija tus herramientas favoritas y usa una interfaz que se adapta al texto más grande.',
       'duplicates_discount': 'Descuento',
       'tools_pin_save_error':
           'No se pudieron guardar las herramientas fijadas. Inténtalo de nuevo.',

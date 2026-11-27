@@ -7,13 +7,20 @@ analytics, planning, settings, subscription UI, and account-management flows.
 
 ## Local Setup
 
+Start the [local backend](../README.md#local-backend-and-services). For Google
+Sign-In in your own Firebase project, enable the Google provider and register
+the Android app and the SHA fingerprint of your debug signing key. Generate
+`lib/firebase_options.dart` and `android/app/google-services.json` for that
+project and configure the backend with the corresponding service account.
+
 ```bash
 flutter pub get
 flutter run --dart-define=API_BASE_URL=http://10.0.2.2:8000
 ```
 
 Use `10.0.2.2` for an Android emulator. For a physical device, use your
-development machine's LAN IP, for example:
+development machine's LAN IP and update the [backend's local URLs and trusted
+hosts](../README.md#flutter-app).
 
 ```bash
 flutter run --dart-define=API_BASE_URL=http://192.168.1.42:8000
@@ -42,7 +49,7 @@ flutter analyze
 flutter test
 ```
 
-## Notes
+## Firebase configuration
 
 Firebase client configuration is intentionally part of the mobile app. Treat it
 as public client configuration and restrict API keys in Firebase/Google Cloud.

@@ -2,15 +2,33 @@ version: 2
 updates:
   - package-ecosystem: "github-actions"
     directory: "/"
+    target-branch: "develop"
     schedule:
       interval: "weekly"
+    open-pull-requests-limit: 2
+    groups:
+      actions-updates:
+        update-types: ["minor", "patch"]
+        patterns: ["*"]
 
-  - package-ecosystem: "pip"
+  - package-ecosystem: "uv"
     directory: "/backend"
+    target-branch: "develop"
     schedule:
       interval: "weekly"
+    open-pull-requests-limit: 2
+    groups:
+      backend-updates:
+        update-types: ["minor", "patch"]
+        patterns: ["*"]
 
   - package-ecosystem: "pub"
     directory: "/expense_tracker_app"
+    target-branch: "develop"
     schedule:
       interval: "weekly"
+    open-pull-requests-limit: 2
+    groups:
+      flutter-updates:
+        update-types: ["minor", "patch"]
+        patterns: ["*"]

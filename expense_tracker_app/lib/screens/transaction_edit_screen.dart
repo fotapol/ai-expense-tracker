@@ -788,7 +788,7 @@ class _TransactionEditScreenState extends State<TransactionEditScreen> {
     } catch (e) {
       _showEditorError(
         e,
-        fallback: 'We could not update labels right now. Please try again.',
+        fallback: context.tr('transaction_labels_save_error'),
       );
     }
   }
@@ -854,15 +854,16 @@ class _TransactionEditScreenState extends State<TransactionEditScreen> {
     try {
       final created = await ApiClient.createLabel(name);
       final newId = created['id']?.toString();
-      if (newId == null || newId.isEmpty) return;
+      if (!mounted || newId == null || newId.isEmpty) return;
       setState(() {
         _controller.appendLabel(created);
       });
       await _toggleLabel(labelId: newId, selected: true);
     } catch (e) {
+      if (!mounted) return;
       _showEditorError(
         e,
-        fallback: 'We could not create that label right now. Please try again.',
+        fallback: context.tr('transaction_labels_save_error'),
       );
     }
   }

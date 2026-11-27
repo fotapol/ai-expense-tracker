@@ -24,6 +24,22 @@ void main() {
     await themeProvider.load();
   });
 
+  testWidgets('sign-in card stays centered with unequal side insets', (
+    tester,
+  ) async {
+    fixture.phone(tester, width: 370);
+    const insets = FakeViewPadding(top: 24, bottom: 24, left: 8, right: 32);
+    tester.view.padding = insets;
+    tester.view.viewPadding = insets;
+    await tester.pumpWidget(fixture.app(const LoginScreen()));
+    await tester.pumpAndSettle();
+
+    final button = tester.getRect(find.byType(OutlinedButton));
+    expect(button.center.dx, closeTo(185, .01));
+    expect(button.right, lessThan(370 - insets.right));
+    expect(tester.takeException(), isNull);
+  });
+
   for (final locale in [
     const Locale('en'),
     const Locale('de'),

@@ -92,7 +92,14 @@ class TermsOfServiceScreen extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
-                'Last updated: March 18, 2026',
+                context.tr(
+                  'legal_last_updated',
+                  params: {
+                    'date': MaterialLocalizations.of(
+                      context,
+                    ).formatFullDate(DateTime(2026, 3, 18)),
+                  },
+                ),
                 style: TextStyle(
                   color: ShellStyles.textMuted(context),
                   fontSize: 12.5,
@@ -128,7 +135,7 @@ class TermsOfServiceScreen extends StatelessWidget {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            'Terms of Service',
+                            context.tr('terms_of_service'),
                             style: TextStyle(
                               color: ShellStyles.heroTextPrimary(context),
                               fontSize: 18,

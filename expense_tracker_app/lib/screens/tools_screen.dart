@@ -24,9 +24,11 @@ class ToolsScreen extends StatefulWidget {
 
 class _ToolsScreenState extends State<ToolsScreen> {
   static const _prefsKey = 'tools_pinned_ids_v1';
+  static const _pinHintDismissedKey = 'tools_pin_hint_dismissed';
   List<String> _pins = ['scan', 'receipts', 'analytics'];
   List<String> _savedPins = ['scan', 'receipts', 'analytics'];
   bool _ready = false;
+  bool _showPinHint = false;
   int _revision = 0;
   Future<void> _writes = Future.value();
 
@@ -44,6 +46,8 @@ class _ToolsScreenState extends State<ToolsScreen> {
       setState(() {
         if (pins != null) _pins = pins.toSet().toList();
         _savedPins = List.of(_pins);
+        _showPinHint =
+            pins == null && prefs.getBool(_pinHintDismissedKey) != true;
         _ready = true;
       });
     } catch (_) {
@@ -51,8 +55,20 @@ class _ToolsScreenState extends State<ToolsScreen> {
     }
   }
 
+  Future<void> _dismissPinHint() async {
+    if (!_showPinHint) return;
+    setState(() => _showPinHint = false);
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setBool(_pinHintDismissedKey, true);
+    } catch (_) {
+      // The hint stays dismissed for this session if preferences fail to save.
+    }
+  }
+
   void _togglePin(String id) {
     if (!_ready) return;
+    _dismissPinHint();
     final revision = ++_revision;
     setState(() {
       _pins = List.of(_pins);
@@ -74,9 +90,9 @@ class _ToolsScreenState extends State<ToolsScreen> {
       } catch (_) {
         if (!mounted || revision != _revision) return;
         setState(() => _pins = List.of(_savedPins));
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text(context.tr('tools_pin_save_error'))));
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(context.tr('tools_pin_save_error'))),
+        );
       }
     });
   }
@@ -205,25 +221,40 @@ class _ToolsScreenState extends State<ToolsScreen> {
                 fontWeight: FontWeight.w800,
               ),
             ),
-            SizedBox(height: ShellStyles.scaled(context, 4, min: 3, max: 6)),
-            Text(
-              context.tr('tools_subtitle'),
-              style: TextStyle(
-                color: ShellStyles.textMuted(context),
-                fontSize: ShellStyles.scaled(context, 12.5, min: 12, max: 13.5),
-                height: 1.3,
+            const SizedBox(height: 16),
+            if (_showPinHint) ...[
+              Container(
+                padding: const EdgeInsetsDirectional.only(start: 12, end: 4),
+                decoration: ShellStyles.cardDecoration(context, radius: 16),
+                child: Row(
+                  children: [
+                    Icon(
+                      AppIcons.pin,
+                      color: ShellStyles.accentTone(context).foreground,
+                      size: 18,
+                    ),
+                    const SizedBox(width: 10),
+                    Expanded(
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(vertical: 10),
+                        child: Text(
+                          context.tr('tools_pin_hint'),
+                          style: Theme.of(context).textTheme.bodySmall,
+                        ),
+                      ),
+                    ),
+                    IconButton(
+                      tooltip: MaterialLocalizations.of(
+                        context,
+                      ).closeButtonTooltip,
+                      onPressed: _dismissPinHint,
+                      icon: const Icon(AppIcons.x, size: 18),
+                    ),
+                  ],
+                ),
               ),
-            ),
-            SizedBox(height: ShellStyles.scaled(context, 18, min: 14, max: 20)),
-            Text(
-              context.tr('tools_pin_hint'),
-              style: TextStyle(
-                color: ShellStyles.textMuted(context),
-                fontSize: 12,
-                height: 1.4,
-              ),
-            ),
-            const SizedBox(height: 12),
+              const SizedBox(height: 12),
+            ],
             if (pinned.isNotEmpty) ...[
               _buildToolSection(
                 context,
@@ -258,8 +289,8 @@ class _ToolsScreenState extends State<ToolsScreen> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Padding(
-          padding: EdgeInsets.only(
-            left: ShellStyles.scaled(context, 2, min: 0, max: 4),
+          padding: EdgeInsetsDirectional.only(
+            start: ShellStyles.scaled(context, 2, min: 0, max: 4),
             bottom: ShellStyles.scaled(context, 8, min: 6, max: 10),
           ),
           child: Text(

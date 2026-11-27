@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'dart:io';
 import 'dart:ui' as ui;
 
+import 'package:expense_tracker_app/core/app_navigation.dart';
 import 'package:expense_tracker_app/core/duplicate_comparison.dart';
 import 'package:expense_tracker_app/core/interface_scale.dart';
 import 'package:expense_tracker_app/core/money_formatter.dart';
@@ -16,6 +17,7 @@ import 'package:expense_tracker_app/screens/duplicate_finder_screen.dart';
 import 'package:expense_tracker_app/screens/receipts_tab.dart';
 import 'package:expense_tracker_app/screens/home_tab.dart';
 import 'package:expense_tracker_app/screens/login_screen.dart';
+import 'package:expense_tracker_app/screens/main_screen.dart';
 import 'package:expense_tracker_app/screens/tools_screen.dart';
 import 'package:expense_tracker_app/screens/analytics_screen.dart';
 import 'package:expense_tracker_app/screens/analytics_trends_tab.dart';
@@ -814,6 +816,68 @@ void main() {
             () => MockClient((request) async => homeSpendingResponse(request)),
           );
           tester.view.physicalSize = const Size(390, 844);
+
+          await show(const LoginScreen(), 'readme-login');
+          final previewPrefs = await SharedPreferences.getInstance();
+          await previewPrefs.setBool('tools_pin_hint_dismissed', true);
+          await http.runWithClient(
+            () async {
+              selectRootTab(0);
+              await show(const MainScreen(), 'readme-home');
+              selectRootTab(1);
+              await show(const MainScreen(), 'readme-tools');
+              selectRootTab(0);
+            },
+            () => MockClient((request) async {
+              const breakdown = {
+                'FOOD': 624,
+                'ENTERTAINMENT': 40,
+                'PERSONAL_CARE': 22,
+              };
+              if (request.url.path == '/v1/me') {
+                return http.Response(
+                  '{"default_currency":"EUR","profile":{"display_name":"Sample Shopper"}}',
+                  200,
+                );
+              }
+              if (request.url.path.endsWith('/summary')) {
+                return http.Response(
+                  jsonEncode({
+                    'currency': 'EUR',
+                    'total_amount': 686,
+                    'breakdown': [
+                      for (final entry in breakdown.entries)
+                        {
+                          'code': entry.key,
+                          'amount': entry.value,
+                          'percentage': 100 * entry.value / 686,
+                        },
+                    ],
+                  }),
+                  200,
+                );
+              }
+              if (request.url.path == '/v1/transactions') {
+                final occurredAt = DateTime.now().toUtc().toIso8601String();
+                return http.Response(
+                  jsonEncode([
+                    for (final entry in breakdown.entries)
+                      {
+                        ...tx(entry.key),
+                        'occurred_at': occurredAt,
+                        'category_code': entry.key,
+                        'amount_total': entry.value,
+                        'display_amount_total': entry.value,
+                        'currency': 'EUR',
+                      },
+                  ]),
+                  200,
+                );
+              }
+              return response(request);
+            }),
+          );
+          await previewPrefs.remove('tools_pin_hint_dismissed');
 
           await show(const Scaffold(body: ReceiptsTab()), 'history-100');
           await show(

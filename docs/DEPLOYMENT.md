@@ -1,40 +1,8 @@
 # Deployment
 
-This repository now targets a single-VPS Kubernetes deployment with:
-
-- K3s as the chosen cluster bootstrap path
-- F5 NGINX Ingress Controller as the maintained NGINX-based edge layer
-- Cloudflare in front of the public site, API, and storage hostnames
-- PostgreSQL, Redis, RabbitMQ, MinIO, Prometheus, and Grafana running in-cluster
-
-## Cluster Bootstrap Decision
-
-### Compared Options
-
-1. `kubeadm`
-   - best when the primary goal is upstream Kubernetes learning and maximum control
-   - highest operator overhead on a single VPS
-   - more setup work for networking, addons, and upgrades
-
-2. `K3s`
-   - easiest day-2 path for a solo operator on one VPS
-   - still Kubernetes-native, so the repo manifests stay portable
-   - simple install, simple upgrades, and easy to disable the default Traefik ingress
-
-3. another distribution such as MicroK8s
-   - workable, but more opinionated packaging for this repo than necessary
-   - less attractive than K3s for this specific single-node, solo-operator setup
-
-### Chosen Path
-
-Choose `K3s`.
-
-Reason:
-
-- it fits the single-VPS reality best
-- it keeps the repo Kubernetes-native
-- it avoids locking the application manifests to a distro-specific layout
-- it keeps learning value without making cluster operations the hardest part of launch
+This guide deploys AI Expense Tracker to a single VPS with K3s, F5 NGINX
+Ingress Controller, and Cloudflare in front of the public hostnames. PostgreSQL,
+Redis, RabbitMQ, MinIO, Prometheus, and Grafana run inside the cluster.
 
 ## Required Open Ports
 
@@ -92,7 +60,6 @@ Use:
 
 - SSL/TLS mode: `Full (strict)`
 - proxied orange-cloud DNS records
-- free-plan assumptions only
 - an Origin Rule matching `example.com`, `api.example.com`, and
   `storage.example.com` that sends requests to destination port `2053` while
   preserving the public hostnames
@@ -162,7 +129,7 @@ Copy `.env.production.example` to `.env.production` and fill:
 
 The image values must point to pullable registry images before you deploy.
 The render script rejects placeholder `ghcr.io/example/...` images and
-production app images tagged `:latest`. The current public site image value is:
+production app images tagged `:latest`. A site image can use a release tag.
 
 ```bash
 SITE_IMAGE=ghcr.io/your-github-org/ai-expense-tracker-site:prod-1
@@ -195,32 +162,9 @@ from MinIO, restores it into an ephemeral PostgreSQL data directory inside that
 job, prints the result, and deletes the job unless `KEEP_JOB=true` is set. It
 must not be pointed at production Postgres.
 
-### Development images from Docker Hub
-
-Public Docker Hub images can use `docker.io/fotapol/ai-expense-tracker-backend:<tag>`,
-`docker.io/fotapol/ai-expense-tracker-site:<tag>` and
-`docker.io/fotapol/ai-expense-tracker-postgres-backup:<tag>` for the three image
-variables. The API and worker use the same backend image. Verify pulls from the
-actual registry named in the image reference before rolling out.
-
-Run migrations from the new backend image before its rollout. The migration
-helper defaults to the currently deployed API image, so an older API image
-will not contain newly introduced revisions. The household-removal revision must
-drop tables directly: PostgreSQL removes their owned indexes and constraints;
-trying to drop a constraint-owned index first fails with SQLSTATE `2BP01`.
-
-Shell entrypoints must use LF line endings. The site and backup Dockerfiles
-normalize copied startup scripts, including builds from Windows checkouts. The
-backup script waits for PostgreSQL connectivity before starting its dump.
-
-The temporary `dev-c7c4ddd` rollout uses ConfigMap
-`expense-tracker-startup-scripts-c7c4ddd` and volume `startup-script-fix` to supply
-LF scripts to the existing Windows-built images. The site mounts its
-`site-entrypoint.sh` key at `/docker-entrypoint.d/40-render-site-config.sh`; the
-backup CronJob mounts `backup.sh` at `/usr/local/bin/backup.sh`. After rebuilding
-both images from the corrected Dockerfiles, remove these temporary volume mounts
-and volumes when deploying the replacement images, then delete the ConfigMap.
-The API and worker need no startup-script override.
+Use fully qualified image names with a tag or digest for each of the three
+image variables. The API and worker share `BACKEND_IMAGE`. Confirm that the
+cluster can pull the configured images before rolling out.
 
 ### 8. Render Kubernetes Inputs
 
@@ -229,7 +173,7 @@ python infra/k8s/scripts/render_k8s_env.py --env-file .env.production
 ```
 
 `UVICORN_FORWARDED_ALLOW_IPS` must not be `*` in production. To discover the
-right value after deploying the diagnostics build, temporarily set:
+right value using proxy diagnostics, temporarily set:
 
 ```env
 PROXY_DIAGNOSTICS_ENABLED=true
@@ -246,22 +190,27 @@ kubectl -n expense-tracker logs deploy/expense-tracker-api --tail=200 | \
 ```
 
 Set `UVICORN_FORWARDED_ALLOW_IPS` to the observed F5 NGINX source IP or CIDR,
-set `PROXY_DIAGNOSTICS_ENABLED=false`, render again, and redeploy. The Host
-header should be `api.example.com` or `api.example.com`.
+set `PROXY_DIAGNOSTICS_ENABLED=false`, render again, and redeploy. Verify that
+the request retains the public host, such as `api.example.com`.
 
 ### 9. Run Database Migrations
 
-When `RUN_STARTUP_MIGRATIONS=false`, run the repo-defined migration job before
-the API rollout:
+When `RUN_STARTUP_MIGRATIONS=false`, run migrations using the new backend image
+before upgrading an existing deployment. Use the same image reference you set
+for `BACKEND_IMAGE`.
 
 ```bash
-bash scripts/run_k8s_migrations.sh
+MIGRATION_IMAGE=ghcr.io/your-github-org/ai-expense-tracker-backend:prod-1 \
+  bash scripts/run_k8s_migrations.sh
 ```
 
-The script creates a temporary Kubernetes `Job` from the currently deployed API
-image, injects the same generated ConfigMap/Secret, runs `alembic upgrade head`,
-waits for completion, and prints the migration logs. Do not point migration
-commands at a production database outside this namespace workflow.
+The script creates a Kubernetes Job that reads the API ConfigMap and Secret,
+runs `alembic upgrade head`, and prints the migration logs. If you omit
+`MIGRATION_IMAGE`, it uses the image from the current API deployment.
+
+For a new cluster, apply the overlay in the next step to create the required
+resources, wait for PostgreSQL to become ready, then run the migration job
+before verifying the API and worker.
 
 ### 10. Apply The Production Overlay
 
@@ -419,8 +368,8 @@ The worker must show startup, RabbitMQ connection, and receipt job logs.
 
 ## Related Docs
 
-- `docs/ENVIRONMENT_VARIABLES.md`
-- `docs/MONITORING.md`
-- `docs/BACKUPS.md`
-- `docs/WEBHOOKS.md`
-- `docs/OPS_RUNBOOK.md`
+- [Environment variables](ENVIRONMENT_VARIABLES.md)
+- [Monitoring](MONITORING.md)
+- [Backups](BACKUPS.md)
+- [Webhooks](WEBHOOKS.md)
+- [Operations runbook](OPS_RUNBOOK.md)

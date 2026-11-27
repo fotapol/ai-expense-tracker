@@ -1312,7 +1312,7 @@ class _SubscriptionScreenState extends State<SubscriptionScreen> {
             onPressed: _isDevActionLoading
                 ? null
                 : () => _applyDevAction('revoke'),
-            child: const Text('Revoke'),
+            child: Text(context.tr('billing_dev_revoke')),
           ),
         ],
       ),

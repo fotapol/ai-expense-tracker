@@ -13,12 +13,8 @@ as a practical full-stack, AI-assisted expense tracking system.
 
 ## Local Setup
 
-Start the backend dependencies and services from the repository root:
-
-```bash
-cp .env.example .env
-docker compose up --build
-```
+Follow the [local setup instructions](README.md#local-backend-and-services)
+and use synthetic data when testing receipt or import flows.
 
 Run backend checks:
 
@@ -39,6 +35,9 @@ flutter test
 ```
 
 ## Pull Requests
+
+Branch from `develop` and target it with feature, fix, and maintenance pull
+requests. Release changes from `develop` to `main`.
 
 Before opening a PR:
 

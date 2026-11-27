@@ -64,7 +64,7 @@ class AppEnv {
 
   static String get githubUrl => _read(
     'APP_GITHUB_URL',
-    fallback: 'https://github.com/expense-tracker/ai-expense-tracker',
+    fallback: 'https://github.com/fotapol/ai-expense-tracker',
   );
 
   static String get supportEmail => _read(

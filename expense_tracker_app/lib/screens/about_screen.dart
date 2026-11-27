@@ -241,13 +241,15 @@ class _AboutScreenState extends State<AboutScreen> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: <Widget>[
               _buildHero(),
-              const SizedBox(height: 16),
-              ShellStyles.sectionLabel(
-                context,
-                context.tr('about_whats_new_section'),
-              ),
-              const SizedBox(height: 8),
-              _buildWhatIsNewCard(releaseNotes),
+              if (releaseNotes != null) ...[
+                const SizedBox(height: 16),
+                ShellStyles.sectionLabel(
+                  context,
+                  context.tr('about_whats_new_section'),
+                ),
+                const SizedBox(height: 8),
+                _buildWhatIsNewCard(releaseNotes),
+              ],
               const SizedBox(height: 16),
               ShellStyles.sectionLabel(
                 context,
@@ -311,14 +313,13 @@ class _AboutScreenState extends State<AboutScreen> {
                       title: MaterialLocalizations.of(
                         context,
                       ).licensesPageTitle,
-                      subtitle: 'Lucide · ISC / MIT',
-                      onTap: () {
-                        registerThirdPartyLicenses();
-                        showLicensePage(
-                          context: context,
-                          applicationName: 'AI Expense Tracker',
-                        );
-                      },
+                      subtitle: context.tr('about_licenses_subtitle'),
+                      onTap: () => Navigator.of(context).push<void>(
+                        MaterialPageRoute(
+                          builder: (_) =>
+                              _LicenseOverview(version: packageInfo?.version),
+                        ),
+                      ),
                     ),
                     Divider(
                       height: 1,
@@ -337,6 +338,57 @@ class _AboutScreenState extends State<AboutScreen> {
             ],
           ),
         ),
+      ),
+    );
+  }
+}
+
+class _LicenseOverview extends StatelessWidget {
+  const _LicenseOverview({required this.version});
+
+  final String? version;
+
+  @override
+  Widget build(BuildContext context) {
+    return SettingsDetailScaffold(
+      title: MaterialLocalizations.of(context).licensesPageTitle,
+      body: ListView(
+        padding: const EdgeInsets.all(16),
+        children: [
+          SettingsDetailCard(
+            padding: EdgeInsets.zero,
+            child: Column(
+              children: [
+                ListTile(
+                  leading: const Icon(AppIcons.fileText),
+                  title: Text(context.tr('app_title')),
+                  subtitle: const Text('MIT'),
+                ),
+                Divider(height: 1, color: ShellStyles.border(context)),
+                const ListTile(
+                  leading: Icon(AppIcons.sparkles),
+                  title: Text('Lucide / Feather'),
+                  subtitle: Text('ISC / MIT'),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 16),
+          OutlinedButton(
+            onPressed: () {
+              registerThirdPartyLicenses();
+              showLicensePage(
+                context: context,
+                applicationName: context.tr('app_title'),
+                applicationVersion: version,
+              );
+            },
+            child: Text(
+              context.tr('about_licenses_full'),
+              textAlign: TextAlign.center,
+            ),
+          ),
+        ],
       ),
     );
   }
