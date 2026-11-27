@@ -1,82 +1,19 @@
-.git
-.gitignore
-.github
+# Send only the files used by the backend, site, and backup Dockerfiles.
+**
+!backend/pyproject.toml
+!backend/uv.lock
+!backend/alembic.ini
+!backend/app/**
+!site/build_site.py
+!site/src/**
+!site/docker/40-render-site-config.sh
+!site/nginx/default.conf.template
+!expense_tracker_app/web/favicon.png
+!expense_tracker_app/assets/brand/logo-login-*.png
+!infra/images/postgres-backup/backup.sh
 
-# Environment and secrets
-.env
-.env.*
-!.env.example
-!.env.production.example
-.envrc
-.secrets/
-backend/.secrets/
-**/firebase_sa.json
-**/*service-account*.json
-**/*secret*.json
-**/*.pem
-**/*.key
-**/*.p12
-**/*.jks
-**/*.keystore
-**/key.properties
-**/local.properties
-origin.crt
-origin.key
-
-# Generated Kubernetes artifacts
-infra/k8s/**/generated/
-
-# Python
-backend/.venv/
-.venv/
-venv/
-env/
-__pycache__/
-*.py[cod]
-.pytest_cache/
-.ruff_cache/
-.mypy_cache/
-.coverage
-htmlcov/
-
-# Flutter/Dart/mobile build output
-expense_tracker_app/.dart_tool/
-expense_tracker_app/build/
-expense_tracker_app/.flutter-plugins
-expense_tracker_app/.flutter-plugins-dependencies
-expense_tracker_app/android/.gradle/
-expense_tracker_app/android/app/build/
-expense_tracker_app/android/app/upload-keystore.jks
-expense_tracker_app/ios/Flutter/Generated.xcconfig
-expense_tracker_app/ios/Flutter/flutter_export_environment.sh
-expense_tracker_app/linux/flutter/ephemeral/
-expense_tracker_app/macos/Flutter/ephemeral/
-expense_tracker_app/windows/flutter/ephemeral/
-*.apk
-*.aab
-*.ipa
-
-# Site and local output
-site/dist/
-dist/
-build/
-*.log
-*.sqlite
-*.sqlite3
-*.db
-
-# IDE and OS files
-.idea/
-.vscode/
-*.iml
-.DS_Store
-Thumbs.db
-
-# Personal financial backup files
-/downloads/
-*.mmbackup
-expense-tracker-backup*.zip
-ai_expense_tracker_export_*.json
-
-# Operator scripts are not application build inputs
-/scripts/
+# Exclude runtime configuration and caches inside included source directories.
+**/.env*
+**/.secrets/
+**/__pycache__/
+**/*.py[cod]
