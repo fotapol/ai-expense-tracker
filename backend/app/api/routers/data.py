@@ -3,9 +3,10 @@
 import datetime as dt
 import uuid
 
-from fastapi import APIRouter, Depends, HTTPException, Request, status
+from fastapi import APIRouter, Depends, HTTPException, Request, Response, status
 from sqlalchemy.exc import IntegrityError
 from sqlmodel import Session, select
+from starlette.concurrency import run_in_threadpool
 
 from app.auth.deps import get_current_user
 from app.core.db import get_session
@@ -22,8 +23,21 @@ from app.schemas.data import (
     TransactionExportData,
     TransactionItemExportData,
 )
+from app.schemas.external_import import (
+    MAX_IMPORT_FILE_BYTES,
+    ExternalImportPlan,
+    ExternalImportPreview,
+    ExternalImportResult,
+    ImportSource,
+)
 from app.services.billing.entitlements import user_has_feature
 from app.services.billing.features import PREMIUM_EXPORTS
+from app.services.data_import.external import (
+    preview_external_import,
+    read_external_import,
+    save_external_import,
+)
+from app.services.data_import.money_manager import BackupLimitError, BackupReadError
 
 router = APIRouter(prefix="/v1/data", tags=["data"])
 
@@ -141,6 +155,49 @@ async def export_data(
         categories=categories_export,
         transactions=transactions_export,
     )
+
+
+@router.post("/external-import/preview", response_model=ExternalImportPreview)
+@limiter.limit("5/minute")
+async def preview_backup(
+    request: Request,
+    response: Response,
+    source: ImportSource,
+    session: Session = Depends(get_session),  # noqa: B008
+    current_user: User = Depends(get_current_user),  # noqa: B008
+):
+    """Read a supported backup without writing any account data."""
+    data = bytearray()
+    async for chunk in request.stream():
+        if len(data) + len(chunk) > MAX_IMPORT_FILE_BYTES:
+            raise HTTPException(status.HTTP_413_CONTENT_TOO_LARGE, "external_import_too_large")
+        data.extend(chunk)
+    try:
+        plan, skipped = await run_in_threadpool(read_external_import, source, bytes(data))
+    except BackupLimitError as error:
+        raise HTTPException(status.HTTP_413_CONTENT_TOO_LARGE, "external_import_too_large") from error
+    except BackupReadError as error:
+        raise HTTPException(status.HTTP_422_UNPROCESSABLE_CONTENT, "external_import_invalid") from error
+    response.headers["Cache-Control"] = "no-store"
+    return preview_external_import(session, current_user.id, plan, skipped)
+
+
+@router.post(
+    "/external-import", response_model=ExternalImportResult, status_code=status.HTTP_201_CREATED
+)
+@limiter.limit("5/minute")
+def import_backup(
+    payload: ExternalImportPlan,
+    request: Request,
+    session: Session = Depends(get_session),  # noqa: B008
+    current_user: User = Depends(get_current_user),  # noqa: B008
+):
+    """Add expenses from an external source and skip records already imported."""
+    try:
+        return save_external_import(session, current_user.id, payload)
+    except IntegrityError as error:
+        session.rollback()
+        raise HTTPException(status.HTTP_409_CONFLICT, "external_import_conflict") from error
 
 
 @router.post("/import", status_code=status.HTTP_201_CREATED)

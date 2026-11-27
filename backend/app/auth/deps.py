@@ -25,6 +25,8 @@ _bearer_scheme = HTTPBearer(
 _SENSITIVE_EXACT_PATHS = {
     "/v1/data/export",
     "/v1/data/import",
+    "/v1/data/external-import",
+    "/v1/data/external-import/preview",
 }
 _SENSITIVE_PATH_PATTERNS = (
     re.compile(r"^/v1/receipts/[^/]+/confirm-upload$"),
