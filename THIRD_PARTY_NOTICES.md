@@ -9,11 +9,11 @@ Primary dependency manifests:
 
 - Backend: `backend/pyproject.toml` and `backend/uv.lock`
 - Flutter: `expense_tracker_app/pubspec.yaml` and `expense_tracker_app/pubspec.lock`
-- Site: `site/requirements.txt`
 - Container images: `Dockerfile`, `site/Dockerfile`, and `infra/images/postgres-backup/Dockerfile`
 
-Before publishing a formal release, generate a dependency license report from
-the current lockfiles and attach it to this file or release artifacts.
+Flutter bundles the license notices from the mobile build's package
+dependencies. Open **Settings → About → Licenses → View all license notices**
+to read the full texts.
 
 ## Interface Icons
 
@@ -24,7 +24,7 @@ Lucide is licensed under ISC (copyright © 2026 Lucide Icons and Contributors).
 Icons derived from Feather also retain the MIT notice (copyright © 2013–present
 Cole Bemis). The complete upstream notices are bundled in
 `expense_tracker_app/assets/licenses/lucide-LICENSE` and available through
-Settings → About → Licenses in the app.
+the full license list in the app.
 
 The Flutter adapter is MIT licensed (copyright © 2024 vqhapp); its license is
 included by Flutter's dependency license registry. Flutter's native controls

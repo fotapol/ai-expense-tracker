@@ -84,6 +84,15 @@ class AppLocalizations {
           'Could not save labels. Please try again.',
       'billing_dev_revoke': 'Revoke access',
       'legal_last_updated': 'Last updated: {date}',
+      'about_licenses_subtitle': 'Open-source notices',
+      'about_licenses_full': 'View all license notices',
+      'about_release_receipts_and_tools': 'Receipts and tools',
+      'about_release_receipt_filters':
+          'Search, sort, and filter receipts by amount in your display currency.',
+      'about_release_duplicate_review':
+          'Compare duplicate receipts side by side and choose which to keep.',
+      'about_release_tools_and_text':
+          'Pin your favorite tools and use layouts that adapt to larger text.',
       'duplicates_discount': 'Discount',
       'tools_pin_save_error': 'Could not save pinned tools. Please try again.',
       'tools_pin_hint': 'Hold a tool to pin or unpin it.',
@@ -1420,6 +1429,15 @@ class AppLocalizations {
           'Etiketten konnten nicht gespeichert werden. Bitte versuche es erneut.',
       'billing_dev_revoke': 'Zugriff entziehen',
       'legal_last_updated': 'Zuletzt aktualisiert: {date}',
+      'about_licenses_subtitle': 'Open-Source-Hinweise',
+      'about_licenses_full': 'Alle Lizenzhinweise anzeigen',
+      'about_release_receipts_and_tools': 'Belege und Werkzeuge',
+      'about_release_receipt_filters':
+          'Suche und sortiere Belege und filtere sie nach Betrag in deiner Anzeigewährung.',
+      'about_release_duplicate_review':
+          'Vergleiche doppelte Belege nebeneinander und wähle aus, welche du behalten möchtest.',
+      'about_release_tools_and_text':
+          'Hefte deine Lieblingswerkzeuge an und nutze Ansichten, die sich an größere Schrift anpassen.',
       'duplicates_discount': 'Rabatt',
       'tools_pin_save_error':
           'Angeheftete Werkzeuge konnten nicht gespeichert werden. Bitte erneut versuchen.',
@@ -2823,6 +2841,15 @@ class AppLocalizations {
           'Impossible d’enregistrer les étiquettes. Réessayez.',
       'billing_dev_revoke': 'Révoquer l’accès',
       'legal_last_updated': 'Dernière mise à jour : {date}',
+      'about_licenses_subtitle': 'Mentions open source',
+      'about_licenses_full': 'Voir toutes les mentions de licence',
+      'about_release_receipts_and_tools': 'Reçus et outils',
+      'about_release_receipt_filters':
+          'Recherchez et triez les reçus, puis filtrez-les par montant dans votre devise d’affichage.',
+      'about_release_duplicate_review':
+          'Comparez les reçus en double côte à côte et choisissez ceux à conserver.',
+      'about_release_tools_and_text':
+          'Épinglez vos outils favoris et profitez d’une interface adaptée aux grands caractères.',
       'duplicates_discount': 'Remise',
       'tools_pin_save_error':
           'Impossible d’enregistrer les outils épinglés. Réessayez.',
@@ -4215,6 +4242,15 @@ class AppLocalizations {
           'Не вдалося зберегти мітки. Спробуйте ще раз.',
       'billing_dev_revoke': 'Відкликати доступ',
       'legal_last_updated': 'Останнє оновлення: {date}',
+      'about_licenses_subtitle': 'Відомості про відкритий код',
+      'about_licenses_full': 'Переглянути всі ліцензійні повідомлення',
+      'about_release_receipts_and_tools': 'Чеки й інструменти',
+      'about_release_receipt_filters':
+          'Шукайте й сортуйте чеки та фільтруйте їх за сумою у валюті відображення.',
+      'about_release_duplicate_review':
+          'Порівнюйте дублікати чеків поруч і вибирайте, які залишити.',
+      'about_release_tools_and_text':
+          'Закріплюйте улюблені інструменти й користуйтеся інтерфейсом, що підлаштовується під більший текст.',
       'duplicates_discount': 'Знижка',
       'tools_pin_save_error':
           'Не вдалося зберегти закріплені інструменти. Спробуйте ще раз.',
@@ -5572,6 +5608,15 @@ class AppLocalizations {
           'Impossibile salvare le etichette. Riprova.',
       'billing_dev_revoke': 'Revoca accesso',
       'legal_last_updated': 'Ultimo aggiornamento: {date}',
+      'about_licenses_subtitle': 'Informazioni sulle licenze open source',
+      'about_licenses_full': 'Mostra tutte le licenze',
+      'about_release_receipts_and_tools': 'Scontrini e strumenti',
+      'about_release_receipt_filters':
+          'Cerca e ordina gli scontrini e filtrali per importo nella valuta di visualizzazione.',
+      'about_release_duplicate_review':
+          'Confronta gli scontrini duplicati fianco a fianco e scegli quali conservare.',
+      'about_release_tools_and_text':
+          'Fissa gli strumenti preferiti e usa un’interfaccia che si adatta al testo più grande.',
       'duplicates_discount': 'Sconto',
       'tools_pin_save_error':
           'Impossibile salvare gli strumenti fissati. Riprova.',
@@ -6972,6 +7017,15 @@ class AppLocalizations {
           'Nie udało się zapisać etykiet. Spróbuj ponownie.',
       'billing_dev_revoke': 'Odbierz dostęp',
       'legal_last_updated': 'Ostatnia aktualizacja: {date}',
+      'about_licenses_subtitle': 'Informacje o otwartym oprogramowaniu',
+      'about_licenses_full': 'Pokaż wszystkie informacje o licencjach',
+      'about_release_receipts_and_tools': 'Paragony i narzędzia',
+      'about_release_receipt_filters':
+          'Wyszukuj i sortuj paragony oraz filtruj je według kwoty w walucie wyświetlania.',
+      'about_release_duplicate_review':
+          'Porównuj zduplikowane paragony obok siebie i wybieraj, które zachować.',
+      'about_release_tools_and_text':
+          'Przypinaj ulubione narzędzia i korzystaj z układów dostosowanych do większego tekstu.',
       'duplicates_discount': 'Rabat',
       'tools_pin_save_error':
           'Nie udało się zapisać przypiętych narzędzi. Spróbuj ponownie.',
@@ -8348,6 +8402,15 @@ class AppLocalizations {
           'Oznake nisu sačuvane. Pokušajte ponovo.',
       'billing_dev_revoke': 'Ukini pristup',
       'legal_last_updated': 'Poslednje ažuriranje: {date}',
+      'about_licenses_subtitle': 'Obaveštenja o otvorenom kodu',
+      'about_licenses_full': 'Prikaži sva obaveštenja o licencama',
+      'about_release_receipts_and_tools': 'Računi i alati',
+      'about_release_receipt_filters':
+          'Pretražujte i sortirajte račune i filtrirajte ih po iznosu u valuti prikaza.',
+      'about_release_duplicate_review':
+          'Uporedite duplirane račune jedan pored drugog i izaberite koje ćete zadržati.',
+      'about_release_tools_and_text':
+          'Zakačite omiljene alate i koristite prikaz koji se prilagođava većem tekstu.',
       'duplicates_discount': 'Popust',
       'tools_pin_save_error':
           'Nije moguće sačuvati zakačene alate. Pokušajte ponovo.',
@@ -9707,6 +9770,15 @@ class AppLocalizations {
           'Не удалось сохранить ярлыки. Попробуйте ещё раз.',
       'billing_dev_revoke': 'Отозвать доступ',
       'legal_last_updated': 'Последнее обновление: {date}',
+      'about_licenses_subtitle': 'Лицензии открытого ПО',
+      'about_licenses_full': 'Посмотреть все лицензии',
+      'about_release_receipts_and_tools': 'Чеки и инструменты',
+      'about_release_receipt_filters':
+          'Ищите и сортируйте чеки и фильтруйте их по сумме в валюте отображения.',
+      'about_release_duplicate_review':
+          'Сравнивайте дубликаты чеков рядом и выбирайте, какие оставить.',
+      'about_release_tools_and_text':
+          'Закрепляйте любимые инструменты и пользуйтесь интерфейсом, который адаптируется к крупному тексту.',
       'duplicates_discount': 'Скидка',
       'tools_pin_save_error':
           'Не удалось сохранить закреплённые инструменты. Повторите попытку.',
@@ -11069,6 +11141,15 @@ class AppLocalizations {
           'Não foi possível guardar as etiquetas. Tente novamente.',
       'billing_dev_revoke': 'Revogar acesso',
       'legal_last_updated': 'Última atualização: {date}',
+      'about_licenses_subtitle': 'Avisos de código aberto',
+      'about_licenses_full': 'Ver todos os avisos de licença',
+      'about_release_receipts_and_tools': 'Recibos e ferramentas',
+      'about_release_receipt_filters':
+          'Pesquise e ordene recibos e filtre-os por valor na moeda de apresentação.',
+      'about_release_duplicate_review':
+          'Compare recibos duplicados lado a lado e escolha quais guardar.',
+      'about_release_tools_and_text':
+          'Fixe as suas ferramentas favoritas e use ecrãs que se adaptam a texto maior.',
       'duplicates_discount': 'Desconto',
       'tools_pin_save_error':
           'Não foi possível salvar as ferramentas fixadas. Tente novamente.',
@@ -12455,6 +12536,15 @@ class AppLocalizations {
           'Etiketler kaydedilemedi. Lütfen tekrar deneyin.',
       'billing_dev_revoke': 'Erişimi iptal et',
       'legal_last_updated': 'Son güncelleme: {date}',
+      'about_licenses_subtitle': 'Açık kaynak bildirimleri',
+      'about_licenses_full': 'Tüm lisans bildirimlerini gör',
+      'about_release_receipts_and_tools': 'Fişler ve araçlar',
+      'about_release_receipt_filters':
+          'Fişleri arayın, sıralayın ve gösterim para birimindeki tutara göre filtreleyin.',
+      'about_release_duplicate_review':
+          'Yinelenen fişleri yan yana karşılaştırın ve hangilerini saklayacağınızı seçin.',
+      'about_release_tools_and_text':
+          'Favori araçlarınızı sabitleyin ve daha büyük metne uyum sağlayan düzenleri kullanın.',
       'duplicates_discount': 'İndirim',
       'tools_pin_save_error':
           'Sabitlenen araçlar kaydedilemedi. Lütfen tekrar deneyin.',
@@ -13809,6 +13899,15 @@ class AppLocalizations {
           'Labels konden niet worden opgeslagen. Probeer het opnieuw.',
       'billing_dev_revoke': 'Toegang intrekken',
       'legal_last_updated': 'Laatst bijgewerkt: {date}',
+      'about_licenses_subtitle': 'Opensourcevermeldingen',
+      'about_licenses_full': 'Alle licentievermeldingen bekijken',
+      'about_release_receipts_and_tools': 'Bonnen en hulpmiddelen',
+      'about_release_receipt_filters':
+          'Zoek en sorteer bonnen en filter ze op bedrag in je weergavevaluta.',
+      'about_release_duplicate_review':
+          'Vergelijk dubbele bonnen naast elkaar en kies welke je wilt bewaren.',
+      'about_release_tools_and_text':
+          'Zet je favoriete hulpmiddelen vast en gebruik een indeling die zich aan grotere tekst aanpast.',
       'duplicates_discount': 'Korting',
       'tools_pin_save_error':
           'Vastgezette hulpmiddelen konden niet worden opgeslagen. Probeer het opnieuw.',
@@ -15189,6 +15288,15 @@ class AppLocalizations {
           'Det gick inte att spara etiketterna. Försök igen.',
       'billing_dev_revoke': 'Återkalla åtkomst',
       'legal_last_updated': 'Senast uppdaterad: {date}',
+      'about_licenses_subtitle': 'Information om öppen källkod',
+      'about_licenses_full': 'Visa alla licensmeddelanden',
+      'about_release_receipts_and_tools': 'Kvitton och verktyg',
+      'about_release_receipt_filters':
+          'Sök och sortera kvitton och filtrera dem efter belopp i visningsvalutan.',
+      'about_release_duplicate_review':
+          'Jämför dubbletter av kvitton sida vid sida och välj vilka du vill behålla.',
+      'about_release_tools_and_text':
+          'Fäst dina favoritverktyg och använd layouter som anpassar sig till större text.',
       'duplicates_discount': 'Rabatt',
       'tools_pin_save_error':
           'Det gick inte att spara fästa verktyg. Försök igen.',
@@ -16550,6 +16658,15 @@ class AppLocalizations {
           'Štítky se nepodařilo uložit. Zkuste to znovu.',
       'billing_dev_revoke': 'Odebrat přístup',
       'legal_last_updated': 'Poslední aktualizace: {date}',
+      'about_licenses_subtitle': 'Informace o otevřeném softwaru',
+      'about_licenses_full': 'Zobrazit všechna licenční oznámení',
+      'about_release_receipts_and_tools': 'Účtenky a nástroje',
+      'about_release_receipt_filters':
+          'Vyhledávejte a řaďte účtenky a filtrujte je podle částky v měně zobrazení.',
+      'about_release_duplicate_review':
+          'Porovnejte duplicitní účtenky vedle sebe a vyberte, které ponechat.',
+      'about_release_tools_and_text':
+          'Připněte si oblíbené nástroje a používejte rozhraní, které se přizpůsobí většímu textu.',
       'duplicates_discount': 'Sleva',
       'tools_pin_save_error':
           'Připnuté nástroje se nepodařilo uložit. Zkuste to znovu.',
@@ -17901,6 +18018,15 @@ class AppLocalizations {
           'Etichetele nu au putut fi salvate. Încearcă din nou.',
       'billing_dev_revoke': 'Revocă accesul',
       'legal_last_updated': 'Ultima actualizare: {date}',
+      'about_licenses_subtitle': 'Notificări privind codul sursă deschis',
+      'about_licenses_full': 'Vezi toate notificările de licență',
+      'about_release_receipts_and_tools': 'Bonuri și instrumente',
+      'about_release_receipt_filters':
+          'Caută și sortează bonurile și filtrează-le după sumă în moneda de afișare.',
+      'about_release_duplicate_review':
+          'Compară bonurile duplicate alăturat și alege pe care să le păstrezi.',
+      'about_release_tools_and_text':
+          'Fixează instrumentele preferate și folosește o interfață care se adaptează la text mai mare.',
       'duplicates_discount': 'Reducere',
       'tools_pin_save_error':
           'Instrumentele fixate nu au putut fi salvate. Încearcă din nou.',
@@ -19291,6 +19417,15 @@ class AppLocalizations {
           'Nem sikerült menteni a címkéket. Próbáld újra.',
       'billing_dev_revoke': 'Hozzáférés visszavonása',
       'legal_last_updated': 'Utolsó frissítés: {date}',
+      'about_licenses_subtitle': 'Nyílt forráskódú összetevők',
+      'about_licenses_full': 'Az összes licenc megtekintése',
+      'about_release_receipts_and_tools': 'Nyugták és eszközök',
+      'about_release_receipt_filters':
+          'Keress és rendezz nyugtákat, és szűrd őket összeg szerint a megjelenítési pénznemben.',
+      'about_release_duplicate_review':
+          'Hasonlítsd össze egymás mellett a duplikált nyugtákat, és válaszd ki, melyiket tartod meg.',
+      'about_release_tools_and_text':
+          'Rögzítsd kedvenc eszközeidet, és használd a nagyobb szöveghez alkalmazkodó felületet.',
       'duplicates_discount': 'Kedvezmény',
       'tools_pin_save_error':
           'A rögzített eszközök mentése sikertelen. Próbáld újra.',
@@ -20662,6 +20797,15 @@ class AppLocalizations {
       'transaction_labels_save_error': 'Label tidak dapat disimpan. Coba lagi.',
       'billing_dev_revoke': 'Cabut akses',
       'legal_last_updated': 'Terakhir diperbarui: {date}',
+      'about_licenses_subtitle': 'Pemberitahuan sumber terbuka',
+      'about_licenses_full': 'Lihat semua pemberitahuan lisensi',
+      'about_release_receipts_and_tools': 'Struk dan alat',
+      'about_release_receipt_filters':
+          'Cari, urutkan, dan filter struk menurut jumlah dalam mata uang tampilan.',
+      'about_release_duplicate_review':
+          'Bandingkan struk duplikat secara berdampingan dan pilih yang ingin disimpan.',
+      'about_release_tools_and_text':
+          'Sematkan alat favorit dan gunakan tata letak yang menyesuaikan dengan teks yang lebih besar.',
       'duplicates_discount': 'Diskon',
       'tools_pin_save_error':
           'Alat yang disematkan tidak dapat disimpan. Coba lagi.',
@@ -22027,6 +22171,15 @@ class AppLocalizations {
       'transaction_labels_save_error': 'Label tidak dapat disimpan. Cuba lagi.',
       'billing_dev_revoke': 'Tarik balik akses',
       'legal_last_updated': 'Terakhir dikemas kini: {date}',
+      'about_licenses_subtitle': 'Notis sumber terbuka',
+      'about_licenses_full': 'Lihat semua notis lesen',
+      'about_release_receipts_and_tools': 'Resit dan alatan',
+      'about_release_receipt_filters':
+          'Cari dan susun resit serta tapis mengikut amaun dalam mata wang paparan.',
+      'about_release_duplicate_review':
+          'Bandingkan resit pendua bersebelahan dan pilih yang mahu disimpan.',
+      'about_release_tools_and_text':
+          'Sematkan alatan kegemaran dan gunakan susun atur yang menyesuaikan diri dengan teks yang lebih besar.',
       'duplicates_discount': 'Diskaun',
       'tools_pin_save_error':
           'Alat yang disematkan tidak dapat disimpan. Sila cuba lagi.',
@@ -23387,6 +23540,15 @@ class AppLocalizations {
       'transaction_labels_save_error': 'Không thể lưu nhãn. Vui lòng thử lại.',
       'billing_dev_revoke': 'Thu hồi quyền truy cập',
       'legal_last_updated': 'Cập nhật lần cuối: {date}',
+      'about_licenses_subtitle': 'Thông báo mã nguồn mở',
+      'about_licenses_full': 'Xem tất cả thông báo giấy phép',
+      'about_release_receipts_and_tools': 'Hóa đơn và công cụ',
+      'about_release_receipt_filters':
+          'Tìm kiếm, sắp xếp và lọc hóa đơn theo số tiền trong đơn vị tiền tệ hiển thị.',
+      'about_release_duplicate_review':
+          'So sánh các hóa đơn trùng lặp cạnh nhau và chọn hóa đơn muốn giữ.',
+      'about_release_tools_and_text':
+          'Ghim công cụ yêu thích và dùng bố cục thích ứng với chữ lớn hơn.',
       'duplicates_discount': 'Giảm giá',
       'tools_pin_save_error':
           'Không thể lưu các công cụ đã ghim. Vui lòng thử lại.',
@@ -24744,6 +24906,12 @@ class AppLocalizations {
       'transaction_labels_save_error': '无法保存标签。请重试。',
       'billing_dev_revoke': '撤销访问权限',
       'legal_last_updated': '最后更新：{date}',
+      'about_licenses_subtitle': '开源许可声明',
+      'about_licenses_full': '查看所有许可声明',
+      'about_release_receipts_and_tools': '小票与工具',
+      'about_release_receipt_filters': '搜索、排序小票，并按显示货币的金额筛选。',
+      'about_release_duplicate_review': '并排比较重复的小票，然后选择要保留的小票。',
+      'about_release_tools_and_text': '置顶常用工具，界面会适应较大的文字。',
       'duplicates_discount': '折扣',
       'tools_pin_save_error': '无法保存已固定的工具，请重试。',
       'tools_pin_hint': '长按工具可固定或取消固定。',
@@ -25891,6 +26059,12 @@ class AppLocalizations {
       'transaction_labels_save_error': 'ラベルを保存できませんでした。もう一度お試しください。',
       'billing_dev_revoke': 'アクセスを取り消す',
       'legal_last_updated': '最終更新：{date}',
+      'about_licenses_subtitle': 'オープンソースの通知',
+      'about_licenses_full': 'すべてのライセンス通知を表示',
+      'about_release_receipts_and_tools': 'レシートとツール',
+      'about_release_receipt_filters': 'レシートを検索・並べ替えし、表示通貨の金額で絞り込めます。',
+      'about_release_duplicate_review': '重複するレシートを並べて比較し、残すものを選べます。',
+      'about_release_tools_and_text': 'お気に入りのツールを固定でき、文字を大きくしても画面が読みやすくなります。',
       'duplicates_discount': '割引',
       'tools_pin_save_error': '固定したツールを保存できませんでした。もう一度お試しください。',
       'tools_pin_hint': 'ツールを長押しすると固定・解除できます。',
@@ -27079,6 +27253,14 @@ class AppLocalizations {
       'transaction_labels_save_error': '라벨을 저장하지 못했습니다. 다시 시도해 주세요.',
       'billing_dev_revoke': '액세스 권한 취소',
       'legal_last_updated': '마지막 업데이트: {date}',
+      'about_licenses_subtitle': '오픈 소스 고지',
+      'about_licenses_full': '모든 라이선스 고지 보기',
+      'about_release_receipts_and_tools': '영수증 및 도구',
+      'about_release_receipt_filters':
+          '영수증을 검색하고 정렬하거나 표시 통화의 금액으로 필터링할 수 있습니다.',
+      'about_release_duplicate_review': '중복 영수증을 나란히 비교하고 보관할 영수증을 선택할 수 있습니다.',
+      'about_release_tools_and_text':
+          '자주 쓰는 도구를 고정하고 큰 글자에 맞춰 조정되는 화면을 사용할 수 있습니다.',
       'duplicates_discount': '할인',
       'tools_pin_save_error': '고정한 도구를 저장하지 못했습니다. 다시 시도하세요.',
       'tools_pin_hint': '도구를 길게 눌러 고정하거나 해제하세요.',
@@ -28287,6 +28469,15 @@ class AppLocalizations {
           'लेबल सेव नहीं हो सके। दोबारा कोशिश करें।',
       'billing_dev_revoke': 'ऐक्सेस रद्द करें',
       'legal_last_updated': 'आखिरी अपडेट: {date}',
+      'about_licenses_subtitle': 'ओपन सोर्स सूचनाएँ',
+      'about_licenses_full': 'सभी लाइसेंस सूचनाएँ देखें',
+      'about_release_receipts_and_tools': 'रसीदें और टूल',
+      'about_release_receipt_filters':
+          'रसीदें खोजें, क्रम में लगाएँ और दिखाई जाने वाली मुद्रा में राशि के अनुसार फ़िल्टर करें।',
+      'about_release_duplicate_review':
+          'डुप्लिकेट रसीदों की साथ-साथ तुलना करें और चुनें कि किन्हें रखना है।',
+      'about_release_tools_and_text':
+          'पसंदीदा टूल पिन करें और बड़े टेक्स्ट के अनुकूल लेआउट का इस्तेमाल करें।',
       'duplicates_discount': 'छूट',
       'tools_pin_save_error':
           'पिन किए गए टूल सहेजे नहीं जा सके। फिर से कोशिश करें।',
@@ -29628,6 +29819,15 @@ class AppLocalizations {
           'تعذّر حفظ التسميات. يُرجى المحاولة مرة أخرى.',
       'billing_dev_revoke': 'إلغاء الوصول',
       'legal_last_updated': 'آخر تحديث: {date}',
+      'about_licenses_subtitle': 'إشعارات المصادر المفتوحة',
+      'about_licenses_full': 'عرض جميع إشعارات التراخيص',
+      'about_release_receipts_and_tools': 'الإيصالات والأدوات',
+      'about_release_receipt_filters':
+          'ابحث عن الإيصالات ورتّبها وصفّها حسب المبلغ بعملة العرض.',
+      'about_release_duplicate_review':
+          'قارن الإيصالات المكررة جنبًا إلى جنب واختر ما تريد الاحتفاظ به.',
+      'about_release_tools_and_text':
+          'ثبّت أدواتك المفضلة واستخدم واجهة تتكيف مع النص الأكبر.',
       'duplicates_discount': 'الخصم',
       'tools_pin_save_error':
           'تعذّر حفظ الأدوات المثبتة. يرجى المحاولة مجدداً.',
@@ -30944,6 +31144,15 @@ class AppLocalizations {
           'No se pudieron guardar las etiquetas. Inténtalo de nuevo.',
       'billing_dev_revoke': 'Revocar acceso',
       'legal_last_updated': 'Última actualización: {date}',
+      'about_licenses_subtitle': 'Avisos de código abierto',
+      'about_licenses_full': 'Ver todos los avisos de licencia',
+      'about_release_receipts_and_tools': 'Recibos y herramientas',
+      'about_release_receipt_filters':
+          'Busca y ordena los recibos y fíltralos por importe en tu moneda de visualización.',
+      'about_release_duplicate_review':
+          'Compara recibos duplicados en paralelo y elige cuáles conservar.',
+      'about_release_tools_and_text':
+          'Fija tus herramientas favoritas y usa una interfaz que se adapta al texto más grande.',
       'duplicates_discount': 'Descuento',
       'tools_pin_save_error':
           'No se pudieron guardar las herramientas fijadas. Inténtalo de nuevo.',
