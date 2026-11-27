@@ -605,6 +605,15 @@ class ApiClient {
     Map<String, dynamic> payload,
   ) => DataTransferApiClient.importData(payload);
 
+  static Future<Map<String, dynamic>> previewExternalImport(
+    Uint8List file,
+    String source,
+  ) => DataTransferApiClient.previewExternalImport(file, source);
+
+  static Future<Map<String, dynamic>> importExternalData(
+    Map<String, dynamic> plan,
+  ) => DataTransferApiClient.importExternalData(plan);
+
   static Future<Map<String, dynamic>> exportData() =>
       DataTransferApiClient.exportData();
 }

@@ -70,6 +70,21 @@ class AppLocalizations {
 
   static const Map<String, Map<String, String>> _translations = {
     'en': {
+      'data_import_backup_processing':
+          'The app sends Money Manager backups to the server for preview.',
+      'data_import_choose': 'Choose file',
+      'data_import_new_count': 'Expenses to import',
+      'data_import_prev_count': 'Already imported',
+      'data_import_ignored_count': 'Skipped records',
+      'data_import_added_count': 'Imported expenses',
+      'data_import_before_preview':
+          'Choose a file and review it before adding expenses to your account.',
+      'data_import_expenses_only':
+          'The preview includes expenses. Income, transfers, and unsupported records are skipped.',
+      'data_import_invalid':
+          'Choose a valid AI Expense Tracker export or a Money Manager backup from Orange Dog.',
+      'data_import_large': 'This file is too large to import.',
+      'data_import_failed': 'Import failed. Please try again.',
       'item_editor_choose_subcategory': 'Select subcategory',
       'item_editor_new': 'New item',
       'item_editor_edit': 'Edit item',
@@ -1415,6 +1430,21 @@ class AppLocalizations {
       'delete_reminder_name_confirm': 'Delete "{name}"?',
     },
     'de': {
+      'data_import_backup_processing':
+          'Die App sendet Money-Manager-Sicherungen für die Vorschau an den Server.',
+      'data_import_choose': 'Datei auswählen',
+      'data_import_new_count': 'Zu importierende Ausgaben',
+      'data_import_prev_count': 'Bereits importiert',
+      'data_import_ignored_count': 'Übersprungene Einträge',
+      'data_import_added_count': 'Importierte Ausgaben',
+      'data_import_before_preview':
+          'Wähle eine Datei und prüfe sie, bevor du die Ausgaben zu deinem Konto hinzufügst.',
+      'data_import_expenses_only':
+          'Die Vorschau umfasst Ausgaben. Einnahmen, Überweisungen und nicht unterstützte Einträge werden übersprungen.',
+      'data_import_invalid':
+          'Wähle einen gültigen Export von AI Expense Tracker oder eine Money-Manager-Sicherung von Orange Dog.',
+      'data_import_large': 'Diese Datei ist zu groß für den Import.',
+      'data_import_failed': 'Import fehlgeschlagen. Bitte versuche es erneut.',
       'item_editor_choose_subcategory': 'Unterkategorie auswählen',
       'item_editor_new': 'Neuer Artikel',
       'item_editor_edit': 'Artikel bearbeiten',
@@ -2827,6 +2857,21 @@ class AppLocalizations {
       'delete_reminder_name_confirm': '„{name}“ löschen?',
     },
     'fr': {
+      'data_import_backup_processing':
+          'L’application envoie les sauvegardes Money Manager au serveur pour l’aperçu.',
+      'data_import_choose': 'Choisir un fichier',
+      'data_import_new_count': 'Dépenses à importer',
+      'data_import_prev_count': 'Déjà importées',
+      'data_import_ignored_count': 'Entrées ignorées',
+      'data_import_added_count': 'Dépenses importées',
+      'data_import_before_preview':
+          'Choisissez un fichier et vérifiez son contenu avant d’ajouter les dépenses à votre compte.',
+      'data_import_expenses_only':
+          'L’aperçu présente les dépenses. Les revenus, virements et entrées non prises en charge sont ignorés.',
+      'data_import_invalid':
+          'Choisissez un export AI Expense Tracker valide ou une sauvegarde Money Manager d’Orange Dog.',
+      'data_import_large': 'Ce fichier est trop volumineux pour être importé.',
+      'data_import_failed': 'L’importation a échoué. Veuillez réessayer.',
       'item_editor_choose_subcategory': 'Choisir une sous-catégorie',
       'item_editor_new': 'Nouvel article',
       'item_editor_edit': 'Modifier l’article',
@@ -4228,6 +4273,21 @@ class AppLocalizations {
       'delete_reminder_name_confirm': 'Supprimer "{name}" ?',
     },
     'uk': {
+      'data_import_backup_processing':
+          'Застосунок надсилає резервні копії Money Manager на сервер для попереднього перегляду.',
+      'data_import_choose': 'Вибрати файл',
+      'data_import_new_count': 'Витрати для імпорту',
+      'data_import_prev_count': 'Вже імпортовано',
+      'data_import_ignored_count': 'Пропущені записи',
+      'data_import_added_count': 'Імпортовані витрати',
+      'data_import_before_preview':
+          'Виберіть файл і перевірте його перед додаванням витрат до облікового запису.',
+      'data_import_expenses_only':
+          'У попередньому перегляді показано витрати. Доходи, перекази й непідтримувані записи пропускаються.',
+      'data_import_invalid':
+          'Виберіть дійсний експорт AI Expense Tracker або резервну копію Money Manager від Orange Dog.',
+      'data_import_large': 'Цей файл завеликий для імпорту.',
+      'data_import_failed': 'Не вдалося імпортувати дані. Спробуйте ще раз.',
       'item_editor_choose_subcategory': 'Виберіть підкатегорію',
       'item_editor_new': 'Нова позиція',
       'item_editor_edit': 'Редагувати позицію',
@@ -5594,6 +5654,21 @@ class AppLocalizations {
       'delete_reminder_name_confirm': 'Видалити "{name}"?',
     },
     'it': {
+      'data_import_backup_processing':
+          'L’app invia i backup di Money Manager al server per l’anteprima.',
+      'data_import_choose': 'Scegli file',
+      'data_import_new_count': 'Spese da importare',
+      'data_import_prev_count': 'Già importate',
+      'data_import_ignored_count': 'Voci ignorate',
+      'data_import_added_count': 'Spese importate',
+      'data_import_before_preview':
+          'Scegli un file e controllalo prima di aggiungere le spese al tuo account.',
+      'data_import_expenses_only':
+          'L’anteprima mostra le spese. Entrate, trasferimenti e voci non supportate vengono ignorati.',
+      'data_import_invalid':
+          'Scegli un’esportazione valida di AI Expense Tracker o un backup Money Manager di Orange Dog.',
+      'data_import_large': 'Il file è troppo grande per essere importato.',
+      'data_import_failed': 'Importazione non riuscita. Riprova.',
       'item_editor_choose_subcategory': 'Seleziona sottocategoria',
       'item_editor_new': 'Nuovo articolo',
       'item_editor_edit': 'Modifica articolo',
@@ -7003,6 +7078,21 @@ class AppLocalizations {
       'delete_reminder_name_confirm': 'Eliminare "{name}"?',
     },
     'pl': {
+      'data_import_backup_processing':
+          'Aplikacja przesyła kopie Money Manager na serwer, aby przygotować podgląd.',
+      'data_import_choose': 'Wybierz plik',
+      'data_import_new_count': 'Wydatki do zaimportowania',
+      'data_import_prev_count': 'Już zaimportowane',
+      'data_import_ignored_count': 'Pominięte wpisy',
+      'data_import_added_count': 'Zaimportowane wydatki',
+      'data_import_before_preview':
+          'Wybierz plik i sprawdź go przed dodaniem wydatków do konta.',
+      'data_import_expenses_only':
+          'Podgląd obejmuje wydatki. Przychody, przelewy i nieobsługiwane wpisy są pomijane.',
+      'data_import_invalid':
+          'Wybierz poprawny eksport AI Expense Tracker lub kopię zapasową Money Manager od Orange Dog.',
+      'data_import_large': 'Plik jest za duży do zaimportowania.',
+      'data_import_failed': 'Import nie powiódł się. Spróbuj ponownie.',
       'item_editor_choose_subcategory': 'Wybierz podkategorię',
       'item_editor_new': 'Nowa pozycja',
       'item_editor_edit': 'Edytuj pozycję',
@@ -8388,6 +8478,21 @@ class AppLocalizations {
       'delete_reminder_name_confirm': 'Usunąć "{name}"?',
     },
     'sr': {
+      'data_import_backup_processing':
+          'Aplikacija šalje kopije programa Money Manager serveru radi pregleda.',
+      'data_import_choose': 'Izaberite datoteku',
+      'data_import_new_count': 'Troškovi za uvoz',
+      'data_import_prev_count': 'Već uvezeno',
+      'data_import_ignored_count': 'Preskočeni unosi',
+      'data_import_added_count': 'Uvezeni troškovi',
+      'data_import_before_preview':
+          'Izaberite datoteku i pregledajte je pre dodavanja troškova na nalog.',
+      'data_import_expenses_only':
+          'Pregled obuhvata troškove. Prihodi, prenosi i nepodržani unosi se preskaču.',
+      'data_import_invalid':
+          'Izaberite ispravan izvoz iz AI Expense Tracker ili kopiju Money Manager aplikacije kompanije Orange Dog.',
+      'data_import_large': 'Datoteka je prevelika za uvoz.',
+      'data_import_failed': 'Uvoz nije uspeo. Pokušajte ponovo.',
       'item_editor_choose_subcategory': 'Izaberite potkategoriju',
       'item_editor_new': 'Nova stavka',
       'item_editor_edit': 'Izmeni stavku',
@@ -9756,6 +9861,22 @@ class AppLocalizations {
       'delete_reminder_name_confirm': 'Obriši "{name}"?',
     },
     'ru': {
+      'data_import_backup_processing':
+          'Для предпросмотра приложение отправляет копию Money Manager на сервер.',
+      'data_import_choose': 'Выбрать файл',
+      'data_import_new_count': 'Расходы к импорту',
+      'data_import_prev_count': 'Уже импортировано',
+      'data_import_ignored_count': 'Пропущенные записи',
+      'data_import_added_count': 'Импортированные расходы',
+      'data_import_before_preview':
+          'Выберите файл и проверьте расходы перед добавлением в аккаунт.',
+      'data_import_expenses_only':
+          'В предпросмотре показаны расходы. Доходы, переводы и неподдерживаемые записи пропускаются.',
+      'data_import_invalid':
+          'Выберите действительный экспорт AI Expense Tracker или резервную копию Money Manager от Orange Dog.',
+      'data_import_large': 'Этот файл слишком большой для импорта.',
+      'data_import_failed':
+          'Не удалось импортировать данные. Попробуйте ещё раз.',
       'item_editor_choose_subcategory': 'Выберите подкатегорию',
       'item_editor_new': 'Новая позиция',
       'item_editor_edit': 'Редактировать позицию',
@@ -11127,6 +11248,21 @@ class AppLocalizations {
       'delete_reminder_name_confirm': 'Удалить "{name}"?',
     },
     'pt': {
+      'data_import_backup_processing':
+          'A aplicação envia as cópias do Money Manager para o servidor para gerar a pré-visualização.',
+      'data_import_choose': 'Escolher ficheiro',
+      'data_import_new_count': 'Despesas a importar',
+      'data_import_prev_count': 'Já importadas',
+      'data_import_ignored_count': 'Registos ignorados',
+      'data_import_added_count': 'Despesas importadas',
+      'data_import_before_preview':
+          'Escolha um ficheiro e reveja-o antes de adicionar despesas à sua conta.',
+      'data_import_expenses_only':
+          'A pré-visualização inclui despesas. Rendimentos, transferências e registos não suportados são ignorados.',
+      'data_import_invalid':
+          'Escolha uma exportação válida do AI Expense Tracker ou uma cópia do Money Manager da Orange Dog.',
+      'data_import_large': 'O ficheiro é demasiado grande para importar.',
+      'data_import_failed': 'Falha na importação. Tente novamente.',
       'item_editor_choose_subcategory': 'Selecionar subcategoria',
       'item_editor_new': 'Novo artigo',
       'item_editor_edit': 'Editar artigo',
@@ -12522,6 +12658,22 @@ class AppLocalizations {
       'delete_reminder_name_confirm': 'Eliminar "{name}"?',
     },
     'tr': {
+      'data_import_backup_processing':
+          'Uygulama, önizleme için Money Manager yedeklerini sunucuya gönderir.',
+      'data_import_choose': 'Dosya seç',
+      'data_import_new_count': 'İçe aktarılacak harcamalar',
+      'data_import_prev_count': 'Daha önce aktarılanlar',
+      'data_import_ignored_count': 'Atlanan kayıtlar',
+      'data_import_added_count': 'Aktarılan harcamalar',
+      'data_import_before_preview':
+          'Bir dosya seçin ve harcamaları hesabınıza eklemeden önce gözden geçirin.',
+      'data_import_expenses_only':
+          'Önizlemede harcamalar gösterilir. Gelirler, transferler ve desteklenmeyen kayıtlar atlanır.',
+      'data_import_invalid':
+          'Geçerli bir AI Expense Tracker dışa aktarımı veya Orange Dog Money Manager yedeği seçin.',
+      'data_import_large': 'Bu dosya içe aktarılamayacak kadar büyük.',
+      'data_import_failed':
+          'İçe aktarma başarısız oldu. Lütfen tekrar deneyin.',
       'item_editor_choose_subcategory': 'Alt kategori seçin',
       'item_editor_new': 'Yeni kalem',
       'item_editor_edit': 'Kalemi düzenle',
@@ -13885,6 +14037,21 @@ class AppLocalizations {
       'delete_reminder_name_confirm': '"{name}" silinsin mi?',
     },
     'nl': {
+      'data_import_backup_processing':
+          'De app stuurt Money Manager-back-ups naar de server voor het voorbeeld.',
+      'data_import_choose': 'Bestand kiezen',
+      'data_import_new_count': 'Te importeren uitgaven',
+      'data_import_prev_count': 'Al geïmporteerd',
+      'data_import_ignored_count': 'Overgeslagen records',
+      'data_import_added_count': 'Geïmporteerde uitgaven',
+      'data_import_before_preview':
+          'Kies een bestand en controleer het voordat je uitgaven aan je account toevoegt.',
+      'data_import_expenses_only':
+          'Het voorbeeld toont uitgaven. Inkomsten, overboekingen en niet-ondersteunde records worden overgeslagen.',
+      'data_import_invalid':
+          'Kies een geldige AI Expense Tracker-export of een Money Manager-back-up van Orange Dog.',
+      'data_import_large': 'Dit bestand is te groot om te importeren.',
+      'data_import_failed': 'Importeren mislukt. Probeer het opnieuw.',
       'item_editor_choose_subcategory': 'Subcategorie kiezen',
       'item_editor_new': 'Nieuw artikel',
       'item_editor_edit': 'Artikel bewerken',
@@ -15274,6 +15441,21 @@ class AppLocalizations {
       'delete_reminder_name_confirm': '"{name}" verwijderen?',
     },
     'sv': {
+      'data_import_backup_processing':
+          'Appen skickar Money Manager-säkerhetskopior till servern för förhandsvisning.',
+      'data_import_choose': 'Välj fil',
+      'data_import_new_count': 'Utgifter att importera',
+      'data_import_prev_count': 'Redan importerade',
+      'data_import_ignored_count': 'Överhoppade poster',
+      'data_import_added_count': 'Importerade utgifter',
+      'data_import_before_preview':
+          'Välj en fil och granska den innan du lägger till utgifter på ditt konto.',
+      'data_import_expenses_only':
+          'Förhandsvisningen visar utgifter. Inkomster, överföringar och poster utan stöd hoppas över.',
+      'data_import_invalid':
+          'Välj en giltig export från AI Expense Tracker eller en Money Manager-säkerhetskopia från Orange Dog.',
+      'data_import_large': 'Filen är för stor för att importeras.',
+      'data_import_failed': 'Importen misslyckades. Försök igen.',
       'item_editor_choose_subcategory': 'Välj underkategori',
       'item_editor_new': 'Ny artikel',
       'item_editor_edit': 'Redigera artikel',
@@ -16644,6 +16826,21 @@ class AppLocalizations {
       'delete_reminder_name_confirm': 'Radera "{name}"?',
     },
     'cs': {
+      'data_import_backup_processing':
+          'Aplikace odesílá zálohy Money Manager na server, aby vytvořila náhled.',
+      'data_import_choose': 'Vybrat soubor',
+      'data_import_new_count': 'Výdaje k importu',
+      'data_import_prev_count': 'Již importováno',
+      'data_import_ignored_count': 'Přeskočené záznamy',
+      'data_import_added_count': 'Importované výdaje',
+      'data_import_before_preview':
+          'Vyberte soubor a zkontrolujte jej před přidáním výdajů do účtu.',
+      'data_import_expenses_only':
+          'Náhled obsahuje výdaje. Příjmy, převody a nepodporované záznamy se přeskočí.',
+      'data_import_invalid':
+          'Vyberte platný export z AI Expense Tracker nebo zálohu Money Manager od Orange Dog.',
+      'data_import_large': 'Soubor je pro import příliš velký.',
+      'data_import_failed': 'Import se nezdařil. Zkuste to znovu.',
       'item_editor_choose_subcategory': 'Vyberte podkategorii',
       'item_editor_new': 'Nová položka',
       'item_editor_edit': 'Upravit položku',
@@ -18004,6 +18201,21 @@ class AppLocalizations {
       'delete_reminder_name_confirm': 'Smazat "{name}"?',
     },
     'ro': {
+      'data_import_backup_processing':
+          'Aplicația trimite copiile Money Manager la server pentru previzualizare.',
+      'data_import_choose': 'Alege fișierul',
+      'data_import_new_count': 'Cheltuieli de importat',
+      'data_import_prev_count': 'Deja importate',
+      'data_import_ignored_count': 'Înregistrări omise',
+      'data_import_added_count': 'Cheltuieli importate',
+      'data_import_before_preview':
+          'Alege un fișier și verifică-l înainte de a adăuga cheltuielile în cont.',
+      'data_import_expenses_only':
+          'Previzualizarea include cheltuielile. Veniturile, transferurile și înregistrările neacceptate sunt omise.',
+      'data_import_invalid':
+          'Alege un export AI Expense Tracker valid sau o copie Money Manager de la Orange Dog.',
+      'data_import_large': 'Fișierul este prea mare pentru a fi importat.',
+      'data_import_failed': 'Importul a eșuat. Încearcă din nou.',
       'item_editor_choose_subcategory': 'Selectează subcategoria',
       'item_editor_new': 'Articol nou',
       'item_editor_edit': 'Editează articolul',
@@ -19403,6 +19615,21 @@ class AppLocalizations {
       'delete_reminder_name_confirm': 'Ștergeți "{name}"?',
     },
     'hu': {
+      'data_import_backup_processing':
+          'Az alkalmazás a Money Manager-mentést az előnézethez elküldi a szerverre.',
+      'data_import_choose': 'Fájl kiválasztása',
+      'data_import_new_count': 'Importálandó kiadások',
+      'data_import_prev_count': 'Már importálva',
+      'data_import_ignored_count': 'Kihagyott tételek',
+      'data_import_added_count': 'Importált kiadások',
+      'data_import_before_preview':
+          'Válassz egy fájlt, és ellenőrizd, mielőtt hozzáadod a kiadásokat a fiókodhoz.',
+      'data_import_expenses_only':
+          'Az előnézet kiadásokat mutat. A bevételek, átvezetések és nem támogatott tételek kimaradnak.',
+      'data_import_invalid':
+          'Válassz érvényes AI Expense Tracker-exportot vagy Money Manager-mentést az Orange Dogtól.',
+      'data_import_large': 'A fájl túl nagy az importáláshoz.',
+      'data_import_failed': 'Az importálás sikertelen. Próbáld újra.',
       'item_editor_choose_subcategory': 'Alkategória kiválasztása',
       'item_editor_new': 'Új tétel',
       'item_editor_edit': 'Tétel szerkesztése',
@@ -20784,6 +21011,21 @@ class AppLocalizations {
       'delete_reminder_name_confirm': 'Törli a következőt: "{name}"?',
     },
     'id': {
+      'data_import_backup_processing':
+          'Aplikasi mengirim cadangan Money Manager ke server untuk pratinjau.',
+      'data_import_choose': 'Pilih file',
+      'data_import_new_count': 'Pengeluaran untuk diimpor',
+      'data_import_prev_count': 'Sudah diimpor',
+      'data_import_ignored_count': 'Catatan dilewati',
+      'data_import_added_count': 'Pengeluaran diimpor',
+      'data_import_before_preview':
+          'Pilih file dan tinjau sebelum menambahkan pengeluaran ke akun.',
+      'data_import_expenses_only':
+          'Pratinjau memuat pengeluaran. Pemasukan, transfer, dan catatan yang tidak didukung dilewati.',
+      'data_import_invalid':
+          'Pilih ekspor AI Expense Tracker yang valid atau cadangan Money Manager dari Orange Dog.',
+      'data_import_large': 'File ini terlalu besar untuk diimpor.',
+      'data_import_failed': 'Impor gagal. Coba lagi.',
       'item_editor_choose_subcategory': 'Pilih subkategori',
       'item_editor_new': 'Item baru',
       'item_editor_edit': 'Ubah item',
@@ -22158,6 +22400,21 @@ class AppLocalizations {
       'delete_reminder_name_confirm': 'Hapus "{name}"?',
     },
     'ms': {
+      'data_import_backup_processing':
+          'Aplikasi menghantar sandaran Money Manager ke pelayan untuk pratonton.',
+      'data_import_choose': 'Pilih fail',
+      'data_import_new_count': 'Perbelanjaan untuk diimport',
+      'data_import_prev_count': 'Sudah diimport',
+      'data_import_ignored_count': 'Rekod dilangkau',
+      'data_import_added_count': 'Perbelanjaan diimport',
+      'data_import_before_preview':
+          'Pilih fail dan semak sebelum menambah perbelanjaan pada akaun anda.',
+      'data_import_expenses_only':
+          'Pratonton memaparkan perbelanjaan. Pendapatan, pindahan dan rekod yang tidak disokong dilangkau.',
+      'data_import_invalid':
+          'Pilih eksport AI Expense Tracker yang sah atau sandaran Money Manager daripada Orange Dog.',
+      'data_import_large': 'Fail ini terlalu besar untuk diimport.',
+      'data_import_failed': 'Import gagal. Sila cuba lagi.',
       'item_editor_choose_subcategory': 'Pilih subkategori',
       'item_editor_new': 'Item baharu',
       'item_editor_edit': 'Sunting item',
@@ -23527,6 +23784,21 @@ class AppLocalizations {
       'delete_reminder_name_confirm': 'Padam "{name}"?',
     },
     'vi': {
+      'data_import_backup_processing':
+          'Ứng dụng gửi bản sao lưu Money Manager đến máy chủ để tạo bản xem trước.',
+      'data_import_choose': 'Chọn tệp',
+      'data_import_new_count': 'Khoản chi cần nhập',
+      'data_import_prev_count': 'Đã nhập trước đó',
+      'data_import_ignored_count': 'Bản ghi bị bỏ qua',
+      'data_import_added_count': 'Khoản chi đã nhập',
+      'data_import_before_preview':
+          'Chọn và kiểm tra tệp trước khi thêm các khoản chi vào tài khoản.',
+      'data_import_expenses_only':
+          'Bản xem trước hiển thị khoản chi. Thu nhập, chuyển khoản và bản ghi không được hỗ trợ sẽ bị bỏ qua.',
+      'data_import_invalid':
+          'Chọn bản xuất AI Expense Tracker hợp lệ hoặc bản sao lưu Money Manager của Orange Dog.',
+      'data_import_large': 'Tệp này quá lớn để nhập.',
+      'data_import_failed': 'Không thể nhập. Vui lòng thử lại.',
       'item_editor_choose_subcategory': 'Chọn danh mục con',
       'item_editor_new': 'Mặt hàng mới',
       'item_editor_edit': 'Chỉnh sửa mặt hàng',
@@ -24893,6 +25165,18 @@ class AppLocalizations {
       'delete_reminder_name_confirm': 'Xóa "{name}"?',
     },
     'zh': {
+      'data_import_backup_processing': '应用会将 Money Manager 备份发送到服务器以生成预览。',
+      'data_import_choose': '选择文件',
+      'data_import_new_count': '待导入支出',
+      'data_import_prev_count': '已导入过',
+      'data_import_ignored_count': '跳过的记录',
+      'data_import_added_count': '已导入的支出',
+      'data_import_before_preview': '选择文件并先核对，再将支出添加到您的账户。',
+      'data_import_expenses_only': '预览包含支出。收入、转账和不受支持的记录将被跳过。',
+      'data_import_invalid':
+          '请选择有效的 AI Expense Tracker 导出文件或 Orange Dog 的 Money Manager 备份。',
+      'data_import_large': '此文件太大，无法导入。',
+      'data_import_failed': '导入失败，请重试。',
       'item_editor_choose_subcategory': '选择子类别',
       'item_editor_new': '新增商品',
       'item_editor_edit': '编辑商品',
@@ -26046,6 +26330,19 @@ class AppLocalizations {
       'delete_reminder_name_confirm': '删除 "{name}"？',
     },
     'ja': {
+      'data_import_backup_processing':
+          'プレビューのため、アプリは Money Manager のバックアップをサーバーに送信します。',
+      'data_import_choose': 'ファイルを選択',
+      'data_import_new_count': 'インポートする支出',
+      'data_import_prev_count': 'インポート済み',
+      'data_import_ignored_count': 'スキップした記録',
+      'data_import_added_count': 'インポートした支出',
+      'data_import_before_preview': 'ファイルを選択し、アカウントに支出を追加する前に確認してください。',
+      'data_import_expenses_only': 'プレビューには支出が表示されます。収入、振替、未対応の記録はスキップされます。',
+      'data_import_invalid':
+          '有効な AI Expense Tracker のエクスポートか、Orange Dog の Money Manager のバックアップを選択してください。',
+      'data_import_large': 'ファイルが大きすぎてインポートできません。',
+      'data_import_failed': 'インポートできませんでした。もう一度お試しください。',
       'item_editor_choose_subcategory': 'サブカテゴリを選択',
       'item_editor_new': '新規品目',
       'item_editor_edit': '品目を編集',
@@ -27240,6 +27537,20 @@ class AppLocalizations {
       'delete_reminder_name_confirm': '「{name}」を削除しますか？',
     },
     'ko': {
+      'data_import_backup_processing':
+          '앱에서 미리 보기를 위해 Money Manager 백업을 서버로 보냅니다.',
+      'data_import_choose': '파일 선택',
+      'data_import_new_count': '가져올 지출',
+      'data_import_prev_count': '이미 가져옴',
+      'data_import_ignored_count': '건너뛴 기록',
+      'data_import_added_count': '가져온 지출',
+      'data_import_before_preview': '파일을 선택하고 계정에 지출을 추가하기 전에 내용을 확인하세요.',
+      'data_import_expenses_only':
+          '미리 보기에는 지출이 표시됩니다. 수입, 이체 및 지원되지 않는 기록은 건너뜁니다.',
+      'data_import_invalid':
+          '유효한 AI Expense Tracker 내보내기 파일 또는 Orange Dog의 Money Manager 백업을 선택하세요.',
+      'data_import_large': '파일이 너무 커서 가져올 수 없습니다.',
+      'data_import_failed': '가져오기에 실패했습니다. 다시 시도해 주세요.',
       'item_editor_choose_subcategory': '하위 카테고리 선택',
       'item_editor_new': '새 품목',
       'item_editor_edit': '품목 수정',
@@ -28455,6 +28766,21 @@ class AppLocalizations {
       'delete_reminder_name_confirm': '"{name}" 내역을 삭제하시겠습니까?',
     },
     'hi': {
+      'data_import_backup_processing':
+          'ऐप प्रीव्यू के लिए Money Manager बैकअप सर्वर पर भेजता है।',
+      'data_import_choose': 'फ़ाइल चुनें',
+      'data_import_new_count': 'इंपोर्ट करने वाले खर्च',
+      'data_import_prev_count': 'पहले से इंपोर्ट किए गए',
+      'data_import_ignored_count': 'छोड़े गए रिकॉर्ड',
+      'data_import_added_count': 'इंपोर्ट किए गए खर्च',
+      'data_import_before_preview':
+          'फ़ाइल चुनें और खाते में खर्च जोड़ने से पहले उसकी जाँच करें।',
+      'data_import_expenses_only':
+          'प्रीव्यू में खर्च दिखेंगे। आय, ट्रांसफ़र और असमर्थित रिकॉर्ड छोड़ दिए जाएँगे।',
+      'data_import_invalid':
+          'मान्य AI Expense Tracker एक्सपोर्ट या Orange Dog का Money Manager बैकअप चुनें।',
+      'data_import_large': 'यह फ़ाइल इंपोर्ट करने के लिए बहुत बड़ी है।',
+      'data_import_failed': 'इंपोर्ट विफल रहा। फिर से कोशिश करें।',
       'item_editor_choose_subcategory': 'उपश्रेणी चुनें',
       'item_editor_new': 'नई वस्तु',
       'item_editor_edit': 'वस्तु संपादित करें',
@@ -29805,6 +30131,21 @@ class AppLocalizations {
       'delete_reminder_name_confirm': 'क्या "{name}" को हटाना चाहते हैं?',
     },
     'ar': {
+      'data_import_backup_processing':
+          'يرسل التطبيق نسخ Money Manager الاحتياطية إلى الخادم للمعاينة.',
+      'data_import_choose': 'اختر ملفًا',
+      'data_import_new_count': 'المصروفات المطلوب استيرادها',
+      'data_import_prev_count': 'سبق استيرادها',
+      'data_import_ignored_count': 'السجلات المتخطاة',
+      'data_import_added_count': 'المصروفات المستوردة',
+      'data_import_before_preview':
+          'اختر ملفًا وراجعه قبل إضافة المصروفات إلى حسابك.',
+      'data_import_expenses_only':
+          'تعرض المعاينة المصروفات. يتم تخطي الدخل والتحويلات والسجلات غير المدعومة.',
+      'data_import_invalid':
+          'اختر ملف تصدير صالحًا من AI Expense Tracker أو نسخة Money Manager الاحتياطية من Orange Dog.',
+      'data_import_large': 'هذا الملف كبير جدًا ولا يمكن استيراده.',
+      'data_import_failed': 'تعذّر الاستيراد. يُرجى المحاولة مرة أخرى.',
       'item_editor_choose_subcategory': 'اختر فئة فرعية',
       'item_editor_new': 'عنصر جديد',
       'item_editor_edit': 'تعديل العنصر',
@@ -31130,6 +31471,21 @@ class AppLocalizations {
       'delete_reminder_name_confirm': 'هل تريد حذف "{name}"؟',
     },
     'es': {
+      'data_import_backup_processing':
+          'La aplicación envía las copias de Money Manager al servidor para preparar la vista previa.',
+      'data_import_choose': 'Elegir archivo',
+      'data_import_new_count': 'Gastos por importar',
+      'data_import_prev_count': 'Ya importados',
+      'data_import_ignored_count': 'Registros omitidos',
+      'data_import_added_count': 'Gastos importados',
+      'data_import_before_preview':
+          'Elige un archivo y revísalo antes de añadir los gastos a tu cuenta.',
+      'data_import_expenses_only':
+          'La vista previa muestra gastos. Se omiten los ingresos, las transferencias y los registros no compatibles.',
+      'data_import_invalid':
+          'Elige una exportación válida de AI Expense Tracker o una copia de Money Manager de Orange Dog.',
+      'data_import_large': 'El archivo es demasiado grande para importarlo.',
+      'data_import_failed': 'No se pudo importar. Inténtalo de nuevo.',
       'item_editor_choose_subcategory': 'Seleccionar subcategoría',
       'item_editor_new': 'Nuevo artículo',
       'item_editor_edit': 'Editar artículo',

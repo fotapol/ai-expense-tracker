@@ -13,8 +13,11 @@ FastAPI and Google Gemini for receipt processing.
 - Compare possible duplicate receipts before deciding which records to keep.
 - Use Analytics to see spending by category and compare periods.
 - Use **Tools → Export Data** and **Tools → Import Data** to transfer expense
-  data using the app's JSON format. Exports from other apps, including Money
-  Manager `.mmbackup` files, require conversion before import.
+  data using the app's JSON format. **Import Data** also accepts `.mmbackup`
+  files from Money Manager by Orange Dog. Review the amounts and currencies
+  before you confirm. The importer adds expenses with their dates and
+  categories and skips records already imported from the same source.
+  The API reads Money Manager backups to prepare the preview in memory.
 
 ## App Preview
 
