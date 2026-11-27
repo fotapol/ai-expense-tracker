@@ -73,6 +73,7 @@ build/
 Thumbs.db
 
 # Personal financial backup files
+/downloads/
 *.mmbackup
 expense-tracker-backup*.zip
 ai_expense_tracker_export_*.json
